@@ -5,6 +5,7 @@ import {
 } from "@deep/contracts";
 import { neededClarifications } from "./brief.js";
 import { canSpendExploration } from "./fences.js";
+import { detectGaps, triedSourceType } from "./gaps.js";
 import { queryLeaksPrivate, rejectPrivilegedProposal } from "./injection.js";
 import type { ControllerState, PolicyDecision, SearchTrace } from "./types.js";
 
@@ -72,6 +73,25 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
       arguments: { locator: unfetched[0].locator, sourceId: unfetched[0].id },
       estimatedMaxCostMicro: cost,
       dedupeKey: `fetch:${unfetched[0].locator}`,
+    };
+  }
+
+  const gaps = detectGaps(state);
+  const blockingGap = gaps.find((g) => g.importance === "blocking" && g.suggestedQuery);
+  if (blockingGap && blockingGap.sourceTypeNeeded && !triedSourceType(state, blockingGap.sourceTypeNeeded) && state.searches.length < 5) {
+    const q = blockingGap.suggestedQuery!;
+    const leak = queryLeaksPrivate(q, state.privateCanaries);
+    if (leak) {
+      return { ...base, type: "stop", rationale: "private text cannot enter a public query", arguments: { reason: "private_query_blocked" } };
+    }
+    return {
+      ...base,
+      type: "search",
+      rationale: `Decision-blocking gap: ${blockingGap.missingFact}. Switching source type to ${blockingGap.sourceTypeNeeded}.`,
+      arguments: { query: q, pivot: true, trigger: blockingGap.id, sourceTypeNeeded: blockingGap.sourceTypeNeeded },
+      estimatedMaxCostMicro: FIXTURE_SEARCH_COST_MICRO,
+      gapId: blockingGap.id,
+      dedupeKey: `search:gap:${blockingGap.id}:${state.searches.length}`,
     };
   }
 

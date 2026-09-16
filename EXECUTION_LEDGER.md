@@ -20,3 +20,11 @@
 No live paid calls were made.
 
 - Git: `25dad63` initial commit (160 files). `.env` and attachment blobs not committed.
+
+## 2026-09-16 — P1/P2 + remaining launch-scope fixture tests
+
+- Added research-core gap detection, candidate feasibility, calculations, source-type escalation, safer budget parse, markup stripping.
+- Fixture catalog: Vendor C (budget-gated), NimbusDB summaries vs matrix, paywall, contradiction, hostile markup.
+- `pnpm test:integration` 33/33 twice, exit 0. New IDs: R02 R03 R07 R11 R14 R22 V2-01 V2-02 V2-04 V2-05 V2-06 V2-18 E07 S04 S11 J09 plus challenge/export.
+- `pnpm verify` exit 0.
+- P0-L and P0-N still blocked by the same named inputs. No live paid calls. P1/P2 not claimed as a competitor win.

@@ -1,35 +1,30 @@
-# Builder handoff — implemented application (P0 checkpoint)
+# Builder handoff
 
-Commit: `9e8a5c0` on `main` (implementation `25dad63` plus this handoff). Workspace was initialized from an empty tree plus the Revision 3 kit.
+Working tree: `main`. Run `git rev-parse HEAD` for the exact commit after pull.
 
 ## Working behavior
-- `docker compose up -d --wait` starts Postgres 16.10 on **55432** (does not use the unrelated `paid-postgres` on 5432).
-- `pnpm db:migrate` then `pnpm dev:demo` serves API `:8787` and a durable worker.
-- `POST /v1/dev/session` (development only) → `POST /v1/consent` → `POST /v1/runs` with `Idempotency-Key`.
-- Fixture route searches/fetches labeled catalog evidence, publishes a cited report whose citation IDs resolve via `GET /v1/sources/:id`.
-- Cancel during writing, stale lease, deletion, and idempotent double-create are enforced in shipped publication/admission code.
+- `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
+- `pnpm db:migrate && pnpm test:integration && pnpm verify && pnpm dev:demo`
+- Fixture research: consent → idempotent create → worker persists passages → cited report.
+- P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02).
+- P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C, which was absent from the tight-budget listing (V2-04). Dose unit corrections recompute without reopening discovery (V2-05). Unknown dependency completeness forces a bounded full rerun flag (V2-06).
 
-## Commands actually run
+## Commands (latest session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0, twice | 15 tests including R01,R04,R05,R09,R13,E01,E02,J01,J03,J05,S01,S09 + V2-07/08 + correction |
-| `pnpm p0:launch` | 0, twice | real API+worker; citations resolved; cancel → `cancelling` |
+| `pnpm test:integration` | 0, twice | 33 tests (16 P0 smoke + 17 launch-scope) |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm eval:live` | not run as pass | would exit 2 without keys |
-| `pnpm test:e2e:android` | 2 | no device |
-| `pnpm test:e2e:ios` | 2 | no Xcode |
+| `pnpm test:e2e:android` / `ios` | 2 | no device / no Xcode |
 
-Scratch artifacts (session): `p0-d-tests.log`, `p0-d-launch.log`, `p0-l-blocked.log`, `p0-n-android.log`, `p0-n-ios.log`, `governance.log`, `kit-extract.log`.
-
-## Blockers
+## Blockers (unchanged)
 - **P0-L:** `OPENROUTER_API_KEY` and authorized `LIVE_SPEND_CAP_MICRO>0`.
-- **P0-N iOS:** Xcode/iOS runtime.
-- **P0-N Android:** emulator/device. SDK + `android-34` google_apis x86_64 image are installed; no AVD was defined.
+- **P0-N iOS:** Xcode.
+- **P0-N Android:** emulator/device (SDK image on disk is not registered with avdmanager).
 
-## Unresolved defects
-- Concurrent leftover pg-boss retries can still deadlock on event insert under load; advisory lock added, not load-tested.
-- PDF attachments store provided text only; no real PDF parser yet (disclosed as text-only).
-- Expo SDK 54 pins on the mobile package; iOS/Android native dirs are generated at prebuild time, not committed.
+## Unresolved
+- Not every original 90 acceptance ID has an executable test yet.
+- PDF parser is text-only; purchases and live push stay gated.
+- P1/P2 are fixture-proven only.
 
 ## Next
-Create an Android AVD and drive consent/input/close-reopen/citation/cancel/correct on device. Do not label P0 fully verified until P0-L and P0-N pass or remain honestly blocked.
+Supply live keys for P0-L, or start an Android emulator for P0-N. Continue converting remaining acceptance IDs on the fixture/Postgres path while those gates stay blocked.

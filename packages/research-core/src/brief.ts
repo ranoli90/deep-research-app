@@ -77,6 +77,21 @@ export function extractConstraints(question: string): Constraint[] {
     });
   }
 
+  const dose = question.match(/\b(\d+(?:\.\d+)?)\s*(mg|g|milligrams?|grams?)\b/i);
+  if (dose) {
+    const units = /g$|gram/i.test(dose[2]!) && !/^mg/i.test(dose[2]!) ? "g" : "mg";
+    constraints.push({
+      id: "dose",
+      field: "dose",
+      operator: "eq",
+      value: dose[1]!,
+      units,
+      origin: "explicit",
+      importance: "hard",
+      explanation: `Question names dose ${dose[0]}`,
+    });
+  }
+
   const pop = question.match(/\b(children under \d+|pediatric|under-?5|adults? only)\b/i);
   if (pop) {
     constraints.push({
@@ -108,15 +123,29 @@ export function neededClarifications(brief: Pick<ResearchBrief, "originalQuestio
   return questions;
 }
 
-export function parseCorrection(text: string): { field?: string; value?: string; relaxedHardConstraint: boolean } {
-  const budget = text.match(/budget.{0,24}(\d+(?:[.,]\d+)?)\s*(EUR|USD|GBP|€|\$)?/i);
+export function parseCorrection(text: string): {
+  field?: string;
+  value?: string;
+  units?: string;
+  relaxedHardConstraint: boolean;
+  unknownDependencies: boolean;
+} {
+  if (/dependency completeness unknown|dependencies? (are )?unknown/i.test(text)) {
+    return { relaxedHardConstraint: false, unknownDependencies: true };
+  }
+  const dose = text.match(/(\d+(?:\.\d+)?)\s*(mg|milligrams?|g|grams?)/i);
+  if (dose && /dose|instead of|not \d/i.test(text)) {
+    const units = /^mg|milligram/i.test(dose[2]!) ? "mg" : "g";
+    return { field: "dose", value: dose[1], units, relaxedHardConstraint: false, unknownDependencies: false };
+  }
+  const budget = text.match(/\bbudget\s+is\s+(\d+(?:[.,]\d+)?)/i) ?? text.match(/\bbudget\s+(\d+(?:[.,]\d+)?)/i);
   if (budget) {
-    return { field: "budget", value: budget[1], relaxedHardConstraint: true };
+    return { field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
   }
   if (/actually,?\s+include/i.test(text) || /relax/i.test(text) || /no longer required/i.test(text)) {
-    return { relaxedHardConstraint: true };
+    return { relaxedHardConstraint: true, unknownDependencies: false };
   }
-  return { relaxedHardConstraint: false };
+  return { relaxedHardConstraint: false, unknownDependencies: false };
 }
 
 export function applyCorrectionToConstraints(
@@ -126,6 +155,26 @@ export function applyCorrectionToConstraints(
   const parsed = parseCorrection(correction);
   const next = constraints.map((c) => ({ ...c }));
   let reopenedDiscovery = false;
+  if (parsed.field === "dose" && parsed.value) {
+    const existing = next.find((c) => c.field === "dose");
+    if (existing) {
+      existing.value = parsed.value;
+      if (parsed.units) existing.units = parsed.units;
+      existing.origin = "confirmed";
+      existing.explanation = `Corrected dose to ${parsed.value} ${parsed.units ?? existing.units ?? ""}`.trim();
+    } else {
+      next.push({
+        id: "dose",
+        field: "dose",
+        operator: "eq",
+        value: parsed.value,
+        units: parsed.units,
+        origin: "confirmed",
+        importance: "hard",
+        explanation: "Dose supplied in correction",
+      });
+    }
+  }
   if (parsed.field === "budget" && parsed.value) {
     const existing = next.find((c) => c.field === "budget");
     const prev = existing ? Number(existing.value) : undefined;

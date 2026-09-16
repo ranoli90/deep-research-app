@@ -8,6 +8,7 @@ export type StoredSource = {
   accessLevel: AccessLevel;
   originCluster?: string;
   sourceFamily?: string;
+  sourceType?: string;
   population?: string;
   snippet?: string;
 };
@@ -64,11 +65,13 @@ export type ControllerState = {
   gaps: Gap[];
   searches: SearchTrace[];
   constraints: Constraint[];
-  candidates: { id: string; identity: string; excludedBy?: string }[];
+  candidates: { id: string; identity: string; excludedBy?: string; feasibility?: string }[];
   spentMicro: number;
   budgetMicro: number;
   deleted: boolean;
   privateCanaries: string[];
+  reopenedDiscovery?: boolean;
+  dependencyCompleteness?: "known" | "partial" | "unknown";
 };
 
 export type PolicyDecision = ActionProposal & { rejectReason?: string };

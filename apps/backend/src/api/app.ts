@@ -7,7 +7,7 @@ import {
   MAX_ATTACHMENT_BYTES,
   PROCESSOR_DISCLOSURE,
 } from "@deep/contracts";
-import { applyCorrectionToConstraints, extractConstraints, impactForCorrection } from "@deep/research-core";
+import { applyCorrectionToConstraints, extractConstraints, impactForCorrection, parseCorrection, shouldFullRerun } from "@deep/research-core";
 import type PgBoss from "pg-boss";
 import type pg from "pg";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -272,13 +272,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
     }
     const parentBrief = await getBrief(pool, run.brief_id);
+    const parsedCorrection = parseCorrection(parsed.data.correctionText);
     const applied = applyCorrectionToConstraints(parentBrief.constraints, parsed.data.correctionText);
     const impact = impactForCorrection({
       previousConstraints: parentBrief.constraints,
       nextConstraints: applied.next,
       reopenedDiscovery: applied.reopenedDiscovery,
-      dependencyCompleteness: applied.reopenedDiscovery ? "unknown" : "partial",
+      dependencyCompleteness: parsedCorrection.unknownDependencies ? "unknown" : applied.reopenedDiscovery ? "unknown" : "partial",
     });
+    const fullRerun = shouldFullRerun(impact);
     const created = await withTx(pool, async (c) => {
       const briefId = crypto.randomUUID();
       const revision = parentBrief.revision + 1;
@@ -311,14 +313,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         type: "correction_accepted",
         summary: applied.reopenedDiscovery
           ? "Correction relaxes a hard constraint; candidate discovery will reopen."
-          : "Correction accepted; affected conclusions will be recomputed.",
+          : fullRerun
+            ? "Dependency completeness is not known; running a bounded full rerun."
+            : "Correction accepted; affected conclusions will be recomputed.",
         phase: "preparing",
-        payload: impact,
+        payload: { ...impact, fullRerun },
       });
-      return { childId, brief, impact };
+      return { childId, brief, impact, fullRerun };
     });
     await enqueueRun(boss, created.childId);
-    return { runId: created.childId, parentRunId: id, impact: created.impact, briefRevision: created.brief.revision };
+    return { runId: created.childId, parentRunId: id, impact: created.impact, fullRerun: created.fullRerun, briefRevision: created.brief.revision };
   });
 
   app.get("/v1/reports/:id", async (req, reply) => {

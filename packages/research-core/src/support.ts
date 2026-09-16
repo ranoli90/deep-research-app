@@ -61,6 +61,9 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   const overlap = claimTokens.filter((t) => passageTokens.has(t)).length;
   const ratio = overlap / claimTokens.length;
 
+  const passageScoped = /\b(adults? over \d+|adults only|children|one population|this sample)\b/i.test(passageText);
+  const claimUniversal = /\b(everyone|all patients|the general population|unqualified)\b/i.test(claimText);
+  if (passageScoped && claimUniversal) return "qualifies";
   const assertsFact = /\b(is|are|was|were|equals|costs|includes|supports|requires|announced)\b/i.test(claimText);
   if (assertsFact && ratio < 0.35) return "context-only";
   if (ratio < 0.25) return "unsupported";

@@ -7,6 +7,7 @@ export type SearchHit = {
   snippet: string;
   originCluster: string;
   family: string;
+  sourceType?: string;
   population?: string;
 };
 
@@ -16,6 +17,7 @@ export type FetchedDoc = {
   publisher: string;
   originCluster: string;
   family: string;
+  sourceType?: string;
   population?: string;
   text: string;
   accessLevel: "full-text" | "snippet" | "blocked";
@@ -29,6 +31,7 @@ export function fixtureSearch(query: string): SearchHit[] {
     snippet: s.snippet,
     originCluster: s.originCluster,
     family: s.family,
+    sourceType: s.sourceType,
     population: s.population,
   }));
 }
@@ -46,12 +49,26 @@ export function fixtureFetch(locator: string): FetchedDoc {
       accessLevel: "blocked",
     };
   }
+  if (src.blocked) {
+    return {
+      locator: src.locator,
+      title: src.title,
+      publisher: src.publisher,
+      originCluster: src.originCluster,
+      family: src.family,
+      sourceType: src.sourceType,
+      population: src.population,
+      text: src.snippet,
+      accessLevel: "blocked",
+    };
+  }
   return {
     locator: src.locator,
     title: src.title,
     publisher: src.publisher,
     originCluster: src.originCluster,
     family: src.family,
+    sourceType: src.sourceType,
     population: src.population,
     text: src.fullText,
     accessLevel: "full-text",

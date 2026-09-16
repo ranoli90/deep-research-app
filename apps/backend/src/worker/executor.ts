@@ -6,6 +6,8 @@ import {
 } from "@deep/contracts";
 import {
   composeReport,
+  detectGaps,
+  extractCandidates,
   type ControllerState,
   type StoredClaim,
   type StoredPassage,
@@ -28,6 +30,7 @@ import {
   emitEvent,
   getBrief,
   getRun,
+  listEvents,
   markTerminal,
   setPhase,
 } from "../modules/runs.js";
@@ -52,6 +55,7 @@ function toState(
   evidence: Awaited<ReturnType<typeof loadEvidence>>,
   deleted: boolean,
   privateCanaries: string[],
+  searchEvents: { type: string; public_summary: string; payload: unknown }[],
 ): ControllerState {
   const sources = evidence.sources.map((s) => ({
     id: s.id,
@@ -60,6 +64,7 @@ function toState(
     accessLevel: s.access_level,
     originCluster: s.origin_cluster ?? undefined,
     sourceFamily: s.origin_cluster ?? undefined,
+    sourceType: s.source_type ?? undefined,
     population: s.population ?? undefined,
   }));
   const passages: StoredPassage[] = evidence.passages.map((p) => ({
@@ -69,8 +74,28 @@ function toState(
     exactText: p.exact_text,
     locator: "document",
   }));
-  const families = [...new Set(sources.map((s) => s.originCluster ?? s.id))];
-  return {
+  const seen = new Set<string>();
+  const searches = searchEvents
+    .filter((e) => e.type === "searched")
+    .map((e) => {
+      const locators = ((e.payload as { locators?: string[] } | null)?.locators ?? []) as string[];
+      const families = locators.map((l) => l.split("/").slice(0, 3).join("/"));
+      let newFamilies = 0;
+      for (const f of families) {
+        if (!seen.has(f)) {
+          seen.add(f);
+          newFamilies += 1;
+        }
+      }
+      return {
+        query: e.public_summary.replace(/^Searched:\s*/, ""),
+        sourceFamilyIds: families,
+        newFamilies,
+        coverageProgress: newFamilies > 0,
+      };
+    });
+  const correctionTail = brief.originalQuestion.split("Correction:")[1] ?? "";
+  const state: ControllerState = {
     runId: run.id,
     brief,
     basis: {
@@ -91,30 +116,24 @@ function toState(
         status: passages.length ? "supported" : sources.length ? "investigating" : "unstarted",
       },
     ],
-    gaps:
-      brief.constraints.some((c) => c.field === "population") &&
-      !sources.some((s) => (s.population ?? "").includes("pediatric") || (s.population ?? "").includes("child"))
-        ? [
-            {
-              id: "population",
-              missingFact: "population-specific evidence",
-              whyItCouldChangeAnswer: "Adult figures may not apply",
-              importance: "blocking",
-              sourceTypeNeeded: "population-specific",
-              suggestedQuery: `${brief.originalQuestion} pediatric children population`,
-            },
-          ]
-        : [],
-    searches: sources.length
-      ? [{ query: brief.originalQuestion, sourceFamilyIds: families, newFamilies: families.length, coverageProgress: passages.length > 0 }]
-      : [],
+    gaps: [],
+    searches,
     constraints: brief.constraints,
-    candidates: [],
+    candidates: extractCandidates(passages, brief.constraints).map((c) => ({
+      id: c.id,
+      identity: c.identity,
+      excludedBy: c.excludedBy,
+      feasibility: c.feasibility,
+    })),
     spentMicro: run.spent_micro,
     budgetMicro: run.budget_micro || DEFAULT_RUN_BUDGET_MICRO,
     deleted,
     privateCanaries,
+    reopenedDiscovery: Boolean(run.parent_run_id) && /budget/i.test(correctionTail),
+    dependencyCompleteness: /unknown/i.test(correctionTail) ? "unknown" : run.parent_run_id ? "partial" : "known",
   };
+  state.gaps = detectGaps(state);
+  return state;
 }
 
 async function isDeleted(db: Queryable, accountId: string): Promise<boolean> {
@@ -180,7 +199,8 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const brief = await getBrief(pool, run.brief_id);
     const evidence = await loadEvidence(pool, runId);
     const canaries = await privateCanaries(pool, run.account_id);
-    const state = toState(run, brief, evidence, deleted, canaries);
+    const ev = await listEvents(pool, runId, 0);
+    const state = toState(run, brief, evidence, deleted, canaries, ev);
     // Keep lease fence from claim, not a stale load.
     state.basis.workerLeaseFence = fence;
 
@@ -237,6 +257,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             title: hit.title,
             publisher: hit.publisher,
             originCluster: hit.originCluster,
+            sourceType: hit.sourceType,
             population: hit.population,
           });
         }
@@ -298,6 +319,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             title: doc.title,
             publisher: doc.publisher,
             originCluster: doc.originCluster,
+            sourceType: doc.sourceType,
             population: doc.population,
           }));
         }
@@ -376,12 +398,26 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
 
     const evidence2 = await loadEvidence(pool, runId);
     const brief2 = await getBrief(pool, latest.brief_id);
-    const state2 = toState(latest, brief2, evidence2, false, canaries);
+    const ev2 = await listEvents(pool, runId, 0);
+    const state2 = toState(latest, brief2, evidence2, false, canaries, ev2);
     state2.basis.workerLeaseFence = fence;
     state2.phase = "writing";
     const reportId = crypto.randomUUID();
     const report = composeReport(state2, reportId);
     report.routeMode = latest.route_mode as typeof report.routeMode;
+    for (const c of state2.candidates) {
+      await pool.query(
+        `INSERT INTO candidates (id, run_id, identity, discovered_from, excluded_by) VALUES ($1,$2,$3,$4,$5)`,
+        [crypto.randomUUID(), runId, c.identity, c.id, c.excludedBy ?? null],
+      );
+    }
+    for (const g of state2.gaps) {
+      await pool.query(
+        `INSERT INTO evidence_gaps (id, run_id, missing_fact, why_it_could_change_answer, importance, source_type_needed, latest_outcome)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [crypto.randomUUID(), runId, g.missingFact, g.whyItCouldChangeAnswer, g.importance, g.sourceTypeNeeded ?? null, g.latestOutcome ?? null],
+      );
+    }
     const claims: StoredClaim[] = state2.claims;
     const passages: StoredPassage[] = state2.passages;
 
