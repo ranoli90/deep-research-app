@@ -163,6 +163,11 @@ async function privateCanaries(db: Queryable, accountId: string): Promise<string
 
 export async function processRun(pool: pg.Pool, config: AppConfig, runId: string, opts: ProcessOptions = {}): Promise<void> {
   const workerId = opts.workerId ?? config.workerId;
+  const peek = await getRun(pool, runId);
+  if (peek?.route_mode === "controlled-research" && !config.liveRouteEnabled) {
+    logInfo("skip_live_job", { runId, reason: "fixture_worker_cannot_run_live_route" });
+    return;
+  }
   const fence = await withTx(pool, async (c) => claimLease(c, runId, workerId, config.leaseMs));
   if (fence == null) return;
 
