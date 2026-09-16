@@ -233,3 +233,25 @@ describe("V2-03 gold-evidence diagnostic", () => {
     expect(JSON.stringify(withGold.blocks)).toMatch(/not compatible with Postgres 14/);
   });
 });
+
+describe("V2-19 unread scanned table", () => {
+  it("does not guess a scanned table and names extract_table as unavailable", () => {
+    const s = state("What does the unreadable scanned table say about compatibility?");
+    s.passages = [
+      {
+        id: "scan",
+        sourceId: "t1",
+        sourceVersionId: "v1",
+        exactText:
+          "The decisive compatibility cell exists only in an unreadable scanned table. extract_table is unavailable. This page remains unread as a table; text parsing did not recover the cell.",
+        locator: "document",
+      },
+    ];
+    s.sources = [
+      { id: "t1", title: "scan", locator: "fixture://scan/table", accessLevel: "full-text", sourceType: "vendor-docs" },
+    ];
+    const report = composeReport(s, "00000000-0000-4000-8000-000000000019");
+    expect(JSON.stringify(report.blocks)).toMatch(/unread|scanned table|extract_table/i);
+    expect(JSON.stringify(report.blocks)).not.toMatch(/therefore compatible/i);
+  });
+});

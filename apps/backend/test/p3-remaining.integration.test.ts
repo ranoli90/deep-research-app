@@ -64,6 +64,7 @@ beforeEach(async () => {
   await pool.query("TRUNCATE accounts CASCADE");
 });
 afterAll(async () => {
+  await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run' AND state IN ('created', 'retry', 'active')`);
   await app.close();
   await boss.stop({ graceful: false, timeout: 2000 });
   await pool.end();
@@ -146,6 +147,75 @@ describe("remaining launch-scope IDs", () => {
     expect((still?.blocks as { citationIds: string[] }[])[0]!.citationIds[0]).toBe(cited);
     const src = await app.inject({ method: "GET", url: `/v1/sources/${cited}`, headers: { authorization: `Bearer ${token}` } });
     expect(src.json().exactText).not.toMatch(/UPDATED 2026 rewrite/);
+  });
+
+  it("V2-13 private canary is stored as evidence, omitted from public queries, and denied to another account", async () => {
+    const { token, accountId } = await authed();
+    const att = await app.inject({
+      method: "POST",
+      url: "/v1/attachments",
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        filename: "patient-note.txt",
+        mime: "text/plain",
+        text: "Patient CANARY:SECRET99 lives at 1 Private Road",
+      },
+    });
+    const created = await createRun(
+      token,
+      "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01 using the attached note",
+      { attachmentIds: [att.json().attachmentId] },
+    );
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    const evidence = await loadEvidence(pool, runId);
+    expect(evidence.passages.some((p) => p.exact_text.includes("CANARY:SECRET99"))).toBe(true);
+    const intents = await pool.query<{ request_digest: string }>(
+      `SELECT request_digest FROM provider_intents WHERE run_id = $1`,
+      [runId],
+    );
+    expect(intents.rows.some((r) => (r.request_digest ?? "").includes("CANARY:SECRET99"))).toBe(false);
+    const events = await listEvents(pool, runId, 0);
+    expect(JSON.stringify(events)).not.toContain("CANARY:SECRET99");
+    const other = await authed();
+    const passageId = evidence.passages.find((p) => p.exact_text.includes("CANARY:SECRET99"))!.id;
+    const stolen = await app.inject({
+      method: "GET",
+      url: `/v1/sources/${passageId}`,
+      headers: { authorization: `Bearer ${other.token}` },
+    });
+    expect([403, 404]).toContain(stolen.statusCode);
+    expect(stolen.json().exactText ?? "").not.toContain("CANARY:SECRET99");
+    void accountId;
+  });
+
+  it("JOB-2 attached document text is stored as supplied evidence and not used as a public query", async () => {
+    const { token, accountId } = await authed();
+    const att = await app.inject({
+      method: "POST",
+      url: "/v1/attachments",
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        filename: "proposal.txt",
+        mime: "text/plain",
+        text: "INTERNAL-PROPOSAL: the vendor claims a dedicated vector engine is included in the German 40 EUR plan.",
+      },
+    });
+    const created = await createRun(
+      token,
+      "Reconcile the attached proposal.txt with public managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+      { attachmentIds: [att.json().attachmentId] },
+    );
+    await processRun(pool, config, created.json().runId);
+    const evidence = await loadEvidence(pool, created.json().runId);
+    expect(evidence.passages.some((p) => p.exact_text.includes("INTERNAL-PROPOSAL"))).toBe(true);
+    expect(evidence.sources.some((s) => (s.canonical_locator ?? "").startsWith("attachment://"))).toBe(true);
+    const events = await listEvents(pool, created.json().runId, 0);
+    const searches = events.filter((e) => e.type === "searched").map((e) => e.public_summary);
+    expect(searches.length).toBeGreaterThan(0);
+    expect(searches.join(" ")).not.toMatch(/INTERNAL-PROPOSAL/);
+    const report = await getLatestReportForRun(pool, created.json().runId, accountId);
+    expect(JSON.stringify(report?.blocks)).toMatch(/vector engine|INTERNAL-PROPOSAL|supplied/i);
   });
 
   it("E06 PDF attachment is disclosed as text-only / unread pages", async () => {

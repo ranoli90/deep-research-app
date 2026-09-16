@@ -114,7 +114,7 @@
   {
     "command": "pnpm test:e2e:android",
     "status": "implemented_application_command",
-    "scope": "exits 2 unless an adb device is online",
+    "scope": "device a3fa7852 was online this session; Expo Go + installed preview APK; script still exits 2 if adb is empty",
     "network": false,
     "paid": false,
     "implementation": "scripts/e2e-android.mjs"
@@ -130,10 +130,10 @@
   {
     "command": "pnpm eval:live",
     "status": "implemented_application_command",
-    "scope": "blocked without OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0",
+    "scope": "not a scored benchmark; P0-L live trace is scripts/p0-live-check.ts under LIVE_SPEND_CAP_MICRO",
     "network": true,
     "paid": true,
-    "implementation": "apps/backend/src/eval-live.ts"
+    "implementation": "apps/backend/src/eval-live.ts, scripts/p0-live-check.ts"
   },
   {
     "command": "pnpm verify",
@@ -154,9 +154,17 @@
   {
     "command": "pnpm p0:launch",
     "status": "implemented_application_command",
-    "scope": "starts real API+worker, consented fixture run, citation resolve, cancel",
+    "scope": "starts real API+worker, consented fixture run, citation resolve, cancel during writing, late publication rejected",
     "network": false,
     "paid": false,
     "implementation": "scripts/p0-launch-check.ts"
+  },
+  {
+    "command": "tsx scripts/p0-live-check.ts",
+    "status": "implemented_application_command",
+    "scope": "one authorized live run plus correction; paid; requires OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0",
+    "network": true,
+    "paid": true,
+    "implementation": "scripts/p0-live-check.ts"
   }
 ]

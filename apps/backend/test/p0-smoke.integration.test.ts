@@ -68,6 +68,7 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run' AND state IN ('created', 'retry', 'active')`);
   await app.close();
   await boss.stop({ graceful: false, timeout: 2000 });
   await pool.end();

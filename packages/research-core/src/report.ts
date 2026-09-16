@@ -267,6 +267,21 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     });
   }
 
+  const unreadTable = state.passages.find((p) =>
+    /unreadable scanned table|extract_table is unavailable|table image only|scanned tables are not treated as fully read/i.test(
+      p.exactText,
+    ),
+  );
+  if (unreadTable) {
+    blocks.push({
+      id: "unread-table",
+      kind: "caveat",
+      text: "A scanned table remained unread. extract_table is unavailable; the cell was not guessed from the image.",
+      claimIds: [],
+      citationIds: [unreadTable.id],
+    });
+  }
+
   const popGap = state.gaps.find((g) => g.sourceTypeNeeded === "population-specific");
   const pediatric = state.sources.some((s) => (s.population ?? "").match(/child|pediatric/));
   if (popGap || pediatric) {

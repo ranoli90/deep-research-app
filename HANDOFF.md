@@ -1,36 +1,39 @@
 # Builder handoff
 
-Working tree: `main` at `3847cf7285d797b39acbac58c72a535da42c6ea8`. Run `git rev-parse HEAD` after pull.
+Working tree: `main`. Run `git rev-parse HEAD` after pull. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
 - `pnpm db:migrate && pnpm test:integration && pnpm verify && pnpm dev:demo`
 - Fixture research: consent → idempotent create → worker persists passages → cited report.
+- Attachments are ingested as `attachment://` evidence and are not copied into public search queries (JOB-2, V2-13).
+- Off-coverage bait from retrieved pages is declined without skipping remaining fetches (R10 + R14).
+- Paywalled fetches persist `access_level=blocked` even when snippet bytes match (R07). Reports use the latest source version (V2-19).
 - P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02).
-- P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04). Dose unit corrections recompute without reopening discovery (V2-05). Unknown dependency completeness forces a bounded full rerun flag (V2-06).
-- P3 (fixture/native-structural): attachments, share/flag, clarification continue, follow-up, lease reclaim, writing reserve, freshness/translation, unsigned purchase reject, application-level completion outbox.
+- P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04).
 - Close/reopen restores token, draft, and last run via `persistSession`/`hydrateOnLaunch`. Library opens a saved run on Research immediately. Cancel during writing is asserted by `pnpm p0:launch`.
 
-## Commands (latest session)
+## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 69 tests |
+| `pnpm test:integration` | 0, twice | 73 tests |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm --filter @deep/mobile test` | 0 | 20 tests including persist/hydrate round-trip |
-| `pnpm p0:launch` | 0, twice | citations resolve; cancel during writing; no late report |
-| `pnpm test:e2e:android` / `ios` | 2 | no device / no Xcode |
+| `pnpm --filter @deep/mobile test` | 0 | 22 tests including persist/hydrate round-trip |
+| `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
+| `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
+| `pnpm test:e2e:ios` | 2 | no Xcode |
 
-## Blockers (unchanged)
-- **P0-L:** executed. Remaining OpenRouter key allowance ~$4.90 of $5. Do not raise the cap. Live policy is search-once then fetch HTTP sources; fixture workers skip live jobs.
-- **P0-N iOS:** Xcode.
-- **P0-N Android:** physical device used this session (`a3fa7852`, Expo Go + installed EAS APK). AVD creation still fails (`avdmanager` package index `null`). iOS/TestFlight deferred.
+## Blockers
+- **P0-N iOS:** Xcode / iOS runtime. TestFlight deferred by user.
+- Hosted Supabase/Render/auth/RLS/storage/pooler unverified.
+- Purchases and live push gated, not simulated as successful.
+- GitHub HTTPS push was blocked earlier (`gh` token mismatch); do not force-push.
 
 ## Unresolved
-- Device VoiceOver/TalkBack, iOS/Android close/reopen, and purchase sandbox (M01/M02/M11) are not executed on hardware.
-- J14 proves application outbox dedupe, not OS push delivery. Live push remains gated.
-- S08 rejects unsigned payloads; signed store webhooks need sandbox credentials.
-- PDF parser is text-only. Hosted Supabase/Render/auth/RLS/storage/pooler unverified.
-- P1/P2/P3 fixture tests are not a competitor win.
+- TalkBack/VoiceOver and purchase sandbox not exercised on hardware.
+- J14 proves application outbox dedupe, not OS push delivery.
+- Compact Android layout: keyboard + attach fields crowd the report (Send remains visible).
+- P1/P2/P3 fixture tests are not a competitor win. Do not spend more OpenRouter unless remaining cap and a new live need justify it.
 
 ## Next
-Supply live keys for P0-L, or start an Android emulator for P0-N. Remaining device/purchase/push/hosted gates stay honestly blocked.
+Keep Android work: restart the 8787 worker so native attach uses `ingestAttachments`. iOS at the end. Hosted credentials when provided.

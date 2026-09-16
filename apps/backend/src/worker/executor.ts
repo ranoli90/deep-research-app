@@ -6,10 +6,12 @@ import {
   LIVE_CALL_RESERVE_MICRO,
 } from "@deep/contracts";
 import {
+  authorizeAction,
   compactForContext,
   composeReport,
   detectGaps,
   extractCandidates,
+  selectNextAction,
   type ControllerState,
   type StoredClaim,
   type StoredPassage,
@@ -119,7 +121,15 @@ function toState(
       {
         id: "primary",
         question: brief.originalQuestion,
-        status: passages.length ? "supported" : sources.length ? "investigating" : "unstarted",
+        status: (() => {
+          const publicPassages = passages.filter((p) => {
+            const src = sources.find((s) => s.id === p.sourceId);
+            return src && !String(src.locator).startsWith("attachment://");
+          });
+          if (publicPassages.length) return "supported";
+          if (sources.length) return "investigating";
+          return "unstarted";
+        })(),
       },
     ],
     gaps: [],
@@ -147,6 +157,49 @@ async function isDeleted(db: Queryable, accountId: string): Promise<boolean> {
   return Boolean(res.rows[0]?.deleted_at);
 }
 
+async function ingestAttachments(
+  pool: pg.Pool,
+  run: { id: string; account_id: string },
+  brief: { attachmentIds: string[] },
+): Promise<void> {
+  for (const id of brief.attachmentIds ?? []) {
+    const row = await pool.query<{
+      filename: string;
+      mime: string;
+      extracted_text: string | null;
+      deleted_at: Date | null;
+    }>(
+      `SELECT filename, mime, extracted_text, deleted_at FROM attachments WHERE id = $1 AND account_id = $2`,
+      [id, run.account_id],
+    );
+    const att = row.rows[0];
+    if (!att || att.deleted_at || !att.extracted_text) continue;
+    const locator = `attachment://${id}`;
+    const exists = await pool.query(`SELECT 1 FROM sources WHERE run_id = $1 AND canonical_locator = $2`, [run.id, locator]);
+    if ((exists.rowCount ?? 0) > 0) continue;
+    await withTx(pool, async (c) => {
+      const sourceId = await insertSource(c, {
+        accountId: run.account_id,
+        runId: run.id,
+        locator,
+        title: att.filename,
+        publisher: "uploaded",
+        originCluster: locator,
+        sourceType: "supplied-document",
+      });
+      await insertVersionAndPassage(c, {
+        sourceId,
+        accountId: run.account_id,
+        runId: run.id,
+        locator,
+        text: att.extracted_text!,
+        accessLevel: att.mime === "application/pdf" ? "partial-text" : "full-text",
+      });
+      await bumpEvidence(c, run.id);
+    });
+  }
+}
+
 async function privateCanaries(db: Queryable, accountId: string): Promise<string[]> {
   const res = await db.query<{ extracted_text: string | null }>(
     `SELECT extracted_text FROM attachments WHERE account_id = $1 AND deleted_at IS NULL AND extracted_text IS NOT NULL`,
@@ -170,6 +223,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
   }
   const fence = await withTx(pool, async (c) => claimLease(c, runId, workerId, config.leaseMs));
   if (fence == null) return;
+  const declinedOffCoverage = new Set<string>();
 
   for (let step = 0; step < 12; step++) {
     const run = await getRun(pool, runId);
@@ -208,6 +262,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     }
 
     const brief = await getBrief(pool, run.brief_id);
+    await ingestAttachments(pool, run, brief);
     const evidence = await loadEvidence(pool, runId);
     const canaries = await privateCanaries(pool, run.account_id);
     const ev = await listEvents(pool, runId, 0);
@@ -235,6 +290,22 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         dedupeKey: `live-${runId}-${step}-${liveNext.type}`,
         privileged: false,
       };
+    }
+
+    // Retrieved gossip/bait must be declined without skipping inspection of remaining sources.
+    if (decision.rejectReason === "off_coverage") {
+      if (!declinedOffCoverage.has(decision.dedupeKey)) {
+        await emitEvent(pool, {
+          runId,
+          accountId: run.account_id,
+          type: "action_rejected",
+          summary: decision.rationale,
+          phase: run.phase,
+          payload: { reason: decision.rejectReason },
+        });
+        declinedOffCoverage.add(decision.dedupeKey);
+      }
+      decision = authorizeAction(state, selectNextAction(state));
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
@@ -373,11 +444,17 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           }));
         }
         const hash = createHash("sha256").update(doc.text).digest("hex");
-        const last = await c.query<{ content_hash: string }>(
-          `SELECT content_hash FROM source_versions WHERE source_id = $1 ORDER BY retrieved_at DESC LIMIT 1`,
+        const last = await c.query<{ content_hash: string; access_level: string }>(
+          `SELECT content_hash, access_level FROM source_versions WHERE source_id = $1 ORDER BY retrieved_at DESC LIMIT 1`,
           [sourceId],
         );
-        if (!last.rows[0] || last.rows[0].content_hash !== hash) {
+        // Persist when text OR access level changes. A paywalled fetch often
+        // returns the same snippet bytes with access_level=blocked.
+        if (
+          !last.rows[0] ||
+          last.rows[0].content_hash !== hash ||
+          last.rows[0].access_level !== doc.accessLevel
+        ) {
           await insertVersionAndPassage(c, {
             sourceId,
             accountId: run.account_id,

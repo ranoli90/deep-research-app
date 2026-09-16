@@ -28,6 +28,9 @@ describe("P0-N native state mapping", () => {
       labeledDemo: true,
     };
     await persistSession(store, { token: "tok-session-1", state: s });
+    expect(await store.getItem("deep.token")).toBe("tok-session-1");
+    expect(await store.getItem("deep.draft")).toContain("Germany");
+    expect(await store.getItem("deep.ui")).toMatch(/r1/);
     const hydrated = await hydrateOnLaunch(store);
     expect(hydrated.token).toBe("tok-session-1");
     expect(hydrated.state.draft).toContain("Germany");

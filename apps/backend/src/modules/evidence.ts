@@ -91,6 +91,12 @@ export async function loadEvidence(db: Queryable, runId: string): Promise<{
      FROM passages p
      JOIN source_versions v ON v.id = p.source_version_id
      JOIN sources s ON s.id = v.source_id
+     JOIN LATERAL (
+       SELECT id FROM source_versions latest
+       WHERE latest.source_id = s.id
+       ORDER BY latest.retrieved_at DESC
+       LIMIT 1
+     ) latest ON latest.id = v.id
      WHERE p.run_id = $1`,
     [runId],
   );

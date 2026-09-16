@@ -28,7 +28,7 @@
       "evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
-        "tests": "pnpm test:integration twice, 69/69, exit 0 (includes original 12 smoke IDs)",
+        "tests": "pnpm test:integration twice, 73/73, exit 0 (includes original 12 smoke IDs plus JOB-2/V2-13 and remaining launch-scope IDs)",
         "launch": "pnpm p0:launch twice: citations resolved; cancel during writing; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
@@ -37,9 +37,19 @@
     {
       "id": "P0-L",
       "name": "Authorized live model and retrieval trace",
-      "status": "blocked by a named external dependency",
+      "status": "implemented and verified",
       "requires_authorized_routes_and_budget": true,
-      "missing": "OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0; no live retrieval credentials",
+      "evidence": {
+        "command": "tsx scripts/p0-live-check.ts with LIVE_ROUTE_ENABLED=true LIVE_RETRIEVAL_ENABLED=true API_PORT=8788",
+        "model": "openai/gpt-4o-mini plus OpenRouter web plugin",
+        "runId": "1351c267-0388-45e4-bd70-3b1b430a49a7",
+        "reportId": "6cdf6f92-f60d-49dc-b305-dc49592965b0",
+        "correctionRunId": "5f8a7af2-4e9f-4efe-8745-a0784d8e1f77",
+        "correctionReportId": "cce6aadb-5413-4483-8f7f-3ae9e4de6f0b",
+        "sources": "https IONOS/SysEleven/ayedo snippets and full-text 20000 chars",
+        "spend_usd": "0.096 of authorized 5.00 remaining ~4.90",
+        "artifacts": "scratch p0-l-live-4.log copied to p0-l-live.log"
+      },
       "scope": "Actual source passages, bounded cited report, receipts and one correction. Fixture success does not pass."
     },
     {
@@ -48,13 +58,15 @@
       "status": "partial",
       "platform_status": {
         "ios": "blocked by a named external dependency",
-        "android": "blocked by a named external dependency"
+        "android": "implemented and verified"
       },
       "missing": {
-        "ios": "Xcode / iOS runtime on this Linux host",
-        "android": "no AVD defined and no emulator/device online (SDK and system-images;android-34;google_apis;x86_64 are present)"
+        "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
-      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; apps/mobile/test/lifecycle.test.ts and journey.test.ts cover consent/input, close/reopen, cancel, correction, shared concise/detailed blocks, back, persist. Not a substitute for device evidence.",
+      "evidence": {
+        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54 restored fixture report+draft after reopen; Library lists COMPLETED run; tapping it shows FIXTURE REPORT; EAS preview APK d7e7b407 installed as app.deepresearch.mobile; device cancel-during-writing not captured (fixture too fast); API launch-check covers writing cancel"
+      },
+      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
     }
   ],
