@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
@@ -14,10 +14,16 @@ export function createPool(databaseUrl: string): pg.Pool {
 }
 
 export async function migrate(pool: pg.Pool): Promise<void> {
-  const sqlPath = join(__dirname, "../../migrations/001_init.sql");
-  const sql = readFileSync(sqlPath, "utf8");
-  await pool.query(sql);
-  await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) ON CONFLICT DO NOTHING", ["001_init"]);
+  const dir = join(__dirname, "../../migrations");
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const sql = readFileSync(join(dir, file), "utf8");
+    await pool.query(sql);
+    const id = file.replace(/\.sql$/, "");
+    await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
+  }
 }
 
 export async function withTx<T>(pool: pg.Pool, fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {

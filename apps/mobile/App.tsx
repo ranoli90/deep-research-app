@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,13 +17,20 @@ import {
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "./src/api";
+import { loadSnapshot, persistDraft, persistSnapshot } from "./src/persist";
 import {
+  androidBack,
   applySnapshot,
+  attachFile,
   canSubmit,
   conciseBlocks,
   emptyState,
+  logout as logoutState,
+  mergeEvents,
   restoreAfterReopen,
+  submitPrerequisite,
   type ReportBlock,
   type UiState,
 } from "./src/state";
@@ -39,6 +47,9 @@ function AppInner() {
   const [token, setToken] = useState<string | null>(null);
   const [detailed, setDetailed] = useState(true);
   const [correction, setCorrection] = useState("");
+  const [clarifyAnswer, setClarifyAnswer] = useState("");
+  const [attachName, setAttachName] = useState("note.txt");
+  const [attachText, setAttachText] = useState("");
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const draftRef = useRef(state.draft);
   draftRef.current = state.draft;
@@ -46,7 +57,11 @@ function AppInner() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const persistAnchor = useCallback((reportId: string, blockId: string) => {
-    setState((s) => ({ ...s, readingAnchor: { reportId, blockId, offset: 0 } }));
+    setState((s) => {
+      const next = { ...s, readingAnchor: { reportId, blockId, offset: 0 } };
+      void persistSnapshot(AsyncStorage, next);
+      return next;
+    });
   }, []);
 
   async function ensureSession() {
@@ -66,7 +81,7 @@ function AppInner() {
     const snap = await api.getRun(t, runId);
     setState((s) => applySnapshot(s, snap));
     const ev = await api.events(t, runId, 0);
-    setState((s) => ({ ...s, events: ev.events ?? [] }));
+    setState((s) => ({ ...s, events: mergeEvents(s.events, ev.events ?? []) }));
     if (snap.reportId) {
       const report = await api.report(t, snap.reportId);
       setState((s) => ({
@@ -89,7 +104,24 @@ function AppInner() {
   }
 
   useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      let consumed = false;
+      setState((s) => {
+        const r = androidBack(s);
+        consumed = r.consumed;
+        return r.next;
+      });
+      return consumed;
+    });
+    void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+      if (v) setState((s) => ({ ...s, reducedMotion: true }));
+    });
+    void loadSnapshot(AsyncStorage).then((snap) => {
+      if (!snap) return;
+      setState((s) => restoreAfterReopen({ ...s, ...snap, source: null }));
+    });
     return () => {
+      sub.remove();
       if (poll.current) clearInterval(poll.current);
     };
   }, []);
@@ -97,12 +129,18 @@ function AppInner() {
   async function onSend() {
     const gate = canSubmit(state);
     if (!gate.ok) {
-      setState((s) => ({ ...s, error: gate.reason ?? "Cannot send" }));
+      const tab = submitPrerequisite(state);
+      setState((s) => ({ ...s, error: gate.reason ?? "Cannot send", tab }));
       return;
     }
     try {
       const t = token ?? (await ensureSession());
-      const created = await api.createRun(t, state.draft.trim(), state.routeMode, crypto.randomUUID());
+      const ids: string[] = [];
+      for (const file of state.attachments) {
+        const up = await api.attach(t, file.filename, file.mime, file.text);
+        ids.push(up.attachmentId);
+      }
+      const created = await api.createRun(t, state.draft.trim(), state.routeMode, crypto.randomUUID(), ids);
       setState((s) => ({ ...s, status: "progress", error: null, run: { runId: created.runId, lifecycle: created.lifecycle, phase: created.phase, outcome: null, reportId: null, labeledDemo: created.labeledDemo } }));
       startPolling(t, created.runId);
     } catch (e) {
@@ -128,6 +166,10 @@ function AppInner() {
     const snap = await api.getRun(token, state.run.runId);
     const child = await api.correct(token, state.run.runId, snap.brief.revision, correction.trim());
     setCorrection("");
+    setState((s) => ({
+      ...s,
+      previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+    }));
     startPolling(token, child.runId);
   }
 
@@ -189,7 +231,7 @@ function AppInner() {
                 <Text style={styles.bodyText}>
                   {state.events.at(-1)?.publicSummary ?? "Waiting for the server. Closing this app will not stop the job."}
                 </Text>
-                <ActivityIndicator accessibilityLabel="In progress" />
+                {state.reducedMotion ? null : <ActivityIndicator accessibilityLabel="In progress" />}
                 <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel research">
                   <Text style={styles.link}>Cancel</Text>
                 </Pressable>
@@ -202,6 +244,36 @@ function AppInner() {
             {state.status === "failed" ? (
               <Text style={styles.bodyText}>The run failed. Saved evidence, if any, is still in your library.</Text>
             ) : null}
+            {state.status === "awaiting_input" ? (
+              <View style={styles.card} accessibilityLabel="Clarification needed">
+                <Text style={styles.kicker}>Need one detail</Text>
+                <Text style={styles.bodyText}>{state.events.find((e) => e.type === "clarify")?.publicSummary ?? "Which jurisdiction should this answer apply to?"}</Text>
+                <TextInput
+                  value={clarifyAnswer}
+                  onChangeText={setClarifyAnswer}
+                  placeholder="Germany"
+                  placeholderTextColor={theme.muted}
+                  style={styles.input}
+                  accessibilityLabel="Clarification answer"
+                />
+                <Pressable
+                  onPress={async () => {
+                    if (!token || !state.run) return;
+                    await api.continueRun(token, state.run.runId, clarifyAnswer.trim() || "Germany");
+                    startPolling(token, state.run.runId);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Submit clarification and continue"
+                >
+                  <Text style={styles.send}>Continue research</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            {state.offline ? (
+              <Text style={styles.caveat} accessibilityLiveRegion="polite">
+                Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.
+              </Text>
+            ) : null}
 
             {state.report ? (
               <View style={styles.card} accessibilityLabel="Research report">
@@ -213,7 +285,9 @@ function AppInner() {
                 </View>
                 {blocks.map((b) => (
                   <View key={b.id} style={{ marginBottom: space.md }}>
-                    <Text style={b.kind === "caveat" ? styles.caveat : styles.bodyText}>{b.text}</Text>
+                    <Text selectable style={b.kind === "caveat" ? styles.caveat : styles.bodyText}>
+                      {b.text}
+                    </Text>
                     {b.citationIds.map((id) => (
                       <Pressable key={id} onPress={() => onOpenSource(id)} accessibilityRole="link" accessibilityLabel={`Open source ${id.slice(0, 8)}`}>
                         <Text style={styles.link}>Source {id.slice(0, 8)}</Text>
@@ -229,6 +303,23 @@ function AppInner() {
                 <Pressable onPress={onShare} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
                   <Text style={styles.link}>Share Markdown</Text>
                 </Pressable>
+                <Pressable
+                  onPress={async () => {
+                    if (!token || !state.report) return;
+                    await api.challenge(token, state.report.reportId, state.report.blocks[0]?.claimIds[0] ?? "answer", "Flagged from the app");
+                    setState((s) => ({ ...s, flagSent: true }));
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Flag this generated answer"
+                >
+                  <Text style={styles.link}>{state.flagSent ? "Flag submitted" : "Flag this answer"}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            {state.previousReport ? (
+              <View style={styles.card} accessibilityLabel="Previous report version">
+                <Text style={styles.kicker}>Previous version</Text>
+                <Text style={styles.bodyText}>{state.previousReport.blocks.find((b) => b.id === "answer")?.text ?? "Earlier result kept."}</Text>
               </View>
             ) : null}
 
@@ -280,13 +371,60 @@ function AppInner() {
               setToken(null);
               setState(emptyState());
             }}
+            onLogout={() => {
+              setToken(null);
+              setState((s) => logoutState(s));
+            }}
+            onRevoke={async () => {
+              if (!token) return;
+              await api.consent(token, false);
+              setState((s) => ({ ...s, consentGranted: false }));
+            }}
           />
+        ) : null}
+
+        {state.tab === "research" ? (
+          <View style={styles.attachRow}>
+            <TextInput
+              value={attachName}
+              onChangeText={setAttachName}
+              style={styles.input}
+              accessibilityLabel="Attachment filename"
+            />
+            <TextInput
+              value={attachText}
+              onChangeText={setAttachText}
+              placeholder="Paste supported text or PDF extract"
+              placeholderTextColor={theme.muted}
+              style={styles.input}
+              accessibilityLabel="Attachment text"
+            />
+            <Pressable
+              onPress={() => {
+                setState((s) =>
+                  attachFile(s, {
+                    filename: attachName || "note.txt",
+                    mime: attachName.endsWith(".md") ? "text/markdown" : attachName.endsWith(".pdf") ? "application/pdf" : "text/plain",
+                    text: attachText,
+                  }),
+                );
+                setAttachText("");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Attach supported file"
+            >
+              <Text style={styles.link}>Attach ({state.attachments.length}/3)</Text>
+            </Pressable>
+          </View>
         ) : null}
 
         <View style={styles.composerWrap}>
           <TextInput
             value={state.draft}
-            onChangeText={(draft) => setState((s) => ({ ...s, draft }))}
+            onChangeText={(draft) => {
+              setState((s) => ({ ...s, draft }));
+              void persistDraft(AsyncStorage, draft);
+            }}
             placeholder="Ask with constraints, dates, and what would change the answer"
             placeholderTextColor={theme.muted}
             style={styles.composer}
@@ -352,6 +490,8 @@ function Settings({
   onSignIn,
   onMode,
   onDelete,
+  onLogout,
+  onRevoke,
 }: {
   styles: ReturnType<typeof makeStyles>;
   state: UiState;
@@ -359,6 +499,8 @@ function Settings({
   onSignIn: () => void;
   onMode: (m: UiState["routeMode"]) => void;
   onDelete: () => void;
+  onLogout: () => void;
+  onRevoke: () => void;
 }) {
   return (
     <ScrollView style={styles.body}>
@@ -374,6 +516,14 @@ function Settings({
         <Text style={styles.link}>Route: {state.routeMode}</Text>
       </Pressable>
       <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
+      <Text style={styles.caveat}>Purchases: unavailable until a store sandbox is connected. Restore is listed but will explain that prerequisite.</Text>
+      <Text style={styles.caveat}>Notifications: optional. The app works if permission is denied; reopen to refresh.</Text>
+      <Pressable onPress={onRevoke} accessibilityRole="button" accessibilityLabel="Revoke AI processing consent">
+        <Text style={styles.link}>Revoke consent (stops new research)</Text>
+      </Pressable>
+      <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear cached reports">
+        <Text style={styles.link}>Log out (clears cached reports)</Text>
+      </Pressable>
       <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel="Delete account and derived data">
         <Text style={styles.error}>Delete account and derived research</Text>
       </Pressable>
@@ -381,7 +531,7 @@ function Settings({
   );
 }
 
-function makeStyles(theme: (typeof color)["light"]) {
+function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg },
     header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -397,7 +547,7 @@ function makeStyles(theme: (typeof color)["light"]) {
     sheet: { backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md },
     kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 6 },
     title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
-    bodyText: { ...typeTokens.body, color: theme.ink },
+    bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },
     caveat: { ...typeTokens.body, color: theme.caveat, marginTop: 8 },
     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     composerWrap: { flexDirection: "row", alignItems: "flex-end", padding: space.sm, borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.surface },
@@ -409,6 +559,7 @@ function makeStyles(theme: (typeof color)["light"]) {
     tabOn: { color: theme.ink, fontWeight: "600", textTransform: "capitalize" },
     tabOff: { color: theme.muted, textTransform: "capitalize" },
     input: { borderWidth: 1, borderColor: theme.line, borderRadius: 8, padding: space.sm, color: theme.ink, marginBottom: 8 },
+    attachRow: { paddingHorizontal: space.md, paddingTop: space.sm },
   });
 }
 
@@ -420,5 +571,4 @@ export function App() {
   );
 }
 
-void AccessibilityInfo;
 void restoreAfterReopen;

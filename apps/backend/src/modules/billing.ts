@@ -53,10 +53,20 @@ export async function recordIntent(
   db: Queryable,
   runId: string,
   args: { correlationId: string; route: string; digest: string; reserved: number; state: string },
-): Promise<void> {
+): Promise<string> {
+  const id = crypto.randomUUID();
   await db.query(
-    `INSERT INTO provider_intents (run_id, correlation_id, route, request_digest, reserved_max_micro, state)
-     VALUES ($1,$2,$3,$4,$5,$6)`,
-    [runId, args.correlationId, args.route, args.digest, args.reserved, args.state],
+    `INSERT INTO provider_intents (id, run_id, correlation_id, route, request_digest, reserved_max_micro, state)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [id, runId, args.correlationId, args.route, args.digest, args.reserved, args.state],
   );
+  return id;
+}
+
+/** Confirmed usage must not rewrite the historical estimate. */
+export async function reconcileIntent(db: Queryable, intentId: string, confirmedMicro: number): Promise<void> {
+  await db.query(`UPDATE provider_intents SET confirmed_micro = $2, state = 'confirmed' WHERE id = $1`, [
+    intentId,
+    confirmedMicro,
+  ]);
 }

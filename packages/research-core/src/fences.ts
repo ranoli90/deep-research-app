@@ -38,8 +38,9 @@ export function canSpendExploration(args: {
   spentPlusReservedMicro: number;
   actionCostMicro: number;
   isFinishingAction: boolean;
+  finishingCostMicro?: number;
 }): boolean {
-  const reserve = writingReserve(args.totalBudgetMicro);
+  const reserve = Math.max(writingReserve(args.totalBudgetMicro), args.finishingCostMicro ?? 0);
   const remaining = args.totalBudgetMicro - args.spentPlusReservedMicro;
   if (remaining < args.actionCostMicro) return false;
   if (!args.isFinishingAction && remaining - args.actionCostMicro < reserve) return false;

@@ -67,6 +67,12 @@ export async function publishReport(
      ON CONFLICT (run_id, completion_epoch) DO NOTHING`,
     [args.report.runId, nextEpoch, args.accountId],
   );
+  await recordFanout(db, {
+    runId: args.report.runId,
+    completionEpoch: nextEpoch,
+    bindingEpoch: 1,
+    deviceId: "unbound",
+  });
   await markTerminal(db, args.report.runId, args.report.outcome);
   await settleRun(db, args.accountId, args.report.runId, run.spent_micro);
   return { accepted: true, reason: "ok", reportId };
@@ -83,6 +89,37 @@ export async function getLatestReportForRun(db: Queryable, runId: string, accoun
     [runId, accountId],
   );
   return res.rows[0] ?? null;
+}
+
+export function completionDispatchPayload(runId: string, completionEpoch: number): Record<string, unknown> {
+  return {
+    runId,
+    completionEpoch,
+    title: "Research ready",
+    body: "Open the app to view your report.",
+  };
+}
+
+export async function recordFanout(
+  db: Queryable,
+  args: { runId: string; completionEpoch: number; bindingEpoch: number; deviceId: string },
+): Promise<void> {
+  await db.query(
+    `INSERT INTO notification_fanout (run_id, completion_epoch, binding_epoch, device_id, state, payload)
+     VALUES ($1,$2,$3,$4,'recorded',$5)
+     ON CONFLICT (run_id, completion_epoch, binding_epoch, device_id) DO NOTHING`,
+    [
+      args.runId,
+      args.completionEpoch,
+      args.bindingEpoch,
+      args.deviceId,
+      JSON.stringify(completionDispatchPayload(args.runId, args.completionEpoch)),
+    ],
+  );
+}
+
+export function fanoutAllowed(currentBindingEpoch: number, rowBindingEpoch: number): boolean {
+  return currentBindingEpoch === rowBindingEpoch;
 }
 
 export async function insertChallenge(

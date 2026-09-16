@@ -98,10 +98,10 @@
   {
     "command": "pnpm test:integration",
     "status": "implemented_application_command",
-    "scope": "P0 smoke + fencing against real local PostgreSQL and pg-boss; fixture route only",
+    "scope": "P0 smoke + launch-scope + remaining fixture/postgres IDs against real local PostgreSQL and pg-boss; fixture route only",
     "network": false,
     "paid": false,
-    "implementation": "apps/backend/test/p0-smoke.integration.test.ts"
+    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts"
   },
   {
     "command": "pnpm test:e2e:ios",

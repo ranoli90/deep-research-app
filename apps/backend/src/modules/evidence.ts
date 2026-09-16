@@ -13,13 +13,25 @@ export async function insertSource(
     originCluster: string;
     sourceType?: string;
     population?: string;
+    language?: string;
   },
 ): Promise<string> {
   const id = crypto.randomUUID();
   await db.query(
-    `INSERT INTO sources (id, account_id, run_id, canonical_locator, original_locator, publisher, title, source_type, origin_cluster, population)
-     VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9)`,
-    [id, args.accountId, args.runId, args.locator, args.publisher, args.title, args.sourceType ?? "web", args.originCluster, args.population ?? null],
+    `INSERT INTO sources (id, account_id, run_id, canonical_locator, original_locator, publisher, title, source_type, origin_cluster, population, language)
+     VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10)`,
+    [
+      id,
+      args.accountId,
+      args.runId,
+      args.locator,
+      args.publisher,
+      args.title,
+      args.sourceType ?? "web",
+      args.originCluster,
+      args.population ?? null,
+      args.language ?? null,
+    ],
   );
   return id;
 }
@@ -59,12 +71,13 @@ export async function loadEvidence(db: Queryable, runId: string): Promise<{
     origin_cluster: string | null;
     source_type: string | null;
     population: string | null;
+    language: string | null;
     access_level: AccessLevel;
   }[];
   passages: { id: string; source_id: string; source_version_id: string; exact_text: string }[];
 }> {
   const sources = await db.query(
-    `SELECT s.id, s.title, s.canonical_locator, s.origin_cluster, s.source_type, s.population,
+    `SELECT s.id, s.title, s.canonical_locator, s.origin_cluster, s.source_type, s.population, s.language,
             COALESCE(sv.access_level, 'discovered') AS access_level
      FROM sources s
      LEFT JOIN LATERAL (

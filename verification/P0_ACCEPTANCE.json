@@ -28,7 +28,7 @@
       "evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
-        "tests": "pnpm test:integration twice, 15/15, exit 0",
+        "tests": "pnpm test:integration twice, 69/69, exit 0 (includes original 12 smoke IDs)",
         "launch": "pnpm p0:launch twice, citations resolved, cancel recorded",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
@@ -54,7 +54,7 @@
         "ios": "Xcode / iOS runtime on this Linux host",
         "android": "no AVD defined and no emulator/device online (SDK and system-images;android-34;google_apis;x86_64 are present)"
       },
-      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet; apps/mobile/test/lifecycle.test.ts covers consent/input, close/reopen, cancel, correction, shared concise/detailed blocks",
+      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; apps/mobile/test/lifecycle.test.ts and journey.test.ts cover consent/input, close/reopen, cancel, correction, shared concise/detailed blocks, back, persist. Not a substitute for device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
     }
   ],

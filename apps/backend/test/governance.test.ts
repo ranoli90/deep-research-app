@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -34,5 +34,35 @@ describe("V2-15 forbidden imports", () => {
       const src = readFileSync(f, "utf8");
       expect(src.match(forbidden), f).toBeNull();
     }
+  });
+});
+
+describe("V2-16 test weakening", () => {
+  it("P0 smoke and launch-scope files do not skip or xit cases", () => {
+    const dir = join(import.meta.dirname, ".");
+    for (const name of ["p0-smoke.integration.test.ts", "launch-scope.integration.test.ts", "p3-remaining.integration.test.ts"]) {
+      const src = readFileSync(join(dir, name), "utf8");
+      expect(src).not.toMatch(/\bit\.skip\(|\bxit\(|\bdescribe\.skip\(/);
+    }
+  });
+});
+
+describe("V2-17 command readiness", () => {
+  it("implemented_application_command entries point at real files", () => {
+    const repo = join(import.meta.dirname, "../../..");
+    const commands = JSON.parse(readFileSync(join(repo, "verification/COMMANDS.json"), "utf8")) as {
+      command: string;
+      status: string;
+      implementation: string;
+    }[];
+    for (const c of commands) {
+      if (c.status !== "implemented_application_command" && c.status !== "implemented_review_tool") continue;
+      const parts = c.implementation.split("#")[0]!.split(",").map((p) => p.trim());
+      for (const impl of parts) {
+        const concrete = impl.replace(/\*.*$/, "");
+        expect(existsSync(join(repo, concrete)), `${c.command} -> ${impl}`).toBe(true);
+      }
+    }
+    expect(commands.some((c) => c.status === "proposed" && /verified/.test(c.status))).toBe(false);
   });
 });

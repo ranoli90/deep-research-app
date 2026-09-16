@@ -140,6 +140,21 @@ export async function listEvents(db: Queryable, runId: string, after = 0): Promi
 export async function claimLease(db: Queryable, runId: string, owner: string, leaseMs: number): Promise<number | null> {
   const run = await getRun(db, runId);
   if (!run || run.lifecycle === "terminal") return null;
+  const existing = await db.query<{ fence: string; owner: string; expires_at: Date }>(
+    `SELECT fence, owner, expires_at FROM run_leases WHERE run_id = $1`,
+    [runId],
+  );
+  const held = existing.rows[0];
+  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner !== owner) {
+    return null;
+  }
+  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner === owner) {
+    await db.query(
+      `UPDATE run_leases SET expires_at = now() + ($2 || ' milliseconds')::interval WHERE run_id = $1`,
+      [runId, String(leaseMs)],
+    );
+    return Number(held.fence);
+  }
   const fence = run.worker_lease_fence + 1;
   await db.query(
     `UPDATE runs

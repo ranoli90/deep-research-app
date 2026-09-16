@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { authorizeAction, selectNextAction } from "@deep/research-core";
 import type { ControllerState, PolicyDecision } from "@deep/research-core";
 import type { AppConfig } from "../../platform/config.js";
+import { providerFailureState } from "./outcomes.js";
 
 export type ProviderReceipt = {
   correlationId: string;
@@ -89,8 +90,8 @@ export async function openRouterProposeAction(
       privileged: false,
     };
     return { decision: authorizeAction(state, proposal), receipt };
-  } catch {
-    receipt.state = "outcome-unknown";
+  } catch (err) {
+    receipt.state = providerFailureState(err as Error);
     return { decision: authorizeAction(state, selectNextAction(state)), receipt };
   }
 }

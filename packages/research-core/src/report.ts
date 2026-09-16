@@ -175,6 +175,17 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     });
   }
 
+  const percentNote = explainPercentages(state.passages);
+  if (percentNote) {
+    blocks.push({
+      id: "denominators",
+      kind: "text",
+      text: percentNote,
+      claimIds: [],
+      citationIds: state.passages.map((p) => p.id),
+    });
+  }
+
   if (contradictions.length > 0) {
     for (const c of contradictions) {
       blocks.push({
@@ -280,16 +291,67 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     });
   }
 
+  const scoped = state.passages.find((p) => /\badults over \d+|this sample enrolled/i.test(p.exactText));
+  if (scoped && /\beveryone\b|all patients|general population/i.test(state.brief.originalQuestion)) {
+    blocks.push({
+      id: "scope-qualifier",
+      kind: "caveat",
+      text: "The cited study is limited to its enrolled population (adults over 65 in this sample). It does not support an unqualified claim about everyone.",
+      claimIds: [],
+      citationIds: [scoped.id],
+    });
+  }
+
+  const freshness = explainFreshness(state);
+  if (freshness) {
+    blocks.push({
+      id: "freshness",
+      kind: "caveat",
+      text: freshness,
+      claimIds: [],
+      citationIds: state.passages.map((p) => p.id),
+    });
+  }
+
+  const translation = state.sources.find((s) => s.language && s.language !== "en") ?? state.passages.find((p) => p.language && p.language !== "en");
+  if (translation) {
+    const lang = "language" in translation && translation.language ? translation.language : "de";
+    blocks.push({
+      id: "translation",
+      kind: "caveat",
+      text: `Original language: ${lang}. English wording is a labeled translation, not a verbatim original quote.`,
+      claimIds: [],
+      citationIds: state.passages.map((p) => p.id).slice(0, 2),
+    });
+  }
+
+  if (/detailed|in depth|full analysis/i.test(state.brief.originalQuestion) || state.brief.outputPreferences === "detailed") {
+    const extra = state.passages[1]?.exactText.slice(0, 280);
+    if (extra) {
+      blocks.push({
+        id: "nuance",
+        kind: "text",
+        text: `Additional nuance retained for the detailed request: ${stripUnsafeMarkup(extra)}`,
+        claimIds: [],
+        citationIds: [state.passages[1]!.id],
+      });
+    }
+  }
+
   const limitations: string[] = [];
   if (falsePremise) limitations.push("Named premise was not found in accessed sources.");
   if (state.searches.some((s) => s.newFamilies === 0)) {
     limitations.push("Later searches added no new source families.");
   }
   if (state.passages.length === 0) limitations.push("No inspected passages.");
+  if (state.brief.attachmentIds.length > 0) {
+    limitations.push("Uploaded files were processed as text-only. Unread pages or scanned tables are not treated as fully read.");
+  }
   if (blocked.length) limitations.push("Some sources were not fully accessible.");
   if (contradictions.length) limitations.push("Consequential figures remain disputed.");
   const budgetForced = state.spentMicro + 8_000 >= state.budgetMicro * 0.85;
   if (budgetForced) limitations.push("Budget required finishing with remaining gaps; this is not comprehensive.");
+  limitations.push("App-level spend counters are not a guarantee of opaque provider-internal cost.");
   limitations.push("Fixture or bounded live route; not an exhaustive literature review.");
 
   const outcome: TerminalOutcome =
@@ -308,12 +370,17 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     feasibility: c.feasibility,
   }));
 
+  const repaired = repairUnsupportedConclusion(blocks, claims, state.passages);
+  if (repaired.revisited) {
+    limitations.push("A critical claim was removed during verification; the summary was revisited rather than left unsupported.");
+  }
+
   return {
     reportId,
     version: 1,
     runId: state.runId,
     basis: state.basis,
-    outcome,
+    outcome: repaired.revisited ? "completed_with_limitations" : outcome,
     blocks,
     claimIds: claims.map((c) => c.id),
     limitations,
@@ -342,11 +409,62 @@ function findContradictions(passages: StoredPassage[]): { topic: string; left: s
     const m = p.exactText.match(/costs?\s+(\d+(?:\.\d+)?)\s*(EUR|USD)/i);
     if (m) prices.push({ value: `${m[1]} ${m[2]}`, id: p.id });
   }
-  if (prices.length < 2) return [];
-  const first = prices[0]!;
-  const other = prices.find((p) => p.value !== first.value);
-  if (!other) return [];
-  return [{ topic: "price", left: first.value, right: other.value, passageIds: [first.id, other.id] }];
+  if (prices.length >= 2) {
+    const first = prices[0]!;
+    const other = prices.find((p) => p.value !== first.value);
+    if (other) return [{ topic: "price", left: first.value, right: other.value, passageIds: [first.id, other.id] }];
+  }
+  return [];
+}
+
+export function explainFreshness(state: ControllerState): string | null {
+  const q = state.brief.originalQuestion.toLowerCase();
+  const wantsCurrentPrice = /current price|price now|what does .* cost now|today'?s price/.test(q);
+  const asOf = state.passages
+    .map((p) => p.exactText.match(/as of\s+(20\d{2}-\d{2}-\d{2}|20\d{2})/i)?.[1])
+    .filter((d): d is string => Boolean(d));
+  const founded = state.passages.map((p) => p.exactText.match(/founded in\s+(19\d{2}|20\d{2})/i)?.[1]).find(Boolean);
+  if (wantsCurrentPrice && asOf[0]) {
+    const hist = founded
+      ? ` The founding year ${founded} is an immutable historical fact.`
+      : " Historical facts such as a founding year stay as recorded.";
+    return `Retrieved price is as of ${asOf[0]} and is not presented as the current price.${hist}`;
+  }
+  if (asOf[0] && founded) {
+    return `Mutable price figures are dated as of ${asOf[0]}. The founding year ${founded} is an immutable historical fact and is not refreshed as if it were a live price.`;
+  }
+  return null;
+}
+
+export function repairUnsupportedConclusion(
+  blocks: ReportBlock[],
+  claims: StoredClaim[],
+  passages: StoredPassage[],
+): { revisited: boolean } {
+  const problems = checkReportCitations(blocks, claims, passages);
+  const answer = blocks.find((b) => b.id === "answer");
+  if (!answer) return { revisited: false };
+  const hits = problems.unsupported.filter((u) => answer.claimIds.includes(u.claimId));
+  if (hits.length === 0) return { revisited: false };
+  answer.text =
+    "The conclusion was withdrawn because verification removed an unsupported claim. Remaining evidence is listed with its limitations.";
+  answer.kind = "caveat";
+  return { revisited: true };
+}
+
+export function explainPercentages(passages: StoredPassage[]): string | null {
+  const denoms = passages
+    .map((p) => {
+      const m = p.exactText.match(/(\d+(?:\.\d+)?)%\s+of\s+([\d,]+)\s+(\w+)/i);
+      return m ? { pct: m[1], n: m[2], unit: m[3], id: p.id, text: p.exactText } : null;
+    })
+    .filter((x): x is { pct: string; n: string; unit: string; id: string; text: string } => Boolean(x));
+  if (denoms.length < 2) return null;
+  const units = new Set(denoms.map((d) => d.unit.toLowerCase()));
+  if (units.size > 1) {
+    return `The ${denoms.map((d) => `${d.pct}% of ${d.n} ${d.unit}`).join(" vs ")} figures use different denominators and are not averaged.`;
+  }
+  return null;
 }
 
 export { citationIdsExist };

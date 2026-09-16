@@ -62,6 +62,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
         spentPlusReservedMicro: state.spentMicro,
         actionCostMicro: cost,
         isFinishingAction: false,
+        finishingCostMicro: FIXTURE_SYNTH_COST_MICRO,
       })
     ) {
       return { ...base, type: "synthesize", rationale: "budget requires finishing with available evidence", estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO };
@@ -148,6 +149,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
         spentPlusReservedMicro: state.spentMicro,
         actionCostMicro: cost,
         isFinishingAction: false,
+        finishingCostMicro: FIXTURE_SYNTH_COST_MICRO,
       })
     ) {
       return {
@@ -189,6 +191,15 @@ export function authorizeAction(state: ControllerState, proposal: PolicyDecision
   }
   if (proposal.type === "search") {
     const query = String(proposal.arguments.query ?? "");
+    if (offCoverage(query, state.brief.originalQuestion)) {
+      return {
+        ...proposal,
+        type: "stop",
+        rationale: "Declined an out-of-coverage branch suggested by page content",
+        rejectReason: "off_coverage",
+        arguments: { reason: "off_coverage", query },
+      };
+    }
     const leak = queryLeaksPrivate(query, state.privateCanaries);
     if (leak) {
       return {
@@ -209,6 +220,13 @@ export function authorizeAction(state: ControllerState, proposal: PolicyDecision
     };
   }
   return proposal;
+}
+
+export function offCoverage(query: string, question: string): boolean {
+  const q = query.toLowerCase();
+  const orig = question.toLowerCase();
+  const bait = /taylor swift|celebrity gossip|hollywood tour|sports scores|unrelated movie/;
+  return bait.test(q) && !bait.test(orig);
 }
 
 export function searchDelta(

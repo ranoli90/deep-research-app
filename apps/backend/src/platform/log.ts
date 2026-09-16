@@ -1,4 +1,4 @@
-const SECRETISH = /(authorization|api[_-]?key|token|secret|password|cookie)/i;
+const SECRETISH = /(authorization|api[_-]?key|token|secret|password|cookie|question|originalQuestion|exact_text|extracted_text|prompt|document)/i;
 const PRIVATE_HINTS = [/-----BEGIN/, /bearer [a-z0-9]/i];
 
 export function redact(value: unknown): unknown {

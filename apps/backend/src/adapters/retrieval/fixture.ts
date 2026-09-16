@@ -9,6 +9,8 @@ export type SearchHit = {
   family: string;
   sourceType?: string;
   population?: string;
+  language?: string;
+  translated?: boolean;
 };
 
 export type FetchedDoc = {
@@ -19,6 +21,8 @@ export type FetchedDoc = {
   family: string;
   sourceType?: string;
   population?: string;
+  language?: string;
+  translated?: boolean;
   text: string;
   accessLevel: "full-text" | "snippet" | "blocked";
 };
@@ -33,6 +37,8 @@ export function fixtureSearch(query: string): SearchHit[] {
     family: s.family,
     sourceType: s.sourceType,
     population: s.population,
+    language: s.language,
+    translated: s.translated,
   }));
 }
 
@@ -58,6 +64,8 @@ export function fixtureFetch(locator: string): FetchedDoc {
       family: src.family,
       sourceType: src.sourceType,
       population: src.population,
+      language: src.language,
+      translated: src.translated,
       text: src.snippet,
       accessLevel: "blocked",
     };
@@ -70,6 +78,8 @@ export function fixtureFetch(locator: string): FetchedDoc {
     family: src.family,
     sourceType: src.sourceType,
     population: src.population,
+    language: src.language,
+    translated: src.translated,
     text: src.fullText,
     accessLevel: "full-text",
   };

@@ -4,7 +4,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 ## P0 gates
 | Gate | Status | Evidence |
 |---|---|---|
-| P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` includes the original 12 IDs; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
+| P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 69/69 twice; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
 | P0-L live model/retrieval | blocked by a named external dependency | No `OPENROUTER_API_KEY`; `LIVE_SPEND_CAP_MICRO=0` |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
 | P0-N Android | blocked by a named external dependency | SDK present, no AVD/device online |
@@ -22,11 +22,14 @@ P0 is **not** fully verified.
 
 These are fixture-route behavioral tests. They are not evidence of advantage over ChatGPT/Gemini/Claude/Perplexity/Grok.
 
-## Additional launch-scope cases now executed against Postgres
-R02, R03, R07, R11, R14, R22, V2-18, E07, S04, S11, J09, plus challenge/export, S05, M12 config guard.
+## Additional launch-scope cases now executed against Postgres/fixture
+R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (unit), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S03, S04, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), V2-03, V2-09, V2-10, V2-11, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20. Native structural: M03, M05, M06, M07, M08, M09, M10, M12, V2-12.
 
 ## Still open (not claimed done)
-Remaining R/E/J/S/M/V2 IDs without a dedicated executable test; native device journeys; live retrieval; purchases; push; hosted Supabase/Render parity; seed eval validation.
+- **P0-L / P0-N device evidence** remain blocked.
+- M01/M02/M03/M04/M11 **on device**: VoiceOver/TalkBack, iOS/Android lifecycle, purchase sandbox.
+- J14 live push transport; S08 signed store webhooks; hosted Supabase/Render/auth/RLS/storage/pooler.
+- Seed eval validation and competitor comparison.
 
 ## Next executable task
 1. `OPENROUTER_API_KEY` + `LIVE_SPEND_CAP_MICRO>0` for P0-L and a matched P1 live ablation.

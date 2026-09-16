@@ -20,6 +20,8 @@ export type ReportBlock = {
   citationIds: string[];
 };
 
+export type AttachmentDraft = { id?: string; filename: string; mime: string; text: string };
+
 export type UiState = {
   tab: "research" | "library" | "settings";
   draft: string;
@@ -29,11 +31,16 @@ export type UiState = {
   routeMode: RouteMode;
   run: RunSnapshot | null;
   report: { reportId: string; blocks: ReportBlock[]; limitations: string[]; labeledDemo: boolean } | null;
+  previousReport: { reportId: string; blocks: ReportBlock[] } | null;
   events: { sequence: number; type: string; publicSummary: string }[];
   source: { passageId: string; title: string; exactText: string; accessLevel: string } | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
+  attachments: AttachmentDraft[];
+  clarification: string[];
+  flagSent: boolean;
+  reducedMotion: boolean;
   error: string | null;
-  status: "empty" | "loading" | "progress" | "completed" | "partial" | "failed" | "cancelled";
+  status: "empty" | "loading" | "progress" | "completed" | "partial" | "failed" | "cancelled" | "awaiting_input";
 };
 
 export function emptyState(): UiState {
@@ -49,6 +56,11 @@ export function emptyState(): UiState {
     events: [],
     source: null,
     readingAnchor: null,
+    previousReport: null,
+    attachments: [],
+    clarification: [],
+    flagSent: false,
+    reducedMotion: false,
     error: null,
     status: "empty",
   };
@@ -61,6 +73,7 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
   else if (snap.lifecycle === "terminal" && snap.outcome === "cancelled") status = "cancelled";
   else if (snap.lifecycle === "terminal" && snap.outcome === "failed") status = "failed";
   else if (snap.lifecycle === "queued") status = "loading";
+  else if (snap.lifecycle === "awaiting_input") status = "awaiting_input";
   return { ...state, run: snap, status, error: null };
 }
 
@@ -84,4 +97,52 @@ export function conciseBlocks(blocks: ReportBlock[]): ReportBlock[] {
   const answer = blocks.find((b) => b.id === "answer");
   const caveats = blocks.filter((b) => b.kind === "caveat");
   return [answer, ...caveats].filter((b): b is ReportBlock => Boolean(b));
+}
+
+export function mergeEvents(
+  existing: UiState["events"],
+  incoming: UiState["events"],
+): UiState["events"] {
+  const bySeq = new Map<number, UiState["events"][number]>();
+  for (const e of existing) bySeq.set(e.sequence, e);
+  for (const e of incoming) bySeq.set(e.sequence, e);
+  return [...bySeq.values()].sort((a, b) => a.sequence - b.sequence);
+}
+
+export function restoreAnchor(
+  saved: UiState["readingAnchor"],
+  blocks: ReportBlock[],
+): { anchor: UiState["readingAnchor"]; note?: string } {
+  if (!saved) return { anchor: null };
+  if (blocks.some((b) => b.id === saved.blockId)) return { anchor: saved };
+  return { anchor: { ...saved, blockId: blocks[0]?.id ?? saved.blockId }, note: "That section changed in the new version." };
+}
+
+export function closeSourceSheet(state: UiState): UiState {
+  return { ...state, source: null };
+}
+
+export function androidBack(state: UiState): { consumed: boolean; next: UiState } {
+  if (state.source) return { consumed: true, next: closeSourceSheet(state) };
+  if (state.tab !== "research") return { consumed: true, next: { ...state, tab: "research" } };
+  return { consumed: false, next: state };
+}
+
+export function logout(state: UiState): UiState {
+  return { ...emptyState(), draft: state.draft, routeMode: state.routeMode };
+}
+
+export function attachFile(state: UiState, file: AttachmentDraft): UiState {
+  if (state.attachments.length >= 3) {
+    return { ...state, error: "Attachment limit is 3 files." };
+  }
+  if (!["text/plain", "text/markdown", "application/pdf"].includes(file.mime)) {
+    return { ...state, error: "Only text, Markdown, and PDF are supported." };
+  }
+  return { ...state, attachments: [...state.attachments, file], error: null };
+}
+
+export function submitPrerequisite(state: UiState): "research" | "settings" {
+  if (!state.signedIn || !state.consentGranted) return "settings";
+  return "research";
 }

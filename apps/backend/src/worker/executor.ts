@@ -5,6 +5,7 @@ import {
   FIXTURE_SYNTH_COST_MICRO,
 } from "@deep/contracts";
 import {
+  compactForContext,
   composeReport,
   detectGaps,
   extractCandidates,
@@ -34,6 +35,7 @@ import {
   markTerminal,
   setPhase,
 } from "../modules/runs.js";
+import { createHash } from "node:crypto";
 import pg from "pg";
 
 export class InjectedCrash extends Error {
@@ -66,6 +68,7 @@ function toState(
     sourceFamily: s.origin_cluster ?? undefined,
     sourceType: s.source_type ?? undefined,
     population: s.population ?? undefined,
+    language: s.language ?? undefined,
   }));
   const passages: StoredPassage[] = evidence.passages.map((p) => ({
     id: p.id,
@@ -259,6 +262,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             originCluster: hit.originCluster,
             sourceType: hit.sourceType,
             population: hit.population,
+            language: hit.language,
           });
         }
         const rev = await bumpEvidence(c, runId);
@@ -321,10 +325,15 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             originCluster: doc.originCluster,
             sourceType: doc.sourceType,
             population: doc.population,
+            language: doc.language,
           }));
         }
-        const already = await c.query(`SELECT 1 FROM source_versions WHERE source_id = $1 LIMIT 1`, [sourceId]);
-        if (!already.rows[0]) {
+        const hash = createHash("sha256").update(doc.text).digest("hex");
+        const last = await c.query<{ content_hash: string }>(
+          `SELECT content_hash FROM source_versions WHERE source_id = $1 ORDER BY retrieved_at DESC LIMIT 1`,
+          [sourceId],
+        );
+        if (!last.rows[0] || last.rows[0].content_hash !== hash) {
           await insertVersionAndPassage(c, {
             sourceId,
             accountId: run.account_id,
@@ -362,6 +371,17 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         locator,
       });
       continue;
+    }
+
+    if (decision.rejectReason) {
+      await emitEvent(pool, {
+        runId,
+        accountId: run.account_id,
+        type: "action_rejected",
+        summary: decision.rationale,
+        phase: run.phase,
+        payload: { reason: decision.rejectReason },
+      });
     }
 
     // synthesize or stop
@@ -402,6 +422,8 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const state2 = toState(latest, brief2, evidence2, false, canaries, ev2);
     state2.basis.workerLeaseFence = fence;
     state2.phase = "writing";
+    const compacted = compactForContext(state2);
+    await checkpoint(pool, runId, latest.evidence_revision, "writing", { compact: compacted });
     const reportId = crypto.randomUUID();
     const report = composeReport(state2, reportId);
     report.routeMode = latest.route_mode as typeof report.routeMode;

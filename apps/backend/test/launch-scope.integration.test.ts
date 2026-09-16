@@ -119,7 +119,7 @@ describe("launch-scope fixture/postgres cases", () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
     const runId = created.json().runId as string;
-    await pool.query(`UPDATE runs SET budget_micro = 12000 WHERE id = $1`, [runId]);
+    await pool.query(`UPDATE runs SET budget_micro = 16000 WHERE id = $1`, [runId]);
     await processRun(pool, config, runId);
     const report = await getLatestReportForRun(pool, runId, accountId);
     expect(report?.outcome).toBe("completed_with_limitations");

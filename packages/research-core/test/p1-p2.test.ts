@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { calculate } from "../src/calculate.js";
 import { extractCandidates } from "../src/candidates.js";
+import { compactForContext } from "../src/compact.js";
 import { detectGaps } from "../src/gaps.js";
+import { canSpendExploration } from "../src/fences.js";
 import { passageSupportsClaim } from "../src/support.js";
-import { stripUnsafeMarkup } from "../src/report.js";
-import { applyCorrectionToConstraints, extractConstraints } from "../src/brief.js";
+import { composeReport, repairUnsupportedConclusion, stripUnsafeMarkup } from "../src/report.js";
+import { applyCorrectionToConstraints, extractConstraints, inferOutputPreference } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
-import type { ControllerState } from "../src/types.js";
+import type { ControllerState, StoredPassage } from "../src/types.js";
 
 function state(question: string, sources: ControllerState["sources"] = []): ControllerState {
   const constraints = extractConstraints(question);
@@ -132,5 +134,102 @@ describe("candidate prices", () => {
       [{ id: "budget", field: "budget", operator: "lte", value: "50", units: "EUR", origin: "explicit", importance: "hard", explanation: "x" }],
     );
     expect(found.some((c) => c.feasibility === "violates")).toBe(true);
+  });
+});
+
+describe("R17 output preference", () => {
+  it("infers concise vs detailed from the question", () => {
+    expect(inferOutputPreference("Give a concise comparison of A and B")).toBe("concise");
+    expect(inferOutputPreference("Write a detailed analysis of A and B")).toBe("detailed");
+  });
+});
+
+describe("R18 context compaction", () => {
+  it("keeps hard constraints and passage IDs after dropping extra searches", () => {
+    const s = state("Compare options in Germany under 50 EUR as of 2026-03-01");
+    s.passages = [
+      { id: "p1", sourceId: "s1", sourceVersionId: "v1", exactText: "Vendor A is 40 EUR", locator: "document" },
+    ];
+    s.searches = [
+      { query: "q1", sourceFamilyIds: ["a"], newFamilies: 1, coverageProgress: true },
+      { query: "q2", sourceFamilyIds: ["a"], newFamilies: 0, coverageProgress: false },
+      { query: "q3", sourceFamilyIds: ["a"], newFamilies: 0, coverageProgress: false },
+    ];
+    const compact = compactForContext(s);
+    expect(compact.constraints.some((c) => c.field === "geography" && c.value.includes("germany"))).toBe(true);
+    expect(compact.passageIds).toEqual(["p1"]);
+    expect(compact.droppedSearchCount).toBe(1);
+  });
+});
+
+describe("J10 writing reserve includes finishing cost", () => {
+  it("will not spend the last finishing-cost slice on another fetch", () => {
+    expect(
+      canSpendExploration({
+        totalBudgetMicro: 16_000,
+        spentPlusReservedMicro: 8_000,
+        actionCostMicro: 3_000,
+        isFinishingAction: false,
+        finishingCostMicro: 8_000,
+      }),
+    ).toBe(false);
+    expect(
+      canSpendExploration({
+        totalBudgetMicro: 16_000,
+        spentPlusReservedMicro: 8_000,
+        actionCostMicro: 8_000,
+        isFinishingAction: true,
+        finishingCostMicro: 8_000,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("E10 critical claim removal", () => {
+  it("revisits the conclusion when the answer claim is unsupported", () => {
+    const passages: StoredPassage[] = [
+      { id: "p1", sourceId: "s1", sourceVersionId: "v1", exactText: "The table lists 24% completion in 2024.", locator: "document" },
+    ];
+    const blocks = [
+      {
+        id: "answer",
+        kind: "text" as const,
+        text: "Completion is 42% this year.",
+        claimIds: ["c1"],
+        citationIds: ["p1"],
+      },
+    ];
+    const repaired = repairUnsupportedConclusion(blocks, [{ id: "c1", text: "Completion is 42% this year.", type: "fact", supportStatus: "direct", passageIds: ["p1"] }], passages);
+    expect(repaired.revisited).toBe(true);
+    expect(blocks[0]!.text).toMatch(/withdrawn/i);
+  });
+});
+
+describe("V2-03 gold-evidence diagnostic", () => {
+  it("summaries-only miss the limitation; injecting the matrix recovers it", () => {
+    const s = state("Is NimbusDB compatible with Postgres 14?");
+    s.passages = [
+      {
+        id: "sum",
+        sourceId: "b1",
+        sourceVersionId: "v1",
+        exactText: "This summary says NimbusDB is compatible with all Postgres versions. It cites no matrix.",
+        locator: "document",
+      },
+    ];
+    s.sources = [{ id: "b1", title: "recap", locator: "fixture://blogs/nimbus-1", accessLevel: "full-text", sourceType: "review-summary" }];
+    const without = composeReport(s, "00000000-0000-4000-8000-000000000010");
+    expect(JSON.stringify(without.blocks)).not.toMatch(/not compatible with Postgres 14/);
+
+    s.passages.push({
+      id: "gold",
+      sourceId: "m1",
+      sourceVersionId: "v2",
+      exactText: "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later.",
+      locator: "document",
+    });
+    s.sources.push({ id: "m1", title: "matrix", locator: "fixture://vendor/nimbus-matrix", accessLevel: "full-text", sourceType: "vendor-matrix" });
+    const withGold = composeReport(s, "00000000-0000-4000-8000-000000000011");
+    expect(JSON.stringify(withGold.blocks)).toMatch(/not compatible with Postgres 14/);
   });
 });

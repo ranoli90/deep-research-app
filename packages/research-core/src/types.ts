@@ -11,6 +11,8 @@ export type StoredSource = {
   sourceType?: string;
   population?: string;
   snippet?: string;
+  language?: string;
+  translated?: boolean;
 };
 
 export type StoredPassage = {
@@ -19,6 +21,8 @@ export type StoredPassage = {
   sourceVersionId: string;
   exactText: string;
   locator: string;
+  language?: string;
+  translated?: boolean;
 };
 
 export type StoredClaim = {

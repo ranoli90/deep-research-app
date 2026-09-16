@@ -17,13 +17,17 @@ export const api = {
   health: () => req("/health"),
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
   consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
-  createRun: (token: string, question: string, routeMode: string, idempotencyKey: string) =>
+  createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = []) =>
     req("/v1/runs", {
       method: "POST",
       token,
       headers: { "idempotency-key": idempotencyKey },
-      body: JSON.stringify({ question, routeMode }),
+      body: JSON.stringify({ question, routeMode, attachmentIds }),
     }),
+  attach: (token: string, filename: string, mime: string, text: string) =>
+    req("/v1/attachments", { method: "POST", token, body: JSON.stringify({ filename, mime, text }) }),
+  continueRun: (token: string, id: string, geography: string) =>
+    req(`/v1/runs/${id}/continue`, { method: "POST", token, body: JSON.stringify({ geography }) }),
   getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token }),
   events: (token: string, id: string, after = 0) => req(`/v1/runs/${id}/events?after=${after}`, { token }),
   cancel: (token: string, id: string) => req(`/v1/runs/${id}/cancel`, { method: "POST", token, body: "{}" }),

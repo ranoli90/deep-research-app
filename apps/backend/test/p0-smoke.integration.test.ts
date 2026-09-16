@@ -377,6 +377,7 @@ describe("P0 smoke against shipped API/worker/postgres", () => {
     await processRun(pool, config, runId, { pauseAt: "writing", workerId: "old-worker" });
     const old = await getRun(pool, runId);
     const oldFence = old!.worker_lease_fence;
+    await pool.query(`UPDATE run_leases SET expires_at = now() - interval '1 second' WHERE run_id = $1`, [runId]);
     const newer = await claimLease(pool, runId, "new-worker", 30_000);
     expect(newer).toBeGreaterThan(oldFence);
     const evidence = await loadEvidence(pool, runId);

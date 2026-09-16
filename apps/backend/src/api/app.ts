@@ -7,7 +7,14 @@ import {
   MAX_ATTACHMENT_BYTES,
   PROCESSOR_DISCLOSURE,
 } from "@deep/contracts";
-import { applyCorrectionToConstraints, extractConstraints, impactForCorrection, parseCorrection, shouldFullRerun } from "@deep/research-core";
+import {
+  applyCorrectionToConstraints,
+  extractConstraints,
+  impactForCorrection,
+  inferOutputPreference,
+  parseCorrection,
+  shouldFullRerun,
+} from "@deep/research-core";
 import type PgBoss from "pg-boss";
 import type pg from "pg";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -133,7 +140,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           budgetPolicyId: "default",
           consentPolicyVersion: CONSENT_POLICY_VERSION,
           revision: 1,
-          outputPreferences: input.outputPreferences,
+          outputPreferences: input.outputPreferences ?? inferOutputPreference(input.question),
         };
         await insertBrief(c, brief, a.accountId);
         const runId = crypto.randomUUID();
@@ -254,6 +261,47 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return { runId: id, lifecycle: updated?.lifecycle, cancellationEpoch: updated?.cancellation_epoch };
   });
 
+  app.post("/v1/runs/:id/continue", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = (req.params as { id: string }).id;
+    const run = await getRun(pool, id);
+    if (!run || run.account_id !== a.accountId) {
+      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+    }
+    if (run.lifecycle !== "awaiting_input") {
+      return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
+    }
+    const body = (req.body ?? {}) as { geography?: string; answers?: { field?: string; value?: string }[] };
+    const geography = body.geography ?? body.answers?.find((x) => x.field === "geography")?.value;
+    const brief = await getBrief(pool, run.brief_id);
+    if (geography) {
+      brief.constraints = [
+        ...brief.constraints.filter((c) => c.field !== "geography"),
+        {
+          id: `geo-${geography.toLowerCase()}`,
+          field: "geography",
+          operator: "eq",
+          value: geography.toLowerCase(),
+          origin: "confirmed",
+          importance: "hard",
+          explanation: "Supplied after clarification",
+        },
+      ];
+    }
+    await pool.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify(brief)]);
+    await pool.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
+    await emitEvent(pool, {
+      runId: id,
+      accountId: a.accountId,
+      type: "clarification_answered",
+      summary: "Clarification recorded. Research will continue.",
+      phase: "preparing",
+    });
+    await enqueueRun(boss, id);
+    return { runId: id, lifecycle: "queued" };
+  });
+
   app.post("/v1/runs/:id/corrections", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
@@ -323,6 +371,58 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     });
     await enqueueRun(boss, created.childId);
     return { runId: created.childId, parentRunId: id, impact: created.impact, fullRerun: created.fullRerun, briefRevision: created.brief.revision };
+  });
+
+  app.post("/v1/runs/:id/follow-up", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = (req.params as { id: string }).id;
+    const run = await getRun(pool, id);
+    if (!run || run.account_id !== a.accountId) {
+      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+    }
+    const consent = await currentConsent(pool, a.accountId);
+    if (!consent || consent.revoked) {
+      return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
+    }
+    const body = (req.body ?? {}) as { claimId?: string; note?: string };
+    const parentBrief = await getBrief(pool, run.brief_id);
+    const created = await withTx(pool, async (c) => {
+      const briefId = crypto.randomUUID();
+      const revision = parentBrief.revision + 1;
+      const brief = {
+        ...parentBrief,
+        id: briefId,
+        originalQuestion: `${parentBrief.originalQuestion}\n\nFollow-up: verify only ${body.claimId ?? "the named claim"}. ${body.note ?? ""}`.trim(),
+        revision,
+      };
+      await insertBrief(c, brief, a.accountId);
+      const childId = crypto.randomUUID();
+      await insertRun(c, {
+        id: childId,
+        accountId: a.accountId,
+        conversationId: run.conversation_id,
+        briefId,
+        parentRunId: run.id,
+        routeMode: run.route_mode,
+        briefRevision: revision,
+        consentEpoch: consent.epoch,
+        idempotencyKey: `follow-${id}-${revision}-${createHash("sha256").update(body.note ?? body.claimId ?? "claim").digest("hex").slice(0, 12)}`,
+        budgetMicro: DEFAULT_RUN_BUDGET_MICRO,
+      });
+      await reserveAllowance(c, a.accountId, childId, DEFAULT_RUN_BUDGET_MICRO);
+      await emitEvent(c, {
+        runId: childId,
+        accountId: a.accountId,
+        type: "follow_up_accepted",
+        summary: "Targeted follow-up will verify the named claim without reopening candidate discovery.",
+        phase: "preparing",
+        payload: { claimId: body.claimId ?? null, reopenedDiscovery: false },
+      });
+      return { childId, revision };
+    });
+    await enqueueRun(boss, created.childId);
+    return { runId: created.childId, parentRunId: id, briefRevision: created.revision, reopenedDiscovery: false };
   });
 
   app.get("/v1/reports/:id", async (req, reply) => {
@@ -433,6 +533,35 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       deleted: true,
       note: "Active research is cancelled. Private derived text is removed. Store subscriptions are a separate action.",
     };
+  });
+
+  app.post("/v1/billing/webhooks", async (req, reply) => {
+    const sig = String(req.headers["x-webhook-signature"] ?? "");
+    const eventId = String((req.body as { eventId?: string } | undefined)?.eventId ?? "");
+    if (!sig) {
+      await pool.query(`INSERT INTO billing_webhook_receipts (provider_event_id, accepted, reason) VALUES ($1,false,'unsigned')`, [
+        eventId || null,
+      ]);
+      return reply.code(401).send(err("permission_denied", "Unsigned purchase webhooks are rejected.", crypto.randomUUID()));
+    }
+    await pool.query(`INSERT INTO billing_webhook_receipts (provider_event_id, accepted, reason) VALUES ($1,false,'unsigned_or_unconfigured')`, [
+      eventId || null,
+    ]);
+    return reply.code(401).send(err("permission_denied", "Purchase verification is gated until sandbox credentials exist.", crypto.randomUUID()));
+  });
+
+  app.post("/v1/purchases/verify", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    await pool.query(`INSERT INTO billing_webhook_receipts (provider_event_id, accepted, reason) VALUES ($1,false,'client_payload_untrusted')`, [
+      String((req.body as { receipt?: string } | undefined)?.receipt ?? "client"),
+    ]);
+    const count = await pool.query(`SELECT count(*)::int AS n FROM entitlements WHERE account_id = $1`, [a.accountId]);
+    return reply.code(403).send({
+      code: "permission_denied",
+      message: "Store purchases are gated until sandbox credentials exist. A modified client payload cannot grant entitlement.",
+      entitlements: count.rows[0]?.n ?? 0,
+    });
   });
 
   app.get("/v1/settings", async (req, reply) => {

@@ -200,6 +200,13 @@ export function applyCorrectionToConstraints(
   return { next, reopenedDiscovery };
 }
 
+export function inferOutputPreference(question: string): string | undefined {
+  const q = question.toLowerCase();
+  if (/\bconcise\b|\bbriefly\b|short answer/.test(q)) return "concise";
+  if (/\bdetailed\b|in depth|full analysis/.test(q)) return "detailed";
+  return undefined;
+}
+
 export function defaultAssumptions(): Assumption[] {
   return [];
 }

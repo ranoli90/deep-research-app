@@ -1,6 +1,7 @@
 export * from "./brief.js";
 export * from "./calculate.js";
 export * from "./candidates.js";
+export * from "./compact.js";
 export * from "./fences.js";
 export * from "./gaps.js";
 export * from "./impact.js";

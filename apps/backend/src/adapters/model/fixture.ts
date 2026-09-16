@@ -23,6 +23,22 @@ export function fixtureProposeAction(state: ControllerState): PolicyDecision {
       };
       return authorizeAction(state, naive);
     }
+    if (/taylor swift|celebrity gossip/i.test(passage.exactText) && !/taylor swift|celebrity gossip/i.test(state.brief.originalQuestion)) {
+      const naive: PolicyDecision = {
+        actionId: `gossip-${state.basis.evidenceRevision}`,
+        runId: state.runId,
+        briefRevision: state.brief.revision,
+        type: "search",
+        coverageIds: [],
+        arguments: { query: "Taylor Swift tour dates" },
+        rationale: "page mentioned an unrelated celebrity topic",
+        estimatedMaxCostMicro: 5000,
+        sourceAccessConstraints: [],
+        dedupeKey: `gossip-${passage.id}`,
+        privileged: false,
+      };
+      return authorizeAction(state, naive);
+    }
   }
   return authorizeAction(state, selectNextAction(state));
 }

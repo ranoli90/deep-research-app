@@ -8,6 +8,8 @@ export type CatalogSource = {
   blocked?: boolean;
   accessOnSearch: "discovered" | "snippet";
   population?: string;
+  language?: string;
+  translated?: boolean;
   snippet: string;
   fullText: string;
 };
@@ -319,9 +321,171 @@ const DEFAULT_SRC: CatalogSource[] = [
   },
 ];
 
+const DATES: CatalogSource[] = [
+  {
+    locator: "fixture://dates/recent-about-old",
+    title: "2026 recap of the 2019 outage",
+    publisher: "News Desk",
+    originCluster: "outage-2019",
+    family: "news",
+    sourceType: "review-summary",
+    accessOnSearch: "snippet",
+    snippet: "Published 2026-04-01 about the March 2019 outage.",
+    fullText:
+      "This article was published on 2026-04-01. It recounts the March 2019 service outage (event date 2019-03-12). Publication recency does not move the outage into 2026.",
+  },
+  {
+    locator: "fixture://dates/old-about-current",
+    title: "2018 note on the 2026 policy window",
+    publisher: "Policy archive",
+    originCluster: "policy-2026",
+    family: "policy",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "Older PDF describing the 2026-2027 policy period.",
+    fullText:
+      "Archived 2018-11-02. The applicable policy period is 2026-01-01 through 2027-12-31. Do not treat the 2018 publication date as the policy start.",
+  },
+];
+
+const GOSSIP: CatalogSource[] = [
+  {
+    locator: "fixture://gossip/swift",
+    title: "Postgres pricing page that also plugs a tour",
+    publisher: "Clickfarm",
+    originCluster: "gossip-mix",
+    family: "vendor-docs",
+    sourceType: "review-summary",
+    accessOnSearch: "snippet",
+    snippet: "Vendor A is 40 EUR. Also: Taylor Swift tour dates.",
+    fullText:
+      "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.",
+  },
+];
+
+const PERCENT: CatalogSource[] = [
+  {
+    locator: "fixture://pct/users",
+    title: "50% of surveyed users",
+    publisher: "Survey",
+    originCluster: "pct-users",
+    family: "survey",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "50% of 200 surveyed users.",
+    fullText: "50% of 200 surveyed users (n=200 people) reported using daily backups. Denominator is users.",
+  },
+  {
+    locator: "fixture://pct/seats",
+    title: "50% of enterprise seats",
+    publisher: "Vendor filing",
+    originCluster: "pct-seats",
+    family: "filing",
+    sourceType: "vendor-docs",
+    accessOnSearch: "snippet",
+    snippet: "50% of 10,000 enterprise seats.",
+    fullText: "50% of 10,000 enterprise seats (denominator: seats, not people) include the backup add-on. Do not average with the user survey.",
+  },
+];
+
+const UNKNOWN: CatalogSource[] = [
+  {
+    locator: "fixture://unknown/unobtainium",
+    title: "Registry lookup",
+    publisher: "Materials desk",
+    originCluster: "unobtainium",
+    family: "catalog",
+    sourceType: "catalog",
+    accessOnSearch: "snippet",
+    snippet: "No reliable melting point.",
+    fullText:
+      "No reliable measurement of the melting point of Unobtainium-99 was found in the accessed registry. Absence of a figure is not a claim that the substance cannot melt. No probability is assigned.",
+  },
+];
+
+const FRESHNESS: CatalogSource[] = [
+  {
+    locator: "fixture://price/historical-list",
+    title: "2024 archived price list",
+    publisher: "Vendor A archive",
+    originCluster: "price-archive-2024",
+    family: "vendor-docs",
+    sourceType: "vendor-docs",
+    accessOnSearch: "snippet",
+    snippet: "40 EUR/month as of 2024-01-01.",
+    fullText:
+      "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.",
+  },
+  {
+    locator: "fixture://company/founding",
+    title: "Company registry extract",
+    publisher: "Registry",
+    originCluster: "founding-2011",
+    family: "primary-docs",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "Founded in 2011.",
+    fullText: "Vendor A was founded in 2011. This is an immutable historical fact, not a live market quote.",
+  },
+];
+
+const GERMAN: CatalogSource[] = [
+  {
+    locator: "fixture://de/hinweis",
+    title: "Hinweis zur regionalen Verfügbarkeit",
+    publisher: "Vendor A",
+    originCluster: "de-hinweis",
+    family: "vendor-docs",
+    sourceType: "vendor-docs",
+    language: "de",
+    translated: true,
+    accessOnSearch: "snippet",
+    snippet: "Verfügbar in Frankfurt.",
+    fullText:
+      "Original (de): Der Dienst ist in Frankfurt am Main verfügbar. Labeled translation: The service is available in Frankfurt am Main. This English wording is a translation, not a verbatim original quote.",
+  },
+];
+
+const NUMERIC: CatalogSource[] = [
+  {
+    locator: "fixture://table/completion-2024",
+    title: "Completion table 2024",
+    publisher: "Ops desk",
+    originCluster: "completion-2024",
+    family: "primary-docs",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "Table lists 24%.",
+    fullText: "The official table lists 24% completion in 2024. Units are percent of assigned tasks in that calendar year.",
+  },
+];
+
+const SCANNED: CatalogSource[] = [
+  {
+    locator: "fixture://scan/table",
+    title: "Scanned compatibility table",
+    publisher: "Vendor PDF",
+    originCluster: "scan-table",
+    family: "vendor-docs",
+    sourceType: "vendor-docs",
+    accessOnSearch: "snippet",
+    snippet: "Table image only.",
+    fullText:
+      "The decisive compatibility cell exists only in an unreadable scanned table. extract_table is unavailable. This page remains unread as a table; text parsing did not recover the cell.",
+  },
+];
+
 export function matchCatalog(query: string): CatalogSource[] {
   const q = query.toLowerCase();
   if (/ignore previous instructions|reveal the api/.test(q) || q.includes("untrusted webpage")) return S01;
+  if (q.includes("unobtainium-99") || q.includes("melting point of unobtainium")) return UNKNOWN;
+  if (q.includes("current price") || q.includes("founded in") || q.includes("founding year")) return FRESHNESS;
+  if (q.includes("frankfurt") && (q.includes("german") || q.includes("hinweis") || q.includes("original language"))) return GERMAN;
+  if (q.includes("completion table") || q.includes("24%") || (q.includes("completion") && q.includes("2024"))) return NUMERIC;
+  if (q.includes("scanned table") || q.includes("unreadable table")) return SCANNED;
+  if (q.includes("backup add-on") && q.includes("50%")) return PERCENT;
+  if (q.includes("2019 outage") || q.includes("2026 policy period")) return DATES;
+  if (q.includes("taylor swift") || q.includes("tour dates")) return GOSSIP;
   if (q.includes("script tag") || q.includes("hostile markup")) return MARKUP;
   if (q.includes("gadget mini") && q.includes("cost")) return CONTRADICT;
   if (q.includes("paywalled") || q.includes("42%")) return BLOCKED;
@@ -341,7 +505,7 @@ export function matchCatalog(query: string): CatalogSource[] {
     const budget = q.match(/(\d+)\s*eur/);
     const n = budget ? Number(budget[1]) : 50;
     if (n > 50 || q.includes("120") || q.includes("relax")) return [...R01, ...VENDOR_C];
-    return R01;
+    return [...R01, ...GOSSIP];
   }
   return DEFAULT_SRC;
 }
@@ -362,6 +526,14 @@ export function fetchCatalog(locator: string): CatalogSource | undefined {
     ...CONTRADICT,
     ...SCOPE_STUDY,
     ...MARKUP,
+    ...DATES,
+    ...GOSSIP,
+    ...PERCENT,
+    ...UNKNOWN,
+    ...SCANNED,
+    ...FRESHNESS,
+    ...GERMAN,
+    ...NUMERIC,
     ...DEFAULT_SRC,
   ];
   return all.find((s) => s.locator === locator);
