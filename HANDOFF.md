@@ -21,7 +21,7 @@ Working tree: `main` at `3847cf7285d797b39acbac58c72a535da42c6ea8`. Run `git rev
 | `pnpm test:e2e:android` / `ios` | 2 | no device / no Xcode |
 
 ## Blockers (unchanged)
-- **P0-L:** `OPENROUTER_API_KEY` and authorized `LIVE_SPEND_CAP_MICRO>0`.
+- **P0-L:** executed. Remaining OpenRouter key allowance ~$4.90 of $5. Do not raise the cap. Live policy is search-once then fetch HTTP sources; fixture workers skip live jobs.
 - **P0-N iOS:** Xcode.
 - **P0-N Android:** physical device used this session (`a3fa7852`, Expo Go + installed EAS APK). AVD creation still fails (`avdmanager` package index `null`). iOS/TestFlight deferred.
 
