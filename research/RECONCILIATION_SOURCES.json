@@ -1,0 +1,29 @@
+[
+  {
+    "id": "N01",
+    "title": "Expo push notifications troubleshooting and FAQ \u2014 delivery guarantees",
+    "url": "https://docs.expo.dev/push-notifications/faq/",
+    "retrieved": "2026-09-16",
+    "kind": "official",
+    "observation": "Expo documents best-effort handoff with possible duplicated or missing deliveries; a receipt is a handoff result, not proof of device receipt.",
+    "scope": "Newly inspected for RC-04; not a re-audit of the original 42 sources."
+  },
+  {
+    "id": "N02",
+    "title": "Expo \u2014 Send notifications with the Expo Push Service",
+    "url": "https://docs.expo.dev/push-notifications/sending-notifications/",
+    "retrieved": "2026-09-16",
+    "kind": "official",
+    "observation": "Tickets/receipts and documented collapse/tag options have different semantics; receipt ok does not establish device receipt.",
+    "scope": "Verify chosen SDK/transport exposes a documented capability before relying on it."
+  },
+  {
+    "id": "N03",
+    "title": "Apple \u2014 Sending notification requests to APNs",
+    "url": "https://developer.apple.com/documentation/usernotifications/sending-notification-requests-to-apns",
+    "retrieved": "2026-09-16",
+    "kind": "official",
+    "observation": "APNs is best effort; collapse identifiers merge requests and do not supply an end-to-end exactly-once contract for the app database and device.",
+    "scope": "Supports delivery limitation; proposed database/unknown-outcome policy is our design decision, not an Apple requirement."
+  }
+]

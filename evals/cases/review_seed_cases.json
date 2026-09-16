@@ -1,0 +1,266 @@
+[
+  {
+    "id": "EVAL-01",
+    "title": "Cross-platform note workflow",
+    "status": "draft_not_validated",
+    "base_request": "Compare note-taking workflows with offline editing, Android/iPhone support and full export required.",
+    "correction": "Add desktop Linux as a hard requirement; reopen previously excluded candidates.",
+    "independent_gold_to_collect": "Compatibility matrix/release docs; distinguish offline viewing from editing.",
+    "acceptance_ids": [
+      "V2-01",
+      "V2-04"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-02",
+    "title": "Power budget comparison",
+    "status": "draft_not_validated",
+    "base_request": "Compare power solutions against supplied device demand and manual limits.",
+    "correction": "Correct watts versus watt-hours in one input.",
+    "independent_gold_to_collect": "Exact ports/continuous-output/manual table and reproducible unit calculation.",
+    "acceptance_ids": [
+      "V2-05",
+      "V2-19"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-03",
+    "title": "Family storage and recovery",
+    "status": "draft_not_validated",
+    "base_request": "Compare personal storage options with version restore and family access constraints.",
+    "correction": "Increase family size; confirm if license scope changes eligibility.",
+    "independent_gold_to_collect": "Current plan terms and restore semantics, not generic sync marketing.",
+    "acceptance_ids": [
+      "V2-01",
+      "V2-04"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-04",
+    "title": "Hosting compatibility",
+    "status": "draft_not_validated",
+    "base_request": "Compare a small project’s hosting options under region and connection-mode constraints.",
+    "correction": "A required driver/version changes; inspect upstream compatibility evidence.",
+    "independent_gold_to_collect": "Official connection docs, version history and relevant issue resolution.",
+    "acceptance_ids": [
+      "V2-01",
+      "V2-02"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-05",
+    "title": "Home network feature",
+    "status": "draft_not_validated",
+    "base_request": "Check whether a feature works with the user’s exact device firmware and client mode.",
+    "correction": "The user supplies a newer manual with a caveat.",
+    "independent_gold_to_collect": "Firmware-specific documentation and scoped discrepancy; no broad model-family inference.",
+    "acceptance_ids": [
+      "V2-02",
+      "V2-19"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-06",
+    "title": "Personal service terms",
+    "status": "draft_not_validated",
+    "base_request": "Compare two supplied service offers under exact locality and cancellation constraints.",
+    "correction": "Relax a constraint so an initially excluded option becomes feasible.",
+    "independent_gold_to_collect": "Offer terms, valid dates, exclusions and eligibility evidence; unavailable data stays unknown.",
+    "acceptance_ids": [
+      "V2-04",
+      "V2-18"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-07",
+    "title": "Proposal versus manual",
+    "status": "draft_not_validated",
+    "base_request": "Determine whether claims in a proposal match the manufacturer manual and public documentation.",
+    "correction": "Remove one private proposal from permitted processing.",
+    "independent_gold_to_collect": "Paragraph/table locators; preserve public evidence, purge private derived claims where required.",
+    "acceptance_ids": [
+      "V2-09",
+      "V2-19"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-08",
+    "title": "Versioned software behavior",
+    "status": "draft_not_validated",
+    "base_request": "Explain a discrepancy between a tutorial and current documentation for a niche library behavior.",
+    "correction": "The target version is older than originally stated.",
+    "independent_gold_to_collect": "Archived official docs/release notes and affected version, not latest-page assumption.",
+    "acceptance_ids": [
+      "V2-02",
+      "V2-10"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-09",
+    "title": "Quantitative ownership cost",
+    "status": "draft_not_validated",
+    "base_request": "Use supplied numeric assumptions to compare total resource use across options.",
+    "correction": "Change time horizon and one unit-denominated rate.",
+    "independent_gold_to_collect": "Explicit input ledger, exact formula and scope; no ungrounded current prices.",
+    "acceptance_ids": [
+      "V2-05",
+      "V2-11"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-10",
+    "title": "Source disappearance",
+    "status": "draft_not_validated",
+    "base_request": "Revisit a saved decision when its decisive public source can no longer be refreshed.",
+    "correction": "Ask whether the earlier conclusion still holds at a new date.",
+    "independent_gold_to_collect": "Distinguish historic inspected evidence, current access failure and actual contradictory update.",
+    "acceptance_ids": [
+      "V2-10",
+      "V2-18"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-11",
+    "title": "No eligible option",
+    "status": "draft_not_validated",
+    "base_request": "Investigate a narrowly bounded candidate set whose requirements may be mutually incompatible.",
+    "correction": "Broaden one hard constraint and ask for another attempt.",
+    "independent_gold_to_collect": "Qualified no-match versus incomplete search; rediscovery of newly eligible options.",
+    "acceptance_ids": [
+      "V2-04",
+      "V2-18"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  },
+  {
+    "id": "EVAL-12",
+    "title": "Misleading correlated sources",
+    "status": "draft_not_validated",
+    "base_request": "Check a technical claim repeated across several pages citing one original report.",
+    "correction": "Add a contrary primary source with a different method/time scope.",
+    "independent_gold_to_collect": "Source-family independence, methodological alignment and a genuinely unresolved outcome when justified.",
+    "acceptance_ids": [
+      "V2-01",
+      "V2-03"
+    ],
+    "task_source": "Review-authored seed; replace/validate with consented recent user task.",
+    "human_validated": false,
+    "executed": false,
+    "result": null,
+    "source_versions_to_pin": [],
+    "arms": [
+      "iterative_baseline",
+      "gap_controller",
+      "incremental_vs_full_corrected_rerun"
+    ]
+  }
+]

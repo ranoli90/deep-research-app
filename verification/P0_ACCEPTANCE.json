@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "partial_p0_checkpoint",
+  "authority": "IMPLEMENTATION_PLAN.md",
+  "as_of": "2026-09-16",
+  "smoke_case_ids": [
+    "R01",
+    "R04",
+    "R05",
+    "R09",
+    "R13",
+    "E01",
+    "E02",
+    "J01",
+    "J03",
+    "J05",
+    "S01",
+    "S09"
+  ],
+  "gates": [
+    {
+      "id": "P0-D",
+      "name": "Local deterministic and database correctness",
+      "status": "implemented and verified",
+      "allows_paid_calls": false,
+      "real_postgres_required_for_persistence": true,
+      "allows_labeled_model_fixtures": true,
+      "evidence": {
+        "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
+        "queue": "pg-boss 10.0.4",
+        "tests": "pnpm test:integration twice, 15/15, exit 0",
+        "launch": "pnpm p0:launch twice, citations resolved, cancel recorded",
+        "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
+      },
+      "scope": "Smoke suite plus transaction, authorization, privacy, budget and fencing cases. Not live-model or hosted-service proof. Local PostgreSQL does not prove hosted auth/RLS/storage/pooler."
+    },
+    {
+      "id": "P0-L",
+      "name": "Authorized live model and retrieval trace",
+      "status": "blocked by a named external dependency",
+      "requires_authorized_routes_and_budget": true,
+      "missing": "OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0; no live retrieval credentials",
+      "scope": "Actual source passages, bounded cited report, receipts and one correction. Fixture success does not pass."
+    },
+    {
+      "id": "P0-N",
+      "name": "Native lifecycle",
+      "status": "partial",
+      "platform_status": {
+        "ios": "blocked by a named external dependency",
+        "android": "blocked by a named external dependency"
+      },
+      "missing": {
+        "ios": "Xcode / iOS runtime on this Linux host",
+        "android": "no AVD defined and no emulator/device online (SDK and system-images;android-34;google_apis;x86_64 are present)"
+      },
+      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet; apps/mobile/test/lifecycle.test.ts covers consent/input, close/reopen, cancel, correction, shared concise/detailed blocks",
+      "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
+    }
+  ],
+  "all_required_gates_must_pass_for_p0_verified": true,
+  "p0_fully_verified": false,
+  "minimum_governance_security_accessibility_start_in_p0": true,
+  "unavailable_gate_policy": "blocked-by-named-dependency; continue independent safe work; never relabel as passed"
+}

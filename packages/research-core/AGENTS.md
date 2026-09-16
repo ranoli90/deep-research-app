@@ -1,0 +1,9 @@
+# Research core scoped instructions
+
+Root AGENTS.md applies; these rules cannot weaken it.
+
+**Current status:** Pure controller policy, citation support checks, and publication fences live in `src/`. No HTTP, React Native, or provider SDKs.
+
+Pure controller policy imports contracts, never React Native, HTTP transport, provider SDKs or database clients. Actions are proposals; policy gates live outside model text. Preserve source/claim/constraint identities, typed dependencies and conservative invalidation. Test source saturation, newly eligible candidates, incomplete evidence and stop decisions. No mandatory agent swarm.
+
+Use verification/COMMANDS.json to distinguish available and proposed checks. Update the owning canonical spec with behavior changes, not a duplicate local handbook.

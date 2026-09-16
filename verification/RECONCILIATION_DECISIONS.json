@@ -1,0 +1,105 @@
+{
+  "version": 3,
+  "date": "2026-09-16",
+  "status": "applied_to_specifications_not_application",
+  "decisions": [
+    {
+      "id": "RC-01",
+      "disposition": "accepted_with_clarification",
+      "reason": "Blocked is correct reporting, not completed implementation; blocker specificity and simulator-vs-store distinction preserved.",
+      "targets": [
+        "Grok_Code_Deep_Research_Goal.md",
+        "AGENTS.md",
+        "specs/SETUP_AND_HANDOFF.md"
+      ]
+    },
+    {
+      "id": "RC-02",
+      "disposition": "accepted_with_modification",
+      "reason": "P0-first milestone retained; blanket P3/P4 ban rejected because minimum security/governance/accessibility belongs in P0. Separate deterministic/live/native evidence, and do not force session termination once P0 passes.",
+      "targets": [
+        "Grok_Code_Deep_Research_Goal.md",
+        "IMPLEMENTATION_PLAN.md",
+        "verification/P0_ACCEPTANCE.json",
+        "MASTER_BUILD_PROMPT.md"
+      ]
+    },
+    {
+      "id": "RC-03",
+      "disposition": "accepted_with_qualification",
+      "reason": "Local real PostgreSQL/queue is valid local correctness evidence; it does not prove managed auth/RLS/storage/pooler/native compatibility or real model quality.",
+      "targets": [
+        "specs/SETUP_AND_HANDOFF.md",
+        "ARCHITECTURE.md",
+        "docs/adr/DECISIONS.md"
+      ]
+    },
+    {
+      "id": "RC-04",
+      "disposition": "accepted_identity_rejected_exactly_once_claim",
+      "reason": "Define completionEpoch, typed uniqueness and per-binding delivery identity. A local key cannot guarantee duplicate-free external push; reconcile/suppress unknown sends and retain privacy-safe foreground sync.",
+      "targets": [
+        "specs/ENGINE_CONTRACTS.md",
+        "specs/ACCEPTANCE_TESTS.md",
+        "specs/MOBILE_SCREEN_STATES.md",
+        "docs/SECURITY_PRIVACY_COST.md",
+        "docs/adr/DECISIONS.md"
+      ]
+    },
+    {
+      "id": "RC-05",
+      "disposition": "accepted_with_gate_split",
+      "reason": "Implement baseline before breadth, but twelve deterministic smoke cases do not prove live/native or every critical invariant.",
+      "targets": [
+        "IMPLEMENTATION_PLAN.md",
+        "verification/P0_ACCEPTANCE.json",
+        "specs/ACCEPTANCE_TESTS.md"
+      ]
+    },
+    {
+      "id": "RC-06",
+      "disposition": "accepted_with_existing_condition",
+      "reason": "Complete P1-P3 as gated; evaluate adaptive/incremental complexity rather than automatically shipping an experimental mechanism that fails its own comparison.",
+      "targets": [
+        "IMPLEMENTATION_PLAN.md",
+        "EVALUATION.md"
+      ]
+    },
+    {
+      "id": "RC-07",
+      "disposition": "accepted",
+      "reason": "Use real consented tasks/independent evidence before meaningful product evaluation or numerical readiness/marketing claims. Draft cases remain unchanged and unexecuted.",
+      "targets": [
+        "EVALUATION.md",
+        "HANDOFF.md"
+      ]
+    },
+    {
+      "id": "RC-08",
+      "disposition": "accepted",
+      "reason": "Link Grok capability row to account-entitlement evaluation gate; no new feature claim.",
+      "targets": [
+        "research/COMPETITOR_REVIEW.md"
+      ]
+    },
+    {
+      "id": "RC-09",
+      "disposition": "retained_no_new_runtime_feature",
+      "reason": "Parallel branches remain conditional measured experiment; no mandatory six-call runtime chain.",
+      "targets": [
+        "docs/adr/DECISIONS.md",
+        "agents/runtime/CONTRACT.md"
+      ]
+    },
+    {
+      "id": "PBR-05",
+      "disposition": "confirmed_specification_resolution_only",
+      "reason": "F04/F06 were resolved in existing specification text; app implementation and runtime tests remain unperformed.",
+      "targets": [
+        "STATUS.md",
+        "HANDOFF.md",
+        "docs/CURRENT_STATE_AUDIT.md"
+      ]
+    }
+  ]
+}

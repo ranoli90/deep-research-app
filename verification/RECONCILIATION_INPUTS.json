@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-16",
+  "scope": "exact input bytes; not truth verification",
+  "files": [
+    {
+      "filename": "Deep_Research_Reviewed_Build_Kit.zip",
+      "bytes": 248285,
+      "sha256": "a5fb0733ba4c0734a9d40394fddf21c00fbd15fbf6672d694d8826b39683e005",
+      "role": "previous_package_input"
+    },
+    {
+      "filename": "Grok_Code_Deep_Research_Goal.md",
+      "bytes": 15531,
+      "sha256": "65e53fa06e030dc99b19e45c48410e1d62dfd1bbcfaeb8dd484b773dc8cec984",
+      "role": "previous_package_input"
+    },
+    {
+      "filename": "Deep_Research_Aggressive_Review.md",
+      "bytes": 25838,
+      "sha256": "00aec143b1845aa007dfdaf513df92a8b0c3a982d304f8c4d1882f08b931f0b4",
+      "role": "previous_package_input"
+    },
+    {
+      "filename": "Deep_Research_Complaint_Evidence.csv",
+      "bytes": 17911,
+      "sha256": "770dcb12e2bfaedacb862c5149c9e764d6bd14d26adfd93e91e0bac0c89afbc8",
+      "role": "previous_package_input"
+    },
+    {
+      "filename": "INDEPENDENT PREBUILD REVIEW.md",
+      "bytes": 23030,
+      "sha256": "6adc1fb536145fa971e02091524b7ae2a48df3c4decd147abdc06c44995d318b",
+      "role": "submitted_independent_review"
+    },
+    {
+      "filename": "CLAIM VERIFICATION.csv",
+      "bytes": 8609,
+      "sha256": "6db952c35591c9bd3968c7b70b096b4a3d65b9d4a99783918434642128e77abe",
+      "role": "submitted_independent_review"
+    },
+    {
+      "filename": "REQUIRED CHANGES.md",
+      "bytes": 7107,
+      "sha256": "5c438491100673466c75485849dcffa3cedd837838390401367f9a131282ee63",
+      "role": "submitted_independent_review"
+    },
+    {
+      "filename": "PROPOSED REPLACEMENTS.md",
+      "bytes": 5567,
+      "sha256": "f6e2214c83bae5db23da345a3aee640f1418838ccd2688f122f6218e5bd14bbf",
+      "role": "submitted_independent_review"
+    }
+  ],
+  "previous_archive_inventory": {
+    "archive_entries": 57,
+    "files": 57,
+    "internal_kit_files": 56,
+    "independent_review_count_statement": "Reviewer reports 52 files; use this exact archive inventory, not that count, for packaging verification."
+  }
+}

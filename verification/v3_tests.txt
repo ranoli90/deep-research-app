@@ -1,0 +1,22 @@
+test_claimed_live_gate_pass (test_builder_handoff.BuilderHandoffTests.test_claimed_live_gate_pass) ... ok
+test_deferred_safety (test_builder_handoff.BuilderHandoffTests.test_deferred_safety) ... ok
+test_missing_disposition (test_builder_handoff.BuilderHandoffTests.test_missing_disposition) ... ok
+test_mutated_external_review (test_builder_handoff.BuilderHandoffTests.test_mutated_external_review) ... ok
+test_mutated_original_sources (test_builder_handoff.BuilderHandoffTests.test_mutated_original_sources) ... ok
+test_stale_goal_archive (test_builder_handoff.BuilderHandoffTests.test_stale_goal_archive) ... ok
+test_unqualified_push_guarantee (test_builder_handoff.BuilderHandoffTests.test_unqualified_push_guarantee) ... ok
+test_valid_package (test_builder_handoff.BuilderHandoffTests.test_valid_package) ... ok
+test_duplicate_case_rejected (test_review_validator.ReviewValidatorTests.test_duplicate_case_rejected) ... ok
+test_duplicate_sources_rejected (test_review_validator.ReviewValidatorTests.test_duplicate_sources_rejected) ... ok
+test_fabricated_evaluation_result_rejected (test_review_validator.ReviewValidatorTests.test_fabricated_evaluation_result_rejected) ... ok
+test_fabricated_reproduction_rejected (test_review_validator.ReviewValidatorTests.test_fabricated_reproduction_rejected) ... ok
+test_future_source_date_rejected (test_review_validator.ReviewValidatorTests.test_future_source_date_rejected) ... ok
+test_missing_canonical_file_rejected (test_review_validator.ReviewValidatorTests.test_missing_canonical_file_rejected) ... ok
+test_nonexistent_implemented_command_rejected (test_review_validator.ReviewValidatorTests.test_nonexistent_implemented_command_rejected) ... ok
+test_unknown_observation_source_rejected (test_review_validator.ReviewValidatorTests.test_unknown_observation_source_rejected) ... ok
+test_valid_package (test_review_validator.ReviewValidatorTests.test_valid_package) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.130s
+
+OK

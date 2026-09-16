@@ -1,0 +1,59 @@
+# Security, privacy, economics and operations
+Owner roles: security/privacy + reliability/cost. Status: requirements and economic model, not verified controls. Reviewed: 2026-09-16.
+
+## Trust boundaries
+The mobile client owns presentation, never provider secrets or authoritative entitlement. The API authorizes every object and request. The worker has bounded task permissions. Model suggestions are untrusted. Webpages, snippets, files and provider tool outputs are untrusted data. Runtime tool permissions cannot be expanded by source content. No read action authorizes purchases, outbound messages or cross-user access.
+
+Prompt-injection defenses require privilege separation and data-flow controls, not only an instruction to ignore malicious content (S36). Fetching must enforce DNS/IP/redirect/network restrictions, including IPv4/IPv6 loopback/private/link-local/metadata targets, credential URLs, unsafe schemes and response limits (S37). Put controls at the egress/network layer; repeat checks on redirects and resolved destinations. Never bypass access restrictions or licensing.
+
+## Threat → control → required test
+| Threat | Deterministic boundary | Acceptance evidence to obtain |
+|---|---|---|
+| Malicious source demands secret upload or new tools | Source treated as data; tool allowlist + argument/auth/policy validation | Injection fixture yields no unauthorized tool call, query leakage or policy change |
+| Private text leaks into public search | Query-minimization/classification with explicit user processing scope | Canary private phrases never reach search logs/adapter in protected tasks |
+| SSRF or malicious redirect | Network-target resolution and revalidation; isolated fetch service; byte/time limits | Loopback, metadata, IPv6, redirect and DNS-change suites in deployed-like egress |
+| Cross-user report/evidence access | Tenant-scoped queries, ownership at every entry, signed limited artifact access | Two-user negative tests over guessed IDs, versions, event cursors and exports |
+| Hostile document/parser bomb | MIME sniffing, size/page/CPU/memory limits, constrained parsing and sanitized output | Malformed/encrypted/scanned/oversized files fail clearly without false “read” claims |
+| Late completion after deletion | Consent/cancel epochs, tombstones, fenced publication, retention-aware redrive | Delete during fetch/write, then deliver late callback; no private resurrection |
+| Fake purchase/duplicate charge | Server verification, idempotent entitlement events, append-only ledger | Replay, refund, out-of-order renewal, restore/account-switch tests |
+| Sensitive diagnostics | Redacted structured telemetry; least-privilege audited access | Log/trace/export scan excludes prompts/files/tokens/signed URLs by default |
+
+## Personal data and retention
+Obtain explicit processing permission before sending personal data to third-party AI; disclose actual gateway/downstream processors and optional search/extraction services. Apple's applicable third-party AI permission rule is a release requirement, not approval assurance (S41). Google Play also requires relevant in-app AI output reporting (S42).
+
+Provider training opt-out, retention, gateway logging and a separate retrieval processor are distinct settings. OpenRouter exposes routing/privacy controls, but a ZDR model route alone does not make the complete app zero-retention (S29–S30). Route allowlists must preserve agreed privacy/geography constraints through failures; do not silently fall back to a noncompliant processor.
+
+Keep long-term inferred personal memory off by default. Saved preferences are explicit, viewable and removable. Reports and raw source storage have declared retention classes; retain limited supporting passages when source terms do not allow full caching. Delete private original/derived text, caches, future embeddings and affected report versions on valid deletion. Preserve only permitted minimal audit metadata. Backups have a documented expiry and deletion-tombstone replay after restore. User-downloaded external copies cannot be recalled; state that limitation.
+
+Account deletion and subscription cancellation are different actions; explain both without claiming an app can always cancel a store subscription. Revoking consent prevents future processing and triggers applicable stored-data rules. User-supplied documents cannot authorize new connectors; connectors remain out of initial scope.
+
+## Per-run economics
+No measured costs or retail prices exist in this review. Use actual versioned provider tariffs when implementing, not numbers copied from an old prompt. Each run records:
+
+`C_run = C_model_input + C_model_output + C_reasoning_if_separately_billed + C_search + C_fetch + C_browser_if_used + C_extraction_OCR + C_worker + C_storage + C_observability + C_retries`
+
+Do not double-count reasoning already included in a provider’s reported output charge. Some tools bill per call, per search, per page or via included allowances; normalize units and state uncertainty. Measure cancelled/failed runs as well as successful ones. Prototype spend can be subsidized; production economics cannot assume that subsidy persists.
+
+`Cost per usable decision = total cost of all attempted tasks, including repair and failures / number of tasks adjudicated usable`
+
+This denominator is more informative than average cost per generated report. Track median and tail costs, reuse savings, reserve utilization, uncertain provider cost, user repair minutes and refund rate. A fast cheap incorrect report is not an efficiency win.
+
+## Concurrent budget enforcement
+Maintain separate customer allowance and operator-cost ledgers. Before dispatch, within a row-locked/serializable transaction, compute remaining authorized spend after settled spend and all outstanding reservations. Reserve an enforceable upper bound for the action plus finishing headroom. Competing branches cannot each read the same available balance and spend it.
+
+If a provider cannot bound hidden internal searches/reasoning, a local token cap is not a hard dollar cap. Use a route whose bound fits policy, obtain explicit bounded-risk operator authorization, or decline the route. Never advertise certainty the integration cannot enforce.
+
+Issued calls with unknown outcomes retain their reservation until reconciled or resolved under a documented conservative policy. A customer may receive a goodwill credit even if provider spend occurred; keep that adjustment distinct. Avoid silently debiting twice because a retry completed after the initial timeout. Enable user/day/global limits, concurrency controls, circuit breakers and a live-spend kill switch. Reconciliation itself must not bypass consent.
+
+## Latency and quality tradeoffs
+Start with one model route and explicit retrieval. Use deterministic bookkeeping/calculation rather than model calls. Add a specialist verifier only for consequential or disputed claims, and measure its false positives as well as catches. Parallelize independent questions only when elapsed-time savings exceed coordination/budget cost under the same quality gates. Browser or visual extraction is conditional on a demonstrated accessible evidence gap.
+
+The strongest objection to detailed claim lineage is overhead. Use material claim granularity, retain a full bounded recomputation fallback and measure whether selective repair actually pays for its maintenance. No exact cents/report promise is justified before a live benchmark.
+
+## Operations and release
+Record model/config/schema/prompt versions, effective processor, run and tool IDs, ordered stages, redacted failures, reservations and measured usage. Health/readiness separates process liveness from database/provider readiness. Operator access supports safe run lookup, unknown-outcome reconciliation and permission-aware redrive without exposing a developer dashboard to customers.
+
+Required drills: worker death during fetch/write, queue duplicate, database interruption, storage failure, token expiry, provider outage, allowance race, deletion during run, stale mobile cursor, backup restore with tombstones and rollback. A written runbook is not a passed drill. Record actual environment and outputs before release. No production services, stores or subscriptions were changed in this review.
+
+## Revision 3: notification disclosure and dispatch boundary
+Notification content is nonsensitive by default and never substitutes for report authorization. Dispatch checks current account/device binding and consent before sending; every deep link reauthorizes. Revoke unsent jobs and app-controlled caches/alerts on logout or deletion. Already-issued generic remote alerts cannot be reliably recalled; do not claim that an epoch or dedupe key provides that transport power. Provider handoff, device receipt and user reading are different events. `specs/ENGINE_CONTRACTS.md` §10 owns the completion/delivery/unknown-outcome contract; N01–N03 in `research/RECONCILIATION_SOURCES.json` supply the newly checked official delivery documentation. Local database evidence does not establish hosted auth/storage/retention behavior.

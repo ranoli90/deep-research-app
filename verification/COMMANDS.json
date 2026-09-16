@@ -1,0 +1,162 @@
+[
+  {
+    "command": "python scripts/validate_review.py",
+    "status": "implemented_review_tool",
+    "scope": "review document and data structure only",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/validate_review.py"
+  },
+  {
+    "command": "python -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+    "status": "implemented_review_tool",
+    "scope": "unit tests of the review validator only",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/test_review_validator.py"
+  },
+  {
+    "command": "python scripts/validate_builder_handoff.py",
+    "status": "implemented_review_tool",
+    "scope": "revision-3 document consistency only",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/validate_builder_handoff.py"
+  },
+  {
+    "command": "python -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+    "status": "implemented_review_tool",
+    "scope": "mutation tests of revision-3 document checker only",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/test_builder_handoff.py"
+  },
+  {
+    "command": "pnpm doctor",
+    "status": "implemented_application_command",
+    "scope": "local postgres/queue/config checks; does not print secrets",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/src/platform/doctor.ts"
+  },
+  {
+    "command": "pnpm dev:demo",
+    "status": "implemented_application_command",
+    "scope": "API + worker with labeled fixture route",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/src/dev-demo.ts"
+  },
+  {
+    "command": "pnpm dev:live",
+    "status": "implemented_application_command",
+    "scope": "refuses to start without OPENROUTER_API_KEY",
+    "network": true,
+    "paid": true,
+    "implementation": "apps/backend/src/dev-live.ts"
+  },
+  {
+    "command": "pnpm db:migrate",
+    "status": "implemented_application_command",
+    "scope": "applies apps/backend/migrations against DATABASE_URL",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/src/platform/migrate.ts"
+  },
+  {
+    "command": "pnpm db:seed:demo",
+    "status": "implemented_application_command",
+    "scope": "creates a development-only session token",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/src/platform/seed.ts"
+  },
+  {
+    "command": "pnpm lint",
+    "status": "implemented_application_command",
+    "scope": "TypeScript noEmit on contracts, research-core, backend",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json#lint"
+  },
+  {
+    "command": "pnpm typecheck",
+    "status": "implemented_application_command",
+    "scope": "workspace TypeScript check",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json#typecheck"
+  },
+  {
+    "command": "pnpm test:unit",
+    "status": "implemented_application_command",
+    "scope": "research-core policy tests and backend unit/governance tests; no paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "packages/research-core/test, apps/backend/test/*.unit.test.ts"
+  },
+  {
+    "command": "pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "P0 smoke + fencing against real local PostgreSQL and pg-boss; fixture route only",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/p0-smoke.integration.test.ts"
+  },
+  {
+    "command": "pnpm test:e2e:ios",
+    "status": "implemented_application_command",
+    "scope": "exits 2 on this Linux host: no Xcode/iOS runtime",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/e2e-ios.mjs"
+  },
+  {
+    "command": "pnpm test:e2e:android",
+    "status": "implemented_application_command",
+    "scope": "exits 2 unless an adb device is online",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/e2e-android.mjs"
+  },
+  {
+    "command": "pnpm eval:fixture",
+    "status": "implemented_application_command",
+    "scope": "points at fixture integration tests; not a scored benchmark",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/src/eval-fixture.ts"
+  },
+  {
+    "command": "pnpm eval:live",
+    "status": "implemented_application_command",
+    "scope": "blocked without OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0",
+    "network": true,
+    "paid": true,
+    "implementation": "apps/backend/src/eval-live.ts"
+  },
+  {
+    "command": "pnpm verify",
+    "status": "implemented_application_command",
+    "scope": "typecheck + unit tests + AST boundary check; deterministic and nonbillable",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json#verify, scripts/check-boundaries.mjs"
+  },
+  {
+    "command": "pnpm build",
+    "status": "implemented_application_command",
+    "scope": "TypeScript noEmit build of packages and backend",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json#build"
+  },
+  {
+    "command": "pnpm p0:launch",
+    "status": "implemented_application_command",
+    "scope": "starts real API+worker, consented fixture run, citation resolve, cancel",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/p0-launch-check.ts"
+  }
+]

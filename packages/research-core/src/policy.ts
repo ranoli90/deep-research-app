@@ -1,0 +1,203 @@
+import {
+  FIXTURE_FETCH_COST_MICRO,
+  FIXTURE_SEARCH_COST_MICRO,
+  FIXTURE_SYNTH_COST_MICRO,
+} from "@deep/contracts";
+import { neededClarifications } from "./brief.js";
+import { canSpendExploration } from "./fences.js";
+import { queryLeaksPrivate, rejectPrivilegedProposal } from "./injection.js";
+import type { ControllerState, PolicyDecision, SearchTrace } from "./types.js";
+
+export function saturationReached(searches: SearchTrace[]): boolean {
+  if (searches.length < 2) return false;
+  const last = searches.slice(-2);
+  return last.every((s) => s.newFamilies === 0 && !s.coverageProgress);
+}
+
+export function independentClusterCount(sources: { originCluster?: string; id: string }[]): number {
+  const clusters = new Set<string>();
+  for (const s of sources) {
+    clusters.add(s.originCluster ?? `independent:${s.id}`);
+  }
+  return clusters.size;
+}
+
+export function selectNextAction(state: ControllerState): PolicyDecision {
+  const actionId = `act-${state.basis.evidenceRevision + 1}`;
+  const base = {
+    actionId,
+    runId: state.runId,
+    briefRevision: state.brief.revision,
+    coverageIds: [] as string[],
+    arguments: {} as Record<string, unknown>,
+    estimatedMaxCostMicro: 0,
+    sourceAccessConstraints: [] as string[],
+    dedupeKey: actionId,
+    privileged: false,
+  };
+
+  if (state.deleted) {
+    return { ...base, type: "stop", rationale: "account or content deleted", arguments: { reason: "deleted" } };
+  }
+
+  const clar = neededClarifications(state.brief);
+  if (clar.length > 0 && state.phase === "preparing") {
+    return {
+      ...base,
+      type: "clarify",
+      rationale: "A blocking field is unspecified and would change the answer",
+      arguments: { questions: clar },
+    };
+  }
+
+  const unfetched = state.sources.filter(
+    (s) => s.accessLevel === "discovered" || s.accessLevel === "snippet",
+  );
+  if (unfetched[0]) {
+    const cost = FIXTURE_FETCH_COST_MICRO;
+    if (
+      !canSpendExploration({
+        totalBudgetMicro: state.budgetMicro,
+        spentPlusReservedMicro: state.spentMicro,
+        actionCostMicro: cost,
+        isFinishingAction: false,
+      })
+    ) {
+      return { ...base, type: "synthesize", rationale: "budget requires finishing with available evidence", estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO };
+    }
+    return {
+      ...base,
+      type: "fetch",
+      rationale: "Inspect an already-known source before another generic query",
+      arguments: { locator: unfetched[0].locator, sourceId: unfetched[0].id },
+      estimatedMaxCostMicro: cost,
+      dedupeKey: `fetch:${unfetched[0].locator}`,
+    };
+  }
+
+  const popConstraint = state.constraints.find((c) => c.field === "population");
+  if (popConstraint) {
+    const covered = state.sources.some(
+      (s) => s.population && popConstraint.value.includes(s.population.split(" ")[0] ?? "\0"),
+    );
+    const pediatricish = state.sources.some((s) => (s.population ?? "").includes("child") || (s.population ?? "").includes("pediatric"));
+    const wantsChild = /child|pediatric|under/i.test(popConstraint.value);
+    if (wantsChild && !pediatricish && !covered && state.searches.length < 4) {
+      const q = `${state.brief.originalQuestion} pediatric children population`;
+      const leak = queryLeaksPrivate(q, state.privateCanaries);
+      if (leak) {
+        return { ...base, type: "stop", rationale: "private text cannot enter a public query", arguments: { reason: "private_query_blocked" } };
+      }
+      return {
+        ...base,
+        type: "search",
+        rationale: "Initial dataset excludes the user's stated population; pivot source type",
+        arguments: { query: q, pivot: true, trigger: "population-mismatch" },
+        estimatedMaxCostMicro: FIXTURE_SEARCH_COST_MICRO,
+        gapId: "population",
+        dedupeKey: `search:population:${state.searches.length}`,
+      };
+    }
+  }
+
+  if (saturationReached(state.searches)) {
+    return {
+      ...base,
+      type: "stop",
+      rationale: "Repeated searches returned no novel source family or coverage progress",
+      arguments: { reason: "diminishing_returns" },
+    };
+  }
+
+  const uncovered = state.coverage.find((c) => c.status === "unstarted" || c.status === "investigating");
+  if (uncovered && state.searches.length < 5) {
+    const query = uncovered.question || state.brief.originalQuestion;
+    const leak = queryLeaksPrivate(query, state.privateCanaries);
+    if (leak) {
+      return {
+        ...base,
+        type: "stop",
+        rationale: "private attachment text cannot be copied into a public search query",
+        arguments: { reason: "private_query_blocked", canary: leak },
+      };
+    }
+    const cost = FIXTURE_SEARCH_COST_MICRO;
+    if (
+      !canSpendExploration({
+        totalBudgetMicro: state.budgetMicro,
+        spentPlusReservedMicro: state.spentMicro,
+        actionCostMicro: cost,
+        isFinishingAction: false,
+      })
+    ) {
+      return {
+        ...base,
+        type: "synthesize",
+        rationale: "reserve remaining budget for verification and writing",
+        estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO,
+      };
+    }
+    return {
+      ...base,
+      type: "search",
+      rationale: "Investigate an uncovered required question",
+      arguments: { query, coverageId: uncovered.id },
+      estimatedMaxCostMicro: cost,
+      coverageIds: [uncovered.id],
+      dedupeKey: `search:${uncovered.id}:${state.searches.length}`,
+    };
+  }
+
+  return {
+    ...base,
+    type: "synthesize",
+    rationale: "Authorized investigation has diminishing expected value; write from stored evidence",
+    estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO,
+  };
+}
+
+export function authorizeAction(state: ControllerState, proposal: PolicyDecision): PolicyDecision {
+  const privileged = rejectPrivilegedProposal(proposal);
+  if (privileged) {
+    return {
+      ...proposal,
+      type: "stop",
+      rationale: privileged,
+      rejectReason: privileged,
+      arguments: { reason: "unauthorized_action", detail: privileged },
+    };
+  }
+  if (proposal.type === "search") {
+    const query = String(proposal.arguments.query ?? "");
+    const leak = queryLeaksPrivate(query, state.privateCanaries);
+    if (leak) {
+      return {
+        ...proposal,
+        type: "stop",
+        rationale: "private document text cannot be used as a public query",
+        rejectReason: "private_query_blocked",
+        arguments: { reason: "private_query_blocked" },
+      };
+    }
+  }
+  if (proposal.type === "extract_table" || proposal.type === "inspect_visual") {
+    return {
+      ...proposal,
+      type: "stop",
+      rationale: "table/visual extraction adapters are unavailable",
+      rejectReason: "capability_unavailable",
+    };
+  }
+  return proposal;
+}
+
+export function searchDelta(
+  previousFamilies: Set<string>,
+  newFamilyIds: string[],
+): { newFamilies: number; families: string[] } {
+  let n = 0;
+  for (const f of newFamilyIds) {
+    if (!previousFamilies.has(f)) n += 1;
+  }
+  return { newFamilies: n, families: newFamilyIds };
+}

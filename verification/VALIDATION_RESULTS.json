@@ -1,0 +1,38 @@
+{
+  "review_date": "2026-09-16",
+  "environment": {
+    "python": "3.13.5",
+    "os": "Linux",
+    "repository": "local review workspace, no application repository"
+  },
+  "commands": [
+    {
+      "command": "python scripts/validate_review.py",
+      "exit_code": 0,
+      "scope": "review package structure/data only",
+      "result": {
+        "scope": "review_package_only",
+        "ok": true,
+        "source_count": 42,
+        "observation_count": 18,
+        "dedicated_2026_observations": 9,
+        "acceptance_specification_count": 90,
+        "draft_evaluation_case_count": 12,
+        "application_tests_run": 0,
+        "errors": []
+      }
+    },
+    {
+      "command": "python -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exit_code": 0,
+      "tests_run": 9,
+      "failures": 0,
+      "scope": "review validator tests only",
+      "artifact": "verification/validator_tests.txt"
+    }
+  ],
+  "application_tests_run": 0,
+  "native_tests_run": 0,
+  "provider_tests_run": 0,
+  "competitor_trials_run": 0
+}

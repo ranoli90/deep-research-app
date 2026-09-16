@@ -1,0 +1,112 @@
+[
+  {
+    "path": "AGENTS.md",
+    "bytes": 4689,
+    "sha256": "89a9533ac353d6b637ba2b617155b307848c3effd6834f924f8914372c0ca211"
+  },
+  {
+    "path": "MANIFEST.json",
+    "bytes": 3621,
+    "sha256": "0dd3789d3970462dab538da5ba7a9b4c3ce5ab98e6e92327c97a698661ab8584"
+  },
+  {
+    "path": "MASTER_BUILD_PROMPT.md",
+    "bytes": 46207,
+    "sha256": "da5746aa6aa2a02e14384e3d03fbc7e274f67baedf52690a719c10a12ef25b77"
+  },
+  {
+    "path": "README.md",
+    "bytes": 2686,
+    "sha256": "f1f278265abd30221a3564ea673838a3e67dad0bbbcb68b5a0e084ee7b2c4845"
+  },
+  {
+    "path": "agents/development/architecture.md",
+    "bytes": 1284,
+    "sha256": "a85821d89e3cf64ae17d0786679502d8290b953f10f8e56d44fee271363a9417"
+  },
+  {
+    "path": "agents/development/evaluation.md",
+    "bytes": 1245,
+    "sha256": "e87f3dcb3442d54a3275243d5d1df9be3e9b58fa78855433262a62d53eeec861"
+  },
+  {
+    "path": "agents/development/mobile-design.md",
+    "bytes": 1362,
+    "sha256": "48f59e93232c6465cf0522dd5c9cbeecd61e62617087785155974d15cdaa29a6"
+  },
+  {
+    "path": "agents/development/reliability-cost.md",
+    "bytes": 1217,
+    "sha256": "0c883a8ac51e7daf9e098e6a5d028c1bcf204bd7caaca819b020868ce4b5039c"
+  },
+  {
+    "path": "agents/development/research-engineering.md",
+    "bytes": 1290,
+    "sha256": "a47a11dab4da41f626815af0bd55d458938811411ffcfb2c4bc6cc17e098bd93"
+  },
+  {
+    "path": "agents/development/security-privacy.md",
+    "bytes": 1226,
+    "sha256": "6a0e7a7f2fe69d61e8aeab74708f03103927bbd2fbdf418b06caedeb153d8edd"
+  },
+  {
+    "path": "agents/runtime/gap-reviewer.md",
+    "bytes": 2071,
+    "sha256": "0315c72be53efb6ce220de3f8e8d965d961c07b797459d543503e3165be44178"
+  },
+  {
+    "path": "agents/runtime/investigator.md",
+    "bytes": 2123,
+    "sha256": "e48a229a2eb84fcc9f04b0d07232b1c4d90b7bc420e970314cc5f09c5a126c6a"
+  },
+  {
+    "path": "agents/runtime/planner.md",
+    "bytes": 2132,
+    "sha256": "ad4a191bc9ab9cfeb2636884d75a764251ad98e3b587f97b69d2f2680720cd58"
+  },
+  {
+    "path": "agents/runtime/report-reviewer.md",
+    "bytes": 2150,
+    "sha256": "5187786dbfccb31f43ede931cd013cc7fc42b73291be45ca45950a99f75c9e91"
+  },
+  {
+    "path": "agents/runtime/synthesizer.md",
+    "bytes": 2058,
+    "sha256": "b8c4030694f2f69a02439644d1841a34a25d56ad24cb8e47f5da8f5cf6590c54"
+  },
+  {
+    "path": "agents/runtime/verifier.md",
+    "bytes": 2104,
+    "sha256": "94874a1cb1bea3e7b8525fbfd8800b2f28e8d24ce417d0861385bf2e0de54916"
+  },
+  {
+    "path": "research/COMPLAINT_LEADS.csv",
+    "bytes": 2010,
+    "sha256": "2e7d17a7e5a1b618ed1bf3dc082f6fe94fbac79207c51dce0ae69a77add729c0"
+  },
+  {
+    "path": "research/SOURCE_NOTES.md",
+    "bytes": 5426,
+    "sha256": "20f7051963745408be440330e391cdf1675886883daf63b8a8bb200f2f210a9b"
+  },
+  {
+    "path": "specs/ACCEPTANCE_TESTS.md",
+    "bytes": 14388,
+    "sha256": "a0c38d55b1a8531ca1569abda898a1d52e0b3f1378b567393badcd42590567f7"
+  },
+  {
+    "path": "specs/ENGINE_CONTRACTS.md",
+    "bytes": 11499,
+    "sha256": "9e384d5a116ba09b22b8fda4543292e8bc501e9908616dd172228429274f6114"
+  },
+  {
+    "path": "specs/MOBILE_SCREEN_STATES.md",
+    "bytes": 10942,
+    "sha256": "e766dbb8474a027897fd38a28472f06082579cac18f4ff6b5708874c6a4db24a"
+  },
+  {
+    "path": "specs/SETUP_AND_HANDOFF.md",
+    "bytes": 5890,
+    "sha256": "c8963ceda9eaf3cb8071f5cff38444ae3186caf95e733a6406f75f08d102e7d7"
+  }
+]

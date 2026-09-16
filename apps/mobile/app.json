@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Deep Research",
+    "slug": "deep-research",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "deepresearch",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.deepresearch.mobile"
+    },
+    "android": {
+      "package": "app.deepresearch.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#F6F3EE"
+      }
+    },
+    "plugins": [],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

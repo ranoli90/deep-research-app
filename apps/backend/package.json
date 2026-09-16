@@ -1,0 +1,38 @@
+{
+  "name": "@deep/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:demo": "NODE_ENV=development APP_AUTH_MODE=development DEV_ALLOW_FIXTURE_ROUTE=true tsx src/dev-demo.ts",
+    "dev:live": "NODE_ENV=development LIVE_ROUTE_ENABLED=true tsx src/dev-live.ts",
+    "db:migrate": "tsx src/platform/migrate.ts",
+    "db:seed:demo": "tsx src/platform/seed.ts",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:governance": "vitest run --config vitest.unit.config.ts test/governance.test.ts",
+    "eval:fixture": "tsx src/eval-fixture.ts",
+    "eval:live": "tsx src/eval-live.ts",
+    "doctor": "tsx src/platform/doctor.ts",
+    "api": "tsx src/api/server.ts",
+    "worker": "tsx src/worker/main.ts"
+  },
+  "dependencies": {
+    "@deep/contracts": "workspace:*",
+    "@deep/research-core": "workspace:*",
+    "fastify": "^5.6.0",
+    "pg": "^8.16.0",
+    "pg-boss": "10.0.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/pg": "^8.15.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
+  }
+}

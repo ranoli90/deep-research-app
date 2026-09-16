@@ -1,0 +1,8 @@
+{
+  "command": "git apply --check Deep_Research_Review_Changes.patch",
+  "exit_code": 0,
+  "target": "temporary copy of exact original 22-file specification kit",
+  "scope": "patch applicability only; no application code or external repository changed",
+  "stdout": "",
+  "stderr": ""
+}

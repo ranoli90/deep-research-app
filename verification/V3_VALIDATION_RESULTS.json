@@ -1,0 +1,79 @@
+{
+  "date": "2026-09-16",
+  "scope": "revision_3_specification_and_handoff_checks_only",
+  "ok": true,
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41"
+  },
+  "commands": [
+    {
+      "command": [
+        "python",
+        "scripts/validate_review.py"
+      ],
+      "exit_code": 0,
+      "output_file": "verification/v3_review_validation.txt",
+      "scope": "document_artifact_validation_only"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/validate_builder_handoff.py"
+      ],
+      "exit_code": 0,
+      "output_file": "verification/v3_handoff_validation.txt",
+      "scope": "document_artifact_validation_only"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output_file": "verification/v3_tests.txt",
+      "scope": "document_artifact_validation_only"
+    }
+  ],
+  "review_validation": {
+    "scope": "review_package_only",
+    "ok": true,
+    "source_count": 42,
+    "observation_count": 18,
+    "dedicated_2026_observations": 9,
+    "acceptance_specification_count": 90,
+    "draft_evaluation_case_count": 12,
+    "application_tests_run": 0,
+    "errors": []
+  },
+  "unit_tests": {
+    "run": 17,
+    "passed": 17,
+    "failed": 0,
+    "scope": "9 original validator tests + 8 handoff integrity mutation tests"
+  },
+  "retained_original_evidence_byte_identical": [
+    "research/SOURCES.json",
+    "research/OBSERVATIONS.json",
+    "research/USER_COMPLAINTS.csv",
+    "evals/cases/review_seed_cases.json"
+  ],
+  "external_review_files_preserved_byte_identical": true,
+  "new_official_sources_checked": 3,
+  "original_external_sources_comprehensively_reverified": false,
+  "application_tests_run": 0,
+  "native_tests_run": 0,
+  "live_provider_tests_run": 0,
+  "postgres_integration_tests_run": 0,
+  "security_tests_run": 0,
+  "deployments": 0,
+  "repository_commits_or_pushes": 0,
+  "manifest_procedure": "MANIFEST.json generated after these receipts. Final manifest/ZIP checks are stored alongside the distributed archive to avoid circular self-hashing."
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "retained version-2 evidence/draft inputs; not new verification",
+  "retained_data": [
+    {
+      "path": "research/SOURCES.json",
+      "sha256": "d103dabcf539a329252ff51cdb9a05691b336eff585cf0eca7c22013f2733176"
+    },
+    {
+      "path": "research/OBSERVATIONS.json",
+      "sha256": "ec5984ea995ee442da5bfc28bfab32d60f6182b61530f2ef733abd05adbafb5a"
+    },
+    {
+      "path": "research/USER_COMPLAINTS.csv",
+      "sha256": "770dcb12e2bfaedacb862c5149c9e764d6bd14d26adfd93e91e0bac0c89afbc8"
+    },
+    {
+      "path": "evals/cases/review_seed_cases.json",
+      "sha256": "67433ab39878e5f373ad6cccd923067a766aef57dd73328f87e9282d34155f02"
+    }
+  ]
+}
