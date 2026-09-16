@@ -5,10 +5,15 @@ import type { AppConfig } from "../platform/config.js";
 /** Sum issued/confirmed/unknown live-provider reservations. Unknown is not treated as zero. */
 export async function liveSpendUsedMicro(db: Queryable): Promise<number> {
   const res = await db.query<{ used: string }>(
-    `SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
+    `SELECT COALESCE(SUM(
+       CASE
+         WHEN confirmed_micro IS NOT NULL THEN confirmed_micro
+         WHEN state IN ('issued', 'outcome-unknown') THEN reserved_max_micro
+         ELSE 0
+       END
+     ), 0)::text AS used
      FROM provider_intents
-     WHERE route LIKE 'openrouter:%'
-       AND state IN ('issued', 'confirmed', 'outcome-unknown')`,
+     WHERE route LIKE 'openrouter:%'`,
   );
   return Number(res.rows[0]?.used ?? 0);
 }
