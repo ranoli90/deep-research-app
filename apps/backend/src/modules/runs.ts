@@ -228,11 +228,13 @@ export async function markTerminal(
 }
 
 export async function listLibrary(db: Queryable, accountId: string): Promise<
-  { id: string; title: string; status: string; created_at: Date }[]
+  { id: string; title: string; status: string; created_at: Date; report_id: string | null }[]
 > {
   const res = await db.query(
     `SELECT r.id, COALESCE(c.title, 'Untitled') AS title,
-            COALESCE(r.terminal_outcome, r.lifecycle) AS status, r.created_at
+            COALESCE(r.terminal_outcome, r.lifecycle) AS status, r.created_at,
+            (SELECT rp.id FROM reports rp WHERE rp.run_id = r.id AND rp.account_id = r.account_id AND rp.redacted_at IS NULL
+             ORDER BY rp.version DESC LIMIT 1) AS report_id
      FROM runs r JOIN conversations c ON c.id = r.conversation_id
      WHERE r.account_id = $1
      ORDER BY r.created_at DESC

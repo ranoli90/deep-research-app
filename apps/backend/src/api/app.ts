@@ -108,6 +108,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (input.routeMode === "controlled-research" && !config.liveRouteEnabled) {
       return reply.code(403).send(err("permission_denied", "Live route is not enabled. Missing authorized credentials/budget.", correlationId));
     }
+    if (input.routeMode === "controlled-research") {
+      if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
+        return reply.code(403).send(err("permission_denied", "Live route requires OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0.", correlationId));
+      }
+      const { liveSpendUsedMicro, canIssueLiveCall } = await import("../modules/live-spend.js");
+      const used = await liveSpendUsedMicro(pool);
+      const gate = canIssueLiveCall({ capMicro: config.liveSpendCapMicro, usedMicro: used });
+      if (!gate.ok) {
+        return reply.code(403).send(err("allowance_exhausted", "Live spend cap would be exceeded. No new paid call issued.", correlationId));
+      }
+    }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));

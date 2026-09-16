@@ -3,19 +3,23 @@ import {
   FIXTURE_FETCH_COST_MICRO,
   FIXTURE_SEARCH_COST_MICRO,
   FIXTURE_SYNTH_COST_MICRO,
+  LIVE_CALL_RESERVE_MICRO,
 } from "@deep/contracts";
 import {
   compactForContext,
   composeReport,
   detectGaps,
   extractCandidates,
+  selectNextAction,
   type ControllerState,
   type StoredClaim,
   type StoredPassage,
 } from "@deep/research-core";
 import { fixtureProposeAction } from "../adapters/model/fixture.js";
 import { openRouterProposeAction } from "../adapters/model/openrouter.js";
-import { fixtureFetch, fixtureSearch } from "../adapters/retrieval/fixture.js";
+import { fixtureFetch, fixtureSearch, type SearchHit } from "../adapters/retrieval/fixture.js";
+import { liveWebSearch } from "../adapters/retrieval/live-web.js";
+import { assertLiveCallAllowed } from "../modules/live-spend.js";
 import { safeFetch } from "../platform/ssrf.js";
 import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
@@ -213,15 +217,28 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
 
     let decision = fixtureProposeAction(state);
     if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
-      const live = await openRouterProposeAction(state, config);
-      await recordIntent(pool, runId, {
-        correlationId: live.receipt.correlationId,
-        route: live.receipt.route,
-        digest: live.receipt.requestDigest,
-        reserved: 20_000,
-        state: live.receipt.state,
-      });
-      decision = live.decision;
+      try {
+        await assertLiveCallAllowed(pool, config);
+      } catch {
+        decision = {
+          ...selectNextAction(state),
+          type: "synthesize",
+          rationale: "Live spend cap reached; writing from stored evidence only",
+        };
+        logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
+        // fall through to synthesize/stop below after search/fetch checks
+      }
+      if (decision.type !== "synthesize" || decision.rationale !== "Live spend cap reached; writing from stored evidence only") {
+        const live = await openRouterProposeAction(state, config);
+        await recordIntent(pool, runId, {
+          correlationId: live.receipt.correlationId,
+          route: live.receipt.route,
+          digest: live.receipt.requestDigest,
+          reserved: LIVE_CALL_RESERVE_MICRO,
+          state: live.receipt.state,
+        });
+        decision = live.decision;
+      }
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
@@ -244,7 +261,28 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
 
     if (decision.type === "search") {
       const query = String(decision.arguments.query ?? brief.originalQuestion);
-      const hits = fixtureSearch(query);
+      let hits: SearchHit[] = [];
+      let searchRoute = "fixture:search";
+      if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
+        try {
+          await assertLiveCallAllowed(pool, config);
+          const live = await liveWebSearch(query, config);
+          await recordIntent(pool, runId, {
+            correlationId: live.receipt.correlationId,
+            route: live.receipt.route,
+            digest: live.receipt.requestDigest,
+            reserved: LIVE_CALL_RESERVE_MICRO,
+            state: live.receipt.state,
+          });
+          hits = live.hits;
+          searchRoute = live.receipt.route;
+        } catch {
+          hits = [];
+          searchRoute = "openrouter:blocked-by-spend-cap";
+        }
+      } else {
+        hits = fixtureSearch(query);
+      }
       const evidenceRev = await withTx(pool, async (c) => {
         const existing = await c.query<{ canonical_locator: string }>(
           `SELECT canonical_locator FROM sources WHERE run_id = $1`,
@@ -269,7 +307,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         await addSpent(c, runId, FIXTURE_SEARCH_COST_MICRO);
         await recordIntent(c, runId, {
           correlationId: decision.actionId,
-          route: "fixture:search",
+          route: searchRoute,
           digest: query,
           reserved: FIXTURE_SEARCH_COST_MICRO,
           state: "confirmed",

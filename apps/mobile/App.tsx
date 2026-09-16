@@ -18,7 +18,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api } from "./src/api";
+import { api, isExpiredSession } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
 import {
   androidBack,
@@ -27,6 +27,7 @@ import {
   canSubmit,
   conciseBlocks,
   emptyState,
+  expireLocalSession,
   logout as logoutState,
   mergeEvents,
   openLibraryItem,
@@ -85,27 +86,38 @@ function AppInner() {
     });
   }
 
+  async function onAuthFailure() {
+    await clearAccountLocal(AsyncStorage);
+    setToken(null);
+    setState((s) => expireLocalSession(s));
+  }
+
   async function refreshRun(t: string, runId: string) {
-    const snap = await api.getRun(t, runId);
-    const ev = await api.events(t, runId, 0);
-    const report = snap.reportId ? await api.report(t, snap.reportId) : null;
-    setState((s) => {
-      let next = applySnapshot(s, snap);
-      next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
-      if (report) {
-        next = {
-          ...next,
-          report: {
-            reportId: report.reportId,
-            blocks: report.blocks,
-            limitations: report.limitations ?? [],
-            labeledDemo: report.labeledDemo,
-          },
-        };
-      }
-      void persistSession(AsyncStorage, { token: t, state: next });
-      return next;
-    });
+    try {
+      const snap = await api.getRun(t, runId);
+      const ev = await api.events(t, runId, 0);
+      const report = snap.reportId ? await api.report(t, snap.reportId) : null;
+      setState((s) => {
+        let next = applySnapshot(s, snap);
+        next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
+        if (report) {
+          next = {
+            ...next,
+            report: {
+              reportId: report.reportId,
+              blocks: report.blocks,
+              limitations: report.limitations ?? [],
+              labeledDemo: report.labeledDemo,
+            },
+          };
+        }
+        void persistSession(AsyncStorage, { token: t, state: next });
+        return next;
+      });
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
   }
 
   function startPolling(t: string, runId: string) {
@@ -177,7 +189,8 @@ function AppInner() {
       await refreshRun(t, created.runId);
       startPolling(t, created.runId);
     } catch (e) {
-      setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
     }
   }
 
@@ -196,20 +209,56 @@ function AppInner() {
 
   async function onCorrect() {
     if (!token || !state.run || !correction.trim()) return;
-    const snap = await api.getRun(token, state.run.runId);
-    const child = await api.correct(token, state.run.runId, snap.brief.revision, correction.trim());
-    setCorrection("");
-    setState((s) => ({
-      ...s,
-      previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
-    }));
-    startPolling(token, child.runId);
+    try {
+      const snap = await api.getRun(token, state.run.runId);
+      const child = await api.correct(token, state.run.runId, snap.brief.revision, correction.trim());
+      setCorrection("");
+      setState((s) => {
+        const next = {
+          ...s,
+          previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+        };
+        void persistSession(AsyncStorage, { token, state: next });
+        return next;
+      });
+      startPolling(token, child.runId);
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
   }
 
-  async function onShare() {
-    if (!token || !state.report) return;
-    const md = await api.exportMd(token, state.report.reportId);
-    await Share.share({ message: md.markdown, title: "Research report" });
+  async function onFollowUp() {
+    if (!token || !state.run) return;
+    try {
+      const claimId = state.report?.blocks.find((b) => b.id === "answer")?.claimIds[0] ?? "answer";
+      const child = await api.followUp(token, state.run.runId, claimId, "Verify the answer claim only");
+      setState((s) => {
+        const next = {
+          ...s,
+          previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+          status: "progress" as const,
+        };
+        void persistSession(AsyncStorage, { token, state: next });
+        return next;
+      });
+      startPolling(token, child.runId);
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
+  }
+
+  async function onShare(reportId?: string) {
+    const id = reportId ?? state.report?.reportId;
+    if (!token || !id) return;
+    try {
+      const md = await api.exportMd(token, id);
+      await Share.share({ message: md.markdown, title: "Research report" });
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
   }
 
   const blocks: ReportBlock[] = state.report
@@ -333,8 +382,11 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
-                <Pressable onPress={onShare} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
+                <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
                   <Text style={styles.link}>Share Markdown</Text>
+                </Pressable>
+                <Pressable onPress={onFollowUp} accessibilityRole="button" accessibilityLabel="Verify the answer claim">
+                  <Text style={styles.link}>Verify this claim</Text>
                 </Pressable>
                 <Pressable
                   onPress={async () => {
@@ -400,6 +452,7 @@ function AppInner() {
               await refreshRun(token, id);
               startPolling(token, id);
             }}
+            onShare={(reportId) => onShare(reportId)}
           />
         ) : null}
         {state.tab === "settings" ? (
@@ -510,8 +563,18 @@ function AppInner() {
   );
 }
 
-function Library({ token, styles, onOpen }: { token: string | null; styles: ReturnType<typeof makeStyles>; onOpen: (id: string) => void }) {
-  const [items, setItems] = useState<{ id: string; title: string; status: string }[]>([]);
+function Library({
+  token,
+  styles,
+  onOpen,
+  onShare,
+}: {
+  token: string | null;
+  styles: ReturnType<typeof makeStyles>;
+  onOpen: (id: string) => void;
+  onShare: (reportId: string) => void;
+}) {
+  const [items, setItems] = useState<{ id: string; title: string; status: string; report_id?: string | null }[]>([]);
   useEffect(() => {
     if (!token) return;
     void api.library(token).then((r) => setItems(r.items ?? []));
@@ -521,12 +584,17 @@ function Library({ token, styles, onOpen }: { token: string | null; styles: Retu
   return (
     <ScrollView style={styles.body}>
       {items.map((it) => (
-        <Pressable key={it.id} onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
-          <View style={styles.card}>
+        <View key={it.id} style={styles.card}>
+          <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
             <Text style={styles.title}>{it.title}</Text>
             <Text style={styles.kicker}>{it.status}</Text>
-          </View>
-        </Pressable>
+          </Pressable>
+          {it.report_id ? (
+            <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${it.title}`}>
+              <Text style={styles.link}>Share Markdown</Text>
+            </Pressable>
+          ) : null}
+        </View>
       ))}
     </ScrollView>
   );

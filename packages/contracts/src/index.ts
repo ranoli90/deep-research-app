@@ -247,6 +247,10 @@ export const DEFAULT_RUN_BUDGET_MICRO = 100_000;
 export const FIXTURE_SEARCH_COST_MICRO = 5_000;
 export const FIXTURE_FETCH_COST_MICRO = 3_000;
 export const FIXTURE_SYNTH_COST_MICRO = 8_000;
+/** One USD expressed in micro-units used by spend caps (1 USD = 1_000_000). */
+export const MICRO_PER_USD = 1_000_000;
+/** Conservative reservation for one live OpenRouter call including web plugin. $0.20. */
+export const LIVE_CALL_RESERVE_MICRO = 200_000;
 export const CONSENT_POLICY_VERSION = "2026-09-16";
 export const PROCESSOR_DISCLOSURE = [
   "App-owned research worker (this service)",

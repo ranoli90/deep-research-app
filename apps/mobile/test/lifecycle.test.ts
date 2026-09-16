@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { applySnapshot, canSubmit, conciseBlocks, emptyState, openLibraryItem } from "../src/state.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { applySnapshot, canSubmit, conciseBlocks, emptyState, expireLocalSession, openLibraryItem } from "../src/state.js";
 import { hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
+import { ApiError, isExpiredSession } from "../src/api.js";
 
 describe("P0-N native state mapping", () => {
   it("maps composer gates for consent, auth, offline, and empty draft", () => {
@@ -49,6 +52,25 @@ describe("P0-N native state mapping", () => {
     expect(next.tab).toBe("research");
     expect(next.run?.runId).toBe("run-library-1");
     expect(next.status).toBe("progress");
+  });
+
+  it("App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem", () => {
+    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    expect(src).toMatch(/hydrateOnLaunch\(AsyncStorage\)/);
+    expect(src).toMatch(/persistSession\(AsyncStorage/);
+    expect(src).toMatch(/openLibraryItem\(s, id\)/);
+    expect(src).toMatch(/api\.followUp/);
+  });
+
+  it("expired session keeps the draft and routes to settings", () => {
+    const next = expireLocalSession({ ...emptyState(), draft: "Compare options in Germany", signedIn: true, report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true } });
+    expect(next.draft).toContain("Germany");
+    expect(next.signedIn).toBe(false);
+    expect(next.report).toBeNull();
+    expect(next.tab).toBe("settings");
+    expect(next.error).toMatch(/expired/i);
+    expect(isExpiredSession(new ApiError(401, "Sign in required."))).toBe(true);
+    expect(isExpiredSession(new ApiError(403, "nope"))).toBe(false);
   });
 
   it("concise and detailed views share the same answer block identity", () => {

@@ -2,13 +2,27 @@ const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
 
 export type Session = { token: string; accountId: string };
 
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export function isExpiredSession(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 401;
+}
+
 async function req(path: string, init: RequestInit & { token?: string } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json", ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;
   const res = await fetch(`${API}${path}`, { ...init, headers });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(body.message ?? `Request failed (${res.status})`);
+    throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
   }
   return body;
 }
@@ -37,6 +51,12 @@ export const api = {
       token,
       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
       body: JSON.stringify({ expectedBriefRevision, correctionText }),
+    }),
+  followUp: (token: string, id: string, claimId: string, note: string) =>
+    req(`/v1/runs/${id}/follow-up`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ claimId, note }),
     }),
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token }),
   source: (token: string, id: string) => req(`/v1/sources/${id}`, { token }),

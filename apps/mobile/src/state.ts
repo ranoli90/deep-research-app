@@ -147,6 +147,17 @@ export function submitPrerequisite(state: UiState): "research" | "settings" {
   return "research";
 }
 
+export function expireLocalSession(state: UiState): UiState {
+  return {
+    ...emptyState(),
+    draft: state.draft,
+    routeMode: state.routeMode,
+    attachments: state.attachments,
+    tab: "settings",
+    error: "Session expired. Sign in again. Your draft is kept.",
+  };
+}
+
 /** Library tap must switch to Research and bind the run before the first poll tick. */
 export function openLibraryItem(state: UiState, runId: string): UiState {
   return {

@@ -534,6 +534,38 @@ describe("remaining launch-scope IDs", () => {
     void accountId;
   });
 
+  it("expired session cannot read library or reports", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "What did ACME announce about Widget 4?");
+    await processRun(pool, config, created.json().runId);
+    await pool.query(`UPDATE sessions SET expires_at = now() - interval '1 second' WHERE account_id = $1`, [accountId]);
+    const lib = await app.inject({ method: "GET", url: "/v1/library", headers: { authorization: `Bearer ${token}` } });
+    expect(lib.statusCode).toBe(401);
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${created.json().runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(snap.statusCode).toBe(401);
+  });
+
+  it("library lists report_id for a completed run so share can resolve", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "What did ACME announce about Widget 4?");
+    await processRun(pool, config, created.json().runId);
+    const lib = await app.inject({ method: "GET", url: "/v1/library", headers: { authorization: `Bearer ${token}` } });
+    expect(lib.statusCode).toBe(200);
+    const item = lib.json().items.find((it: { id: string }) => it.id === created.json().runId);
+    expect(item?.report_id).toBeTruthy();
+    const exp = await app.inject({
+      method: "GET",
+      url: `/v1/reports/${item.report_id}/export`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(exp.statusCode).toBe(200);
+    expect(exp.json().markdown).toMatch(/Widget 4|ACME/i);
+  });
+
   it("clarification continue records geography and resumes", async () => {
     const { token } = await authed();
     const created = await createRun(token, "What is the filing deadline for employment tax?");

@@ -1,8 +1,10 @@
 import { createHash } from "node:crypto";
+import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
 import { authorizeAction, selectNextAction } from "@deep/research-core";
 import type { ControllerState, PolicyDecision } from "@deep/research-core";
 import type { AppConfig } from "../../platform/config.js";
 import { providerFailureState } from "./outcomes.js";
+import { parseActionJson } from "./parse.js";
 
 export type ProviderReceipt = {
   correlationId: string;
@@ -44,10 +46,11 @@ export async function openRouterProposeAction(
     requestDigest: digest,
     state: "planned",
   };
-  if (!config.openRouterApiKey) {
+  if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
     return { decision: authorizeAction(state, selectNextAction(state)), receipt: { ...receipt, state: "failed" } };
   }
   receipt.state = "issued";
+  receipt.rawCost = String(LIVE_CALL_RESERVE_MICRO);
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -70,21 +73,16 @@ export async function openRouterProposeAction(
     receipt.promptTokens = json.usage?.prompt_tokens;
     receipt.completionTokens = json.usage?.completion_tokens;
     const text = json.choices?.[0]?.message?.content ?? "";
-    let parsed: { type?: string; rationale?: string; query?: string } = {};
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      parsed = { type: "synthesize", rationale: "unparseable model output; finishing from evidence" };
-    }
+    const parsed = parseActionJson(text);
     const proposal: PolicyDecision = {
       actionId: correlationId,
       runId: state.runId,
       briefRevision: state.brief.revision,
-      type: parsed.type ?? "synthesize",
+      type: parsed.type,
       coverageIds: [],
       arguments: { query: parsed.query, locator: parsed.query },
-      rationale: parsed.rationale ?? "model proposal",
-      estimatedMaxCostMicro: 20_000,
+      rationale: parsed.rationale,
+      estimatedMaxCostMicro: LIVE_CALL_RESERVE_MICRO,
       sourceAccessConstraints: [],
       dedupeKey: `or:${digest}`,
       privileged: false,
