@@ -11,7 +11,7 @@ import { createPool, migrate } from "../src/platform/db.js";
 import { processRun } from "../src/worker/executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { insertVersionAndPassage, loadEvidence } from "../src/modules/evidence.js";
-import { getLatestReportForRun, getReportForAccount, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";
+import { getLatestReportForRun, getReportForAccount, publishReport, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";
 import { claimLease } from "../src/modules/runs.js";
 import { recordIntent, reconcileIntent } from "../src/modules/billing.js";
 import { providerFailureState } from "../src/adapters/model/outcomes.js";
@@ -601,7 +601,78 @@ describe("remaining launch-scope IDs", () => {
     await app.inject({ method: "POST", url: "/v1/account/deletion", headers: { authorization: `Bearer ${token}` } });
     const passages = await pool.query<{ exact_text: string }>(`SELECT exact_text FROM passages WHERE run_id = $1`, [created.json().runId]);
     expect(passages.rows.every((p) => p.exact_text === "[deleted]" || !p.exact_text.includes("PRIVATE-DERIVED-SHOULD-GO"))).toBe(true);
+    const reports = await pool.query<{ blocks: unknown; redacted_at: Date | null }>(
+      `SELECT blocks, redacted_at FROM reports WHERE run_id = $1`,
+      [created.json().runId],
+    );
+    expect(JSON.stringify(reports.rows)).not.toMatch(/PRIVATE-DERIVED-SHOULD-GO/);
+    expect(reports.rows.every((r) => r.redacted_at || JSON.stringify(r.blocks) === "[]")).toBe(true);
     void accountId;
+  });
+
+  it("V2-09 late worker cannot republish deleted private text even if it claims deleted=false", async () => {
+    const { token, accountId } = await authed();
+    const att = await app.inject({
+      method: "POST",
+      url: "/v1/attachments",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { filename: "secret.txt", mime: "text/plain", text: "PRIVATE-LATE-WORKER" },
+    });
+    const created = await createRun(
+      token,
+      "Reconcile the attached secret.txt with public Postgres pricing in Germany under 50 EUR as of 2026-03-01",
+      { attachmentIds: [att.json().attachmentId] },
+    );
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId, { pauseAt: "writing" });
+    const run = await getRun(pool, runId);
+    await app.inject({ method: "POST", url: "/v1/account/deletion", headers: { authorization: `Bearer ${token}` } });
+    const late = await publishReport(pool, {
+      report: {
+        reportId: crypto.randomUUID(),
+        version: 1,
+        runId,
+        basis: {
+          briefRevision: run!.brief_revision,
+          evidenceRevision: run!.evidence_revision,
+          consentEpoch: run!.consent_epoch,
+          cancellationEpoch: run!.cancellation_epoch,
+          workerLeaseFence: run!.worker_lease_fence,
+        },
+        outcome: "completed",
+        blocks: [
+          {
+            id: "answer",
+            kind: "text",
+            text: "PRIVATE-LATE-WORKER resurrected",
+            claimIds: [],
+            citationIds: [],
+          },
+        ],
+        claimIds: [],
+        limitations: [],
+        sourceAccessSummary: [],
+        routeMode: "fixture",
+      },
+      accountId,
+      loaded: {
+        briefRevision: run!.brief_revision,
+        evidenceRevision: run!.evidence_revision,
+        consentEpoch: run!.consent_epoch,
+        cancellationEpoch: run!.cancellation_epoch,
+        workerLeaseFence: run!.worker_lease_fence,
+      },
+      claims: [],
+      passages: [],
+      deleted: false,
+    });
+    expect(late.accepted).toBe(false);
+    expect(late.reason).toMatch(/deleted|cancelled/);
+    await processRun(pool, config, runId);
+    const leftover = await pool.query(`SELECT blocks FROM reports WHERE account_id = $1`, [accountId]);
+    expect(JSON.stringify(leftover.rows)).not.toMatch(/PRIVATE-LATE-WORKER/);
+    const passages = await pool.query<{ exact_text: string }>(`SELECT exact_text FROM passages WHERE run_id = $1`, [runId]);
+    expect(passages.rows.every((p) => p.exact_text === "[deleted]" || !p.exact_text.includes("PRIVATE-LATE-WORKER"))).toBe(true);
   });
 
   it("expired session cannot read library or reports", async () => {

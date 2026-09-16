@@ -25,10 +25,12 @@ export async function publishReport(
     workerLeaseFence: run.worker_lease_fence,
   };
   const problems = checkReportCitations(args.report.blocks, args.claims, args.passages);
+  const acc = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1`, [args.accountId]);
+  const deletedNow = args.deleted || Boolean(acc.rows[0]?.deleted_at);
   let reason = canPublish({
     loaded: args.loaded,
     current,
-    deleted: args.deleted,
+    deleted: deletedNow,
     unknownCitationIds: problems.unknownIds,
     unsupportedCitationCount: problems.unsupported.length,
   });

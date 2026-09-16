@@ -69,3 +69,11 @@ No live paid calls were made.
 - Correction `cbc04309` parent `99391a32`, brief revision 2, budget constraint 120 EUR. Worker searched then fetched including `fixture://vendor-c/pricing-de`. Report `6bb62a2f` Eligible Vendor A, Vendor C; discovery reopened. Native UI showed budget=120 EUR and Vendor C; previous version card kept.
 - Concise view now includes constraints and eligibility so a correction is visible without hunting Detailed. Mobile tests 24/24.
 - iOS and hosted auth remain blocked. No extra OpenRouter spend.
+
+## 2026-09-16 — late-worker deletion fence, challenge, P2 reuse
+
+- `publishReport` now re-reads `accounts.deleted_at`. A late worker that passes `deleted: false` after account deletion is rejected; `PRIVATE-LATE-WORKER` does not reappear in reports (V2-09).
+- Challenge stores `claim_id` and note, does not mutate report blocks, and is denied to another account.
+- P2: a non-budget correction on the Germany 50 EUR task does not reopen candidate discovery or add Vendor C.
+- Native Flag on Xiaomi: UI "Flag submitted"; Postgres challenge `9806c317` on report `6bb62a2f`.
+- `pnpm test:integration` 75/75; `pnpm verify` 0. iOS and hosted auth remain unpassed.

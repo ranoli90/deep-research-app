@@ -236,6 +236,30 @@ describe("launch-scope fixture/postgres cases", () => {
     expect(child?.lifecycle).toBe("terminal");
   });
 
+  it("P2 a non-budget correction does not reopen candidate discovery or add Vendor C", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    const parentId = created.json().runId as string;
+    await processRun(pool, config, parentId);
+    const parentEv = await loadEvidence(pool, parentId);
+    expect(parentEv.sources.some((s) => s.canonical_locator.includes("vendor-c"))).toBe(false);
+    const snap = await app.inject({ method: "GET", url: `/v1/runs/${parentId}`, headers: { authorization: `Bearer ${token}` } });
+    const corr = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${parentId}/corrections`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        expectedBriefRevision: snap.json().brief.revision,
+        correctionText: "The founding year is historical, not a current price.",
+      },
+    });
+    expect(corr.json().impact.reopenedDiscoveryScopes ?? []).not.toContain("candidate-discovery");
+    const childId = corr.json().runId as string;
+    await processRun(pool, config, childId);
+    const childEv = await loadEvidence(pool, childId);
+    expect(childEv.sources.some((s) => s.canonical_locator.includes("vendor-c"))).toBe(false);
+  });
+
   it("V2-18 distinguishes no eligible inspected option from universal absence", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "Compare managed Postgres options in Germany under 10 EUR as of 2026-03-01");
@@ -300,20 +324,38 @@ describe("launch-scope fixture/postgres cases", () => {
   });
 
   it("challenge and markdown export use the same stored report", async () => {
-    const { token } = await authed();
+    const { token, accountId } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
     const runId = created.json().runId as string;
     await processRun(pool, config, runId);
     const snap = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: { authorization: `Bearer ${token}` } });
     const reportId = snap.json().reportId as string;
+    const before = await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: { authorization: `Bearer ${token}` } });
     const ch = await app.inject({
       method: "POST",
       url: `/v1/reports/${reportId}/challenges`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { category: "claim", note: "check the announcement date" },
+      payload: { claimId: "answer", category: "claim", note: "check the announcement date" },
     });
     expect(ch.statusCode).toBe(200);
     expect(ch.json().challengeId).toBeTruthy();
+    const row = await pool.query<{ claim_id: string; note: string; report_id: string }>(
+      `SELECT claim_id, note, report_id FROM challenges WHERE id = $1 AND account_id = $2`,
+      [ch.json().challengeId, accountId],
+    );
+    expect(row.rows[0]?.claim_id).toBe("answer");
+    expect(row.rows[0]?.note).toMatch(/announcement date/);
+    expect(row.rows[0]?.report_id).toBe(reportId);
+    const after = await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: { authorization: `Bearer ${token}` } });
+    expect(after.json().blocks).toEqual(before.json().blocks);
+    const other = await authed();
+    const stolen = await app.inject({
+      method: "POST",
+      url: `/v1/reports/${reportId}/challenges`,
+      headers: { authorization: `Bearer ${other.token}` },
+      payload: { claimId: "answer", category: "claim", note: "not mine" },
+    });
+    expect([403, 404]).toContain(stolen.statusCode);
     const exp = await app.inject({
       method: "GET",
       url: `/v1/reports/${reportId}/export`,
@@ -321,5 +363,6 @@ describe("launch-scope fixture/postgres cases", () => {
     });
     expect(exp.json().markdown.length).toBeGreaterThan(20);
     expect(exp.json().format).toBe("markdown");
+    expect(exp.json().markdown).toMatch(/Widget 4|ACME/i);
   });
 });
