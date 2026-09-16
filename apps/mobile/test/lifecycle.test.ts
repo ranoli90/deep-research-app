@@ -87,6 +87,32 @@ describe("P0-N native state mapping", () => {
     expect(isExpiredSession(new ApiError(403, "nope"))).toBe(false);
   });
 
+  it("concise view keeps eligibility after a 120 EUR constraint correction", () => {
+    const blocks = [
+      { id: "answer", kind: "text", text: "Vendor A at 40 EUR.", claimIds: ["c1"], citationIds: ["p1"] },
+      {
+        id: "constraints",
+        kind: "text",
+        text: "Applied supplied constraints: geography=germany; budget=120 EUR.",
+        claimIds: [],
+        citationIds: [],
+      },
+      {
+        id: "eligibility",
+        kind: "text",
+        text: "Eligible: Vendor A, Vendor C. Discovery: open (reopened after constraint change).",
+        claimIds: [],
+        citationIds: ["p2"],
+      },
+      { id: "independence", kind: "text", text: "Four origin clusters.", claimIds: [], citationIds: [] },
+    ];
+    const concise = conciseBlocks(blocks);
+    expect(concise.map((b) => b.id)).toEqual(["answer", "constraints", "eligibility"]);
+    expect(JSON.stringify(concise)).toMatch(/Vendor C/);
+    expect(JSON.stringify(concise)).toMatch(/120 EUR/);
+    expect(concise.some((b) => b.id === "independence")).toBe(false);
+  });
+
   it("concise and detailed views share the same answer block identity", () => {
     const blocks = [
       { id: "answer", kind: "text", text: "Vendor A fits the 50 EUR Germany constraint.", claimIds: ["c1"], citationIds: ["p1"] },

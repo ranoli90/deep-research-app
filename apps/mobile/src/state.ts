@@ -94,9 +94,10 @@ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
 }
 
 export function conciseBlocks(blocks: ReportBlock[]): ReportBlock[] {
-  const answer = blocks.find((b) => b.id === "answer");
+  const ids = ["answer", "constraints", "eligibility"];
+  const primary = ids.map((id) => blocks.find((b) => b.id === id)).filter((b): b is ReportBlock => Boolean(b));
   const caveats = blocks.filter((b) => b.kind === "caveat");
-  return [answer, ...caveats].filter((b): b is ReportBlock => Boolean(b));
+  return [...primary, ...caveats];
 }
 
 export function mergeEvents(

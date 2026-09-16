@@ -62,3 +62,10 @@ No live paid calls were made.
 - Native report cites the attachment; source sheet shows title `note.txtt`, `FULL-TEXT`, exact attachment text.
 - Compact layout: attach fields collapse when a report is showing so citations remain tappable. `persistSession` no longer wipes a stored token when a later persist passes `token: null`.
 - `pnpm --filter @deep/mobile test` 23/23. iOS still blocked. No extra OpenRouter spend.
+
+## 2026-09-16 — native share + 120 EUR correction on Xiaomi
+
+- Share Markdown opened the system share sheet with markdown preview `INTERNAL-PROPOSAL…` (screenshot `p0-n-android-share.png`).
+- Correction `cbc04309` parent `99391a32`, brief revision 2, budget constraint 120 EUR. Worker searched then fetched including `fixture://vendor-c/pricing-de`. Report `6bb62a2f` Eligible Vendor A, Vendor C; discovery reopened. Native UI showed budget=120 EUR and Vendor C; previous version card kept.
+- Concise view now includes constraints and eligibility so a correction is visible without hunting Detailed. Mobile tests 24/24.
+- iOS and hosted auth remain blocked. No extra OpenRouter spend.
