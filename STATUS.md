@@ -7,7 +7,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 | P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 69/69 twice; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
 | P0-L live model/retrieval | blocked by a named external dependency | No `OPENROUTER_API_KEY`; `LIVE_SPEND_CAP_MICRO=0` |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
-| P0-N Android | blocked by a named external dependency | SDK present, no AVD/device online |
+| P0-N Android | partial — physical device + Expo Go + installed preview APK | Xiaomi `25098RA98G` `a3fa7852`; Expo Go SDK 54 ran a fixture report; EAS preview APK `d7e7b407` installed as `app.deepresearch.mobile` |
 
 P0 is **not** fully verified.
 

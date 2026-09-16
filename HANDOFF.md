@@ -23,7 +23,7 @@ Working tree: `main` at `3847cf7285d797b39acbac58c72a535da42c6ea8`. Run `git rev
 ## Blockers (unchanged)
 - **P0-L:** `OPENROUTER_API_KEY` and authorized `LIVE_SPEND_CAP_MICRO>0`.
 - **P0-N iOS:** Xcode.
-- **P0-N Android:** emulator/device (SDK image on disk is not registered with avdmanager).
+- **P0-N Android:** physical device used this session (`a3fa7852`, Expo Go + installed EAS APK). AVD creation still fails (`avdmanager` package index `null`). iOS/TestFlight deferred.
 
 ## Unresolved
 - Device VoiceOver/TalkBack, iOS/Android close/reopen, and purchase sandbox (M01/M02/M11) are not executed on hardware.
