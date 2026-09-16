@@ -18,3 +18,5 @@
 - Hosted Supabase/Render not provisioned; not claimed.
 
 No live paid calls were made.
+
+- Git: `25dad63` initial commit (160 files). `.env` and attachment blobs not committed.
