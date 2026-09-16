@@ -1,6 +1,6 @@
 # Builder handoff — implemented application (P0 checkpoint)
 
-Commit: `25dad63dbdf72c5c5600b9525d7bb0e2f2d04194` on `main`. Workspace was initialized from an empty tree plus the Revision 3 kit.
+Commit: `9e8a5c0` on `main` (implementation `25dad63` plus this handoff). Workspace was initialized from an empty tree plus the Revision 3 kit.
 
 ## Working behavior
 - `docker compose up -d --wait` starts Postgres 16.10 on **55432** (does not use the unrelated `paid-postgres` on 5432).
