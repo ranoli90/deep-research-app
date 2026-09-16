@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `74ae4ddf6a0a329f696345476e1ea48b87baf576`. Run `git rev-parse HEAD` after pull.
+Working tree: `main` at `3847cf7285d797b39acbac58c72a535da42c6ea8`. Run `git rev-parse HEAD` after pull.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
