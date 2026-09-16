@@ -6,7 +6,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 
 const MICRO_PER_USD = 1_000_000;
 
-const API = process.env.API_URL ?? "http://127.0.0.1:8787";
+const API = process.env.API_URL ?? `http://127.0.0.1:${process.env.API_PORT ?? "8788"}`;
 const cwd = new URL("../apps/backend", import.meta.url);
 
 function sleep(ms: number) {
@@ -45,6 +45,8 @@ function start(name: string): ChildProcess {
       LIVE_RETRIEVAL_ENABLED: "true",
       DEV_ALLOW_FIXTURE_ROUTE: "true",
       APP_AUTH_MODE: "development",
+      API_PORT: process.env.API_PORT ?? "8788",
+      API_HOST: "127.0.0.1",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

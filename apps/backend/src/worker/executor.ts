@@ -10,16 +10,15 @@ import {
   composeReport,
   detectGaps,
   extractCandidates,
-  selectNextAction,
   type ControllerState,
   type StoredClaim,
   type StoredPassage,
 } from "@deep/research-core";
 import { fixtureProposeAction } from "../adapters/model/fixture.js";
-import { openRouterProposeAction } from "../adapters/model/openrouter.js";
 import { fixtureFetch, fixtureSearch, type SearchHit } from "../adapters/retrieval/fixture.js";
 import { liveWebSearch } from "../adapters/retrieval/live-web.js";
 import { assertLiveCallAllowed } from "../modules/live-spend.js";
+import { nextLiveAction } from "./live-policy.js";
 import { safeFetch } from "../platform/ssrf.js";
 import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
@@ -217,45 +216,20 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
 
     let decision = fixtureProposeAction(state);
     if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
-      try {
-        await assertLiveCallAllowed(pool, config);
-      } catch {
-        decision = {
-          ...selectNextAction(state),
-          type: "synthesize",
-          rationale: "Live spend cap reached; writing from stored evidence only",
-        };
-        logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
-        // fall through to synthesize/stop below after search/fetch checks
-      }
-      if (decision.type !== "synthesize" || decision.rationale !== "Live spend cap reached; writing from stored evidence only") {
-        const live = await openRouterProposeAction(state, config);
-        await recordIntent(pool, runId, {
-          correlationId: live.receipt.correlationId,
-          route: live.receipt.route,
-          digest: live.receipt.requestDigest,
-          reserved: LIVE_CALL_RESERVE_MICRO,
-          state: live.receipt.state,
-        });
-        decision = live.decision;
-      }
-      if (state.searches.length >= 2) {
-        const unfetched = state.sources.filter((s) => (s.accessLevel === "discovered" || s.accessLevel === "snippet") && (s.locator ?? "").startsWith("http"));
-        if (unfetched[0] && decision.type === "search") {
-          decision = {
-            ...decision,
-            type: "fetch",
-            rationale: "Inspect an already-known live source before another paid search",
-            arguments: { locator: unfetched[0].locator, sourceId: unfetched[0].id },
-          };
-        } else if (decision.type === "search") {
-          decision = {
-            ...decision,
-            type: "synthesize",
-            rationale: "Live search budget reserved remaining work for writing from stored evidence",
-          };
-        }
-      }
+      const liveNext = nextLiveAction(state);
+      decision = {
+        actionId: `live-${step}`,
+        runId,
+        briefRevision: state.brief.revision,
+        type: liveNext.type,
+        coverageIds: [],
+        arguments: { query: liveNext.query, locator: liveNext.locator, sourceId: liveNext.sourceId },
+        rationale: liveNext.rationale,
+        estimatedMaxCostMicro: liveNext.type === "search" ? LIVE_CALL_RESERVE_MICRO : 0,
+        sourceAccessConstraints: [],
+        dedupeKey: `live-${runId}-${step}-${liveNext.type}`,
+        privileged: false,
+      };
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
@@ -308,7 +282,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         const have = new Set(existing.rows.map((r) => r.canonical_locator));
         for (const hit of hits) {
           if (have.has(hit.locator)) continue;
-          await insertSource(c, {
+          const sourceId = await insertSource(c, {
             accountId: run.account_id,
             runId,
             locator: hit.locator,
@@ -319,6 +293,16 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             population: hit.population,
             language: hit.language,
           });
+          if (hit.snippet) {
+            await insertVersionAndPassage(c, {
+              sourceId,
+              accountId: run.account_id,
+              runId,
+              locator: hit.locator,
+              text: hit.snippet,
+              accessLevel: "snippet",
+            });
+          }
         }
         const rev = await bumpEvidence(c, runId);
         await addSpent(c, runId, FIXTURE_SEARCH_COST_MICRO);
