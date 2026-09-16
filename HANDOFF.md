@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `3c29446` plus uncommitted TalkBack/compact mobile changes in this commit. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` at `15303d10c890a4705d18ae3af35aaaa3339ffa35`. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
