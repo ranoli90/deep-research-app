@@ -9,4 +9,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
+config.resolver.extraNodeModules = {
+  "@deep/design": path.resolve(workspaceRoot, "packages/design"),
+  "@deep/contracts": path.resolve(workspaceRoot, "packages/contracts"),
+};
 module.exports = config;

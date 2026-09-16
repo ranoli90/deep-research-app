@@ -20,3 +20,10 @@ apps/backend/data/
 infra/postgres/data/
 .pnpm-store/
 scratch/
+apps/mobile/.credentials/
+apps/mobile/credentials.json
+*.p8
+*.p12
+*.keystore
+.jobeezy-expo-token
+.deep-expo-token

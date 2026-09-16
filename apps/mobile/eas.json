@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": { "buildType": "apk", "credentialsSource": "remote" },
+      "ios": { "simulator": false, "credentialsSource": "remote" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://example.invalid"
+      }
+    },
+    "production": {
+      "android": { "buildType": "app-bundle" },
+      "ios": {},
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://example.invalid"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascApiKeyPath": "./.credentials/asc-api-key.p8",
+        "ascApiKeyId": "6H5A78VKNR",
+        "ascApiKeyIssuerId": "134557a0-7a7e-431e-a871-972b4e4629bc",
+        "appleTeamId": "W6MVPS68ZU"
+      }
+    }
+  }
+}

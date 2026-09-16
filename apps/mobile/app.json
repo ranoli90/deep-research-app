@@ -6,20 +6,33 @@
     "orientation": "portrait",
     "scheme": "deepresearch",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.deepresearch.mobile"
+      "bundleIdentifier": "app.deepresearch.mobile",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "app.deepresearch.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F6F3EE"
       }
     },
     "plugins": [],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "52197359-d453-48a6-876f-ea00ba253528"
+      }
+    },
+    "owner": "jobeezyapp"
   }
 }

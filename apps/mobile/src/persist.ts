@@ -1,4 +1,4 @@
-import { emptyState, restoreAfterReopen, type UiState } from "./state.js";
+import { emptyState, restoreAfterReopen, type UiState } from "./state";
 
 export type KeyValueStore = {
   getItem: (key: string) => Promise<string | null>;

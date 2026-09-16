@@ -239,6 +239,23 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         });
         decision = live.decision;
       }
+      if (state.searches.length >= 2) {
+        const unfetched = state.sources.filter((s) => (s.accessLevel === "discovered" || s.accessLevel === "snippet") && (s.locator ?? "").startsWith("http"));
+        if (unfetched[0] && decision.type === "search") {
+          decision = {
+            ...decision,
+            type: "fetch",
+            rationale: "Inspect an already-known live source before another paid search",
+            arguments: { locator: unfetched[0].locator, sourceId: unfetched[0].id },
+          };
+        } else if (decision.type === "search") {
+          decision = {
+            ...decision,
+            type: "synthesize",
+            rationale: "Live search budget reserved remaining work for writing from stored evidence",
+          };
+        }
+      }
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
