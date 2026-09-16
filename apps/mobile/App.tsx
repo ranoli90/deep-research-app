@@ -3,6 +3,7 @@ import {
   AccessibilityInfo,
   ActivityIndicator,
   BackHandler,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -62,6 +63,7 @@ function AppInner() {
   const [attachName, setAttachName] = useState("note.txt");
   const [attachText, setAttachText] = useState("");
   const [showAttach, setShowAttach] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const draftRef = useRef(state.draft);
   draftRef.current = state.draft;
@@ -169,8 +171,14 @@ function AppInner() {
         startPolling(t, s.run.runId);
       }
     });
+    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
     return () => {
       sub.remove();
+      show.remove();
+      hide.remove();
       if (poll.current) clearInterval(poll.current);
     };
   }, []);
@@ -207,6 +215,9 @@ function AppInner() {
         void persistSession(AsyncStorage, { token: t, state: next });
         return next;
       });
+      AccessibilityInfo.announceForAccessibility(
+        "Research in progress. Cancel is available. Closing the app will not stop the job.",
+      );
       await refreshRun(t, created.runId);
       startPolling(t, created.runId);
     } catch (e) {
@@ -231,6 +242,7 @@ function AppInner() {
       if (state.report) persistAnchor(state.report.reportId, "answer");
       const src = await api.source(t, id);
       setState((s) => ({ ...s, source: src, tab: "research" }));
+      AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
     } catch (e) {
       if (isExpiredSession(e)) await onAuthFailure();
       else setState((s) => ({ ...s, error: (e as Error).message }));
@@ -338,7 +350,7 @@ function AppInner() {
             ) : null}
 
             {state.status === "progress" || state.status === "loading" ? (
-              <View style={styles.card} accessibilityLabel="Research progress">
+              <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
                 <Text style={styles.kicker}>{state.run?.phase ?? "queued"}</Text>
                 <Text style={styles.bodyText}>
                   {state.events.at(-1)?.publicSummary ?? "Waiting for the server. Closing this app will not stop the job."}
@@ -445,7 +457,7 @@ function AppInner() {
             ) : null}
 
             {(state.status === "completed" || state.status === "partial") && state.run ? (
-              <View style={styles.card}>
+              <View style={styles.card} accessibilityLabel="Correction">
                 <Text style={styles.kicker}>Correction</Text>
                 <TextInput
                   value={correction}
@@ -465,7 +477,7 @@ function AppInner() {
 
         {state.source ? (
           <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-            <Text style={styles.title}>{state.source.title}</Text>
+            <Text style={styles.title} accessibilityRole="header">{state.source.title}</Text>
             <Text style={styles.kicker}>{state.source.accessLevel}</Text>
             <Text style={styles.bodyText}>{state.source.exactText}</Text>
             <Pressable
@@ -518,7 +530,7 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" && (showAttach || !state.report) ? (
+        {state.tab === "research" && !state.source && !keyboardOpen && (showAttach || !state.report) ? (
           <View style={styles.attachRow}>
             <TextInput
               value={attachName}
@@ -553,7 +565,7 @@ function AppInner() {
             </Pressable>
           </View>
         ) : null}
-        {state.tab === "research" && state.report && !showAttach ? (
+        {state.tab === "research" && !state.source && !keyboardOpen && state.report && !showAttach ? (
           <Pressable
             onPress={() => setShowAttach(true)}
             accessibilityRole="button"
@@ -564,6 +576,7 @@ function AppInner() {
           </Pressable>
         ) : null}
 
+        {state.tab === "research" && !state.source ? (
         <View style={styles.composerWrap}>
           <TextInput
             value={state.draft}
@@ -590,6 +603,7 @@ function AppInner() {
             <Text style={styles.send}>Send</Text>
           </Pressable>
         </View>
+        ) : null}
 
         <View style={styles.tabs} accessibilityRole="tablist">
           {(["research", "library", "settings"] as const).map((tab) => (
@@ -598,7 +612,7 @@ function AppInner() {
               onPress={() => setState((s) => ({ ...s, tab }))}
               accessibilityRole="tab"
               accessibilityState={{ selected: state.tab === tab }}
-              accessibilityLabel={tab}
+              accessibilityLabel={tab === "research" ? "Research" : tab === "library" ? "Library" : "Settings"}
               style={styles.tab}
             >
               <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab}</Text>
@@ -626,10 +640,22 @@ function Library({
     if (!token) return;
     void api.library(token).then((r) => setItems(r.items ?? []));
   }, [token]);
-  if (!token) return <Text style={styles.bodyText}>Sign in from Profile to see saved reports.</Text>;
-  if (items.length === 0) return <Text style={styles.bodyText}>No reports yet.</Text>;
+  if (!token) {
+    return (
+      <Text style={styles.bodyText} accessibilityLabel="Saved reports">
+        Sign in from Profile to see saved reports.
+      </Text>
+    );
+  }
+  if (items.length === 0) {
+    return (
+      <Text style={styles.bodyText} accessibilityLabel="Saved reports">
+        No reports yet.
+      </Text>
+    );
+  }
   return (
-    <ScrollView style={styles.body}>
+    <ScrollView style={styles.body} accessibilityLabel="Saved reports">
       {items.map((it) => (
         <View key={it.id} style={styles.card}>
           <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
@@ -667,8 +693,8 @@ function Settings({
   onRevoke: () => void;
 }) {
   return (
-    <ScrollView style={styles.body}>
-      <Text style={styles.title}>Settings</Text>
+    <ScrollView style={styles.body} accessibilityLabel="Settings">
+      <Text style={styles.title} accessibilityRole="header">Settings</Text>
       <Text style={styles.bodyText}>Account, appearance, privacy, and usage. Purchases and push stay unavailable until those integrations are enabled.</Text>
       <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in development session">
         <Text style={styles.link}>{state.signedIn ? "Signed in (development)" : "Sign in (development)"}</Text>

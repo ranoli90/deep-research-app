@@ -76,6 +76,31 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.followUp/);
   });
 
+  it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
+    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    for (const label of [
+      'accessibilityLabel="Research question"',
+      'accessibilityLabel="Start research"',
+      'accessibilityLabel="Research progress"',
+      'accessibilityLabel="Cancel research"',
+      'accessibilityLabel="In progress"',
+      'accessibilityLabel="Research report"',
+      'accessibilityLabel="Source sheet"',
+      'accessibilityLabel="Close source sheet"',
+      'accessibilityLabel="Saved reports"',
+      'accessibilityLabel="Settings"',
+      'accessibilityLabel="Correction"',
+    ]) {
+      expect(src).toContain(label);
+    }
+    expect(src).toMatch(/tab === "research" \? "Research"/);
+    expect(src).toMatch(/tab === "library" \? "Library"/);
+    expect(src).toMatch(/Keyboard\.addListener/);
+    expect(src).toMatch(/announceForAccessibility/);
+    expect(src).toMatch(/state\.tab === "research" && !state\.source/);
+    expect(src).toMatch(/!keyboardOpen/);
+  });
+
   it("expired session keeps the draft and routes to settings", () => {
     const next = expireLocalSession({ ...emptyState(), draft: "Compare options in Germany", signedIn: true, report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true } });
     expect(next.draft).toContain("Germany");

@@ -1,0 +1,45 @@
+{
+  "as_of": "2026-09-16",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "product": "kunzite_global",
+    "android": "16",
+    "app": "Expo Go host.exp.exponent ExperienceActivity SDK 54"
+  },
+  "talkback": {
+    "service": "com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService",
+    "enabled_during_capture": true,
+    "disabled_after_capture": true,
+    "enlarged_text": "not exercised",
+    "ios_voiceover": "blocked — no Xcode on this Linux host"
+  },
+  "observed_content_descriptions": {
+    "composer": ["Research question", "Start research"],
+    "progress": ["Research progress", "In progress", "Cancel research"],
+    "report": ["Research report", "Show concise view", "Open source 2b937ef7", "Flag this generated answer"],
+    "source_sheet": ["Source sheet", "Close source sheet"],
+    "library": ["Open Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01", "Share Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01"],
+    "settings": [
+      "Sign in development session",
+      "Grant AI processing consent",
+      "Toggle demo or live route",
+      "Revoke AI processing consent",
+      "Log out and clear cached reports",
+      "Delete account and derived data"
+    ]
+  },
+  "progress_phase_on_screenshot": "writing",
+  "source_sheet_access_level": "FULL-TEXT",
+  "compact": {
+    "before": "keyboard + attach + composer + tabs left a thin report strip; composer also covered Settings/Library",
+    "after": "attach chrome hides while the keyboard is open; composer hides on Library/Settings so Delete account is on-screen; Start research remains visible with the keyboard open"
+  },
+  "status": {
+    "M02_android_talkback": "implemented and verified on device (labels + TalkBack focus). Enlarged text unverified. iOS VoiceOver blocked.",
+    "M03_android_compact_keyboard": "implemented and verified on device after attach-hide + composer-on-research-only",
+    "M01_android_lifecycle": "previously verified (persist/hydrate/close-reopen); not re-run this capture",
+    "p0_n_ios": "blocked by a named external dependency",
+    "p0_fully_verified": false
+  }
+}
