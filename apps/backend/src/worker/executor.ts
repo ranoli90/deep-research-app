@@ -384,7 +384,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       });
     }
 
-    // synthesize or stop
+    // synthesize or stop — persist writing before compose so clients can cancel during writing.
     await setPhase(pool, runId, "writing");
     await emitEvent(pool, {
       runId,
@@ -393,7 +393,11 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       summary: "Drafting a bounded cited report from stored evidence.",
       phase: "writing",
     });
+    await checkpoint(pool, runId, run.evidence_revision, "writing", { action: "enter-writing" });
     if (opts.pauseAt === "writing") return;
+    if (config.writingCancelWindowMs > 0) {
+      await new Promise((r) => setTimeout(r, config.writingCancelWindowMs));
+    }
 
     const latest = await getRun(pool, runId);
     if (!latest) return;
@@ -444,6 +448,25 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const passages: StoredPassage[] = state2.passages;
 
     if (opts.crashAfter === "before-publish") throw new InjectedCrash("before-publish");
+
+    const prePublish = await getRun(pool, runId);
+    if (!prePublish) return;
+    if (prePublish.cancellation_epoch > 0 || prePublish.lifecycle === "cancelling") {
+      await withTx(pool, async (c) => {
+        await markTerminal(c, runId, "cancelled");
+        await settleRun(c, prePublish.account_id, runId, prePublish.spent_micro);
+        await emitEvent(c, {
+          runId,
+          accountId: prePublish.account_id,
+          type: "cancelled",
+          summary: "Cancelled during writing. Late publication is rejected.",
+          phase: "writing",
+        });
+      });
+      return;
+    }
+    state2.basis.cancellationEpoch = prePublish.cancellation_epoch;
+    state2.basis.workerLeaseFence = fence;
 
     await addSpent(pool, runId, FIXTURE_SYNTH_COST_MICRO);
     const result = await withTx(pool, async (c) => {

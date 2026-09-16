@@ -146,3 +146,22 @@ export function submitPrerequisite(state: UiState): "research" | "settings" {
   if (!state.signedIn || !state.consentGranted) return "settings";
   return "research";
 }
+
+/** Library tap must switch to Research and bind the run before the first poll tick. */
+export function openLibraryItem(state: UiState, runId: string): UiState {
+  return {
+    ...state,
+    tab: "research",
+    source: null,
+    error: null,
+    status: "progress",
+    run: {
+      runId,
+      lifecycle: "running",
+      phase: state.run?.runId === runId ? state.run.phase : "researching",
+      outcome: null,
+      reportId: state.run?.runId === runId ? state.run.reportId : null,
+      labeledDemo: state.routeMode === "fixture",
+    },
+  };
+}

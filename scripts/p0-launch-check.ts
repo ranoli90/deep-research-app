@@ -93,27 +93,62 @@ try {
   const events = await json(await fetch(`${API}/v1/runs/${runId}/events?after=0`, { headers }));
   if (!events.events?.length) throw new Error("no events");
 
-  const writing = await json(
-    await fetch(`${API}/v1/runs`, {
-      method: "POST",
-      headers: { ...headers, "idempotency-key": crypto.randomUUID() },
-      body: JSON.stringify({
-        question: "What did ACME announce about Widget 4?",
-        routeMode: "fixture",
+  let cancelRunId: string | null = null;
+  let cancelled: Record<string, unknown> | null = null;
+  let sawWriting = false;
+  let publicationRejected = false;
+  for (let attempt = 0; attempt < 4 && !sawWriting; attempt++) {
+    const writing = await json(
+      await fetch(`${API}/v1/runs`, {
+        method: "POST",
+        headers: { ...headers, "idempotency-key": crypto.randomUUID() },
+        body: JSON.stringify({
+          question: "What did ACME announce about Widget 4?",
+          routeMode: "fixture",
+        }),
       }),
-    }),
-  );
-  const cancelRes = await fetch(`${API}/v1/runs/${writing.runId}/cancel`, {
-    method: "POST",
-    headers,
-    body: "{}",
-  });
-  if (!cancelRes.ok) {
-    throw new Error(`cancel failed: ${cancelRes.status} ${await cancelRes.text()}`);
+    );
+    cancelRunId = writing.runId as string;
+    const waitWrite = Date.now();
+    while (Date.now() - waitWrite < 15_000) {
+      const snap = await json(await fetch(`${API}/v1/runs/${cancelRunId}`, { headers }));
+      if (snap.phase === "writing" && snap.lifecycle !== "terminal") {
+        sawWriting = true;
+        const cancelRes = await fetch(`${API}/v1/runs/${cancelRunId}/cancel`, {
+          method: "POST",
+          headers,
+          body: "{}",
+        });
+        if (!cancelRes.ok) {
+          throw new Error(`cancel failed: ${cancelRes.status} ${await cancelRes.text()}`);
+        }
+        break;
+      }
+      if (snap.lifecycle === "terminal") break;
+      await sleep(25);
+    }
   }
-  const cancelled = await json(await fetch(`${API}/v1/runs/${writing.runId}`, { headers }));
-  if (cancelled.revision.cancellationEpoch < 1 && cancelled.lifecycle !== "cancelling" && cancelled.outcome !== "cancelled") {
-    throw new Error(`cancel not recorded: ${JSON.stringify(cancelled)}`);
+  if (!cancelRunId || !sawWriting) {
+    throw new Error("never observed phase=writing to cancel during writing");
+  }
+  const waitTerm = Date.now();
+  while (Date.now() - waitTerm < 15_000) {
+    cancelled = await json(await fetch(`${API}/v1/runs/${cancelRunId}`, { headers }));
+    if (cancelled.lifecycle === "terminal") break;
+    await sleep(50);
+  }
+  if (!cancelled) throw new Error("cancel snapshot missing");
+  if (cancelled.lifecycle !== "terminal" || cancelled.outcome !== "cancelled") {
+    throw new Error(`expected cancelled terminal after writing cancel: ${JSON.stringify(cancelled)}`);
+  }
+  if (cancelled.reportId) {
+    throw new Error(`late publication was not rejected; reportId=${cancelled.reportId}`);
+  }
+  const evCancel = await json(await fetch(`${API}/v1/runs/${cancelRunId}/events?after=0`, { headers }));
+  const types = (evCancel.events ?? []).map((e: { type: string }) => e.type);
+  publicationRejected = types.includes("publication_rejected") || types.includes("cancelled") || types.includes("cancel_requested");
+  if (!publicationRejected) {
+    throw new Error(`no cancel/reject event after writing cancel: ${JSON.stringify(types)}`);
   }
 
   process.stdout.write(
@@ -124,9 +159,12 @@ try {
         reportId,
         citationCount: citationIds.length,
         eventCount: events.events.length,
-        cancelRunId: writing.runId,
+        cancelRunId,
+        cancelPhaseAtCancel: "writing",
         cancelLifecycle: cancelled.lifecycle,
         cancelOutcome: cancelled.outcome,
+        cancelReportId: cancelled.reportId ?? null,
+        latePublicationRejected: !cancelled.reportId,
       },
       null,
       2,

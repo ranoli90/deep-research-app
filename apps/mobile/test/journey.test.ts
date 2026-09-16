@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearAccountLocal, loadDraft, memoryStore, persistDraft } from "../src/persist.js";
+import { clearAccountLocal, hydrateOnLaunch, loadDraft, memoryStore, persistDraft, persistSession } from "../src/persist.js";
 import {
   androidBack,
   attachFile,
@@ -8,6 +8,7 @@ import {
   emptyState,
   logout,
   mergeEvents,
+  openLibraryItem,
   restoreAnchor,
   submitPrerequisite,
 } from "../src/state.js";
@@ -108,8 +109,21 @@ describe("P3 native journeys (structural)", () => {
   });
 
   it("M09 logout store wipe", async () => {
-    const store = memoryStore({ "deep.draft": "secret", "deep.ui": "{}" });
+    const store = memoryStore({ "deep.draft": "secret", "deep.ui": "{}", "deep.token": "tok" });
+    await persistSession(store, {
+      token: "tok",
+      state: { ...emptyState(), draft: "secret", signedIn: true, report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true } },
+    });
     await clearAccountLocal(store);
     expect(await loadDraft(store)).toBe("");
+    const hydrated = await hydrateOnLaunch(store);
+    expect(hydrated.token).toBeNull();
+    expect(hydrated.state.report).toBeNull();
+  });
+
+  it("library open binds the run on research before any poll interval", () => {
+    const opened = openLibraryItem({ ...emptyState(), tab: "library", signedIn: true }, "saved-run");
+    expect(opened.tab).toBe("research");
+    expect(opened.run?.runId).toBe("saved-run");
   });
 });

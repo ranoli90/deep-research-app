@@ -36,3 +36,10 @@ No live paid calls were made.
 - Migration `002_launch_scope.sql` (provider confirmed_micro, notification_fanout, entitlements, billing_webhook_receipts).
 - `pnpm test:integration` 69/69 twice, exit 0. `pnpm verify` exit 0. `pnpm --filter @deep/mobile test` 17. No live paid calls.
 - P0-L and P0-N remain blocked. Purchases and live push stay gated, not simulated as successful.
+
+## 2026-09-16 — skeptic fixes: persist/hydrate, library open, cancel-during-writing
+
+- `persistSession` / `hydrateOnLaunch` now persist token+draft+run+report; App calls them on send/refresh/draft/auth and on launch. Tests round-trip a real store (empty store stays empty).
+- Library tap uses `openLibraryItem` to switch to Research and bind the run, then refresh once and poll.
+- Worker persists `writing`, yields `writingCancelWindowMs` (default 150), re-reads cancel, and `publishReport` locks the run row. `pnpm p0:launch` twice: `cancelOutcome=cancelled`, `cancelReportId=null`, `latePublicationRejected=true`.
+- `pnpm test:integration` 69/69, `pnpm verify` 0, mobile 20 tests. P0-L/N still blocked.

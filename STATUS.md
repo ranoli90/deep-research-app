@@ -31,6 +31,8 @@ R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, 
 - J14 live push transport; S08 signed store webhooks; hosted Supabase/Render/auth/RLS/storage/pooler.
 - Seed eval validation and competitor comparison.
 
+Native structural close/reopen now round-trips token/draft/run through `persistSession`/`hydrateOnLaunch` (not in-memory only). Library open binds the run on Research before polling. `pnpm p0:launch` cancels during `writing` and asserts no published report.
+
 ## Next executable task
 1. `OPENROUTER_API_KEY` + `LIVE_SPEND_CAP_MICRO>0` for P0-L and a matched P1 live ablation.
 2. Android emulator/device for P0-N; macOS/Xcode for iOS.

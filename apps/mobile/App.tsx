@@ -19,7 +19,7 @@ import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "./src/api";
-import { loadSnapshot, persistDraft, persistSnapshot } from "./src/persist";
+import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
 import {
   androidBack,
   applySnapshot,
@@ -29,7 +29,7 @@ import {
   emptyState,
   logout as logoutState,
   mergeEvents,
-  restoreAfterReopen,
+  openLibraryItem,
   submitPrerequisite,
   type ReportBlock,
   type UiState,
@@ -59,41 +59,53 @@ function AppInner() {
   const persistAnchor = useCallback((reportId: string, blockId: string) => {
     setState((s) => {
       const next = { ...s, readingAnchor: { reportId, blockId, offset: 0 } };
-      void persistSnapshot(AsyncStorage, next);
+      void persistSession(AsyncStorage, { token, state: next });
       return next;
     });
-  }, []);
+  }, [token]);
 
   async function ensureSession() {
     const s = await api.session();
     setToken(s.token);
-    setState((prev) => ({ ...prev, signedIn: true }));
+    setState((prev) => {
+      const next = { ...prev, signedIn: true };
+      void persistSession(AsyncStorage, { token: s.token, state: next });
+      return next;
+    });
     return s.token;
   }
 
   async function grantConsent() {
     const t = token ?? (await ensureSession());
     await api.consent(t, true);
-    setState((s) => ({ ...s, consentGranted: true }));
+    setState((s) => {
+      const next = { ...s, consentGranted: true };
+      void persistSession(AsyncStorage, { token: t, state: next });
+      return next;
+    });
   }
 
   async function refreshRun(t: string, runId: string) {
     const snap = await api.getRun(t, runId);
-    setState((s) => applySnapshot(s, snap));
     const ev = await api.events(t, runId, 0);
-    setState((s) => ({ ...s, events: mergeEvents(s.events, ev.events ?? []) }));
-    if (snap.reportId) {
-      const report = await api.report(t, snap.reportId);
-      setState((s) => ({
-        ...s,
-        report: {
-          reportId: report.reportId,
-          blocks: report.blocks,
-          limitations: report.limitations ?? [],
-          labeledDemo: report.labeledDemo,
-        },
-      }));
-    }
+    const report = snap.reportId ? await api.report(t, snap.reportId) : null;
+    setState((s) => {
+      let next = applySnapshot(s, snap);
+      next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
+      if (report) {
+        next = {
+          ...next,
+          report: {
+            reportId: report.reportId,
+            blocks: report.blocks,
+            limitations: report.limitations ?? [],
+            labeledDemo: report.labeledDemo,
+          },
+        };
+      }
+      void persistSession(AsyncStorage, { token: t, state: next });
+      return next;
+    });
   }
 
   function startPolling(t: string, runId: string) {
@@ -116,9 +128,13 @@ function AppInner() {
     void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (v) setState((s) => ({ ...s, reducedMotion: true }));
     });
-    void loadSnapshot(AsyncStorage).then((snap) => {
-      if (!snap) return;
-      setState((s) => restoreAfterReopen({ ...s, ...snap, source: null }));
+    void hydrateOnLaunch(AsyncStorage).then(({ token: t, state: s }) => {
+      setToken(t);
+      setState(s);
+      if (t && s.run?.runId) {
+        void refreshRun(t, s.run.runId);
+        startPolling(t, s.run.runId);
+      }
     });
     return () => {
       sub.remove();
@@ -141,7 +157,24 @@ function AppInner() {
         ids.push(up.attachmentId);
       }
       const created = await api.createRun(t, state.draft.trim(), state.routeMode, crypto.randomUUID(), ids);
-      setState((s) => ({ ...s, status: "progress", error: null, run: { runId: created.runId, lifecycle: created.lifecycle, phase: created.phase, outcome: null, reportId: null, labeledDemo: created.labeledDemo } }));
+      setState((s) => {
+        const next = {
+          ...s,
+          status: "progress" as const,
+          error: null,
+          run: {
+            runId: created.runId,
+            lifecycle: created.lifecycle,
+            phase: created.phase,
+            outcome: null,
+            reportId: null,
+            labeledDemo: created.labeledDemo,
+          },
+        };
+        void persistSession(AsyncStorage, { token: t, state: next });
+        return next;
+      });
+      await refreshRun(t, created.runId);
       startPolling(t, created.runId);
     } catch (e) {
       setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
@@ -357,7 +390,18 @@ function AppInner() {
           </ScrollView>
         ) : null}
 
-        {state.tab === "library" ? <Library token={token} styles={styles} onOpen={(id) => token && startPolling(token, id)} /> : null}
+        {state.tab === "library" ? (
+          <Library
+            token={token}
+            styles={styles}
+            onOpen={async (id) => {
+              if (!token) return;
+              setState((s) => openLibraryItem(s, id));
+              await refreshRun(token, id);
+              startPolling(token, id);
+            }}
+          />
+        ) : null}
         {state.tab === "settings" ? (
           <Settings
             styles={styles}
@@ -368,10 +412,12 @@ function AppInner() {
             onDelete={async () => {
               if (!token) return;
               await api.deleteAccount(token);
+              await clearAccountLocal(AsyncStorage);
               setToken(null);
               setState(emptyState());
             }}
             onLogout={() => {
+              void clearAccountLocal(AsyncStorage);
               setToken(null);
               setState((s) => logoutState(s));
             }}
@@ -422,8 +468,11 @@ function AppInner() {
           <TextInput
             value={state.draft}
             onChangeText={(draft) => {
-              setState((s) => ({ ...s, draft }));
-              void persistDraft(AsyncStorage, draft);
+              setState((s) => {
+                const next = { ...s, draft };
+                void persistSession(AsyncStorage, { token, state: next });
+                return next;
+              });
             }}
             placeholder="Ask with constraints, dates, and what would change the answer"
             placeholderTextColor={theme.muted}
@@ -570,5 +619,3 @@ export function App() {
     </SafeAreaProvider>
   );
 }
-
-void restoreAfterReopen;

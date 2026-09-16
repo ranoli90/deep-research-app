@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applySnapshot, canSubmit, conciseBlocks, emptyState, restoreAfterReopen } from "../src/state.js";
+import { applySnapshot, canSubmit, conciseBlocks, emptyState, openLibraryItem } from "../src/state.js";
+import { hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
 
 describe("P0-N native state mapping", () => {
   it("maps composer gates for consent, auth, offline, and empty draft", () => {
@@ -11,16 +12,43 @@ describe("P0-N native state mapping", () => {
     expect(canSubmit({ ...base, draft: "Q", signedIn: true, consentGranted: true }).ok).toBe(true);
   });
 
-  it("close/reopen restores draft and last run without cancelling the server job", () => {
+  it("persistSession then hydrateOnLaunch restores token, draft, and last run", async () => {
+    const store = memoryStore();
     const s = applySnapshot(
       { ...emptyState(), draft: "Compare options in Germany", signedIn: true, consentGranted: true },
       { runId: "r1", lifecycle: "running", phase: "writing", outcome: null, reportId: null, labeledDemo: true },
     );
-    const restored = restoreAfterReopen(s);
-    expect(restored.draft).toContain("Germany");
-    expect(restored.run?.runId).toBe("r1");
-    expect(restored.run?.phase).toBe("writing");
-    expect(restored.source).toBeNull();
+    s.report = {
+      reportId: "rep-1",
+      blocks: [{ id: "answer", kind: "text", text: "Vendor A", claimIds: ["c1"], citationIds: ["p1"] }],
+      limitations: [],
+      labeledDemo: true,
+    };
+    await persistSession(store, { token: "tok-session-1", state: s });
+    const hydrated = await hydrateOnLaunch(store);
+    expect(hydrated.token).toBe("tok-session-1");
+    expect(hydrated.state.draft).toContain("Germany");
+    expect(hydrated.state.run?.runId).toBe("r1");
+    expect(hydrated.state.run?.phase).toBe("writing");
+    expect(hydrated.state.report?.reportId).toBe("rep-1");
+    expect(hydrated.state.consentGranted).toBe(true);
+    expect(hydrated.state.source).toBeNull();
+  });
+
+  it("hydrateOnLaunch does not invent a session when persistSession never ran", async () => {
+    const hydrated = await hydrateOnLaunch(memoryStore());
+    expect(hydrated.token).toBeNull();
+    expect(hydrated.state.draft).toBe("");
+    expect(hydrated.state.run).toBeNull();
+    expect(hydrated.state.report).toBeNull();
+    expect(hydrated.state.signedIn).toBe(false);
+  });
+
+  it("openLibraryItem switches to research and binds the run before polling", () => {
+    const next = openLibraryItem({ ...emptyState(), tab: "library" }, "run-library-1");
+    expect(next.tab).toBe("research");
+    expect(next.run?.runId).toBe("run-library-1");
+    expect(next.status).toBe("progress");
   });
 
   it("concise and detailed views share the same answer block identity", () => {

@@ -15,7 +15,7 @@ export async function publishReport(
     deleted: boolean;
   },
 ): Promise<{ accepted: boolean; reason: string; reportId?: string }> {
-  const run = await getRun(db, args.report.runId);
+  const run = await getRun(db, args.report.runId, { forUpdate: true });
   if (!run) return { accepted: false, reason: "missing_run" };
   const current: RevisionBasis = {
     briefRevision: run.brief_revision,
@@ -25,13 +25,16 @@ export async function publishReport(
     workerLeaseFence: run.worker_lease_fence,
   };
   const problems = checkReportCitations(args.report.blocks, args.claims, args.passages);
-  const reason = canPublish({
+  let reason = canPublish({
     loaded: args.loaded,
     current,
     deleted: args.deleted,
     unknownCitationIds: problems.unknownIds,
     unsupportedCitationCount: problems.unsupported.length,
   });
+  if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
+    reason = "cancelled";
+  }
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],

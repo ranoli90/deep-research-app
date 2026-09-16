@@ -9,13 +9,15 @@ Working tree: `main` at `74ae4ddf6a0a329f696345476e1ea48b87baf576`. Run `git rev
 - P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02).
 - P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04). Dose unit corrections recompute without reopening discovery (V2-05). Unknown dependency completeness forces a bounded full rerun flag (V2-06).
 - P3 (fixture/native-structural): attachments, share/flag, clarification continue, follow-up, lease reclaim, writing reserve, freshness/translation, unsigned purchase reject, application-level completion outbox.
+- Close/reopen restores token, draft, and last run via `persistSession`/`hydrateOnLaunch`. Library opens a saved run on Research immediately. Cancel during writing is asserted by `pnpm p0:launch`.
 
 ## Commands (latest session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0, twice | 69 tests (16 P0 smoke + 17 launch-scope + remaining IDs) |
+| `pnpm test:integration` | 0 | 69 tests |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm --filter @deep/mobile test` | 0 | 17 structural journey/lifecycle tests |
+| `pnpm --filter @deep/mobile test` | 0 | 20 tests including persist/hydrate round-trip |
+| `pnpm p0:launch` | 0, twice | citations resolve; cancel during writing; no late report |
 | `pnpm test:e2e:android` / `ios` | 2 | no device / no Xcode |
 
 ## Blockers (unchanged)

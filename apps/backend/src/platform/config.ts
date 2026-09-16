@@ -16,6 +16,7 @@ export type AppConfig = {
   openRouterModel: string;
   liveSpendCapMicro: number;
   consentPolicyVersion: string;
+  writingCancelWindowMs: number;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -47,5 +48,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     openRouterModel: env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
     liveSpendCapMicro: Number(env.LIVE_SPEND_CAP_MICRO ?? 0),
     consentPolicyVersion: env.CONSENT_POLICY_VERSION ?? CONSENT_POLICY_VERSION,
+    writingCancelWindowMs: Number(env.WRITING_CANCEL_WINDOW_MS ?? 150),
   };
 }

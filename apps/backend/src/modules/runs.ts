@@ -50,8 +50,15 @@ export async function findRunByIdempotency(db: Queryable, accountId: string, key
   return res.rows[0] ? mapRun(res.rows[0] as Record<string, unknown>) : null;
 }
 
-export async function getRun(db: Queryable, runId: string): Promise<RunRow | null> {
-  const res = await db.query(`SELECT * FROM runs WHERE id = $1`, [runId]);
+export async function getRun(
+  db: Queryable,
+  runId: string,
+  opts: { forUpdate?: boolean } = {},
+): Promise<RunRow | null> {
+  const res = await db.query(
+    opts.forUpdate ? `SELECT * FROM runs WHERE id = $1 FOR UPDATE` : `SELECT * FROM runs WHERE id = $1`,
+    [runId],
+  );
   return res.rows[0] ? mapRun(res.rows[0] as Record<string, unknown>) : null;
 }
 
