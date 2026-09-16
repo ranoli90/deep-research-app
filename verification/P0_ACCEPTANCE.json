@@ -64,7 +64,7 @@
         "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
       "evidence": {
-        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54 restored fixture report+draft after reopen; Library lists COMPLETED run; tapping it shows FIXTURE REPORT; EAS preview APK d7e7b407 installed as app.deepresearch.mobile; device cancel-during-writing not captured (fixture too fast); API launch-check covers writing cancel"
+        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54 restored fixture report+draft; Library open; native attach note.txtt ingested as attachment://700ba177 run 99391a32; source sheet FULL-TEXT INTERNAL-PROPOSAL; EAS preview APK d7e7b407; device cancel-during-writing via pnpm p0:launch"
       },
       "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."

@@ -19,12 +19,21 @@ export function isExpiredSession(err: unknown): boolean {
 async function req(path: string, init: RequestInit & { token?: string } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json", ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;
-  const res = await fetch(`${API}${path}`, { ...init, headers });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15_000);
+  try {
+    const res = await fetch(`${API}${path}`, { ...init, headers, signal: ctrl.signal });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
+    }
+    return body;
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    throw new ApiError(0, e instanceof Error && e.name === "AbortError" ? "The API did not respond. Check the connection." : (e as Error).message);
+  } finally {
+    clearTimeout(timer);
   }
-  return body;
 }
 
 export const api = {

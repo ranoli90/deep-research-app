@@ -54,3 +54,11 @@ No live paid calls were made.
 - `pnpm test:integration` 73/73 twice; `pnpm verify` 0; `pnpm p0:launch` twice `cancelOutcome=cancelled` `cancelReportId=null`.
 - Android `a3fa7852`: persist restored fixture report+draft; Library lists COMPLETED; opening the item shows FIXTURE REPORT.
 - P0-N iOS remains blocked. `p0_fully_verified` stays false. No additional OpenRouter spend.
+
+## 2026-09-16 — native attach + source inspection on Xiaomi
+
+- Restarted API+worker on 8787 with current `ingestAttachments`.
+- Device attach of `note.txtt` containing `INTERNAL-PROPOSAL…`; run `99391a32` stored `attachment://700ba177` as full-text plus public vendor sources.
+- Native report cites the attachment; source sheet shows title `note.txtt`, `FULL-TEXT`, exact attachment text.
+- Compact layout: attach fields collapse when a report is showing so citations remain tappable. `persistSession` no longer wipes a stored token when a later persist passes `token: null`.
+- `pnpm --filter @deep/mobile test` 23/23. iOS still blocked. No extra OpenRouter spend.

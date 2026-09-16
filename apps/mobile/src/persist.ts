@@ -45,8 +45,8 @@ export async function loadSnapshot(store: KeyValueStore): Promise<PersistedSessi
 
 /** App calls this after draft/run/report/auth changes so close/reopen can restore the session. */
 export async function persistSession(store: KeyValueStore, session: PersistedSession): Promise<void> {
+  // A null token here is often a pre-hydrate render. Only logout/clearAccountLocal may drop the key.
   if (session.token) await store.setItem(TOKEN_KEY, session.token);
-  else await store.removeItem(TOKEN_KEY);
   await persistDraft(store, session.state.draft);
   await persistSnapshot(store, session.state);
 }

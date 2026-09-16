@@ -61,6 +61,7 @@ function AppInner() {
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
   const [attachText, setAttachText] = useState("");
+  const [showAttach, setShowAttach] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const draftRef = useRef(state.draft);
   draftRef.current = state.draft;
@@ -76,24 +77,34 @@ function AppInner() {
   }, [token]);
 
   async function ensureSession() {
-    const s = await api.session();
-    setToken(s.token);
-    setState((prev) => {
-      const next = { ...prev, signedIn: true };
-      void persistSession(AsyncStorage, { token: s.token, state: next });
-      return next;
-    });
-    return s.token;
+    try {
+      const s = await api.session();
+      setToken(s.token);
+      setState((prev) => {
+        const next = { ...prev, signedIn: true, error: null };
+        void persistSession(AsyncStorage, { token: s.token, state: next });
+        return next;
+      });
+      return s.token;
+    } catch (e) {
+      setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
+      throw e;
+    }
   }
 
   async function grantConsent() {
-    const t = token ?? (await ensureSession());
-    await api.consent(t, true);
-    setState((s) => {
-      const next = { ...s, consentGranted: true };
-      void persistSession(AsyncStorage, { token: t, state: next });
-      return next;
-    });
+    try {
+      const t = token ?? (await ensureSession());
+      await api.consent(t, true);
+      setState((s) => {
+        const next = { ...s, consentGranted: true, error: null };
+        void persistSession(AsyncStorage, { token: t, state: next });
+        return next;
+      });
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
+    }
   }
 
   async function onAuthFailure() {
@@ -211,10 +222,19 @@ function AppInner() {
   }
 
   async function onOpenSource(id: string) {
-    if (!token) return;
-    if (state.report) persistAnchor(state.report.reportId, "answer");
-    const src = await api.source(token, id);
-    setState((s) => ({ ...s, source: src, tab: "research" }));
+    try {
+      const t = token ?? (await hydrateOnLaunch(AsyncStorage)).token;
+      if (!t) {
+        setState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
+        return;
+      }
+      if (state.report) persistAnchor(state.report.reportId, "answer");
+      const src = await api.source(t, id);
+      setState((s) => ({ ...s, source: src, tab: "research" }));
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
   }
 
   async function onCorrect() {
@@ -381,7 +401,13 @@ function AppInner() {
                       {b.text}
                     </Text>
                     {b.citationIds.map((id) => (
-                      <Pressable key={id} onPress={() => onOpenSource(id)} accessibilityRole="link" accessibilityLabel={`Open source ${id.slice(0, 8)}`}>
+                      <Pressable
+                        key={id}
+                        onPress={() => void onOpenSource(id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Open source ${id.slice(0, 8)}`}
+                        hitSlop={8}
+                      >
                         <Text style={styles.link}>Source {id.slice(0, 8)}</Text>
                       </Pressable>
                     ))}
@@ -418,21 +444,6 @@ function AppInner() {
               </View>
             ) : null}
 
-            {state.source ? (
-              <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-                <Text style={styles.title}>{state.source.title}</Text>
-                <Text style={styles.kicker}>{state.source.accessLevel}</Text>
-                <Text style={styles.bodyText}>{state.source.exactText}</Text>
-                <Pressable
-                  onPress={() => setState((s) => ({ ...s, source: null }))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close source sheet"
-                >
-                  <Text style={styles.link}>Close</Text>
-                </Pressable>
-              </View>
-            ) : null}
-
             {(state.status === "completed" || state.status === "partial") && state.run ? (
               <View style={styles.card}>
                 <Text style={styles.kicker}>Correction</Text>
@@ -450,6 +461,21 @@ function AppInner() {
               </View>
             ) : null}
           </ScrollView>
+        ) : null}
+
+        {state.source ? (
+          <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
+            <Text style={styles.title}>{state.source.title}</Text>
+            <Text style={styles.kicker}>{state.source.accessLevel}</Text>
+            <Text style={styles.bodyText}>{state.source.exactText}</Text>
+            <Pressable
+              onPress={() => setState((s) => ({ ...s, source: null }))}
+              accessibilityRole="button"
+              accessibilityLabel="Close source sheet"
+            >
+              <Text style={styles.link}>Close</Text>
+            </Pressable>
+          </View>
         ) : null}
 
         {state.tab === "library" ? (
@@ -492,7 +518,7 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" ? (
+        {state.tab === "research" && (showAttach || !state.report) ? (
           <View style={styles.attachRow}>
             <TextInput
               value={attachName}
@@ -518,6 +544,7 @@ function AppInner() {
                   }),
                 );
                 setAttachText("");
+                setShowAttach(false);
               }}
               accessibilityRole="button"
               accessibilityLabel="Attach supported file"
@@ -525,6 +552,16 @@ function AppInner() {
               <Text style={styles.link}>Attach ({state.attachments.length}/3)</Text>
             </Pressable>
           </View>
+        ) : null}
+        {state.tab === "research" && state.report && !showAttach ? (
+          <Pressable
+            onPress={() => setShowAttach(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Show attachment fields"
+            style={styles.attachRow}
+          >
+            <Text style={styles.link}>Attach a file ({state.attachments.length}/3)</Text>
+          </Pressable>
         ) : null}
 
         <View style={styles.composerWrap}>

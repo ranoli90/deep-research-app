@@ -41,6 +41,17 @@ describe("P0-N native state mapping", () => {
     expect(hydrated.state.source).toBeNull();
   });
 
+  it("persistSession with a null token does not wipe a stored session token", async () => {
+    const store = memoryStore();
+    const s = { ...emptyState(), draft: "Compare options in Germany", signedIn: true };
+    await persistSession(store, { token: "tok-session-1", state: s });
+    await persistSession(store, { token: null, state: { ...s, draft: "still Germany" } });
+    expect(await store.getItem("deep.token")).toBe("tok-session-1");
+    const hydrated = await hydrateOnLaunch(store);
+    expect(hydrated.token).toBe("tok-session-1");
+    expect(hydrated.state.draft).toContain("Germany");
+  });
+
   it("hydrateOnLaunch does not invent a session when persistSession never ran", async () => {
     const hydrated = await hydrateOnLaunch(memoryStore());
     expect(hydrated.token).toBeNull();
