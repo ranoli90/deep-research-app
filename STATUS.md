@@ -1,7 +1,7 @@
 # Execution status — application implementation
 ## V6 implementation checkpoint — 2026-09-17 18:57 UTC
 
-W05 durable task preparation: migration017 and the worker task service now preserve one versioned criterion/question specification per owned run/brief revision, with server-generated IDs. New evidence and crash recovery reuse the stored valid proposal; ambiguities remain explicit. Ten new PostgreSQL cases cover identity, recovery, concurrency, corruption, ownership and deletion. This service is not yet integrated into processRun, and does not claim intent quality, answered criteria or corrected-report behavior.
+W05 durable task preparation (`5d44827`): migration017 and the worker task service now preserve one versioned criterion/question specification per owned run/brief revision, with server-generated IDs. New evidence and crash recovery reuse the stored valid proposal; ambiguities remain explicit. Ten new PostgreSQL cases cover identity, recovery, concurrency, corruption, ownership and deletion. This service is not yet integrated into processRun, and does not claim intent quality, answered criteria or corrected-report behavior.
 
 W02 search outcome repair (`5fdb122`): PostgreSQL regressions reproduced false searched events for HTTP failure, timeout and missing cost. The worker now terminates those paths as unresolved, preserves unknown reservations and atomically records financial receipts. Existing attempts without durable output are not resent or counted as empty success. Valid zero-cost success remains a control. This is conservative termination, not automatic search-result recovery.
 

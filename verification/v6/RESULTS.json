@@ -1949,7 +1949,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker_service",
       "scope": "21/21 after correcting mutation setup;10 task identity/recovery/ownership/deletion cases",
-      "sha256": "a62e10c02008966a4b92152c5c04231e3063884a71f19cdf4b858c3a6b9a9f06"
+      "sha256": "a62e10c02008966a4b92152c5c04231e3063884a71f19cdf4b858c3a6b9a9f06",
+      "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
     },
     {
       "requirementIds": [
@@ -1964,7 +1965,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "core97/backend80/mobile47/governance4",
-      "sha256": "9c8f7d335e2d6b92f51dfc7018e7c5dba5d68a68546edc66b17a7aadf16eea99"
+      "sha256": "9c8f7d335e2d6b92f51dfc7018e7c5dba5d68a68546edc66b17a7aadf16eea99",
+      "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
     },
     {
       "requirementIds": [
@@ -1979,7 +1981,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "193/193 local PostgreSQL cases; migration017 and task result/deletion behavior with fabricated model transport",
-      "sha256": "4a4e679a942144984ccbd2e1ad13cd96bb40a589d09f7f4b2e2542eaafb81802"
+      "sha256": "4a4e679a942144984ccbd2e1ad13cd96bb40a589d09f7f4b2e2542eaafb81802",
+      "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
     },
     {
       "requirementIds": [
@@ -1994,7 +1997,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
     },
     {
       "requirementIds": [
@@ -2009,7 +2013,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
     }
   ],
   "unresolved": [
@@ -2027,5 +2032,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
+  "implementationCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
 }
