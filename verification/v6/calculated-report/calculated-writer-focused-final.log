@@ -1,0 +1,97 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (119 tests) 168358ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call  300ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts  352ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result  460ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  524ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects an invented evidence binding instead of creating assertions  324ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects wrong-task, missing passage and duplicate selection before dispatch  305ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request  368ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests  388ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > discards late extraction after evidence changes but retains actual cost  307ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  557ms
+   ✓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units  346ms
+   ✓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support  410ms
+   ✓ W05 substantive support execution and persisted revisions > rejects missing bindings without a support record  350ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  860ms
+   ✓ W05 substantive support execution and persisted revisions > purges scoped assertions and support results on deletion  504ms
+   ✓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen  633ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  583ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision  501ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  785ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  633ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  759ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  2918ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  3236ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  1574ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  778ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  922ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  1042ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  2775ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  585ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  1298ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  790ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  620ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  544ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  720ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  4457ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  1531ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  701ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  2648ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  1174ms
+   ✓ W05 structured services through production processRun > keeps unavailable discovery explicit without fixture source injection  384ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  4860ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  1514ms
+   ✓ W02/W05 durable pinned public discovery > pins engine/provider and reuses saved results even after unrelated evidence arrives  436ms
+   ✓ W02/W05 durable pinned public discovery > holds unknown outcomes without repeating a request after evidence changes  400ms
+   ✓ W02/W05 durable pinned public discovery > rejects transformed private words and foreign task ownership before dispatch  328ms
+   ✓ W02/W05 durable pinned public discovery > revalidates saved receipt and purges discovery output on deletion  307ms
+   ✓ W02/W05 durable pinned public discovery > concurrent same-query attempts issue once without holding database locks during HTTP  316ms
+   ✓ W04/W05 durable discovered source reading > persists read provenance once and reuses the exact version  545ms
+   ✓ W04/W05 durable discovered source reading > rejects unknown source handles and invalid question bindings before network  415ms
+   ✓ W04/W05 durable discovered source reading > does not repeat an in-flight read or hold database locks during it  495ms
+   ✓ W04/W05 durable discovered source reading > discards late content after delete  430ms
+   ✓ W04/W05 durable discovered source reading > discards late content after change  375ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true  4912ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=false  387ms
+   ✓ W05 unresolved criteria trigger a distinct public query and rechecked synthesis  11352ms
+   ✓ W02/W05 concurrent distinct searches obey the durable per-run query ceiling  442ms
+   ✓ W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker  6372ms
+   ✓ W06 fresh cited versions change evidence without claiming changed assertion wording  4879ms
+   ✓ W06 missing parent publication cannot produce an unchanged comparison  1659ms
+   ✓ W05 executed scope comparisons > persists exact revisions and reuses the result without a provider call; writer receives it  497ms
+   ✓ W05 executed scope comparisons > rejects foreign owners, wrong revisions, unknown targets and extra authority  310ms
+   ✓ W05 executed scope comparisons > corrupt comparison output cannot be reused or passed to the writer  474ms
+   ✓ W05 executed scope comparisons > changed claim revision invalidates a comparison and deletion removes derived records  363ms
+   ✓ W05 concurrent scope comparison execution produces one durable result  357ms
+   ✓ W02/W05 unknown prior writer attempt blocks a context upgrade without releasing its hold  354ms
+   ✓ W05 legacy comparison preserves its original writer representation even with an unknown attempt  837ms
+   ✓ W05 projection metadata and model-bound pair tampering fail closed  635ms
+   ✓ W05 evidence-bound calculation execution > computes from exact supported revisions, binds numeric spans and replays without provider work  516ms
+   ✓ W05 evidence-bound calculation execution > a model-supported year cannot masquerade as an area input  417ms
+   ✓ W05 evidence-bound calculation execution > rejects foreign/versioned targets, caller values and corrupt results  523ms
+   ✓ W05 evidence-bound calculation execution > changed input revision invalidates the proof and account deletion removes it  530ms
+   ✓ W05 evidence-bound calculation execution > concurrent attempts share one durable calculation  502ms
+   ✓ W05 arithmetic proof at real publication > recomputes, publishes and reopens exact arithmetic with input citations and canonical lineage  850ms
+   ✓ W05 arithmetic proof at real publication > rejects changed wording, omitted operands/citations, type laundering and forged completion  1381ms
+   ✓ W05 arithmetic proof at real publication > wrong owner or basis cannot prepare a derived claim; changed stored operands invalidate publication  640ms
+   ✓ W05 arithmetic proof at real publication > stored derivation text tampering is rejected rather than recanonicalized silently  710ms
+   ✓ W05 structured calculation planning > uses separately versioned gateway output, executes real arithmetic and reuses both records  1153ms
+   ✓ W05 structured calculation planning > unknown quantities remain executed unknown results, not model-supplied numbers  784ms
+   ✓ W05 structured calculation planning > invalid references and injected values never create calculations  475ms
+   ✓ W05 structured calculation planning > unknown plan outcomes retain their reservation and are never resent  621ms
+   ✓ W05 structured calculation planning > does not introduce planning over an existing writer's unknown outcome  561ms
+   ✓ W05 production worker executes selected quantities rather than a calculation progress event alone  2041ms
+   ✓ W02/W05 cached planning cannot ignore tampered schema/prompt/route metadata  884ms
+   ✓ W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions  33425ms
+   ✓ W05 calculated writer remains limited for omitCalculation despite a positive review  11339ms
+   ✓ W05 calculated writer remains limited for wrongQuantity despite a positive review  10910ms
+   ✓ W05 calculated writer remains limited for unsupportedProse despite a positive review  11372ms
+
+ Test Files  1 passed (1)
+      Tests  119 passed (119)
+   Start at  17:31:13
+   Duration  170.05s (transform 1.01s, setup 0ms, collect 1.46s, tests 168.36s, environment 0ms, prepare 74ms)
+

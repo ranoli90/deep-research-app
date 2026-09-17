@@ -116,7 +116,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
     });
     if(opts.pauseAt==="writing")return;
-    const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId});
+    const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId,...(calculations.kind==="calculations"&&calculations.executions.length?{calculationPlanIntentId:calculations.intentId}:{})});
     if(result.kind!=="publication")return pendingOrBlocked(result);
     if(!result.accepted)return unresolved(result.reason);
     return;

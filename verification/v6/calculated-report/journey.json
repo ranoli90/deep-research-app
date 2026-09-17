@@ -1,0 +1,1676 @@
+{
+  "evidenceClass": "local_postgres_production_worker_with_fabricated_model_transport",
+  "requirements": [
+    "W05",
+    "W06"
+  ],
+  "limitations": [
+    "Source rows are synthetic; this arithmetic control does not run HTML/PDF extraction.",
+    "Model responses and cost receipts are fabricated; no live semantic quality, paid cost or human adjudication claim."
+  ],
+  "reference": {
+    "inputs": [
+      12,
+      8
+    ],
+    "initialQuestion": "What is the sum of the reported restored areas in these sources? Report arithmetic only.",
+    "expectedSum": "20 hectares",
+    "correctedQuestion": "ratio of larger to smaller",
+    "expectedRatio": "3/2"
+  },
+  "parentReport": {
+    "id": "78ad44a2-8aef-4bb2-b884-361f107b71a5",
+    "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+    "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+    "version": 1,
+    "outcome": "completed",
+    "basis": {
+      "consentEpoch": 1,
+      "briefRevision": 1,
+      "evidenceRevision": 0,
+      "workerLeaseFence": 2,
+      "cancellationEpoch": 0
+    },
+    "blocks": [
+      {
+        "id": "heading_0",
+        "kind": "heading",
+        "text": "Evidence",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "paragraph_0_0",
+        "kind": "text",
+        "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+        "claimIds": [
+          "3ca08858-40f2-4cfc-9bc4-51ac0942fc82"
+        ],
+        "citationIds": [
+          "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+        ]
+      },
+      {
+        "id": "paragraph_0_1",
+        "kind": "text",
+        "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+        "claimIds": [
+          "47f287f3-a748-4133-932c-66a3371cf073"
+        ],
+        "citationIds": [
+          "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+        ]
+      },
+      {
+        "id": "calculations",
+        "kind": "heading",
+        "text": "Calculations",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "calculation_0",
+        "kind": "text",
+        "text": "Sum: (12 hectares) + (8 hectares) = 20 hectares. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+        "claimIds": [
+          "fba3e862-0c34-441e-9296-01486adfe38c"
+        ],
+        "citationIds": [
+          "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+          "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+        ]
+      }
+    ],
+    "claim_ids": [
+      "3ca08858-40f2-4cfc-9bc4-51ac0942fc82",
+      "47f287f3-a748-4133-932c-66a3371cf073",
+      "fba3e862-0c34-441e-9296-01486adfe38c"
+    ],
+    "limitations": [],
+    "source_access_summary": [
+      {
+        "title": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+        "sourceId": "b5a4df35-9628-4e81-9501-0e4e1ce8fa65",
+        "accessLevel": "partial-text",
+        "originCluster": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b"
+      },
+      {
+        "title": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+        "sourceId": "d425f8b5-43ca-4a8f-8531-dc2f80fb7b45",
+        "accessLevel": "partial-text",
+        "originCluster": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e"
+      }
+    ],
+    "change_summary": null,
+    "route_mode": "controlled-research",
+    "published_at": "2026-09-17T23:36:29.976Z",
+    "redacted_at": null
+  },
+  "correctedReport": {
+    "id": "170f78b9-398a-4981-a654-311570cd97ce",
+    "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+    "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+    "version": 1,
+    "outcome": "completed",
+    "basis": {
+      "consentEpoch": 1,
+      "briefRevision": 2,
+      "evidenceRevision": 1,
+      "workerLeaseFence": 1,
+      "cancellationEpoch": 0
+    },
+    "blocks": [
+      {
+        "id": "heading_0",
+        "kind": "heading",
+        "text": "Evidence",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "paragraph_0_0",
+        "kind": "text",
+        "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+        "claimIds": [
+          "729cf7f2-3396-4a66-9135-dc4087b4cd3d"
+        ],
+        "citationIds": [
+          "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+        ]
+      },
+      {
+        "id": "paragraph_0_1",
+        "kind": "text",
+        "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+        "claimIds": [
+          "fb4d7b85-c540-48bd-828d-f85971445d9e"
+        ],
+        "citationIds": [
+          "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+        ]
+      },
+      {
+        "id": "calculations",
+        "kind": "heading",
+        "text": "Calculations",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "calculation_0",
+        "kind": "text",
+        "text": "Ratio: (12 hectares) ÷ (8 hectares) = 3/2 ratio. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+        "claimIds": [
+          "0f70a829-f0f7-41b8-bea6-d55a853316e6"
+        ],
+        "citationIds": [
+          "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+          "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+        ]
+      }
+    ],
+    "claim_ids": [
+      "729cf7f2-3396-4a66-9135-dc4087b4cd3d",
+      "fb4d7b85-c540-48bd-828d-f85971445d9e",
+      "0f70a829-f0f7-41b8-bea6-d55a853316e6"
+    ],
+    "limitations": [],
+    "source_access_summary": [
+      {
+        "title": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+        "sourceId": "b5a4df35-9628-4e81-9501-0e4e1ce8fa65",
+        "accessLevel": "partial-text",
+        "originCluster": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b"
+      },
+      {
+        "title": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+        "sourceId": "d425f8b5-43ca-4a8f-8531-dc2f80fb7b45",
+        "accessLevel": "partial-text",
+        "originCluster": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e"
+      }
+    ],
+    "change_summary": {
+      "notes": "Assertions: 1 added, 1 removed, 2 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 2. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+      "comparison": {
+        "version": "report-changes.v1",
+        "parentReportId": "78ad44a2-8aef-4bb2-b884-361f107b71a5",
+        "addedCriterionIds": [],
+        "reportStateChanged": false,
+        "removedCriterionIds": [],
+        "unchangedAssertions": 2,
+        "addedClaimRevisionIds": [
+          "53f10050-77b8-46fb-acb3-ccd0cbdf98bc"
+        ],
+        "removedClaimRevisionIds": [
+          "bffc046b-7162-42da-9a09-c847b318a96b"
+        ],
+        "newlyCitedSourceVersionIds": [],
+        "reusedCitedSourceVersionIds": [
+          "4fc16a2f-7fca-4952-8c2f-67e8c075da7e",
+          "b0d9c6b5-a607-41de-92d8-77e372b6149f"
+        ]
+      },
+      "newlyFeasible": [],
+      "evidenceUpdated": false,
+      "newlyInfeasible": [],
+      "conclusionChanged": true
+    },
+    "route_mode": "controlled-research",
+    "published_at": "2026-09-17T23:36:47.556Z",
+    "redacted_at": null
+  },
+  "passages": [
+    {
+      "id": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "source_version_id": "b0d9c6b5-a607-41de-92d8-77e372b6149f",
+      "exact_text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+      "content_hash": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf"
+    },
+    {
+      "id": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "source_version_id": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e",
+      "exact_text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+      "content_hash": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "445172e9-8963-4992-91af-14338e92b2f4",
+      "claim_id": "2942a216-c30e-44a9-aa99-b58a41670416",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+      "scope": {
+        "taskId": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf",
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+            "sourceVersionId": "b0d9c6b5-a607-41de-92d8-77e372b6149f"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "e9637818-83c9-4dcc-b831-64d39adc30a3"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        }
+      }
+    },
+    {
+      "id": "ff116da1-7be2-474f-af97-a6852645810b",
+      "claim_id": "02407b76-446f-471c-b93a-f53684e839a8",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+      "scope": {
+        "taskId": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d",
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+            "sourceVersionId": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "8",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "e9637818-83c9-4dcc-b831-64d39adc30a3"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        }
+      }
+    },
+    {
+      "id": "bffc046b-7162-42da-9a09-c847b318a96b",
+      "claim_id": "fba3e862-0c34-441e-9296-01486adfe38c",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "text": "Sum: (12 hectares) + (8 hectares) = 20 hectares. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+      "scope": {
+        "quantities": [
+          {
+            "unit": "hectares",
+            "currency": null,
+            "numerator": "20",
+            "denominator": "1",
+            "billingPeriod": null
+          }
+        ],
+        "inputDigest": "72514633ec33dc735b154bc269a5a4dc4e3c8c0d18b1d4f15226fa2f39874802",
+        "briefRevision": 1,
+        "calculationId": "6ab76ec5-990e-49c8-a451-41d6258dffd9",
+        "semanticScope": {
+          "kind": "arithmetic",
+          "formula": "sum",
+          "operands": [
+            {
+              "plan": null,
+              "time": null,
+              "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            {
+              "plan": null,
+              "time": null,
+              "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+              "version": null,
+              "geography": null,
+              "population": null
+            }
+          ],
+          "assumptions": [
+            "Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total."
+          ]
+        },
+        "rendererVersion": "calculation-report.v1",
+        "evidenceRevision": 0,
+        "inputClaimRevisionIds": [
+          "445172e9-8963-4992-91af-14338e92b2f4",
+          "ff116da1-7be2-474f-af97-a6852645810b"
+        ]
+      }
+    },
+    {
+      "id": "50a37b93-e6be-4ec3-9740-ddc9652f8838",
+      "claim_id": "3ca08858-40f2-4cfc-9bc4-51ac0942fc82",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+      "scope": {
+        "taskId": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf",
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+            "sourceVersionId": "b0d9c6b5-a607-41de-92d8-77e372b6149f"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "e9637818-83c9-4dcc-b831-64d39adc30a3"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "dependencyCompleteness": "partial",
+        "premiseClaimRevisionIds": [
+          "445172e9-8963-4992-91af-14338e92b2f4"
+        ]
+      }
+    },
+    {
+      "id": "bb592aef-6672-481c-8cd1-59991b79ef9a",
+      "claim_id": "47f287f3-a748-4133-932c-66a3371cf073",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+      "scope": {
+        "taskId": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d",
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+            "sourceVersionId": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "8",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "e9637818-83c9-4dcc-b831-64d39adc30a3"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "dependencyCompleteness": "partial",
+        "premiseClaimRevisionIds": [
+          "ff116da1-7be2-474f-af97-a6852645810b"
+        ]
+      }
+    },
+    {
+      "id": "914c94fb-714b-43a1-874a-7e1a710c3478",
+      "claim_id": "abc3ed5a-4581-4eb7-8855-7ec655d6a42d",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+      "scope": {
+        "taskId": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf",
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+            "sourceVersionId": "b0d9c6b5-a607-41de-92d8-77e372b6149f"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "246d4b70-32cd-4f9e-bbdc-945bb81e2c4a"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        }
+      }
+    },
+    {
+      "id": "a78fbde0-e8f5-4a39-8a96-ade62eee9d65",
+      "claim_id": "d4188198-da0a-4a13-b3ea-379161b1efd8",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+      "scope": {
+        "taskId": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d",
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+            "sourceVersionId": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "8",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "246d4b70-32cd-4f9e-bbdc-945bb81e2c4a"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        }
+      }
+    },
+    {
+      "id": "53f10050-77b8-46fb-acb3-ccd0cbdf98bc",
+      "claim_id": "0f70a829-f0f7-41b8-bea6-d55a853316e6",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "text": "Ratio: (12 hectares) ÷ (8 hectares) = 3/2 ratio. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+      "scope": {
+        "quantities": [
+          {
+            "unit": "ratio",
+            "currency": null,
+            "numerator": "3",
+            "denominator": "2",
+            "billingPeriod": null
+          }
+        ],
+        "inputDigest": "6f35b9f4327bfce121f28f30f2db4316347a8717f0592e002a274bf126238346",
+        "briefRevision": 2,
+        "calculationId": "359f7eb2-384a-487b-a2c9-ddedf0c18000",
+        "semanticScope": {
+          "kind": "arithmetic",
+          "formula": "ratio",
+          "operands": [
+            {
+              "plan": null,
+              "time": null,
+              "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            {
+              "plan": null,
+              "time": null,
+              "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+              "version": null,
+              "geography": null,
+              "population": null
+            }
+          ],
+          "assumptions": [
+            "Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total."
+          ]
+        },
+        "rendererVersion": "calculation-report.v1",
+        "evidenceRevision": 1,
+        "inputClaimRevisionIds": [
+          "914c94fb-714b-43a1-874a-7e1a710c3478",
+          "a78fbde0-e8f5-4a39-8a96-ade62eee9d65"
+        ]
+      }
+    },
+    {
+      "id": "44bb6486-bf27-4b14-9b23-07526a0ee723",
+      "claim_id": "729cf7f2-3396-4a66-9135-dc4087b4cd3d",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+      "scope": {
+        "taskId": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf",
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+            "sourceVersionId": "b0d9c6b5-a607-41de-92d8-77e372b6149f"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "246d4b70-32cd-4f9e-bbdc-945bb81e2c4a"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "dependencyCompleteness": "partial",
+        "premiseClaimRevisionIds": [
+          "914c94fb-714b-43a1-874a-7e1a710c3478"
+        ]
+      }
+    },
+    {
+      "id": "a9dfae37-05fd-4202-8c72-be78e9c19c23",
+      "claim_id": "fb4d7b85-c540-48bd-828d-f85971445d9e",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+      "scope": {
+        "taskId": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d",
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+            "sourceVersionId": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e"
+          }
+        ],
+        "quantities": [
+          {
+            "unit": "hectares",
+            "value": "8",
+            "currency": null,
+            "qualifier": null,
+            "billingPeriod": null
+          }
+        ],
+        "criterionIds": [
+          "246d4b70-32cd-4f9e-bbdc-945bb81e2c4a"
+        ],
+        "semanticScope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "dependencyCompleteness": "partial",
+        "premiseClaimRevisionIds": [
+          "a78fbde0-e8f5-4a39-8a96-ade62eee9d65"
+        ]
+      }
+    }
+  ],
+  "support": [
+    {
+      "model_intent_id": "23e720e8-0398-47d8-a98e-dbb00d72602a",
+      "claim_revision_id": "445172e9-8963-4992-91af-14338e92b2f4",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "f78ebd9f72f85e90d97bdc070ed3efe2a9e078a9ec4cf2a7d40ffcb0e10aeb7e",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "area0",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "23e720e8-0398-47d8-a98e-dbb00d72602a",
+      "claim_revision_id": "ff116da1-7be2-474f-af97-a6852645810b",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "bf3ecb7f38ab75e5213c873dcd07923602172808848640b1fcf0c52fa735c038",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "area1",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "3d0fbf54-f3b7-4e21-a326-0aebf6e79172",
+      "claim_revision_id": "50a37b93-e6be-4ec3-9740-ddc9652f8838",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "67ac1b6c0856982d81c6b1d4036da46eaea97c5f97cf2cc543cd79cca0c8cacf",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "paragraph_0_0",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "3d0fbf54-f3b7-4e21-a326-0aebf6e79172",
+      "claim_revision_id": "bb592aef-6672-481c-8cd1-59991b79ef9a",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "4b5394e331a47315c8dd460b829cc261267365290910ff714b7c05f0118f1b53",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "paragraph_0_1",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "2da289f3-0967-478d-9fb0-af8462fa60c0",
+      "claim_revision_id": "914c94fb-714b-43a1-874a-7e1a710c3478",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "ade09256fb24cd75fdf546ed6a3a20e16898290b6ccb7953d8cde9ea66c18986",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "area0",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "2da289f3-0967-478d-9fb0-af8462fa60c0",
+      "claim_revision_id": "a78fbde0-e8f5-4a39-8a96-ade62eee9d65",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "f9e376e907d3f88bb75ec0a6906e0fb3d8aea741495636353178decee092f4e2",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "area1",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "c55328e9-b08b-48d4-9361-5d710594e90f",
+      "claim_revision_id": "44bb6486-bf27-4b14-9b23-07526a0ee723",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "6826c74ea261fcdcb1fb85a53112945b20d26945075c817b730f59427c635cbc",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "paragraph_0_0",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 72,
+            "quote": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "start": 0,
+            "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    },
+    {
+      "model_intent_id": "c55328e9-b08b-48d4-9361-5d710594e90f",
+      "claim_revision_id": "a9dfae37-05fd-4202-8c72-be78e9c19c23",
+      "checker_version": "scoped-support.v3",
+      "evidence_digest": "1ea887991fceaffdc2b73c40256ff59bad5610e2e72553012eac1cb34dcb626e",
+      "scope_digest": "cf8c7df600ae9c57408810e8c977dabcc907e46ed68684c900a2c39361ae21f7",
+      "decision": "supported",
+      "result": {
+        "scope": {
+          "plan": null,
+          "time": null,
+          "entity": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e",
+          "version": null,
+          "geography": null,
+          "population": null
+        },
+        "checks": [
+          {
+            "rule": "exact_evidence_bindings",
+            "passed": true
+          },
+          {
+            "rule": "scope_matches_claim",
+            "passed": true
+          },
+          {
+            "rule": "readable_evidence",
+            "passed": true
+          },
+          {
+            "rule": "scope_grounded_in_quotes",
+            "passed": true
+          },
+          {
+            "rule": "numbers_grounded",
+            "passed": true
+          },
+          {
+            "rule": "quantities_grounded",
+            "passed": true
+          },
+          {
+            "rule": "numeric_context_preserved",
+            "passed": true
+          },
+          {
+            "rule": "currency_preserved",
+            "passed": true
+          },
+          {
+            "rule": "no_detected_contradiction",
+            "passed": true
+          },
+          {
+            "rule": "qualification_preserved",
+            "passed": true
+          }
+        ],
+        "claimKey": "paragraph_0_1",
+        "decision": "supported",
+        "evidence": [
+          {
+            "end": 71,
+            "quote": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "start": 0,
+            "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+          }
+        ],
+        "rationale": "Nonbillable reference transport",
+        "modelStatus": "supported",
+        "counterEvidence": [],
+        "missingEvidence": []
+      }
+    }
+  ],
+  "calculations": [
+    {
+      "id": "6ab76ec5-990e-49c8-a451-41d6258dffd9",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "task_id": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+      "extraction_intent_id": "f6321e72-70b4-47d9-b99d-78c9570d2956",
+      "support_intent_id": "23e720e8-0398-47d8-a98e-dbb00d72602a",
+      "brief_revision": 1,
+      "evidence_revision": 0,
+      "calculator_version": "evidence-calculation.v1",
+      "support_checker_version": "scoped-support.v3",
+      "input_digest": "72514633ec33dc735b154bc269a5a4dc4e3c8c0d18b1d4f15226fa2f39874802",
+      "claim_revision_ids": [
+        "445172e9-8963-4992-91af-14338e92b2f4",
+        "ff116da1-7be2-474f-af97-a6852645810b"
+      ],
+      "action": {
+        "type": "calculate",
+        "inputs": [
+          {
+            "claimKey": "area0",
+            "quantityIndex": 0
+          },
+          {
+            "claimKey": "area1",
+            "quantityIndex": 0
+          }
+        ],
+        "formula": "sum"
+      },
+      "result": {
+        "inputs": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "claimKey": "area0",
+            "currency": null,
+            "evidence": [
+              {
+                "end": 63,
+                "quote": "12 hectares",
+                "start": 52,
+                "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+              }
+            ],
+            "billingPeriod": null,
+            "quantityIndex": 0
+          },
+          {
+            "unit": "hectares",
+            "value": "8",
+            "claimKey": "area1",
+            "currency": null,
+            "evidence": [
+              {
+                "end": 62,
+                "quote": "8 hectares",
+                "start": 52,
+                "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+              }
+            ],
+            "billingPeriod": null,
+            "quantityIndex": 0
+          }
+        ],
+        "output": {
+          "unit": "hectares",
+          "currency": null,
+          "numerator": "20",
+          "denominator": "1",
+          "billingPeriod": null
+        },
+        "reason": "exact_arithmetic",
+        "status": "computed",
+        "formula": "sum",
+        "version": "evidence-calculation.v1",
+        "assumptions": [
+          "Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total."
+        ]
+      }
+    },
+    {
+      "id": "359f7eb2-384a-487b-a2c9-ddedf0c18000",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "task_id": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+      "extraction_intent_id": "f2c499b0-326c-42e9-b400-fd05f27adbc5",
+      "support_intent_id": "2da289f3-0967-478d-9fb0-af8462fa60c0",
+      "brief_revision": 2,
+      "evidence_revision": 1,
+      "calculator_version": "evidence-calculation.v1",
+      "support_checker_version": "scoped-support.v3",
+      "input_digest": "6f35b9f4327bfce121f28f30f2db4316347a8717f0592e002a274bf126238346",
+      "claim_revision_ids": [
+        "914c94fb-714b-43a1-874a-7e1a710c3478",
+        "a78fbde0-e8f5-4a39-8a96-ade62eee9d65"
+      ],
+      "action": {
+        "type": "calculate",
+        "inputs": [
+          {
+            "claimKey": "area0",
+            "quantityIndex": 0
+          },
+          {
+            "claimKey": "area1",
+            "quantityIndex": 0
+          }
+        ],
+        "formula": "ratio"
+      },
+      "result": {
+        "inputs": [
+          {
+            "unit": "hectares",
+            "value": "12",
+            "claimKey": "area0",
+            "currency": null,
+            "evidence": [
+              {
+                "end": 63,
+                "quote": "12 hectares",
+                "start": 52,
+                "passageId": "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+              }
+            ],
+            "billingPeriod": null,
+            "quantityIndex": 0
+          },
+          {
+            "unit": "hectares",
+            "value": "8",
+            "claimKey": "area1",
+            "currency": null,
+            "evidence": [
+              {
+                "end": 62,
+                "quote": "8 hectares",
+                "start": 52,
+                "passageId": "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+              }
+            ],
+            "billingPeriod": null,
+            "quantityIndex": 0
+          }
+        ],
+        "output": {
+          "unit": "ratio",
+          "currency": null,
+          "numerator": "3",
+          "denominator": "2",
+          "billingPeriod": null
+        },
+        "reason": "exact_arithmetic",
+        "status": "computed",
+        "formula": "ratio",
+        "version": "evidence-calculation.v1",
+        "assumptions": [
+          "Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total."
+        ]
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "model_intent_id": "902ce380-064b-4b7d-97ac-7cf2c1cd1e80",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "task_id": "a974a9d7-b29d-4a5e-8516-8a01424794ef",
+      "writer_intent_id": "e169534c-46c0-48fc-ad84-ec08352fea01",
+      "support_intent_id": "3d0fbf54-f3b7-4e21-a326-0aebf6e79172",
+      "brief_revision": 1,
+      "evidence_revision": 0,
+      "checker_version": "calculated-coverage.v1",
+      "result": {
+        "version": "calculated-coverage.v1",
+        "complete": true,
+        "questions": [
+          {
+            "reason": "Exact requested arithmetic on cited figures, with the displayed assumptions",
+            "status": "supported",
+            "questionKey": "q1",
+            "failedChecks": [],
+            "assertionKeys": [
+              "paragraph_0_0",
+              "paragraph_0_1",
+              "math_0"
+            ]
+          }
+        ],
+        "omittedRequirements": [],
+        "unresolvedCriterionKeys": []
+      },
+      "compiled": {
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "claimIds": [
+              "3ca08858-40f2-4cfc-9bc4-51ac0942fc82"
+            ],
+            "citationIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "claimIds": [
+              "47f287f3-a748-4133-932c-66a3371cf073"
+            ],
+            "citationIds": [
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ]
+          },
+          {
+            "id": "calculations",
+            "kind": "heading",
+            "text": "Calculations",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "calculation_0",
+            "kind": "text",
+            "text": "Sum: (12 hectares) + (8 hectares) = 20 hectares. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+            "claimIds": [
+              "fba3e862-0c34-441e-9296-01486adfe38c"
+            ],
+            "citationIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "3ca08858-40f2-4cfc-9bc4-51ac0942fc82",
+            "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "type": "inference",
+            "passageIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+            ],
+            "supportStatus": "inference"
+          },
+          {
+            "id": "47f287f3-a748-4133-932c-66a3371cf073",
+            "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "type": "inference",
+            "passageIds": [
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ],
+            "supportStatus": "inference"
+          },
+          {
+            "id": "fba3e862-0c34-441e-9296-01486adfe38c",
+            "text": "Sum: (12 hectares) + (8 hectares) = 20 hectares. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+            "type": "calculation",
+            "passageIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ],
+            "supportStatus": "inference"
+          }
+        ],
+        "unresolved": []
+      }
+    },
+    {
+      "model_intent_id": "b05055e6-0357-46c1-a13c-149adafc5249",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "task_id": "f3167462-7cf9-498d-ae33-9558bfb877b4",
+      "writer_intent_id": "7209531e-c833-4e31-914c-fd6902fa4fb4",
+      "support_intent_id": "c55328e9-b08b-48d4-9361-5d710594e90f",
+      "brief_revision": 2,
+      "evidence_revision": 1,
+      "checker_version": "calculated-coverage.v1",
+      "result": {
+        "version": "calculated-coverage.v1",
+        "complete": true,
+        "questions": [
+          {
+            "reason": "Exact requested arithmetic on cited figures, with the displayed assumptions",
+            "status": "supported",
+            "questionKey": "q1",
+            "failedChecks": [],
+            "assertionKeys": [
+              "paragraph_0_0",
+              "paragraph_0_1",
+              "math_0"
+            ]
+          }
+        ],
+        "omittedRequirements": [],
+        "unresolvedCriterionKeys": []
+      },
+      "compiled": {
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "claimIds": [
+              "729cf7f2-3396-4a66-9135-dc4087b4cd3d"
+            ],
+            "citationIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "claimIds": [
+              "fb4d7b85-c540-48bd-828d-f85971445d9e"
+            ],
+            "citationIds": [
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ]
+          },
+          {
+            "id": "calculations",
+            "kind": "heading",
+            "text": "Calculations",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "calculation_0",
+            "kind": "text",
+            "text": "Ratio: (12 hectares) ÷ (8 hectares) = 3/2 ratio. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+            "claimIds": [
+              "0f70a829-f0f7-41b8-bea6-d55a853316e6"
+            ],
+            "citationIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "729cf7f2-3396-4a66-9135-dc4087b4cd3d",
+            "text": "Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024.",
+            "type": "inference",
+            "passageIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939"
+            ],
+            "supportStatus": "inference"
+          },
+          {
+            "id": "fb4d7b85-c540-48bd-828d-f85971445d9e",
+            "text": "Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024.",
+            "type": "inference",
+            "passageIds": [
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ],
+            "supportStatus": "inference"
+          },
+          {
+            "id": "0f70a829-f0f7-41b8-bea6-d55a853316e6",
+            "text": "Ratio: (12 hectares) ÷ (8 hectares) = 3/2 ratio. Input 1: Study-402c25a8-8ef6-43b1-b49c-839040345e9b restored 12 hectares in 2024. Input 2: Study-cafa68b9-b119-4aeb-a836-a37b069aae1e restored 8 hectares in 2024. Arithmetic on the cited inputs only; matching units do not establish matching scope, independent observations or a verified real-world total.",
+            "type": "calculation",
+            "passageIds": [
+              "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+              "c4c3f367-331b-4273-8f6f-74b23a86edb2"
+            ],
+            "supportStatus": "inference"
+          }
+        ],
+        "unresolved": []
+      }
+    }
+  ],
+  "memberships": [
+    {
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "passage_id": "5a2e23c0-8795-41be-a31a-7f77e8f38939",
+      "source_version_id": "b0d9c6b5-a607-41de-92d8-77e372b6149f",
+      "origin_run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "passage_digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf",
+      "version_digest": "7e4c92ec4c0561a60df21db274eac0c0b5aaf72c196fdfdbf66d0ddf85c887cf"
+    },
+    {
+      "run_id": "70f4d467-7da1-4c05-91b7-cd1f3aab1700",
+      "account_id": "adda8158-389b-4cdb-828b-949d9ac1a9e5",
+      "passage_id": "c4c3f367-331b-4273-8f6f-74b23a86edb2",
+      "source_version_id": "4fc16a2f-7fca-4952-8c2f-67e8c075da7e",
+      "origin_run_id": "5d8b4803-dbd3-4959-8fec-27f12058f20f",
+      "passage_digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d",
+      "version_digest": "b24d0e820e7a2e484542305b08936b87af3b41127a8da624c6ab5de61ad8b51d"
+    }
+  ]
+}

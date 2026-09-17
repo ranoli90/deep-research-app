@@ -1,0 +1,49 @@
+{
+  "evidenceClass": "native_android_manual_observation",
+  "revision": "b0c80ac + calculated-report working tree",
+  "device": "Android16, REDMI Note15 5G",
+  "runtime": "Expo Go54.0.8; current Metro source bundle729modules",
+  "authorization": "User explicitly enabled wireless debugging and authorized device use",
+  "commands": [
+    "adb devices -l",
+    "adb mdns services",
+    "adb connect 10.0.0.167:43417",
+    "adb reverse tcp:8081 tcp:8081",
+    "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+    "adb shell am start -W -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent",
+    "adb shell input tap 300 2100",
+    "adb shell input text 'Compare%sthe%sreported%sareas%sin%sthe%stwo%sstudies.'",
+    "adb shell am force-stop host.exp.exponent",
+    "adb shell uiautomator dump /sdcard/deep-window.xml",
+    "adb exec-out screencap -p"
+  ],
+  "observed": [
+    "Initial development-bundle download failure; retry loaded current Metro bundle",
+    "Composer and Send visible above keyboard",
+    "Exact entered draft persisted after force-stop/relaunch; cold start required reopening development URL",
+    "Send while signed out directs to settings and preserves draft",
+    "Development sign-in without backend displays Network request failed, no fabricated signed-in state"
+  ],
+  "notTested": [
+    "Authenticated API/worker report journey",
+    "Source inspection/correction/account switch/deletion/sharing",
+    "Large text/screen reader",
+    "Signed release APK/iOS",
+    "Real model quality or paid calls"
+  ],
+  "cleanup": [
+    "Cleared only the synthetic test draft through UI, verified placeholder restored",
+    "Stopped own Metro server"
+  ],
+  "artifacts": {
+    "android-research-screen.png": "57293992e859456ea9deb3f89f5b64121d0b588ef0ad1290955a954e800fb487",
+    "android-keyboard.png": "7655de490359f564eb4acef2aaf425bbcc414ef267cabab58ab7caa0f28bf409",
+    "android-keyboard.xml": "e818f68bad60c2a9aec5239f6ea9dc8d04848e008bb8c310f747ed6de6c7f6d3",
+    "android-reopened.png": "2ad920ebb10a19461f4e2ce5951869599c593c4849bc87ed965dd1ed7d018ee9",
+    "android-reopened.xml": "0fcc6c75a3b048a7ec82663dfb7e137e78caedcb976efd7fcc04401208cce35b",
+    "android-offline-signin.png": "a1f634c8f55a55ac18bdfe17701b4188113ea81ac23d6898ce069753dec8b8c7",
+    "android-offline-signin.xml": "d4e91e06dc5af7a4520fa872f5b01af82304423e2df95ca97fd94a4c0261a3a8",
+    "android-native-metro.log": "b20f9ec009277eaa2734aa3bc560df5e145a0c81d2789bfc583ba72a551fe088"
+  },
+  "installedAppBoundary": "User confirmed the separately installed app.deepresearch.mobile is old. It was not upgraded or used for current-code verification. Observations here used host.exp.exponent (Expo Go) loading the current workspace Metro bundle."
+}

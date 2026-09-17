@@ -1,3 +1,4 @@
+import { restoreCalculationPlan } from "../modules/calculation-plans.js";
 import type pg from "pg";
 import { validateModelBindings } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
@@ -5,7 +6,6 @@ import { loadSupportContext,persistScopedSupport,type SupportArgs } from "../mod
 import type { FencedSession } from "./fenced-session.js";
 import { TASK_MODEL_VERSIONS } from "./research-task.js";
 import { performModelOperation } from "./model-gateway.js";
-import { persistEvidenceCalculation } from "../modules/evidence-calculations.js";
 
 /** Proposals never carry numeric values or server authority. Execution revalidates under the fence. */
 export async function executeCalculationPlanning(pool:pg.Pool,config:AppConfig,session:FencedSession,args:SupportArgs&{fence:number;supportIntentId:string}) {
@@ -31,12 +31,8 @@ export async function executeCalculationPlanning(pool:pg.Pool,config:AppConfig,s
   const context={...current.context,approvedClaimKeys:checks.filter(c=>c.decision==="supported").map(c=>c.claimKey).sort()};
   if(current.evidenceRevision!==basis.evidenceRevision||JSON.stringify(context)!==JSON.stringify(basis.context)||validateModelBindings("plan_calculations",plan,context).length)
    throw new Error("stale_calculation_plan");
-  const executions=[];
-  for(const item of plan.calculations) {
-   const execution=await persistEvidenceCalculation(db,{...args,action:item.action},TASK_MODEL_VERSIONS);
-   if(execution.kind!=="calculation")throw new Error("invalid_executable_calculation_plan");
-   executions.push({key:item.key,questionKeys:item.questionKeys,calculationId:execution.id,result:execution.result});
-  }
+  const saved=await restoreCalculationPlan(db,{...args,planIntentId:proposal.intentId},false);
+  const executions=saved.executions.map(item=>({key:item.key,questionKeys:item.questionKeys,calculationId:item.calculationId,result:item.result}));
   return {kind:"calculations" as const,intentId:proposal.intentId,reused:proposal.reused,executions,
    unresolvedQuestionKeys:plan.unresolvedQuestionKeys,reason:plan.reason};
  });

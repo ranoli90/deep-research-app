@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
 /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
 export const ModelContextSchema = z.object({
@@ -13,6 +13,9 @@ export const ModelContextSchema = z.object({
   assertions: ResearchModelOutputs.extract_assertions.shape.assertions,
   approvedClaimKeys: z.array(z.string().min(1).max(100)).max(60),
   draft: ResearchModelOutputs.write_report.nullable(),
+  calculations:z.object({planIntentId:z.string().uuid(),entries:z.array(z.object({key:z.string().min(1).max(100),questionKeys:z.array(z.string()).max(24),
+    calculationId:z.string().uuid(),claimId:z.string().uuid().nullable(),claimRevisionId:z.string().uuid().nullable(),text:z.string().nullable(),
+    result:EvidenceCalculationResultSchema,scope:AssertionScopeSchema,criterionKeys:z.array(z.string()).max(24),selected:z.boolean()}).strict()).max(6)}).strict().optional(),
   scopeComparison: z.union([ScopeComparisonResultSchema,ScopeComparisonContextSchema]).optional(),
 }).strict();
 export type ModelContext = z.infer<typeof ModelContextSchema>;

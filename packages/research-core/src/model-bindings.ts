@@ -3,6 +3,7 @@ type Context = {
   question: string; task: ResearchModelOutput<"brief"> | null;
   passages: { id: string; text: string }[]; sources: { handle: string }[];
   assertions: ResearchModelOutput<"extract_assertions">["assertions"]; approvedClaimKeys: string[];
+  calculations?:{entries:{key:string;selected:boolean}[]};
 };
 /** Referential/provenance validation, never semantic truth or permission inferred from a model. */
 export function validateModelBindings(operation: ResearchModelOperation, raw: unknown, context: Context): string[] {
@@ -63,16 +64,24 @@ export function validateModelBindings(operation: ResearchModelOperation, raw: un
         if(assertion&&!assertion.criterionKeys.some(k=>relevant.has(k)))errors.add("calculation_input_question_mismatch");
       }
     }
-  } else if (operation === "write_report") {
+  } else if ((operation === "write_report" || operation === "write_calculated_report")) {
     const data = raw as ResearchModelOutput<"write_report">;
     const approved = new Set(context.approvedClaimKeys);
     for (const section of data.sections) for (const p of section.paragraphs) { known(p.claimKeys, approved); known(p.claimKeys, assertions); }
     known(data.unresolvedQuestionKeys, questions);
-  } else if (operation === "review_coverage") {
+    if(operation==="write_calculated_report") {
+      const keys=(raw as ResearchModelOutput<"write_calculated_report">).calculationKeys;
+      known(keys,new Set(context.calculations?.entries.map(c=>c.key)??[]));unique(keys);
+    }
+  } else if (operation === "review_coverage" || operation === "review_calculated_coverage") {
     const data = raw as ResearchModelOutput<"review_coverage">;
+    if(operation==="review_calculated_coverage")for(const q of (raw as ResearchModelOutput<"review_calculated_coverage">).questions) {
+      known(q.calculationKeys,new Set(context.calculations?.entries.filter(c=>c.selected).map(c=>c.key)??[]));unique(q.calculationKeys);
+      if(q.assertionKeys.length+q.calculationKeys.length>30)errors.add("coverage_reference_limit");
+    }
     unique(data.questions.map((q) => q.questionKey));
     for (const q of data.questions) { known([q.questionKey], questions); known(q.assertionKeys, assertions);
-      if (q.status === "supported" && !q.assertionKeys.length) errors.add("coverage_without_assertion"); }
+      if (q.status === "supported" && !q.assertionKeys.length && !(operation==="review_calculated_coverage"&&(q as ResearchModelOutput<"review_calculated_coverage">["questions"][number]).calculationKeys.length)) errors.add("coverage_without_assertion"); }
     for (const key of questions) if (!data.questions.some((q) => q.questionKey === key)) errors.add("missing_question_review");
     for (const omitted of data.omittedRequirements) span(omitted.provenance, context.question);
   } else {

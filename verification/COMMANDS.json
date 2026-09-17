@@ -230,5 +230,13 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json#typecheck"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+    "status": "implemented_application_command",
+    "scope": "local Metro development server; wireless ADB/Expo Go observations are separately recorded, not signed release evidence",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#start"
   }
 ]

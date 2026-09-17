@@ -56,3 +56,17 @@ it("calculation planning binds supported quantity indices to actual questions wi
  expect(validateModelBindings("plan_calculations",{...plan,calculations:[...plan.calculations,{...plan.calculations[0],key:"other"}]},ctx)).toContain("duplicate_calculation_action");
  expect(validateModelBindings("plan_calculations",{...plan,calculations:[{...plan.calculations[0],action:{...action,values:[12]}}]},ctx)).toEqual(["output_schema_mismatch"]);
 });
+
+it("calculated reports bind known unique selected proof keys while preserving source assertion approval",()=>{
+ const ctx={...context,calculations:{entries:[{key:"sum",selected:true},{key:"unused",selected:false}]}};
+ const writer={title:"Reported arithmetic",sections:[{heading:"Sources",paragraphs:[{text:passage.text,claimKeys:["a1"]}]}],calculationKeys:["sum"],unresolvedQuestionKeys:[],limitations:[]};
+ expect(validateModelBindings("write_calculated_report",writer,ctx)).toEqual([]);
+ expect(validateModelBindings("write_calculated_report",{...writer,calculationKeys:["invented"]},ctx)).toContain("unknown_model_handle");
+ expect(validateModelBindings("write_calculated_report",{...writer,calculationKeys:["sum","sum"]},ctx)).toContain("duplicate_model_key");
+ expect(validateModelBindings("write_calculated_report",writer,{...ctx,approvedClaimKeys:[]})).toContain("unknown_model_handle");
+ const review={questions:[{questionKey:"q1",status:"supported",assertionKeys:[],calculationKeys:["sum"],reason:"Arithmetic proof reference"}],omittedRequirements:[]};
+ expect(validateModelBindings("review_calculated_coverage",review,ctx)).toEqual([]);
+ for(const calculationKeys of [["unused"],["invented"]])expect(validateModelBindings("review_calculated_coverage",{...review,questions:[{...review.questions[0],calculationKeys}]},ctx)).toContain("unknown_model_handle");
+ expect(validateModelBindings("review_calculated_coverage",{...review,questions:[{...review.questions[0],calculationKeys:[]}]},ctx)).toContain("coverage_without_assertion");
+ expect(validateModelBindings("review_calculated_coverage",{...review,questions:[{...review.questions[0],calculationKeys:["sum","sum"]}]},ctx)).toContain("duplicate_model_key");
+});

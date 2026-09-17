@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (119 tests | 118 skipped) 28324ms
+   ✓ W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions  28223ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 118 skipped (119)
+   Start at  17:29:45
+   Duration  29.65s (transform 745ms, setup 0ms, collect 1.11s, tests 28.32s, environment 0ms, prepare 72ms)
+

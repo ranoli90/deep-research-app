@@ -1,3 +1,5 @@
+import { executeCalculatedCoverage } from "./calculated-coverage.js";
+import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
@@ -14,21 +16,25 @@ import { executeCoverageReview } from "./research-coverage.js";
 import { persistResearchCoverage } from "../modules/research-coverage.js";
 import { executeAssertionSupport } from "./support-execution.js";
 
-type WriterArgs=SupportArgs&{fence:number;sourceSupportIntentId:string};
+type WriterArgs=SupportArgs&{fence:number;sourceSupportIntentId:string;calculationPlanIntentId?:string};
 export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:FencedSession,args:WriterArgs) {
-  const basis=await session.write((db)=>loadWriterSourceContext(db,args,TASK_MODEL_VERSIONS));
-  const result=await performModelOperation(pool,config,session,{...args,...basis,operation:"write_report"});
+  if(args.calculationPlanIntentId) {
+    const old=await session.write(db=>db.query("SELECT 1 FROM run_actions WHERE run_id=$1 AND brief_revision=$2 AND kind='write_report' LIMIT 1",[args.runId,args.briefRevision]));
+    if(old.rowCount)args={...args,calculationPlanIntentId:undefined};
+  }
+  const basis=await session.write((db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},TASK_MODEL_VERSIONS));
+  const result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
   // Check bounded target expansion before adopting a draft; never silently omit final prose.
-  try { draftStatements(result.result.output,basis.context.assertions,basis.context.approvedClaimKeys); }
+  try { const {calculationKeys:_,...ordinary}=result.result.output as typeof result.result.output & {calculationKeys?:string[]}; draftStatements(ordinary,basis.context.assertions,basis.context.approvedClaimKeys); }
   catch(error) {
     if(error instanceof ZodError || error instanceof Error && error.message==="writer_assertion_limit")
       return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
     throw error;
   }
   await session.write((db)=>recordResearchDraft(db,{...args,writerIntentId:result.intentId},TASK_MODEL_VERSIONS));
-  return {kind:"draft" as const,writerIntentId:result.intentId,reused:result.reused};
+  return {kind:"draft" as const,writerIntentId:result.intentId,reused:result.reused,calculated:Boolean(args.calculationPlanIntentId)};
 }
 
 /** Writer -> exact final-wording checks -> canonical publication. Network never occurs in a transaction. */
@@ -38,15 +44,19 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
   const target={...args,extractionIntentId:draft.writerIntentId};
   const support=await executeAssertionSupport(pool,config,session,target);
   if(support.kind!=="support")return support;
-  const reviewed=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
+  const reviewed=await (draft.calculated?executeCalculatedCoverage:executeCoverageReview)(pool,config,session,{...target,supportIntentId:support.intentId});
   if(reviewed.kind!=="coverage")return reviewed;
   return session.write(async(db)=>{
-    const restored=await restoreWriterDraft(db,target,TASK_MODEL_VERSIONS);
-    const basis=await loadSupportContext(db,target,TASK_MODEL_VERSIONS);
-    const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},TASK_MODEL_VERSIONS,true);
-    const statements=draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys);
-    const compiled=compileCheckedDraft(statements,checks);
-    const coverage=await persistResearchCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true);
+    const calculated=draft.calculated?await persistCalculatedCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true):null;
+    const validated=calculated??await (async()=>{
+      const restored=await restoreWriterDraft(db,target,TASK_MODEL_VERSIONS);
+      const basis=await loadSupportContext(db,target,TASK_MODEL_VERSIONS);
+      const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},TASK_MODEL_VERSIONS,true);
+      const statements=draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys);
+      const coverage=await persistResearchCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true);
+      return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
+    })();
+    const {basis,coverage}=validated,compiled=basis.compiled;
     const complete=coverage.complete&&!compiled.unresolved.length;
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");

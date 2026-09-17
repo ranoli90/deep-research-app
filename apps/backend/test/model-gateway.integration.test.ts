@@ -1,3 +1,4 @@
+import { mkdir,writeFile } from "node:fs/promises";
 import { executeCalculationPlanning } from "../src/worker/calculation-planning.js";
 import { prepareCalculationClaim } from "../src/modules/calculation-publication.js";
 import { executeEvidenceCalculation } from "../src/worker/evidence-calculation.js";
@@ -49,9 +50,9 @@ const brief = { objective: question, objectiveProvenance: span, intendedOutput: 
   assumptions: [], openAmbiguities: [], explicitExclusions: [] };
 const context = { question, task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [], draft: null };
 const response = (output: unknown = brief) => new Response(JSON.stringify({ id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI", usage: { cost: "0.000001" }, choices: [{ finish_reason: "stop", message: { content: JSON.stringify(output) } }] }), { status: 200 });
-async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: ReturnType<typeof fencedSession>; config: ReturnType<typeof loadConfig> }) => Promise<void>) {
+async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: ReturnType<typeof fencedSession>; config: ReturnType<typeof loadConfig> }) => Promise<void>,initialQuestion=question) {
   const accountId = await withTx(pool, async (db) => { const s = await createDevSession(db); await grantConsent(db, s.accountId); return s.accountId; });
-  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question, routeMode: "controlled-research" }));
+  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question:initialQuestion, routeMode: "controlled-research" }));
   const owner = crypto.randomUUID(); const fence = (await claimLease(pool, runId, owner, 30_000))!;
   const session = fencedSession(pool, { runId, accountId, owner, fence, briefRevision: 1, leaseMs: 30_000 });
   const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_ROUTE_ENABLED: "true", STRUCTURED_MODEL_ENABLED: "true",
@@ -1277,3 +1278,75 @@ it("W02/W05 cached planning cannot ignore tampered schema/prompt/route metadata"
  expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"invalid_stored_model_result"});
  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 }));
+
+const sumQuestion="What is the sum of the reported restored areas in these sources? Report arithmetic only.";
+function arithmeticWriterTransport(options:{omitCalculation?:boolean;wrongQuantity?:boolean;unsupportedProse?:boolean}={}) {
+ return vi.fn(async(_input:unknown,init?:RequestInit)=>{
+  const req=JSON.parse(String(init?.body)),ctx=JSON.parse(req.messages[1].content),op=req.response_format.json_schema.name;
+  if(op==="research_brief_v1") {
+   const provenance={start:0,end:ctx.question.length,quote:ctx.question};
+   return response({...brief,objective:ctx.question,objectiveProvenance:provenance,criteria:[{...brief.criteria[0]!,description:"Requested arithmetic on reported areas",field:"reported_area_arithmetic",provenance}],questions:[{...brief.questions[0]!,text:ctx.question}]});
+  }
+  if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:ctx.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope:{...scope,entity:p.text.split(" ")[0]},
+   quantities:[{value:options.wrongQuantity?"2024":p.text.match(/restored (\d+)/)![1],unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],
+   evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
+  if(op==="research_assess_support_v1")return response({assessments:ctx.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Nonbillable reference transport",missingEvidence:[]}))});
+  if(op==="research_plan_calculations_v1")return response({calculations:[{key:"arithmetic",questionKeys:["q1"],action:{type:"calculate",formula:ctx.question.includes("ratio")?"ratio":"sum",
+   inputs:[...ctx.assertions].sort((a,b)=>Number(b.quantities[0].value)-Number(a.quantities[0].value)).map(a=>({claimKey:a.key,quantityIndex:0}))},rationale:"Only the requested arithmetic on reported figures"}],unresolvedQuestionKeys:[],reason:"Applicability requires final review"});
+  if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:"unresolved_at_limit",assertionKeys:ctx.approvedClaimKeys,reason:"Source figures alone do not perform requested arithmetic"}],omittedRequirements:[]});
+  if(op==="research_write_calculated_report_v1")return response({title:"Reported areas",sections:[{heading:"Evidence",paragraphs:ctx.assertions.map((a:{text:string;key:string})=>({text:options.unsupportedProse?a.text+" The guaranteed total is 999 hectares.":a.text,claimKeys:[a.key]}))}],calculationKeys:options.omitCalculation?[]:["arithmetic"],unresolvedQuestionKeys:[],limitations:[]});
+  if(op==="research_review_calculated_coverage_v1")return response({questions:[{questionKey:"q1",status:"supported",assertionKeys:ctx.approvedClaimKeys,calculationKeys:ctx.calculations.entries.filter((e:{selected:boolean})=>e.selected).map((e:{key:string})=>e.key),reason:"Exact requested arithmetic on cited figures, with the displayed assumptions"}],omittedRequirements:[]});
+  throw new Error(`Unexpected arithmetic operation ${op}`);
+ }) as typeof fetch;
+}
+async function arithmeticSources(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const versions=[];
+ for(const value of [12,8]) {
+  const name=`Study-${crypto.randomUUID()}`,locator=`https://example.org/${name}`;
+  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator,title:name,publisher:"Control",originCluster:name});
+  versions.push(await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator,text:`${name} restored ${value} hectares in 2024.`,accessLevel:"partial-text"}));
+ }
+ return versions;
+}
+it("W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions",async()=>runCase(async x=>{
+ const versions=await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport();await releaseForWorker(x);
+ await processRun(pool,x.config,x.runId);
+ const parent=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows[0];
+ expect(parent?.outcome).toBe("completed");expect(parent.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 20 hectares");
+ const report:CanonicalReport={reportId:parent.id,runId:x.runId,version:parent.version,basis:parent.basis,outcome:parent.outcome,blocks:parent.blocks,claimIds:parent.claim_ids,limitations:parent.limitations,sourceAccessSummary:parent.source_access_summary,routeMode:parent.route_mode};
+ expect(await reportCompletionCovered(pool,x.accountId,report)).toBe(true);
+ expect(await reportCompletionCovered(pool,x.accountId,{...report,blocks:report.blocks.filter(b=>b.id!=="calculation_0")})).toBe(false);
+ const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("What is the ratio of the larger reported restored area to the smaller one? Report arithmetic only."));
+ await processRun(pool,x.config,child.runId);
+ const revised=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[child.runId])).rows[0];
+ expect(revised?.outcome).toBe("completed");expect(revised.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 3/2 ratio");
+ const cited=revised.blocks.flatMap((b:{citationIds:string[]})=>b.citationIds);
+ expect([...new Set(cited)].sort()).toEqual(versions.map(v=>v.passageId).sort());
+ expect(revised.claim_ids.some((id:string)=>parent.claim_ids.includes(id))).toBe(false);
+ expect(revised.change_summary.comparison.reusedCitedSourceVersionIds.sort()).toEqual(versions.map(v=>v.versionId).sort());
+ expect((await pool.query("SELECT id FROM sources WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+ await mkdir("/tmp/deep-v6-evidence",{recursive:true});
+ await writeFile("/tmp/deep-v6-evidence/calculated-report-journey.json",JSON.stringify({
+  evidenceClass:"local_postgres_production_worker_with_fabricated_model_transport",requirements:["W05","W06"],
+  limitations:["Source rows are synthetic; this arithmetic control does not run HTML/PDF extraction.","Model responses and cost receipts are fabricated; no live semantic quality, paid cost or human adjudication claim."],
+  reference:{inputs:[12,8],initialQuestion:sumQuestion,expectedSum:"20 hectares",correctedQuestion:"ratio of larger to smaller",expectedRatio:"3/2"},
+  parentReport:parent,correctedReport:revised,
+  passages:(await pool.query("SELECT id,run_id,source_version_id,exact_text,content_hash FROM passages WHERE account_id=$1",[x.accountId])).rows,
+  revisions:(await pool.query("SELECT id,claim_id,run_id,text,scope FROM claim_revisions WHERE account_id=$1",[x.accountId])).rows,
+  support:(await pool.query("SELECT model_intent_id,claim_revision_id,checker_version,evidence_digest,scope_digest,decision,result FROM scoped_support_results WHERE account_id=$1",[x.accountId])).rows,
+  calculations:(await pool.query("SELECT * FROM evidence_calculations WHERE account_id=$1",[x.accountId])).rows,
+  coverage:(await pool.query("SELECT * FROM calculated_report_coverage WHERE account_id=$1",[x.accountId])).rows,
+  memberships:(await pool.query("SELECT * FROM run_evidence_membership WHERE account_id=$1",[x.accountId])).rows,
+ },null,2)+"\n");
+ await withTx(pool,db=>deleteAccount(db,x.accountId));
+ for(const table of ["calculation_plans","calculated_report_coverage","calculation_claims","evidence_calculations"])expect((await pool.query(`SELECT * FROM ${table} WHERE account_id=$1`,[x.accountId])).rowCount).toBe(0);
+// Two full production runs plus independent publication rechecks measured 28.2s locally;
+// allow scheduling headroom without changing any correctness assertions.
+},sumQuestion),60_000);
+it.each(["omitCalculation","wrongQuantity","unsupportedProse"] as const)("W05 calculated writer remains limited for %s despite a positive review",async option=>runCase(async x=>{
+ await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport({[option]:true});await releaseForWorker(x);await processRun(pool,x.config,x.runId);
+ const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows[0];
+ expect(report?.outcome).toBe("completed_with_limitations");
+ expect(report.blocks.some((b:{text:string})=>b.text.includes("guaranteed total"))).toBe(false);
+ if(option==="unsupportedProse")expect(report.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 20 hectares");
+},sumQuestion));

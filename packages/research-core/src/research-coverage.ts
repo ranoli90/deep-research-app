@@ -15,7 +15,7 @@ const normalize=(s:string)=>s.toLowerCase().replace(/\s+/gu," ").trim();
  * The semantic review remains fallible; deterministic guards cannot certify its reasoning quality.
  */
 export function resolveResearchCoverage(args:{question:string;task:Task;assertions:Assertion[];
-  checks:ScopedSupportResult[];proposal:Review}):CoverageResult {
+  checks:Pick<ScopedSupportResult,"claimKey"|"decision">[];proposal:Review}):CoverageResult {
   const errors=validateModelBindings("review_coverage",args.proposal,{...args,passages:[],sources:[],approvedClaimKeys:[]});
   if(errors.length)throw new Error(`invalid_coverage_binding:${errors.join(",")}`);
   const questions=args.task.questions.map((question)=>{

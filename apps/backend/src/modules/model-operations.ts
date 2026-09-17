@@ -1,3 +1,4 @@
+import { calculationWriterContext } from "./calculation-plans.js";
 import { compareAssertionScopes, projectScopeComparison } from "@deep/research-core";
 import { createHash } from "node:crypto";
 import type { Queryable } from "../platform/db.js";
@@ -14,6 +15,11 @@ export async function validateOwnedModelContext(db: Queryable, args: {
     const computed=compareAssertionScopes({type:"compare_scopes",claimKeys:args.context.assertions.map(a=>a.key)},args.context.assertions);
     const expected=args.context.scopeComparison.version==="scope-comparison-context.v1"?projectScopeComparison(computed,args.context.assertions):computed;
     if(JSON.stringify(expected)!==JSON.stringify(args.context.scopeComparison))throw new Error("model_scope_comparison_mismatch");
+  }
+  if(args.context.calculations) {
+    const saved=await calculationWriterContext(db,{...args,planIntentId:args.context.calculations.planIntentId});
+    const normalized={...args.context.calculations,entries:args.context.calculations.entries.map(e=>({...e,selected:false}))};
+    if(JSON.stringify(saved)!==JSON.stringify(normalized))throw new Error("model_calculation_context_mismatch");
   }
   const brief = await getBrief(db, run.brief_id);
   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
@@ -55,9 +61,10 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 /** Metadata only: exact selected membership, never a claim of full-document coverage. */
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-  return { version:context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  return { version:context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
     approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
-    ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}) };
+    ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}),
+    ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}) };
 }

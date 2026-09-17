@@ -1,8 +1,8 @@
-import { CALCULATION_PLANNING_PROMPT_VERSION } from "../../ports/model-policy.js";
+import { CALCULATION_PLANNING_PROMPT_VERSION, CALCULATED_REPORT_PROMPT_VERSION } from "../../ports/model-policy.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { ResearchModelOutputs, CALCULATION_PLANNING_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { ResearchModelOutputs, CALCULATED_REPORT_SCHEMA_VERSION, CALCULATION_PLANNING_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { ModelContextSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
 import { costToMicro } from "./usage.js";
 import { MODEL_PROMPT_VERSION, modelPrompt } from "./prompts.js";
@@ -32,8 +32,8 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
   });
   if (Buffer.byteLength(body) > policy.contextTokens) throw new Error("model_context_exceeds_policy");
   return { operation, body, digest: createHash("sha256").update(body).digest("hex"),
-    schemaVersion: operation==="plan_calculations"?CALCULATION_PLANNING_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,
-    promptVersion: operation==="plan_calculations"?CALCULATION_PLANNING_PROMPT_VERSION:MODEL_PROMPT_VERSION, policyId: policy.id };
+    schemaVersion: ["write_calculated_report","review_calculated_coverage"].includes(operation)?CALCULATED_REPORT_SCHEMA_VERSION:operation==="plan_calculations"?CALCULATION_PLANNING_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,
+    promptVersion: ["write_calculated_report","review_calculated_coverage"].includes(operation)?CALCULATED_REPORT_PROMPT_VERSION:operation==="plan_calculations"?CALCULATION_PLANNING_PROMPT_VERSION:MODEL_PROMPT_VERSION, policyId: policy.id };
 }
 
 /** Transport only. The worker must durably reserve the attempt before invoking this function. No retries/fallbacks. */

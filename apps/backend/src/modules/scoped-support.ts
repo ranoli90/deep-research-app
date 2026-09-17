@@ -1,7 +1,9 @@
+import { calculationWriterContext } from "./calculation-plans.js";
+import { CALCULATED_REPORT_PROMPT_VERSION } from "../ports/model-policy.js";
 import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
+import { CALCULATED_REPORT_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
 import { projectScopeComparison, draftStatements, resolveScopedSupport, SCOPED_SUPPORT_VERSION, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
@@ -19,10 +21,10 @@ const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex"
 /** Restore only the exact owned extraction basis, not client-supplied assertions. */
 export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:TaskModelVersions):Promise<SupportContext> {
   const row=(await db.query(`SELECT * FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
-    AND operation IN ('extract_assertions','write_report') AND brief_revision=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7`,
-    [args.extractionIntentId,args.runId,args.accountId,args.briefRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId])).rows[0];
+    AND operation IN ('extract_assertions','write_report','write_calculated_report') AND brief_revision=$4 AND ((schema_version=$5 AND prompt_version=$6 AND operation!='write_calculated_report') OR (schema_version=$8 AND prompt_version=$9 AND operation='write_calculated_report')) AND policy_id=$7`,
+    [args.extractionIntentId,args.runId,args.accountId,args.briefRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,CALCULATED_REPORT_SCHEMA_VERSION,CALCULATED_REPORT_PROMPT_VERSION])).rows[0];
   if (!row) throw new Error("support_extraction_owner_or_version_mismatch");
-  if(row.operation==="write_report") return loadWriterAssertionContext(db,args,versions);
+  if(row.operation==="write_report"||row.operation==="write_calculated_report") return loadWriterAssertionContext(db,args,versions);
   const manifest=Manifest.safeParse(row.input_manifest);
   if (!manifest.success) throw new Error("support_extraction_manifest_unavailable");
   const basis=await loadAssertionEvidence(db,{...args,passageIds:manifest.data.passages.map((p)=>p.id)},versions);
@@ -90,7 +92,7 @@ export async function persistScopedSupport(db:Queryable,args:SupportArgs & {mode
 
 
 /** A writer may only start from independently revalidated source assertions, never another draft. */
-export async function loadWriterSourceContext(db:Queryable,args:SupportArgs & {sourceSupportIntentId:string},versions:TaskModelVersions):Promise<SupportContext & {approved:CheckedAssertion[]}> {
+export async function loadWriterSourceContext(db:Queryable,args:SupportArgs & {sourceSupportIntentId:string;calculationPlanIntentId?:string;prepareCalculations?:boolean},versions:TaskModelVersions):Promise<SupportContext & {approved:CheckedAssertion[]}> {
   const source=await db.query("SELECT intent_id FROM model_operation_results WHERE intent_id=$1 AND operation='extract_assertions' AND run_id=$2 AND account_id=$3",[args.extractionIntentId,args.runId,args.accountId]);
   if(source.rowCount!==1)throw new Error("writer_source_must_be_extraction");
   const basis=await loadSupportContext(db,args,versions);
@@ -105,7 +107,12 @@ export async function loadWriterSourceContext(db:Queryable,args:SupportArgs & {s
     if(compared.kind!=="comparison")throw new Error(compared.reason);
     scopeComparison=compared.writerContextVersion==="scope-comparison-context.v1"?projectScopeComparison(compared.result,basis.context.assertions):compared.result;
   }
-  return {...basis,context:{...basis.context,approvedClaimKeys:approved.map((c)=>c.claimKey),...(scopeComparison?{scopeComparison}:{})},approved};
+  if(args.calculationPlanIntentId) {
+    const binding=await db.query("SELECT 1 FROM calculation_plans WHERE model_intent_id=$1 AND account_id=$2 AND run_id=$3 AND task_id=$4 AND extraction_intent_id=$5 AND support_intent_id=$6",[args.calculationPlanIntentId,args.accountId,args.runId,args.taskId,args.extractionIntentId,args.sourceSupportIntentId]);
+    if(binding.rowCount!==1)throw new Error("writer_calculation_plan_binding_mismatch");
+  }
+  const calculations=args.calculationPlanIntentId?await calculationWriterContext(db,{...args,planIntentId:args.calculationPlanIntentId},args.prepareCalculations):undefined;
+  return {...basis,context:{...basis.context,approvedClaimKeys:approved.map((c)=>c.claimKey),...(scopeComparison?{scopeComparison}:{}),...(calculations?{calculations}:{})},approved};
 }
 
 /** Durable one-level lineage prevents a draft from citing itself or expanding authority. */
@@ -113,19 +120,21 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
   const row=(await db.query(`SELECT * FROM research_drafts WHERE writer_intent_id=$1 AND run_id=$2 AND account_id=$3 AND task_id=$4 AND brief_revision=$5`,
     [args.extractionIntentId,args.runId,args.accountId,args.taskId,args.briefRevision])).rows[0];
   if(!row)throw new Error("writer_lineage_unavailable");
-  const basis=await loadWriterSourceContext(db,{...args,extractionIntentId:row.source_extraction_intent_id,sourceSupportIntentId:row.source_support_intent_id},versions);
+  const basis=await loadWriterSourceContext(db,{...args,extractionIntentId:row.source_extraction_intent_id,sourceSupportIntentId:row.source_support_intent_id,calculationPlanIntentId:row.calculation_plan_intent_id??undefined},versions);
   if(basis.evidenceRevision!==row.evidence_revision)throw new Error("writer_basis_changed");
-  const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND operation='write_report' AND schema_version=$2 AND prompt_version=$3 AND policy_id=$4",[args.extractionIntentId,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId])).rows[0];
+  const calculated=Boolean(row.calculation_plan_intent_id),operation=calculated?"write_calculated_report":"write_report";
+  const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND operation=$5 AND schema_version=$2 AND prompt_version=$3 AND policy_id=$4",[args.extractionIntentId,calculated?CALCULATED_REPORT_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,calculated?CALCULATED_REPORT_PROMPT_VERSION:versions.promptVersion,versions.policyId,operation])).rows[0];
   if(!model)throw new Error("writer_result_unavailable");
   const raw=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,model.request_digest,basis.context);
-  const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.write_report,receipt:ModelReceiptSchema}).strict().safeParse(raw);
-  if(!parsed.success||validateModelBindings("write_report",parsed.data.output,basis.context).length)throw new Error("invalid_writer_result");
-  return {basis,draft:parsed.data.output};
+  const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs[operation],receipt:ModelReceiptSchema}).strict().safeParse(raw);
+  if(!parsed.success||validateModelBindings(operation,parsed.data.output,basis.context).length)throw new Error("invalid_writer_result");
+  const {calculationKeys=[],...draft}=parsed.data.output as typeof parsed.data.output & {calculationKeys?:string[]};
+  return {basis,draft,calculationKeys};
 }
 async function loadWriterAssertionContext(db:Queryable,args:SupportArgs,versions:TaskModelVersions):Promise<SupportContext> {
   const {basis,draft}=await restoreWriterDraft(db,args,versions);
   const statements=draftStatements(draft,basis.context.assertions,basis.context.approvedClaimKeys);
   const targets=statements.flatMap((s)=>s.assertion?[s.assertion]:[]);
-  return {context:{...basis.context,assertions:targets,approvedClaimKeys:[],draft,scopeComparison:undefined},evidenceRevision:basis.evidenceRevision,claimType:"inference",
+  return {context:{...basis.context,assertions:targets,approvedClaimKeys:[],draft,scopeComparison:undefined,calculations:undefined},evidenceRevision:basis.evidenceRevision,claimType:"inference",
     premiseRevisionIds:Object.fromEntries(statements.filter((s)=>s.assertion).map((s)=>[s.key,s.premiseKeys.map((key)=>basis.approved.find((a)=>a.claimKey===key)!.claimRevisionId)]))};
 }

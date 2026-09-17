@@ -43,7 +43,7 @@ export async function persistScopeComparison(db:Queryable,args:ComparisonArgs,ve
   // Adding comparison context must not turn an older unknown writer call into a new paid identity.
   const unknownWriter=await db.query(`SELECT i.id FROM run_actions a JOIN provider_intents i ON i.action_id=a.id
     LEFT JOIN model_operation_results m ON m.intent_id=i.id
-    WHERE a.run_id=$1 AND a.brief_revision=$2 AND a.kind='write_report'
+    WHERE a.run_id=$1 AND a.brief_revision=$2 AND a.kind IN ('write_report','write_calculated_report')
       AND (i.confirmed_micro IS NULL OR m.intent_id IS NULL OR m.result->>'status'='outcome_unknown') LIMIT 1`,[args.runId,args.briefRevision]);
   if(unknownWriter.rowCount)return {kind:"blocked" as const,reason:"comparison_upgrade_requires_reconciled_writer"};
   const id=crypto.randomUUID();

@@ -30,6 +30,15 @@ const Evidence = z.array(EvidenceQuoteSchema).min(1).max(12);
 const Quantity = z.object({ value: Short, unit: Short, currency: Short.nullable(),
   billingPeriod: Short.nullable(), qualifier: Text.nullable() }).strict();
 
+const WriterOutput=z.object({ title: Short, sections: z.array(z.object({ heading: Short,
+    paragraphs: z.array(z.object({ text: Text, claimKeys: z.array(Key).min(1).max(12) }).strict()).min(1).max(12),
+  }).strict()).min(1).max(12), unresolvedQuestionKeys: z.array(Key).max(24), limitations: z.array(Text).max(12) }).strict();
+const CoverageOutput=z.object({ questions: z.array(z.object({ questionKey: Key,
+    status: z.enum(["supported", "disputed", "blocked_access", "needs_user_input", "unresolved_at_limit", "not_applicable"]),
+    assertionKeys: z.array(Key).max(30), reason: Text,
+  }).strict()).max(24), omittedRequirements: z.array(z.object({ provenance: QuestionSpanSchema, reason: Text }).strict()).max(12) }).strict();
+export const CALCULATED_REPORT_SCHEMA_VERSION="calculated-report.v1";
+
 /** Model-local keys are proposals. Backend allocates IDs, ownership, revisions and permissions. */
 export const ResearchModelOutputs = {
   brief: z.object({ objective: Text, objectiveProvenance: QuestionSpanSchema, intendedOutput: Text,
@@ -60,13 +69,10 @@ export const ResearchModelOutputs = {
   plan_calculations: z.object({calculations:z.array(z.object({key:Key,questionKeys:z.array(Key).min(1).max(24),
     action:EvidenceCalculationActionSchema,rationale:Text}).strict()).max(6),
     unresolvedQuestionKeys:z.array(Key).max(24),reason:Text}).strict(),
-  write_report: z.object({ title: Short, sections: z.array(z.object({ heading: Short,
-    paragraphs: z.array(z.object({ text: Text, claimKeys: z.array(Key).min(1).max(12) }).strict()).min(1).max(12),
-  }).strict()).min(1).max(12), unresolvedQuestionKeys: z.array(Key).max(24), limitations: z.array(Text).max(12) }).strict(),
-  review_coverage: z.object({ questions: z.array(z.object({ questionKey: Key,
-    status: z.enum(["supported", "disputed", "blocked_access", "needs_user_input", "unresolved_at_limit", "not_applicable"]),
-    assertionKeys: z.array(Key).max(30), reason: Text,
-  }).strict()).max(24), omittedRequirements: z.array(z.object({ provenance: QuestionSpanSchema, reason: Text }).strict()).max(12) }).strict(),
+  write_report: WriterOutput,
+  write_calculated_report: WriterOutput.extend({calculationKeys:z.array(Key).max(6)}).strict(),
+  review_coverage: CoverageOutput,
+  review_calculated_coverage: CoverageOutput.extend({questions:z.array(CoverageOutput.shape.questions.element.extend({calculationKeys:z.array(Key).max(6)}).strict()).max(24)}).strict(),
 } as const;
 export type ResearchModelOperation = keyof typeof ResearchModelOutputs;
 export type ResearchModelOutput<K extends ResearchModelOperation> = z.infer<(typeof ResearchModelOutputs)[K]>;
