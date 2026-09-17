@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Mobile typed replacement with snapshot/refresh and server capability gate; 260 integration,117/88/52/4 verify; actual PDF13/13 reported. Native gate unavailable. W01-W09 incomplete.",
+  "workingTree": "Production worker excludes diagnostic/fixture runtime;262 integration,117/92/52/6 verify,14 actual extraction. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3899,6 +3899,193 @@
       "scope": "Handoff structure",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "production-isolation-verify-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Initial move117/88/52/4; before graph controls",
+      "sha256": "56d64595f719d9c82806eae3a404af37c83a1076f7ba276b831b8c5529e717eb"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "production-isolation-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117/90/52/6; initial graph and runtime controls",
+      "sha256": "1f9d9892daf700346b6c216470332ba6c5e87f05bd29428b49a63bfd6fe847e5"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "production-isolation-focused.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "89 passed/1 failed; fixture test setup incorrectly running instead of queued; assertion retained and setup fixed",
+      "sha256": "8986d24c4f817df26b27473ff8aae9583d6dbb86e6f5125a7d90d22a80b098e0"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "production-isolation-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117/90/52/6; before additional diagnostic rejection controls",
+      "sha256": "75c393e56a401f5460a101f5cd386142b6b8d84da167d14f238596d2352420a5"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "production-isolation-verify-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117 core/92 backend/52 mobile/6 governance; transitive graph plus production environment/auth diagnostic rejection",
+      "sha256": "2101dd61d5fd9b9b9fde037cab165e4a477f166f9cb54d8efd50bab1b898b626"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "production-isolation-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "262/262 across16files;168.58s; historical assertions unchanged; production fixture refusal and disabled execution failure",
+      "sha256": "9419ddf898857ef2dfe8971ed5fe2a09783102d68c057174b347a48873ed93c7"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "production-isolation-extraction.log",
+      "exitCode": 1,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "13 passed/1 failed; old fixture-run PDF test still invoked production executor; no fixture work correctly performed",
+      "sha256": "77acc2a362aa03b405cd26ad28953e222b6278f7cbf3b20be8d4f1523ec2f88a"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "production-isolation-extraction-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "14/14;52.52s; old fixture PDF case explicitly diagnostic with unchanged assertions; structured upload/search/correction and disabled production admission use production",
+      "sha256": "32891a354f33760ac9d3f626444e1038b478a1b40cb58c541a7b88e51ea94edc"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "pnpm typecheck",
+      "artifact": "production-isolation-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "typescript",
+      "scope": "Final source and test types",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "production-isolation-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09",
+        "V6-F02",
+        "V6-F03",
+        "V6-F07"
+      ],
+      "commit": "c00afe3",
+      "workingTree": "isolate production from historical fixture/controller runtime; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "production-isolation-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
@@ -3906,7 +4093,7 @@
     "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: broader discovery/evidence selection, substantive remaining actions and production fixture reachability removal",
+    "W05: broader discovery/evidence selection, substantive remaining actions",
     "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",

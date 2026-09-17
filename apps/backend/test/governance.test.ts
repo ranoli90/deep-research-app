@@ -74,3 +74,52 @@ describe("V2-17 command readiness", () => {
     expect(commands.some((c) => c.status === "proposed" && /verified/.test(c.status))).toBe(false);
   });
 });
+
+// Follow source dependencies, including re-exports and literal dynamic imports.
+// Type-only edges are erased and cannot load fixture data into the runtime.
+import ts from "typescript";
+import { realpathSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+function runtimeSources(entry:string):Set<string> {
+  const repo=resolve(import.meta.dirname,"../../..");
+  const config=ts.readConfigFile(join(repo,"apps/backend/tsconfig.json"),ts.sys.readFile);
+  const parsed=ts.parseJsonConfigFileContent(config.config,ts.sys,join(repo,"apps/backend"));
+  const seen=new Set<string>();
+  function visit(file:string) {
+    file=realpathSync(file);if(seen.has(file)||file.includes("/node_modules/")||file.endsWith(".d.ts"))return;
+    seen.add(file);
+    const ast=ts.createSourceFile(file,readFileSync(file,"utf8"),ts.ScriptTarget.Latest,true);
+    function edge(spec:string) {
+      const resolved=ts.resolveModuleName(spec,file,parsed.options,ts.sys).resolvedModule;
+      if(!resolved){if(spec.startsWith(".")||spec.startsWith("@deep/"))throw new Error(`Unresolved source: ${file}: ${spec}`);return;}
+      visit(resolved.resolvedFileName);
+    }
+    function node(n:ts.Node) {
+      if(ts.isImportDeclaration(n)&&ts.isStringLiteral(n.moduleSpecifier)) {
+        const c=n.importClause;
+        if(!c?.isTypeOnly && !(c&&!c.name&&c.namedBindings&&ts.isNamedImports(c.namedBindings)&&c.namedBindings.elements.every(x=>x.isTypeOnly)))edge(n.moduleSpecifier.text);
+      }
+      if(ts.isExportDeclaration(n)&&!n.isTypeOnly&&n.moduleSpecifier&&ts.isStringLiteral(n.moduleSpecifier))edge(n.moduleSpecifier.text);
+      if(ts.isCallExpression(n)&&(n.expression.kind===ts.SyntaxKind.ImportKeyword||(ts.isIdentifier(n.expression)&&n.expression.text==="require"))) {
+        const arg=n.arguments[0];if(!arg||!ts.isStringLiteral(arg))throw new Error(`Uninspectable runtime import: ${file}`);edge(arg.text);
+      }
+      ts.forEachChild(n,node);
+    }
+    node(ast);
+  }
+  visit(entry);return seen;
+}
+describe("W05 production runtime isolation",()=>{
+  it("API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors",()=>{
+    for(const entry of ["api/server.ts","worker/main.ts"]) {
+      const files=runtimeSources(resolve(import.meta.dirname,"../src",entry));
+      expect(files.size).toBeGreaterThan(20);
+      expect([...files].filter(f=>/\/fixtures\/|\/eval[^/]*\.|fixture-catalog|\/adapters\/[^/]+\/fixture\.|diagnostic-executor|diagnostic-main/.test(f))).toEqual([]);
+      if(entry==="worker/main.ts")expect([...files].some(f=>f.endsWith("/worker/structured-research.ts"))).toBe(true);
+    }
+  });
+  it("the explicit historical diagnostic is detected as reaching fixture data",()=>{
+    const files=runtimeSources(resolve(import.meta.dirname,"../src/worker/diagnostic-main.ts"));
+    expect([...files].some(f=>f.endsWith("/fixture-catalog.ts"))).toBe(true);
+  });
+});

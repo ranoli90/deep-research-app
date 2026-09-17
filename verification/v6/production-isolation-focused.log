@@ -1,0 +1,124 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (90 tests | 1 failed) 55767ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call  310ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome 157ms
+   ✓ W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief 168ms
+   ✓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result 216ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending 221ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist 163ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist 142ms
+   ✓ W05 durable model gateway on real PostgreSQL > requires the current downstream-processor consent before dispatch 63ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race 113ms
+   ✓ W05 durable model gateway on real PostgreSQL > deletion removes a completed model result 145ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result 122ms
+   ✓ W05 durable versioned research task > allocates stable server IDs and reuses the task after evidence arrival without model spend 175ms
+   ✓ W05 durable versioned research task > adopts already recorded valid output after a crash, including after evidence revision changes 105ms
+   ✓ W05 durable versioned research task > does not promote material ambiguity to a ready task 136ms
+   ✓ W05 durable versioned research task > does not create a task from invalid output or resend its failed logical attempt 156ms
+   ✓ W05 durable versioned research task > rejects wrong owner and stale brief revision, without another provider call 159ms
+   ✓ W05 durable versioned research task > rejects corrupted criteria and receipt bindings instead of silently regenerating them 158ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call 299ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts  330ms
+   ✓ W05 durable versioned research task > does not silently use a task after its original question changes 197ms
+   ✓ W05 durable versioned research task > purges criteria, questions and original question digests during account deletion 177ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result  338ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  342ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects an invented evidence binding instead of creating assertions 257ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects wrong-task, missing passage and duplicate selection before dispatch 182ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request  309ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > does not silently prefix-truncate an oversized passage 160ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests  332ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > discards late extraction after evidence changes but retains actual cost 239ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  616ms
+   ✓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units  400ms
+   ✓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support  353ms
+   ✓ W05 substantive support execution and persisted revisions > rejects missing bindings without a support record  312ms
+   ✓ W05 substantive support execution and persisted revisions > denies a foreign extraction result before spending 199ms
+   ✓ W05 substantive support execution and persisted revisions > rejects changed evidence basis instead of checking old assertions as current 190ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  569ms
+   ✓ W05 substantive support execution and persisted revisions > purges scoped assertions and support results on deletion  398ms
+   ✓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen  738ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  664ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision  610ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  805ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  429ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  433ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  2668ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  3190ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  991ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  477ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  787ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  903ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  2242ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  508ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  1131ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  627ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  636ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  564ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  492ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  2975ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  855ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  392ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  1670ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  460ms
+   ✓ W05 structured services through production processRun > keeps unavailable discovery explicit without fixture source injection 91ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  1938ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  492ms
+   ✓ W02/W05 durable pinned public discovery > pins engine/provider and reuses saved results even after unrelated evidence arrives 104ms
+   ✓ W02/W05 durable pinned public discovery > holds unknown outcomes without repeating a request after evidence changes 111ms
+   ✓ W02/W05 durable pinned public discovery > rejects transformed private words and foreign task ownership before dispatch 76ms
+   ✓ W02/W05 durable pinned public discovery > revalidates saved receipt and purges discovery output on deletion 109ms
+   ✓ W02/W05 durable pinned public discovery > concurrent same-query attempts issue once without holding database locks during HTTP 99ms
+   ✓ W02/W05 durable pinned public discovery > late deletion retains actual cost but discards search content 91ms
+   ✓ W03/W05 old processor consent cannot issue pinned discovery 65ms
+   ✓ W03/W05 mixed document tasks require explicit public-query approval 62ms
+   ✓ W04/W05 durable discovered source reading > persists read provenance once and reuses the exact version 167ms
+   ✓ W04/W05 durable discovered source reading > rejects unknown source handles and invalid question bindings before network 123ms
+   ✓ W04/W05 durable discovered source reading > does not repeat an in-flight read or hold database locks during it 134ms
+   ✓ W04/W05 durable discovered source reading > discards late content after delete 139ms
+   ✓ W04/W05 durable discovered source reading > discards late content after change 129ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true  2151ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=false 157ms
+   ✓ W05 unresolved criteria trigger a distinct public query and rechecked synthesis  4559ms
+   ✓ W02/W05 concurrent distinct searches obey the durable per-run query ceiling  317ms
+   ✓ W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker  4298ms
+   ✓ W06 immutable correction evidence membership > concurrent identical corrections admit one child, allowance and outbox 107ms
+   ✓ W06 immutable correction evidence membership > refresh does not inherit old evidence and foreign ownership cannot grant membership 104ms
+   ✓ W06 immutable correction evidence membership > changed source digests revoke membership visibility and account deletion purges it 111ms
+   ✓ W06 a corrupt cross-account membership cannot expose foreign passages 92ms
+   ✓ W06 fresh cited versions change evidence without claiming changed assertion wording  3860ms
+   ✓ W06 missing parent publication cannot produce an unchanged comparison  1667ms
+   ✓ W05 production executor has no diagnostic fallback > disabled structured processing records unresolved failure without issuing provider work 40ms
+   × W05 production executor has no diagnostic fallback > production entrypoint does not execute a queued fixture even when handed development config 40ms
+     → expected 'running' to be 'queued' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 production executor has no diagnostic fallback > production entrypoint does not execute a queued fixture even when handed development config
+AssertionError: expected 'running' to be 'queued' // Object.is equality
+
+Expected: "queued"
+Received: "running"
+
+ ❯ test/model-gateway.integration.test.ts:980:91
+    978|   await releaseForWorker(x);await pool.query("UPDATE runs SET route_mo…
+    979|   const provider=vi.fn();globalThis.fetch=provider;await processRun(po…
+    980|   expect(provider).not.toHaveBeenCalled();expect((await getRun(pool,x.…
+       |                                                                                           ^
+    981|   expect((await pool.query("SELECT id FROM sources WHERE run_id=$1",[x…
+    982|  }));
+ ❯ runCase test/model-gateway.integration.test.ts:52:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 89 passed (90)
+   Start at  15:42:56
+   Duration  58.65s (transform 1.61s, setup 0ms, collect 2.40s, tests 55.77s, environment 0ms, prepare 188ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts

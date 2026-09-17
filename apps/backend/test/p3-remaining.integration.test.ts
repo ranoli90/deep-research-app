@@ -9,7 +9,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { InjectedCrash, processRun } from "../src/worker/executor.js";
+import { InjectedCrash, processRun } from "../src/worker/diagnostic-executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { insertVersionAndPassage, loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun, getReportForAccount, publishReport, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";

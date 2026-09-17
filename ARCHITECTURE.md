@@ -50,3 +50,7 @@ See `docs/adr/DECISIONS.md` for chosen/rejected options, evidence that would rev
 
 ## Local correctness before managed deployment
 The first P0-D proof may use real local PostgreSQL and the selected queue with the same intended migrations and restricted runtime role. Cloud provisioning is not a transaction-test prerequisite. Hosted pooler/auth/RLS/storage/permissions/network behavior is a distinct integration gate, not inferred from a local database pass. See `IMPLEMENTATION_PLAN.md` for P0-D/P0-L/P0-N and `specs/SETUP_AND_HANDOFF.md` for limits. This qualification changes verification scope, not the proposed production stack.
+
+Production composition: worker/main.ts starts executor.ts through runtime.ts. executor.ts imports structured-research only; run-lifecycle.ts owns shared lease/preflight safety. diagnostic-main.ts/diagnostic-executor.ts preserve the old bounded controller for explicit development diagnostics and reject production environment/auth. dev:demo uses that diagnostic entrypoint; dev:live uses production structured processing and disables fixture admission. Governance traverses runtime imports/re-exports/dynamic imports from API/worker entrypoints to reject fixture/catalog/evaluator reachability.
+
+The older fixture-route PDF integration case explicitly uses the diagnostic executor with actual binary extraction; structured upload/search/correction PDF cases use the production executor. Test runtime labels follow the created run route, and assertions are retained.

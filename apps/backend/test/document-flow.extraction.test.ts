@@ -11,6 +11,7 @@ import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { processRun } from "../src/worker/executor.js";
+import { processRun as processDiagnosticRun } from "../src/worker/diagnostic-executor.js";
 import { ingestAttachments } from "../src/worker/attachment-ingestion.js";
 import { claimLease, getBrief, getRun } from "../src/modules/runs.js";
 import { fencedSession } from "../src/worker/fenced-session.js";
@@ -42,8 +43,8 @@ async function setup(structured=false,publicSource=false) {
   expect(response.statusCode).toBe(200);
   return { accountId: session.accountId, headers, attachmentId, runId: response.json().runId, bytes,entity,question };
 }
-it("W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records", async () => {
-  const task = await setup(); await processRun(pool, config, task.runId);
+it("W04 historical diagnostic worker persists actual PDF bytes, page locators and limitations; source inspection and deletion use the same records", async () => {
+  const task = await setup(); await processDiagnosticRun(pool, config, task.runId);
   const att = (await pool.query("SELECT processing_state,extraction FROM attachments WHERE id=$1", [task.attachmentId])).rows[0];
   expect(att.processing_state).toBe("partially_read"); expect(att.extraction.blocks).toHaveLength(2);
   const passages = (await pool.query("SELECT p.* FROM passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id WHERE s.canonical_locator=$1 AND p.run_id=$2 ORDER BY p.locator->>'block'", [`attachment://${task.attachmentId}`, task.runId])).rows;
@@ -173,4 +174,15 @@ it("W06/W07 disabled route configuration advertises and enforces correction unav
    await app.inject({method:"POST",url:"/v1/account/deletion",headers:task.headers});
   }
  } finally {await unavailable.close();}
+});
+it("W05 production admission rejects disabled structured processing before reserving a run",async()=>{
+ // Direct config injection isolates admission policy; this is not hosted auth evidence.
+ const unavailable=await buildApp({pool,boss,config:{...config,nodeEnv:"production",fixtureRouteAllowed:false,structuredModelEnabled:false}});
+ const task=await setup(true);
+ try {
+  const before=await pool.query("SELECT id FROM runs WHERE account_id=$1",[task.accountId]);
+  const response=await unavailable.inject({method:"POST",url:"/v1/runs",headers:task.headers,payload:{question:"Compare river restoration techniques.",routeMode:"controlled-research"}});
+  expect(response.statusCode).toBe(403);expect(response.json().message).toBe("Structured research is disabled.");
+  expect((await pool.query("SELECT id FROM runs WHERE account_id=$1",[task.accountId])).rows).toEqual(before.rows);
+ } finally {await app.inject({method:"POST",url:"/v1/account/deletion",headers:task.headers});await unavailable.close();}
 });

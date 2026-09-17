@@ -6,7 +6,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun } from "../src/modules/reports.js";

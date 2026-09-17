@@ -7,7 +7,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 import { listEvents } from "../src/modules/runs.js";
 import * as liveSpend from "../src/modules/live-spend.js";
 import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";

@@ -1,0 +1,54 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+stdout | test/document-flow.extraction.test.ts > W04/W05 upload -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding
+{"evidenceClass":"local_api_worker_actual_pdf_fabricated_model","sourceTransport":"binary upload","question":"What does the GKJUPR field note say about underwater recording?","originalBytesSha256":"65fef18a8ea416043b27c23e6e2ea528cab7ec13b9f490882db6ffc229ad2238","runId":"8814d28d-d859-4673-9e34-ceeaf58d4aac","reportId":"716f4f30-d57a-48a7-8e0d-688ea6d4667a","reportText":"GKJUPR does not support underwater recording.","source":{"passageId":"689c83a6-18cf-42f3-bc11-e81520fde097","sourceVersionId":"e9902bea-c9a5-4cdc-b067-7da73b3c968e","locator":{"kind":"text","rows":[],"block":"page:1/block:0","geometry":[{"box":[50,737.516,268.748,748.616],"text":"Field notes: GKJUPR sensor deployment"},{"box":[50,719.516,351.44000000000017,730.616],"text":"GKJUPR supports offline recording only on firmware 4.2."},{"box":[50,701.516,311.44400000000013,712.616],"text":"GKJUPR does not support underwater recording."}],"coordinates":"PDF points; bottom-left origin","normalization":"extractor-output-v1"},"access":"partial-text","method":"docling-parse-7.20.0/geometry-v1","warnings":["pdf_layout_tables_and_ocr_unverified"]},"support":[{"claimRevisionId":"5b2b0d2d-1f67-42d3-9227-b83d85004607","decision":"supported","checks":[{"rule":"exact_evidence_bindings","passed":true},{"rule":"scope_matches_claim","passed":true},{"rule":"readable_evidence","passed":true},{"rule":"scope_grounded_in_quotes","passed":true},{"rule":"numbers_grounded","passed":true},{"rule":"quantities_grounded","passed":true},{"rule":"numeric_context_preserved","passed":true},{"rule":"currency_preserved","passed":true},{"rule":"no_detected_contradiction","passed":true},{"rule":"qualification_preserved","passed":true}]},{"claimRevisionId":"0d960b8c-3a8b-48cb-8b55-188e2824ca9d","decision":"supported","checks":[{"rule":"exact_evidence_bindings","passed":true},{"rule":"scope_matches_claim","passed":true},{"rule":"readable_evidence","passed":true},{"rule":"scope_grounded_in_quotes","passed":true},{"rule":"numbers_grounded","passed":true},{"rule":"quantities_grounded","passed":true},{"rule":"numeric_context_preserved","passed":true},{"rule":"currency_preserved","passed":true},{"rule":"no_detected_contradiction","passed":true},{"rule":"qualification_preserved","passed":true}]}],"paidProviderCalls":0,"modelResponses":"fabricated","correctionJourney":{"question":"What firmware does GKJUPR require for offline recording?","runId":"daad01b8-9a7e-400f-a357-45ad0936591c","reportId":"9bb093d1-53d1-4aaa-b20d-2c176b60c215","text":"GKJUPR supports offline recording only on firmware 4.2.","reusedPassageId":"689c83a6-18cf-42f3-bc11-e81520fde097","reusedSourceVersionId":"e9902bea-c9a5-4cdc-b067-7da73b3c968e","newSourceRows":0,"claimsRecomputed":true,"changeSummary":{"notes":"Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.","comparison":{"version":"report-changes.v1","parentReportId":"716f4f30-d57a-48a7-8e0d-688ea6d4667a","addedCriterionIds":[],"reportStateChanged":false,"removedCriterionIds":[],"unchangedAssertions":0,"addedClaimRevisionIds":["b0aef919-c032-4356-95c2-5732493a0576"],"removedClaimRevisionIds":["0d960b8c-3a8b-48cb-8b55-188e2824ca9d"],"newlyCitedSourceVersionIds":[],"reusedCitedSourceVersionIds":["e9902bea-c9a5-4cdc-b067-7da73b3c968e"]},"newlyFeasible":[],"evidenceUpdated":false,"newlyInfeasible":[],"conclusionChanged":true},"fullRerunReportId":"7245982c-12ee-4cf7-b2a3-053f59ef6cc4","fullRerunTextMatches":true,"comparison":"local fabricated model control, not independent semantic adjudication"}}
+
+stdout | test/document-flow.extraction.test.ts > W04/W05 public-search -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding
+{"evidenceClass":"local_api_worker_actual_pdf_fabricated_model","sourceTransport":"saved bytes transport double","question":"What does the WHIVTT field note say about underwater recording?","originalBytesSha256":"2cf1f5f97b592cf164746fa6f9b4ca5a86637a8fb3932e4c675f8719999e5d03","runId":"496a2d50-e86d-4470-8cc4-026d9c160d92","reportId":"db0a07dd-537a-4086-a5b7-797ae6b0baa7","reportText":"WHIVTT does not support underwater recording.","source":{"passageId":"af59aa7e-d88f-4b67-9058-e041d4b95c7b","sourceVersionId":"f289b9af-cb04-4646-b4ea-b41dc0da51b5","locator":{"kind":"text","rows":[],"block":"page:1/block:0","geometry":[{"box":[50,737.516,266.07200000000006,748.616],"text":"Field notes: WHIVTT sensor deployment"},{"box":[50,719.516,348.7640000000001,730.616],"text":"WHIVTT supports offline recording only on firmware 4.2."},{"box":[50,701.516,308.76800000000014,712.616],"text":"WHIVTT does not support underwater recording."}],"coordinates":"PDF points; bottom-left origin","normalization":"extractor-output-v1"},"access":"partial-text","method":"docling-parse-7.20.0/geometry-v1","warnings":["pdf_layout_tables_and_ocr_unverified"]},"support":[{"claimRevisionId":"d0ea53a9-3ef4-488e-95d1-6b150b9bad3e","decision":"supported","checks":[{"rule":"exact_evidence_bindings","passed":true},{"rule":"scope_matches_claim","passed":true},{"rule":"readable_evidence","passed":true},{"rule":"scope_grounded_in_quotes","passed":true},{"rule":"numbers_grounded","passed":true},{"rule":"quantities_grounded","passed":true},{"rule":"numeric_context_preserved","passed":true},{"rule":"currency_preserved","passed":true},{"rule":"no_detected_contradiction","passed":true},{"rule":"qualification_preserved","passed":true}]},{"claimRevisionId":"a1eda1a1-1b2e-438b-8ca7-90a66304b495","decision":"supported","checks":[{"rule":"exact_evidence_bindings","passed":true},{"rule":"scope_matches_claim","passed":true},{"rule":"readable_evidence","passed":true},{"rule":"scope_grounded_in_quotes","passed":true},{"rule":"numbers_grounded","passed":true},{"rule":"quantities_grounded","passed":true},{"rule":"numeric_context_preserved","passed":true},{"rule":"currency_preserved","passed":true},{"rule":"no_detected_contradiction","passed":true},{"rule":"qualification_preserved","passed":true}]}],"paidProviderCalls":0,"modelResponses":"fabricated","correctionJourney":"not tested"}
+
+ ❯ test/document-flow.extraction.test.ts (7 tests | 1 failed) 16848ms
+   × W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records 114ms
+     → expected 'stored' to be 'partially_read' // Object.is equality
+   ✓ W04 cancel after actual parsing prevents late result persistence  1762ms
+   ✓ W04 delete after actual parsing prevents late result persistence  1693ms
+   ✓ W04/W05 upload -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding  8858ms
+   ✓ W04/W05 public-search -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding  4024ms
+   ✓ W06/W07 disabled route configuration advertises and enforces correction unavailability 97ms
+   ✓ W05 production admission rejects disabled structured processing before reserving a run 49ms
+ ✓ test/html.extraction.test.ts (3 tests) 8700ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  6341ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  1627ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  729ms
+ ✓ test/pdf.extraction.test.ts (4 tests) 6531ms
+   ✓ W04 parses original digital PDF bytes into page-bound text with honest layout limitations  1560ms
+   ✓ W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support  2921ms
+   ✓ W04 encrypted PDF remains explicitly unavailable without password guessing  709ms
+   ✓ W04 binds a late-drawn bold negation to its physical sentence, with recoverable cell geometry  1339ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/document-flow.extraction.test.ts > W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records
+AssertionError: expected 'stored' to be 'partially_read' // Object.is equality
+
+Expected: "partially_read"
+Received: "stored"
+
+ ❯ test/document-flow.extraction.test.ts:48:32
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 13 passed (14)
+   Start at  15:47:13
+   Duration  34.33s (transform 992ms, setup 0ms, collect 1.64s, tests 32.08s, environment 1ms, prepare 222ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts`
+Exit status 1

@@ -9,7 +9,7 @@ import { buildApp } from "../src/api/app.js";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createQueue } from "../src/adapters/queue.js";
-import { processRun } from "../src/worker/executor.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 import { createDevSession, deleteAccount, repairPendingDeletions } from "../src/modules/access.js";
 import { storeAttachment } from "../src/modules/attachments.js";
 import { drainFileDeletions } from "../src/modules/file-deletion.js";

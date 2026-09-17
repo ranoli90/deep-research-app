@@ -963,3 +963,21 @@ it("W06 missing parent publication cannot produce an unchanged comparison",async
  globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
  expect((await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[child.runId])).rows[0].change_summary).toBeNull();
 }));
+
+describe("W05 production executor has no diagnostic fallback",()=>{
+ it("disabled structured processing records unresolved failure without issuing provider work",async()=>runCase(async x=>{
+  await releaseForWorker(x);const provider=vi.fn();globalThis.fetch=provider;
+  await processRun(pool,{...x.config,structuredModelEnabled:false},x.runId);
+  expect(provider).not.toHaveBeenCalled();
+  expect((await getRun(pool,x.runId))?.terminal_outcome).toBe("failed");
+  const events=await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId]);
+  expect(events.rows).toEqual([{payload:{reason:"structured_route_disabled"}}]);
+  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+ it("production entrypoint does not execute a queued fixture even when handed development config",async()=>runCase(async x=>{
+  await releaseForWorker(x);await pool.query("UPDATE runs SET route_mode='fixture', lifecycle='queued' WHERE id=$1",[x.runId]);
+  const provider=vi.fn();globalThis.fetch=provider;await processRun(pool,x.config,x.runId);
+  expect(provider).not.toHaveBeenCalled();expect((await getRun(pool,x.runId))?.lifecycle).toBe("queued");
+  expect((await pool.query("SELECT id FROM sources WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+});

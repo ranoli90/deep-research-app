@@ -42,7 +42,7 @@
   {
     "command": "pnpm dev:demo",
     "status": "implemented_application_command",
-    "scope": "API + worker with labeled fixture route",
+    "scope": "Development API and explicit diagnostic worker with labeled fixtures; not production research",
     "network": false,
     "paid": false,
     "implementation": "apps/backend/src/dev-demo.ts"
@@ -50,7 +50,7 @@
   {
     "command": "pnpm dev:live",
     "status": "implemented_application_command",
-    "scope": "refuses to start without OPENROUTER_API_KEY",
+    "scope": "Structured production-path API/worker with fixtures disabled; requires provider key and positive project/key caps; separate current monetary authorization required",
     "network": true,
     "paid": true,
     "implementation": "apps/backend/src/dev-live.ts"
@@ -98,7 +98,7 @@
   {
     "command": "pnpm test:integration",
     "status": "implemented_application_command",
-    "scope": "P0 smoke + launch-scope + remaining fixture/postgres IDs against real local PostgreSQL and pg-boss; fixture route only",
+    "scope": "Local PostgreSQL/pg-boss safety and accounting; historical bounded-controller diagnostics plus production structured API/worker services using fabricated provider responses. No paid calls or semantic benchmark.",
     "network": false,
     "paid": false,
     "implementation": "apps/backend/vitest.integration.config.ts, apps/backend/test/*.integration.test.ts"

@@ -1,4 +1,6 @@
 # Builder handoff
+
+Production worker isolation checkpoint: standard worker now uses only structured research; the bounded fixture/controller runtime has a separate development-only entrypoint. Shared lease/cancellation/consent/deletion preflight is retained. Historical tests keep every assertion and explicitly target that runtime; real PDF and structured workflow suites continue targeting production. Current checks:262 PostgreSQL integration tests and117 core/92 backend/52 mobile/6 governance checks passed; 14 actual extraction/API tests also passed. W01-W09 remains incomplete.
 ## Active V6 checkpoint
 
 W06/W07 mobile correction adoption: controlled runs now expose server-gated replacement-question mode and the run allowance reservation. Mobile sends the strict typed patch with explicit snapshot/refresh policy, preserves the earlier report, rejects stale responses and guards duplicate submission. Unknown/disabled capability remains unavailable. Demo corrections now respect the disabled fixture-route gate. Metro’s shared-contract TS resolution was repaired after an actual Android JS bundle failure. No online Android device was found; native interaction remains unverified.

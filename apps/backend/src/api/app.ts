@@ -141,6 +141,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (input.routeMode === "controlled-research" && !config.liveRouteEnabled) {
       return reply.code(403).send(err("permission_denied", "Live route is not enabled. Missing authorized credentials/budget.", correlationId));
     }
+    if (input.routeMode === "controlled-research" && config.nodeEnv === "production" && !config.structuredModelEnabled) {
+      return reply.code(403).send(err("permission_denied", "Structured research is disabled.", correlationId));
+    }
     if (input.routeMode === "controlled-research") {
       if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
         return reply.code(403).send(err("permission_denied", "Live route requires OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0.", correlationId));
