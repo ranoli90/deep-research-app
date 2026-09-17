@@ -731,7 +731,7 @@ describe("remaining launch-scope IDs", () => {
   });
 
   it("clarification continue records geography and resumes", async () => {
-    const { token } = await authed();
+    const { token, accountId } = await authed();
     const created = await createRun(token, "What is the filing deadline for employment tax?");
     const runId = created.json().runId as string;
     await processRun(pool, config, runId);
@@ -744,7 +744,14 @@ describe("remaining launch-scope IDs", () => {
     });
     expect(cont.statusCode).toBe(200);
     await processRun(pool, config, runId);
+    const row = await getRun(pool, runId);
+    expect(row?.lifecycle).toBe("terminal");
     const snap = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: { authorization: `Bearer ${token}` } });
     expect(JSON.stringify(snap.json().brief.constraints)).toMatch(/germany/i);
+    const events = await listEvents(pool, runId, 0);
+    expect(events.filter((e) => e.type === "clarify")).toHaveLength(1);
+    const report = await getLatestReportForRun(pool, runId, accountId);
+    expect(report).toBeTruthy();
+    expect(JSON.stringify(report?.blocks)).toMatch(/germany/i);
   });
 });

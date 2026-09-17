@@ -104,6 +104,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/maxHeight: 180/);
     expect(src).toMatch(/isOfflineError/);
     expect(src).toMatch(/AppState\.addEventListener/);
+    expect(src).toMatch(/onContinueClarification/);
+    expect(src).toMatch(/api\.continueRun/);
+    expect(src).toMatch(/report: null/);
+    expect(src).toMatch(/attachments: \[\]/);
   });
 
   it("M05 network failures are offline errors and block submit without dropping the draft", () => {

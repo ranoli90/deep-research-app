@@ -317,7 +317,11 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           runId,
           accountId: run.account_id,
           type: "clarify",
-          summary: `Need a decision-changing detail: ${JSON.stringify(decision.arguments.questions)}`,
+          summary: (() => {
+            const raw = decision.arguments.questions;
+            const first = Array.isArray(raw) ? raw[0] : raw;
+            return String(first ?? "Which jurisdiction should this answer apply to?");
+          })(),
           phase: "preparing",
           payload: decision.arguments,
         });

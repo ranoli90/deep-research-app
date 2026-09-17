@@ -136,6 +136,10 @@ function AppInner() {
               changeSummary: report.changeSummary ?? null,
             },
           };
+        } else if (snap.runId && s.run?.runId !== snap.runId) {
+          next = { ...next, report: null };
+        } else if (!snap.reportId && (snap.lifecycle === "awaiting_input" || snap.lifecycle === "queued" || snap.lifecycle === "running")) {
+          next = { ...next, report: null };
         }
         void persistSession(AsyncStorage, { token: t, state: next });
         return next;
@@ -224,6 +228,11 @@ function AppInner() {
           ...s,
           status: "progress" as const,
           error: null,
+          attachments: [],
+          report: null,
+          previousReport: s.report
+            ? { reportId: s.report.reportId, blocks: s.report.blocks }
+            : s.previousReport,
           run: {
             runId: created.runId,
             lifecycle: created.lifecycle,
@@ -298,6 +307,31 @@ function AppInner() {
     } catch (e) {
       if (isExpiredSession(e)) await onAuthFailure();
       else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
+  }
+
+  async function onContinueClarification() {
+    if (!token || !state.run) return;
+    const geography = clarifyAnswer.trim() || "Germany";
+    try {
+      await api.continueRun(token, state.run.runId, geography);
+      setState((s) => {
+        const next = { ...s, status: "progress" as const, error: null };
+        void persistSession(AsyncStorage, { token, state: next });
+        return next;
+      });
+      AccessibilityInfo.announceForAccessibility("Clarification saved. Research continues on the server.");
+      await refreshRun(token, state.run.runId);
+      startPolling(token, state.run.runId);
+    } catch (e) {
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) {
+        setState((s) => {
+          const next = { ...s, offline: true, error: (e as Error).message };
+          void persistSession(AsyncStorage, { token, state: next });
+          return next;
+        });
+      } else setState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -414,11 +448,7 @@ function AppInner() {
                   accessibilityLabel="Clarification answer"
                 />
                 <Pressable
-                  onPress={async () => {
-                    if (!token || !state.run) return;
-                    await api.continueRun(token, state.run.runId, clarifyAnswer.trim() || "Germany");
-                    startPolling(token, state.run.runId);
-                  }}
+                  onPress={() => void onContinueClarification()}
                   accessibilityRole="button"
                   accessibilityLabel="Submit clarification and continue"
                 >

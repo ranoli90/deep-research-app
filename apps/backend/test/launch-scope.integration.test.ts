@@ -76,6 +76,8 @@ describe("launch-scope fixture/postgres cases", () => {
     const events = await listEvents(pool, runId, 0);
     expect(events.some((e) => e.type === "clarify")).toBe(true);
     expect(JSON.stringify(events)).toMatch(/jurisdiction/i);
+    const clarify = events.find((e) => e.type === "clarify");
+    expect(clarify?.public_summary ?? clarify?.summary ?? JSON.stringify(clarify)).not.toMatch(/\[/);
   });
 
   it("R03 does not interview a clear comparison over style", async () => {

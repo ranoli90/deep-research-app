@@ -19,6 +19,7 @@ Working tree: `main` at `9501688059f7d310764868f836f7a61027d88f1a`. P0 is **not*
 - M02 enlarged text: `font_scale=1.3` on Xiaomi. Composer+Send, report, source sheet, library titles, and Settings including Delete remain readable. Scale restored to 1.0.
 - M05: with the API down, Send shows “Network request failed” and “Offline. Draft and last report stay on this device.” The draft and last fixture report remain; no new run was published. API was restarted afterward.
 - M08: Verify this claim published a child report with change summary “Targeted follow-up verified the named claim without reopening candidate discovery.” Previous version remains on screen with Share previous Markdown.
+- R02: a filing-deadline question without geography showed Need one detail / jurisdiction on the Xiaomi. Continue with Germany produced a report with `geography=germany` and no second clarify. New runs now clear the previous report and attachments so the clarification card is visible.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
@@ -27,7 +28,7 @@ Working tree: `main` at `9501688059f7d310764868f836f7a61027d88f1a`. P0 is **not*
 |---|---|---|
 | `pnpm test:integration` | 0 | 76 tests including R19 follow-up change_summary |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm --filter @deep/mobile test` | 0 | 31 tests including M08 change summary |
+| `pnpm --filter @deep/mobile test` | 0 | 31 tests including continue-clarification wiring |
 | `pnpm --filter @deep/research-core test` | 0 | 23 tests including follow-up changeSummary |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |

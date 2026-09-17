@@ -1,0 +1,22 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "R02",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "observed": {
+    "question": "What is the filing deadline for employment tax?",
+    "clarification_card": "Clarification needed / Need one detail / Which jurisdiction should this answer apply to?",
+    "continue": "tapped Continue research (empty field defaults to Germany)",
+    "report_constraints": "geography=germany. These were taken from the question and were not re-asked.",
+    "second_clarify": false,
+    "note": "A leftover attached note.txt still influenced the answer text on this capture; send now clears attachments after create."
+  },
+  "code": "onSend clears report and attachments so awaiting_input is visible; clarify event summary is the question string, not JSON.stringify(array); onContinueClarification persists and resumes polling.",
+  "tests": {
+    "mobile": "pnpm --filter @deep/mobile test 31/31",
+    "integration": "pnpm --filter @deep/backend test:integration 76/76 including R02 summary without '[' and clarification continue to a germany report"
+  },
+  "status": "implemented and verified on Android device"
+}
