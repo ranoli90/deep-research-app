@@ -13,15 +13,15 @@ export async function validateOwnedModelContext(db: Queryable, args: {
   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
   for (const p of args.context.passages) {
     if (createHash("sha256").update(p.text).digest("hex") !== p.digest) throw new Error("model_evidence_digest_mismatch");
-    const row = await db.query(`SELECT p.id FROM passages p JOIN source_versions v ON v.id=p.source_version_id
+    const row = await db.query(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
       JOIN sources s ON s.id=v.source_id
       WHERE p.id=$1 AND p.account_id=$2 AND p.run_id=$3 AND p.source_version_id=$4 AND p.content_hash=$5 AND p.exact_text=$6
-      AND v.account_id=$2 AND s.account_id=$2 AND s.run_id=$3 AND v.access_level=$7`,
+      AND v.account_id=$2 AND s.account_id=$2 AND v.access_level=$7`,
       [p.id, args.accountId, args.runId, p.sourceVersionId, p.digest, p.text, p.accessLevel]);
     if (row.rowCount !== 1) throw new Error("model_evidence_owner_or_version_mismatch");
   }
   for (const source of args.context.sources) {
-    const row = await db.query("SELECT id FROM sources WHERE id::text=$1 AND account_id=$2 AND run_id=$3 AND title=$4",
+    const row = await db.query("SELECT s.id FROM sources s WHERE s.id::text=$1 AND s.account_id=$2 AND s.title=$4 AND (s.run_id=$3 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$3 AND p.account_id=$2 AND v.source_id=s.id))",
       [source.handle, args.accountId, args.runId, source.title]);
     if (row.rowCount !== 1) throw new Error("model_source_owner_mismatch");
   }

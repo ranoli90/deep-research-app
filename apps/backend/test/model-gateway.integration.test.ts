@@ -1,3 +1,5 @@
+import { admitResearchCorrection } from "../src/modules/research-corrections.js";
+import { inheritRunEvidence } from "../src/modules/run-evidence.js";
 import { createHash } from "node:crypto";
 import * as sourceReader from "../src/adapters/retrieval/read-source.js";
 import { executeSourceRead } from "../src/worker/source-reading.js";
@@ -8,7 +10,7 @@ import { reportCompletionCovered } from "../src/modules/publication-coverage.js"
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
-import { CreateRunRequestSchema, type CanonicalReport } from "@deep/contracts";
+import { CorrectionRequestSchema,CreateRunRequestSchema, type CanonicalReport } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
@@ -51,6 +53,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
   finally {
     session.stop();
     await withTx(pool, async (db) => {
+      for(const {id:runId} of (await db.query("SELECT id FROM runs WHERE account_id=$1 ORDER BY created_at DESC",[accountId])).rows) {
       await db.query("DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE run_id=$1)",[runId]);
       for(const table of ["notification_fanout","completion_outbox","publication_attempts","reports"]) await db.query(`DELETE FROM ${table} WHERE run_id=$1`,[runId]);
       for (const table of ["extraction_receipts", "evidence_artifacts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
@@ -58,6 +61,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
       }
       await db.query("DELETE FROM runs WHERE id=$1", [runId]);
+      }
       for (const table of ["research_briefs", "conversations", "allowance_accounts", "sessions", "consent_records", "tombstones"]) await db.query(`DELETE FROM ${table} WHERE account_id=$1`, [accountId]);
       await db.query("DELETE FROM accounts WHERE id=$1", [accountId]);
     });
@@ -884,3 +888,60 @@ it("W02/W05 concurrent distinct searches obey the durable per-run query ceiling"
  expect(await performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})).toMatchObject({kind:"search",reused:true});
  expect(fetch).toHaveBeenCalledTimes(3);
 }));
+
+const correctionInput=(question:string,evidencePolicy:"reuse_snapshot"|"refresh"="reuse_snapshot")=>CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Replace the research question",patch:{kind:"replace_question",question,evidencePolicy}});
+function revisedWorkerTransport() {
+ const normal=structuredWorkerTransport();return vi.fn(async(input,init)=>{
+  const body=JSON.parse(String(init?.body)),context=JSON.parse(body.messages[1].content);
+  if(body.response_format.json_schema.name==="research_brief_v1") {
+   const provenance={start:0,end:context.question.length,quote:context.question};
+   return response({...brief,objective:context.question,objectiveProvenance:provenance,criteria:[{...brief.criteria[0]!,provenance}],questions:[{...brief.questions[0]!,text:context.question}]});
+  }
+  return normal(input,init);
+ }) as typeof fetch;
+}
+async function parentEvidence(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/correction",title:"Measured evidence",publisher:"Study",originCluster:"study"});
+ return insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/correction",text:`Kelp-${crypto.randomUUID()} restored 12 hectares in 2024.`,accessLevel:"partial-text"});
+}
+describe("W06 immutable correction evidence membership",()=>{
+ it("reuses exact passage/version identities but recomputes child claims through production worker",async()=>runCase(async(x)=>{
+  const p=await parentEvidence(x);await releaseForWorker(x);globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,x.runId);
+  const old=(await pool.query("SELECT claim_ids FROM reports WHERE run_id=$1",[x.runId])).rows[0];
+  const replacement="What area did the kelp restoration study report?";
+  const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput(replacement));
+  expect((await pool.query("SELECT original_question FROM research_briefs WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[child.runId])).rows[0].original_question).toBe(replacement);
+  globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
+  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[child.runId])).rows[0];expect(report).toBeDefined();
+  expect(report.blocks[1].citationIds).toEqual([p.passageId]);expect(report.claim_ids.some((id:string)=>old.claim_ids.includes(id))).toBe(false);
+  expect((await pool.query("SELECT source_version_id FROM run_evidence_membership WHERE run_id=$1",[child.runId])).rows).toEqual([{source_version_id:p.versionId}]);
+  expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[child.runId])).rowCount).toBe(0);expect(fetch).toHaveBeenCalledTimes(7);
+  expect((await pool.query("SELECT dependency_completeness,reused_passages,reopen_discovery FROM research_change_sets WHERE run_id=$1",[child.runId])).rows[0]).toEqual({dependency_completeness:"unknown",reused_passages:1,reopen_discovery:true});
+ }));
+ it("concurrent identical corrections admit one child, allowance and outbox",async()=>runCase(async(x)=>{
+  await parentEvidence(x);const input=correctionInput("What did the study measure?");
+  const [a,b]=await Promise.all([admitResearchCorrection(pool,x.accountId,x.runId,input),admitResearchCorrection(pool,x.accountId,x.runId,input)]);
+  expect(a.runId).toBe(b.runId);expect([a.reused,b.reused].sort()).toEqual([false,true]);
+  for(const table of ["reservations","run_dispatch_outbox","research_change_sets"])expect((await pool.query(`SELECT 1 FROM ${table} WHERE run_id=$1`,[a.runId])).rowCount).toBe(1);
+ }));
+ it("refresh does not inherit old evidence and foreign ownership cannot grant membership",async()=>runCase(async(x)=>{
+  await parentEvidence(x);const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("Refresh the study evidence","refresh"));
+  expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+  await expect(inheritRunEvidence(pool,{runId:child.runId,parentRunId:x.runId,accountId:crypto.randomUUID()})).rejects.toThrow("evidence_inheritance_owner_or_state_mismatch");
+  await withTx(pool,(db)=>deleteAccount(db,x.accountId));
+  expect((await pool.query("SELECT 1 FROM research_change_sets WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+ it("changed source digests revoke membership visibility and account deletion purges it",async()=>runCase(async(x)=>{
+  const p=await parentEvidence(x),child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("Inspect this study again"));
+  expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[child.runId])).rowCount).toBe(1);
+  await pool.query("UPDATE source_versions SET content_hash=$2 WHERE id=$1",[p.versionId,"0".repeat(64)]);
+  expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+  await withTx(pool,(db)=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT 1 FROM run_evidence_membership WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+});
+it("W06 a corrupt cross-account membership cannot expose foreign passages",async()=>runCase(async(x)=>runCase(async(y)=>{
+ const p=await parentEvidence(y),child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("Inspect authorized evidence only","refresh"));
+ await pool.query(`INSERT INTO run_evidence_membership(run_id,account_id,passage_id,source_version_id,origin_run_id,passage_digest,version_digest)
+  SELECT $1,$2,p.id,p.source_version_id,p.run_id,p.content_hash,v.content_hash FROM passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.id=$3`,[child.runId,x.accountId,p.passageId]);
+ expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+})));

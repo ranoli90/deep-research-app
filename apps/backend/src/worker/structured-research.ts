@@ -39,12 +39,13 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision}});
   });
   if(opts.pauseAt==="researching")return;
-  const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM passages p JOIN source_versions v ON v.id=p.source_version_id
-    JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1 AND s.run_id=$2
+  const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+    JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
     AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]));
   let selected=await selectPassages();
   const priorDiscovery=await session.write((db)=>db.query("SELECT 1 FROM search_operations WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 LIMIT 1",[args.runId,args.accountId,args.briefRevision]));
-  if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount)) {
+  const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
+  if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
     if(brief.attachmentIds.length)return unresolved("document_search_requires_public_query_approval");
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");

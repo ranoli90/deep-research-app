@@ -105,3 +105,8 @@ Persist a source-read operation and its exact extracted version before treating 
 
 
 ADR019 criterion-loop amendment: use a small pure bounded policy to narrow search to unresolved criterion provenance before adding another model planning call. Every evidence change triggers actual assertion/support/coverage work; durable route limits prevent restart or concurrency from expanding query count. This approach cannot invent synonyms or search terms absent from the user question, and may exhaust without a distinct query. Broader approved query formulation needs measured evaluation and explicit privacy design. Rollback disables structured discovery, retaining safe evidence and accounting.
+
+
+## ADR020 — Explicit replacement patches with immutable evidence membership
+Use a full replacement question as the first typed correction, preserving the accepted user message and named parent revision. This avoids interpreting a contradiction-laden appended question as a settled patch. Conservative recomputation is explicit because dependency completeness is unknown; old approvals never transfer. Fine-grained criterion and formatting patches remain separate unfinished capabilities.
+Reuse source snapshots through digest-bound passage membership and a common authorized read projection, rather than duplicating source rows or changing their owner/run. Snapshot and refresh are explicit policies. New discovery reopens conservatively for public tasks; private-query boundaries remain. Account deletion overrides history. Atomic idempotent admission includes allowance and dispatch outbox. Rollback disables typed admission while retaining membership reads, deletion and publication safeguards; no destructive down migration or hosted rollout is authorized.

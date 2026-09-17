@@ -98,3 +98,6 @@ Durable source reads now bind owned handles, task/brief and exact source version
 
 
 Criterion discovery reuses only exact original-question provenance and existing public-query validation. Per-run/per-route query attempts are capped at3 under the same account/run locks as reservation; unknown attempts count and existing identities can replay. No new processor, consent policy, route price, allowance or live authorization. Disable structured discovery to roll back; retain atomic spend and privacy gates.
+
+
+W06 snapshot reuse is explicit per typed patch. The read projection checks active account, source owner, original run, selected version and passage/version digests on every use. A same-owner UUID outside admitted membership is insufficient; even a corrupt cross-owner membership grants no readable row. New question/claim checks incur existing bounded gateway costs; no claim of selective model savings. Correction, allowance, membership and outbox commit together; duplicate accepted patches reuse the same child. Account deletion purges memberships and accepted correction text. No paid/native/hosted authorization is added.

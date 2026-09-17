@@ -1,3 +1,4 @@
+import * as documentExtractor from "../src/adapters/extraction/offline.js";
 import * as publicTransport from "../src/platform/ssrf.js";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -64,15 +65,15 @@ it.each(["cancel", "delete"])("W04 %s after actual parsing prevents late result 
   const run = (await getRun(pool, task.runId))!, brief = await getBrief(pool, run.brief_id);
   const fence = (await withTx(pool, (db) => claimLease(db, run.id, owner, 30_000)))!;
   const session = fencedSession(pool, { runId: run.id, accountId: run.account_id, owner, fence, briefRevision: run.brief_revision, leaseMs: 30_000 });
-  let writes = 0;
+  const extract=documentExtractor.extractOffline;let parsed=false;
+  vi.spyOn(documentExtractor,"extractOffline").mockImplementation(async(...args)=>{
+    const result=await extract(...args);expect(result.blocks.length).toBeGreaterThan(0);parsed=true;
+    const response=await app.inject({method:"POST",url:action==="delete"?"/v1/account/deletion":`/v1/runs/${run.id}/cancel`,headers:task.headers});
+    expect(response.statusCode).toBe(200);return result;
+  });
   try {
-    await expect(ingestAttachments(pool, run, brief, { ...session, write: async (fn, revoked) => {
-      if (++writes === 2) {
-        const result = await app.inject({ method: "POST", url: action === "delete" ? "/v1/account/deletion" : `/v1/runs/${run.id}/cancel`, headers: task.headers });
-        expect(result.statusCode).toBe(200);
-      }
-      return session.write(fn, revoked);
-    } })).rejects.toThrow("stale_worker");
+    await expect(ingestAttachments(pool,run,brief,session)).rejects.toThrow("stale_worker");
+    expect(parsed).toBe(true);
     expect((await pool.query("SELECT 1 FROM passages WHERE run_id=$1", [run.id])).rowCount).toBe(0);
     expect((await pool.query("SELECT extraction FROM attachments WHERE id=$1", [task.attachmentId])).rows[0].extraction).toBeNull();
   } finally { session.stop(); }
@@ -97,7 +98,7 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
    return reply({objective:context.question,objectiveProvenance:provenance,intendedOutput:"Document-grounded answer",criteria:[{key:"recording",description:"Underwater recording support",field:"recording",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],questions:[{key:"q",text:context.question,criterionKeys:["recording"],importance:"critical",evidenceStandard:"Explicit statement in the supplied document"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]});
   }
   if(operation==="research_extract_assertions_v1") {
-   const sentence=`${task.entity} does not support underwater recording.`;
+   const sentence=context.question.includes("firmware")?`${task.entity} supports offline recording only on firmware 4.2.`:`${task.entity} does not support underwater recording.`;
    const p=context.passages.find((p:{text:string})=>p.text.includes(sentence));
    if(!p)throw new Error("actual PDF extraction lost the negative finding");
    const start=p.text.indexOf(sentence);
@@ -124,12 +125,32 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
  expect(checks).toHaveLength(2);expect(checks.every((c)=>c.result.decision==="supported")).toBe(true);
  expect(globalThis.fetch).toHaveBeenCalledTimes(publicSource?8:7);
  if(publicSource)expect(publicTransport.safeFetch).toHaveBeenCalledTimes(1);
+ let correctionTrace:unknown="not tested";
+ if(!publicSource) {
+  const revisedQuestion=`What firmware does ${task.entity} require for offline recording?`;
+  const corrected=await app.inject({method:"POST",url:`/v1/runs/${task.runId}/corrections`,headers:task.headers,
+   payload:{expectedBriefRevision:1,correctionText:"Ask about the firmware requirement instead.",patch:{kind:"replace_question",question:revisedQuestion,evidencePolicy:"reuse_snapshot"}}});
+  expect(corrected.statusCode).toBe(200);const childId=corrected.json().runId;
+  await processRun(pool,config,childId);
+  const childReport=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[childId])).rows[0];expect(childReport).toBeDefined();
+  const childReopen=await app.inject({method:"GET",url:`/v1/reports/${childReport.id}`,headers:task.headers});expect(childReopen.statusCode).toBe(200);
+  const revisedText=`${task.entity} supports offline recording only on firmware 4.2.`;
+  expect(childReopen.json().blocks[1].text).toBe(revisedText);expect(childReopen.json().blocks[1].citationIds).toEqual([passageId]);
+  expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[childId])).rowCount).toBe(0);
+  expect((await pool.query("SELECT source_version_id FROM run_evidence_membership WHERE run_id=$1 AND passage_id=$2",[childId,passageId])).rows[0].source_version_id).toBe(source.json().sourceVersionId);
+  const full=await app.inject({method:"POST",url:"/v1/runs",headers:{...task.headers,"idempotency-key":crypto.randomUUID()},payload:{question:revisedQuestion,routeMode:"controlled-research",attachmentIds:[task.attachmentId]}});
+  expect(full.statusCode).toBe(200);await processRun(pool,config,full.json().runId);
+  const fullReport=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[full.json().runId])).rows[0];expect(fullReport.blocks[1].text).toBe(revisedText);
+  expect(fullReport.blocks[1].citationIds).not.toEqual([passageId]);expect(globalThis.fetch).toHaveBeenCalledTimes(21);
+  correctionTrace={question:revisedQuestion,runId:childId,reportId:childReport.id,text:revisedText,reusedPassageId:passageId,reusedSourceVersionId:source.json().sourceVersionId,
+   newSourceRows:0,claimsRecomputed:true,fullRerunReportId:fullReport.id,fullRerunTextMatches:true,comparison:"local fabricated model control, not independent semantic adjudication"};
+ }
  console.info(JSON.stringify({evidenceClass:"local_api_worker_actual_pdf_fabricated_model",sourceTransport:publicSource?"saved bytes transport double":"binary upload",question:task.question,
   originalBytesSha256:createHash("sha256").update(task.bytes).digest("hex"),runId:task.runId,reportId:reports[0].id,
   reportText:reopened.json().blocks[1].text,source:{passageId,sourceVersionId:source.json().sourceVersionId,locator:source.json().passageLocator,
    access:source.json().accessLevel,method:source.json().extractionMethod,warnings:source.json().warnings},
   support:checks.map((c)=>({claimRevisionId:c.claim_revision_id,decision:c.result.decision,checks:c.result.checks})),
-  paidProviderCalls:0,modelResponses:"fabricated",correctionJourney:"not tested"}));
+  paidProviderCalls:0,modelResponses:"fabricated",correctionJourney:correctionTrace}));
  const library=await app.inject({method:"GET",url:"/v1/library",headers:task.headers});expect(JSON.stringify(library.json())).toContain(reports[0].id);
  expect((await app.inject({method:"POST",url:"/v1/account/deletion",headers:task.headers})).statusCode).toBe(200);
  expect((await pool.query("SELECT 1 FROM research_coverage WHERE account_id=$1",[task.accountId])).rowCount).toBe(0);

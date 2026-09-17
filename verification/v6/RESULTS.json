@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Criterion-driven follow-up discovery with durable query cap;253 full PostgreSQL,81 focused,117/88/47/4 verify. W01-W09 incomplete.",
+  "workingTree": "Typed replacement correction with explicit source snapshot membership and full child claim recomputation.258 full PostgreSQL;117/88/47/4 verify. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3420,14 +3420,182 @@
       "scope": "81/81 final controls; same-query replay succeeds after durable query cap without another HTTP request",
       "sha256": "d360c34d08f97e46fac030a41b1b7a5f410ad03f61dbc315987c3e9227b16cd0",
       "implementationCommit": "2ad2a905351e3b8f459861b0f653ff564734601c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "pnpm verify",
+      "artifact": "correction-membership-verify.log",
+      "exitCode": 2,
+      "evidenceClass": "deterministic_typecheck",
+      "scope": "nullable parent/consent narrowing failed; fixed never-returning rejection helper",
+      "sha256": "7a113f8c0c0155d9a8d1ae73d5266d741abf1a6c16cf00dfbc8eca76b7c15600"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "correction-membership-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_correction",
+      "scope": "85/85 including immutable reuse, child recomputation, concurrent admission, refresh, digest revocation and deletion",
+      "sha256": "bddf6552e18330d68be59c07b19c161a4d7052b3ca0a4cf7f2fd2ce6ba278afb"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "pnpm verify",
+      "artifact": "correction-membership-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117/88/47/4 after narrowing fix",
+      "sha256": "bad94d8e90f835765b4d6ac910b33e15a7022a4978b0d0b3406a7cba4a5c70b1"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "pnpm verify",
+      "artifact": "correction-membership-verify-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117/88/47/4 after cross-owner membership control",
+      "sha256": "b514dd4721fd5a8d43fe08782734acce48b3735c43f3ad64e5d630e2b660dde8"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "pnpm verify",
+      "artifact": "correction-membership-verify-final-code.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117/88/47/4 final source and strengthened actual-parser cancellation control",
+      "sha256": "78730544b14f7a3c4fca3306626e46a7f2a1932d266d06c22d8bea08e3522e3e"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "correction-membership-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_pdf_correction",
+      "scope": "12/12; actual PDF corrected report/full-rerun control; cancellation timing coverage superseded by final rerun",
+      "sha256": "d93d598ecccd9fecbd5749ff28bf893ce0f4329e7ab7b9689d1697d7a610e0b4"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "correction-membership-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "review structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed replacement and immutable evidence membership; revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "correction-membership-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "handoff structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "typed correction membership; final attachment checks exercised separately",
+      "command": "pnpm test:integration",
+      "artifact": "correction-membership-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "258/258 across16files in189.96s; includes corrupt cross-account membership denial",
+      "sha256": "d01ac1278f37db5c97835b36e4065251818487d19f2f100a7252c976d0098717"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W06"
+      ],
+      "commit": "84491d4",
+      "workingTree": "final actual-parser cancellation and corrected-document control",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "correction-membership-extraction-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_pdf_correction",
+      "scope": "12/12;47.91s; actual parser revocation, API correction/reopen/full-rerun match/deletion; fabricated model responses",
+      "sha256": "f3a6f40312b6501c63cdb76725a953d442ac9e7ed4637b1f8af60a41e5ed7ead"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W06",
+        "V6-F08"
+      ],
+      "commit": "84491d4",
+      "workingTree": "final explicit view projection and correction code",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "correction-membership-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_correction",
+      "scope": "86/86;38.87s; reexecuted migration024, exact reuse, recomputation, ownership, idempotency, deletion",
+      "sha256": "75fac6234951633b8fabb1916a085a909d818886bca33639a1166c3b542559dc"
     }
   ],
   "unresolved": [
-    "W01: general semantic checking and criterion-linked support",
-    "W02: acquisition of missing provider receipts, historical settlement repair, enforceably bounded model-route estimates and complete typed action execution outcomes",
-    "W03: hosted identity lifecycle/native login and privacy routing",
-    "W04: native binary picker, broader extraction fidelity and independent corpus",
-    "W05-W09: integrate the structured gateway into the general criteria/evidence/support/writer workflow, typed action outcomes, correction-safe membership/reuse, mobile essentials and held-out evaluation",
+    "W01: broader held-out semantic checking and real-model quality evidence",
+    "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
+    "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
+    "W04: native binary picker and broader independent document fidelity corpus",
+    "W05: broader discovery/evidence selection, substantive remaining actions and production fixture reachability removal",
+    "W06: granular typed patches, selective dependency traversal, result-derived change summaries and freshness policy beyond explicit snapshot/refresh",
+    "W07: native file/correction/account flows and usable export bibliography",
+    "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",
     "W10: separate release gates; no new deployment, paid model or native quality claim"
   ],
   "liveSpend": {

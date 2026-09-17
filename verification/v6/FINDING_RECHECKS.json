@@ -54,8 +54,8 @@
       "id": "V6-F08",
       "title": "Correction reuse is a flag rather than demonstrated evidence reuse",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-      "status": "rechecked; open",
-      "basis": "Correction flags do not establish immutable evidence membership or actual reuse."
+      "status": "rechecked; partial implementation with real identity reuse",
+      "basis": "Correction flags do not establish immutable evidence membership or actual reuse. Typed full-question replacement now atomically admits a child with explicit snapshot/refresh policy, accepted patch text and unknown dependency completeness. Exact passage/version digest memberships drive the production extraction/support/writer/publication path; child claims are newly checked. API + actual PDF correction matches a full-rerun fabricated-model control while retaining citation identity. Granular patches, result change summaries, selective traversal, freshness and independent semantic comparator evidence remain open."
     },
     {
       "id": "V6-F09",
@@ -135,5 +135,5 @@
       "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
     }
   ],
-  "checkpointEvidence": "253 full local PostgreSQL;117/88/47/4 verify;81 focused criterion/read/model controls. Search/model transports fabricated; overall milestone incomplete."
+  "checkpointEvidence": "258 full local PostgreSQL;117/88/47/4 verify; actual PDF/API correction with model doubles; final parser cancellation checks recorded in RESULTS. W01-W09 incomplete."
 }

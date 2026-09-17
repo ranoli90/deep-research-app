@@ -1,3 +1,4 @@
+import { admitResearchCorrection } from "../modules/research-corrections.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
   CONSENT_POLICY_VERSION,
@@ -324,6 +325,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
+    }
+    if(parsed.data.patch) {
+      if(!config.structuredModelEnabled||run.route_mode!=="controlled-research")return reply.code(409).send(err("invalid_input","Structured corrections are unavailable on this route.",crypto.randomUUID()));
+      const created=await admitResearchCorrection(pool,a.accountId,id,parsed.data);
+      await tryDispatchRun(pool,boss,created.runId);
+      return created;
     }
     const parentBrief = await getBrief(pool, run.brief_id);
     const parsedCorrection = parseCorrection(parsed.data.correctionText);

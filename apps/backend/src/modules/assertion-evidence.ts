@@ -19,9 +19,9 @@ export async function loadAssertionEvidence(db:Queryable,args:{runId:string;acco
     const rows = await db.query<{ id:string; version:string; digest:string; text:string; access:string; source:string; title:string }>(`SELECT
       p.id,p.source_version_id AS version,p.content_hash AS digest,p.exact_text AS text,
       v.access_level AS access,s.id AS source,s.title
-      FROM passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
+      FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
       WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3
-        AND v.account_id=$2 AND s.account_id=$2 AND s.run_id=$3 ORDER BY p.id`,[ids,args.accountId,args.runId]);
+        AND v.account_id=$2 AND s.account_id=$2 ORDER BY p.id`,[ids,args.accountId,args.runId]);
     if (rows.rowCount !== ids.length) throw new Error("extraction_evidence_owner_mismatch");
     const context = ModelContextSchema.safeParse({ ...briefContext(brief.originalQuestion),task:task.specification,
       passages:rows.rows.map((p) => ({ id:p.id,sourceVersionId:p.version,digest:p.digest,text:p.text,accessLevel:p.access })),

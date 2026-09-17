@@ -213,7 +213,12 @@ export const CreateRunRequestSchema = z.object({
 });
 export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
 
+export const ResearchCorrectionPatchSchema=z.object({
+  kind:z.literal("replace_question"),question:z.string().min(1).max(20_000),
+  evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
+}).strict();
 export const CorrectionRequestSchema = z.object({
+  patch:ResearchCorrectionPatchSchema.optional(),
   expectedBriefRevision: z.number().int().positive(),
   correctionText: z.string().min(1).max(20_000),
   claimId: z.string().optional(),

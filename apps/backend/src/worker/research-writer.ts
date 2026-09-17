@@ -52,8 +52,8 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
     if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");
     const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
     const rows=await db.query<{id:string;title:string;access_level:string;origin_cluster:string}>(`SELECT DISTINCT s.id,s.title,v.access_level,s.origin_cluster
-      FROM passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
-      WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2 AND s.run_id=$3`,[cited,args.accountId,args.runId]);
+      FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
+      WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2`,[cited,args.accountId,args.runId]);
     const report:CanonicalReport={reportId:crypto.randomUUID(),runId:args.runId,version:1,
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),

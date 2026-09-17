@@ -41,9 +41,9 @@ export async function publishReport(
   const stored = await db.query<{
     id: string; source_id: string; source_version_id: string; exact_text: string;
   }>(`SELECT p.id, v.source_id, p.source_version_id, p.exact_text
-      FROM passages p JOIN source_versions v ON v.id = p.source_version_id
+      FROM authorized_run_passages p JOIN source_versions v ON v.id = p.source_version_id
       JOIN sources s ON s.id = v.source_id
-      WHERE p.run_id = $1 AND s.run_id = $1
+      WHERE p.run_id = $1
         AND p.account_id = $2 AND v.account_id = $2 AND s.account_id = $2`,
     [run.id, args.accountId]);
   const passages = stored.rows.map((p) => ({ id: p.id, sourceId: p.source_id,

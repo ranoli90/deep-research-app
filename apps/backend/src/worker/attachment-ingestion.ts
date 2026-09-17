@@ -17,6 +17,9 @@ export async function ingestAttachments(pool: pg.Pool, run: { id: string; accoun
     if (!att) throw new Error("attachment_unavailable");
     const bytes = att.raw_bytes;
     const digest = createHash("sha256").update(bytes ?? Buffer.alloc(0)).digest("hex");
+    const inherited=await pool.query(`SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
+      WHERE p.run_id=$1 AND p.account_id=$2 AND s.canonical_locator=$3 AND v.content_hash=$4 AND s.run_id<>$1 LIMIT 1`,[run.id,run.account_id,locator,bytes&&digest===att.sha256?digest:null]);
+    if(inherited.rowCount)continue;
     const cached = ExtractedDocument.safeParse(att.extraction);
     let extraction: ExtractedDocument;
     if (cached.success && bytes && cached.data.digest === digest &&
