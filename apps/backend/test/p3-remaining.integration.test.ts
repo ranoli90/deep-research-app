@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
@@ -350,14 +351,15 @@ describe("remaining launch-scope IDs", () => {
     expect(JSON.stringify(report?.blocks)).toMatch(/vector engine|INTERNAL-PROPOSAL|supplied/i);
   });
 
-  it("E06 PDF attachment is disclosed as text-only / unread pages", async () => {
+  it("E06 actual PDF with no readable evidence is disclosed as unread pages", async () => {
     const { token, accountId } = await authed();
     const att = await app.inject({
       method: "POST",
-      url: "/v1/attachments",
-      headers: { authorization: `Bearer ${token}` },
-      payload: { filename: "scan.pdf", mime: "application/pdf", text: "page 1 only" },
+      url: "/v1/attachments/bytes",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/octet-stream", "x-document-mime": "application/pdf", "x-file-name": "scan.pdf" },
+      payload: await readFile(new URL("./fixtures/documents/empty-page.pdf", import.meta.url)),
     });
+    expect(att.statusCode).toBe(201);
     const created = await createRun(token, "Reconcile the attached scan.pdf with public Postgres pricing in Germany under 50 EUR as of 2026-03-01", {
       attachmentIds: [att.json().attachmentId],
     });

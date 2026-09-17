@@ -47,8 +47,8 @@
       "id": "V6-F07",
       "title": "PDF attachment feature does not parse real PDF bytes",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-      "status": "rechecked; open",
-      "basis": "Legacy attachment API still accepts pasted text labelled PDF. New offline adapter honestly returns PDF unsupported; no binary upload completion claim."
+      "status": "reproduced; binary and isolated digital-text repair, broader quality/native flow open",
+      "basis": "Pasted PDF rejection and original binary byte/digest regression reproduced. Authenticated binary upload, isolated Docling Parse geometry, page/cell source inspection and fenced deletion/cancellation pass local tests. Real RFC diagnostic retained baseline failures and preserved selected negation; table/column/OCR and native picker remain open."
     },
     {
       "id": "V6-F08",
@@ -135,5 +135,5 @@
       "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
     }
   ],
-  "checkpointEvidence": "151/151 local integration, pnpm verify and mobile typecheck pass; overall milestone incomplete"
+  "checkpointEvidence": "153/153 local integration; pnpm verify; 10/10 clean-runtime extraction/API-worker checks; public PDF diagnostic; overall milestone incomplete"
 }

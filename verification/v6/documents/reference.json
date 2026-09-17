@@ -1,0 +1,6 @@
+{
+  "expected": "A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.",
+  "page": 18,
+  "source": "https://www.rfc-editor.org/rfc/rfc9112.html#section-6.2",
+  "review": "agent inspected publisher HTML and PDF rendering; not independent human adjudication"
+}

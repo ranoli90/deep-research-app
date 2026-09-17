@@ -34,7 +34,7 @@ export async function insertExtractedVersion(db: Queryable, args: {
   if (readable && args.extraction) for (const block of args.extraction.blocks) {
     await db.query(`INSERT INTO passages(id,source_version_id,account_id,run_id,exact_text,locator,extraction_method,content_hash)
       VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, [crypto.randomUUID(),versionId,args.accountId,args.runId,block.text,
-      JSON.stringify({ kind: block.kind, block: block.locator, rows: block.rows, normalization: "whitespace-v1" }),
+      JSON.stringify({ kind: block.kind, block: block.locator, rows: block.rows, ...(block.geometry ? { geometry: block.geometry, coordinates: "PDF points; bottom-left origin" } : {}), normalization: "extractor-output-v1" }),
       args.extraction.version,createHash("sha256").update(block.text).digest("hex")]);
   }
   return versionId;
@@ -143,10 +143,11 @@ export async function loadEvidence(db: Queryable, runId: string): Promise<{
 
 export async function getPassageForAccount(db: Queryable, passageId: string, accountId: string) {
   const res = await db.query(
-    `SELECT p.*, s.title, s.canonical_locator, s.publisher, s.origin_cluster, v.access_level
+    `SELECT p.*, s.title, s.canonical_locator, s.publisher, s.origin_cluster, v.access_level, v.quality_warnings, v.text_coverage, r.route_mode
      FROM passages p
      JOIN source_versions v ON v.id = p.source_version_id
      JOIN sources s ON s.id = v.source_id
+     JOIN runs r ON r.id = p.run_id
      WHERE p.id = $1 AND p.account_id = $2`,
     [passageId, accountId],
   );

@@ -1,6 +1,7 @@
 """Offline extraction subprocess. The launcher supplies bytes and enforces OS isolation."""
 import base64
 import hashlib
+import io
 import json
 import resource
 import sys
@@ -14,7 +15,7 @@ from lxml import etree, html
 import trafilatura
 
 VERSION = "trafilatura-2.2.0/structure-v1"
-MAX_BYTES = 1_500_000
+MAX_BYTES = 8 * 1024 * 1024
 
 
 def normalized(element):
@@ -35,6 +36,56 @@ def extract(request):
                 result["blocks"].append({"kind": "text", "text": paragraph.strip(),
                                          "locator": f"paragraph:{index}", "rows": []})
         result["status"] = "extracted" if result["blocks"] else "unavailable"
+        return result
+    if mime == "application/pdf":
+        result["version"] = "docling-parse-7.20.0/geometry-v1"
+        result["warnings"] = ["pdf_layout_tables_and_ocr_unverified"]
+        try:
+            from pypdf import PdfReader
+            if not raw.startswith(b"%PDF-"):
+                raise ValueError("invalid_header")
+            reader = PdfReader(io.BytesIO(raw), strict=True)
+            if reader.is_encrypted:
+                result.update(status="unavailable", warnings=["encrypted_pdf_unsupported"])
+                return result
+            page_count = len(reader.pages)
+            if page_count > 200:
+                result["warnings"].append("page_limit_200")
+            from docling_parse.pdf_parser import DoclingPdfParser, ContentConfig, ContentLevel, DecodeConfig
+            parser = DoclingPdfParser(loglevel="fatal")
+            document = parser.load(io.BytesIO(raw), decode_config=DecodeConfig(do_sanitization=True, keep_glyphs=False),
+                content_config=ContentConfig(char_cells_content_level=ContentLevel.SKIP,
+                    word_cells_content_level=ContentLevel.SKIP, line_cells_content_level=ContentLevel.COMPUTE_AND_MATERIALIZE,
+                    shapes_content_level=ContentLevel.SKIP, bitmaps_content_level=ContentLevel.SKIP))
+            unread = []
+            for index in range(min(page_count, 200)):
+                page = document.get_page(index + 1)
+                cells = sorted(page.textline_cells, key=lambda cell: (-cell.rect.to_bounding_box().t, cell.rect.to_bounding_box().l))
+                lines = []
+                geometry = []
+                for cell in cells:
+                    box = cell.rect.to_bounding_box()
+                    geometry.append({"text": cell.text, "box": [box.l, box.b, box.r, box.t]})
+                    # Font runs may be drawn separately from the surrounding sentence. Restore their physical line.
+                    # This is not column/layout inference; keep that limitation on every PDF result.
+                    if lines and abs(lines[-1][0] - box.t) <= 2:
+                        lines[-1][1].append(cell)
+                    else:
+                        lines.append((box.t, [cell]))
+                text = "\n".join("".join(cell.text for cell in sorted(line, key=lambda cell: cell.rect.to_bounding_box().l))
+                                 for _, line in lines).strip()
+                if text:
+                    result["blocks"].append({"kind": "text", "locator": f"page:{index + 1}/block:0",
+                                             "text": text, "rows": [], "geometry": geometry})
+                else:
+                    unread.append(index + 1)
+                document.unload_pages((index + 1, index + 1))
+            document.unload()
+            if unread:
+                result["warnings"].append("pages_without_digital_text:" + ",".join(map(str, unread[:30])))
+            result["status"] = "partial" if result["blocks"] else "unavailable"
+        except Exception:
+            result.update(status="unavailable", blocks=[], warnings=["invalid_pdf"])
         return result
     if mime not in ("text/html", "application/xhtml+xml"):
         result.update(status="unavailable", warnings=["unsupported_mime"])

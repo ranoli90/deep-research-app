@@ -37,6 +37,6 @@ describe("W04 real isolated parser over supplied synthetic bytes", () => {
     const result = await extractOffline(Buffer.from("%PDF-1.7\nnot-a-real-document"), "application/pdf");
     expect(result.status).toBe("unavailable");
     expect(result.blocks).toEqual([]);
-    expect(result.warnings).toContain("unsupported_mime");
+    expect(result.warnings).toContain("invalid_pdf");
   });
 });

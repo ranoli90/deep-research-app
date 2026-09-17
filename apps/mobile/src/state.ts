@@ -39,7 +39,7 @@ export type UiState = {
   } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
   events: { sequence: number; type: string; publicSummary: string }[];
-  source: { passageId: string; title: string; exactText: string; accessLevel: string } | null;
+  source: { passageId: string; title: string; exactText: string; accessLevel: string; passageLocator?: { block?: string }; warnings?: string[] } | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
   attachments: AttachmentDraft[];
   clarification: string[];

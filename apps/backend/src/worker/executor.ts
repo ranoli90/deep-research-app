@@ -49,6 +49,7 @@ import {
 } from "../modules/runs.js";
 import { createHash } from "node:crypto";
 import pg from "pg";
+import { ingestAttachments } from "./attachment-ingestion.js";
 import { fencedSession, LostWorkerLease } from "./fenced-session.js";
 
 export class InjectedCrash extends Error {
@@ -195,50 +196,6 @@ function toState(
 async function isDeleted(db: Queryable, accountId: string): Promise<boolean> {
   const res = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1`, [accountId]);
   return Boolean(res.rows[0]?.deleted_at);
-}
-
-async function ingestAttachments(
-  pool: pg.Pool,
-  run: { id: string; account_id: string },
-  brief: { attachmentIds: string[] },
-  session: ReturnType<typeof fencedSession>,
-): Promise<void> {
-  for (const id of brief.attachmentIds ?? []) {
-    const row = await pool.query<{
-      filename: string;
-      mime: string;
-      extracted_text: string | null;
-      deleted_at: Date | null;
-    }>(
-      `SELECT filename, mime, extracted_text, deleted_at FROM attachments WHERE id = $1 AND account_id = $2`,
-      [id, run.account_id],
-    );
-    const att = row.rows[0];
-    if (!att || att.deleted_at || !att.extracted_text) continue;
-    const locator = `attachment://${id}`;
-    const exists = await pool.query(`SELECT 1 FROM sources WHERE run_id = $1 AND canonical_locator = $2`, [run.id, locator]);
-    if ((exists.rowCount ?? 0) > 0) continue;
-    await session.write(async (c) => {
-      const sourceId = await insertSource(c, {
-        accountId: run.account_id,
-        runId: run.id,
-        locator,
-        title: att.filename,
-        publisher: "uploaded",
-        originCluster: locator,
-        sourceType: "supplied-document",
-      });
-      await insertVersionAndPassage(c, {
-        sourceId,
-        accountId: run.account_id,
-        runId: run.id,
-        locator,
-        text: att.extracted_text!,
-        accessLevel: att.mime === "application/pdf" ? "partial-text" : "full-text",
-      });
-      await bumpEvidence(c, run.id);
-    });
-  }
 }
 
 async function privateCanaries(db: Queryable, accountId: string): Promise<string[]> {

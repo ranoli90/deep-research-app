@@ -170,10 +170,10 @@
   {
     "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm --filter @deep/backend test:extraction",
     "status": "implemented_application_command",
-    "scope": "actual offline parser in Linux bubblewrap; Python runtime installed from extraction/requirements.lock; no network or paid calls",
+    "scope": "Actual offline HTML/digital-PDF parser in Linux bubblewrap plus real API/worker/PostgreSQL upload/source/deletion checks; run serially against other integration suites sharing the database; no network or paid calls",
     "network": false,
     "paid": false,
-    "implementation": "apps/backend/vitest.extraction.config.ts, apps/backend/test/html.extraction.test.ts"
+    "implementation": "apps/backend/vitest.extraction.config.ts, apps/backend/test/html.extraction.test.ts, apps/backend/test/pdf.extraction.test.ts, apps/backend/test/document-flow.extraction.test.ts"
   },
   {
     "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
@@ -182,5 +182,13 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json#bundle:android"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm exec tsx scripts/v6-document-probe.mts",
+    "status": "implemented_application_command",
+    "scope": "one fixed public RFC PDF via production safe fetch and offline parser; writes temporary raw document and limited provenance; no model or paid API",
+    "network": true,
+    "paid": false,
+    "implementation": "scripts/v6-document-probe.mts"
   }
 ]

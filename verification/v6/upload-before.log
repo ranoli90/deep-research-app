@@ -1,0 +1,62 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-upload.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/v6-upload.integration.test.ts (2 tests | 2 failed) 198ms
+   × W04 rejects pasted notes masquerading as PDF while preserving explicit text notes 35ms
+     → expected 200 to be 400 // Object.is equality
+   × W04 stores actual bounded binary bytes and digest with no fabricated extraction, under owner scope 8ms
+     → expected 404 to be 201 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-upload.integration.test.ts > W04 rejects pasted notes masquerading as PDF while preserving explicit text notes
+AssertionError: expected 200 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 200
+
+ ❯ test/v6-upload.integration.test.ts:22:31
+     20|   const session = await login(), headers = { authorization: `Bearer ${…
+     21|   const falsePdf = await app.inject({ method: "POST", url: "/v1/attach…
+     22|   expect(falsePdf.statusCode).toBe(400);
+       |                               ^
+     23|   const note = await app.inject({ method: "POST", url: "/v1/attachment…
+     24|   expect(note.statusCode).toBe(200); expect(note.json().coverage).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/v6-upload.integration.test.ts > W04 stores actual bounded binary bytes and digest with no fabricated extraction, under owner scope
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ test/v6-upload.integration.test.ts:31:31
+     29|   const headers = { authorization: `Bearer ${session.token}`, "content…
+     30|   const response = await app.inject({ method: "POST", url: "/v1/attach…
+     31|   expect(response.statusCode).toBe(201); expect(response.json().proces…
+       |                               ^
+     32|   const row = (await pool.query("SELECT * FROM attachments WHERE id=$1…
+     33|   expect(row.raw_bytes).toEqual(bytes); expect(row.sha256).toBe(create…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  11:03:19
+   Duration  1.07s (transform 402ms, setup 0ms, collect 666ms, tests 198ms, environment 0ms, prepare 71ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/v6-upload.integration.test.ts`
+Exit status 1

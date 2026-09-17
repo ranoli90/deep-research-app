@@ -1,0 +1,33 @@
+{
+  "task": "W04/V6-F07",
+  "revision": "b84fc8d-plus-docling-working-tree",
+  "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm exec tsx scripts/v6-document-probe.mts",
+  "scope": "Public non-sensitive technical PDF through production safe transport and offline extractor; no model, quality benchmark or human adjudication",
+  "receipt": {
+    "requestedUrl": "https://www.rfc-editor.org/rfc/rfc9112.pdf",
+    "finalUrl": "https://www.rfc-editor.org/rfc/rfc9112.pdf",
+    "redirectChain": [
+      "https://www.rfc-editor.org/rfc/rfc9112.pdf"
+    ],
+    "status": 200,
+    "mime": "application/pdf",
+    "retrievedAt": "2026-09-17T17:24:28.999Z",
+    "outcome": "successful_body"
+  },
+  "digest": "b260bba790c2da55a7e0795f356fcd9b70743686c55250f0ef1cc993c4d1abac",
+  "bytes": 649012,
+  "extractionVersion": "docling-parse-7.20.0/geometry-v1",
+  "status": "partial",
+  "warnings": [
+    "pdf_layout_tables_and_ocr_unverified"
+  ],
+  "decisiveReference": {
+    "source": "https://www.rfc-editor.org/rfc/rfc9112.html#section-6.2",
+    "matchedLocators": [
+      "page:18/block:0"
+    ],
+    "review": "agent checked reference and rendered page; not human adjudication"
+  },
+  "blockCount": 46,
+  "wallMs": 4714
+}

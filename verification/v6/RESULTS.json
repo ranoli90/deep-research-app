@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Mobile isolation checkpoint on ae2d074; W01-W09 remains incomplete",
+  "workingTree": "Binary/Docling extraction checkpoint on b84fc8d; 153 local integration and 10 real extraction-flow tests pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -865,6 +865,300 @@
       "evidenceClass": "static_typecheck_failure",
       "scope": "intermediate migration of test signatures",
       "sha256": "4d9b74204e6006ad0124b0877048a146a6912fe80105fa2fc1521e072f5f8d74"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "artifact": "pdf-before.log",
+      "exitCode": 1,
+      "evidenceClass": "real_isolated_extraction",
+      "scope": "new PDF cases 2 failed /3 passed before implementation",
+      "sha256": "7ed9231677e22fa4fc5149b87bb640b27dd14333f470dcc6a70d4781877acbd9"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-upload.integration.test.ts",
+      "artifact": "upload-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_api",
+      "scope": "2 expected-correctness failures: pasted PDF accepted, binary route absent",
+      "sha256": "258198484a6bde351831f98beb9df30bc86566d453829ee71f6a5fa5f8fb5992"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-upload.integration.test.ts test/v6-deletion.integration.test.ts",
+      "artifact": "upload-after.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api",
+      "scope": "11 passed",
+      "sha256": "8d95a0e51320814fb0033a18feadd89a13a94655f14ec8ecb70f603d98672bf5"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "artifact": "pdf-flow.log",
+      "exitCode": 1,
+      "evidenceClass": "test_setup_failure",
+      "scope": "new flow used wrong consent field; actual API correctly denied run",
+      "sha256": "a10c504ec0f1ed2b8ee49fde46a731db901721fb9ba34a1de01991d6dbe0b6cb"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "artifact": "pdf-flow-consent.log",
+      "exitCode": 1,
+      "evidenceClass": "test_environment_interference",
+      "scope": "3 failed/5 passed; concurrent broad suite truncated shared accounts; rerun serially",
+      "sha256": "ea6676e267d60575a1578a910d9bd68de672eec321e33e2397c5156650dc92a5"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "artifact": "pdf-flow-final.log",
+      "exitCode": 0,
+      "evidenceClass": "real_isolated_extraction_and_postgres",
+      "scope": "9 passed at pypdf baseline; not decisive-text quality proof",
+      "sha256": "5e2b2e6cfa9ff655cac481ee3b2434b06798e8d69c598c3d9af148fd742d5eb9"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "PROBE_REVISION=b84fc8d-plus-document-working-tree EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm exec tsx scripts/v6-document-probe.ts",
+      "artifact": "public-pdf-probe.log",
+      "exitCode": 1,
+      "evidenceClass": "script_startup_failure",
+      "scope": "CJS top-level await rejected; renamed .mts",
+      "sha256": "a870babe0918fe12034f81a121502877506bfa8b90b2f740e9eb599dff9bd765"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "PROBE_REVISION=b84fc8d-plus-document-working-tree EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm exec tsx scripts/v6-document-probe.mts",
+      "artifact": "public-pdf-probe-esm.log",
+      "exitCode": 1,
+      "evidenceClass": "public_transport_probe",
+      "scope": "old URL404, zero supporting evidence",
+      "sha256": "a6f98a41d9412ad941c49c6a1a60b8ed9169629e11b7a688f91743a98f40ab93"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "PROBE_REVISION=b84fc8d-plus-document-working-tree EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm exec tsx scripts/v6-document-probe.mts",
+      "artifact": "public-pdf-current.log",
+      "exitCode": 0,
+      "evidenceClass": "public_extraction_diagnostic",
+      "scope": "200/46 blocks; later inspection FAILED decisive negation/text preservation; not quality pass",
+      "sha256": "b375e446c02b0b4e7e7b2ca430ae8a9d3428df82fb40643425ca00ef1c80de9e"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "/usr/bin/timeout 50 /usr/bin/bwrap --unshare-all --die-with-parent --new-session --clearenv --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 --ro-bind /tmp/deep-docling-experiment/venv /runtime --ro-bind /tmp/deep-docling-experiment/probe.py /probe.py --proc /proc --dev /dev --tmpfs /tmp --chdir /tmp --setenv OPENBLAS_NUM_THREADS 1 --setenv OMP_NUM_THREADS 1 --setenv HF_HUB_OFFLINE 1 /runtime/bin/python -I /probe.py < /tmp/deep-v6-pdf/rfc9112.pdf",
+      "artifact": "docling-native-probe.log",
+      "exitCode": 1,
+      "evidenceClass": "experiment_runtime_failure",
+      "scope": "Docling Native initialization required passwd resolution; no source evidence",
+      "sha256": "e46069f5d1da3dad3155a84ad525fe4c639a3de3de13b2589416f2202d1e22db"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "/usr/bin/timeout 50 /usr/bin/bwrap --unshare-all --die-with-parent --new-session --clearenv --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 --ro-bind /etc/passwd /etc/passwd --ro-bind /tmp/deep-docling-experiment/venv /runtime --ro-bind /tmp/deep-docling-experiment/probe.py /probe.py --proc /proc --dev /dev --tmpfs /tmp --chdir /tmp --setenv OPENBLAS_NUM_THREADS 1 --setenv OMP_NUM_THREADS 1 --setenv HF_HUB_OFFLINE 1 /runtime/bin/python -I /probe.py < /tmp/deep-v6-pdf/rfc9112.pdf",
+      "artifact": "docling-native-home-probe.log",
+      "exitCode": 0,
+      "evidenceClass": "extraction_comparison",
+      "scope": "46 pages but decisive negation FAILED; 4188ms/373340KiB",
+      "sha256": "7860cb1c93719b08f134d25de0ec4dde61fcf228b7b48f1e31ed92d3d77260b7"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "/usr/bin/timeout 25 /usr/bin/bwrap --unshare-all --die-with-parent --new-session --clearenv --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 --ro-bind /tmp/deep-docling-experiment/venv /runtime --ro-bind /tmp/deep-docling-experiment/line_probe.py /probe.py --proc /proc --dev /dev --tmpfs /tmp --chdir /tmp --setenv OPENBLAS_NUM_THREADS 1 --setenv OMP_NUM_THREADS 1 /runtime/bin/python -I /probe.py < /tmp/deep-v6-pdf/rfc9112.pdf",
+      "artifact": "docling-line-probe.log",
+      "exitCode": 0,
+      "evidenceClass": "extraction_comparison",
+      "scope": "raw line order FAILED decisive negation; 1410ms/188020KiB",
+      "sha256": "14ca5155970ee72fa4cedf1aaa082a398e968aac62c10bab40da4e8c54cd968c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "artifact": "docling-geometry-tests.log",
+      "exitCode": 0,
+      "evidenceClass": "real_isolated_extraction_and_postgres",
+      "scope": "10 passed; original mixed-font regression plus API-worker deletion/cancel",
+      "sha256": "050fe11cba53e9060bd2e819fa68757f225c0adf74986bceb2f27d57bc66ac5a"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "/tmp/deep-v6-extraction-runtime/bin/pip install --require-hashes --only-binary=:all: --find-links /tmp/deep-docling-experiment/selected-wheels -r apps/backend/extraction/requirements.lock",
+      "artifact": "extraction-clean-install.log",
+      "exitCode": 0,
+      "evidenceClass": "dependency_installation",
+      "scope": "fresh dedicated Python3.12 runtime; no extra comparison frameworks",
+      "sha256": "914536e678ecf55f12dfc7d45e0629855c5289a514ea048c4e14425ae16da89b"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "extraction-clean-runtime.log",
+      "exitCode": 0,
+      "evidenceClass": "real_isolated_extraction_and_postgres",
+      "scope": "10/10 in fresh hash-locked runtime; no model/provider calls",
+      "sha256": "eccfaeb8fdc7a716d4c21960aa04ca31075b5d160c730df2de8c0d46e6cf5f65"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "PROBE_REVISION=b84fc8d-plus-docling-working-tree EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm exec tsx scripts/v6-document-probe.mts",
+      "artifact": "public-pdf-docling.log",
+      "exitCode": 0,
+      "evidenceClass": "public_extraction_diagnostic",
+      "scope": "same649012bytes/SHA; decisive page18 preserved;46pages partial;4714ms; agent reference review only",
+      "sha256": "19b0a6f6e2c4f603d1d17c710762040a66dfc0d71455bbd356d02957cd777a74"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-docling.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "81core/66backend/47mobile/4governance, types/boundaries",
+      "sha256": "9c68614d63d491858cdd82dde699b7e7edf70f99e236cb92f5ef80a008de5e11"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-docling-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "153/153; fixtures for research behavior; separate real parser suite",
+      "sha256": "1beaab228857a03b8db87748827b39932f372118c6d77a312d2a930e20c7e77a"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-document-types.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "pasted-note labels and source-locator view",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-documents.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural review only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "V6-F07"
+      ],
+      "commit": "b84fc8d plus document working tree",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "handoff-documents.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural handoff only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

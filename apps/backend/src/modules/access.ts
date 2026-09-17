@@ -158,7 +158,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   );
   await db.query(
     `UPDATE attachments SET deleted_at = COALESCE(deleted_at,now()), filename='[deleted]',storage_ptr='',sha256=NULL,
-      raw_bytes=NULL,extracted_text = NULL, processing_state = 'deleted' WHERE account_id = $1`,
+      raw_bytes=NULL,extraction=NULL,extracted_text = NULL, processing_state = 'deleted' WHERE account_id = $1`,
     [accountId],
   );
   await db.query(

@@ -53,7 +53,8 @@ import { getPassageForAccount } from "../modules/evidence.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
-import { storeAttachment } from "../modules/attachments.js";
+import { z } from "zod";
+import { storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { accountForIdentity } from "../modules/identity.js";
@@ -70,6 +71,7 @@ function err(code: string, message: string, correlationId: string, preserved = "
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
+  app.addContentTypeParser("application/octet-stream", { parseAs: "buffer", bodyLimit: MAX_ATTACHMENT_BYTES }, (_req, body, done) => done(null, body));
   const { pool, config, boss } = deps;
 
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
@@ -475,7 +477,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       originCluster: row.origin_cluster,
       accessLevel: row.access_level,
       exactText: row.exact_text,
-      labeledDemo: true,
+      passageLocator: row.locator,
+      sourceVersionId: row.source_version_id,
+      extractionMethod: row.extraction_method,
+      coverage: row.text_coverage,
+      warnings: row.quality_warnings,
+      labeledDemo: row.route_mode === "fixture",
     };
   });
 
@@ -527,19 +534,40 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.post("/v1/attachments", async (req, reply) => {
     const a = await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const body = (req.body ?? {}) as { filename?: string; mime?: string; text?: string };
-    const text = body.text ?? "";
-    const mime = body.mime ?? "text/plain";
-    if (!["text/plain", "text/markdown", "application/pdf"].includes(mime)) {
-      return reply.code(400).send(err("invalid_input", "Only text, Markdown, and PDF are supported.", crypto.randomUUID()));
-    }
-    const buf = Buffer.from(text, "utf8");
-    if (buf.length > MAX_ATTACHMENT_BYTES) {
-      return reply.code(400).send(err("invalid_input", "File exceeds size limit.", crypto.randomUUID()));
-    }
-    const id = await storeAttachment(pool, { accountId: a.accountId, filename: body.filename ?? "note.txt", mime, bytes: buf, extractedText: text });
+    const parsed = z.object({ filename: z.string().min(1).max(180).default("note.txt"),
+      mime: z.enum(["text/plain", "text/markdown"]).default("text/plain"), text: z.string().min(1).max(1_000_000) }).strict().safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send(err("invalid_input", "Paste text/Markdown notes here; PDF requires a binary file upload.", crypto.randomUUID()));
+    const { filename, mime, text } = parsed.data;
+    const bytes = Buffer.from(text, "utf8");
+    try { validateAttachmentBytes(bytes, mime, filename); }
+    catch { return reply.code(400).send(err("invalid_input", "Invalid file name, text or size.", crypto.randomUUID())); }
+    const id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes, extractedText: text });
     if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { attachmentId: id, processingState: "extracted", coverage: mime === "application/pdf" ? "text-only" : "complete" };
+    return { attachmentId: id, processingState: "extracted", coverage: "complete" };
+  });
+
+  app.post("/v1/attachments/bytes", { bodyLimit: MAX_ATTACHMENT_BYTES }, async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const mime = req.headers["x-document-mime"], encodedName = req.headers["x-file-name"];
+    if (!Buffer.isBuffer(req.body) || typeof mime !== "string" || typeof encodedName !== "string")
+      return reply.code(400).send(err("invalid_input", "Binary body and file metadata required.", crypto.randomUUID()));
+    let filename: string;
+    try { filename = decodeURIComponent(encodedName); validateAttachmentBytes(req.body, mime, filename); }
+    catch { return reply.code(400).send(err("invalid_input", "Unsupported or invalid file bytes, name or size.", crypto.randomUUID())); }
+    const id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes: req.body });
+    if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    return reply.code(201).send({ attachmentId: id, processingState: "stored", coverage: "not-read" });
+  });
+
+  app.get("/v1/attachments/:id", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = z.string().uuid().safeParse((req.params as { id: string }).id);
+    if (!id.success) return reply.code(404).send(err("invalid_input", "File not found.", crypto.randomUUID()));
+    const result = await pool.query("SELECT id,filename,mime,size_bytes,processing_state,extraction->'warnings' AS warnings FROM attachments WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL", [id.data, a.accountId]);
+    if (!result.rows[0]) return reply.code(404).send(err("permission_denied", "File not found.", crypto.randomUUID()));
+    return result.rows[0];
   });
 
   app.get("/account/deletion", async (_req, reply) => {

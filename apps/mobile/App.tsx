@@ -793,6 +793,8 @@ function AppInner() {
             <Text style={styles.title} accessibilityRole="header">{breakLongTokens(state.source.title)}</Text>
             <Text style={styles.kicker}>{state.source.accessLevel}</Text>
             <ScrollView style={styles.sheetBody} nestedScrollEnabled>
+              {state.source.passageLocator?.block ? <Text selectable style={styles.bodyText}>{state.source.passageLocator.block}</Text> : null}
+              {state.source.warnings?.length ? <Text style={styles.bodyText}>Partial extraction: some document structure or content may be unread.</Text> : null}
               <Text selectable style={styles.bodyText}>{breakLongTokens(state.source.exactText)}</Text>
             </ScrollView>
             <Pressable
@@ -894,7 +896,7 @@ function AppInner() {
             <TextInput
               value={attachText}
               onChangeText={setAttachText}
-              placeholder="Paste supported text or PDF extract"
+              placeholder="Paste a text or Markdown note"
               placeholderTextColor={theme.muted}
               allowFontScaling
               maxFontSizeMultiplier={2}
@@ -905,8 +907,8 @@ function AppInner() {
               onPress={() => {
                 setState((s) =>
                   attachFile(s, {
-                    filename: attachName || "note.txt",
-                    mime: attachName.endsWith(".md") ? "text/markdown" : attachName.endsWith(".pdf") ? "application/pdf" : "text/plain",
+                    filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
+                    mime: attachName.endsWith(".md") ? "text/markdown" : "text/plain",
                     text: attachText,
                   }),
                 );
@@ -914,9 +916,9 @@ function AppInner() {
                 setShowAttach(false);
               }}
               accessibilityRole="button"
-              accessibilityLabel="Attach supported file"
+              accessibilityLabel="Attach pasted note"
             >
-              <Text style={styles.link}>Attach ({state.attachments.length}/3)</Text>
+              <Text style={styles.link}>Attach note ({state.attachments.length}/3)</Text>
             </Pressable>
           </View>
         ) : null}
