@@ -17,6 +17,7 @@
         "fetch",
         "verify",
         "challenge",
+        "challenge",
         "synthesize"
       ],
       "unknownCitations": 0
@@ -29,6 +30,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "search",
         "fetch",
@@ -46,6 +48,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "search",
         "fetch",
@@ -67,6 +70,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "synthesize"
       ],
@@ -102,6 +106,7 @@
         "fetch",
         "fetch",
         "verify",
+        "challenge",
         "challenge",
         "synthesize"
       ],

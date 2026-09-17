@@ -67,7 +67,7 @@
           "Vendor A",
           "Vendor B"
         ],
-        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "Live discovery of public sources for the task",
           "Inspect an already-known source before another paid search",
@@ -81,12 +81,13 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -118,13 +119,14 @@
           "Vendor A",
           "Vendor B"
         ],
-        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -198,7 +200,7 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Is NimbusDB compatible with Postgres 14?",
-        "steps": 9,
+        "steps": 10,
         "actions": [
           "search",
           "search",
@@ -208,11 +210,12 @@
           "fetch",
           "verify",
           "challenge",
+          "challenge",
           "synthesize"
         ],
         "pivots": 1,
         "stopReasons": [
-          "inaccessible_or_unresolved_gap"
+          "evidence_sufficient_or_low_decision_value"
         ],
         "spentMicro": 35000,
         "citationIds": [
@@ -244,7 +247,7 @@
         "candidateIdentities": [
           "NimbusDB"
         ],
-        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
         "selectionReasons": [
           "uncovered_research_question",
           "blocking_gap_source_pivot",
@@ -254,7 +257,8 @@
           "inspect_known_source",
           "unresolved_contradiction_requires_verify",
           "material_conclusion_disconfirm",
-          "inaccessible_or_unresolved_gap"
+          "record_disconfirmation_result",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 3,
         "disconfirmations": 1,
@@ -284,7 +288,7 @@
               "whyItCouldChangeAnswer": "Summary count cannot certify compatibility",
               "dependentConclusion": "eligibility of named products under the stated stack",
               "resolvingEvidence": "vendor compatibility matrix or official support matrix for the named versions",
-              "importance": "blocking",
+              "importance": "material",
               "sourceTypeNeeded": "vendor-matrix",
               "preferredSourceTypes": [
                 "vendor-matrix",
@@ -292,62 +296,24 @@
                 "primary-docs"
               ],
               "suggestedQuery": "Is NimbusDB compatible with Postgres 14? vendor compatibility matrix",
-              "attempts": [],
-              "latestOutcome": "untried",
-              "remainingUncertainty": "Compatibility remains unverified until a primary matrix is inspected.",
+              "attempts": [
+                {
+                  "actionType": "search",
+                  "query": "Is NimbusDB compatible with Postgres 14? vendor compatibility matrix",
+                  "outcome": "new_families",
+                  "atEvidenceRevision": 1
+                },
+                {
+                  "actionType": "search",
+                  "query": "Is NimbusDB compatible with Postgres 14? official compatibility matrix supported",
+                  "outcome": "no_progress",
+                  "atEvidenceRevision": 2
+                }
+              ],
+              "latestOutcome": "resolved",
+              "remainingUncertainty": "Primary matrix inspected; remaining uncertainty is localized to unstated versions.",
               "questionId": "q-compatibility",
-              "resolution": "open"
-            },
-            {
-              "id": "gap-contradiction-compat-p-1-p-2",
-              "missingFact": "unresolved disagreement (compatibility)",
-              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no",
-              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
-              "importance": "blocking",
-              "sourceTypeNeeded": "primary-docs",
-              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
-              "questionId": "q-compatibility",
-              "resolution": "open",
-              "dependencies": [
-                "p-1",
-                "p-2"
-              ]
-            },
-            {
-              "id": "gap-contradiction-compat-p-1-p-3",
-              "missingFact": "unresolved disagreement (compatibility)",
-              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho",
-              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
-              "importance": "blocking",
-              "sourceTypeNeeded": "primary-docs",
-              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
-              "questionId": "q-compatibility",
-              "resolution": "open",
-              "dependencies": [
-                "p-1",
-                "p-3"
-              ]
-            },
-            {
-              "id": "gap-contradiction-compat-p-1-p-4",
-              "missingFact": "unresolved disagreement (compatibility)",
-              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima",
-              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
-              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
-              "importance": "blocking",
-              "sourceTypeNeeded": "primary-docs",
-              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
-              "questionId": "q-compatibility",
-              "resolution": "open",
-              "dependencies": [
-                "p-1",
-                "p-4"
-              ]
+              "resolution": "resolved"
             }
           ],
           "actions": [
@@ -406,10 +372,16 @@
             },
             {
               "step": 8,
+              "type": "challenge",
+              "rationale": "No counterexample found in accessed primary sources. This is not proof that the conclusion is true.",
+              "selectionReason": "record_disconfirmation_result"
+            },
+            {
+              "step": 9,
               "type": "synthesize",
-              "rationale": "Write with localized uncertainty; blocking gap remains: authoritative compatibility limitation",
-              "selectionReason": "inaccessible_or_unresolved_gap",
-              "stopPolicy": "inaccessible_or_unresolved_gap"
+              "rationale": "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value",
+              "selectionReason": "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value",
+              "stopPolicy": "evidence_sufficient_or_low_decision_value"
             }
           ],
           "sources": [
@@ -495,7 +467,7 @@
               "impact": "No counterexample found in accessed primary sources. This is not proof that the conclusion is true."
             }
           ],
-          "stopReason": "inaccessible_or_unresolved_gap",
+          "stopReason": "evidence_sufficient_or_low_decision_value",
           "cost": 35000
         }
       }
@@ -553,10 +525,11 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Does DeepSeek-Research-Pro include a built-in vector database?",
-        "steps": 4,
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -581,6 +554,7 @@
           "uncovered_research_question",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -654,18 +628,19 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "What does Gadget Mini cost on 2026-03-01?",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "verify",
           "challenge",
+          "challenge",
           "synthesize"
         ],
         "pivots": 0,
         "stopReasons": [
-          "inaccessible_or_unresolved_gap"
+          "evidence_sufficient_or_low_decision_value"
         ],
         "spentMicro": 24000,
         "citationIds": [
@@ -688,14 +663,15 @@
         "candidateIdentities": [
           "Gadget Mini"
         ],
-        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "unresolved_contradiction_requires_verify",
           "material_conclusion_disconfirm",
-          "inaccessible_or_unresolved_gap"
+          "record_disconfirmation_result",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 1,
         "disconfirmations": 1
@@ -760,7 +736,7 @@
           "Vendor A",
           "Vendor B"
         ],
-        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "Live discovery of public sources for the task",
           "Inspect an already-known source before another paid search",
@@ -774,12 +750,13 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -810,13 +787,14 @@
           "Vendor A",
           "Vendor B"
         ],
-        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -909,12 +887,13 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -961,6 +940,7 @@
           "inspect_known_source",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -1030,7 +1010,7 @@
           "Vendor B",
           "Vendor C"
         ],
-        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "Live discovery of public sources for the task",
           "Inspect an already-known source before another paid search",
@@ -1044,12 +1024,13 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nCorrection: Actually, the budget is 120 EUR",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -1084,13 +1065,14 @@
           "Vendor B",
           "Vendor C"
         ],
-        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A, Vendor C\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Geography germany is attested in an opened source..\nDisconfirmation of \u201cEligible under hard constraints: Vendor A, Vendor C\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -1161,7 +1143,7 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "Is NimbusDB compatible with Postgres 14 according to official documentation?",
-        "steps": 9,
+        "steps": 10,
         "actions": [
           "search",
           "search",
@@ -1171,11 +1153,12 @@
           "fetch",
           "verify",
           "challenge",
+          "challenge",
           "synthesize"
         ],
         "pivots": 1,
         "stopReasons": [
-          "inaccessible_or_unresolved_gap"
+          "evidence_sufficient_or_low_decision_value"
         ],
         "spentMicro": 35000,
         "citationIds": [
@@ -1207,7 +1190,7 @@
         "candidateIdentities": [
           "NimbusDB"
         ],
-        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
         "selectionReasons": [
           "uncovered_research_question",
           "blocking_gap_source_pivot",
@@ -1217,7 +1200,8 @@
           "inspect_known_source",
           "unresolved_contradiction_requires_verify",
           "material_conclusion_disconfirm",
-          "inaccessible_or_unresolved_gap"
+          "record_disconfirmation_result",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 3,
         "disconfirmations": 1
@@ -1278,7 +1262,7 @@
         "candidateIdentities": [
           "Vendor A"
         ],
-        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Retrieved price is dated 2024-01-01 and is not the current price..\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
+        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions.; Retrieved price is dated 2024-01-01 and is not the current price..\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
         "selectionReasons": [
           "Live discovery of public sources for the task",
           "Inspect an already-known source before another paid search",
@@ -1291,11 +1275,12 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "What is the current price of Vendor A and when was it founded in 2011?",
-        "steps": 5,
+        "steps": 6,
         "actions": [
           "search",
           "fetch",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -1324,12 +1309,13 @@
         "candidateIdentities": [
           "Vendor A"
         ],
-        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Retrieved price is dated 2024-01-01 and is not the current price..\nDisconfirmation of \u201cVendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as th\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
+        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions.; Retrieved price is dated 2024-01-01 and is not the current price..\nDisconfirmation of \u201cVendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as th\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -1389,10 +1375,11 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "What is the melting point of Unobtainium-99?",
-        "steps": 4,
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -1417,6 +1404,7 @@
           "uncovered_research_question",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -1490,18 +1478,19 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "What does Gadget Mini cost on 2026-03-01 in the two shop lists?",
-        "steps": 6,
+        "steps": 7,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "verify",
           "challenge",
+          "challenge",
           "synthesize"
         ],
         "pivots": 0,
         "stopReasons": [
-          "inaccessible_or_unresolved_gap"
+          "evidence_sufficient_or_low_decision_value"
         ],
         "spentMicro": 24000,
         "citationIds": [
@@ -1524,14 +1513,15 @@
         "candidateIdentities": [
           "Gadget Mini"
         ],
-        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "inspect_known_source",
           "unresolved_contradiction_requires_verify",
           "material_conclusion_disconfirm",
-          "inaccessible_or_unresolved_gap"
+          "record_disconfirmation_result",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 1,
         "disconfirmations": 1
@@ -1580,7 +1570,7 @@
         "goldLocatorsMissed": [],
         "hardConstraintViolations": 0,
         "candidateIdentities": [],
-        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions.; Geography france is attested in an opened source..\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "Live discovery of public sources for the task",
           "Inspect an already-known source before another paid search",
@@ -1592,10 +1582,11 @@
       "adaptive": {
         "kind": "adaptive",
         "question": "What is the filing deadline for employment tax in France?",
-        "steps": 4,
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
+          "challenge",
           "challenge",
           "synthesize"
         ],
@@ -1615,11 +1606,12 @@
         "goldLocatorsMissed": [],
         "hardConstraintViolations": 0,
         "candidateIdentities": [],
-        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cIn France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. T\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Primary matrix inspected; remaining uncertainty is localized to unstated versions.; Geography france is attested in an opened source..\nDisconfirmation of \u201cIn France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. T\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
         "selectionReasons": [
           "uncovered_research_question",
           "inspect_known_source",
           "material_conclusion_disconfirm",
+          "record_disconfirmation_result",
           "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
         ],
         "contradictions": 0,
@@ -1643,6 +1635,7 @@
         "fetch",
         "verify",
         "challenge",
+        "challenge",
         "synthesize"
       ],
       "unknownCitations": 0
@@ -1655,6 +1648,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "search",
         "fetch",
@@ -1672,6 +1666,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "search",
         "fetch",
@@ -1693,6 +1688,7 @@
         "fetch",
         "fetch",
         "fetch",
+        "challenge",
         "challenge",
         "synthesize"
       ],
@@ -1729,10 +1725,11 @@
         "fetch",
         "verify",
         "challenge",
+        "challenge",
         "synthesize"
       ],
       "unknownCitations": 0
     }
   },
-  "note": "Fixture catalog only. Same model/tariffs/questions. Adaptive vs bounded baseline. Not live quality."
+  "note": "Fixture catalog only. Same tariffs/questions. Adaptive vs bounded baseline. Not live quality."
 }

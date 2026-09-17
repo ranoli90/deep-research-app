@@ -364,36 +364,69 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
   }
 
   const stop = evaluateStop(state);
-  if (stop.shouldStop) {
-    return withReason(
-      {
-        ...b,
-        type: stop.synthesize ? "synthesize" : "stop",
-        rationale: stop.reason,
-        estimatedMaxCostMicro: stop.synthesize ? FIXTURE_SYNTH_COST_MICRO : 0,
-        arguments: { reason: stop.stopPolicy, stopPolicy: stop.stopPolicy },
-        dedupeKey: `finish:${stop.stopPolicy}:${state.basis.evidenceRevision}`,
-      },
-      stop.reason,
-      { reason: stop.stopPolicy, stopPolicy: stop.stopPolicy },
-    );
+  if (!stop.shouldStop) {
+    if (blocking?.suggestedQuery && state.searches.length < 8) {
+      const q = queryWithGeography(state, blocking.suggestedQuery);
+      const already = state.searches.some((s) => s.query === q);
+      if (!already && canPay(state, FIXTURE_SEARCH_COST_MICRO, false)) {
+        return leakOrSearch(
+          state,
+          q,
+          withReason(
+            {
+              ...b,
+              type: "search",
+              rationale: `Continue against blocking gap: ${blocking.missingFact}`,
+              arguments: { query: q, trigger: blocking.id, sourceTypeNeeded: blocking.sourceTypeNeeded },
+              estimatedMaxCostMicro: FIXTURE_SEARCH_COST_MICRO,
+              gapId: blocking.id,
+              dedupeKey: `search:continue-gap:${blocking.id}:${state.searches.length}`,
+            },
+            "continue_blocking_gap",
+          ),
+        );
+      }
+    }
+    if (stop.reason === "contradiction_unhandled") {
+      return withReason(
+        { ...b, type: "verify", rationale: "Scope-check remaining contradiction", dedupeKey: `verify:continue:${state.basis.evidenceRevision}` },
+        "continue_contradiction",
+      );
+    }
+    if (stop.reason === "disconfirm_pending") {
+      const planned = planDisconfirmation(state);
+      if (planned) {
+        return withReason(
+          {
+            ...b,
+            type: "challenge",
+            rationale: planned.impact,
+            arguments: { ...planned, recordOnly: true },
+            dedupeKey: `challenge-record:${planned.id}`,
+          },
+          "continue_disconfirm",
+        );
+      }
+    }
   }
 
-  const blockingOpen = blocking;
-  const stopReason = blockingOpen ? "inaccessible_or_unresolved_gap" : "evidence_sufficient_or_low_decision_value";
+  const finish = evaluateStop(state);
+  const finishPolicy = finish.shouldStop
+    ? finish.stopPolicy
+    : blocking
+      ? "inaccessible_or_unresolved_gap"
+      : "evidence_sufficient_or_low_decision_value";
   return withReason(
     {
       ...b,
-      type: "synthesize",
-      rationale: blockingOpen
-        ? `Write with localized uncertainty; blocking gap remains: ${blockingOpen.missingFact}`
-        : "Authorized investigation has diminishing expected value; write from stored evidence",
+      type: finish.shouldStop && !finish.synthesize ? "stop" : "synthesize",
+      rationale: finish.reason,
       estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO,
-      arguments: { reason: stopReason, stopPolicy: stopReason },
-      dedupeKey: `finish:${stopReason}:${state.basis.evidenceRevision}`,
+      arguments: { reason: finishPolicy, stopPolicy: finishPolicy },
+      dedupeKey: `finish:${finishPolicy}:${state.basis.evidenceRevision}`,
     },
-    stopReason,
-    { reason: stopReason, stopPolicy: stopReason },
+    finish.reason,
+    { reason: finishPolicy, stopPolicy: finishPolicy },
   );
 }
 

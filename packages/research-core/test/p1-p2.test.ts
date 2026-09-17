@@ -163,8 +163,10 @@ describe("V2-03 gold-evidence diagnostic", () => {
         locator: "matrix-row",
       },
     ];
-    expect(detectGaps(without).some((g) => g.sourceTypeNeeded === "vendor-matrix")).toBe(true);
-    expect(detectGaps(withGold).some((g) => g.sourceTypeNeeded === "vendor-matrix")).toBe(false);
+    expect(detectGaps(without).some((g) => g.sourceTypeNeeded === "vendor-matrix" && g.importance === "blocking")).toBe(true);
+    const goldGaps = detectGaps(withGold);
+    expect(goldGaps.some((g) => g.sourceTypeNeeded === "vendor-matrix" && g.importance === "blocking")).toBe(false);
+    expect(goldGaps.find((g) => g.id === "compat-primary")?.resolution).toBe("resolved");
     const diag = goldEvidenceDiagnostic({
       withoutGold: without,
       withGold,

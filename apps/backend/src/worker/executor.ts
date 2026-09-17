@@ -500,19 +500,17 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           });
         }
         if (decision.arguments.disconfirm || challengeSearch) {
-          const planned = planDisconfirmation(state);
-          const evaluated = planned ? evaluateDisconfirmation(state, planned) : undefined;
           await emitEvent(c, {
             runId,
             accountId: run.account_id,
-            type: "challenge",
-            summary: evaluated?.impact ?? decision.rationale,
+            type: "disconfirm_search",
+            summary: `Disconfirm search: ${query.slice(0, 160)}`,
             phase: "researching",
             payload: {
-              ...(evaluated ?? {}),
-              targetConclusion: decision.arguments.targetConclusion ?? evaluated?.targetConclusion,
-              falsificationHypothesis: decision.arguments.falsificationHypothesis ?? evaluated?.falsificationHypothesis,
-              searchStrategy: query,
+              query,
+              targetConclusion: decision.arguments.targetConclusion,
+              falsificationHypothesis: decision.arguments.falsificationHypothesis,
+              result: "untried",
               selectionReason: decision.arguments.selectionReason,
             },
           });
@@ -615,13 +613,20 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     }
 
     if (decision.type === "compare" || decision.type === "calculate" || decision.type === "verify" || decision.type === "replan" || decision.type === "extract_text" || decision.type === "challenge") {
+      const planned = decision.type === "challenge" ? planDisconfirmation(state) : null;
+      const evaluated = planned ? evaluateDisconfirmation(state, planned) : null;
       await emitEvent(pool, {
         runId,
         accountId: run.account_id,
         type: decision.type,
-        summary: decision.rationale,
+        summary: evaluated?.impact ?? decision.rationale,
         phase: "researching",
-        payload: { ...decision.arguments, dedupeKey: decision.dedupeKey, gapId: decision.gapId },
+        payload: {
+          ...decision.arguments,
+          ...(evaluated ?? {}),
+          dedupeKey: decision.dedupeKey,
+          gapId: decision.gapId,
+        },
       });
       await checkpoint(pool, runId, run.evidence_revision, "researching", { action: decision.type });
       continue;

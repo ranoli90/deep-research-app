@@ -6,7 +6,10 @@ import { tryCalculate } from "../src/calculate.js";
 import { validateMaterialCitations } from "../src/citations.js";
 import { proposeControllerAction } from "../src/controller.js";
 import { detectContradictions } from "../src/contradictions.js";
+import { evaluateDisconfirmation } from "../src/disconfirm.js";
+import { detectGaps } from "../src/gaps.js";
 import { applyFetchedDocument, applySearchHits, recordCompletedAction, refreshDerived } from "../src/loop.js";
+import { evaluateStop } from "../src/stop.js";
 import { composeReport } from "../src/report.js";
 import { evaluateStop } from "../src/stop.js";
 import { applyCorrectionToConstraints } from "../src/brief.js";
@@ -170,6 +173,11 @@ describe("adaptive closed loop — evidence causes the next action to change", (
             sourceType: "vendor-matrix",
           });
           fetchedMatrix = true;
+          refreshDerived(s);
+          const afterGold = s.gaps.find((g) => g.id === "compat-primary");
+          expect(afterGold?.resolution).toBe("resolved");
+          expect(afterGold?.latestOutcome).toBe("resolved");
+          expect(afterGold?.importance).not.toBe("blocking");
         } else {
           applyFetchedDocument(s, {
             locator,
@@ -190,43 +198,69 @@ describe("adaptive closed loop — evidence causes the next action to change", (
         expect(JSON.stringify(contr)).not.toMatch(/newest source is correct/i);
         continue;
       }
+      if (d.type === "challenge" && d.arguments.query && !d.arguments.recordOnly) {
+        applySearchHits(s, String(d.arguments.query), [
+          {
+            locator: "fixture://vendor/nimbus-matrix",
+            title: "Official matrix",
+            originCluster: "nimbus-matrix",
+            sourceType: "vendor-matrix",
+            snippet: "Postgres 14 is not supported.",
+          },
+        ]);
+        s.basis.evidenceRevision += 1;
+        continue;
+      }
       if (d.type === "challenge") {
         recordCompletedAction(s, "challenge");
-        s.disconfirmations = [
-          {
-            id: "d1",
-            targetConclusion: "NimbusDB is not compatible with Postgres 14",
-            falsificationHypothesis: "Official matrix lists Postgres 14 as supported",
-            searchStrategy: String(d.arguments.query ?? ""),
-            result: "no_counterexample_found",
-            counterevidenceFound: false,
-            impact: "No counterexample found is not proof.",
-          },
-        ];
+        const planned = {
+          id: "d1",
+          targetConclusion: "NimbusDB is not compatible with Postgres 14",
+          falsificationHypothesis: "Official matrix lists Postgres 14 as supported",
+          searchStrategy: String(d.arguments.searchStrategy ?? d.arguments.query ?? ""),
+          result: "untried" as const,
+          counterevidenceFound: false,
+          impact: "pending",
+        };
+        s.disconfirmations = [evaluateDisconfirmation(s, planned)];
         continue;
       }
       if (d.type === "search" && d.arguments.disconfirm) {
-        recordCompletedAction(s, "challenge");
+        applySearchHits(s, String(d.arguments.query ?? ""), []);
+        s.basis.evidenceRevision += 1;
         continue;
       }
       if (d.type === "synthesize" || d.type === "stop") {
+        const policy = String(d.arguments.stopPolicy ?? d.arguments.reason ?? "");
         if (d.rejectReason === "duplicate_action") {
-          recordCompletedAction(s, "stop");
-          continue;
+          refreshDerived(s);
+          const stop = evaluateStop(s);
+          expect(stop.stopPolicy).toMatch(/evidence_sufficient_or_low_decision_value|low_decision_value/);
+          expect(stop.stopPolicy).not.toBe("inaccessible_or_unresolved_gap");
+          s.stopReason = stop.stopPolicy;
+          break;
         }
-        expect(String(d.arguments.stopPolicy ?? d.arguments.reason ?? d.rationale)).not.toMatch(/searched \d+ times|search_count|search quota/i);
-        expect(String(d.arguments.reason ?? d.arguments.stopPolicy ?? d.rationale)).toMatch(
-          /evidence_sufficient|low_decision_value|unresolved_gap|inaccessible|diminishing|finishing|resolved/i,
-        );
-        s.stopReason = String(d.arguments.reason ?? d.rationale);
+        expect(policy).not.toMatch(/searched \d+ times|search_count|search quota|inaccessible_or_unresolved_gap/i);
+        expect(policy).toMatch(/evidence_sufficient_or_low_decision_value|low_decision_value/);
+        s.stopReason = policy;
         break;
       }
       recordCompletedAction(s, d.type);
     }
 
+    if (!s.stopReason) {
+      refreshDerived(s);
+      const stop = evaluateStop(s);
+      expect(stop.shouldStop).toBe(true);
+      expect(stop.stopPolicy).toMatch(/evidence_sufficient_or_low_decision_value|low_decision_value/);
+      expect(stop.stopPolicy).not.toBe("inaccessible_or_unresolved_gap");
+      s.stopReason = stop.stopPolicy;
+    }
+
     expect(fetchedMatrix).toBe(true);
     expect(trace.some((t) => t.pivot === true || String(t.sourceTypeNeeded ?? "") === "vendor-matrix")).toBe(true);
     expect(trace.some((t) => t.type === "verify" || t.type === "challenge")).toBe(true);
+    expect(trace.some((t) => t.type === "synthesize" || t.type === "stop")).toBe(true);
 
     const report = composeReport(s, "00000000-0000-4000-8000-000000000099");
     expect(JSON.stringify(report.blocks)).toMatch(/not compatible with Postgres 14/i);
@@ -249,6 +283,82 @@ describe("adaptive closed loop — evidence causes the next action to change", (
     };
     expect(machineTrace.actions.length).toBeGreaterThan(3);
     expect(String(JSON.stringify(machineTrace))).toMatch(/vendor-matrix/);
+    const finalCompat = (s.gaps.find((g) => g.id === "compat-primary") ?? detectGaps(s).find((g) => g.id === "compat-primary"));
+    expect(finalCompat?.resolution).toBe("resolved");
+    expect(String(s.stopReason)).toMatch(/evidence_sufficient|low_decision_value/);
+    expect(String(s.stopReason)).not.toMatch(/inaccessible_or_unresolved_gap/);
+  });
+});
+
+describe("detectGaps replaces stale rows when evidence changes", () => {
+  it("resolves a previously untried compat-primary after an opened vendor-matrix is present", () => {
+    const s = state("Is NimbusDB compatible with Postgres 14?");
+    s.gaps = [
+      {
+        id: "compat-primary",
+        missingFact: "authoritative compatibility limitation",
+        whyItCouldChangeAnswer: "Summary count cannot certify compatibility",
+        importance: "blocking",
+        sourceTypeNeeded: "vendor-matrix",
+        latestOutcome: "untried",
+        resolution: "open",
+      },
+    ];
+    s.sources = [
+      { id: "sum", title: "blog", locator: "fixture://blogs/nimbus-1", accessLevel: "full-text", sourceType: "review-summary" },
+      { id: "mat", title: "matrix", locator: "fixture://vendor/nimbus-matrix", accessLevel: "full-text", sourceType: "vendor-matrix" },
+    ];
+    s.passages = [
+      {
+        id: "p-mat",
+        sourceId: "mat",
+        sourceVersionId: "v1",
+        exactText: "NimbusDB compatibility matrix: not compatible with Postgres 14.",
+        locator: "document",
+      },
+    ];
+    const next = detectGaps(s);
+    const gap = next.find((g) => g.id === "compat-primary");
+    expect(gap?.resolution).toBe("resolved");
+    expect(gap?.latestOutcome).toBe("resolved");
+    expect(gap?.importance).toBe("material");
+  });
+});
+
+describe("geography is verified from opened evidence, not the search query", () => {
+  it("does not treat queryWithGeography as proof when opened pages omit the jurisdiction", () => {
+    const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    s.searches = [
+      {
+        query: "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        sourceFamilyIds: ["example"],
+        newFamilies: 1,
+        coverageProgress: true,
+      },
+    ];
+    s.sources = [
+      {
+        id: "s1",
+        title: "Pricing",
+        locator: "https://example.com/managed-postgres",
+        accessLevel: "full-text",
+        sourceType: "vendor-docs",
+      },
+    ];
+    s.passages = [
+      {
+        id: "p1",
+        sourceId: "s1",
+        sourceVersionId: "v1",
+        exactText: "Managed Postgres from 40 EUR per month in eu-central-1. Region SKUs are listed without a country name.",
+        locator: "document",
+      },
+    ];
+    const geo = detectGaps(s).find((g) => g.id === "geo-unverified");
+    expect(geo).toBeTruthy();
+    expect(geo?.resolution).not.toBe("resolved");
+    expect(geo?.latestOutcome).not.toBe("resolved");
+    expect(String(geo?.remainingUncertainty)).toMatch(/search query is not verification|do not mention/i);
   });
 });
 
@@ -312,6 +422,30 @@ describe("contradictions do not treat newest as correct", () => {
 });
 
 describe("stop policy is evidence-aware", () => {
+  it("does not synthesize with inaccessible_or_unresolved_gap while a tryable blocking gap remains", () => {
+    const s = state("Is NimbusDB compatible with Postgres 14?");
+    s.sources = [
+      { id: "sum", title: "blog", locator: "fixture://blogs/nimbus-1", accessLevel: "full-text", sourceType: "review-summary" },
+    ];
+    s.passages = [
+      {
+        id: "p1",
+        sourceId: "sum",
+        sourceVersionId: "v1",
+        exactText: "This summary says NimbusDB is compatible with all Postgres versions.",
+        locator: "document",
+      },
+    ];
+    s.coverage = [{ id: "primary", question: s.brief.originalQuestion, status: "supported" }];
+    s.searches = [{ query: "Is NimbusDB compatible with Postgres 14?", sourceFamilyIds: ["nimbus-hype"], newFamilies: 1, coverageProgress: true }];
+    refreshDerived(s);
+    const d = proposeControllerAction(s, "adaptive");
+    expect(d.type).not.toBe("synthesize");
+    expect(d.type).not.toBe("stop");
+    expect(String(d.arguments.stopPolicy ?? "")).not.toBe("inaccessible_or_unresolved_gap");
+    expect(d.arguments.pivot === true || d.type === "search" || d.type === "fetch").toBe(true);
+  });
+
   it("does not stop merely because a search count quota was hit when a blocking gap is still tryable", () => {
     const s = state("Is NimbusDB compatible with Postgres 14?");
     s.sources = [{ id: "s1", title: "blog", locator: "x", accessLevel: "full-text", sourceType: "review-summary" }];

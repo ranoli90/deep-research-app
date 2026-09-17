@@ -338,11 +338,6 @@ export function runFixtureArm(kind: ControllerKind, task: TaskSpec, ablations?: 
       state.spentMicro += FIXTURE_SEARCH_COST_MICRO;
       state.basis.evidenceRevision += 1;
       state.coverage = state.coverage.map((c) => (c.status === "unstarted" ? { ...c, status: "investigating" } : c));
-      if (decision.type === "challenge") {
-        recordCompletedAction(state, "challenge");
-        const planned = planDisconfirmation(state);
-        if (planned) state.disconfirmations = [evaluateDisconfirmation(state, planned)];
-      }
       continue;
     }
 

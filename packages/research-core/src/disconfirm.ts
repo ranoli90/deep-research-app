@@ -5,14 +5,28 @@ function sanitize(text: string): string {
   return text.replace(/<\/?script\b[^>]*>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "").replace(/javascript:/gi, "");
 }
 
+function publicPassages(state: ControllerState) {
+  return state.passages.filter((p) => {
+    const src = state.sources.find((s) => s.id === p.sourceId);
+    const loc = String(src?.locator ?? "");
+    if (loc.startsWith("attachment://")) return false;
+    if (state.privateCanaries.some((c) => c && p.exactText.includes(c))) return false;
+    return true;
+  });
+}
+
 export function materialConclusion(state: ControllerState): string | null {
-  const limitation = state.passages.find((p) => /not compatible|incompatible|does not support|not a real product|no such (product|feature)/i.test(p.exactText));
+  const passages = publicPassages(state);
+  const limitation = passages.find((p) => /not compatible|incompatible|does not support|not a real product|no such (product|feature)/i.test(p.exactText));
   if (limitation) return sanitize(limitation.exactText.slice(0, 240));
   const eligible = state.candidates.filter((c) => c.feasibility === "satisfies");
   if (eligible.length) return `Eligible under hard constraints: ${eligible.map((c) => c.identity).join(", ")}`;
   const primary = state.claims.find((c) => c.type === "external-fact" || c.type === "conditional-conclusion");
-  const fallback = primary?.text.slice(0, 240) ?? (state.passages[0] ? state.passages[0].exactText.slice(0, 240) : null);
-  return fallback ? sanitize(fallback) : null;
+  if (primary && !state.privateCanaries.some((c) => c && primary.text.includes(c))) {
+    return sanitize(primary.text.slice(0, 240));
+  }
+  const fallback = passages[0] ? passages[0].exactText.slice(0, 240) : null;
+  return fallback ? sanitize(fallback) : "public evidence only";
 }
 
 export function planDisconfirmation(state: ControllerState): DisconfirmationRecord | null {
