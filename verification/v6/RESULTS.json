@@ -2435,7 +2435,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "initial typecheck",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2450,7 +2451,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "final writer typecheck",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2465,7 +2467,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_writer",
       "scope": "50/50 before final excessive-expansion case",
-      "sha256": "d09a25d3f4b7f1a5b1ba14f865821961ec801c2a3a1e65f76d6e95ab83427769"
+      "sha256": "d09a25d3f4b7f1a5b1ba14f865821961ec801c2a3a1e65f76d6e95ab83427769",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2480,7 +2483,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "107 core/80 backend/47 mobile/4 governance",
-      "sha256": "3a44ea15c17ce9aa633c54c70270b24f09dd952517a301058be24fed4a40dbac"
+      "sha256": "3a44ea15c17ce9aa633c54c70270b24f09dd952517a301058be24fed4a40dbac",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2495,7 +2499,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "223/223 final code including excessive expansion",
-      "sha256": "ce34f4dd094227fa618048d5bbab5a923c2e25770a9454ce8819b6d55e4d5d8a"
+      "sha256": "ce34f4dd094227fa618048d5bbab5a923c2e25770a9454ce8819b6d55e4d5d8a",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2509,7 +2514,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     },
     {
       "requirementIds": [
@@ -2523,7 +2529,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
     }
   ],
   "unresolved": [
@@ -2541,5 +2548,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
+  "implementationCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
 }
