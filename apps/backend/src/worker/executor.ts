@@ -379,6 +379,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
       if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
         const digest = createHash("sha256").update(JSON.stringify({ query: query.trim(), model: config.openRouterModel, revision: run.brief_revision })).digest("hex");
         let intentId: string | undefined;
+        let receiptRecorded = false;
         try {
           const attempt = await reserveLiveAttempt(pool, config, {
             runId, fence, briefRevision: run.brief_revision, logicalKey: `search:${digest}`,
@@ -388,15 +389,22 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           intentId = attempt.intentId;
           if (attempt.issue) {
             const live = await liveWebSearch(query, config, session.signal);
-            await updateIntentState(pool, intentId, live.receipt.state, live.receipt.actualMicro);
-            await pool.query("UPDATE provider_intents SET receipt = $2 WHERE id = $1", [intentId, JSON.stringify(live.receipt)]);
+            await withTx(pool, async (db) => {
+              await updateIntentState(db, intentId!, live.receipt.state, live.receipt.actualMicro);
+              await db.query("UPDATE provider_intents SET receipt = $2 WHERE id = $1", [intentId, JSON.stringify(live.receipt)]);
+            });
+            receiptRecorded = true;
+            if (live.receipt.state !== "confirmed") throw new Error("search_result_unresolved");
             hits = live.hits;
             searchRoute = live.receipt.route;
           } else {
-            searchRoute = "openrouter:existing-attempt-not-reissued";
+            // A financial receipt is not a durable search result. Without stored
+            // output, replay must neither resend nor invent an empty success.
+            receiptRecorded = true;
+            throw new Error("search_result_unresolved");
           }
         } catch (error) {
-          if (intentId) await updateIntentState(pool, intentId, providerFailureState(error as Error));
+          if (intentId && !receiptRecorded) await updateIntentState(pool, intentId, providerFailureState(error as Error));
           const message = error instanceof Error ? error.message : "";
           const reason = ["run_spend_cap_exhausted", "missing_active_run_allowance", "live_spend_cap_exhausted", "live_spend_cap_zero", "invalid_live_budget", "missing_provider_key", "provider_key_cap_exhausted"]
             .includes(message) ? message : intentId ? "provider_outcome_unresolved" : "provider_admission_failed";

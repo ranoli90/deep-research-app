@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Committed structured gateway prerequisite25511fb;178 local integration cases pass; general workflow and W01-W09 incomplete",
+  "workingTree": "Search outcome repair; full integration182 plus focused33 with one additional replay control. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1787,6 +1787,118 @@
       "evidenceClass": "public_endpoint_metadata",
       "scope": "Unauthenticated advertised capability/pricing, no model request or spending authorization",
       "sha256": "5f283102753683d5f880d33c130beb648aa779349b326f7b65bc4fc5a61b7f13"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "search-outcomes-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_worker_regression",
+      "scope": "3 reproduced false searched events;28 passing controls",
+      "sha256": "99fd6a67978b77b9cd4b0b6aa431cda5420d4c86c369a7401fc750bf8259976d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "search-outcomes-after.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_worker_regression",
+      "scope": "Behavior repaired;4 test failures from incorrect reservation enum expectation active; actual canonical state reserved",
+      "sha256": "3758ac23ca47534f9910a7fc3271e62a9466506d975cca2c98da0c7225ca823d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "search-outcomes-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_regression",
+      "scope": "32/32 including4 new worker search failure/replay cases",
+      "sha256": "b658f2cad8aa4292cf59f756544658c739040b6a9be72a9e9ba1caf223c4a24b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "search-outcomes-replay.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_regression",
+      "scope": "33/33; adds known500micro receipt preserved/settled despite missing search output",
+      "sha256": "9f6352efbb9bfeca4b2d376cc61941b0f572812599f0638323a73c536a0ab9a0"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm verify",
+      "artifact": "search-outcomes-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "core97/backend80/mobile47/governance4; no paid calls",
+      "sha256": "b69e59264c1b61f012e493ddfc2e44b82452006f91ff9919e1735871a0596c40"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "pnpm test:integration",
+      "artifact": "search-outcomes-full-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "182/182 before addition of final known-receipt replay control; transport doubles/local PostgreSQL",
+      "sha256": "4a01223d5eaa23ead2ec8e15a64af01d2a8d8fda1b402c5ddc6f6c91609c2ebb"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "search-outcomes-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05"
+      ],
+      "commit": "a454e53",
+      "workingTree": "search outcome repair based on a454e53; see execution ledger implementation commit",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "search-outcomes-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
