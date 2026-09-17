@@ -14,6 +14,45 @@ export function stripUnsafeMarkup(text: string): string {
   return text.replace(/<\/?script\b[^>]*>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "").replace(/javascript:/gi, "");
 }
 
+/** Canonical Markdown export. Citations are 8-char owned passage prefixes. No PDF. */
+export function blocksToMarkdown(blocks: ReportBlock[]): string {
+  return blocks
+    .map((block) => {
+      const cites = block.citationIds.map((c) => `[${c.slice(0, 8)}]`).join(" ");
+      let body = stripUnsafeMarkup(block.text);
+      if (block.kind === "heading") body = `## ${body}`;
+      if (block.kind === "code") body = "```\n" + body + "\n```";
+      if (block.kind === "table") body = tableTextToMarkdown(body);
+      if (block.kind === "quote") body = body.split("\n").map((l) => `> ${l}`).join("\n");
+      return [body, cites].filter(Boolean).join("\n\n");
+    })
+    .join("\n\n");
+}
+
+function tableTextToMarkdown(text: string): string {
+  const rows = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .filter((l) => !/^[\s|:.-]+$/.test(l))
+    .map((line) => {
+      if (line.includes("|")) {
+        const cells = line.split("|").map((c) => c.trim());
+        const trimmed = cells[0] === "" ? cells.slice(1) : cells;
+        if (trimmed.at(-1) === "") trimmed.pop();
+        return trimmed;
+      }
+      return [line];
+    });
+  if (rows.length === 0) return text;
+  const width = Math.max(...rows.map((r) => r.length));
+  const padded = rows.map((r) => [...r, ...Array(width - r.length).fill("")]);
+  const header = `| ${padded[0]!.join(" | ")} |`;
+  const sep = `| ${padded[0]!.map(() => "---").join(" | ")} |`;
+  const rest = padded.slice(1).map((r) => `| ${r.join(" | ")} |`);
+  return [header, sep, ...rest].join("\n");
+}
+
 export function checkReportCitations(
   blocks: ReportBlock[],
   claims: StoredClaim[],

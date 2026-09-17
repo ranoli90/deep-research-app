@@ -9,6 +9,7 @@ import {
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
+  blocksToMarkdown,
   extractConstraints,
   impactForCorrection,
   inferOutputPreference,
@@ -503,13 +504,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
-    const blocks = report.blocks as { text: string; citationIds?: string[] }[];
-    const md = blocks
-      .map((b) => {
-        const cites = (b.citationIds ?? []).map((c) => `[${c.slice(0, 8)}]`).join("");
-        return `${b.text}${cites ? " " + cites : ""}`;
-      })
-      .join("\n\n");
+    const blocks = report.blocks as Parameters<typeof blocksToMarkdown>[0];
+    const md = blocksToMarkdown(blocks);
     return { format: "markdown", markdown: md };
   });
 

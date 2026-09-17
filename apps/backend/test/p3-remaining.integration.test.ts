@@ -266,18 +266,29 @@ describe("remaining launch-scope IDs", () => {
   });
 
   it("E09 export citation anchors resolve to owned passages", async () => {
-    const { token } = await authed();
-    const created = await createRun(token, "What did ACME announce about Widget 4?");
-    await processRun(pool, config, created.json().runId);
-    const snap = await app.inject({ method: "GET", url: `/v1/runs/${created.json().runId}`, headers: { authorization: `Bearer ${token}` } });
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    const snap = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: { authorization: `Bearer ${token}` } });
     const exp = await app.inject({
       method: "GET",
       url: `/v1/reports/${snap.json().reportId}/export`,
       headers: { authorization: `Bearer ${token}` },
     });
-    const ids = [...(exp.json().markdown as string).matchAll(/\[([0-9a-f-]{8})\]/gi)].map((m) => m[1]);
-    expect(exp.json().markdown).toMatch(/Widget 4|ACME/i);
-    void ids;
+    expect(exp.json().format).toBe("markdown");
+    expect(JSON.stringify(exp.json())).not.toMatch(/"pdf"/i);
+    const md = exp.json().markdown as string;
+    expect(md).toMatch(/Vendor A/);
+    expect(md).toMatch(/\| Vendor \|/);
+    expect(md).toMatch(/Café|Vendor|EUR/);
+    const ids = [...md.matchAll(/\[([0-9a-f]{8})\]/gi)].map((m) => m[1]);
+    expect(ids.length).toBeGreaterThan(0);
+    const passages = await pool.query<{ id: string }>(`SELECT id FROM passages WHERE account_id = $1 AND run_id = $2`, [accountId, runId]);
+    const prefixes = new Set(passages.rows.map((r) => r.id.slice(0, 8)));
+    for (const id of ids) {
+      expect(prefixes.has(id), `export citation [${id}] must be an owned passage`).toBe(true);
+    }
   });
 
   it("J02 a second processRun after completion does not duplicate the report or settlement", async () => {

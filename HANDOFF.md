@@ -25,6 +25,7 @@ Working tree: `main` at `bfd0f448be9444f3daea0717979a7e8eb8c7764a`. P0 is **not*
 - S02: `safeFetch` uses `redirect: manual` and re-runs `assertSafeUrl` on Location. Unit tests mock a 302 from `http://1.1.1.1/public` onto metadata/loopback/private hosts and assert those targets are never fetched.
 - V2-14: an `outcome-unknown` OpenRouter intent of 4 USD micros counts against the live cap; a further 1.2 USD estimated call is refused. Treating unknown as zero would have allowed it.
 - P0-N Android this session: consent granted; fixture report Vendor A 40 EUR; `am force-stop` + reopen restored report, sources, and draft; source sheet FULL-TEXT `3fc2e7b9`. `pnpm p0:launch` `cancelOutcome=cancelled` `cancelReportId=null`. 120 EUR correction: Eligible Vendor A + Vendor C; table row Vendor C germany 70 EUR; change summary reopened discovery.
+- E09: `/v1/reports/:id/export` is Markdown only (PDF is not advertised). `blocksToMarkdown` emits tables, fenced code, and `[8-char]` citations. Integration asserts every export citation prefix is an owned passage for that run.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
@@ -35,7 +36,7 @@ Working tree: `main` at `bfd0f448be9444f3daea0717979a7e8eb8c7764a`. P0 is **not*
 | `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
-| `pnpm --filter @deep/research-core test` | 0 | 23 tests including follow-up changeSummary |
+| `pnpm --filter @deep/research-core test` | 0 | 24 tests including E09 blocksToMarkdown |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |

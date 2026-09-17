@@ -5,7 +5,7 @@ import { compactForContext } from "../src/compact.js";
 import { detectGaps } from "../src/gaps.js";
 import { canSpendExploration } from "../src/fences.js";
 import { passageSupportsClaim } from "../src/support.js";
-import { composeReport, repairUnsupportedConclusion, stripUnsafeMarkup } from "../src/report.js";
+import { blocksToMarkdown, composeReport, repairUnsupportedConclusion, stripUnsafeMarkup } from "../src/report.js";
 import { applyCorrectionToConstraints, extractConstraints, inferOutputPreference } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
@@ -231,6 +231,41 @@ describe("V2-03 gold-evidence diagnostic", () => {
     s.sources.push({ id: "m1", title: "matrix", locator: "fixture://vendor/nimbus-matrix", accessLevel: "full-text", sourceType: "vendor-matrix" });
     const withGold = composeReport(s, "00000000-0000-4000-8000-000000000011");
     expect(JSON.stringify(withGold.blocks)).toMatch(/not compatible with Postgres 14/);
+  });
+});
+
+describe("E09 markdown export", () => {
+  it("emits tables, fenced code, unicode, and 8-char citation prefixes", () => {
+    const md = blocksToMarkdown([
+      {
+        id: "answer",
+        kind: "text",
+        text: "Café 漢字 eligible.",
+        claimIds: [],
+        citationIds: ["aaaaaaaa-1111-4000-8000-000000000001"],
+      },
+      {
+        id: "comparison-table",
+        kind: "table",
+        text: "Vendor | Price\nVendor A | 40 EUR\nVendor C | 70 EUR",
+        claimIds: [],
+        citationIds: ["bbbbbbbb-1111-4000-8000-000000000002"],
+      },
+      {
+        id: "listing",
+        kind: "code",
+        text: "Vendor C  70 EUR",
+        claimIds: [],
+        citationIds: [],
+      },
+    ]);
+    expect(md).toMatch(/Café 漢字/);
+    expect(md).toMatch(/\| Vendor \| Price \|/);
+    expect(md).toMatch(/\| Vendor C \| 70 EUR \|/);
+    expect(md).toMatch(/```\nVendor C  70 EUR\n```/);
+    expect(md).toMatch(/\[aaaaaaaa\]/);
+    expect(md).toMatch(/\[bbbbbbbb\]/);
+    expect(md).not.toMatch(/pdf/i);
   });
 });
 
