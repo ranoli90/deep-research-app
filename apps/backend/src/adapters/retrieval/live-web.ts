@@ -1,8 +1,6 @@
 import { createHash } from "node:crypto";
-import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
+import { z } from "zod";
 import type { AppConfig } from "../../platform/config.js";
-import { providerFailureState } from "../model/outcomes.js";
-import { parseUrlCitations } from "../model/parse.js";
 import type { SearchHit } from "./fixture.js";
 import { costToMicro } from "../model/usage.js";
 
@@ -16,6 +14,8 @@ export type LiveSearchResult = {
     providerId?: string;
     actualMicro?: number;
     rawCost?: string;
+    failureReason?: string;
+    responseDigest?: string;
   };
 };
 
@@ -23,7 +23,7 @@ export type LiveSearchResult = {
  * Live discovery via OpenRouter web plugin. Hits are snippets/URLs only.
  * Full text requires a later safeFetch of http(s) locators. Isolated from fixture catalog.
  */
-export async function liveWebSearch(query: string, config: AppConfig, signal?: AbortSignal): Promise<LiveSearchResult> {
+export async function liveWebSearch(query: string, config: AppConfig, signal?: AbortSignal, deadlineMs=45_000): Promise<LiveSearchResult> {
   const correlationId = crypto.randomUUID();
   const body = {
     model: config.openRouterModel,
@@ -46,45 +46,52 @@ export async function liveWebSearch(query: string, config: AppConfig, signal?: A
   if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
     return { hits: [], receipt: { ...receipt, state: "failed" } };
   }
+  const fail=(failureReason:string,state:"failed"|"outcome-unknown"="failed"):LiveSearchResult=>({hits:[],receipt:{...receipt,state,failureReason}});
+  if(!query.trim()||query.length>4000)return fail("invalid_search_query");
+  if(!Number.isSafeInteger(deadlineMs)||deadlineMs<1||deadlineMs>45_000)return fail("invalid_search_deadline");
+  if(signal?.aborted)return fail("search_cancelled_before_dispatch");
+  const boundedSignal=signal?AbortSignal.any([signal,AbortSignal.timeout(deadlineMs)]):AbortSignal.timeout(deadlineMs);
+  let reader:ReadableStreamDefaultReader<Uint8Array>|undefined,onAbort:(()=>void)|undefined;
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.openRouterApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45_000)]) : AbortSignal.timeout(45_000),
-    });
-    if (!res.ok) {
-      return { hits: [], receipt: { ...receipt, state: "failed" } };
+    const aborted=new Promise<never>((_,reject)=>{onAbort=()=>reject(new Error("search_aborted"));boundedSignal.addEventListener("abort",onAbort,{once:true});});
+    const res=await Promise.race([fetch("https://openrouter.ai/api/v1/chat/completions",{
+      method:"POST",headers:{Authorization:`Bearer ${config.openRouterApiKey}`,"Content-Type":"application/json"},
+      body:JSON.stringify(body),redirect:"error",signal:boundedSignal,
+    }),aborted]);
+    if(!res.ok) {if(res.body)void res.body.cancel().catch(()=>undefined);return fail(`provider_http_${res.status}`);}
+    if(!res.body)return fail("empty_search_response");
+    reader=res.body.getReader();const chunks:Uint8Array[]=[];let size=0;
+    while(true) {
+      const part=await Promise.race([reader.read(),aborted]);if(part.done)break;
+      size+=part.value.byteLength;if(size>1_000_000)return fail("search_response_too_large");chunks.push(part.value);
     }
-    const json = (await res.json()) as { id?: unknown; usage?: { cost?: unknown }; choices?: { message?: Parameters<typeof parseUrlCitations>[0] }[] };
-    const cites = parseUrlCitations(json.choices?.[0]?.message ?? {});
-    const hits: SearchHit[] = cites.map((c) => ({
-      locator: c.url,
-      title: c.title,
-      publisher: safeHost(c.url),
-      snippet: c.snippet || c.title,
-      originCluster: c.url,
-      family: safeHost(c.url),
-      sourceType: "web",
-    }));
-    const actualMicro = costToMicro(json.usage?.cost);
-    return { hits, receipt: { ...receipt, state: actualMicro === undefined ? "outcome-unknown" : "confirmed", actualMicro,
-      providerId: typeof json.id === "string" ? json.id : undefined,
-      rawCost: actualMicro === undefined ? undefined : String(json.usage?.cost) } };
-  } catch (err) {
-    return { hits: [], receipt: { ...receipt, state: providerFailureState(err as Error) } };
-  }
+    const raw=Buffer.concat(chunks);receipt.responseDigest=createHash("sha256").update(raw).digest("hex");
+    let value:unknown;
+    try {value=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(raw));}catch{return fail("invalid_search_json");}
+    const metadata=SearchMetadata.safeParse(value);
+    if(!metadata.success)return fail("invalid_search_metadata");
+    receipt.providerId=metadata.data.id;
+    receipt.actualMicro=costToMicro(metadata.data.usage?.cost);
+    receipt.rawCost=receipt.actualMicro===undefined?undefined:String(metadata.data.usage!.cost);
+    if(metadata.data.model&&metadata.data.model!==config.openRouterModel)return fail("search_model_mismatch");
+    const parsed=SearchEnvelope.safeParse(value);if(!parsed.success)return fail("invalid_search_output");
+    const choice=parsed.data.choices[0]!;
+    if(choice.finish_reason&&choice.finish_reason!=="stop"||choice.message.refusal)return fail("incomplete_search_output");
+    const hits:SearchHit[]=choice.message.annotations.filter((a)=>a.type==="url_citation").map((a)=>{
+      if(!a.url_citation)throw new Error("missing_search_citation");
+      const c=a.url_citation,url=new URL(c.url);
+      if(!["https:","http:"].includes(url.protocol)||url.username||url.password)throw new Error("invalid_search_url");
+      return {locator:url.href,title:c.title||url.href,publisher:url.host,snippet:c.content??"",originCluster:url.origin,family:url.host,sourceType:"web"};
+    });
+    return {hits:[...new Map(hits.map((h)=>[h.locator,h])).values()],receipt:{...receipt,state:receipt.actualMicro===undefined?"outcome-unknown":"confirmed"}};
+  } catch {return fail("search_transport_or_output_unresolved","outcome-unknown");}
+  finally {if(onAbort)boundedSignal.removeEventListener("abort",onAbort);if(reader)void reader.cancel().catch(()=>undefined);}
+
 }
 
-function safeHost(url: string): string {
-  try {
-    return new URL(url).host;
-  } catch {
-    return "web";
-  }
-}
-
-void LIVE_CALL_RESERVE_MICRO;
+const SearchMetadata=z.object({id:z.string().max(300).optional(),model:z.string().max(300).optional(),
+  usage:z.object({cost:z.union([z.string().max(100),z.number()]).optional()}).optional()});
+const SearchEnvelope=SearchMetadata.extend({choices:z.array(z.object({finish_reason:z.string().max(100).nullable().optional(),
+  message:z.object({content:z.string().max(800_000).nullable().optional(),refusal:z.string().max(4000).nullable().optional(),
+    annotations:z.array(z.object({type:z.string().max(100),url_citation:z.object({url:z.string().url().max(4000),
+      title:z.string().max(500).optional(),content:z.string().max(24000).optional(),start_index:z.number().int().optional(),end_index:z.number().int().optional()}).optional()})).max(3).default([])})})).length(1)});

@@ -1,6 +1,8 @@
 # Builder handoff
 ## Active V6 checkpoint
 
+W02/W05 search transport now rejects redirects, enforces a 45-second total fetch/body deadline and 1MB strict-UTF8 response limit, validates bounded citation envelopes, rejects malformed/truncated output, and preserves parsed actual cost on invalid results. Titles no longer become invented snippets; citations deduplicate by URL and share an origin cluster. No engine/model/prompt/allowance change or paid call. Durable discovery output, explicit processor/policy selection and structured-worker discovery remain open.
+
 W04/W05 binary document journey (`7a4e93a`): actual API PDF upload, isolated Docling Parse, structured production worker, report/source/library reopen and deletion now pass with a renamed entity. It exposed and repaired an unrelated-qualification false rejection; checker versions are scoped-support.v3/literal-scope-v4. Exact bytes and source/support trace are in verification/v6/document-journey/. Model responses remain fabricated; this does not prove live semantics, discovery or corrected follow-ups.
 
 W05 production worker integration (`d55bab4`): with structured activation enabled, processRun now prepares the versioned task, ingests owned attachments, extracts selected whole passages, executes assertion support and question coverage, and writes/rechecks/publishes a generic report. This path never invokes the fixture proposer or template composer. No readable evidence, invalid/unknown operations or no supported assertions end explicitly unresolved/failed. Discovery and larger evidence selection remain unfinished; the flag stays off by default. Existing historical routes remain separate. This is a first evidence-backed worker path, not the complete unfamiliar search/correction journey.
