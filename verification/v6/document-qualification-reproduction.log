@@ -1,0 +1,52 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ❯ test/scoped-support.test.ts (12 tests | 1 failed) 40ms
+   ✓ scoped support execution > retains a legitimate semantic paraphrase when independent guards pass 12ms
+   ✓ scoped support execution > vetoes an optimistic model verdict for negation 1ms
+   ✓ scoped support execution > retains qualifications missing from an optimistic claim 1ms
+   ✓ scoped support execution > rejects ungrounded numbers and changed units even if quantities were omitted 1ms
+   ✓ scoped support execution > rejects model scope changes and unqualified snippet support 1ms
+   ✓ scoped support execution > keeps model uncertainty and missing evidence instead of promoting literal overlap 1ms
+   ✓ scoped support execution > does not confuse a different entity's negation with contradiction 1ms
+   ✓ scoped support execution > retains a conflict from selected counterevidence omitted by the model 1ms
+   ✓ scoped support execution > rejects a currency-symbol substitution even when the numeric value is unchanged 4ms
+   ✓ scoped support execution > rejects missing claim assessments 1ms
+   × W05 separates a literal underwater prohibition from an offline-only restriction in the same page 11ms
+     → expected 'partially_supported' to be 'supported' // Object.is equality
+   ✓ W05 retains directly relevant and adjacent anaphoric qualifications 1ms
+ ✓ test/p1-p2.test.ts (24 tests) 60ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 61ms
+ ✓ test/admission.test.ts (21 tests) 33ms
+ ✓ test/v6-publication.test.ts (22 tests) 20ms
+ ✓ test/policy.test.ts (8 tests) 23ms
+ ✓ test/model-bindings.test.ts (6 tests) 16ms
+ ✓ test/generic-candidates.test.ts (3 tests) 12ms
+ ✓ test/research-coverage.test.ts (6 tests) 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/scoped-support.test.ts > W05 separates a literal underwater prohibition from an offline-only restriction in the same page
+AssertionError: expected 'partially_supported' to be 'supported' // Object.is equality
+
+Expected: "supported"
+Received: "partially_supported"
+
+ ❯ test/scoped-support.test.ts:54:30
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 8 passed (9)
+      Tests  1 failed | 114 passed (115)
+   Start at  14:17:14
+   Duration  1.51s (transform 706ms, setup 0ms, collect 1.40s, tests 274ms, environment 2ms, prepare 843ms)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

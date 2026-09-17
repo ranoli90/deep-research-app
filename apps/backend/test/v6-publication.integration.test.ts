@@ -85,7 +85,7 @@ describe("W01 V6-F01 production publication, persisted PostgreSQL evidence", () 
         expect(checks.rows[0].text).toBe(assertion);
         expect(checks.rows[0].text_digest).toBe(createHash("sha256").update(assertion).digest("hex"));
         expect(checks.rows[0].evidence_digest).toBe(createHash("sha256").update(evidence).digest("hex"));
-        expect(checks.rows[0].checker_version).toBe("literal-scope-v3");
+        expect(checks.rows[0].checker_version).toBe("literal-scope-v4");
         expect(checks.rows[0].decision).toBe("supports");
         expect(checks.rows[0].published_claim_id).toBe(checks.rows[0].claim_id);
       }

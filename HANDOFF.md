@@ -1,6 +1,8 @@
 # Builder handoff
 ## Active V6 checkpoint
 
+W04/W05 binary document journey: actual API PDF upload, isolated Docling Parse, structured production worker, report/source/library reopen and deletion now pass with a renamed entity. It exposed and repaired an unrelated-qualification false rejection; checker versions are scoped-support.v3/literal-scope-v4. Exact bytes and source/support trace are in verification/v6/document-journey/. Model responses remain fabricated; this does not prove live semantics, discovery or corrected follow-ups.
+
 W05 production worker integration (`d55bab4`): with structured activation enabled, processRun now prepares the versioned task, ingests owned attachments, extracts selected whole passages, executes assertion support and question coverage, and writes/rechecks/publishes a generic report. This path never invokes the fixture proposer or template composer. No readable evidence, invalid/unknown operations or no supported assertions end explicitly unresolved/failed. Discovery and larger evidence selection remain unfinished; the flag stays off by default. Existing historical routes remain separate. This is a first evidence-backed worker path, not the complete unfamiliar search/correction journey.
 
 W05 report completion (`62204b2`) now consumes an executed final-draft coverage review. The publication gate revalidates that review and exact compiled blocks/claim IDs; missing/corrupt coverage or omitted answer content cannot grant completion. Limited reports remain available. General worker stopping/retrieval integration and real semantic evaluation remain open.

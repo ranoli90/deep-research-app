@@ -34,6 +34,23 @@ export function tokenize(text: string): string[] {
 /**
  * Passage must actually bear on the asserted fact. Mentioning an entity is not support.
  */
+const QUALIFICATION = /\b(?:however|except|only|limited to|unless|subject to|may|might|could)\b/;
+/** Qualifications must attach to the asserted statement, not merely occur somewhere on a page.
+ * Explicit discourse references remain conservative; this is not a general coreference resolver.
+ */
+function relevantQualification(passage:string,claim:string):boolean {
+  if(QUALIFICATION.test(claim.toLowerCase()))return false;
+  const terms=tokenize(claim).filter((t)=>!['does','not','never','cannot','only','may','might','could'].includes(t))
+    .map((t)=>t.replace(/s$/u,''));
+  return passage.split(/(?<=[.!?])\s+|\n+/u).some((sentence)=>{
+    const lower=sentence.toLowerCase().trim();
+    if(!QUALIFICATION.test(lower))return false;
+    if(/^(?:however|except|unless|only|subject to|this (?:result|finding|support|capability)|it\b|these\b)/u.test(lower))return true;
+    const words=new Set(tokenize(sentence).map((t)=>t.replace(/s$/u,'')));
+    return terms.length>0 && terms.every((t)=>words.has(t));
+  });
+}
+
 export function passageSupportsClaim(passageText: string, claimText: string): SupportDecision {
   const p = passageText.toLowerCase();
   const c = claimText.toLowerCase();
@@ -71,10 +88,7 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   const assertsFact = /\b(is|are|was|were|equals|costs|includes|supports|requires|announced)\b/i.test(claimText);
   if (assertsFact && ratio < 0.35) return "context-only";
   if (ratio < 0.25) return "unsupported";
-  if (/\bhowever\b|\bexcept\b|\bonly\b|\blimited to\b|\bunless\b|\bsubject to\b|\bmay\b|\bmight\b|\bcould\b/.test(p) &&
-      !/\bhowever\b|\bexcept\b|\bonly\b|\blimited to\b|\bunless\b|\bsubject to\b|\bmay\b|\bmight\b|\bcould\b/.test(c)) {
-    return "qualifies";
-  }
+  if (relevantQualification(passageText,claimText)) return "qualifies";
   // Overlap is useful for rejecting unrelated text, never for proving entailment.
   // Accept a complete literal statement or this narrow, meaning-preserving passive form.
   // Other paraphrases await a substantive scoped assessment rather than an optimistic score.

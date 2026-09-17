@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v2";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v3";
 type Assertion = ResearchModelOutput<"extract_assertions">["assertions"][number];
 type Assessment = ResearchModelOutput<"assess_support">["assessments"][number];
 type Passage = { id:string; text:string; accessLevel:string };

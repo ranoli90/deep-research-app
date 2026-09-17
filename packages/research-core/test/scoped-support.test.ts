@@ -46,3 +46,14 @@ describe("scoped support execution",()=>{
   });
   it("rejects missing claim assessments",()=>expect(()=>resolveScopedSupport({assertions:[{key:"a",candidateKey:null,criterionKeys:["c"],text:"Aster",scope,quantities:[],evidence:[]}],passages:[],proposal:{assessments:[]}})).toThrow("missing_claim_assessment"));
 });
+it("W05 separates a literal underwater prohibition from an offline-only restriction in the same page",()=>{
+ const text="Aster supports offline recording only on firmware 4.2.\nAster does not support underwater recording.";
+ const claim="Aster does not support underwater recording.",start=text.indexOf(claim);
+ const evidence=[{passageId:pid,start,end:start+claim.length,quote:claim}];
+ const result=resolveScopedSupport({assertions:[{key:"a",candidateKey:null,criterionKeys:["c"],text:claim,scope,quantities:[],evidence}],passages:[{id:pid,text,accessLevel:"partial-text"}],proposal:{assessments:[{claimKey:"a",status:"supported",scope,evidence,rationale:"Exact separate prohibition",missingEvidence:[]}]}});
+ expect(result[0]!.decision).toBe("supported");
+});
+it("W05 retains directly relevant and adjacent anaphoric qualifications",()=>{
+ for(const text of ["Aster supports offline editing only on paid plans.","Aster supports offline editing. Only on paid plans.","Aster supports offline editing. However, this requires a paid plan."])
+  expect(check(text,"Aster supports offline editing.").decision).toBe("partially_supported");
+});

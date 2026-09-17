@@ -3,7 +3,7 @@ import type { CanonicalReport } from "@deep/contracts";
 import { SCOPED_SUPPORT_VERSION, passageSupportsClaim, type StoredClaim, type StoredPassage, type ReportDerivationContext } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 
-export const SUPPORT_CHECKER_VERSION = "literal-scope-v3";
+export const SUPPORT_CHECKER_VERSION = "literal-scope-v4";
 const digest = (text: string) => createHash("sha256").update(text).digest("hex");
 
 /** Called in the publication transaction only after authoritative evidence validation.

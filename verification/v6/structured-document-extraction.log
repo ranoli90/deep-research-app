@@ -1,0 +1,57 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/html.extraction.test.ts (3 tests) 17688ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  12537ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  3402ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  1745ms
+ ✓ test/pdf.extraction.test.ts (4 tests) 15576ms
+   ✓ W04 parses original digital PDF bytes into page-bound text with honest layout limitations  4015ms
+   ✓ W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support  6401ms
+   ✓ W04 encrypted PDF remains explicitly unavailable without password guessing  1843ms
+   ✓ W04 binds a late-drawn bold negation to its physical sentence, with recoverable cell geometry  3308ms
+{"level":"info","event":"action","runId":"feffb89f-c431-4fb6-b0f0-e4f757fc5da0","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T20:15:51.269Z"}
+{"level":"info","event":"action","runId":"feffb89f-c431-4fb6-b0f0-e4f757fc5da0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T20:15:51.305Z"}
+{"level":"info","event":"action","runId":"feffb89f-c431-4fb6-b0f0-e4f757fc5da0","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-17T20:15:51.329Z"}
+{"level":"info","event":"action","runId":"feffb89f-c431-4fb6-b0f0-e4f757fc5da0","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-17T20:15:51.349Z"}
+ ❯ test/document-flow.extraction.test.ts (4 tests | 1 failed) 9181ms
+   ✓ W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records  2844ms
+   ✓ W04 cancel after actual parsing prevents late result persistence  1910ms
+   ✓ W04 delete after actual parsing prevents late result persistence  1820ms
+   × W04/W05 binary API -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding 2219ms
+     → expected [] to have a length of 1 but got +0
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/document-flow.extraction.test.ts > W04/W05 binary API -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ test/document-flow.extraction.test.ts:106:18
+    104|  await processRun(pool,config,task.runId);
+    105|  const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$…
+    106|  expect(reports).toHaveLength(1);expect(reports[0].outcome).toBe("comp…
+       |                  ^
+    107|  const reopened=await app.inject({method:"GET",url:`/v1/reports/${repo…
+    108|  expect(reopened.statusCode).toBe(200);expect(reopened.json().labeledD…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 10 passed (11)
+   Start at  14:15:10
+   Duration  47.13s (transform 1.98s, setup 0ms, collect 3.43s, tests 42.44s, environment 1ms, prepare 471ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts`
+Exit status 1

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Structured production worker now composes task/extraction/support/coverage/writer on owned evidence;236 integration passes. Discovery/corrections/mobile/evaluation and W01-W09 incomplete.",
+  "workingTree": "Actual binary API/isolated PDF/structured worker/report/source/deletion journey passes with fabricated model responses;11 extraction,236 integration,115/80/47/4 verify. Unrelated qualification repair versioned. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2818,6 +2818,134 @@
       "scope": "236/236 final code including resume/cancel controls; fabricated model responses over persisted passages",
       "sha256": "165d2ce1c0e0cb75ea52ff222e965dc10c45304ca8c1bca692ba4fae4e9d907f",
       "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "structured-document-extraction.log",
+      "exitCode": 1,
+      "evidenceClass": "local_actual_extraction_api_worker",
+      "scope": "10 passed/1 failed; actual PDF flow exposed unrelated qualification veto",
+      "sha256": "5c9870862477002777b2cebddd88d3ded60ec545330c60afd7f6c153fe91c473"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "structured-document-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "Initial document test types",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "pnpm --filter @deep/research-core test",
+      "artifact": "document-qualification-reproduction.log",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_regression",
+      "scope": "114 passed/1 failed; exact sentence downgraded by unrelated qualification",
+      "sha256": "63640a6751650d8eb90c2cf40ccc1ee6aa9674a12bcb84d534f759620ca19bd0"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "pnpm verify",
+      "artifact": "document-qualification-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "115 core/80 backend/47 mobile/4 governance",
+      "sha256": "7e079498e21a0a94a375d438f898792e2577ecb81cb2763de165441c8c85de53"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "structured-document-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_actual_extraction_api_worker",
+      "scope": "11/11; actual isolated parser/API/worker/database/reopen/deletion, fabricated semantic responses",
+      "sha256": "9bb9cce88a2296566f3a52d67b061ed577aa769ea411b48ee111dc94e6e4817a"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "structured-document-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; actual revision recorded at checkpoint",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "structured-document-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "V6-F01",
+        "V6-F07"
+      ],
+      "commit": "e77172b",
+      "workingTree": "binary document journey and qualification repair; revision recorded at checkpoint",
+      "command": "pnpm test:integration",
+      "artifact": "document-qualification-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "236/236 including preserved publication negatives and checker-version controls",
+      "sha256": "9a30af693c5904c2250bb63d2f2646cef6a9d06d147db21d5d62f212698902c3"
     }
   ],
   "unresolved": [

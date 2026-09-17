@@ -6,7 +6,7 @@
       "title": "Citation checking accepts opposite and insufficiently supported claims",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Production negatives reproduced; literal/scope abstention, mapping/type-label guards, persisted revisions/support and deterministic derivations added. General semantic checker and complete writer remain open. Scoped publication now rechecks managed canonical assertion revisions and permits a supported paraphrase without weakening default literal/mapping/owner gates; partial/stale/missing/corrupt/forged approvals reject. Real-model semantic quality and generic writer integration remain open."
+      "basis": "Production negatives reproduced; literal/scope abstention, mapping/type-label guards, persisted revisions/support and deterministic derivations added. General semantic checker and complete writer remain open. Scoped publication now rechecks managed canonical assertion revisions and permits a supported paraphrase without weakening default literal/mapping/owner gates; partial/stale/missing/corrupt/forged approvals reject. Real-model semantic quality and generic writer integration remain open. Actual binary API/structured-worker/report/source/deletion trace now passes with a renamed PDF entity and fabricated model responses. An unrelated-qualification false rejection was reproduced and repaired with versioned checks and paired controls; broader semantic/native evidence remains open."
     },
     {
       "id": "V6-F02",
@@ -48,7 +48,7 @@
       "title": "PDF attachment feature does not parse real PDF bytes",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; binary and isolated digital-text repair, broader quality/native flow open",
-      "basis": "Pasted PDF rejection and original binary byte/digest regression reproduced. Authenticated binary upload, isolated Docling Parse geometry, page/cell source inspection and fenced deletion/cancellation pass local tests. Real RFC diagnostic retained baseline failures and preserved selected negation; table/column/OCR and native picker remain open."
+      "basis": "Pasted PDF rejection and original binary byte/digest regression reproduced. Authenticated binary upload, isolated Docling Parse geometry, page/cell source inspection and fenced deletion/cancellation pass local tests. Real RFC diagnostic retained baseline failures and preserved selected negation; table/column/OCR and native picker remain open. Actual binary API/structured-worker/report/source/deletion trace now passes with a renamed PDF entity and fabricated model responses. An unrelated-qualification false rejection was reproduced and repaired with versioned checks and paired controls; broader semantic/native evidence remains open."
     },
     {
       "id": "V6-F08",
