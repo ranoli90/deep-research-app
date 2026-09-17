@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Structured gateway checkpoint on1654bbe;178 local integration cases pass; general workflow integration and W01-W09 remain incomplete",
+  "workingTree": "Committed structured gateway prerequisite25511fb;178 local integration cases pass; general workflow and W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1710,7 +1710,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "97 core/80 backend/47 mobile/4 governance",
-      "sha256": "30fbdb4a38ec94ae09ce413dda5d802e2f201a5085f432070a739b9e6140c8f5"
+      "sha256": "30fbdb4a38ec94ae09ce413dda5d802e2f201a5085f432070a739b9e6140c8f5",
+      "testedCodeCommit": "25511fb523f1dbef5a19053e6313d27a42f46f52"
     },
     {
       "requirementIds": [
@@ -1725,7 +1726,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "178/178; gateway cases use fabricated provider replies; no live semantic-quality proof",
-      "sha256": "c2474bfc7d2d0cb4cfe294b3883f65026fcf6ee28e5d9f1ff9f644c53fa1b45b"
+      "sha256": "c2474bfc7d2d0cb4cfe294b3883f65026fcf6ee28e5d9f1ff9f644c53fa1b45b",
+      "testedCodeCommit": "25511fb523f1dbef5a19053e6313d27a42f46f52"
     },
     {
       "requirementIds": [
@@ -1740,7 +1742,8 @@
       "exitCode": 0,
       "evidenceClass": "static_typecheck",
       "scope": "shared schemas and consent disclosure",
-      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "testedCodeCommit": "25511fb523f1dbef5a19053e6313d27a42f46f52"
     },
     {
       "requirementIds": [
@@ -1801,5 +1804,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "bdc61a339f5cd123df6400ecbb85917ae8f9f975"
+  "implementationCommit": "25511fb523f1dbef5a19053e6313d27a42f46f52"
 }

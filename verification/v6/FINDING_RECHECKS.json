@@ -104,7 +104,7 @@
       "title": "Model admission trusts an overly broad proposal shape",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Run/revision match, strict bounded per-action executable arguments, post-transform re-admission and server tariff floor enforced. Nine invalid-argument regressions reproduced then passed; valid controls and transformed challenge privacy/cost checks pass. General model gateway and named action results remain open."
+      "basis": "Strict bounded action arguments and transformed re-admission remain enforced. Structured gateway now has six closed output contracts, current downstream consent, local provenance/handle validation and durable fenced results. Gateway integration into the general controller and substantive action handlers remains open."
     },
     {
       "id": "V6-F16",
@@ -135,5 +135,5 @@
       "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
     }
   ],
-  "checkpointEvidence": "167/167 local integration; pnpm verify; earlier 10/10 real extraction and public PDF diagnostic; general milestone incomplete"
+  "checkpointEvidence": "178/178 local integration; pnpm verify97 core/80 backend/47 mobile/4 governance; gateway transport uses doubles, no paid semantic probe; overall milestone incomplete"
 }
