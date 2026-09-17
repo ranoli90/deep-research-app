@@ -94,3 +94,7 @@ A single immutable draft-lineage relation ties existing operation/task IDs toget
 ## ADR017 — Criterion coverage is a persisted checked outcome
 Decision: execute review_coverage against current owned task/evidence and revalidated assertion support. Persist the actual resolved question statuses, failed guards and canonical assertion revisions under both checker versions. Question coverage is distinct from candidate eligibility; model not-applicable labels cannot waive user requirements.
 Consequence: no source-count completion; semantic review still needs real evaluation. Local additive migration021 only; no hosted deployment. Rollback disables new coverage execution while retaining privacy, holds and existing evidence. Main worker/publication integration remains open.
+
+
+## ADR018 — Fixed public search policy with durable results
+Pin one Exa auto plugin search through the existing bounded OpenRouter transport and pinned OpenAI text provider. Require versioned disclosure and default-off activation; reserve the documented plugin fee plus the full model ceiling. No model-directed multi-search server tool. Persist results separately from financial receipts, keyed to the logical query/brief/policy, so evidence arrival cannot justify resending an unknown request. Mixed document/public queries remain gated pending explicit approval. Local migration022 only; no paid behavior or invoice proof. Rollback disables new discovery and retains ownership, receipts, holds and deletion.

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Search transport bounded and schema-checked with known cost preservation;verify115/88/47/4 and236 integration pass. Pinned processor/cost policy, durable search outputs and W01-W09 incomplete.",
+  "workingTree": "Pinned default-off discovery with consent2026-09-17.1 and durable query/receipt replay;final244 integration,72 focused,115/88/47/4 verify. Worker scheduling and W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3016,6 +3016,150 @@
       "scope": "236/236 including existing failed/unknown search admission and receipt controls",
       "sha256": "00343dede8352945819b94fada6aba09af0aa5b556a7b041084e2f9fbfd9911b",
       "testedCodeCommit": "04fa478800bc40e8b4cee3d02cbd1c95e3493271"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "durable-search-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "Initial policy/coordinator types",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "durable-search-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_discovery",
+      "scope": "70/70 before final old-consent and mixed-document controls",
+      "sha256": "385f95a0958dfb1f7c854c19dce66389b35ee3bd05e97e7e89c877403b42af74"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "pnpm verify",
+      "artifact": "durable-search-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "115 core/88 backend/47 mobile/4 governance",
+      "sha256": "f8b85605b289d9cdc59478c2a66ffeadde1a1af48cc3a8047b50a16ad4c5db1d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "durable-search-typecheck-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "Final implementation/test types",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "durable-search-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; actual code revision recorded at checkpoint",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "durable-search-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "durable discovery with test setup correction",
+      "command": "pnpm test:integration",
+      "artifact": "durable-search-integration.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_discovery",
+      "scope": "243 passed/1 failed; new mixed-document test used nonexistent briefs table",
+      "sha256": "332fc3264f5aebfb6453c50edb68edefea51efe6736533a254f2196dc7048f40"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "durable discovery with test setup correction",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "durable-search-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_discovery",
+      "scope": "72/72 after fixing test setup to research_briefs; includes old consent/mixed-document controls",
+      "sha256": "9e0d7acabbdb92be97dba9b54b61f50f8da39f0a3f297c2a2e85cb1702bb5535"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F09"
+      ],
+      "commit": "5eccc91",
+      "workingTree": "pinned durable discovery; revision recorded in checkpoint",
+      "command": "pnpm test:integration",
+      "artifact": "durable-search-integration-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_discovery",
+      "scope": "244/244 final code/tests after setup table-name correction",
+      "sha256": "21a36297474ccd96cd28daf2e4415f90b8d18986a3ca671c79d62d663c3ebcf2"
     }
   ],
   "unresolved": [

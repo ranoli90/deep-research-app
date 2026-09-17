@@ -13,6 +13,7 @@ export type AppConfig = {
   fixtureRouteAllowed: boolean;
   liveRouteEnabled: boolean;
   structuredModelEnabled?: boolean;
+  structuredDiscoveryEnabled?: boolean;
   liveRetrievalEnabled: boolean;
   openRouterApiKey: string | undefined;
   openRouterModel: string;
@@ -64,6 +65,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     fixtureRouteAllowed,
     liveRouteEnabled,
     structuredModelEnabled: env.STRUCTURED_MODEL_ENABLED === "true",
+    structuredDiscoveryEnabled: env.STRUCTURED_DISCOVERY_ENABLED === "true",
     liveRetrievalEnabled: env.LIVE_RETRIEVAL_ENABLED === "true",
     openRouterApiKey: env.OPENROUTER_API_KEY,
     openRouterModel: env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",

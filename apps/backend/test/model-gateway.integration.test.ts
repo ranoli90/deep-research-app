@@ -1,3 +1,4 @@
+import { performPublicSearch } from "../src/worker/public-search.js";
 import { processRun } from "../src/worker/executor.js";
 import { reportCompletionCovered } from "../src/modules/publication-coverage.js";
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
@@ -724,4 +725,66 @@ it.each(["resume","cancel"])("W05 structured writing pause supports %s without r
  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(action==="cancel"?"cancelled":"completed_with_limitations");
  expect(globalThis.fetch).toHaveBeenCalledTimes(action==="cancel"?4:7);
  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(action==="cancel"?0:1);
+}));
+
+async function searchCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ globalThis.fetch=vi.fn(async()=>response(brief)) as typeof fetch;
+ const task=await ensureResearchTask(pool,x.config,x.session,{...x,briefRevision:1});
+ if(task.kind!=="task")throw new Error("missing task");
+ return {args:{...x,briefRevision:1,taskId:task.task.id,proposal:{rationale:"Investigate public restoration evidence",action:{type:"search",query:"coral kelp restoration",questionKeys:["q1"],publicQueryBasis:span}}},config:{...x.config,structuredDiscoveryEnabled:true}};
+}
+function searchReply(known=true) {return new Response(JSON.stringify({id:"nonbillable-search",model:"openai/gpt-4o-mini",provider:"OpenAI",...(known?{usage:{cost:"0.000003"}}:{}),choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:"https://example.org/study",title:"Study",content:"Restoration findings"}}]}}]}));}
+describe("W02/W05 durable pinned public discovery",()=>{
+ it("pins engine/provider and reuses saved results even after unrelated evidence arrives",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+  const first=await performPublicSearch(pool,c.config,x.session,c.args);expect(first).toMatchObject({kind:"search",reused:false,hits:[{locator:"https://example.org/study"}]});
+  const sent=JSON.parse(String(vi.mocked(fetch).mock.calls[0]![1]!.body));
+  expect(sent.plugins).toEqual([{id:"web",engine:"exa",mode:"auto",max_results:3}]);expect(sent.provider).toMatchObject({only:["openai"],allow_fallbacks:false,data_collection:"deny"});
+  await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
+  expect(await performPublicSearch(pool,c.config,x.session,c.args)).toMatchObject({...first,reused:true});expect(fetch).toHaveBeenCalledTimes(1);
+ }));
+ it("holds unknown outcomes without repeating a request after evidence changes",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply(false)) as typeof fetch;
+  const first=await performPublicSearch(pool,c.config,x.session,c.args);expect(first.kind).toBe("pending");
+  await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
+  expect(await performPublicSearch(pool,c.config,x.session,c.args)).toEqual(first);expect(fetch).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT confirmed_micro,state,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0]).toMatchObject({confirmed_micro:null,state:"outcome-unknown",reserved_max_micro:"28658"});
+ }));
+ it("rejects transformed private words and foreign task ownership before dispatch",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+  await expect(performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query:"private CANARY"}}})).rejects.toThrow("unapproved_public_query_terms");
+  await expect(performPublicSearch(pool,c.config,x.session,{...c.args,taskId:crypto.randomUUID()})).rejects.toThrow("search_task_mismatch");expect(fetch).not.toHaveBeenCalled();
+ }));
+ it("revalidates saved receipt and purges discovery output on deletion",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+  expect((await performPublicSearch(pool,c.config,x.session,c.args)).kind).toBe("search");
+  await pool.query("UPDATE search_operations SET result=jsonb_set(result,'{receipt,actualMicro}','999') WHERE run_id=$1",[x.runId]);
+  await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("invalid_saved_search");expect(fetch).toHaveBeenCalledTimes(1);
+  await withTx(pool,(db)=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT 1 FROM search_operations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+ it("concurrent same-query attempts issue once without holding database locks during HTTP",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);let entered!:()=>void,release!:()=>void;
+  const started=new Promise<void>((r)=>entered=r),waiting=new Promise<void>((r)=>release=r);
+  globalThis.fetch=vi.fn(async()=>{entered();await waiting;return searchReply();}) as typeof fetch;
+  const first=performPublicSearch(pool,c.config,x.session,c.args);await started;
+  try {expect((await performPublicSearch(pool,c.config,x.session,c.args)).kind).toBe("pending");} finally {release();}
+  expect((await first).kind).toBe("search");expect(fetch).toHaveBeenCalledTimes(1);
+ }));
+ it("late deletion retains actual cost but discards search content",async()=>runCase(async(x)=>{
+  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>{await withTx(pool,(db)=>deleteAccount(db,x.accountId));return searchReply();}) as typeof fetch;
+  await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toBeInstanceOf(LostWorkerLease);
+  expect((await pool.query("SELECT 1 FROM search_operations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+  expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0].confirmed_micro).toBe("3");
+ }));
+});
+it("W03/W05 old processor consent cannot issue pinned discovery",async()=>runCase(async(x)=>{
+ const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+ await pool.query("UPDATE consent_records SET policy_version='2026-09-17' WHERE account_id=$1",[x.accountId]);
+ await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("stale_or_unauthorized_attempt");
+ expect(fetch).not.toHaveBeenCalled();expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rowCount).toBe(0);
+}));
+it("W03/W05 mixed document tasks require explicit public-query approval",async()=>runCase(async(x)=>{
+ const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+ await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[x.runId,JSON.stringify([crypto.randomUUID()])]);
+ await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("document_search_requires_public_query_approval");expect(fetch).not.toHaveBeenCalled();
 }));
