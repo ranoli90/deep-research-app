@@ -11,7 +11,6 @@ import { detectGaps } from "../src/gaps.js";
 import { applyFetchedDocument, applySearchHits, recordCompletedAction, refreshDerived } from "../src/loop.js";
 import { evaluateStop } from "../src/stop.js";
 import { composeReport } from "../src/report.js";
-import { evaluateStop } from "../src/stop.js";
 import { applyCorrectionToConstraints } from "../src/brief.js";
 import { impactForCorrection, shouldFullRerun } from "../src/impact.js";
 import type { ControllerState, PolicyDecision } from "../src/types.js";
@@ -418,6 +417,58 @@ describe("contradictions do not treat newest as correct", () => {
     expect(found[0]!.resolutionStatus).not.toBe(undefined);
     expect(found[0]!.possibleExplanation.length).toBeGreaterThan(10);
     expect(JSON.stringify(found)).not.toMatch(/newest wins|newest is correct/i);
+  });
+});
+
+describe("opened public evidence does not trigger unbounded discovery search", () => {
+  it("does not issue another generic search after full-text public sources exist and no blocking gap remains", () => {
+    const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    s.searches = [
+      {
+        query: "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        sourceFamilyIds: ["ionos.de"],
+        newFamilies: 1,
+        coverageProgress: true,
+      },
+    ];
+    s.sources = [
+      {
+        id: "s1",
+        title: "IONOS",
+        locator: "https://cloud.ionos.de/managed/dbaas/postgresql",
+        accessLevel: "full-text",
+        sourceType: "web",
+      },
+    ];
+    s.passages = [
+      {
+        id: "p1",
+        sourceId: "s1",
+        sourceVersionId: "v1",
+        exactText: "Managed PostgreSQL in Frankfurt. Startup instances from 40 EUR per month as of 2026-03-01.",
+        locator: "document",
+      },
+    ];
+    s.coverage = [{ id: "primary", question: s.brief.originalQuestion, status: "supported" }];
+    s.completedActionTypes = ["challenge"];
+    s.disconfirmations = [
+      {
+        id: "d1",
+        targetConclusion: "Eligible under hard constraints: none listed",
+        falsificationHypothesis: "x",
+        searchStrategy: "y",
+        result: "no_counterexample_found",
+        counterevidenceFound: false,
+        impact: "No counterexample found is not proof.",
+      },
+    ];
+    refreshDerived(s);
+    const d = proposeControllerAction(s, "adaptive");
+    expect(d.type).not.toBe("search");
+    expect(["synthesize", "stop", "verify", "challenge"]).toContain(d.type);
+    if (d.type === "synthesize" || d.type === "stop") {
+      expect(String(d.arguments.stopPolicy ?? "")).not.toBe("inaccessible_or_unresolved_gap");
+    }
   });
 });
 

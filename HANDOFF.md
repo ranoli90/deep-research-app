@@ -52,7 +52,7 @@ Working tree: `main` after the Phase 2 adaptive-controller pass. P0 is **not** f
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests |
 | `pnpm p0:launch` | 0, twice | citations=10; `cancelOutcome=cancelled`; `cancelReportId=null`; `latePublicationRejected=true` |
 | `pnpm eval:fixture` | 0 | 12 families; Nimbus/primary gold only on adaptive; ablations |
-| `tsx scripts/p2-live-adaptive-check.ts` | 0 | run `1ceed974` report `1a5a089d`; adapted=true; $1.60 of $5 reserved |
+| `tsx scripts/p2-live-adaptive-check.ts` | 0 then timeout | completed `1ceed974` / `1a5a089d`; second `4cb9599d` cancelled after extra live searches. **$2.80 of $5 reserved** |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; historical bounded |
 | `pnpm test:e2e:ios` | 2 | no Xcode |
 | `pnpm test:e2e:android` | 2 | no device online; prior Android evidence not re-run |
@@ -66,7 +66,7 @@ Working tree: `main` after the Phase 2 adaptive-controller pass. P0 is **not** f
 ## Unresolved
 - iOS VoiceOver not exercised. Purchase sandbox not connected.
 - J14 proves application outbox dedupe, not OS push delivery.
-- P1/P2/P3 fixture tests and the 12-family fixture benchmark are not a competitor win. Remaining OpenRouter cap ~$3.40 of $5 after the adaptive live smoke. Do not spend more unless a new live need justifies it.
+- P1/P2/P3 fixture tests and the 12-family fixture benchmark are not a competitor win. Remaining OpenRouter cap ~$2.20 of $5. Do not spend more unless a new live need justifies it.
 
 ## Next
 iOS P0-N / G03 iOS at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS, both-platform G03, hosted auth, M11 purchases, G04, G05, or full G07 store review as passed.

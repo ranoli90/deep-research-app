@@ -329,9 +329,16 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
   }
 
   const uncovered = state.coverage.find((c) => c.status === "unstarted" || c.status === "investigating");
-  const openQuestion = (state.questions ?? []).find((q) => q.status === "open" && q.importance !== "background");
-  if ((uncovered || openQuestion) && state.searches.length < 8) {
-    const query = queryWithGeography(state, uncovered?.question || openQuestion?.text || state.brief.originalQuestion);
+  const openBlockingQuestion = (state.questions ?? []).find((q) => q.status === "open" && q.blocking);
+  const openedPublic = state.sources.some(
+    (s) =>
+      (s.accessLevel === "full-text" || s.accessLevel === "partial-text") &&
+      !String(s.locator).startsWith("attachment://"),
+  );
+  // Live web always returns new URL families. Once public pages are opened and
+  // nothing blocking remains, another generic search has low decision value.
+  if ((uncovered || openBlockingQuestion) && state.searches.length < 8 && !(openedPublic && !blocking)) {
+    const query = queryWithGeography(state, uncovered?.question || openBlockingQuestion?.text || state.brief.originalQuestion);
     if (!canPay(state, FIXTURE_SEARCH_COST_MICRO, false)) {
       return withReason(
         {
@@ -352,13 +359,13 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
           ...b,
           type: "search",
           rationale: "Investigate an uncovered required question",
-          arguments: { coverageId: uncovered?.id ?? openQuestion?.id },
+          arguments: { coverageId: uncovered?.id ?? openBlockingQuestion?.id },
           estimatedMaxCostMicro: FIXTURE_SEARCH_COST_MICRO,
           coverageIds: uncovered ? [uncovered.id] : [],
-          dedupeKey: `search:${uncovered?.id ?? openQuestion?.id}:${state.searches.length}`,
+          dedupeKey: `search:${uncovered?.id ?? openBlockingQuestion?.id}:${state.searches.length}`,
         },
         "uncovered_research_question",
-        { coverageId: uncovered?.id ?? openQuestion?.id },
+        { coverageId: uncovered?.id ?? openBlockingQuestion?.id },
       ),
     );
   }

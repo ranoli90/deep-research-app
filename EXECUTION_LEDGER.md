@@ -249,7 +249,9 @@ No live paid calls were made.
 - Migration `005_controller_intelligence.sql`.
 - Fixture 12-family benchmark: Nimbus/primary gold matrix recalled only on adaptive; ablations show gap detection and source pivot are the retrieval cause. `verification/benchmark-fixture.json` remains `evidenceClass: fixture`.
 - Adaptive closed-loop unit test: weak summaries → blocking gap → source-type pivot → contradiction → verify/challenge → evidence-aware stop.
-- Live smoke `1ceed974` / report `1a5a089d`: search → fetch → source_pivot → verify → challenge → published HTTP passages. Reserved **$1.60 of $5**. Remaining ~$3.40.
+- Live smoke `1ceed974` / report `1a5a089d`: search → fetch → source_pivot → verify → challenge → published HTTP passages.
+- Post-fix live attempt `4cb9599d`: search → fetch → disconfirm_search → challenge (evaluated after ingest), then extra uncovered searches because live pages never filled `q-eligibility`. Cancelled. Selector now skips generic search after opened public pages when no blocking gap remains.
+- OpenRouter ledger **$2.80 of $5 reserved**. Remaining ~$2.20.
 - `pnpm test:integration` 107/107 twice; `pnpm verify` 0; `pnpm p0:launch` twice ok. iOS/Android this session not re-run (no device / no Xcode).
 
 
