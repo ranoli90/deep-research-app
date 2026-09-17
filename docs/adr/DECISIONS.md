@@ -82,3 +82,10 @@ Persist canonical claim revisions and typed checks behind existing fences in two
 
 
 ADR-015 publication amendment: the report gate now recomputes and validates stored scoped results instead of trusting caller flags or forcing a valid semantic paraphrase back through the literal-only checker. Managed assertions never fall back when their scoped result is absent/non-supporting/stale. Pure compilation still requires exact final assertion mappings; new writer wording needs a new support path. Canonical assertion IDs/revisions survive publication/reopen. Policy constants remain server-owned in a backend port, unchanged; validation is read-only until the existing final publication decision passes.
+
+
+## ADR-016 — final writer text is a new checked assertion
+
+Do not restrict synthesis to copying source assertions or let new prose inherit their approval. Project each material draft surface into a new inference proposal with explicit source-premise revision links, check it against original evidence, and publish only supported wording through the existing canonical gate. Standard application headings remain nonfactual; unchecked headings/limitations cannot bypass this process. Unsupported draft surfaces become localized abstentions. The generated title is not exposed as a canonical factual field.
+
+A single immutable draft-lineage relation ties existing operation/task IDs together; parent origin must be extraction, preventing recursive/self-supported drafts. Common premise scope is retained; mixed fields remain unknown and dependency completeness is partial. This supports conservative later correction invalidation rather than claiming complete causal dependencies. Model schema/prompt/provider remain unchanged. Checker v2 adds currency-token preservation; result identity now includes checker version so old judgments remain historical. Rollback disables the structured writer while preserving reports, deletion, reservations and versioned records.

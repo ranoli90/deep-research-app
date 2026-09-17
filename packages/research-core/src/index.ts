@@ -25,3 +25,6 @@ export * from "./support.js";
 export * from "./types.js";
 export { validateModelBindings } from "./model-bindings.js";
 export { resolveScopedSupport, SCOPED_SUPPORT_VERSION, type ScopedSupportResult } from "./scoped-support.js";
+
+export { draftStatements, type DraftStatement } from "./draft-assertions.js";
+export { compileCheckedDraft } from "./draft-report.js";

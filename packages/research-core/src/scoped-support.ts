@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v1";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v2";
 type Assertion = ResearchModelOutput<"extract_assertions">["assertions"][number];
 type Assessment = ResearchModelOutput<"assess_support">["assessments"][number];
 type Passage = { id:string; text:string; accessLevel:string };
@@ -47,6 +47,8 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
     // Inspect all selected in-scope passages, including counterevidence omitted by the model.
     const scopedPassages=args.passages.filter((p)=>Object.values(claim.scope).filter((s):s is string=>s!==null).every((s)=>containsPhrase(p.text,s)));
+    const currencyTokens=claim.text.match(/[$€£¥]|\b(?:USD|EUR|GBP|CAD|AUD|JPY|CHF)\b/gu)??[];
+    checks.push({rule:"currency_preserved",passed:currencyTokens.every((token)=>citedText.includes(token))});
     const literal = scopedPassages.map((p) => passageSupportsClaim(p.text,claim.text));
     const literalContradiction = literal.includes("contradicts");
     const literalSupport = literal.includes("supports");

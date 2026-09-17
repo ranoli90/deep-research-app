@@ -22,7 +22,7 @@ export async function persistCheckedClaims(db: Queryable, args: {
     const scoped=args.scopedApprovals?.get(claim.id);
     if(scoped) {
       if(scoped.text!==claim.text || JSON.stringify([...new Set(scoped.passageIds)].sort())!==JSON.stringify([...new Set(claim.passageIds)].sort())) throw new Error("scoped_claim_binding_mismatch");
-      const updated=await db.query("UPDATE claims SET support_status='direct' WHERE id=$1 AND account_id=$2 AND run_id=$3 AND text=$4",[claim.id,args.accountId,args.report.runId,claim.text]);
+      const updated=await db.query("UPDATE claims SET support_status=CASE WHEN type='inference' THEN 'inference' ELSE 'direct' END WHERE id=$1 AND account_id=$2 AND run_id=$3 AND text=$4",[claim.id,args.accountId,args.report.runId,claim.text]);
       if(updated.rowCount!==1) throw new Error("scoped_claim_owner_mismatch");
       ids.set(claim.id,claim.id);
       for(const passageId of scoped.passageIds) await db.query(`INSERT INTO claim_evidence(claim_id,passage_id,relation,checker_version,decision,explanation)

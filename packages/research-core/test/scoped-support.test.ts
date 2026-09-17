@@ -40,5 +40,9 @@ describe("scoped support execution",()=>{
     expect(result[0]!.decision).toBe("disputed");
     expect(result[0]!.counterEvidence).toEqual([{passageId:"22222222-2222-4222-8222-222222222222",decision:"contradicts"}]);
   });
+  it("rejects a currency-symbol substitution even when the numeric value is unchanged",()=>{
+    expect(check("Aster costs €12.","Aster costs $12.").decision).toBe("insufficient");
+    expect(check("Aster costs €12.","Aster costs €12.").decision).toBe("supported");
+  });
   it("rejects missing claim assessments",()=>expect(()=>resolveScopedSupport({assertions:[{key:"a",candidateKey:null,criterionKeys:["c"],text:"Aster",scope,quantities:[],evidence:[]}],passages:[],proposal:{assessments:[]}})).toThrow("missing_claim_assessment"));
 });

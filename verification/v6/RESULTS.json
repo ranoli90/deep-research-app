@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Scoped support integrated into real publication with canonical assertion identity and read-only revalidation;215 integration and43 focused pass. Writer/general controller/W01-W09 incomplete.",
+  "workingTree": "W05 generic writer: composed headings, paragraphs and limitations become distinct canonical assertions linked to checked premise revisions, then undergo exact final-wording support and publication checks. Unsupported surfaces become localized caveats; supported synthesis remains. Migration020 preserves draft lineage and checker versions; deletion purges it. Currency mismatch independently rejects. Reports conservatively remain incomplete until criterion coverage is implemented. Main processRun integration and real semantic evaluation remain open.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2421,6 +2421,109 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05",
+        "V6-F01"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer implementation; actual code commit recorded at checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "generic-writer-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "initial typecheck",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05",
+        "V6-F01"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer implementation; actual code commit recorded at checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "generic-writer-typecheck2.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "final writer typecheck",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05",
+        "V6-F01"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer implementation; actual code commit recorded at checkpoint",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "generic-writer-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_writer",
+      "scope": "50/50 before final excessive-expansion case",
+      "sha256": "d09a25d3f4b7f1a5b1ba14f865821961ec801c2a3a1e65f76d6e95ab83427769"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05",
+        "V6-F01"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer implementation; actual code commit recorded at checkpoint",
+      "command": "pnpm verify",
+      "artifact": "generic-writer-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "107 core/80 backend/47 mobile/4 governance",
+      "sha256": "3a44ea15c17ce9aa633c54c70270b24f09dd952517a301058be24fed4a40dbac"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05",
+        "V6-F01"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer implementation; actual code commit recorded at checkpoint",
+      "command": "pnpm test:integration",
+      "artifact": "generic-writer-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "223/223 final code including excessive expansion",
+      "sha256": "ce34f4dd094227fa618048d5bbab5a923c2e25770a9454ce8819b6d55e4d5d8a"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "generic-writer-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F05"
+      ],
+      "commit": "0cee0b2",
+      "workingTree": "generic writer checkpoint",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "generic-writer-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

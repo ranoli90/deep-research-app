@@ -1,0 +1,15 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (50 tests) 7727ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  517ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  546ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  388ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  324ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  569ms
+
+ Test Files  1 passed (1)
+      Tests  50 passed (50)
+   Start at  13:44:50
+   Duration  8.84s (transform 678ms, setup 0ms, collect 886ms, tests 7.73s, environment 0ms, prepare 78ms)
+

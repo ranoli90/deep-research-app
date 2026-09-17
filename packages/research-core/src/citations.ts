@@ -5,6 +5,7 @@ import { deriveReportText, type ReportDerivationContext } from "./report-derivat
 
 // Only non-assertive section labels and application-owned abstentions may omit claim bindings.
 const SECTION_LABELS = new Set(["Answer", "Evidence", "Sources", "Limitations", "Comparison", "Calculations", "Scope", "Uncertainty"]);
+export function isReportSectionLabel(text:string):boolean { return SECTION_LABELS.has(text); }
 export const UNRESOLVED_SECTION = "This section remains unresolved because its assertions could not be verified.";
 export const UNRESOLVED_DISCONFIRMATION = "Disconfirmation remains unresolved. Absence of a recorded counterexample is not proof.";
 const ABSTENTIONS = new Set([

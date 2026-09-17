@@ -10,6 +10,7 @@ import { claimLease,getRun } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
+import { createResearchDraft,writeResearchReport } from "../src/worker/research-writer.js";
 import { executeAssertionSupport } from "../src/worker/support-execution.js";
 import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
 import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
@@ -345,7 +346,7 @@ describe("W05 substantive support execution and persisted revisions",()=>{
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const rows=await pool.query("SELECT claim_revision_id,evidence_digest,scope_digest,checker_version,result FROM scoped_support_results WHERE run_id=$1",[x.runId]);
     expect(rows.rows).toHaveLength(1);
-    expect(rows.rows[0]).toMatchObject({evidence_digest:expect.stringMatching(/^[a-f0-9]{64}$/),scope_digest:expect.stringMatching(/^[a-f0-9]{64}$/),checker_version:"scoped-support.v1"});
+    expect(rows.rows[0]).toMatchObject({evidence_digest:expect.stringMatching(/^[a-f0-9]{64}$/),scope_digest:expect.stringMatching(/^[a-f0-9]{64}$/),checker_version:"scoped-support.v2"});
     expect(rows.rows[0].result.checks.length).toBeGreaterThan(5);
     expect((await pool.query("SELECT support_status FROM claims WHERE run_id=$1",[x.runId])).rows).toEqual([{support_status:"unverified"}]);
     expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
@@ -469,5 +470,108 @@ describe("W01/W05 scoped support at the real publication gate",()=>{
     await pool.query("UPDATE scoped_support_results SET result='{}' WHERE run_id=$1",[x.runId]);
     await expect(publishReport(pool,c.publication)).rejects.toThrow("stored_support_result_mismatch");
     expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+});
+
+
+async function writerCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+  const prepared=await supportCase(x);
+  globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+  const support=await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+  if(support.kind!=="support")throw new Error("missing source support");
+  const text=prepared.output.assertions[0]!.text.replace(/^(.+) restored 12 hectares in 2024\.$/,"In 2024, $1 restored an area of 12 hectares.");
+  const draft={title:"Restoration findings",sections:[{heading:"Evidence",paragraphs:[{text,claimKeys:["area"]}]}],unresolvedQuestionKeys:["q1"],limitations:[] as string[]};
+  return {...prepared,draft,sourceSupport:support,args:{...prepared.args,sourceSupportIntentId:support.intentId}};
+}
+function optimisticWriterTransport(draft:unknown) {
+  return vi.fn(async (_input:unknown,init?:RequestInit)=>{
+    const request=JSON.parse(String(init?.body));
+    if(request.response_format.json_schema.name==="research_write_report_v1")return response(draft);
+    if(request.response_format.json_schema.name!=="research_assess_support_v1")throw new Error("unexpected operation");
+    const context=JSON.parse(request.messages[1].content);
+    return response({assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
+      rationale:"Optimistic test response; independent guards must still reject invalid text.",missingEvidence:[]}))});
+  }) as typeof fetch;
+}
+describe("W05 generic writer, exact final wording and canonical publication",()=>{
+  it("writes changed prose, checks it separately, publishes and reopens its premise lineage",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);
+    globalThis.fetch=optimisticWriterTransport(c.draft);
+    const result=await writeResearchReport(pool,x.config,x.session,c.args);
+    expect(result).toMatchObject({kind:"publication",accepted:true,unresolvedStatements:[]});
+    if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
+    const report=await getReportForAccount(pool,result.reportId,x.accountId);
+    expect(report.blocks[1].text).toBe(c.draft.sections[0]!.paragraphs[0]!.text);
+    expect(report.blocks[1].text).not.toBe(c.output.assertions[0]!.text);
+    expect(report.outcome).toBe("completed_with_limitations");
+    expect(report.source_access_summary).toMatchObject([{accessLevel:"partial-text"}]);
+    const revision=(await pool.query("SELECT r.scope,c.type,c.support_status FROM claim_revisions r JOIN claims c ON c.id=r.claim_id WHERE c.id=$1",[report.claim_ids[0]])).rows[0];
+    expect(revision.scope.premiseClaimRevisionIds).toEqual([c.sourceSupport.checks[0]!.claimRevisionId]);
+    expect(revision.scope.dependencyCompleteness).toBe("partial");
+    expect(revision).toMatchObject({type:"inference",support_status:"inference"});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  }));
+  it("keeps supported synthesis while blocking a made-up heading, paragraph and limitation",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);
+    c.draft.sections[0]!.heading="Restoration improved by 999 percent";
+    c.draft.sections[0]!.paragraphs.push({text:"Restoration lasted 999 years.",claimKeys:["area"]});
+    c.draft.limitations.push("The work cost 999 USD.");
+    globalThis.fetch=optimisticWriterTransport(c.draft);
+    const result=await writeResearchReport(pool,x.config,x.session,c.args);
+    expect(result).toMatchObject({kind:"publication",accepted:true,unresolvedStatements:["heading_0","paragraph_0_1","limitation_0"]});
+    if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
+    const report=await getReportForAccount(pool,result.reportId,x.accountId);
+    expect(JSON.stringify(report.blocks)).not.toContain("999");
+    expect(report.blocks.filter((b:{kind:string})=>b.kind==="caveat")).toHaveLength(3);
+    expect(report.blocks[1].text).toBe(c.draft.sections[0]!.paragraphs[0]!.text);
+  }));
+  it("reuses a durable draft after restart without another writer request",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);
+    globalThis.fetch=optimisticWriterTransport(c.draft);
+    const first=await createResearchDraft(pool,x.config,x.session,c.args);
+    const second=await createResearchDraft(pool,x.config,x.session,c.args);
+    expect(first.kind).toBe("draft");expect(second).toEqual({...first,reused:true});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
+  }));
+  it("rejects invented premise keys and publishes no report",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);c.draft.sections[0]!.paragraphs[0]!.claimKeys=["invented"];
+    globalThis.fetch=optimisticWriterTransport(c.draft);
+    expect(await writeResearchReport(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"writer_invalid_output"});
+    expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("blocks an oversized final assertion set without truncation or a second paid attempt",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);
+    c.draft.sections=Array.from({length:6},()=>({heading:"Evidence",paragraphs:Array.from({length:12},()=>({...c.draft.sections[0]!.paragraphs[0]!}))}));
+    globalThis.fetch=optimisticWriterTransport(c.draft);
+    for(let n=0;n<2;n++) expect(await createResearchDraft(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"writer_draft_expansion_invalid"});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("rejects draft self-reference before dispatch",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);globalThis.fetch=optimisticWriterTransport(c.draft);
+    const draft=await createResearchDraft(pool,x.config,x.session,c.args);
+    if(draft.kind!=="draft")throw new Error("missing draft");
+    await pool.query("UPDATE research_drafts SET source_extraction_intent_id=writer_intent_id WHERE writer_intent_id=$1",[draft.writerIntentId]);
+    globalThis.fetch=vi.fn() as typeof fetch;
+    await expect(executeAssertionSupport(pool,x.config,x.session,{...c.args,extractionIntentId:draft.writerIntentId})).rejects.toThrow("writer_source_must_be_extraction");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  }));
+  it("purges drafts and composed claim text on account deletion",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);globalThis.fetch=optimisticWriterTransport(c.draft);
+    await writeResearchReport(pool,x.config,x.session,c.args);
+    await deleteAccount(pool,x.accountId);
+    for(const table of ["research_drafts","model_operation_results","scoped_support_results","claim_revisions"])
+      expect((await pool.query(`SELECT * FROM ${table} WHERE account_id=$1`,[x.accountId])).rows).toHaveLength(0);
+    expect((await pool.query("SELECT text FROM claims WHERE account_id=$1",[x.accountId])).rows.every((r)=>r.text==="[deleted]")).toBe(true);
+  }));
+  it("adds a new checker result without overwriting an older version or paying again",async()=>runCase(async(x)=>{
+    const c=await supportCase(x);globalThis.fetch=vi.fn(async()=>response(c.proposal)) as typeof fetch;
+    const first=await executeAssertionSupport(pool,x.config,x.session,c.args);
+    await pool.query("UPDATE scoped_support_results SET checker_version='scoped-support.v1' WHERE run_id=$1",[x.runId]);
+    const second=await executeAssertionSupport(pool,x.config,x.session,c.args);
+    expect(second).toEqual({...first,reused:true});
+    expect((await pool.query("SELECT checker_version FROM scoped_support_results WHERE run_id=$1 ORDER BY checker_version",[x.runId])).rows).toEqual([{checker_version:"scoped-support.v1"},{checker_version:"scoped-support.v2"}]);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }));
 });

@@ -1,0 +1,60 @@
+import { ZodError } from "zod";
+import type pg from "pg";
+import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
+import { compileCheckedDraft,draftStatements } from "@deep/research-core";
+import type { AppConfig } from "../platform/config.js";
+import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
+import { recordResearchDraft } from "../modules/research-drafts.js";
+import { getRun } from "../modules/runs.js";
+import { publishReport } from "../modules/reports.js";
+import type { FencedSession } from "./fenced-session.js";
+import { TASK_MODEL_VERSIONS } from "./research-task.js";
+import { performModelOperation } from "./model-gateway.js";
+import { executeAssertionSupport } from "./support-execution.js";
+
+type WriterArgs=SupportArgs&{fence:number;sourceSupportIntentId:string};
+export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:FencedSession,args:WriterArgs) {
+  const basis=await session.write((db)=>loadWriterSourceContext(db,args,TASK_MODEL_VERSIONS));
+  const result=await performModelOperation(pool,config,session,{...args,...basis,operation:"write_report"});
+  if(result.kind!=="result")return result;
+  if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
+  // Check bounded target expansion before adopting a draft; never silently omit final prose.
+  try { draftStatements(result.result.output,basis.context.assertions,basis.context.approvedClaimKeys); }
+  catch(error) {
+    if(error instanceof ZodError || error instanceof Error && error.message==="writer_assertion_limit")
+      return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
+    throw error;
+  }
+  await session.write((db)=>recordResearchDraft(db,{...args,writerIntentId:result.intentId},TASK_MODEL_VERSIONS));
+  return {kind:"draft" as const,writerIntentId:result.intentId,reused:result.reused};
+}
+
+/** Writer -> exact final-wording checks -> canonical publication. Network never occurs in a transaction. */
+export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:FencedSession,args:WriterArgs) {
+  const draft=await createResearchDraft(pool,config,session,args);
+  if(draft.kind!=="draft")return draft;
+  const target={...args,extractionIntentId:draft.writerIntentId};
+  const support=await executeAssertionSupport(pool,config,session,target);
+  if(support.kind!=="support")return support;
+  return session.write(async(db)=>{
+    const restored=await restoreWriterDraft(db,target,TASK_MODEL_VERSIONS);
+    const basis=await loadSupportContext(db,target,TASK_MODEL_VERSIONS);
+    const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},TASK_MODEL_VERSIONS,true);
+    const statements=draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys);
+    const compiled=compileCheckedDraft(statements,checks);
+    const run=await getRun(db,args.runId);
+    if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");
+    const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
+    const rows=await db.query<{id:string;title:string;access_level:string;origin_cluster:string}>(`SELECT DISTINCT s.id,s.title,v.access_level,s.origin_cluster
+      FROM passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
+      WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2 AND s.run_id=$3`,[cited,args.accountId,args.runId]);
+    const report:CanonicalReport={reportId:crypto.randomUUID(),runId:args.runId,version:1,
+      basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
+      outcome:"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
+      // Criterion completion is not inferred from statements or sources; the controller review remains separate.
+      limitations:["Some requested questions remain unresolved."],
+      sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};
+    const result=await publishReport(db,{report,accountId:args.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
+    return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,unresolvedStatements:compiled.unresolved};
+  });
+}
