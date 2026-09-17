@@ -569,3 +569,5 @@ Native evidence: authorized wireless ADB connected; Expo Go54.0.8 on Android16 l
 Rollback: disable structured processing; retain new operation readers, provenance/deletion, unknown reservations and fail-closed publication. Next concrete work: account-safe native binary file selection/upload/source inspection, substantive counterevidence and matched same-pipeline evaluation. W01-W09 remains incomplete; W10 remains separately gated.
 
 Device version clarification: the separately installed Deep Research APK remains the user’s older build and was not upgraded. Current-code native observations used Expo Go loading the workspace Metro bundle; these do not validate or update that installed APK.
+
+Calculated report implementation and evidence committed as `e22598840b7d0df7da34549fdc6bb38b23111f6f`. Current installed APK remains unchanged; Expo Go observations are explicitly separate. Next: native binary upload/source inspection and remaining counterevidence/evaluation work. No claim of W01-W09 completion or production readiness.
