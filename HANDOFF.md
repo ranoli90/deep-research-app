@@ -1,6 +1,8 @@
 # Builder handoff
 ## Active V6 checkpoint
 
+W05 production worker integration: with structured activation enabled, processRun now prepares the versioned task, ingests owned attachments, extracts selected whole passages, executes assertion support and question coverage, and writes/rechecks/publishes a generic report. This path never invokes the fixture proposer or template composer. No readable evidence, invalid/unknown operations or no supported assertions end explicitly unresolved/failed. Discovery and larger evidence selection remain unfinished; the flag stays off by default. Existing historical routes remain separate. This is a first evidence-backed worker path, not the complete unfamiliar search/correction journey.
+
 W05 report completion (`62204b2`) now consumes an executed final-draft coverage review. The publication gate revalidates that review and exact compiled blocks/claim IDs; missing/corrupt coverage or omitted answer content cannot grant completion. Limited reports remain available. General worker stopping/retrieval integration and real semantic evaluation remain open.
 
 W05 criterion coverage (`610bddc`): a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof.

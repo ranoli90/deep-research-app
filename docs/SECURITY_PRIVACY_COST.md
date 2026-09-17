@@ -82,3 +82,5 @@ Migration020 research_drafts stores private operation/task/basis links, not a ne
 Coverage review uses the same bounded consented structured gateway and reserved logical attempts; no network I/O occurs within its fenced transactions. Migration021 coverage data is private derived evidence and is purged on account deletion. Stored replay requires exact owner/task/basis/claim revisions and current deterministic checker versions.
 
 Generic writing now includes one separately reserved structured coverage review. Invalid/unknown review outcomes do not publish. Publication revalidates the saved review without network I/O, under existing account/run locks. No new allowance or live authorization.
+
+Structured processRun now uses the existing consent/account/run fence and bounded model reservations throughout task, extraction, support, review and writing. Explicit failed outcomes settle known spend without releasing unknown provider holds. No new allowance or public network authority is introduced. Structured discovery remains unavailable pending the bounded adapter integration.

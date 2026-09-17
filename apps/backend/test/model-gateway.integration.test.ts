@@ -1,3 +1,4 @@
+import { processRun } from "../src/worker/executor.js";
 import { reportCompletionCovered } from "../src/modules/publication-coverage.js";
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -8,7 +9,7 @@ import { createDevSession, deleteAccount, grantConsent } from "../src/modules/ac
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
 import { passageSupportsClaim, type StoredClaim } from "@deep/research-core";
-import { claimLease,getRun } from "../src/modules/runs.js";
+import { claimLease,getRun,cancelRun } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
@@ -662,4 +663,65 @@ it("W05 publication rejects a forged complete outcome without a review while pre
  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
  expect((await pool.query("SELECT accepted,reason FROM publication_attempts WHERE run_id=$1",[x.runId])).rows).toEqual([{accepted:false,reason:"incomplete_question_coverage"}]);
  expect(await publishReport(pool,c.publication)).toMatchObject({accepted:true});
+}));
+
+async function releaseForWorker(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ x.session.stop();await pool.query("UPDATE run_leases SET expires_at=now()-interval '1 second' WHERE run_id=$1",[x.runId]);
+}
+function structuredWorkerTransport(wrongUnit=false) {
+ return vi.fn(async(_input:unknown,init?:RequestInit)=>{
+  const request=JSON.parse(String(init?.body)),context=JSON.parse(request.messages[1].content),operation=request.response_format.json_schema.name;
+  if(operation==="research_brief_v1")return response(brief);
+  if(operation==="research_extract_assertions_v1") {
+   const p=context.passages[0],text=wrongUnit?p.text.replace("hectares","acres"):p.text;
+   return response({candidates:[],assertions:[{key:"area",candidateKey:null,criterionKeys:["c1"],text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]}],limitations:[]});
+  }
+  if(operation==="research_assess_support_v1")return response({assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Fabricated boundary control",missingEvidence:[]}))});
+  if(operation==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:"unresolved_at_limit",assertionKeys:context.approvedClaimKeys,reason:"Survival and comparison remain unresolved"}],omittedRequirements:[]});
+  if(operation==="research_write_report_v1")return response({title:"Evidence",sections:[{heading:"Evidence",paragraphs:context.assertions.filter((a:{key:string})=>context.approvedClaimKeys.includes(a.key)).map((a:{key:string;text:string})=>({text:a.text,claimKeys:[a.key]}))}],unresolvedQuestionKeys:["q1"],limitations:[]});
+  throw new Error(`unexpected operation:${operation}`);
+ }) as typeof fetch;
+}
+describe("W05 structured services through production processRun",()=>{
+ it("runs arbitrary evidence through criteria, extraction, substantive checks and cited publication",async()=>runCase(async(x)=>{
+  const text=`Reef-${crypto.randomUUID()} restored 12 hectares in 2024.`;
+  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/measured",title:"Measured restoration",publisher:"Research",originCluster:"research"});
+  const p=await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/measured",text,accessLevel:"partial-text"});
+  await releaseForWorker(x);globalThis.fetch=structuredWorkerTransport();
+  await processRun(pool,x.config,x.runId);
+  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed_with_limitations");
+  const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows;
+  expect(reports).toHaveLength(1);expect(reports[0].blocks[1].text).toBe(text);expect(reports[0].blocks[1].citationIds).toEqual([p.passageId]);
+  expect((await pool.query("SELECT operation FROM model_operation_results WHERE run_id=$1",[x.runId])).rows.map((r)=>r.operation).sort()).toEqual(["brief","extract_assertions","assess_support","review_coverage","write_report","assess_support","review_coverage"].sort());
+  expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='evidence_checked'",[x.runId])).rows[0].payload.complete).toBe(false);
+  expect(globalThis.fetch).toHaveBeenCalledTimes(7);
+ }));
+ it("does not turn a failed assertion into a verified event or template report",async()=>runCase(async(x)=>{
+  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/measured",title:"Measured restoration",publisher:"Research",originCluster:"research"});
+  await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/measured",text:"Reef-X restored 12 hectares in 2024.",accessLevel:"partial-text"});
+  await releaseForWorker(x);globalThis.fetch=structuredWorkerTransport(true);await processRun(pool,x.config,x.runId);
+  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("failed");
+  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+  expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId])).rows[0].payload.reason).toBe("no_supported_assertions");
+ }));
+ it("keeps unavailable discovery explicit without fixture source injection",async()=>runCase(async(x)=>{
+  await releaseForWorker(x);globalThis.fetch=structuredWorkerTransport();await processRun(pool,x.config,x.runId);
+  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("failed");
+  expect((await pool.query("SELECT id FROM sources WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+  expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId])).rows[0].payload.reason).toBe("readable_evidence_unavailable");
+  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+ }));
+});
+
+it.each(["resume","cancel"])("W05 structured writing pause supports %s without repeating evidence work",async(action)=>runCase(async(x)=>{
+ const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/scoped",title:"Scoped result",publisher:"Research",originCluster:"research"});
+ await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/scoped",text:"Reef-Y restored 12 hectares in 2024.",accessLevel:"partial-text"});
+ await releaseForWorker(x);globalThis.fetch=structuredWorkerTransport();
+ await processRun(pool,x.config,x.runId,{pauseAt:"writing"});
+ expect((await getRun(pool,x.runId))!.phase).toBe("writing");expect(globalThis.fetch).toHaveBeenCalledTimes(4);
+ if(action==="cancel")await cancelRun(pool,x.runId);
+ await processRun(pool,x.config,x.runId);
+ expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(action==="cancel"?"cancelled":"completed_with_limitations");
+ expect(globalThis.fetch).toHaveBeenCalledTimes(action==="cancel"?4:7);
+ expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(action==="cancel"?0:1);
 }));

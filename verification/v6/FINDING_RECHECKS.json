@@ -13,28 +13,28 @@
       "title": "Production candidate logic is restricted to fixture names",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "Literal fixture-name matching was removed earlier; a new worker service now executes arbitrary scoped assertion extraction through the structured gateway on selected owned whole passages. Randomized entity transport controls pass. General processRun integration and real semantic extraction evaluation remain open."
+      "basis": "Literal fixture-name matching was removed earlier; a new worker service now executes arbitrary scoped assertion extraction through the structured gateway on selected owned whole passages. Randomized entity transport controls pass. General processRun integration and real semantic extraction evaluation remain open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics."
     },
     {
       "id": "V6-F03",
       "title": "Verify and related actions are mostly event labels",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; open",
-      "basis": "A new worker service now executes structured assertion support and persists independent scope/numeric/access/contradiction checks with exact claim revisions and evidence digests. Legacy processRun verify/compare/calculate branches still need replacement; service tests do not complete that integration."
+      "basis": "A new worker service now executes structured assertion support and persists independent scope/numeric/access/contradiction checks with exact claim revisions and evidence digests. Legacy processRun verify/compare/calculate branches still need replacement; service tests do not complete that integration. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics."
     },
     {
       "id": "V6-F04",
       "title": "Task coverage is inferred from source presence",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof. Legacy toState still uses source presence until general controller integration. Final generic writer now executes coverage and publication independently revalidates complete outcomes against exact compiled report blocks/claim membership; legacy controller stopping remains open."
+      "basis": "W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof. Legacy toState still uses source presence until general controller integration. Final generic writer now executes coverage and publication independently revalidates complete outcomes against exact compiled report blocks/claim membership; legacy controller stopping remains open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics."
     },
     {
       "id": "V6-F05",
       "title": "Live synthesis remains a deterministic scenario composer",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "W05 generic writer: composed headings, paragraphs and limitations become distinct canonical assertions linked to checked premise revisions, then undergo exact final-wording support and publication checks. Unsupported surfaces become localized caveats; supported synthesis remains. Migration020 preserves draft lineage and checker versions; deletion purges it. Currency mismatch independently rejects. Reports conservatively remain incomplete until criterion coverage is implemented. Main processRun integration and real semantic evaluation remain open."
+      "basis": "W05 generic writer: composed headings, paragraphs and limitations become distinct canonical assertions linked to checked premise revisions, then undergo exact final-wording support and publication checks. Unsupported surfaces become localized caveats; supported synthesis remains. Migration020 preserves draft lineage and checker versions; deletion purges it. Currency mismatch independently rejects. Reports conservatively remain incomplete until criterion coverage is implemented. Main processRun integration and real semantic evaluation remain open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics."
     },
     {
       "id": "V6-F06",

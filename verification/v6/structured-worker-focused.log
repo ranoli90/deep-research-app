@@ -1,0 +1,47 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (62 tests) 32186ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call  354ms
+   ✓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result  342ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call  306ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts  368ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  303ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects an invented evidence binding instead of creating assertions  331ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request  475ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests  353ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  565ms
+   ✓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units  392ms
+   ✓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support  386ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  691ms
+   ✓ W05 substantive support execution and persisted revisions > purges scoped assertions and support results on deletion  452ms
+   ✓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen  457ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  583ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision  530ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  527ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  480ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  510ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1723ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1636ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  959ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  524ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  631ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  781ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  2031ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  638ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  898ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  611ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  528ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  512ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  575ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  3629ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  870ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  527ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  1381ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  354ms
+
+ Test Files  1 passed (1)
+      Tests  62 passed (62)
+   Start at  14:10:06
+   Duration  37.10s (transform 2.85s, setup 0ms, collect 4.49s, tests 32.19s, environment 0ms, prepare 145ms)
+

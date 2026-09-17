@@ -1,3 +1,4 @@
+import { processStructuredResearch } from "./structured-research.js";
 import {
   DEFAULT_RUN_BUDGET_MICRO,
   FIXTURE_FETCH_COST_MICRO,
@@ -288,6 +289,11 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           phase: run.phase,
         });
       }, true);
+      return;
+    }
+
+    if(run.route_mode === "controlled-research" && config.structuredModelEnabled) {
+      await processStructuredResearch(pool,config,session,{runId,accountId:run.account_id,briefRevision:run.brief_revision,fence},opts);
       return;
     }
 

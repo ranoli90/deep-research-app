@@ -1,0 +1,61 @@
+import type pg from "pg";
+import type { AppConfig } from "../platform/config.js";
+import { getRun,getBrief,emitEvent,setPhase,markTerminal } from "../modules/runs.js";
+import { settleRun } from "../modules/billing.js";
+import type { FencedSession } from "./fenced-session.js";
+import { ensureResearchTask } from "./research-task.js";
+import { ingestAttachments } from "./attachment-ingestion.js";
+import { extractEvidenceAssertions } from "./assertion-extraction.js";
+import { executeAssertionSupport } from "./support-execution.js";
+import { executeCoverageReview } from "./research-coverage.js";
+import { writeResearchReport } from "./research-writer.js";
+
+/** Production structured path. No fixture catalog, scenario composer or event-as-verification fallback. */
+export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,session:FencedSession,
+  args:{runId:string;accountId:string;briefRevision:number;fence:number},opts:{pauseAt?:"writing"|"researching"}={}) {
+  const unresolved=async(reason:string)=>session.write(async(db)=>{
+    const run=await getRun(db,args.runId);
+    if(!run)throw new Error("missing_run");
+    await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"research_unresolved",phase:run.phase,
+      summary:"Research could not complete with the available evidence and processing allowance.",payload:{reason}});
+    await markTerminal(db,args.runId,"failed");
+    await settleRun(db,args.accountId,args.runId,run.spent_micro);
+  });
+  const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+  const prepared=await ensureResearchTask(pool,config,session,args);
+  if(prepared.kind!=="task")return pendingOrBlocked(prepared);
+  if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
+  const run=(await getRun(pool,args.runId))!;
+  await ingestAttachments(pool,run,await getBrief(pool,run.brief_id),session);
+  await session.write(async(db)=>{
+    await setPhase(db,args.runId,"researching");
+    await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"criteria_prepared",phase:"researching",
+      summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision}});
+  });
+  if(opts.pauseAt==="researching")return;
+  const selected=await session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM passages p JOIN source_versions v ON v.id=p.source_version_id
+    JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1 AND s.run_id=$2
+    AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]));
+  // Do not silently replace discovery with fixtures or truncate a document to fit the context.
+  if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
+  const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selected.rows.map((p)=>p.id)});
+  if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
+  if(!extraction.output.assertions.length)return unresolved("no_relevant_assertions");
+  const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
+  const support=await executeAssertionSupport(pool,config,session,target);
+  if(support.kind!=="support")return pendingOrBlocked(support);
+  const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
+  if(review.kind!=="coverage")return pendingOrBlocked(review);
+  await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",
+    summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
+    payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
+  if(!support.checks.some((c)=>c.decision==="supported"))return unresolved("no_supported_assertions");
+  await session.write(async(db)=>{
+    await setPhase(db,args.runId,"writing");
+    await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
+  });
+  if(opts.pauseAt==="writing")return;
+  const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId});
+  if(result.kind!=="publication")return pendingOrBlocked(result);
+  if(!result.accepted)return unresolved(result.reason);
+}
