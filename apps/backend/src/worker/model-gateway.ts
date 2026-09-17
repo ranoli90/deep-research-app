@@ -40,7 +40,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${request.digest}`, kind: args.operation,
     route: `openrouter:${STRUCTURED_MODEL_POLICY.model}:${args.operation}`, requestDigest: request.digest, reserveMicro: STRUCTURED_CALL_RESERVE_MICRO });
   if (!attempt.issue) {
-    const cached = await session.write((db) => loadModelOperation(db, attempt.intentId, args.runId, args.accountId, request.digest, context));
+    const cached = await session.write((db) => loadModelOperation(db, attempt.intentId, args.runId, args.accountId, request.digest, context, request));
     if (!cached) return { kind: "pending", intentId: attempt.intentId };
     const parsed = Cached.safeParse(cached);
     if (!parsed.success || (parsed.data.status !== "succeeded" && typeof parsed.data.reason !== "string") || (parsed.data.status === "succeeded" && (!ResearchModelOutputs[args.operation].safeParse(parsed.data.output).success || validateModelBindings(args.operation, parsed.data.output, context).length))) {

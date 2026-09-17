@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Calculation publication proof path:280 full PostgreSQL,108 focused,14 actual extraction,143/93/52/6 verify and final typecheck passed. Production calculation selection/writer adoption remains open; W01-W09 incomplete.",
+  "workingTree": "Production calculation selection/execution:286 full PostgreSQL,115 final focused,14 actual extraction,144/93/52/6 verify, final typecheck and Android JS export passed. Writer/final coverage adoption remains open; W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -4890,6 +4890,172 @@
       "scope": "14/14;48.92s; actual HTML/PDF source/reopen/correction/deletion journeys, fabricated model/search transport; not an automatically selected calculation journey",
       "sha256": "1a22764c95c38ad6f7d9a202bc569683fe7d39a91192cb23963caf7dde5def42",
       "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "calculation-planning-verify-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "143/93/52/6; before new planning regressions",
+      "sha256": "19c50660ce05e055c44db7f6fc874dee58589dc0a26f0d36b8148a691a39a57a"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "calculation-planning-focused.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "113 passed/1 failed; new test used nonexistent reserved_micro rather than reserved_max_micro; corrected without weakening assertion",
+      "sha256": "afdc0053c402b7cec065b5dec6fe8feea97a90d557fef0686aa833e654c4cee8"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "calculation-planning-verify-final.log",
+      "exitCode": 2,
+      "evidenceClass": "typecheck_failure",
+      "scope": "New test used unavailable RequestInfo; corrected to Parameters<typeof fetch>[0]",
+      "sha256": "7f26aa968f4d93d9a99da0475d933f10ca74fbdbca8620ceb00ca64361ed0efe"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "calculation-planning-verify-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "144 core/93 backend/52 mobile/6 governance; before final cached-metadata guard, which is covered by final focused/type/extraction checks",
+      "sha256": "dd165eca11d2cdb9bfa4e596ec05a091dc41dbf77dee6ec26751b9ac0802b525"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "calculation-planning-bundle.log",
+      "exitCode": 0,
+      "evidenceClass": "local_android_javascript_export",
+      "scope": "2.05MB Hermes; public schema module split resolves in Metro; no native execution",
+      "sha256": "99af16a78ffb752c1840e215d8bf9767ca1b58e31afcac14403355987bb28f66"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "calculation-planning-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Canonical review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "calculation-planning-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Canonical handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Production calculation planning before final generic cached-metadata guard",
+      "command": "pnpm test:integration",
+      "artifact": "calculation-planning-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "286/286;191.71s; includes corrected reservation assertion, production calculation execution/pause/replay; fabricated model responses",
+      "sha256": "62d88a0520c7d5f1c174f6d46412a676a13eb7ca1fd62f31135054a66dcf6fcb"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Final calculation planning and cached request metadata guard",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "calculation-planning-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "115/115;69.56s; final cached-metadata rejection and all structured source/support/planning/publication controls; fabricated model responses",
+      "sha256": "64b716def252e40d847999c1f231a434684e20fec22e375bcaffddf9a138597e"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Final calculation planning and cached request metadata guard",
+      "command": "pnpm typecheck",
+      "artifact": "calculation-planning-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "static_types",
+      "scope": "Final shared gateway metadata guard and planning source",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "commit": "df4a3c39dffab610bfaecf27a24f3445c566a290",
+      "workingTree": "Final production planning and cached metadata guard",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "calculation-planning-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "14/14;37.72s; actual HTML/PDF and production report/source/correction regressions, fabricated model/search transport; not a calculated-report journey",
+      "sha256": "5c10ac998f85fb3c08b780ab94a387b41f4479d2ea1090bde9b008d315bcba5e"
     }
   ],
   "unresolved": [
@@ -4897,7 +5063,7 @@
     "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: broader discovery/evidence selection and complete-context capacity, production calculation selection/writer adoption/final coverage and substantive counterevidence actions",
+    "W05: broader discovery/evidence selection and complete-context capacity, calculation writer adoption/final coverage and substantive counterevidence actions",
     "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",

@@ -131,3 +131,6 @@ Use exact rational arithmetic over supported, uniquely located printed quantitie
 
 
 ADR023 publication amendment: use a distinct calculation-to-claim mapping and exact versioned renderer, then restore the arithmetic proof at the real report gate. Do not pretend the derived numeric output appears in a source or relax literal support globally. Preserve visible assumptions/input statements and exact fractions; record inference and arithmetic-specific checker provenance. Keep the final question-coverage gate unchanged until derived results are explicitly integrated into structured writing/coverage. Migration028 is private derived evidence and purged before input proofs on deletion.
+
+
+ADR023 planning amendment: introduce a separately named/versioned calculation planning operation rather than altering existing saved action/writer request schemas. Use the same bounded gateway, not another provider or agent role runtime. Model output selects references; deterministic code restores supported quantities and executes exact arithmetic. Numeric evidence is necessary to invoke planning but does not prove arithmetic is needed or that its result answers a question. Existing admitted writers without a plan preserve their original path. Writer and coverage adoption remain a subsequent required integration, never inferred from a progress event.

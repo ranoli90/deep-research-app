@@ -44,8 +44,10 @@ export async function saveModelOperation<K extends ResearchModelOperation>(db: Q
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, [args.intentId,args.runId,args.accountId,args.request.operation,args.briefRevision,args.evidenceRevision,
     args.request.digest,args.request.schemaVersion,args.request.promptVersion,args.request.policyId,JSON.stringify(args.result),JSON.stringify(modelInputManifest(args.context))]);
 }
-export async function loadModelOperation(db: Queryable, intentId: string, runId: string, accountId: string, digest: string, context: ModelContext): Promise<unknown | null> {
-  const result = await db.query<{ result: unknown; receipt_matches: boolean }>("SELECT m.result, (m.result->'receipt'=i.receipt AND i.request_digest=m.request_digest AND i.run_id=m.run_id AND m.input_manifest=$5::jsonb) AS receipt_matches FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id WHERE m.intent_id=$1 AND m.run_id=$2 AND m.account_id=$3 AND m.request_digest=$4", [intentId,runId,accountId,digest,JSON.stringify(modelInputManifest(context))]);
+export async function loadModelOperation(db: Queryable, intentId: string, runId: string, accountId: string, digest: string, context: ModelContext, expected?:Pick<PreparedModelRequest<ResearchModelOperation>,"operation"|"schemaVersion"|"promptVersion"|"policyId">): Promise<unknown | null> {
+  const result = await db.query<{ result: unknown; receipt_matches: boolean; operation:string;schema_version:string;prompt_version:string;policy_id:string }>("SELECT m.result,m.operation,m.schema_version,m.prompt_version,m.policy_id, (m.result->'receipt'=i.receipt AND i.request_digest=m.request_digest AND i.run_id=m.run_id AND m.input_manifest=$5::jsonb) AS receipt_matches FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id WHERE m.intent_id=$1 AND m.run_id=$2 AND m.account_id=$3 AND m.request_digest=$4", [intentId,runId,accountId,digest,JSON.stringify(modelInputManifest(context))]);
+  const row=result.rows[0];
+  if(row&&expected&&(row.operation!==expected.operation||row.schema_version!==expected.schemaVersion||row.prompt_version!==expected.promptVersion||row.policy_id!==expected.policyId))return {status:"invalid_stored_request_metadata"};
   if (result.rows[0] && !result.rows[0].receipt_matches) return { status: "invalid_stored_receipt" };
   return result.rows[0]?.result ?? null;
 }

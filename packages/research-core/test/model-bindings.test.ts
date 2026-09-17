@@ -43,3 +43,16 @@ describe("W05 model provenance and handles", () => {
     expect(validateModelBindings("propose_action", { action: { ...action, query: "coral kelp restoration" }, rationale: "compare outcomes" }, context)).toEqual([]);
   });
 });
+
+it("calculation planning binds supported quantity indices to actual questions without accepting caller numbers",()=>{
+ const numeric={...assertion,quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}]};
+ const ctx={...context,assertions:[numeric]};
+ const action={type:"calculate",formula:"annual_cost",inputs:[{claimKey:"a1",quantityIndex:0}]};
+ const plan={calculations:[{key:"p",questionKeys:["q1"],action,rationale:"Candidate arithmetic only"}],unresolvedQuestionKeys:[],reason:"Execution may remain unknown"};
+ expect(validateModelBindings("plan_calculations",plan,ctx)).toEqual([]);
+ expect(validateModelBindings("plan_calculations",plan,{...ctx,approvedClaimKeys:[]})).toContain("unknown_model_handle");
+ expect(validateModelBindings("plan_calculations",plan,{...ctx,assertions:[{...numeric,quantities:[]}]})).toContain("unknown_quantity_reference");
+ expect(validateModelBindings("plan_calculations",plan,{...ctx,assertions:[{...numeric,criterionKeys:["unrelated"]}]})).toContain("calculation_input_question_mismatch");
+ expect(validateModelBindings("plan_calculations",{...plan,calculations:[...plan.calculations,{...plan.calculations[0],key:"other"}]},ctx)).toContain("duplicate_calculation_action");
+ expect(validateModelBindings("plan_calculations",{...plan,calculations:[{...plan.calculations[0],action:{...action,values:[12]}}]},ctx)).toEqual(["output_schema_mismatch"]);
+});

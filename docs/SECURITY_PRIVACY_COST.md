@@ -109,3 +109,6 @@ Calculation derived store: migration027 contains private source spans, input rev
 
 
 Calculation publication mappings (migration028) are private account/run-derived records. Revalidation checks calculation, input support/evidence, canonical claim/revision ownership and current basis. The server constructs approvals; request-supplied approvals are ignored. No network transaction or additional provider call. Deletion removes mappings before calculation proofs and claim revisions. Rollback retains deletion and rejects unvalidated calculation publication.
+
+
+Calculation planning uses the existing pinned text processor, consent and full-context21658microUSD reservation, with account/run/project/key checks. No new monetary authority is granted. Strict output cannot introduce values, SQL, shell, network access or authority fields. Execution restores current support under the lease after the model returns. Unknown plan outcomes retain their reservation and cannot be resent on replay. Saved planning output and arithmetic proofs are account-private and covered by existing deletion. Existing writer requests are not silently upgraded to add planning. Real paid costs and model-quality outcomes remain unmeasured.

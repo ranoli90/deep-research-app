@@ -202,7 +202,7 @@
   {
     "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
     "status": "implemented_application_command",
-    "scope": "Real local PostgreSQL structured worker, model/public-search admission/replay/consent/deletion, extraction/support/coverage/publication; fabricated provider transport, no paid calls",
+    "scope": "Real local PostgreSQL structured worker, model/public-search admission/replay/consent/deletion, extraction/support/coverage, calculation planning/execution/proof-aware publication; fabricated provider transport, no paid calls",
     "network": false,
     "paid": false,
     "implementation": "apps/backend/test/model-gateway.integration.test.ts"

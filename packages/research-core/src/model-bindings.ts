@@ -48,6 +48,21 @@ export function validateModelBindings(operation: ResearchModelOperation, raw: un
       if (["supported", "contradicted", "partially_supported"].includes(a.status) && !a.evidence.length) errors.add("support_without_evidence");
     }
     for (const key of assertions) if (!data.assessments.some((a) => a.claimKey === key)) errors.add("missing_claim_assessment");
+  } else if (operation === "plan_calculations") {
+    const data=raw as ResearchModelOutput<"plan_calculations">;
+    unique(data.calculations.map(c=>c.key));known(data.unresolvedQuestionKeys,questions);
+    const actions=new Set<string>();
+    for(const plan of data.calculations) {
+      known(plan.questionKeys,questions);unique(plan.questionKeys);
+      const action=JSON.stringify(plan.action);if(actions.has(action))errors.add("duplicate_calculation_action");actions.add(action);
+      const relevant=new Set(context.task?.questions.filter(q=>plan.questionKeys.includes(q.key)).flatMap(q=>q.criterionKeys)??[]);
+      for(const input of plan.action.inputs) {
+        known([input.claimKey],new Set(context.approvedClaimKeys));
+        const assertion=context.assertions.find(a=>a.key===input.claimKey);
+        if(!assertion||!assertion.quantities[input.quantityIndex])errors.add("unknown_quantity_reference");
+        if(assertion&&!assertion.criterionKeys.some(k=>relevant.has(k)))errors.add("calculation_input_question_mismatch");
+      }
+    }
   } else if (operation === "write_report") {
     const data = raw as ResearchModelOutput<"write_report">;
     const approved = new Set(context.approvedClaimKeys);

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { EvidenceCalculationActionSchema } from "./calculation-action.js";
+export const CALCULATION_PLANNING_SCHEMA_VERSION="calculation-planning.v1";
 
 export const RESEARCH_MODEL_SCHEMA_VERSION = "research-model.v1";
 const Key = z.string().min(1).max(100).regex(/^[a-zA-Z0-9_-]+$/);
@@ -55,6 +57,9 @@ export const ResearchModelOutputs = {
     z.object({ type: z.literal("write_report"), unresolvedQuestionKeys: z.array(Key).max(24) }).strict(),
     z.object({ type: z.literal("clarify"), question: Text, criterionKeys: z.array(Key).min(1).max(24) }).strict(),
   ]) }).strict(),
+  plan_calculations: z.object({calculations:z.array(z.object({key:Key,questionKeys:z.array(Key).min(1).max(24),
+    action:EvidenceCalculationActionSchema,rationale:Text}).strict()).max(6),
+    unresolvedQuestionKeys:z.array(Key).max(24),reason:Text}).strict(),
   write_report: z.object({ title: Short, sections: z.array(z.object({ heading: Short,
     paragraphs: z.array(z.object({ text: Text, claimKeys: z.array(Key).min(1).max(12) }).strict()).min(1).max(12),
   }).strict()).min(1).max(12), unresolvedQuestionKeys: z.array(Key).max(24), limitations: z.array(Text).max(12) }).strict(),

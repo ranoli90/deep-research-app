@@ -1,3 +1,4 @@
+import { executeCalculationPlanning } from "../src/worker/calculation-planning.js";
 import { prepareCalculationClaim } from "../src/modules/calculation-publication.js";
 import { executeEvidenceCalculation } from "../src/worker/evidence-calculation.js";
 import { modelInputManifest } from "../src/modules/model-operations.js";
@@ -1206,3 +1207,73 @@ describe("W05 arithmetic proof at real publication",()=>{
   await expect(publishReport(pool,c.publication)).rejects.toThrow("calculation_claim_mismatch");
  }));
 });
+
+const calculationPlan=(action:unknown)=>({calculations:[{key:"difference",questionKeys:["q1"],action,rationale:"Compare the two reported areas arithmetically; not a shared-population total."}],unresolvedQuestionKeys:["q1"],reason:"Arithmetic does not establish survival or matching scope."});
+describe("W05 structured calculation planning",()=>{
+ it("uses separately versioned gateway output, executes real arithmetic and reuses both records",async()=>runCase(async x=>{
+  const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>response(calculationPlan(c.args.action))) as typeof fetch;
+  const first=await executeCalculationPlanning(pool,x.config,x.session,c.args);
+  expect(first).toMatchObject({kind:"calculations",reused:false,executions:[{key:"difference",result:{status:"computed",output:{numerator:"4",denominator:"1"}}}]});
+  if(first.kind!=="calculations")throw new Error("missing calculation plan");
+  expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toEqual({...first,reused:true});expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT schema_version,prompt_version FROM model_operation_results WHERE intent_id=$1",[first.intentId])).rows[0]).toEqual({schema_version:"calculation-planning.v1",prompt_version:"calculation-planning-prompt.v1"});
+  expect((await pool.query("SELECT id FROM evidence_calculations WHERE run_id=$1",[x.runId])).rows).toEqual([{id:first.executions[0]!.calculationId}]);
+ }));
+ it("unknown quantities remain executed unknown results, not model-supplied numbers",async()=>runCase(async x=>{
+  const c=await calculationCase(x,true);globalThis.fetch=vi.fn(async()=>response(calculationPlan(c.args.action))) as typeof fetch;
+  expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toMatchObject({kind:"calculations",executions:[{result:{status:"unknown",output:null}}]});
+ }));
+ it("invalid references and injected values never create calculations",async()=>runCase(async x=>{
+  const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>response(calculationPlan({...c.args.action,values:[12,8]}))) as typeof fetch;
+  expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"calculation_plan_invalid_output"});
+  expect((await pool.query("SELECT id FROM evidence_calculations WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+  expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:plan_calculations'",[x.runId])).rows[0].confirmed_micro).not.toBeNull();
+ }));
+ it("unknown plan outcomes retain their reservation and are never resent",async()=>runCase(async x=>{
+  const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>{throw new Error("connection lost");}) as typeof fetch;
+  for(let i=0;i<2;i++)expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"calculation_plan_outcome_unknown"});
+  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  const row=(await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:plan_calculations'",[x.runId])).rows[0];
+  expect(row.state).toBe("outcome-unknown");expect(row.confirmed_micro).toBeNull();expect(Number(row.reserved_max_micro)).toBe(STRUCTURED_CALL_RESERVE_MICRO);
+ }));
+ it("does not introduce planning over an existing writer's unknown outcome",async()=>runCase(async x=>{
+  const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>{throw new Error("unknown writer");}) as typeof fetch;
+  await createResearchDraft(pool,x.config,x.session,{...c.args,sourceSupportIntentId:c.support.intentId});
+  expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toEqual({kind:"not_applicable",reason:"legacy_writer_context_preserved"});
+  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT id FROM run_actions WHERE run_id=$1 AND kind='plan_calculations'",[x.runId])).rowCount).toBe(0);
+ }));
+});
+
+it("W05 production worker executes selected quantities rather than a calculation progress event alone",async()=>runCase(async x=>{
+ for(const [name,value] of [[`Reef-${crypto.randomUUID()}`,12],[`Kelp-${crypto.randomUUID()}`,8]] as const) {
+  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:`https://example.org/${name}`,title:String(name),publisher:"Control",originCluster:String(name)});
+  await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:`https://example.org/${name}`,text:`${name} restored ${value} hectares.`,accessLevel:"partial-text"});
+ }
+ const base=structuredWorkerTransport();globalThis.fetch=vi.fn(async(input:unknown,init?:RequestInit)=>{
+  const request=JSON.parse(String(init?.body)),context=JSON.parse(request.messages[1].content),operation=request.response_format.json_schema.name;
+  if(operation==="research_extract_assertions_v1")return response({candidates:[],assertions:context.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope,
+   quantities:[{value:p.text.match(/restored (\d+)/)![1],unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
+  if(operation==="research_plan_calculations_v1")return response(calculationPlan({type:"calculate",formula:"sum",inputs:context.assertions.map((a:{key:string})=>({claimKey:a.key,quantityIndex:0}))}));
+  return base(input as Parameters<typeof fetch>[0],init);
+ }) as typeof fetch;
+ await releaseForWorker(x);await processRun(pool,x.config,x.runId,{pauseAt:"writing"});
+ expect((await getRun(pool,x.runId))!.phase).toBe("writing");
+ expect((await pool.query("SELECT result FROM evidence_calculations WHERE run_id=$1",[x.runId])).rows[0].result).toMatchObject({status:"computed",output:{numerator:"20",denominator:"1"}});
+ const event=(await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='calculations_executed'",[x.runId])).rows[0].payload;
+ expect(event.results).toHaveLength(1);expect((await pool.query("SELECT id FROM evidence_calculations WHERE id=$1",[event.results[0].calculationId])).rowCount).toBe(1);
+ const calls=vi.mocked(globalThis.fetch).mock.calls.length;
+ await processRun(pool,x.config,x.runId,{pauseAt:"writing"});expect(globalThis.fetch).toHaveBeenCalledTimes(calls);
+ expect((await pool.query("SELECT id FROM evidence_calculations WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
+ // Writer adoption is a separate integration; no derived answer or complete report is claimed here.
+ expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));
+
+
+it("W02/W05 cached planning cannot ignore tampered schema/prompt/route metadata",async()=>runCase(async x=>{
+ const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>response(calculationPlan(c.args.action))) as typeof fetch;
+ const first=await executeCalculationPlanning(pool,x.config,x.session,c.args);if(first.kind!=="calculations")throw new Error("missing plan");
+ await pool.query("UPDATE model_operation_results SET prompt_version='invented-prompt' WHERE intent_id=$1",[first.intentId]);
+ expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"invalid_stored_model_result"});
+ expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+}));

@@ -1,3 +1,4 @@
+import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
 import type pg from "pg";
@@ -79,6 +80,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         action:{type:"compare_scopes",claimKeys:extraction.output.assertions.map(a=>a.key)}});
       if(comparison.kind!=="comparison")return unresolved(comparison.reason);
     }
+    const calculations=await executeCalculationPlanning(pool,config,session,{...target,supportIntentId:support.intentId});
+    if(calculations.kind!=="calculations"&&calculations.kind!=="not_applicable")return pendingOrBlocked(calculations);
+    if(calculations.kind==="calculations"&&calculations.executions.length)await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"calculations_executed",phase:"researching",
+      summary:"Requested arithmetic was evaluated against checked source quantities.",payload:{planIntentId:calculations.intentId,
+       results:calculations.executions.map(e=>({key:e.key,calculationId:e.calculationId,status:e.result.status,reason:e.result.reason}))}}));
     const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
     if(review.kind!=="coverage")return pendingOrBlocked(review);
     await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",

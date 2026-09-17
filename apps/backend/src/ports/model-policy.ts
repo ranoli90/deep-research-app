@@ -1,3 +1,4 @@
+export const CALCULATION_PLANNING_PROMPT_VERSION="calculation-planning-prompt.v1";
 export const MODEL_PROMPT_VERSION = "research-operations.v1";
 /** Versioned, text-only route. Metadata observation is not paid authorization or a live quality probe. */
 export const STRUCTURED_MODEL_POLICY = {
