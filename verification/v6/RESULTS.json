@@ -4904,7 +4904,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "143/93/52/6; before new planning regressions",
-      "sha256": "19c50660ce05e055c44db7f6fc874dee58589dc0a26f0d36b8148a691a39a57a"
+      "sha256": "19c50660ce05e055c44db7f6fc874dee58589dc0a26f0d36b8148a691a39a57a",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4919,7 +4920,8 @@
       "exitCode": 1,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "113 passed/1 failed; new test used nonexistent reserved_micro rather than reserved_max_micro; corrected without weakening assertion",
-      "sha256": "afdc0053c402b7cec065b5dec6fe8feea97a90d557fef0686aa833e654c4cee8"
+      "sha256": "afdc0053c402b7cec065b5dec6fe8feea97a90d557fef0686aa833e654c4cee8",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4934,7 +4936,8 @@
       "exitCode": 2,
       "evidenceClass": "typecheck_failure",
       "scope": "New test used unavailable RequestInfo; corrected to Parameters<typeof fetch>[0]",
-      "sha256": "7f26aa968f4d93d9a99da0475d933f10ca74fbdbca8620ceb00ca64361ed0efe"
+      "sha256": "7f26aa968f4d93d9a99da0475d933f10ca74fbdbca8620ceb00ca64361ed0efe",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4949,7 +4952,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "144 core/93 backend/52 mobile/6 governance; before final cached-metadata guard, which is covered by final focused/type/extraction checks",
-      "sha256": "dd165eca11d2cdb9bfa4e596ec05a091dc41dbf77dee6ec26751b9ac0802b525"
+      "sha256": "dd165eca11d2cdb9bfa4e596ec05a091dc41dbf77dee6ec26751b9ac0802b525",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4964,7 +4968,8 @@
       "exitCode": 0,
       "evidenceClass": "local_android_javascript_export",
       "scope": "2.05MB Hermes; public schema module split resolves in Metro; no native execution",
-      "sha256": "99af16a78ffb752c1840e215d8bf9767ca1b58e31afcac14403355987bb28f66"
+      "sha256": "99af16a78ffb752c1840e215d8bf9767ca1b58e31afcac14403355987bb28f66",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4979,7 +4984,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -4994,7 +5000,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -5009,7 +5016,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "286/286;191.71s; includes corrected reservation assertion, production calculation execution/pause/replay; fabricated model responses",
-      "sha256": "62d88a0520c7d5f1c174f6d46412a676a13eb7ca1fd62f31135054a66dcf6fcb"
+      "sha256": "62d88a0520c7d5f1c174f6d46412a676a13eb7ca1fd62f31135054a66dcf6fcb",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -5024,7 +5032,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "115/115;69.56s; final cached-metadata rejection and all structured source/support/planning/publication controls; fabricated model responses",
-      "sha256": "64b716def252e40d847999c1f231a434684e20fec22e375bcaffddf9a138597e"
+      "sha256": "64b716def252e40d847999c1f231a434684e20fec22e375bcaffddf9a138597e",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -5039,7 +5048,8 @@
       "exitCode": 0,
       "evidenceClass": "static_types",
       "scope": "Final shared gateway metadata guard and planning source",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     },
     {
       "requirementIds": [
@@ -5055,7 +5065,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;37.72s; actual HTML/PDF and production report/source/correction regressions, fabricated model/search transport; not a calculated-report journey",
-      "sha256": "5c10ac998f85fb3c08b780ab94a387b41f4479d2ea1090bde9b008d315bcba5e"
+      "sha256": "5c10ac998f85fb3c08b780ab94a387b41f4479d2ea1090bde9b008d315bcba5e",
+      "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
     }
   ],
   "unresolved": [
@@ -5075,6 +5086,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "7ea64d9",
-  "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
+  "checkpointCommit": "b89df84",
+  "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31"
 }
