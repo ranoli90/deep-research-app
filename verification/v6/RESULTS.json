@@ -4567,7 +4567,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "128 core/93 backend/52 mobile/6 governance; initial handler before new arithmetic regressions",
-      "sha256": "f64fffb37f240c41f5f526cb0adb842858ff4d70110b4a64cd0fd6ca3715d117"
+      "sha256": "f64fffb37f240c41f5f526cb0adb842858ff4d70110b4a64cd0fd6ca3715d117",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4583,7 +4584,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "141 core/93 backend/52 mobile/6 governance; intermediate before final numeric-span/dedup changes",
-      "sha256": "310d949c09797f3430f788c0d36e4cfb0370c49086c57c17868812c5701e2453"
+      "sha256": "310d949c09797f3430f788c0d36e4cfb0370c49086c57c17868812c5701e2453",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4599,7 +4601,8 @@
       "exitCode": null,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Log reports142 core/93 backend/52 mobile/6 governance passed; terminal exit receipt lost at context handoff",
-      "sha256": "d67ec6e5089ac641c80a35b0df349ec76fa6df1116cf56aa0e46777ef4242e3d"
+      "sha256": "d67ec6e5089ac641c80a35b0df349ec76fa6df1116cf56aa0e46777ef4242e3d",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4615,7 +4618,8 @@
       "exitCode": null,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "Log reports104/104 passed in71.90s; terminal exit receipt lost at context handoff; real PostgreSQL and calculation, fabricated model responses",
-      "sha256": "2c9bfe8ec8d48209eda23c3f02c18645302ee37e504dbcdfea492337e725c08c"
+      "sha256": "2c9bfe8ec8d48209eda23c3f02c18645302ee37e504dbcdfea492337e725c08c",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4631,7 +4635,8 @@
       "exitCode": 0,
       "evidenceClass": "local_android_javascript_export",
       "scope": "2.04MB Hermes export; not a native build or device execution",
-      "sha256": "6d620bb7edfbc40cec3d9e40021fbc073f0c04822b4b8e644768459f7bd9ef72"
+      "sha256": "6d620bb7edfbc40cec3d9e40021fbc073f0c04822b4b8e644768459f7bd9ef72",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4647,7 +4652,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "276/276 across16 files;135.29s; final production code. Subsequent test-only candidate association correction is covered separately",
-      "sha256": "8c4e38080a7a113dba80459463c0634413fe14b71b9c4c025265e7f03fe14570"
+      "sha256": "8c4e38080a7a113dba80459463c0634413fe14b71b9c4c025265e7f03fe14570",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4663,7 +4669,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4679,7 +4686,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4695,7 +4703,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;31.39s; actual HTML/PDF extraction, production report/source/correction controls with fabricated model/search responses",
-      "sha256": "49792aec3cf56850af4c12ffd11b3aa1b0c6bad9f5d2b96bbe07d9c613b36440"
+      "sha256": "49792aec3cf56850af4c12ffd11b3aa1b0c6bad9f5d2b96bbe07d9c613b36440",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     },
     {
       "requirementIds": [
@@ -4711,7 +4720,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "104/104;44.39s; real PostgreSQL and calculation with fabricated extraction/support model responses",
-      "sha256": "b12bd83a414cd92ba56a1d673464103a3e9a5cefcc43e2901d15e55402478f94"
+      "sha256": "b12bd83a414cd92ba56a1d673464103a3e9a5cefcc43e2901d15e55402478f94",
+      "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
     }
   ],
   "unresolved": [
@@ -4731,6 +4741,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "009fd62",
-  "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
+  "checkpointCommit": "5db808b",
+  "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
 }
