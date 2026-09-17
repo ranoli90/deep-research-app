@@ -190,5 +190,13 @@
     "network": true,
     "paid": false,
     "implementation": "scripts/v6-document-probe.mts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused local PostgreSQL budget, unknown receipt, queue and fencing controls; provider transport doubles, never paid calls; run serially against shared database suites",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.integration.config.ts, apps/backend/test/controller-admission.integration.test.ts, apps/backend/test/v6-execution.integration.test.ts"
   }
 ]

@@ -397,7 +397,16 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           }
         } catch (error) {
           if (intentId) await updateIntentState(pool, intentId, providerFailureState(error as Error));
-          searchRoute = "openrouter:blocked-or-unresolved";
+          const message = error instanceof Error ? error.message : "";
+          const reason = ["run_spend_cap_exhausted", "missing_active_run_allowance", "live_spend_cap_exhausted", "live_spend_cap_zero", "invalid_live_budget"]
+            .includes(message) ? message : intentId ? "provider_outcome_unresolved" : "provider_admission_failed";
+          await session.write(async (db) => {
+            await emitEvent(db, { runId, accountId: run.account_id, type: intentId ? "search_unresolved" : "search_blocked",
+              phase: "researching", summary: "Search could not complete. No search result is claimed.", payload: { reason } });
+            await markTerminal(db, runId, "failed");
+            await settleRun(db, run.account_id, runId, run.spent_micro);
+          });
+          return;
         }
       } else {
         hits = fixtureSearch(query);

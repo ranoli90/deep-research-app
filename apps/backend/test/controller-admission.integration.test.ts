@@ -6,7 +6,7 @@ import { DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contrac
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
-import { createPool, migrate } from "../src/platform/db.js";
+import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { processRun } from "../src/worker/executor.js";
 import { listEvents } from "../src/modules/runs.js";
 import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";
@@ -116,10 +116,12 @@ describe("controller admission on the fixture worker path", () => {
     const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
     expect(created.statusCode).toBe(200);
     const runId = created.json().runId as string;
-    await pool.query(`UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1`, [
-      runId,
-      DEFAULT_RUN_BUDGET_MICRO,
-    ]);
+    // Explicit test-only allowance, backed by the account reserve. No runtime default is raised.
+    await withTx(pool, async (db) => {
+      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, LIVE_CALL_RESERVE_MICRO - DEFAULT_RUN_BUDGET_MICRO]);
+      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+    });
 
     const usedBefore = await liveSpendUsedMicro(pool);
     const liveConfig: AppConfig = {
@@ -169,6 +171,23 @@ describe("controller admission on the fixture worker path", () => {
     );
     expect(intents.rows.length).toBeGreaterThan(0);
     expect(Number(intents.rows[0]?.reserved_max_micro)).toBe(LIVE_CALL_RESERVE_MICRO);
+  });
+
+  it("default run allowance blocks a larger provider reserve before any network call", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "Compare unfamiliar document tools");
+    const runId = created.json().runId as string;
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    let calls = 0;
+    globalThis.fetch = (async () => { calls += 1; throw new Error("unexpected network call"); }) as typeof fetch;
+    await processRun(pool, { ...config, liveRouteEnabled: true, liveRetrievalEnabled: false,
+      openRouterApiKey: "test-not-billed", liveBudgetScope: crypto.randomUUID(), liveSpendCapMicro: 1_000_000 }, runId);
+    expect(calls).toBe(0);
+    const intents = await pool.query("SELECT id FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'", [runId]);
+    expect(intents.rows).toHaveLength(0);
+    const events = await listEvents(pool, runId, 0);
+    expect(JSON.stringify(events)).toContain("run_spend_cap_exhausted");
+    expect(events.some((event) => event.type === "searched" || event.type === "published")).toBe(false);
   });
 
   it("issued then failed live intents still consume the reservation", async () => {

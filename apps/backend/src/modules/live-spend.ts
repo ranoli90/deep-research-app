@@ -71,6 +71,18 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
       if (prior.rows[0].request_digest !== args.requestDigest) throw new Error("logical_action_conflict");
       return { intentId: prior.rows[0].id, issue: false };
     }
+    const allowance = await db.query<{ amount_micro: string }>(
+      "SELECT amount_micro FROM reservations WHERE run_id = $1 AND account_id = $2 AND state = 'reserved' FOR UPDATE",
+      [args.runId, run.account_id]);
+    const reservation = allowance.rows[0];
+    if (!reservation || allowance.rows.length !== 1) throw new Error("missing_active_run_allowance");
+    const costs = await db.query<{ used: string }>(`SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
+      FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'`, [args.runId]);
+    const used = Number(costs.rows[0]?.used ?? 0);
+    const runCap = Math.min(run.budget_micro, Number(reservation.amount_micro));
+    if (!canIssueLiveCall({ capMicro: runCap, usedMicro: used, estimatedMicro: args.reserveMicro }).ok) {
+      throw new Error("run_spend_cap_exhausted");
+    }
     const scope = config.liveBudgetScope ?? "project";
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-budget:${scope}`]);
     await assertLiveCallAllowed(db, config, args.reserveMicro);

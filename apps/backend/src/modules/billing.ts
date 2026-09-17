@@ -6,6 +6,7 @@ export async function reserveAllowance(
   runId: string,
   amountMicro: number,
 ): Promise<{ reservationId: string }> {
+  if (!Number.isSafeInteger(amountMicro) || amountMicro <= 0) throw new Error("invalid_allowance_reservation");
   const row = await db.query<{ limit_micro: string; settled_micro: string; reserved_micro: string }>(
     `SELECT limit_micro, settled_micro, reserved_micro FROM allowance_accounts WHERE account_id = $1 FOR UPDATE`,
     [accountId],
@@ -29,24 +30,42 @@ export async function reserveAllowance(
 }
 
 export async function settleRun(db: Queryable, accountId: string, runId: string, spentMicro: number): Promise<void> {
+  // Caller owns the transaction. Match admission lock ordering before touching money.
+  await db.query("SELECT id FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
+  const run = await db.query<{ account_id: string; route_mode: string }>(
+    "SELECT account_id, route_mode FROM runs WHERE id = $1 FOR UPDATE", [runId]);
+  if (run.rows[0]?.account_id !== accountId) throw new Error("settlement_owner_mismatch");
   const res = await db.query<{ id: string; amount_micro: string; state: string }>(
-    `SELECT id, amount_micro, state FROM reservations WHERE run_id = $1 AND state = 'reserved' FOR UPDATE`,
-    [runId],
+    `SELECT id, amount_micro, state FROM reservations WHERE run_id = $1 AND account_id = $2 AND state = 'reserved' FOR UPDATE`,
+    [runId, accountId],
   );
+  if (res.rows.length > 1) throw new Error("duplicate_run_reservation");
   const r = res.rows[0];
   if (!r) return;
+  let settle = spentMicro;
+  if (run.rows[0].route_mode === "controlled-research") {
+    const receipts = await db.query<{ confirmed: string; unknown: number }>(`SELECT
+      COALESCE(SUM(confirmed_micro), 0)::text AS confirmed,
+      COUNT(*) FILTER (WHERE confirmed_micro IS NULL)::int AS unknown
+      FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'`, [runId]);
+    // Hold the entire admitted allowance conservatively until every external outcome is known.
+    // A retry of settlement after reconciliation releases it exactly once.
+    const receipt = receipts.rows[0];
+    if (!receipt) throw new Error("missing_receipt_aggregate");
+    if (receipt.unknown > 0) return;
+    settle = Number(receipt.confirmed);
+  }
   const reserved = Number(r.amount_micro);
-  const settle = Math.min(reserved, Math.max(0, spentMicro));
-  const release = reserved - settle;
+  if (![reserved, settle].every((n) => Number.isSafeInteger(n) && n >= 0)) throw new Error("invalid_settlement_cost");
+  // Actual provider overruns must be visible; never clamp receipts to the estimate.
+  const account = await db.query(`UPDATE allowance_accounts
+     SET reserved_micro = reserved_micro - $2, settled_micro = settled_micro + $3
+     WHERE account_id = $1 AND reserved_micro >= $2`, [accountId, reserved, settle]);
+  if (account.rowCount !== 1) throw new Error("allowance_accounting_invariant");
   await db.query(`UPDATE reservations SET state = 'settled' WHERE id = $1`, [r.id]);
-  await db.query(
-    `UPDATE allowance_accounts
-     SET reserved_micro = GREATEST(reserved_micro - $2, 0),
-         settled_micro = settled_micro + $3
-     WHERE account_id = $1`,
-    [accountId, reserved, settle],
-  );
-  void release;
+  if (run.rows[0].route_mode === "controlled-research") {
+    await db.query("UPDATE runs SET spent_micro = $2 WHERE id = $1", [runId, settle]);
+  }
 }
 
 export async function recordIntent(

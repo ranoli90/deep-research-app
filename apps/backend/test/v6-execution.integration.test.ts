@@ -11,7 +11,7 @@ import { admitRun } from "../src/modules/run-admission.js";
 import { CreateRunRequestSchema } from "@deep/contracts";
 import { liveSpendUsedMicro, reserveLiveAttempt } from "../src/modules/live-spend.js";
 import { loadConfig } from "../src/platform/config.js";
-import { updateIntentState } from "../src/modules/billing.js";
+import { reserveAllowance, settleRun, updateIntentState } from "../src/modules/billing.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
 
 let pool: pg.Pool;
@@ -56,27 +56,76 @@ async function runCase(test: (runId: string, accountId: string) => Promise<void>
 }
 
 describe("W02 real PostgreSQL execution boundaries", () => {
-  it("A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent", async () => runCase(async (runId) => {
+  it("A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
     const fence = (await claimLease(pool, runId, "budget-attempt", 30_000))!;
     const scope = crypto.randomUUID();
-    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "200000", LIVE_BUDGET_SCOPE: scope });
-    const base = { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "fixed-test-request", reserveMicro: 150_000 };
+    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "60000", LIVE_BUDGET_SCOPE: scope });
+    const base = { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "fixed-test-request", reserveMicro: 40_000 };
     const results = await Promise.allSettled([
       reserveLiveAttempt(pool, config, { ...base, logicalKey: "first" }),
       reserveLiveAttempt(pool, config, { ...base, logicalKey: "second" }),
     ]);
     expect(results.filter((r) => r.status === "fulfilled"), results.map((r) => r.status === "rejected" ? String(r.reason) : "issued").join("; ")).toHaveLength(1);
-    expect(await liveSpendUsedMicro(pool, scope)).toBe(150_000);
+    expect(await liveSpendUsedMicro(pool, scope)).toBe(40_000);
     const index = results.findIndex((r) => r.status === "fulfilled");
     const accepted = results[index] as PromiseFulfilledResult<{ intentId: string; issue: boolean }>;
     await updateIntentState(pool, accepted.value.intentId, "outcome-unknown");
     const replay = await reserveLiveAttempt(pool, config, { ...base, logicalKey: index === 0 ? "first" : "second" });
     expect(replay).toEqual({ intentId: accepted.value.intentId, issue: false });
-    expect(await liveSpendUsedMicro(pool, scope)).toBe(150_000);
+    expect(await liveSpendUsedMicro(pool, scope)).toBe(40_000);
     await updateIntentState(pool, replay.intentId, "confirmed", 12_345);
     await updateIntentState(pool, replay.intentId, "confirmed", 12_345);
     expect(await liveSpendUsedMicro(pool, scope)).toBe(12_345);
     await expect(updateIntentState(pool, replay.intentId, "confirmed", 1)).rejects.toThrow("conflicting");
+  }));
+  it("A08 run cap blocks concurrent calls despite a larger project cap", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    const fence = (await claimLease(pool, runId, "run-cap", 30_000))!;
+    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: crypto.randomUUID() });
+    const base = { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "run-cap", reserveMicro: 60_000 };
+    const results = await Promise.allSettled([reserveLiveAttempt(pool, config, { ...base, logicalKey: "a" }), reserveLiveAttempt(pool, config, { ...base, logicalKey: "b" })]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect((results.find((r) => r.status === "rejected") as PromiseRejectedResult).reason.message).toBe("run_spend_cap_exhausted");
+  }));
+  it("A08 issuance requires an active account allowance reservation", async () => runCase(async (runId) => {
+    const fence = (await claimLease(pool, runId, "no-allowance", 30_000))!;
+    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: crypto.randomUUID() });
+    await expect(reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "no-allowance", reserveMicro: 1, logicalKey: "a" })).rejects.toThrow("missing_active_run_allowance");
+  }));
+  it("A09 unknown provider outcome retains allowance until an actual receipt; repeated settlement is idempotent", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    const fence = (await claimLease(pool, runId, "unknown-cost", 30_000))!;
+    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: crypto.randomUUID() });
+    const intent = await reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "unknown-cost", reserveMicro: 60_000, logicalKey: "a" });
+    await updateIntentState(pool, intent.intentId, "outcome-unknown");
+    await withTx(pool, (db) => settleRun(db, accountId, runId, 0));
+    const held = await pool.query("SELECT state FROM reservations WHERE run_id = $1", [runId]);
+    expect(held.rows[0].state).toBe("reserved");
+    const allowance = await pool.query("SELECT reserved_micro, settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId]);
+    expect(allowance.rows[0]).toEqual({ reserved_micro: "100000", settled_micro: "0" });
+    await updateIntentState(pool, intent.intentId, "confirmed", 12_345);
+    await Promise.all([withTx(pool, (db) => settleRun(db, accountId, runId, 0)), withTx(pool, (db) => settleRun(db, accountId, runId, 0))]);
+    const settled = await pool.query("SELECT reserved_micro, settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId]);
+    expect(settled.rows[0]).toEqual({ reserved_micro: "0", settled_micro: "12345" });
+  }));
+  it("A09 actual receipt overrun is recorded without clamping or stealing another account reservation", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    const fence = (await claimLease(pool, runId, "overrun", 30_000))!;
+    const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: crypto.randomUUID() });
+    const intent = await reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "overrun", reserveMicro: 60_000, logicalKey: "a" });
+    await updateIntentState(pool, intent.intentId, "confirmed", 123_456);
+    await runCase(async (_otherRun, otherAccount) => {
+      await expect(withTx(pool, (db) => settleRun(db, otherAccount, runId, 0))).rejects.toThrow("settlement_owner_mismatch");
+    });
+    await withTx(pool, (db) => settleRun(db, accountId, runId, 0));
+    const allowance = await pool.query("SELECT reserved_micro, settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId]);
+    expect(allowance.rows[0]).toEqual({ reserved_micro: "0", settled_micro: "123456" });
+    const spent = await pool.query("SELECT spent_micro FROM runs WHERE id = $1", [runId]);
+    expect(spent.rows[0].spent_micro).toBe("123456");
+    await expect(reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "overrun2", reserveMicro: 1, logicalKey: "b" })).rejects.toThrow("missing_active_run_allowance");
   }));
   it("A14 a stale session cannot mutate the active run", async () => runCase(async (runId, accountId) => {
     const fence = (await claimLease(pool, runId, "old", 30_000))!;

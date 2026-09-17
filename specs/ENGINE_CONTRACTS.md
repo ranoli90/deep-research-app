@@ -169,3 +169,5 @@ Migration 013 stores scoped attachment extraction JSON beside immutable original
 
 
 Executable argument boundary (W02/F15): `packages/contracts/src/action-arguments.ts` owns strict bounded argument schemas. Admission rejects undeclared keys before transformations and admits the actual transformed executable action again. Proposals cannot supply authority, arbitrary code or verification outcomes. Schema validity alone does not establish named-action execution or evidential support.
+
+Provider reservation or request errors cannot become successful search progress. The worker persists a sanitized blocked/unresolved reason, terminates that attempt path and settles only known receipts. Unknown outcomes retain allowance. A stored source count or empty fabricated search event cannot stand in for an executed request.

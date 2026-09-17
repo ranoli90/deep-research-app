@@ -1,5 +1,9 @@
 # Builder handoff
 
+Latest local checks: `pnpm verify` exit0 (91 core/66 backend/47 mobile/4 governance); `pnpm test:integration` exit0 **158/158**. Blocked search now records failure without searched/published events. Before-fix failures and command/log hashes are retained in `verification/v6/RESULTS.json`.
+
+W02/F09 checkpoint: provider issuance now checks the run cap and active account allowance atomically. Unknown receipts retain the whole allowance; confirmed costs settle once without clamping overruns. Default live reserve exceeds the run allowance and correctly blocks. No allowance was increased. Next: provider-key scopes, automatic receipt reconciliation and explicit confirmed/held cost reporting, then general gateway/actions.
+
 W02/F15 checkpoint: strict bounded executable schemas reject undeclared authority/SQL/expression/result fields; challenge-to-search validates before and after transformation. `pnpm verify` passes (91 core/66 backend/47 mobile/4 governance), local integration 153/153. Scoped budget accounting and substantive named actions remain open. No paid/native/hosted execution.
 
 ## Active V6 checkpoint

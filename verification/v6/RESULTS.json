@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Strict executable argument checkpoint on 8601aca; 153 local integration cases pass; W01-W09 incomplete",
+  "workingTree": "Account/run budget and truthful blocked-search checkpoint on 33269f9; 158 local integration cases pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1227,11 +1227,167 @@
       "evidenceClass": "local_postgres_api_worker",
       "scope": "153/153; local fixture research, no live model proof",
       "sha256": "70b851bf1d9b33b955f3ae1d20995b59e42440ea8c8a2209d3878f0ae4e561d9"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts",
+      "artifact": "run-account-budget-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres",
+      "scope": "3 failed / 9 passed before repair",
+      "sha256": "1cdca23957428ad31778cadb3d8810baeb0bd4e7bcc88808c1e367e3d805f436"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts",
+      "artifact": "run-account-budget-after.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres",
+      "scope": "12/12 intermediate",
+      "sha256": "6de4168a1dba5a42763c16e5035692ea2c80484763e564999f191d81c931a9d7"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts",
+      "artifact": "run-account-budget-after-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres",
+      "scope": "13/13 including overrun and concurrent settlement",
+      "sha256": "ce542c401ac401a50f692ebdf1b23b1f127c83455aa6a212c4c0c42ab51596e4"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-run-budget.log",
+      "exitCode": 2,
+      "evidenceClass": "static_typecheck",
+      "scope": "three unchecked aggregate/reservation row accesses; subsequently guarded",
+      "sha256": "1e42ec89c10271b3ed097871f6654f22f97dede82306047d11c1ef4fcc534c32"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-run-budget-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "91/66/47/4 before blocked-search worker correction",
+      "sha256": "ceae498809a9bf2d83e6aaaae467e9e424179716d4fba9bbdff8bb96318c2307"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-run-budget.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "156 passed / 1 failed: positive provider control used insufficient run allowance",
+      "sha256": "c464b0c9974a892fd9f5dd1bf9b11339d2b1aa33d5d766f77aa3e9bd41b67a91"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "budget-controls-final.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "18 passed / 1 failed: blocked search falsely emitted searched/published",
+      "sha256": "5ec6c5b11448daca334234955e10eb718c4711505ea4b3617fdcf05eaba23bf1"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "budget-controls-repaired.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "19/19; funded test-only positive, separate default-denial control, no real provider requests",
+      "sha256": "5d4a935a42e62c350ea62586f0c866afedf2e04e968f04bb8f87227f2e993146"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-budget-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "91 core / 66 backend / 47 mobile / 4 governance",
+      "sha256": "a67469288859faa037584d475cf0e36c71e49142e4d401ecb5b7c29d0652a927"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-budget-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "158/158, real local PostgreSQL, provider transport doubles; no live quality evidence",
+      "sha256": "73aaf90283d3a11b4d5d974fddfd0f4d0f21a35bbd345b54e672e555124fc163"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-budget.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural review only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "33269f9 plus account/run accounting working tree",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "handoff-budget.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural handoff only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
     "W01: general semantic checking and criterion-linked support",
-    "W02: run/account/key budget scopes, actual settlement and substantive named action execution",
+    "W02: provider-key buckets, automatic receipt reconciliation, historical settlement repair, confirmed/held cost reporting and substantive named action execution",
     "W03: hosted identity lifecycle/native login and privacy routing",
     "W04: native binary picker, broader extraction fidelity and independent corpus",
     "W05-W09: general gateway, criteria, real typed actions, immutable correction reuse, mobile essentials and held-out evaluation",

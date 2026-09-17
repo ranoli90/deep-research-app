@@ -62,7 +62,7 @@
       "title": "Live spending admission is non-atomic and estimated cost is called confirmed",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Atomic project reservation and logical provider attempt, unknown retention and actual usage.cost conversion added. Per-run/key scope and complete gateway accounting remain."
+      "basis": "Atomic project and run-cap reservation, active owned account allowance, stable logical attempt and actual usage.cost conversion added. Unknown outcomes retain the full run allowance until reconciliation; receipt settlement is idempotent and does not clamp overruns. Provider-key scope, automatic reconciliation, historical settlement repair and cost-view separation remain open."
     },
     {
       "id": "V6-F10",
