@@ -1,4 +1,5 @@
 import { z } from "zod";
+export const CONSENT_POLICY_VERSION = "2026-09-17";
 
 export const SCHEMA_VERSION = "1";
 /** Versioned research-controller state projection. Additive to SCHEMA_VERSION. */
@@ -208,7 +209,7 @@ export const CreateRunRequestSchema = z.object({
   parentRunId: IdSchema.optional(),
   expectedBriefRevision: z.number().int().optional(),
   outputPreferences: z.string().optional(),
-  consentPolicyVersion: z.string().default("2026-09-16"),
+  consentPolicyVersion: z.string().default(CONSENT_POLICY_VERSION),
 });
 export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
 
@@ -264,18 +265,20 @@ export const FIXTURE_TARIFF_VERSION = "fixture-2026-09-16";
 export const MICRO_PER_USD = 1_000_000;
 /** Conservative reservation for one live OpenRouter call including web plugin. $0.20. */
 export const LIVE_CALL_RESERVE_MICRO = 200_000;
-export const CONSENT_POLICY_VERSION = "2026-09-16";
 export const PROCESSOR_DISCLOSURE = [
   "App-owned research worker (this service)",
   "Optional OpenRouter model gateway when live route is enabled",
+  "OpenAI via OpenRouter for structured text operations when enabled",
   "Optional retrieval/fetch of public URLs when live retrieval is enabled",
 ];
 export const OUTPUT_REPORT_CATEGORIES = ["harmful", "inaccurate", "legal", "privacy", "other"] as const;
 export type OutputReportCategory = (typeof OUTPUT_REPORT_CATEGORIES)[number];
 export const PRIVACY_DATA_FLOWS =
-  "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter. Private attachment text is not copied into public search queries.";
+  "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter; structured text operations use OpenAI through OpenRouter. Private attachment text is not copied into public search queries.";
 export const DELETION_VS_SUBSCRIPTION =
   "Deleting the app account cancels in-flight research and removes derived text. Cancelling a store subscription is a separate store action and does not by itself delete the account.";
 
 
 export { ExecutableArguments, type ExecutableAction, type ExecutableActionKind } from "./action-arguments.js";
+
+export * from "./research-model.js";

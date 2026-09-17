@@ -1,5 +1,5 @@
 # Architecture — modular monolith, explicit research boundary
-Owner role: engineering lead. Status: proposed, not source-inspected application code. Reviewed: 2026-09-16.
+Owner role: engineering lead. Status: implemented modular monolith with general-research workflow still in progress. Reviewed: 2026-09-17.
 
 The original stack direction is retained: TypeScript, React Native/Expo, Fastify, a separate durable worker, PostgreSQL/Supabase authentication/private storage, OpenRouter and an explicit retrieval adapter. Render remains the default API/worker host. No service has been provisioned or compatibility-tested here. OS background constraints and the worker execution model support keeping research off the phone (S38–S39).
 
@@ -37,7 +37,7 @@ Postgres is the durable source of truth. Use relational dependency/link tables, 
 6. Native snapshot/cursored events reveal actual progress and saved result. Closing the app affects observation, not the worker.
 7. A correction creates a revised brief/child run, invalidates affected conclusions and candidate selection where needed, then produces a versioned change result.
 
-This is a proposed trace. No executable request path was available to run in the inspected input.
+The fixture API/worker trace is executable and locally tested. General criterion-driven research is not yet complete. The structured model transport/coordinator now implements strict versioned operation boundaries, durable reservations/results and source/consent/fence checks; the general controller and publication integration remain open.
 
 ## Execution strategies
 `fixture`: deterministic explicitly labeled local data. `hosted-baseline`: a provider-managed report, with honest limited visibility. `controlled-research`: own iterative **adaptive** controller (`research-controller.v1`) with accessible evidence and receipts; `LIVE_CONTROLLER_KIND=baseline` selects the bounded chooser for comparison. All render through the same public report contract. Never upgrade citation-only hosted metadata into invented full-text evidence. OpenRouter beta capabilities are adapter-specific and must be probed under an authorized budget (S28).

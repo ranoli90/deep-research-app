@@ -12,6 +12,7 @@ export type AppConfig = {
   storageDir: string;
   fixtureRouteAllowed: boolean;
   liveRouteEnabled: boolean;
+  structuredModelEnabled?: boolean;
   liveRetrievalEnabled: boolean;
   openRouterApiKey: string | undefined;
   openRouterModel: string;
@@ -62,6 +63,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     storageDir: env.STORAGE_DIR ?? "./data/storage",
     fixtureRouteAllowed,
     liveRouteEnabled,
+    structuredModelEnabled: env.STRUCTURED_MODEL_ENABLED === "true",
     liveRetrievalEnabled: env.LIVE_RETRIEVAL_ENABLED === "true",
     openRouterApiKey: env.OPENROUTER_API_KEY,
     openRouterModel: env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",

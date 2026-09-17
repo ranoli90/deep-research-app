@@ -1,0 +1,11 @@
+.                                        |  WARN  `node_modules` is present. Lockfile only installation will make it out-of-date
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 64, reused 0, downloaded 0, added 0
+Progress: resolved 496, reused 0, downloaded 0, added 0
+Progress: resolved 718, reused 0, downloaded 0, added 0
+ WARN  5 deprecated subdependencies found: cron-parser@4.9.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@7.0.3
+Progress: resolved 762, reused 23, downloaded 0, added 0
+.                                        |   +1  -62 +------
+Progress: resolved 762, reused 63, downloaded 1, added 1
+Progress: resolved 762, reused 63, downloaded 1, added 1, done
+Done in 6.3s using pnpm v9.15.9

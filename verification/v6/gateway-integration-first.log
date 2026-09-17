@@ -1,0 +1,51 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (9 tests | 1 failed) 1459ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call 240ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome 146ms
+   ✓ W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief 102ms
+   ✓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result 161ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending 141ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist 158ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist 101ms
+   ✓ W05 durable model gateway on real PostgreSQL > deletion removes a completed model result 126ms
+   × W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result 139ms
+     → expected { kind: 'result', …(3) } to match object { kind: 'blocked', …(1) }
+(6 matching properties omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result
+AssertionError: expected { kind: 'result', …(3) } to match object { kind: 'blocked', …(1) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "kind": "blocked",
+-   "reason": "invalid_stored_model_result",
++   "kind": "result",
+  }
+
+ ❯ test/model-gateway.integration.test.ts:113:82
+    111|     await performModelOperation(pool, x.config, x.session, operation(x…
+    112|     await pool.query("UPDATE model_operation_results SET result=jsonb_…
+    113|     expect(await performModelOperation(pool, x.config, x.session, oper…
+       |                                                                                  ^
+    114|     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    115|   }));
+ ❯ runCase test/model-gateway.integration.test.ts:35:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  12:28:18
+   Duration  3.31s (transform 906ms, setup 0ms, collect 1.40s, tests 1.46s, environment 0ms, prepare 160ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts

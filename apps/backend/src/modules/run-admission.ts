@@ -16,7 +16,7 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
     if (!account.rows[0] || account.rows[0].deleted_at) reject("permission_denied");
     const consent = await currentConsent(db, accountId);
-    if (!consent || consent.revoked || input.consentPolicyVersion !== CONSENT_POLICY_VERSION) reject("consent_required");
+    if (!consent || consent.revoked || input.consentPolicyVersion !== CONSENT_POLICY_VERSION || (input.routeMode === "controlled-research" && consent.policyVersion !== CONSENT_POLICY_VERSION)) reject("consent_required");
     const existing = await findRunByIdempotency(db, accountId, key);
     if (existing) {
       const saved = await db.query("SELECT request_digest FROM runs WHERE id = $1", [existing.id]);

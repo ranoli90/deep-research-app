@@ -23,3 +23,4 @@ export * from "./report-derivations.js";
 export * from "./stop.js";
 export * from "./support.js";
 export * from "./types.js";
+export { validateModelBindings } from "./model-bindings.js";

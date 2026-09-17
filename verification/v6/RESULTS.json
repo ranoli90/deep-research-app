@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Committed safety/accounting checkpoint bdc61a3; 167 local integration cases pass; general W01-W09 milestone remains incomplete",
+  "workingTree": "Structured gateway checkpoint on1654bbe;178 local integration cases pass; general workflow integration and W01-W09 remain incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1546,6 +1546,244 @@
       "evidenceClass": "document_integrity",
       "scope": "structural handoff",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend add --save-exact zod-to-json-schema@3.25.1",
+      "artifact": "gateway-dependency-install.log",
+      "exitCode": 0,
+      "evidenceClass": "dependency_install",
+      "scope": "Exact ISC schema generator, no new transitive runtime dependency",
+      "sha256": "d16a1dd132ccbf6f496c26c9a250ec638e7e70407c49f11997e3c8bd6af5d400"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm audit --prod --json",
+      "artifact": "gateway-dependency-audit.json",
+      "exitCode": 1,
+      "evidenceClass": "dependency_audit",
+      "scope": "Same seven existing Expo-chain advisories; no new IDs",
+      "sha256": "62577e9fd39f6f47c590663111a1dcf6c2430b8a17ceac66373a78f469c159bc"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "gateway-types-first.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "initial adapter",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "gateway-types-coordinator.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "initial durable coordinator",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend test:unit",
+      "artifact": "gateway-unit-first.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit",
+      "scope": "80/80, including14 transport controls",
+      "sha256": "f7808a5a7742463f5b923a1ad0724a60c4c74f5c61127eef38443608e948c2e4"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm verify",
+      "artifact": "gateway-verify-first.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "97 core/80 backend/47 mobile/4 governance, intermediate tree",
+      "sha256": "64141d736766112960164571aab257271d27fd66fba76cc122b95164dd8d017f"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "gateway-integration-first.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_model_transport_double",
+      "scope": "1 failed/8 passed: corrupt cached receipt accepted",
+      "sha256": "a2f50f5f3959951d0959c48037e709815e97ef7180948c4db9dc3e62d5f22d60"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "gateway-integration-repaired.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_model_transport_double",
+      "scope": "9/9 after cached-receipt validation",
+      "sha256": "0a2575ef3fce4dcd239168eb6bf86f7078f77630eb896744f04a34ca0f9234aa"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "gateway-integration-controls.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_model_transport_double",
+      "scope": "11 failed: old duplicated request consent default; corrected to canonical version",
+      "sha256": "32fe5a5e6381eedacaaa265495432664ba98d4c9a2a9af028642649c871bc5d1"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "gateway-integration-controls-fixed.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_model_transport_double",
+      "scope": "11/11, duplicate call race/current consent/deletion/stale result controls",
+      "sha256": "16330dcaa251a2c3749169a14671e13fd5d1c90fd951c19c9f2155a46aed63b8"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm verify",
+      "artifact": "gateway-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "97 core/80 backend/47 mobile/4 governance",
+      "sha256": "30fbdb4a38ec94ae09ce413dda5d802e2f201a5085f432070a739b9e6140c8f5"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm test:integration",
+      "artifact": "gateway-integration-full.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "178/178; gateway cases use fabricated provider replies; no live semantic-quality proof",
+      "sha256": "c2474bfc7d2d0cb4cfe294b3883f65026fcf6ee28e5d9f1ff9f644c53fa1b45b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "gateway-mobile-types.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "shared schemas and consent disclosure",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "gateway-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural review",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02",
+        "W03",
+        "V6-F15"
+      ],
+      "commit": "1654bbe plus structured gateway working tree",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "gateway-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural handoff",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W02"
+      ],
+      "commit": "1654bbe",
+      "command": "curl --fail --silent --show-error --max-time 20 https://openrouter.ai/api/v1/models/openai/gpt-4o-mini/endpoints -o /tmp/deep-v6-gateway/model-endpoints.json",
+      "artifact": "gateway/model-endpoints.json",
+      "exitCode": 0,
+      "evidenceClass": "public_endpoint_metadata",
+      "scope": "Unauthenticated advertised capability/pricing, no model request or spending authorization",
+      "sha256": "5f283102753683d5f880d33c130beb648aa779349b326f7b65bc4fc5a61b7f13"
     }
   ],
   "unresolved": [
@@ -1553,7 +1791,7 @@
     "W02: acquisition of missing provider receipts, historical settlement repair, enforceably bounded model-route estimates and complete typed action execution outcomes",
     "W03: hosted identity lifecycle/native login and privacy routing",
     "W04: native binary picker, broader extraction fidelity and independent corpus",
-    "W05-W09: general gateway, criteria, real typed actions, immutable correction reuse, mobile essentials and held-out evaluation",
+    "W05-W09: integrate the structured gateway into the general criteria/evidence/support/writer workflow, typed action outcomes, correction-safe membership/reuse, mobile essentials and held-out evaluation",
     "W10: separate release gates; no new deployment, paid model or native quality claim"
   ],
   "liveSpend": {

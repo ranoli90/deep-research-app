@@ -1,0 +1,23 @@
+{
+  "package": "zod-to-json-schema",
+  "version": "3.25.1",
+  "license": "ISC",
+  "licenseSha256": "80d3168ad2f70f6f5bb2ab22b23414707abf6f0a392034891481ae36a1a429d4",
+  "runtimeDependencies": {},
+  "peerDependencies": {
+    "zod": "^3.25 || ^4"
+  },
+  "installedPeer": "3.25.76",
+  "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==",
+  "modelAssets": [],
+  "runtimeImpact": "Backend JSON Schema generation from existing strict Zod contracts; no I/O, SDK, service or paid request. Current Zod3 needs this converter; future Zod4 migration should remove it rather than carry duplicate schemas.",
+  "auditAfter": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 4,
+    "critical": 0
+  },
+  "sameAdvisoryIdsAsBefore": true,
+  "unresolved": "Same seven pre-existing Expo-chain advisories; no independent security audit."
+}
