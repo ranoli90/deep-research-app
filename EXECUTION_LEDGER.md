@@ -421,3 +421,5 @@ V6 W02/W05 search transport; basec1af7ab. Source inspection rechecked unbounded 
 Existing request payload/route stays unchanged. Public official OpenRouter plugin docs were read, not a paid probe: unspecified engine can select native or Exa; explicit processor/price policy still must be adopted before general discovery activation. No current monetary balance was inferred. Unit/regression and full database outcomes recorded below. Rollback disables live discovery and preserves receipts/unknown holds and final publication protections. W01-W09 remains incomplete.
 
 Final search transport checks: `pnpm verify` exit0 (115core/88backend/47mobile/4governance); `pnpm test:integration` exit0,236/236; review/handoff validators exit0. Exact logs/hashes in RESULTS. Public documentation observation is in search-policy-observation.md; no paid call or current balance claim.
+
+Search transport implementation/evidence committed as `04fa478800bc40e8b4cee3d02cbd1c95e3493271`. Final verify/integration exercised this code. Durable discovery/processor policy and W01-W09 remain incomplete.
