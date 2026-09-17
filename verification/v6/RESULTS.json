@@ -2726,7 +2726,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "113 core/80 backend/47 mobile/4 governance; before final resume/cancel tests",
-      "sha256": "b95fdff9625fd9cf965da8d1aec89f7a5f2a56782f84d19e3a325c62b794dd80"
+      "sha256": "b95fdff9625fd9cf965da8d1aec89f7a5f2a56782f84d19e3a325c62b794dd80",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     },
     {
       "requirementIds": [
@@ -2743,7 +2744,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker",
       "scope": "62/62 before two final resume/cancel tests",
-      "sha256": "d92883cd07fa90d4a9165a689b79cad4a2575ed23a8d4c34efffdb48a26ee652"
+      "sha256": "d92883cd07fa90d4a9165a689b79cad4a2575ed23a8d4c34efffdb48a26ee652",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     },
     {
       "requirementIds": [
@@ -2760,7 +2762,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "Final implementation and test types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     },
     {
       "requirementIds": [
@@ -2777,7 +2780,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     },
     {
       "requirementIds": [
@@ -2794,7 +2798,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     },
     {
       "requirementIds": [
@@ -2811,7 +2816,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker",
       "scope": "236/236 final code including resume/cancel controls; fabricated model responses over persisted passages",
-      "sha256": "165d2ce1c0e0cb75ea52ff222e965dc10c45304ca8c1bca692ba4fae4e9d907f"
+      "sha256": "165d2ce1c0e0cb75ea52ff222e965dc10c45304ca8c1bca692ba4fae4e9d907f",
+      "testedCodeCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
     }
   ],
   "unresolved": [
@@ -2829,5 +2835,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
+  "implementationCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
 }
