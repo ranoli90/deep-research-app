@@ -1,0 +1,26 @@
+{
+  "as_of": "2026-09-16",
+  "requirements": ["V2-12", "E06", "E09"],
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "v2_12": {
+    "code": "hydrateOnLaunch and Close source sheet call restoreReadingPosition; ReportBlockView onLayout records y and scrollTo the saved blockId; persistSession stores readingAnchor",
+    "tests": "hydrateOnLaunch restores readingAnchor.blockId=eligibility; App.tsx contains restoreAnchor and scrollTo"
+  },
+  "pdf_attach": {
+    "filename": "scan.pdf",
+    "mime": "application/pdf from .pdf suffix",
+    "extract": "SCANNED-PDF-PAGE-1 Vendor tables unreadable",
+    "observed_caveat": "Unread pages or scanned tables are not treated as fully read.",
+    "attachments_after_send": "0/3"
+  },
+  "share": {
+    "control": "Share Markdown",
+    "activity": "com.android.intentresolver/.ChooserActivity",
+    "preview": "Vendor A managed Postgres is available in …"
+  },
+  "tests": "pnpm --filter @deep/mobile test 32/32",
+  "status": "implemented and verified on Android device. iOS VoiceOver/P0-N still blocked."
+}

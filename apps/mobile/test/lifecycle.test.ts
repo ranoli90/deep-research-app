@@ -27,6 +27,7 @@ describe("P0-N native state mapping", () => {
       limitations: [],
       labeledDemo: true,
     };
+    s.readingAnchor = { reportId: "rep-1", blockId: "eligibility", offset: 0 };
     await persistSession(store, { token: "tok-session-1", state: s });
     expect(await store.getItem("deep.token")).toBe("tok-session-1");
     expect(await store.getItem("deep.draft")).toContain("Germany");
@@ -40,6 +41,7 @@ describe("P0-N native state mapping", () => {
     expect(hydrated.state.consentGranted).toBe(true);
     expect(hydrated.state.source).toBeNull();
     expect(hydrated.state.status).toBe("completed");
+    expect(hydrated.state.readingAnchor?.blockId).toBe("eligibility");
   });
 
   it("persistSession with a null token does not wipe a stored session token", async () => {
@@ -84,6 +86,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
     expect(src).toMatch(/startPolling\(token, child\.runId\)/);
+    expect(src).toMatch(/restoreAnchor/);
+    expect(src).toMatch(/scrollTo/);
+    expect(src).toMatch(/restoreReadingPosition/);
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {

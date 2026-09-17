@@ -35,6 +35,7 @@ import {
   logout as logoutState,
   mergeEvents,
   openLibraryItem,
+  restoreAnchor,
   submitPrerequisite,
   type ReportBlock,
   type UiState,
@@ -68,8 +69,22 @@ function AppInner() {
   const [showAttach, setShowAttach] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
+  const conversationScroll = useRef<ScrollView>(null);
+  const blockY = useRef<Record<string, number>>({});
   const draftRef = useRef(state.draft);
   draftRef.current = state.draft;
+
+  function restoreReadingPosition(blocks: ReportBlock[] | undefined, saved: UiState["readingAnchor"]) {
+    if (!blocks?.length || !saved) return;
+    const { anchor, note } = restoreAnchor(saved, blocks);
+    if (note) {
+      setState((s) => ({ ...s, error: note }));
+    }
+    const y = anchor?.blockId != null ? blockY.current[anchor.blockId] : undefined;
+    if (y != null) {
+      conversationScroll.current?.scrollTo({ y: Math.max(0, y - 8), animated: false });
+    }
+  }
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -193,6 +208,7 @@ function AppInner() {
         void refreshRun(t, s.run.runId);
         startPolling(t, s.run.runId);
       }
+      requestAnimationFrame(() => restoreReadingPosition(s.report?.blocks, s.readingAnchor));
     });
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -431,6 +447,7 @@ function AppInner() {
 
         {state.tab === "research" ? (
           <ScrollView
+            ref={conversationScroll}
             style={styles.body}
             contentContainerStyle={{ paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
@@ -509,7 +526,18 @@ function AppInner() {
                   </View>
                 ) : null}
                 {blocks.map((b) => (
-                  <ReportBlockView key={b.id} block={b} styles={styles} onOpenSource={(id) => void onOpenSource(id)} />
+                  <ReportBlockView
+                    key={b.id}
+                    block={b}
+                    styles={styles}
+                    onOpenSource={(id) => void onOpenSource(id)}
+                    onLayoutY={(y) => {
+                      blockY.current[b.id] = y;
+                      if (!state.source && state.readingAnchor?.blockId === b.id) {
+                        conversationScroll.current?.scrollTo({ y: Math.max(0, y - 8), animated: false });
+                      }
+                    }}
+                  />
                 ))}
                 {state.report.changeSummary ? (
                   <Text style={styles.caveat} accessibilityLabel="Change summary">
@@ -583,7 +611,13 @@ function AppInner() {
               <Text selectable style={styles.bodyText}>{breakLongTokens(state.source.exactText)}</Text>
             </ScrollView>
             <Pressable
-              onPress={() => setState((s) => ({ ...s, source: null }))}
+              onPress={() =>
+                setState((s) => {
+                  const next = { ...s, source: null };
+                  requestAnimationFrame(() => restoreReadingPosition(next.report?.blocks, next.readingAnchor));
+                  return next;
+                })
+              }
               accessibilityRole="button"
               accessibilityLabel="Close source sheet"
             >
@@ -843,10 +877,12 @@ function ReportBlockView({
   block,
   styles,
   onOpenSource,
+  onLayoutY,
 }: {
   block: ReportBlock;
   styles: ReturnType<typeof makeStyles>;
   onOpenSource: (id: string) => void;
+  onLayoutY?: (y: number) => void;
 }) {
   const text = breakLongTokens(block.text);
   let body: ReactNode;
@@ -889,7 +925,11 @@ function ReportBlockView({
     body = <Text selectable style={block.kind === "caveat" ? styles.caveat : styles.bodyText}>{text}</Text>;
   }
   return (
-    <View style={{ marginBottom: space.md }}>
+    <View
+      nativeID={`block-${block.id}`}
+      style={{ marginBottom: space.md }}
+      onLayout={(e) => onLayoutY?.(e.nativeEvent.layout.y)}
+    >
       {body}
       <View style={styles.citeRow}>
         {block.citationIds.map((id) => (

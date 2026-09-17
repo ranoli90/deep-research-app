@@ -26,6 +26,8 @@ Working tree: `main` at `43698692a9d8539bda701cf0b0e360dd380bf025`. P0 is **not*
 - V2-14: an `outcome-unknown` OpenRouter intent of 4 USD micros counts against the live cap; a further 1.2 USD estimated call is refused. Treating unknown as zero would have allowed it.
 - P0-N Android this session: consent granted; fixture report Vendor A 40 EUR; `am force-stop` + reopen restored report, sources, and draft; source sheet FULL-TEXT `3fc2e7b9`. `pnpm p0:launch` `cancelOutcome=cancelled` `cancelReportId=null`. 120 EUR correction: Eligible Vendor A + Vendor C; table row Vendor C germany 70 EUR; change summary reopened discovery.
 - E09: `/v1/reports/:id/export` is Markdown only (PDF is not advertised). `blocksToMarkdown` emits tables, fenced code, and `[8-char]` citations. Integration asserts every export citation prefix is an owned passage for that run.
+- V2-12: `restoreReadingPosition` scrolls the conversation to the persisted `readingAnchor` after hydrate and after closing the source sheet.
+- Native PDF attach: filename `scan.pdf` (mime application/pdf); report caveat “Unread pages or scanned tables are not treated as fully read.” Share Markdown opened `ChooserActivity` with the report markdown preview. The sheet was dismissed without sending.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
