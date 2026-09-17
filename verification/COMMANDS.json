@@ -114,7 +114,7 @@
   {
     "command": "pnpm test:e2e:android",
     "status": "implemented_application_command",
-    "scope": "exits 2 when no emulator/device is online; prior Xiaomi a3fa7852 recapture is native-Android-only and was not re-run this session",
+    "scope": "device-presence launcher probe only, not native app assertions; exits2 when no online emulator/device is detected; prior native observations are separate",
     "network": false,
     "paid": false,
     "implementation": "scripts/e2e-android.mjs"
@@ -222,5 +222,13 @@
     "network": false,
     "paid": false,
     "implementation": "packages/research-core/package.json#test"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile typecheck",
+    "status": "implemented_application_command",
+    "scope": "mobile TypeScript source only; no native execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#typecheck"
   }
 ]

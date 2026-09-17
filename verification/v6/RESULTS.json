@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Result-derived exact assertion/criterion/cited-version comparison;260 integration and117/88/48/4 verify. W01-W09 remains incomplete.",
+  "workingTree": "Mobile typed replacement with snapshot/refresh and server capability gate; 260 integration,117/88/52/4 verify; actual PDF13/13 reported. Native gate unavailable. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3734,6 +3734,160 @@
       "scope": "12/12;36.56s; changed assertion revisions with same cited version, corrected API reopen/full-rerun control/deletion; fabricated model responses",
       "sha256": "c20e140bb6f08d3d469e2d7b557b4f0be4671e3692760e59e27f0df78aa5110b",
       "implementationCommit": "6e0cce011f73cbf899930e0d765e4a363e741e85"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-correction-typecheck-baseline.log",
+      "exitCode": 0,
+      "evidenceClass": "typescript",
+      "scope": "Baseline mobile typecheck",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-correction-typecheck-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "typescript",
+      "scope": "Updated mobile typecheck",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "pnpm test:e2e:android",
+      "artifact": "mobile-correction-native-probe.log",
+      "exitCode": 2,
+      "evidenceClass": "native_device_gate",
+      "scope": "No online device; launcher does not execute app assertions",
+      "sha256": "761fb4ccd58996982028f6432f1e2d9368ef9273185291ce63635b5688faf68f"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "mobile-correction-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117 core /88 backend /52 mobile /4 governance",
+      "sha256": "4b37179a5d0c301ea7e41f026654d7108ada87d209aeca647d4c5e6e52db8316"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "mobile-correction-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "260/260;16 files;149.78 seconds",
+      "sha256": "c7ffd233cc1715c32d90ce2eaa857e0caa1df4da4cb27f3c6417a70ce853163c"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "mobile-correction-extraction.log",
+      "exitCode": null,
+      "evidenceClass": "local_api_worker_actual_pdf",
+      "scope": "Log reports13/13;39.23 seconds; correction mode and disabled-route controls. Process exit receipt unavailable after context handoff; model responses fabricated.",
+      "sha256": "12afaa731352b6004a81ebb17f8736e78daedae9285db0cfa2e2a47c0f5c8bf2"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "mobile-correction-bundle.log",
+      "exitCode": 1,
+      "evidenceClass": "android_javascript_export",
+      "scope": "Failed Metro resolution of relative NodeNext .js contract import",
+      "sha256": "e9cca4823cedfe48e48df2d3905fbbeaa571d7dcca0347bffb82ad8b5899a8e6"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "mobile-correction-bundle-final.log",
+      "exitCode": 0,
+      "evidenceClass": "android_javascript_export",
+      "scope": "Successful Hermes export after scoped Metro resolution repair; no native execution",
+      "sha256": "212048b9299234488eebd328d4854f9913c3f20fa6bae1c1fa83def01ca40ff0"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "mobile-correction-bundle-verified.log",
+      "exitCode": null,
+      "evidenceClass": "android_javascript_export",
+      "scope": "Final wording export log reports success; process exit receipt unavailable after context handoff; manifest hashes final artifacts",
+      "sha256": "35c349b8559b3a14b5671f10e5b4a4a01bdf78277fe2e21af5d45b05148946b4"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "mobile-correction-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07"
+      ],
+      "commit": "88db719",
+      "workingTree": "mobile typed correction adoption; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "mobile-correction-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

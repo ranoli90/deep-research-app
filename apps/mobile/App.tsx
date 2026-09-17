@@ -80,6 +80,12 @@ function AppInner() {
   const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
   const [correction, setCorrection] = useState("");
+  const [evidencePolicy,setEvidencePolicy]=useState<"reuse_snapshot"|"refresh">("reuse_snapshot");
+  const [correctionPending,setCorrectionPending]=useState(false);
+  const correctionAttempt=useRef<symbol|null>(null);
+  const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
+  const correctionReady=correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
+  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);setCorrection("");setEvidencePolicy("reuse_snapshot");},[token,state.run?.runId]);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
   const [attachText, setAttachText] = useState("");
@@ -430,15 +436,20 @@ function AppInner() {
   }
 
   async function onCorrect() {
-    if (!token || !state.run) return;
+    if (!token || !state.run || correctionAttempt.current) return;
     const text = correction.trim();
     if (!text) {
       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
       return;
     }
+    if(!correctionReady||!state.run.brief?.revision) {
+      setViewState((s)=>({...s,error:"Corrections are unavailable for this run. Refresh its status before trying again."}));return;
+    }
+    const attempt=Symbol("correction"),guard=api.captureView();correctionAttempt.current=attempt;setCorrectionPending(true);
     try {
-      const snap = await api.getRun(token, state.run.runId);
-      const child = await api.correct(token, state.run.runId, snap.brief.revision, text);
+      const child = await api.correct(token, state.run.runId, state.run.brief.revision, text,
+        correctionMode==="replace_question"?{kind:"replace_question",question:text,evidencePolicy}:undefined);
+      if(!guard.current())throw new SupersededRequest();
       api.selectRun(child.runId);
       setCorrection("");
       setShowAttach(false);
@@ -467,6 +478,9 @@ function AppInner() {
       else if (isOfflineError(e)) {
         setViewState((s) => ({ ...s, offline: true, error: (e as Error).message }));
       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally {
+      guard.release();
+      if(correctionAttempt.current===attempt){correctionAttempt.current=null;setCorrectionPending(false);}
     }
   }
 
@@ -769,19 +783,34 @@ function AppInner() {
 
             {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
               <View style={styles.card} accessibilityLabel="Correction">
-                <Text style={styles.kicker}>Correction</Text>
+                <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
+                {correctionMode==="unavailable"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
+                {correctionMode==="replace_question"?<>
+                  <Text style={styles.body}>Write the complete updated question. Its conclusions will be checked again.</Text>
+                  <Pressable disabled={correctionPending} onPress={()=>setCorrection(state.run?.brief?.originalQuestion??"")} accessibilityRole="button" accessibilityLabel="Use current question">
+                    <Text style={styles.link}>Edit current question</Text>
+                  </Pressable>
+                  {(["reuse_snapshot","refresh"] as const).map((policy)=><Pressable key={policy} disabled={correctionPending} onPress={()=>setEvidencePolicy(policy)} accessibilityRole="radio" accessibilityState={{checked:evidencePolicy===policy,disabled:correctionPending}} accessibilityLabel={policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}>
+                    <Text style={styles.body}>{evidencePolicy===policy?"● ":"○ "}{policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}</Text>
+                  </Pressable>)}
+                  <Text style={styles.body}>Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.</Text>
+                </>:null}
+                {correctionReady&&Number.isSafeInteger(state.run.correctionReserveMicro)&&state.run.correctionReserveMicro!>=0?<Text style={styles.body}>Reserves US${(state.run.correctionReserveMicro!/1_000_000).toFixed(2)} of research allowance. Your earlier report remains available.</Text>:null}
                 <TextInput
                   value={correction}
                   onChangeText={setCorrection}
-                  placeholder="Actually, the budget is 120 EUR"
+                  placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
+                  multiline
+                  maxLength={20_000}
+                  editable={!correctionPending&&correctionMode!=="unavailable"}
                   placeholderTextColor={theme.muted}
                   style={styles.input}
                   allowFontScaling
                   maxFontSizeMultiplier={2}
-                  accessibilityLabel="Correction field"
+                  accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
                 />
-                <Pressable onPress={onCorrect} accessibilityRole="button" accessibilityLabel="Submit correction">
-                  <Text style={styles.send}>Update research</Text>
+                <Pressable onPress={onCorrect} disabled={correctionPending||!correctionReady} accessibilityState={{disabled:correctionPending||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
+                  <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
                 </Pressable>
               </View>
             ) : null}

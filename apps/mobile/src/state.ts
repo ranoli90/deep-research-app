@@ -3,6 +3,8 @@ export type RouteMode = "fixture" | "controlled-research";
 export type ScreenName = "research" | "library" | "settings" | "source";
 
 export type RunSnapshot = {
+  correctionMode?: "legacy"|"replace_question"|"unavailable";
+  correctionReserveMicro?:number;
   runId: string;
   lifecycle: string;
   phase: string;

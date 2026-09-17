@@ -74,6 +74,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
   app.addContentTypeParser("application/octet-stream", { parseAs: "buffer", bodyLimit: MAX_ATTACHMENT_BYTES }, (_req, body, done) => done(null, body));
   const { pool, config, boss } = deps;
+  const typedCorrectionsEnabled=Boolean(config.structuredModelEnabled&&config.liveRouteEnabled&&config.openRouterApiKey&&config.liveSpendCapMicro>0&&(config.liveKeySpendCapMicro??0)>0);
 
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
     done(null, String(body));
@@ -201,6 +202,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       phase: run.phase,
       outcome: run.terminal_outcome,
       routeMode: run.route_mode,
+      correctionMode:run.route_mode==="fixture"&&config.fixtureRouteAllowed?"legacy":typedCorrectionsEnabled&&run.route_mode==="controlled-research"?"replace_question":"unavailable",
+      correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
       revision: {
         briefRevision: run.brief_revision,
@@ -326,8 +329,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
     }
+    if(run.route_mode==="fixture"&&!config.fixtureRouteAllowed)return reply.code(409).send(err("invalid_input","Demo corrections are disabled.",crypto.randomUUID()));
     if(parsed.data.patch) {
-      if(!config.structuredModelEnabled||run.route_mode!=="controlled-research")return reply.code(409).send(err("invalid_input","Structured corrections are unavailable on this route.",crypto.randomUUID()));
+      if(!typedCorrectionsEnabled||run.route_mode!=="controlled-research")return reply.code(409).send(err("invalid_input","Structured corrections are unavailable on this route.",crypto.randomUUID()));
       const created=await admitResearchCorrection(pool,a.accountId,id,parsed.data);
       await tryDispatchRun(pool,boss,created.runId);
       return created;

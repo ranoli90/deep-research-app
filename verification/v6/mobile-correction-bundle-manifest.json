@@ -1,0 +1,16 @@
+{
+  "scope": "Final Android JS/Hermes assets only; no native execution",
+  "root": "/tmp/deep-v6-mobile-bundle",
+  "files": [
+    {
+      "path": "_expo/static/js/android/index-2f08c48d3d9158009150f4e60a91fa3b.hbc",
+      "bytes": 2036288,
+      "sha256": "f728618445e074bee48ad886ffd3821b2cd4f10a43446c804d139b326519dbbc"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 150,
+      "sha256": "5be3cbd4e8575481635b2b152ee10d03cb35e12466198390987433a70e34f10c"
+    }
+  ]
+}

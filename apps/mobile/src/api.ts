@@ -1,3 +1,4 @@
+import { CorrectionRequestSchema,type ResearchCorrectionPatch } from "@deep/contracts";
 import { createRequestScope, SupersededRequest } from "./request-scope";
 
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
@@ -84,13 +85,13 @@ export const api = {
   getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token, scope: "view", runId: id }),
   events: (token: string, id: string, after = 0) => req(`/v1/runs/${id}/events?after=${after}`, { token, scope: "view", runId: id }),
   cancel: (token: string, id: string) => req(`/v1/runs/${id}/cancel`, { method: "POST", token, body: "{}" }),
-  correct: (token: string, id: string, expectedBriefRevision: number, correctionText: string) =>
+  correct: (token: string, id: string, expectedBriefRevision: number, correctionText: string, patch?:ResearchCorrectionPatch) =>
     req(`/v1/runs/${id}/corrections`, {
       method: "POST",
       token,
       scope: "view", runId: id,
       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
-      body: JSON.stringify({ expectedBriefRevision, correctionText }),
+      body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText,...(patch?{patch}:{}) })),
     }),
   followUp: (token: string, id: string, claimId: string, note: string) =>
     req(`/v1/runs/${id}/follow-up`, {

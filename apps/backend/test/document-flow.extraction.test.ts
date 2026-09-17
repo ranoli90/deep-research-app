@@ -128,6 +128,8 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
  let correctionTrace:unknown="not tested";
  if(!publicSource) {
   const revisedQuestion=`What firmware does ${task.entity} require for offline recording?`;
+  const correctionCapability=(await app.inject({method:"GET",url:`/v1/runs/${task.runId}`,headers:task.headers})).json();
+  expect(correctionCapability).toMatchObject({correctionMode:"replace_question",correctionReserveMicro:100000});
   const corrected=await app.inject({method:"POST",url:`/v1/runs/${task.runId}/corrections`,headers:task.headers,
    payload:{expectedBriefRevision:1,correctionText:"Ask about the firmware requirement instead.",patch:{kind:"replace_question",question:revisedQuestion,evidencePolicy:"reuse_snapshot"}}});
   expect(corrected.statusCode).toBe(200);const childId=corrected.json().runId;
@@ -159,4 +161,16 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
  expect((await pool.query("SELECT 1 FROM research_coverage WHERE account_id=$1",[task.accountId])).rowCount).toBe(0);
  expect((await pool.query("SELECT 1 FROM evidence_artifacts WHERE account_id=$1",[task.accountId])).rowCount).toBe(0);
  expect((await app.inject({method:"GET",url:`/v1/reports/${reports[0].id}`,headers:task.headers})).statusCode).toBe(401);
+});
+it("W06/W07 disabled route configuration advertises and enforces correction unavailability",async()=>{
+ const unavailable=await buildApp({pool,boss,config:{...config,fixtureRouteAllowed:false,structuredModelEnabled:false}});
+ try {
+  for(const structured of [false,true]) {
+   const task=await setup(structured);
+   expect((await unavailable.inject({method:"GET",url:`/v1/runs/${task.runId}`,headers:task.headers})).json().correctionMode).toBe("unavailable");
+   const response=await unavailable.inject({method:"POST",url:`/v1/runs/${task.runId}/corrections`,headers:task.headers,payload:{expectedBriefRevision:1,correctionText:"Updated question",...(structured?{patch:{kind:"replace_question",question:"Updated question",evidencePolicy:"reuse_snapshot"}}:{})}});
+   expect(response.statusCode).toBe(409);expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[task.runId])).rowCount).toBe(0);
+   await app.inject({method:"POST",url:"/v1/account/deletion",headers:task.headers});
+  }
+ } finally {await unavailable.close();}
 });

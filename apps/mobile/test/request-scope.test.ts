@@ -68,3 +68,19 @@ it("W03 signing out during an anonymous sign-in request prevents the late creden
   response.resolve(Response.json({ token: "late-secret", accountId: "a" }));
   expect(isSupersededRequest(await pending)).toBe(true);
 });
+it.each(["reuse_snapshot","refresh"] as const)("W06 mobile sends an explicit replacement patch with %s",async(evidencePolicy)=>{
+ const fetcher=vi.fn(async(_input:RequestInfo|URL,_init?:RequestInit)=>Response.json({runId:"child"}));vi.stubGlobal("fetch",fetcher);api.activateSession("a");api.selectRun("parent");
+ await api.correct("a","parent",3,"What changed?",{kind:"replace_question",question:"What changed?",evidencePolicy});
+ expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({expectedBriefRevision:3,correctionText:"What changed?",patch:{kind:"replace_question",question:"What changed?",evidencePolicy}});
+});
+it("W06 late correction acceptance cannot switch a newly selected run",async()=>{
+ const response=deferred<Response>();vi.stubGlobal("fetch",vi.fn(()=>response.promise));api.activateSession("a");api.selectRun("parent");
+ const pending=api.correct("a","parent",1,"New question",{kind:"replace_question",question:"New question",evidencePolicy:"reuse_snapshot"}).catch((e)=>e);
+ api.selectRun("different");response.resolve(Response.json({runId:"child"}));
+ expect(isSupersededRequest(await pending)).toBe(true);expect(api.currentRun("a","different")).toBe(true);
+});
+it("W06 malformed executable correction patches never reach the network",()=>{
+ const fetcher=vi.fn();vi.stubGlobal("fetch",fetcher);api.activateSession("a");api.selectRun("parent");
+ expect(()=>api.correct("a","parent",1,"New question",{kind:"replace_question",question:"New question",evidencePolicy:"reuse_snapshot",budgetMicro:999} as never)).toThrow();
+ expect(fetcher).not.toHaveBeenCalled();
+});
