@@ -1828,7 +1828,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker_regression",
       "scope": "32/32 including4 new worker search failure/replay cases",
-      "sha256": "b658f2cad8aa4292cf59f756544658c739040b6a9be72a9e9ba1caf223c4a24b"
+      "sha256": "b658f2cad8aa4292cf59f756544658c739040b6a9be72a9e9ba1caf223c4a24b",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     },
     {
       "requirementIds": [
@@ -1842,7 +1843,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker_regression",
       "scope": "33/33; adds known500micro receipt preserved/settled despite missing search output",
-      "sha256": "9f6352efbb9bfeca4b2d376cc61941b0f572812599f0638323a73c536a0ab9a0"
+      "sha256": "9f6352efbb9bfeca4b2d376cc61941b0f572812599f0638323a73c536a0ab9a0",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     },
     {
       "requirementIds": [
@@ -1856,7 +1858,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "core97/backend80/mobile47/governance4; no paid calls",
-      "sha256": "b69e59264c1b61f012e493ddfc2e44b82452006f91ff9919e1735871a0596c40"
+      "sha256": "b69e59264c1b61f012e493ddfc2e44b82452006f91ff9919e1735871a0596c40",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     },
     {
       "requirementIds": [
@@ -1870,7 +1873,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "182/182 before addition of final known-receipt replay control; transport doubles/local PostgreSQL",
-      "sha256": "4a01223d5eaa23ead2ec8e15a64af01d2a8d8fda1b402c5ddc6f6c91609c2ebb"
+      "sha256": "4a01223d5eaa23ead2ec8e15a64af01d2a8d8fda1b402c5ddc6f6c91609c2ebb",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     },
     {
       "requirementIds": [
@@ -1884,7 +1888,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     },
     {
       "requirementIds": [
@@ -1898,7 +1903,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
     }
   ],
   "unresolved": [
@@ -1916,5 +1922,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "25511fb523f1dbef5a19053e6313d27a42f46f52"
+  "implementationCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
 }

@@ -1,7 +1,7 @@
 # Builder handoff
 ## Active V6 checkpoint
 
-W02 search outcome repair: PostgreSQL regressions reproduced false searched events for HTTP failure, timeout and missing cost. The worker now terminates those paths as unresolved, preserves unknown reservations and atomically records financial receipts. Existing attempts without durable output are not resent or counted as empty success. Valid zero-cost success remains a control. This is conservative termination, not automatic search-result recovery.
+W02 search outcome repair (`5fdb122`): PostgreSQL regressions reproduced false searched events for HTTP failure, timeout and missing cost. The worker now terminates those paths as unresolved, preserves unknown reservations and atomically records financial receipts. Existing attempts without durable output are not resent or counted as empty success. Valid zero-cost success remains a control. This is conservative termination, not automatic search-result recovery.
 
 W05 gateway prerequisite (`25511fb`): strict versioned brief/extraction/support/action/writer/coverage schemas, bounded pinned-provider transport and one durable coordinator now pass local tests. Exact provenance, stored-result reuse, duplicate-call races, current downstream consent and stale/delete result rejection are covered. This gateway is not yet integrated into a complete general research controller; model support output remains a proposal, not publication authority. No paid semantic probe was run. Consent policy2026-09-17 names OpenAI, and structured activation defaults off.
 
