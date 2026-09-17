@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearAccountLocal, hydrateOnLaunch, loadDraft, memoryStore, persistDraft, persistSession } from "../src/persist.js";
+import { clearAccountLocal, hydrateOnLaunch, loadDraft, logoutLocal, memoryStore, persistDraft, persistSession } from "../src/persist.js";
 import {
   androidBack,
   attachFile,
@@ -108,7 +108,7 @@ describe("P3 native journeys (structural)", () => {
     expect(conciseBlocks(blocks)[0]?.citationIds).toEqual(["p1"]);
   });
 
-  it("M09 logout store wipe", async () => {
+  it("M09 deletion store wipe drops draft, token, and reports", async () => {
     const store = memoryStore({ "deep.draft": "secret", "deep.ui": "{}", "deep.token": "tok" });
     await persistSession(store, {
       token: "tok",
@@ -119,6 +119,25 @@ describe("P3 native journeys (structural)", () => {
     const hydrated = await hydrateOnLaunch(store);
     expect(hydrated.token).toBeNull();
     expect(hydrated.state.report).toBeNull();
+  });
+
+  it("S12 logoutLocal keeps the draft and drops token and cached reports", async () => {
+    const store = memoryStore();
+    await persistSession(store, {
+      token: "tok",
+      state: {
+        ...emptyState(),
+        draft: "keep me",
+        signedIn: true,
+        report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true },
+      },
+    });
+    await logoutLocal(store, "keep me");
+    const hydrated = await hydrateOnLaunch(store);
+    expect(hydrated.token).toBeNull();
+    expect(hydrated.state.draft).toBe("keep me");
+    expect(hydrated.state.report).toBeNull();
+    expect(hydrated.state.signedIn).toBe(false);
   });
 
   it("library open binds the run on research before any poll interval", () => {

@@ -1,0 +1,17 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "S12",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "observed": {
+    "before": "FIXTURE REPORT visible on Research",
+    "after_logout": "welcome empty state; composer still has the filing-deadline draft; no Research report in the accessibility tree",
+    "library": "Sign in from Profile to see saved reports.",
+    "sign_in_again": "Signed in (development) and Consent granted"
+  },
+  "code": "logoutLocal keeps deep.draft and drops token+snapshot. onLogout stopPolling so a late refreshRun cannot resurrect the previous report. refreshRun no-ops when signedIn is false. Deletion still uses clearAccountLocal.",
+  "tests": "pnpm --filter @deep/mobile test 32/32 including S12 logoutLocal round-trip",
+  "status": "implemented and verified on Android device"
+}

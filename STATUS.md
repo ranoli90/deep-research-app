@@ -7,7 +7,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 | P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 76/76; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
 | P0-L live model/retrieval | implemented and verified (bounded) | One consented `controlled-research` run `1351c267` published report `6cdf6f92` from HTTP passages (IONOS/SysEleven/ayedo full-text 20k chars) plus correction `5f8a7af2` report `cce6aadb`. Model `openai/gpt-4o-mini` + web plugin. OpenRouter usage **$0.096 of $5**. |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
-| P0-N Android | implemented and verified on device (cancel-during-writing via API launch-check) | Xiaomi `25098RA98G`; attach, share, 120 EUR Vendor C, Flag, TalkBack, compact keyboard, M04, M02 large text, M05 offline, M08 follow-up, R02 clarification continue |
+| P0-N Android | implemented and verified on device (cancel-during-writing via API launch-check) | Xiaomi `25098RA98G`; attach, share, 120 EUR Vendor C, Flag, TalkBack, compact keyboard, M04, M02 large text, M05 offline, M08 follow-up, R02 clarification, S12 logout keeps draft |
 
 P0 is **not** fully verified.
 
@@ -24,7 +24,7 @@ P0 is **not** fully verified.
 These are fixture-route behavioral tests. They are not evidence of advantage over ChatGPT/Gemini/Claude/Perplexity/Grok.
 
 ## Additional launch-scope cases now executed against Postgres/fixture
-R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (unit), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S03, S04, S05, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), JOB-2, V2-03, V2-09, V2-10, V2-11, V2-13, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20. Native structural: M03, M04, M05, M06, M07, M08, M09, M10, M12, V2-12. Native device: Library, persist, attach+source, Share Markdown, 120 EUR correction (Vendor C), Flag/challenge, TalkBack M02 labels, compact keyboard Send-usable, M04 table/code nested scroll, M02 enlarged text (font_scale 1.3), M05 offline (draft+report kept, no new run), M08 follow-up change summary + previous Markdown, R02 clarification (jurisdiction → Germany, no second ask) on Xiaomi.
+R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (unit), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S03, S04, S05, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), JOB-2, V2-03, V2-09, V2-10, V2-11, V2-13, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20. Native structural: M03, M04, M05, M06, M07, M08, M09, M10, M12, V2-12. Native device: Library, persist, attach+source, Share Markdown, 120 EUR correction (Vendor C), Flag/challenge, TalkBack M02 labels, compact keyboard Send-usable, M04 table/code nested scroll, M02 enlarged text (font_scale 1.3), M05 offline (draft+report kept, no new run), M08 follow-up change summary + previous Markdown, R02 clarification (jurisdiction → Germany, no second ask), S12 logout keeps draft and drops cached reports on Xiaomi.
 
 ## Still open (not claimed done)
 - **P0-N iOS** blocked: no Xcode on this Linux host; TestFlight deferred.

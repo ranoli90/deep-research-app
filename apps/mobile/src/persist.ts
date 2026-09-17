@@ -78,6 +78,13 @@ export async function clearAccountLocal(store: KeyValueStore): Promise<void> {
   await store.removeItem(TOKEN_KEY);
 }
 
+/** Logout drops the token and cached reports. The local draft stays. Account deletion uses clearAccountLocal. */
+export async function logoutLocal(store: KeyValueStore, draft: string): Promise<void> {
+  await store.removeItem(SNAP_KEY);
+  await store.removeItem(TOKEN_KEY);
+  await persistDraft(store, draft);
+}
+
 export function memoryStore(initial: Record<string, string> = {}): KeyValueStore {
   const data = { ...initial };
   return {

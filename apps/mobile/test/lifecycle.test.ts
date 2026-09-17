@@ -74,6 +74,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/persistSession\(AsyncStorage/);
     expect(src).toMatch(/openLibraryItem\(s, id\)/);
     expect(src).toMatch(/api\.followUp/);
+    expect(src).toMatch(/logoutLocal\(AsyncStorage/);
+    expect(src).toMatch(/stopPolling\(\)/);
+    expect(src).toMatch(/if \(!s\.signedIn\) return s;/);
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {

@@ -21,7 +21,7 @@ import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api, isExpiredSession, isOfflineError } from "./src/api";
-import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
+import { clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
   androidBack,
@@ -123,6 +123,7 @@ function AppInner() {
       const ev = await api.events(t, runId, 0);
       const report = snap.reportId ? await api.report(t, snap.reportId) : null;
       setState((s) => {
+        if (!s.signedIn) return s;
         let next = applySnapshot(s, snap);
         next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
         if (report) {
@@ -157,8 +158,15 @@ function AppInner() {
     }
   }
 
+  function stopPolling() {
+    if (poll.current) {
+      clearInterval(poll.current);
+      poll.current = null;
+    }
+  }
+
   function startPolling(t: string, runId: string) {
-    if (poll.current) clearInterval(poll.current);
+    stopPolling();
     poll.current = setInterval(() => {
       void refreshRun(t, runId);
     }, 1000);
@@ -586,13 +594,16 @@ function AppInner() {
             onMode={(routeMode) => setState((s) => ({ ...s, routeMode }))}
             onDelete={async () => {
               if (!token) return;
+              stopPolling();
               await api.deleteAccount(token);
               await clearAccountLocal(AsyncStorage);
               setToken(null);
               setState(emptyState());
             }}
             onLogout={() => {
-              void clearAccountLocal(AsyncStorage);
+              stopPolling();
+              const draft = draftRef.current;
+              void logoutLocal(AsyncStorage, draft);
               setToken(null);
               setState((s) => logoutState(s));
             }}
