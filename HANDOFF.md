@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `1fa26b9d59263bb7dc220b88ad67ab2cb85a0011`. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` (G01/G02 recorded below). P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
@@ -30,11 +30,12 @@ Working tree: `main` at `1fa26b9d59263bb7dc220b88ad67ab2cb85a0011`. P0 is **not*
 - Native PDF attach: filename `scan.pdf` (mime application/pdf); report caveat “Unread pages or scanned tables are not treated as fully read.” Share Markdown opened `ChooserActivity` with the report markdown preview. The sheet was dismissed without sending.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
+- G01/G02 local suite (`verification/g01-g02.json`): cross-user deny, private canary omitted from search, missing/declined/revoked consent cannot process (including revoke-during-writing), deletion blocks late resurrection, unknown citations cannot publish, accepted runs remain in library/GET, replayed completion debits once, stale brief/evidence/lease cannot publish, cancel-during-writing leaves no report. Hosted RLS/auth is not this suite.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 79 tests including P2 selective vs full rerun |
+| `pnpm test:integration` | 0 | 88 tests including dedicated G01/G02 |
 | `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |

@@ -25,6 +25,7 @@ import { safeFetch } from "../platform/ssrf.js";
 import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
 import { logInfo } from "../platform/log.js";
+import { consentAllowsProcessing } from "../modules/access.js";
 import { recordIntent, settleRun } from "../modules/billing.js";
 import { insertSource, insertVersionAndPassage, loadEvidence } from "../modules/evidence.js";
 import { publishReport } from "../modules/reports.js";
@@ -255,6 +256,21 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           accountId: run.account_id,
           type: "deleted",
           summary: "Account or content deleted; late work discarded.",
+          phase: run.phase,
+        });
+      });
+      return;
+    }
+
+    if (!(await consentAllowsProcessing(pool, run.account_id))) {
+      await withTx(pool, async (c) => {
+        await markTerminal(c, runId, "cancelled");
+        await settleRun(c, run.account_id, runId, run.spent_micro);
+        await emitEvent(c, {
+          runId,
+          accountId: run.account_id,
+          type: "cancelled",
+          summary: "Consent revoked; remaining processing is discarded.",
           phase: run.phase,
         });
       });
@@ -544,6 +560,20 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       await markTerminal(pool, runId, "cancelled");
       return;
     }
+    if (!(await consentAllowsProcessing(pool, latest.account_id))) {
+      await withTx(pool, async (c) => {
+        await markTerminal(c, runId, "cancelled");
+        await settleRun(c, latest.account_id, runId, latest.spent_micro);
+        await emitEvent(c, {
+          runId,
+          accountId: latest.account_id,
+          type: "cancelled",
+          summary: "Consent revoked during writing. Late publication is rejected.",
+          phase: "writing",
+        });
+      });
+      return;
+    }
 
     const evidence2 = await loadEvidence(pool, runId);
     const brief2 = await getBrief(pool, latest.brief_id);
@@ -590,6 +620,20 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       });
       return;
     }
+    if (!(await consentAllowsProcessing(pool, prePublish.account_id))) {
+      await withTx(pool, async (c) => {
+        await markTerminal(c, runId, "cancelled");
+        await settleRun(c, prePublish.account_id, runId, prePublish.spent_micro);
+        await emitEvent(c, {
+          runId,
+          accountId: prePublish.account_id,
+          type: "cancelled",
+          summary: "Consent revoked during writing. Late publication is rejected.",
+          phase: "writing",
+        });
+      });
+      return;
+    }
     state2.basis.cancellationEpoch = prePublish.cancellation_epoch;
     state2.basis.workerLeaseFence = fence;
 
@@ -615,7 +659,12 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       payload: { reason: result.reason, reportId: result.reportId },
     });
     if (result.accepted) return;
-    if (result.reason === "cancelled" || result.reason === "deleted" || result.reason === "stale_lease") {
+    if (
+      result.reason === "cancelled" ||
+      result.reason === "deleted" ||
+      result.reason === "stale_lease" ||
+      result.reason === "consent_revoked"
+    ) {
       await markTerminal(pool, runId, "cancelled");
       return;
     }

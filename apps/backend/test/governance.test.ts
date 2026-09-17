@@ -40,7 +40,12 @@ describe("V2-15 forbidden imports", () => {
 describe("V2-16 test weakening", () => {
   it("P0 smoke and launch-scope files do not skip or xit cases", () => {
     const dir = join(import.meta.dirname, ".");
-    for (const name of ["p0-smoke.integration.test.ts", "launch-scope.integration.test.ts", "p3-remaining.integration.test.ts"]) {
+    for (const name of [
+      "p0-smoke.integration.test.ts",
+      "launch-scope.integration.test.ts",
+      "p3-remaining.integration.test.ts",
+      "g01-g02.integration.test.ts",
+    ]) {
       const src = readFileSync(join(dir, name), "utf8");
       expect(src).not.toMatch(/\bit\.skip\(|\bxit\(|\bdescribe\.skip\(/);
     }

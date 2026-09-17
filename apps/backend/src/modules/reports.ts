@@ -1,6 +1,7 @@
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
 import { canPublish, checkReportCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
+import { currentConsent } from "./access.js";
 import { getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
 
@@ -36,6 +37,10 @@ export async function publishReport(
   });
   if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
     reason = "cancelled";
+  }
+  if (reason === "ok") {
+    const consent = await currentConsent(db, args.accountId);
+    if (!consent || consent.revoked) reason = "consent_revoked";
   }
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,

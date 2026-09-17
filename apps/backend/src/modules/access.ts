@@ -69,7 +69,18 @@ export async function revokeConsent(db: Queryable, accountId: string): Promise<n
      VALUES ($1, $2, $3, $4, now())`,
     [accountId, CONSENT_POLICY_VERSION, JSON.stringify(PROCESSOR_DISCLOSURE), epoch],
   );
+  // In-flight workers loaded the previous epoch; bump the run fence so late publication is consent_revoked.
+  await db.query(
+    `UPDATE runs SET consent_epoch = $2, updated_at = now()
+     WHERE account_id = $1 AND lifecycle <> 'terminal'`,
+    [accountId, epoch],
+  );
   return epoch;
+}
+
+export async function consentAllowsProcessing(db: Queryable, accountId: string): Promise<boolean> {
+  const c = await currentConsent(db, accountId);
+  return Boolean(c && !c.revoked);
 }
 
 export async function deleteAccount(db: Queryable, accountId: string): Promise<void> {

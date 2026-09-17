@@ -157,6 +157,12 @@ No live paid calls were made.
 
 - `goldEvidenceDiagnostic` composes the same compatibility question with only review summaries vs with an injected vendor-matrix passage. Without gold: blocking `vendor-matrix` gap, limitation unused. With gold: gap cleared, “not compatible” used. `bottleneck=retrieval`. research-core 26/26. Not a live competitor comparison. iOS/hosted auth unpassed.
 
+## 2026-09-16 — G01/G02 local suite
+
+- Dedicated `apps/backend/test/g01-g02.integration.test.ts` drives shipped API/worker/Postgres: cross-user deny, private canary, missing/declined/revoked consent, deletion resurrection, unknown citation, recoverable accepted run, single debit, stale brief/evidence/lease, cancel-during-writing.
+- Revoking consent now bumps in-flight `runs.consent_epoch`; `publishReport` re-reads `currentConsent`; the worker stops on revoked consent during search and writing.
+- `pnpm test:integration` 88/88; backend unit 14/14. Artifact `verification/g01-g02.json`. G03–G07, iOS, hosted auth, and purchases remain unpassed. No OpenRouter spend.
+
 
 
 

@@ -1,0 +1,81 @@
+{
+  "as_of": "2026-09-16",
+  "suite": "G01/G02 local PostgreSQL/fixture",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts",
+  "cwd": "apps/backend",
+  "database": "postgres://deep@127.0.0.1:55432/deep_research_test",
+  "route": "fixture",
+  "paid": false,
+  "live_provider": false,
+  "hosted_auth_rls_storage": "unverified",
+  "exit_code": 0,
+  "integration_totals": { "files": 4, "tests": 88 },
+  "dedicated_file": "apps/backend/test/g01-g02.integration.test.ts",
+  "dedicated_tests": 9,
+  "results": [
+    {
+      "id": "G01-cross-user",
+      "gate": "G01",
+      "status": "passed",
+      "observed": "Second account received 401/403/404 on owner run, events, report, source, export, cancel, correction, and challenge; library omitted the owner runId; response bodies did not include Widget 4/ACME text."
+    },
+    {
+      "id": "G01-private-to-public",
+      "gate": "G01",
+      "status": "passed",
+      "observed": "CANARY:SECRET99 stored in owned passages; absent from provider_intents.request_digest, event JSON, and searched public_summary."
+    },
+    {
+      "id": "G01-consent",
+      "gate": "G01",
+      "status": "passed",
+      "observed": "No-consent and grant:false create are 403 consent_required. Revoke during writing: publishReport reason=consent_revoked, processRun terminal with no report, later create/correction 403."
+    },
+    {
+      "id": "G01-deletion",
+      "gate": "G01",
+      "status": "passed",
+      "observed": "Delete during writing: late publishReport rejected (deleted|cancelled); passages not PRIVATE-RESURRECT-ME; reports JSON has no private phrase; further create is 401/403."
+    },
+    {
+      "id": "G02-unknown-citation",
+      "gate": "G02",
+      "status": "passed",
+      "observed": "publishReport with citation 00000000-0000-4000-8000-999999999999 accepted=false reason=unknown_citation; no report row."
+    },
+    {
+      "id": "G02-lost-run",
+      "gate": "G02",
+      "status": "passed",
+      "observed": "POST /v1/runs persisted the run row; GET /v1/runs/:id and GET /v1/library recovered it before processRun; after processRun reportId is present."
+    },
+    {
+      "id": "G02-duplicate-debit",
+      "gate": "G02",
+      "status": "passed",
+      "observed": "Same idempotency key reused=true one run; second processRun left reservations n=1 settled n=1 and unchanged allowance settled_micro; one reports row."
+    },
+    {
+      "id": "G02-stale-revision",
+      "gate": "G02",
+      "status": "passed",
+      "observed": "Late publish rejected stale_brief, then stale_evidence, then stale_lease after a newer claimLease; no report published."
+    },
+    {
+      "id": "G02-cancel-writing",
+      "gate": "G02",
+      "status": "passed",
+      "observed": "pauseAt writing, POST cancel, late publish reason cancelled, terminal_outcome=cancelled, GET run reportId null."
+    }
+  ],
+  "code_change": "revokeConsent bumps in-flight runs.consent_epoch; publishReport re-reads currentConsent; worker stops on revoked consent during search and writing.",
+  "not_claimed": [
+    "G03 both-platform native",
+    "G04 quality targets",
+    "G05 competitive/repair experiment",
+    "G06 live route probes",
+    "G07 store disclosures/purchases",
+    "hosted Supabase RLS/auth/storage/pooler"
+  ],
+  "p0_fully_verified": false
+}

@@ -55,8 +55,8 @@ These are predeclared product hurdles to test, not calibrated scientific truths:
 ## Release gates by type
 | ID | Type | Proposed gate | Current status |
 |---|---|---|---|
-| G01 | Safety policy | No unauthorized cross-user access, private-to-public query leakage, invalid consent processing or deletion resurrection in required suites | Not run |
-| G02 | Engineering requirement | No invented citation IDs, lost accepted runs, duplicate application debit, obsolete revision publication or cancel-while-writing race in required deterministic/integration cases | Not run |
+| G01 | Safety policy | No unauthorized cross-user access, private-to-public query leakage, invalid consent processing or deletion resurrection in required suites | Passed local PostgreSQL/fixture suite (`apps/backend/test/g01-g02.integration.test.ts`, 4/4 G01 cases). Not hosted RLS/auth. Finite tests are not a zero-risk proof. |
+| G02 | Engineering requirement | No invented citation IDs, lost accepted runs, duplicate application debit, obsolete revision publication or cancel-while-writing race in required deterministic/integration cases | Passed local PostgreSQL/fixture suite (5/5 G02 cases in the same file). Fixture/worker path only; not a live-provider race. |
 | G03 | Engineering requirement | Native create/close/reopen/read/cite/correct/share/delete flows pass on both platforms and accessible layouts | Not run |
 | G04 | Experimental quality target | Original candidate targets: at least 95% audited support precision and 90% consequential-claim coverage, with stated denominators, independently sampled claims and no unaddressed critical fabrication | Unvalidated target; no observations |
 | G05 | Experimental product target | Repair reduction/decisive-evidence benefit and incremental-update safety under the registered task protocol | Not run |
