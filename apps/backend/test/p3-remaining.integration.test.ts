@@ -8,7 +8,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { InjectedCrash, processRun } from "../src/worker/executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { insertVersionAndPassage, loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun, getReportForAccount, publishReport, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";
@@ -660,7 +660,7 @@ describe("remaining launch-scope IDs", () => {
     const { token } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
     const runId = created.json().runId as string;
-    await processRun(pool, config, runId, { pauseAt: "writing", workerId: "live-owner" });
+    await expect(processRun(pool, config, runId, { crashAfter: "before-publish", workerId: "live-owner" })).rejects.toBeInstanceOf(InjectedCrash);
     const stolen = await claimLease(pool, runId, "other-worker", 30_000);
     expect(stolen).toBeNull();
     await pool.query(`UPDATE run_leases SET expires_at = now() - interval '1 second' WHERE run_id = $1`, [runId]);

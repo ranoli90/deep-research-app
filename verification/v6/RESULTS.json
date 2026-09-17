@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "committed safety/extraction checkpoint; W01-W09 incomplete",
+  "workingTree": "Report/support checkpoint in progress on 500ce1e; 139/139 integration and pnpm verify passed; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -211,10 +211,250 @@
       "scope": "current checkpoint: 62 failed / 69 passed / 131 total; 7 files failed, 5 passed",
       "artifact": "integration-checkpoint.log",
       "sha256": "55c903a9d19d0c4dbad42bfd3c8c635c77a57d1ce6b05a52b4767aa48a10dd7e"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "2 failed / 67 passed: hidden sentence and duplicate ID accepted before repair",
+      "artifact": "material-binding-before.log",
+      "sha256": "6c07529429561e77e0dbae0001325125f2a5daa06ff7c145fcca590aca97d985"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "69 passed after binding repair",
+      "artifact": "material-binding-after.log",
+      "sha256": "5a4d886d9148999b6148358302b930c1d23edf58d577c6d8d89ab8a4273421e7"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "4 failed / 69 passed: myth, conditional, reversed roles and uncertainty wrongly supported",
+      "artifact": "overlap-entailment-before.log",
+      "sha256": "00f691de58d036e204268af26840bfb64d3feec1f4eb4f79729dc0c8f3681016"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "73 passed after replacing overlap-based positive support with literal/controlled-paraphrase acceptance",
+      "artifact": "overlap-entailment-after.log",
+      "sha256": "c98f05bc8e68a124a0cccc7dddcecf11f215479e6f7f14f5a2afa47006408b4b"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "3 failed / 74 passed: heading/caveat/type-label bypasses",
+      "artifact": "material-label-before.log",
+      "sha256": "7839a68870f2bd30cef3c6acbca8602a00cb36f66adb5d792b822daae4e7ac57"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "77 passed after label bypass repair",
+      "artifact": "material-label-after.log",
+      "sha256": "494f725872a1189a4add29a67acd164991d948053f0ce124138d7a9de5659971"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "2 failed / 75 passed while report derivations were incomplete; assertions retained",
+      "artifact": "localized-withdrawal-core.log",
+      "sha256": "097d8e92f5c31e1fbe7f1f81e21cf37f1d02b7802914ef1bef90fdeb7930f3a4"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "80 passed at intermediate tree; unseen-name and unknown-evidence cases included",
+      "artifact": "generic-candidates-core.log",
+      "sha256": "896d1b76bdc259ac4c1ef7fab39a834a2a9b7d99d8b976f3566788d99f0fbf33"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-publication.integration.test.ts",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "17 PostgreSQL publication cases passed, including actual support-record digests",
+      "artifact": "publication-revisions.log",
+      "sha256": "0665a266f0612d13bf331ef791041f81b5f5e96e9662eaa5fd434e03ab143771"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-publication.integration.test.ts",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "19 PostgreSQL cases passed, including recomputed and forged source-count controls",
+      "artifact": "publication-derivations.log",
+      "sha256": "a83dc7d0da6d31308f10fdb0f474cb3005247f685c7821471682efd8c4306000"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm verify",
+      "exitCode": 2,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Typecheck failed: test input inferred a narrower literal union than canonical StoredClaim; corrected annotation",
+      "artifact": "verify-support-revisions-type-failure.log",
+      "sha256": "24e2a2b0de407aa9e75594d99bffaec7b313dd477ea3e5192fba600c45caf78b"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm verify",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "One backend admission unit failed when conservative overestimates were discarded; restored tariff floor plus conservative upper estimate",
+      "artifact": "verify-support-revisions-tariff-failure.log",
+      "sha256": "b31831d8972e032b406d2e5d9c56d8fbcae6bd508e92664064df2c48d567cb7a"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm test:integration",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_integration",
+      "scope": "61 failed / 78 passed / 139 total before report producer repair",
+      "artifact": "integration-derivations.log",
+      "sha256": "9d77870eb365b50e270fb7da2bbbe8e5291b1a8ed5a2ee554e3bd89ac8e881c7"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm test:integration",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_integration",
+      "scope": "13 failed / 126 passed / 139 total; remaining report metadata and recovery setup defects",
+      "artifact": "integration-localized.log",
+      "sha256": "63ada73ad4b140bce26a5778b6d07bd109a6109538f9a4d5a83b260884c6a163"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm test:integration",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "139/139 passed after producer repair and stronger crash-attempt setup; local fixture/PostgreSQL evidence only",
+      "artifact": "integration-report-repair.log",
+      "sha256": "2ee6c84ea8ebddf8e921e8d7a20b874409cdffc58b3af601fe4ddb531bf91fdd"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05"
+      ],
+      "revision": "500ce1e",
+      "treeState": "modified report/support checkpoint; commit recorded separately",
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "typecheck; core 81, backend 52, mobile 32 and governance 4 passed; boundaries pass",
+      "artifact": "verify-report-repair.log",
+      "sha256": "698ecd368b3fc02769bb9440e8fb0975a6acbf4f447ee95bf0cabb6cf3643bb8"
     }
   ],
   "unresolved": [
-    "W01: general semantic support, persisted claim revisions and complete material block mappings; full legacy integration remains failed",
+    "W01: general semantic checking, criterion-linked support and further adversarial derived-report coverage; local integration now 139/139",
     "W02: run/key-scoped budgets and complete action execution/identity/fence coverage",
     "W03: production identity, complete legacy deletion and mobile account generations",
     "W04: PDF/binary native upload, challenge detection and broader structure quality",

@@ -1,0 +1,101 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/policy.test.ts (8 tests) 26ms
+ ❯ test/p1-p2.test.ts (24 tests | 1 failed) 60ms
+   ✓ JOB-1 platform constraints > marks NoteDroid ineligible for missing iPhone and NoteKeep eligible 6ms
+   ✓ JOB-1 platform constraints > adding Linux as a correction excludes NoteKeep 3ms
+   ✓ JOB-1 platform constraints > dropping Linux as a correction reopens NoteKeep 2ms
+   ✓ V2-01 / P1 gaps > names a vendor-matrix gap when only review summaries exist for a compatibility question 2ms
+   ✓ V2-03 gold-evidence diagnostic > records retrieval as the bottleneck when only the injected matrix passage surfaces the limitation 17ms
+   ✓ E03 scope qualifiers > will not let a 65+ study support an unqualified everyone claim 0ms
+   ✓ S04 markup > strips script tags from report text 0ms
+   ✓ R22 calculation > preserves annual-from-monthly formula 1ms
+   ✓ V2-04 budget parse > reads 120 not a trailing 0 from 120 EUR 1ms
+   ✓ geography correction intent > treats 'Actually, Germany is required' as a hard geography change 0ms
+   ✓ V2-05 dose correction > updates dose units without reopening budget discovery 1ms
+   ✓ V2-06 unknown dependency fallback > requires a full rerun when completeness is unknown 1ms
+   ✓ V2-06 unknown dependency fallback > does not treat a known candidate-space reopen as a full rerun 1ms
+   ✓ candidate prices > marks a 90 EUR option as violating a 50 EUR hard cap 1ms
+   ✓ R17 output preference > infers concise vs detailed from the question 0ms
+   ✓ R18 context compaction > keeps hard constraints and passage IDs after dropping extra searches 2ms
+   ✓ J10 writing reserve includes finishing cost > will not spend the last finishing-cost slice on another fetch 0ms
+   ✓ E10 critical claim removal > revisits the conclusion when the answer claim is unsupported 1ms
+   ✓ E10 critical claim removal > composeReport withdraws a question-asserted 42% that the 24% table does not support 1ms
+   ✓ V2-03 gold-evidence diagnostic > summaries-only miss the limitation; injecting the matrix recovers it 1ms
+   ✓ E09 markdown export > emits tables, fenced code, unicode, and 8-char citation prefixes 1ms
+   ✓ M08 follow-up change summary > emits a follow-up change summary without reopening discovery 1ms
+   × M04 comparison table and code listing > emits a wide table and code listing from extracted vendors 13ms
+     → expected undefined to be 'comparison-table' // Object.is equality
+   ✓ V2-19 unread scanned table > does not guess a scanned table and names extract_table as unavailable 1ms
+ ❯ test/adaptive-loop.test.ts (13 tests | 1 failed) 53ms
+   × adaptive closed loop — evidence causes the next action to change > weak summaries open a gap, pivot source type, then contradiction triggers verify/disconfirm, then evidence-aware stop 38ms
+     → expected '[{"id":"answer","kind":"text","text":…' to match /not automatically correct|Unresolved…/i
+   ✓ detectGaps replaces stale rows when evidence changes > resolves a previously untried compat-primary after an opened vendor-matrix is present 1ms
+   ✓ geography is verified from opened evidence, not the search query > does not treat queryWithGeography as proof when opened pages omit the jurisdiction 1ms
+   ✓ deterministic calculation missing input > stays unknown when monthly is missing 1ms
+   ✓ citation validation rejects bad material citations > flags unknown, unowned, wrong-version, unsupported, and overstrong claims 3ms
+   ✓ contradictions do not treat newest as correct > records an unresolved compatibility conflict with a scope explanation 1ms
+   ✓ opened public evidence does not trigger unbounded discovery search > does not issue another generic search after full-text public sources exist and no blocking gap remains 1ms
+   ✓ stop policy is evidence-aware > does not synthesize with inaccessible_or_unresolved_gap while a tryable blocking gap remains 1ms
+   ✓ stop policy is evidence-aware > does not stop merely because a search count quota was hit when a blocking gap is still tryable 1ms
+   ✓ correction impact reuses unaffected evidence > budget 50 → 120 invalidates eligibility and does not full-rerun when completeness is known 2ms
+   ✓ correction impact reuses unaffected evidence > unknown completeness still forces a full rerun 0ms
+   ✓ admission rejects adversarial synthesize and unsafe fetch > rejects synthesize while a blocking gap is untried 1ms
+   ✓ admission rejects adversarial synthesize and unsafe fetch > rejects file:// and localhost fetch locators 0ms
+ ✓ test/admission.test.ts (11 tests) 18ms
+ ✓ test/v6-publication.test.ts (21 tests) 16ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/adaptive-loop.test.ts > adaptive closed loop — evidence causes the next action to change > weak summaries open a gap, pivot source type, then contradiction triggers verify/disconfirm, then evidence-aware stop
+AssertionError: expected '[{"id":"answer","kind":"text","text":…' to match /not automatically correct|Unresolved…/i
+
+- Expected: 
+/not automatically correct|Unresolved disagreement|Scope-explained/i
+
++ Received: 
+"[{\"id\":\"answer\",\"kind\":\"text\",\"text\":\"NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\",\"claimIds\":[\"claim-answer\"],\"citationIds\":[\"p-1\"]},{\"id\":\"eligibility\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"comparison-table\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"candidate-listing\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"contradiction-compatibility\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"contradiction-compatibility\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"disconfirm-d1\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"source-type-switch\",\"kind\":\"caveat\",\"text\":\"This section remains unresolved because its assertions could not be verified.\",\"claimIds\":[],\"citationIds\":[]},{\"id\":\"independence\",\"kind\":\"text\",\"text\":\"Recorded 3 source(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\",\"claimIds\":[\"claim-independence\"],\"citationIds\":[]},{\"id\":\"statement-classes\",\"kind\":\"text\",\"text\":\"FACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: see listed limitations.\",\"claimIds\":[\"claim-statement-classes\"],\"citationIds\":[]}]"
+
+ ❯ test/adaptive-loop.test.ts:267:43
+    265|     expect(JSON.stringify(report.blocks)).toMatch(/not compatible with…
+    266|     expect(JSON.stringify(report.blocks)).toMatch(/FACT:|INFERENCE:|UN…
+    267|     expect(JSON.stringify(report.blocks)).toMatch(/not automatically c…
+       |                                           ^
+    268|     expect(JSON.stringify(report.blocks)).toMatch(/not proof/i);
+    269| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/p1-p2.test.ts > M04 comparison table and code listing > emits a wide table and code listing from extracted vendors
+AssertionError: expected undefined to be 'comparison-table' // Object.is equality
+
+- Expected: 
+"comparison-table"
+
++ Received: 
+undefined
+
+ ❯ test/p1-p2.test.ts:483:23
+    481|     const table = report.blocks.find((b) => b.kind === "table");
+    482|     const code = report.blocks.find((b) => b.kind === "code");
+    483|     expect(table?.id).toBe("comparison-table");
+       |                       ^
+    484|     expect(table?.text.split("\n")[0]).toMatch(/Vendor \| Region \| Pr…
+    485|     expect(table?.text).toMatch(/Vendor A/);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  2 failed | 75 passed (77)
+   Start at  09:46:04
+   Duration  987ms (transform 716ms, setup 0ms, collect 1.18s, tests 174ms, environment 1ms, prepare 513ms)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

@@ -106,6 +106,11 @@ describe("admitProposedAction — shipped gates", () => {
     expect(d.type).toBe("stop");
     expect(d.rejectReason).toBe("allowance_exhausted");
   });
+  it("server tariffs cannot be waived by a zero proposed cost", () => {
+    const d = admitProposedAction(state({ spentMicro: 95_000, budgetMicro: 100_000 }),
+      proposal({ type: "search", estimatedMaxCostMicro: 0 }));
+    expect(d.rejectReason).toBe("allowance_exhausted");
+  });
 
   it("rejects cancelled, deleted, stale-revision, duplicate, and private-query proposals", () => {
     expect(admitProposedAction(state({ deleted: true }), proposal()).rejectReason).toBe("deleted");

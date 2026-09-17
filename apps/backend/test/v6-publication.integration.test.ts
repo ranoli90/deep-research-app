@@ -6,6 +6,8 @@ import { insertBrief, insertConversation, insertRun } from "../src/modules/runs.
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { publishReport } from "../src/modules/reports.js";
 import { CONSENT_POLICY_VERSION, type CanonicalReport } from "@deep/contracts";
+import { createHash } from "node:crypto";
+import type { StoredClaim } from "@deep/research-core";
 
 let pool: pg.Pool;
 beforeAll(async () => {
@@ -27,6 +29,14 @@ describe("W01 V6-F01 production publication, persisted PostgreSQL evidence", () 
     ["wrong-owner", "Atlas supports offline editing.", "Atlas supports offline editing.", false],
     ["wrong-version", "Atlas supports offline editing.", "Atlas supports offline editing.", false],
     ["forged-text", "Atlas does not support offline editing.", "Atlas supports offline editing.", false],
+    ["unmapped-extra-sentence", "Atlas supports offline editing.", "Atlas supports offline editing.", false],
+    ["duplicate-claim-id", "Atlas supports offline editing.", "Atlas supports offline editing.", false],
+    ["myth", "It is a myth that Atlas supports offline editing.", "Atlas supports offline editing.", false],
+    ["conditional", "If Atlas supports offline editing, it could replace the desktop client.", "Atlas supports offline editing.", false],
+    ["role-reversal", "Atlas acquired Borealis.", "Borealis acquired Atlas.", false],
+    ["uncertain", "Atlas may support offline editing next year.", "Atlas supports offline editing.", false],
+    ["derived-source-count", "Atlas supports offline editing.", "Recorded 1 source(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.", true],
+    ["forged-source-count", "Atlas supports offline editing.", "Recorded 100 source(s) in 100 origin cluster(s). Repeated syndication is not counted as independent confirmation.", false],
   ] as const;
   it.each(cases)("%s", async (id, evidence, assertion, accepted) => {
     await withTx(pool, async (db) => {
@@ -49,14 +59,43 @@ describe("W01 V6-F01 production publication, persisted PostgreSQL evidence", () 
       const report: CanonicalReport = { reportId: crypto.randomUUID(), runId, version: 1, basis, outcome: "completed",
         blocks: [{ id: "answer", kind: "text", text: assertion, claimIds: id === "PROBE-06" ? [] : [claimId], citationIds: [passageId] }],
         claimIds: [claimId], limitations: [], sourceAccessSummary: [], routeMode: "fixture" };
+      if (id === "unmapped-extra-sentence") report.blocks[0]!.text += " Atlas costs 0 EUR worldwide.";
+      const claims: StoredClaim[] = id === "PROBE-05" ? [] : [{ id: claimId, text: assertion, type: "external-fact", supportStatus: "direct", passageIds: [passageId] }];
+      if (id === "duplicate-claim-id") claims.unshift({ ...claims[0]!, text: "Atlas costs 0 EUR worldwide." });
+      if (id === "derived-source-count" || id === "forged-source-count") {
+        claims[0]!.derivation = "source-counts";
+        claims[0]!.type = "calculation";
+        claims[0]!.passageIds = [];
+        report.blocks[0]!.citationIds = [];
+      }
       const result = await publishReport(db, { report, accountId: id === "wrong-owner" ? crypto.randomUUID() : accountId,
         loaded: basis, deleted: false,
-        claims: id === "PROBE-05" ? [] : [{ id: claimId, text: assertion, type: "external-fact", supportStatus: "direct", passageIds: [passageId] }],
+        claims,
         passages: [{ id: passageId, sourceId, sourceVersionId: id === "wrong-version" ? crypto.randomUUID() : versionId,
           exactText: id === "forged-text" ? assertion : evidence, locator: "document" }] });
       expect(result.accepted).toBe(accepted);
       const saved = await db.query("SELECT id FROM reports WHERE run_id = $1", [runId]);
       expect(saved.rowCount).toBe(accepted ? 1 : 0);
+      const checks = await db.query(`SELECT c.text, c.text_digest, s.evidence_digest, s.checker_version, s.decision,
+        r.claim_ids[1] AS published_claim_id, c.claim_id
+        FROM claim_revisions c JOIN support_assessments s ON s.claim_revision_id=c.id
+        JOIN reports r ON r.run_id=c.run_id WHERE c.run_id=$1`, [runId]);
+      expect(checks.rowCount).toBe(accepted && id !== "derived-source-count" ? 1 : 0);
+      if (accepted && id !== "derived-source-count") {
+        expect(checks.rows[0].text).toBe(assertion);
+        expect(checks.rows[0].text_digest).toBe(createHash("sha256").update(assertion).digest("hex"));
+        expect(checks.rows[0].evidence_digest).toBe(createHash("sha256").update(evidence).digest("hex"));
+        expect(checks.rows[0].checker_version).toBe("literal-scope-v3");
+        expect(checks.rows[0].decision).toBe("supports");
+        expect(checks.rows[0].published_claim_id).toBe(checks.rows[0].claim_id);
+      }
+      const derivations = await db.query("SELECT kind,inputs FROM report_derivations WHERE run_id=$1", [runId]);
+      expect(derivations.rowCount).toBe(id === "derived-source-count" ? 1 : 0);
+      if (id === "derived-source-count") {
+        expect(derivations.rows[0].kind).toBe("source-counts");
+        expect(derivations.rows[0].inputs).toHaveLength(1);
+        expect(derivations.rows[0].inputs[0].id).toBe(sourceId);
+      }
       // Isolation without deleting data from other tests or prior local runs.
       await db.query("ROLLBACK");
     });

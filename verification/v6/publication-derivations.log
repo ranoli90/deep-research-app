@@ -1,0 +1,14 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-publication.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/v6-publication.integration.test.ts (19 tests) 346ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  09:42:06
+   Duration  1.01s (transform 300ms, setup 0ms, collect 455ms, tests 346ms, environment 0ms, prepare 71ms)
+

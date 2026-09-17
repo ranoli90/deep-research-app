@@ -31,13 +31,12 @@ function liveCallPermitted(gate: LiveSpendGate): boolean {
 }
 
 function runBudgetCostMicro(proposal: PolicyDecision, opts: AdmitOptions): number {
-  if (opts.liveSpend) {
-    if (proposal.type === "search") return FIXTURE_SEARCH_COST_MICRO;
-    if (proposal.type === "fetch") return FIXTURE_FETCH_COST_MICRO;
-    if (proposal.type === "synthesize") return FIXTURE_SYNTH_COST_MICRO;
-    return 0;
-  }
-  return proposal.estimatedMaxCostMicro ?? 0;
+  // Internal exploration counters use server tariffs. Provider reservation is separately atomic.
+  const tariff = proposal.type === "search" ? FIXTURE_SEARCH_COST_MICRO
+    : proposal.type === "fetch" ? FIXTURE_FETCH_COST_MICRO
+    : proposal.type === "synthesize" ? FIXTURE_SYNTH_COST_MICRO : 0;
+  // An overestimate can conservatively reduce admission, but never waive the server tariff.
+  return opts.liveSpend ? tariff : Math.max(tariff, proposal.estimatedMaxCostMicro ?? 0);
 }
 
 const UNAVAILABLE_CAPABILITIES = new Set(["extract_table", "inspect_visual"]);

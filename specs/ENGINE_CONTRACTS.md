@@ -49,6 +49,12 @@ Source escalation examples: comparison page -> vendor compatibility matrix; tech
 
 `ActionOutcome`: success/partial/failed/blocked, receiptIds, accessedSourceIds, evidenceAdded, gapsResolved/created, coverageDelta, costState, nextStepReason. A pivot needs trigger evidence, previous approach, new source route, affected scope and a bounded action. No endless self-dialogue. Expose concise decisions and observable actions, never private chain-of-thought transcripts.
 
+### V6 report/support implementation checkpoint (2026-09-17)
+
+`literal-scope-v3` never uses word overlap as positive entailment. Complete literal statements and a narrow controlled passive paraphrase can pass; other wording remains unsupported/context-only until a substantive semantic assessment exists. Claim bindings cover block text exactly. Unknown/duplicate claims, unmapped factual headings/caveats and evidence-free type-label claims are rejected. A closed set of non-assertive section labels and fixed abstentions can omit claims.
+
+Publication reloads owned passages and atomically stores claim revisions, text/evidence/scope digests, checker version and actual decisions. Pure deterministic report derivations are recomputed from the owned brief/evidence and recorded with input/output digests; they are not model verification receipts. The draft compiler localizes unsupported sections rather than leave unsupported prose or bypass publication. Candidate extraction has no fixture-name catalogue, but remains bounded literal grammar, not arbitrary semantic extraction. Missing evidence stays unknown; price variants retain sentence scope. Source-presence coverage and several event-only action handlers remain unrepaired and cannot establish research completion.
+
 ## 5. Evidence and source independence
 `Source`: id, tenantScope, canonicalLocator, originalLocator, publisher, author when known, title, sourceType, language, publicationDate/precision, eventDate/precision, originCluster and rights/retentionClass.
 

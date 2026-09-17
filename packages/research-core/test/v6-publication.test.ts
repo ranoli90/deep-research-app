@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { citationValidationFails, validateMaterialCitations } from "../src/citations.js";
 import { passageSupportsClaim } from "../src/support.js";
-import { checkReportCitations } from "../src/report.js";
+import { checkReportCitations, withdrawUnverifiableSections } from "../src/report.js";
 
 function input(passage = "Atlas supports offline editing.", claim = passage) {
   return {
@@ -35,6 +35,27 @@ describe("W01 / V6-F01 production citation regressions", () => {
     args.blocks[0]!.text = "Atlas costs 0 EUR and is available worldwide.";
     expect(citationValidationFails(validateMaterialCitations(args))).toBe(true);
   });
+  it("rejects an extra unsupported assertion hidden behind one valid claim mapping", () => {
+    const args = input();
+    args.blocks[0]!.text += " Atlas costs 0 EUR and is available worldwide.";
+    expect(citationValidationFails(validateMaterialCitations(args))).toBe(true);
+  });
+  it("rejects duplicate claim identities with competing texts", () => {
+    const args = input();
+    args.claims.unshift({ ...args.claims[0]!, text: "Atlas costs 0 EUR." });
+    expect(citationValidationFails(validateMaterialCitations(args))).toBe(true);
+  });
+  it.each(["caveat", "heading"] as const)("material prose cannot hide in an unmapped %s", (kind) => {
+    const args = input();
+    const blocks = [{ ...args.blocks[0]!, kind, claimIds: [], text: "Atlas costs 0 EUR worldwide." }];
+    expect(citationValidationFails(validateMaterialCitations({ ...args, blocks }))).toBe(true);
+  });
+  it("a claim type label cannot substitute for supporting evidence", () => {
+    const args = input();
+    args.claims[0]!.type = "limitation";
+    args.claims[0]!.passageIds = [];
+    expect(citationValidationFails(validateMaterialCitations(args))).toBe(true);
+  });
   it("CONTROL-01 accepts direct matching support", () => {
     expect(passageSupportsClaim("Atlas supports offline editing.", "Atlas supports offline editing.")).toBe("supports");
     expect(citationValidationFails(validateMaterialCitations(input()))).toBe(false);
@@ -42,6 +63,14 @@ describe("W01 / V6-F01 production citation regressions", () => {
   it("preserves an exact scoped statement and unrelated negative predicate", () => {
     expect(passageSupportsClaim("Atlas is limited to Germany.", "Atlas is limited to Germany.")).toBe("supports");
     expect(passageSupportsClaim("Atlas supports offline editing. Linux is not supported.", "Atlas supports offline editing.")).toBe("supports");
+  });
+  it.each([
+    ["It is a myth that Atlas supports offline editing.", "Atlas supports offline editing."],
+    ["If Atlas supports offline editing, it could replace the desktop client.", "Atlas supports offline editing."],
+    ["Atlas acquired Borealis.", "Borealis acquired Atlas."],
+    ["Atlas may support offline editing next year.", "Atlas supports offline editing."],
+  ])("word overlap is never positive entailment: %s", (passage, claim) => {
+    expect(passageSupportsClaim(passage, claim)).not.toBe("supports");
   });
   it("CONTROL-02 rejects unknown passage IDs", () => {
     expect(citationValidationFails(validateMaterialCitations({ ...input(), passages: [] }))).toBe(true);
@@ -58,5 +87,17 @@ describe("W01 / V6-F01 production citation regressions", () => {
     const args = input();
     args.blocks[0]!.citationIds = [];
     expect(citationValidationFails(validateMaterialCitations({ ...args, currentVersionBySource: new Map([["s1", "v2"]]) }))).toBe(true);
+  });
+  it("localizes unsupported draft prose without weakening the publication validator or discarding a valid answer", () => {
+    const args = input();
+    const blocks: import("@deep/contracts").ReportBlock[] = [...args.blocks,
+      { id: "extra", kind: "text", text: "Atlas is free worldwide.", claimIds: [], citationIds: ["p1"] }];
+    expect(citationValidationFails(validateMaterialCitations({ ...args, blocks }))).toBe(true);
+    const withdrawn = withdrawUnverifiableSections({ constraints: [], sources: [], passages: args.passages }, blocks, args.claims);
+    expect(withdrawn).toEqual(["extra"]);
+    expect(blocks[0]).toEqual(args.blocks[0]);
+    expect(blocks[1]!.text).toMatch(/unresolved/);
+    expect(JSON.stringify(blocks)).not.toContain("free worldwide");
+    expect(citationValidationFails(validateMaterialCitations({ ...args, blocks }))).toBe(false);
   });
 });

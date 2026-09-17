@@ -3,8 +3,10 @@ import { canPublish, citationValidationFails, validateMaterialCitations, type St
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
 import { currentConsent } from "./access.js";
-import { getRun, markTerminal } from "./runs.js";
+import { getBrief, getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
+import { persistCheckedClaims } from "./claim-support.js";
+import { loadEvidence } from "./evidence.js";
 
 export async function publishReport(
   db: Queryable,
@@ -32,6 +34,7 @@ export async function publishReport(
     cancellationEpoch: run.cancellation_epoch,
     workerLeaseFence: run.worker_lease_fence,
   };
+  const consent = await currentConsent(db, args.accountId);
   // Reload evidence from storage: caller-supplied text/ownership/version is not authority.
   const stored = await db.query<{
     id: string; source_id: string; source_version_id: string; exact_text: string;
@@ -43,9 +46,16 @@ export async function publishReport(
     [run.id, args.accountId]);
   const passages = stored.rows.map((p) => ({ id: p.id, sourceId: p.source_id,
     sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" }));
+  const brief = await getBrief(db, run.brief_id);
+  const evidence = await loadEvidence(db, run.id);
+  const derivationContext = { constraints: brief.constraints, claims: args.claims,
+    passages: evidence.passages.map((p) => ({ id: p.id, sourceId: p.source_id, sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" })),
+    sources: evidence.sources.map((s) => ({ id: s.id, title: s.title, locator: s.canonical_locator,
+      accessLevel: s.access_level, originCluster: s.origin_cluster ?? undefined, language: s.language ?? undefined })) };
   const problems = validateMaterialCitations({
     blocks: args.report.blocks, claims: args.claims, passages,
     runPassageIds: new Set(passages.map((p) => p.id)),
+    derivationContext,
   });
   const storedById = new Map(passages.map((p) => [p.id, p]));
   const alteredEvidence = args.passages.some((p) => {
@@ -64,18 +74,14 @@ export async function publishReport(
   if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
     reason = "cancelled";
   }
-  if (reason === "ok") {
-    const consent = await currentConsent(db, args.accountId);
-    if (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch) reason = "consent_revoked";
-  }
+  if (!deletedNow && (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch)) reason = "consent_revoked";
+  if (reason === "ok" && run.lifecycle === "terminal") return { accepted: false, reason: "already_published" };
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],
   );
   if (reason !== "ok") return { accepted: false, reason };
-  if (run.lifecycle === "terminal") {
-    return { accepted: false, reason: "already_published" };
-  }
+  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext });
   const reportId = args.report.reportId;
   const nextEpoch = run.completion_epoch + 1;
   await db.query(
@@ -88,8 +94,8 @@ export async function publishReport(
       args.report.version,
       args.report.outcome,
       JSON.stringify(args.report.basis),
-      JSON.stringify(args.report.blocks),
-      args.report.claimIds,
+      JSON.stringify(checkedReport.blocks),
+      checkedReport.claimIds,
       JSON.stringify(args.report.limitations),
       JSON.stringify(args.report.sourceAccessSummary),
       args.report.changeSummary ? JSON.stringify(args.report.changeSummary) : null,

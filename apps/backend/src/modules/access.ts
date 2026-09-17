@@ -93,6 +93,11 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query(`UPDATE accounts SET deleted_at = now(), deletion_epoch = deletion_epoch + 1 WHERE id = $1`, [accountId]);
   await db.query(`DELETE FROM extraction_receipts WHERE account_id = $1`, [accountId]);
   await db.query(`DELETE FROM evidence_artifacts WHERE account_id = $1`, [accountId]);
+  await db.query(`DELETE FROM support_assessments WHERE account_id = $1`, [accountId]);
+  await db.query(`DELETE FROM report_derivations WHERE account_id = $1`, [accountId]);
+  await db.query(`DELETE FROM claim_revisions WHERE account_id = $1`, [accountId]);
+  await db.query(`DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE account_id = $1)`, [accountId]);
+  await db.query(`UPDATE claims SET text = '[deleted]', support_status = 'unverified' WHERE account_id = $1`, [accountId]);
   await db.query(
     `UPDATE runs SET lifecycle = 'cancelling', cancellation_epoch = cancellation_epoch + 1, updated_at = now()
      WHERE account_id = $1 AND lifecycle <> 'terminal'`,

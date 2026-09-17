@@ -1,6 +1,18 @@
 import { passageSupportsClaim, type SupportDecision } from "./support.js";
 import type { StoredClaim, StoredPassage, StoredSource } from "./types.js";
 import type { ReportBlock } from "@deep/contracts";
+import { deriveReportText, type ReportDerivationContext } from "./report-derivations.js";
+
+// Only non-assertive section labels and application-owned abstentions may omit claim bindings.
+const SECTION_LABELS = new Set(["Answer", "Evidence", "Sources", "Limitations", "Comparison", "Calculations", "Scope", "Uncertainty"]);
+export const UNRESOLVED_SECTION = "This section remains unresolved because its assertions could not be verified.";
+export const UNRESOLVED_DISCONFIRMATION = "Disconfirmation remains unresolved. Absence of a recorded counterexample is not proof.";
+const ABSTENTIONS = new Set([
+  UNRESOLVED_SECTION,
+  UNRESOLVED_DISCONFIRMATION,
+  "No accessible evidence was obtained. This is not a claim that no such facts exist.",
+  "The conclusion was withdrawn because verification removed an unsupported claim. Remaining evidence is listed with its limitations.",
+]);
 
 export type CitationValidation = {
   unknownIds: string[];
@@ -10,6 +22,7 @@ export type CitationValidation = {
   overstrong: { claimId: string; reason: string }[];
   missingClaims: string[];
   unmappedBlocks: string[];
+  duplicateClaims: string[];
 };
 
 /**
@@ -23,11 +36,15 @@ export function validateMaterialCitations(args: {
   sources?: StoredSource[];
   runPassageIds?: Set<string>;
   currentVersionBySource?: Map<string, string>;
+  derivationContext?: ReportDerivationContext;
 }): CitationValidation {
   const known = new Set(args.passages.map((p) => p.id));
   const owned = args.runPassageIds ?? known;
   const passageById = new Map(args.passages.map((p) => [p.id, p]));
   const claimById = new Map(args.claims.map((c) => [c.id, c]));
+  const counts = new Map<string, number>();
+  for (const claim of args.claims) counts.set(claim.id, (counts.get(claim.id) ?? 0) + 1);
+  const duplicateClaims = [...counts].filter(([, count]) => count > 1).map(([id]) => id);
   const unknownIds: string[] = [];
   const unownedIds: string[] = [];
   const wrongVersion: CitationValidation["wrongVersion"] = [];
@@ -53,13 +70,40 @@ export function validateMaterialCitations(args: {
   }
 
   for (const block of args.blocks) {
-    if (block.kind !== "heading" && block.kind !== "caveat" && block.text.trim() && !block.claimIds.length) {
+    const applicationText = (block.kind === "heading" && SECTION_LABELS.has(block.text)) ||
+      (block.kind === "caveat" && ABSTENTIONS.has(block.text));
+    if (!applicationText && block.text.trim() && !block.claimIds.length) {
       unmappedBlocks.push(block.id);
+    }
+    // A valid citation on one clause cannot authorize additional material prose.
+    // Writers render mapped atomic claim text; deterministic derivations need their own claims.
+    if (block.claimIds.length) {
+      const normalized = (text: string) => text.replace(/\s+/gu, " ").trim();
+      const mappedText = block.claimIds.map((id) => claimById.get(id)?.text ?? "").join(" ");
+      if (normalized(mappedText) !== normalized(block.text)) unmappedBlocks.push(block.id);
     }
     for (const claimId of block.claimIds) {
       const claim = claimById.get(claimId);
       if (!claim) { missingClaims.push(claimId); continue; }
-      if (claim.passageIds.length === 0 && (claim.type === "external-fact" || claim.type === "conditional-conclusion")) {
+      if (claim.derivation) {
+        for (const pid of claim.passageIds) checkBinding(pid);
+        if (!args.derivationContext || deriveReportText(claim.derivation, args.derivationContext, claim.passageIds) !== claim.text ||
+            (claim.derivation !== "evidence-comparison" && claim.passageIds.length) || !claim.text.trim()) {
+          unsupported.push({ claimId, passageId: "", decision: "unsupported" });
+        }
+        // A statement-class summary is only safe when its atomic inputs are independently checked too.
+        if (claim.derivation === "statement-classes") {
+          const mapped = new Set(args.blocks.flatMap((b) => b.claimIds));
+          for (const dependency of args.derivationContext?.claims ?? []) {
+            if (!dependency.derivation && dependency.supportStatus !== "withdrawn" &&
+                (dependency.type === "external-fact" || dependency.type === "inference") && !mapped.has(dependency.id)) {
+              missingClaims.push(dependency.id);
+            }
+          }
+        }
+        continue;
+      }
+      if (claim.passageIds.length === 0 && !(claim.type === "limitation" && ABSTENTIONS.has(claim.text))) {
         unsupported.push({ claimId, passageId: "", decision: "unsupported" });
         continue;
       }
@@ -89,6 +133,7 @@ export function validateMaterialCitations(args: {
     overstrong,
     missingClaims: [...new Set(missingClaims)],
     unmappedBlocks: [...new Set(unmappedBlocks)],
+    duplicateClaims,
   };
 }
 
@@ -100,6 +145,7 @@ export function citationValidationFails(v: CitationValidation): boolean {
     v.unsupported.length > 0 ||
     v.overstrong.length > 0 ||
     v.missingClaims.length > 0 ||
-    v.unmappedBlocks.length > 0
+    v.unmappedBlocks.length > 0 ||
+    v.duplicateClaims.length > 0
   );
 }

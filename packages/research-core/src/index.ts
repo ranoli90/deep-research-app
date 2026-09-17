@@ -19,6 +19,7 @@ export * from "./projection.js";
 export * from "./provenance.js";
 export * from "./questions.js";
 export * from "./report.js";
+export * from "./report-derivations.js";
 export * from "./stop.js";
 export * from "./support.js";
 export * from "./types.js";

@@ -71,10 +71,21 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   const assertsFact = /\b(is|are|was|were|equals|costs|includes|supports|requires|announced)\b/i.test(claimText);
   if (assertsFact && ratio < 0.35) return "context-only";
   if (ratio < 0.25) return "unsupported";
-  if (/\bhowever\b|\bexcept\b|\bonly in\b|\blimited to\b/.test(p) && !/\bhowever\b|\bexcept\b|\bonly\b/.test(c)) {
+  if (/\bhowever\b|\bexcept\b|\bonly\b|\blimited to\b|\bunless\b|\bsubject to\b|\bmay\b|\bmight\b|\bcould\b/.test(p) &&
+      !/\bhowever\b|\bexcept\b|\bonly\b|\blimited to\b|\bunless\b|\bsubject to\b|\bmay\b|\bmight\b|\bcould\b/.test(c)) {
     return "qualifies";
   }
-  return "supports";
+  // Overlap is useful for rejecting unrelated text, never for proving entailment.
+  // Accept a complete literal statement or this narrow, meaning-preserving passive form.
+  // Other paraphrases await a substantive scoped assessment rather than an optimistic score.
+  const canonical = (text: string): string => {
+    const normalized = text.trim().toLowerCase().replace(/\s+/gu, " ").replace(/[.!?]$/, "");
+    const passive = normalized.match(/^(.+) is supported by ([\p{L}\p{N} .&-]+)$/u);
+    return passive ? `${passive[2]} supports ${passive[1]}` : normalized;
+  };
+  const asserted = canonical(claimText);
+  if (passageText.split(/(?<=[.!?])\s+(?=\p{Lu})/u).some((sentence) => canonical(sentence) === asserted)) return "supports";
+  return "context-only";
 }
 
 export function citationIdsExist(citationIds: string[], knownIds: Set<string>): string[] {
