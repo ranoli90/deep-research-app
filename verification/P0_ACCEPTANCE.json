@@ -28,7 +28,7 @@
       "evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
-        "tests": "pnpm test:integration 75/75, exit 0 (includes original 12 smoke IDs plus JOB-2/V2-13/V2-09 late-worker and remaining launch-scope IDs)",
+        "tests": "pnpm test:integration 76/76, exit 0 (includes original 12 smoke IDs plus JOB-2/V2-13/V2-09 late-worker, M04 table/code, and remaining launch-scope IDs)",
         "launch": "pnpm p0:launch twice: citations resolved; cancel during writing; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
