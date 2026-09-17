@@ -37,6 +37,7 @@ Working tree: `main` at `2d59f155eda7d98ba071810926892b0cc016dd58`. P0 is **not*
 - G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
 - E10 (`verification/e10-critical-claim.json`): worker/fixture withdraws an asserted 42% conclusion when the inspected table is 24%; remaining evidence keeps 24%. Not G04 quality.
 - JOB-1 (`verification/job1-eligibility.json`): note-taking comparison under iPhone/Android/offline/export constraints; NoteKeep eligible, NoteDroid ineligible. EVAL-01 seed is still draft_not_validated.
+- R02 (`verification/r02-continue.json`): empty continue is 400 and does not invent Germany; France is recorded; the composer no longer defaults the jurisdiction to Germany.
 
 ## Commands (this session)
 | Command | Exit | Notes |

@@ -76,6 +76,8 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/hydrateOnLaunch\(AsyncStorage\)/);
     expect(src).toMatch(/persistSession\(AsyncStorage/);
     expect(src).toMatch(/openLibraryItem\(s, id\)/);
+    expect(src).not.toMatch(/clarifyAnswer\.trim\(\)\s*\|\|\s*"Germany"/);
+    expect(src).toMatch(/Enter a jurisdiction/);
     expect(src).toMatch(/api\.followUp/);
     expect(src).toMatch(/logoutLocal\(AsyncStorage/);
     expect(src).toMatch(/stopPolling\(\)/);

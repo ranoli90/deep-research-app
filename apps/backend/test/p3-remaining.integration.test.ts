@@ -827,6 +827,29 @@ describe("remaining launch-scope IDs", () => {
     expect(acc.rows[0]?.deleted_at).toBeTruthy();
   });
 
+  it("R02 continue without geography is rejected and does not invent Germany", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "What is the filing deadline for employment tax?");
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    expect((await getRun(pool, runId))?.lifecycle).toBe("awaiting_input");
+    const empty = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/continue`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: {},
+    });
+    expect(empty.statusCode).toBe(400);
+    const still = await getRun(pool, runId);
+    expect(still?.lifecycle).toBe("awaiting_input");
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(JSON.stringify(snap.json().brief.constraints)).not.toMatch(/germany/i);
+  });
+
   it("clarification continue records geography and resumes", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "What is the filing deadline for employment tax?");
@@ -850,5 +873,29 @@ describe("remaining launch-scope IDs", () => {
     const report = await getLatestReportForRun(pool, runId, accountId);
     expect(report).toBeTruthy();
     expect(JSON.stringify(report?.blocks)).toMatch(/germany/i);
+  });
+
+  it("R02 continue with France records France and does not invent Germany", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "What is the filing deadline for employment tax?");
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    const cont = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/continue`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { geography: "France" },
+    });
+    expect(cont.statusCode).toBe(200);
+    await processRun(pool, config, runId);
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(JSON.stringify(snap.json().brief.constraints)).toMatch(/france/i);
+    expect(JSON.stringify(snap.json().brief.constraints)).not.toMatch(/germany/i);
+    const report = await getLatestReportForRun(pool, runId, accountId);
+    expect(JSON.stringify(report?.blocks)).toMatch(/geography=france/i);
   });
 });

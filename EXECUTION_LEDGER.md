@@ -197,6 +197,12 @@ No live paid calls were made.
 - Fixture matrices for NoteKeep/NoteDroid/NoteAll; platform/feature constraints; NoteDroid ineligible (iPhone not supported). EVAL-01 remains draft_not_validated.
 - Integration 97/97; research-core 28/28. Artifact `verification/job1-eligibility.json`. iOS/hosted auth/M11 unpassed.
 
+## 2026-09-16 — R02 continue does not invent Germany
+
+- First test failed: POST `/v1/runs/:id/continue` with `{}` returned 200.
+- Continue now requires a jurisdiction (400 otherwise); run stays awaiting_input. France is recorded as geography=france. Mobile no longer defaults empty clarification to Germany.
+- Integration 99/99; mobile 32/32. Artifact `verification/r02-continue.json`. iOS/hosted/M11/G04 unpassed.
+
 
 
 

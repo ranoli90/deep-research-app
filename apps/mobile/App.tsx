@@ -380,7 +380,11 @@ function AppInner() {
 
   async function onContinueClarification() {
     if (!token || !state.run) return;
-    const geography = clarifyAnswer.trim() || "Germany";
+    const geography = clarifyAnswer.trim();
+    if (!geography) {
+      setState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
+      return;
+    }
     try {
       await api.continueRun(token, state.run.runId, geography);
       setState((s) => {
@@ -509,7 +513,7 @@ function AppInner() {
                 <TextInput
                   value={clarifyAnswer}
                   onChangeText={setClarifyAnswer}
-                  placeholder="Germany"
+                  placeholder="Jurisdiction"
                   placeholderTextColor={theme.muted}
                   style={styles.input}
                   allowFontScaling
@@ -520,6 +524,7 @@ function AppInner() {
                   onPress={() => void onContinueClarification()}
                   accessibilityRole="button"
                   accessibilityLabel="Submit clarification and continue"
+                  disabled={!clarifyAnswer.trim()}
                 >
                   <Text style={styles.send}>Continue research</Text>
                 </Pressable>

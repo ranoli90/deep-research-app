@@ -1,0 +1,12 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "R02 clarification continue does not invent a country",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'R02 continue'",
+  "first_run": "failed: POST /v1/runs/:id/continue with {} returned 200",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 99 },
+  "observed": "Empty continue is 400; run stays awaiting_input with no Germany constraint. Continue with France records geography=france. Mobile no longer defaults clarifyAnswer to Germany.",
+  "not_claimed": ["iOS P0-N", "hosted auth", "M11", "G04/G05"],
+  "p0_fully_verified": false
+}

@@ -294,7 +294,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
     }
     const body = (req.body ?? {}) as { geography?: string; answers?: { field?: string; value?: string }[] };
-    const geography = body.geography ?? body.answers?.find((x) => x.field === "geography")?.value;
+    const geography = String(body.geography ?? body.answers?.find((x) => x.field === "geography")?.value ?? "").trim();
+    if (!geography) {
+      return reply.code(400).send(err("invalid_input", "A jurisdiction is required to continue. The app will not assume a country.", crypto.randomUUID()));
+    }
     const brief = await getBrief(pool, run.brief_id);
     if (geography) {
       brief.constraints = [
