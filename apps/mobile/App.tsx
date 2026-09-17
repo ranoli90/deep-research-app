@@ -6,6 +6,7 @@ import {
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -20,7 +21,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api, isExpiredSession, isOfflineError } from "./src/api";
+import { api, deletionPageUrl, isExpiredSession, isOfflineError } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
@@ -804,6 +805,13 @@ function Settings({
       </Pressable>
       <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear cached reports">
         <Text style={styles.link}>Log out (clears cached reports)</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => void Linking.openURL(deletionPageUrl)}
+        accessibilityRole="button"
+        accessibilityLabel="Open web deletion page"
+      >
+        <Text style={styles.link}>Open web deletion page</Text>
       </Pressable>
       <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel="Delete account and derived data">
         <Text style={styles.error}>Delete account and derived research</Text>

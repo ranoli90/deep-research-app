@@ -21,13 +21,14 @@ Working tree: `main` at `5122a3cbf14264fbb0c2927bb4ade9f9756e2125`. P0 is **not*
 - M08: Verify this claim published a child report with change summary “Targeted follow-up verified the named claim without reopening candidate discovery.” Previous version remains on screen with Share previous Markdown.
 - R02: a filing-deadline question without geography showed Need one detail / jurisdiction on the Xiaomi. Continue with Germany produced a report with `geography=germany` and no second clarify. New runs now clear the previous report and attachments so the clarification card is visible.
 - S12: Log out keeps the composer draft, hides the report, and Library says sign in. Polling stops so a late snapshot cannot resurrect the previous account’s report. Signed in again afterward.
+- M09: Settings “Open web deletion page” launched Chrome at `http://127.0.0.1:8787/account/deletion` with a session-token form. GET is public HTML; POST with a valid token deletes. The form was not submitted on the phone.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 76 tests including R19 follow-up change_summary |
+| `pnpm test:integration` | 0 | 77 tests including M09 web deletion |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
 | `pnpm --filter @deep/research-core test` | 0 | 23 tests including follow-up changeSummary |

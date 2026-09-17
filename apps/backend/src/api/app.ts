@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
   CONSENT_POLICY_VERSION,
   CorrectionRequestSchema,
@@ -61,6 +61,10 @@ function err(code: string, message: string, correlationId: string, preserved = "
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
   const { pool, config, boss } = deps;
+
+  app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
+    done(null, String(body));
+  });
 
   app.get("/health", async () => ({ ok: true, mode: config.authMode, fixture: config.fixtureRouteAllowed, live: config.liveRouteEnabled }));
   app.get("/ready", async () => {
@@ -534,16 +538,52 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return { attachmentId: id, processingState: "extracted", coverage: mime === "application/pdf" ? "text-only" : "complete" };
   });
 
-  app.post("/v1/account/deletion", async (req, reply) => {
-    const a = await auth(req as never);
-    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+  app.get("/account/deletion", async (_req, reply) => {
+    reply.header("content-type", "text/html; charset=utf-8");
+    return reply.send(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Delete Deep Research account</title></head>
+<body>
+<h1>Delete account and derived research</h1>
+<p>This page works in a browser. You do not need to reinstall the app. Paste a current session token. Active research is cancelled. Private derived text is removed. Store subscriptions are a separate action.</p>
+<form method="post" action="/account/deletion">
+<label>Session token <input type="password" name="token" autocomplete="off" required/></label>
+<button type="submit">Delete account and derived research</button>
+</form>
+</body></html>`);
+  });
+
+  async function performDeletion(a: { accountId: string } | null, reply: FastifyReply, asHtml: boolean) {
+    if (!a) {
+      if (asHtml) {
+        reply.header("content-type", "text/html; charset=utf-8");
+        return reply.code(401).send("<!doctype html><p>Sign in required. Open this page from the app or paste a valid session token.</p>");
+      }
+      return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    }
     await withTx(pool, async (c) => {
       await deleteAccount(c, a.accountId);
     });
+    if (asHtml) {
+      reply.header("content-type", "text/html; charset=utf-8");
+      return reply.send("<!doctype html><p>Account deleted. Active research was cancelled. Private derived text was removed.</p>");
+    }
     return {
       deleted: true,
       note: "Active research is cancelled. Private derived text is removed. Store subscriptions are a separate action.",
     };
+  }
+
+  app.post("/account/deletion", async (req, reply) => {
+    const raw = typeof req.body === "string" ? req.body : "";
+    const token = decodeURIComponent((raw.match(/(?:^|&)token=([^&]*)/)?.[1] ?? "").replace(/\+/g, " "));
+    const a = token ? await accountFromBearer(pool, `Bearer ${token}`) : await auth(req as never);
+    return performDeletion(a, reply, true);
+  });
+
+  app.post("/v1/account/deletion", async (req, reply) => {
+    const a = await auth(req as never);
+    return performDeletion(a, reply, false);
   });
 
   app.post("/v1/billing/webhooks", async (req, reply) => {

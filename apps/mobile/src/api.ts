@@ -1,5 +1,8 @@
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
 
+/** Browser deletion path (M09). No secrets in the URL. */
+export const deletionPageUrl = `${API}/account/deletion`;
+
 export type Session = { token: string; accountId: string };
 
 export class ApiError extends Error {

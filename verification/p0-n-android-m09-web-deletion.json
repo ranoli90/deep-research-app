@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "M09",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "browser": "com.android.chrome ChromeTabbedActivity"
+  },
+  "observed": {
+    "in_app_control": "Open web deletion page",
+    "url": "http://127.0.0.1:8787/account/deletion",
+    "page_title": "Delete account and derived research",
+    "form": "Session token password field + Delete account and derived research submit",
+    "submitted": false
+  },
+  "api": {
+    "GET": "200 text/html without secrets",
+    "POST_empty_token": "401",
+    "POST_valid_token": "200 Account deleted; accounts.deleted_at set (integration)"
+  },
+  "tests": "pnpm --filter @deep/backend test:integration 77/77 including M09 web deletion; pnpm --filter @deep/mobile test 32/32",
+  "status": "implemented and verified: in-app delete already existed; web path is a real HTML form opened from Settings on the Xiaomi. Form was not submitted on device."
+}

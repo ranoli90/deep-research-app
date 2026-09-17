@@ -730,6 +730,33 @@ describe("remaining launch-scope IDs", () => {
     expect(exp.json().markdown).toMatch(/Widget 4|ACME/i);
   });
 
+  it("M09 web deletion page is reachable without the app and deletes with a session token", async () => {
+    const page = await app.inject({ method: "GET", url: "/account/deletion" });
+    expect(page.statusCode).toBe(200);
+    expect(String(page.headers["content-type"])).toMatch(/text\/html/);
+    expect(page.body).toMatch(/Delete account and derived research/);
+    expect(page.body).toMatch(/<form method="post"/);
+    expect(page.body).not.toMatch(/dev_/);
+    const unauth = await app.inject({
+      method: "POST",
+      url: "/account/deletion",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      payload: "token=",
+    });
+    expect(unauth.statusCode).toBe(401);
+    const { token, accountId } = await authed();
+    const del = await app.inject({
+      method: "POST",
+      url: "/account/deletion",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      payload: `token=${encodeURIComponent(token)}`,
+    });
+    expect(del.statusCode).toBe(200);
+    expect(del.body).toMatch(/Account deleted/);
+    const acc = await pool.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1`, [accountId]);
+    expect(acc.rows[0]?.deleted_at).toBeTruthy();
+  });
+
   it("clarification continue records geography and resumes", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "What is the filing deadline for employment tax?");

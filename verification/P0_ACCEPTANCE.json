@@ -28,7 +28,7 @@
       "evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
-        "tests": "pnpm test:integration 76/76, exit 0 (includes original 12 smoke IDs plus JOB-2/V2-13/V2-09 late-worker, M04 table/code, and remaining launch-scope IDs)",
+        "tests": "pnpm test:integration 77/77, exit 0 (includes original 12 smoke IDs plus JOB-2/V2-13/V2-09 late-worker, M04 table/code, M09 web deletion, and remaining launch-scope IDs)",
         "launch": "pnpm p0:launch twice: citations resolved; cancel during writing; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
@@ -64,7 +64,7 @@
         "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
       "evidence": {
-        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; attach 99391a32 source FULL-TEXT; native Share Markdown sheet; 120 EUR correction cbc04309 Vendor C + previous version; EAS APK d7e7b407; writing-cancel via pnpm p0:launch; TalkBack M02 labels then disabled; compact keyboard hides attach and keeps Send; M04 table/code nested horizontal scroll; M02 enlarged text at font_scale 1.3 then restored; M05 API-down Send keeps draft+report and shows offline banner; M08 Verify this claim shows change summary and Share previous Markdown; R02 clarification jurisdiction then Germany continue; S12 logout keeps draft, drops cached report, polling cannot resurrect it"
+        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; attach 99391a32 source FULL-TEXT; native Share Markdown sheet; 120 EUR correction cbc04309 Vendor C + previous version; EAS APK d7e7b407; writing-cancel via pnpm p0:launch; TalkBack M02 labels then disabled; compact keyboard hides attach and keeps Send; M04 table/code nested horizontal scroll; M02 enlarged text at font_scale 1.3 then restored; M05 API-down Send keeps draft+report and shows offline banner; M08 Verify this claim shows change summary and Share previous Markdown; R02 clarification jurisdiction then Germany continue; S12 logout keeps draft, drops cached report, polling cannot resurrect it; M09 Settings opened Chrome at /account/deletion"
       },
       "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
