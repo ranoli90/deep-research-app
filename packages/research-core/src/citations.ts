@@ -40,6 +40,7 @@ export function validateMaterialCitations(args: {
   derivationContext?: ReportDerivationContext;
   scopedApprovals?: ReadonlyMap<string,{claimId:string;text:string;passageIds:string[]}>;
   rejectedScopedClaims?: ReadonlySet<string>;
+  calculationApprovals?: ReadonlyMap<string,{claimId:string;text:string;passageIds:string[]}>;
 }): CitationValidation {
   const known = new Set(args.passages.map((p) => p.id));
   const owned = args.runPassageIds ?? known;
@@ -111,7 +112,10 @@ export function validateMaterialCitations(args: {
         unsupported.push({ claimId, passageId: "", decision: "unsupported" });
         continue;
       }
-      const scoped=args.scopedApprovals?.get(claim.id);
+      const calculation=claim.type==="calculation"?args.calculationApprovals?.get(claim.id):undefined;
+      if(calculation&&claim.passageIds.some(id=>!block.citationIds.includes(id)))
+        unsupported.push({claimId,passageId:"",decision:"unsupported"});
+      const scoped=calculation??args.scopedApprovals?.get(claim.id);
       const scopedMatches=scoped?.claimId===claim.id && scoped.text===claim.text &&
         JSON.stringify([...new Set(scoped.passageIds)].sort())===JSON.stringify([...new Set(claim.passageIds)].sort());
       for (const pid of claim.passageIds) {

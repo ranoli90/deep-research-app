@@ -1,3 +1,4 @@
+import { prepareCalculationClaim } from "../src/modules/calculation-publication.js";
 import { executeEvidenceCalculation } from "../src/worker/evidence-calculation.js";
 import { modelInputManifest } from "../src/modules/model-operations.js";
 import { reserveLiveAttempt } from "../src/modules/live-spend.js";
@@ -15,7 +16,7 @@ import { reportCompletionCovered } from "../src/modules/publication-coverage.js"
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
-import { CorrectionRequestSchema,CreateRunRequestSchema, type CanonicalReport } from "@deep/contracts";
+import { CorrectionRequestSchema,CreateRunRequestSchema, type CanonicalReport,type ResearchModelOutput } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
@@ -262,7 +263,7 @@ async function extractionCase(x: Parameters<Parameters<typeof runCase>[0]>[0]) {
   const sourceId = await insertSource(pool,{ accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",title:"Restoration observations",publisher:"Test",originCluster:"study" });
   const p = await insertVersionAndPassage(pool,{ sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",text,accessLevel:"partial-text" });
   const quote = { passageId:p.passageId,start:0,end:text.indexOf(".")+1,quote:text.slice(0,text.indexOf(".")+1) };
-  const output = { candidates:[{key:"new_entity",label:entity,evidence:[quote]}],
+  const output:ResearchModelOutput<"extract_assertions"> = { candidates:[{key:"new_entity",label:entity,evidence:[quote]}],
     assertions:[{key:"area",candidateKey:"new_entity",criterionKeys:["c1"],text:quote.quote,scope:{...scope,entity,time:"2024"},
       quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[quote]}],
     limitations:["Long-term survival was not measured."] };
@@ -1145,5 +1146,63 @@ describe("W05 evidence-bound calculation execution",()=>{
   if(results[0]?.kind!=="calculation"||results[1]?.kind!=="calculation")throw new Error("missing calculation");
   expect(results[0].id).toBe(results[1].id);expect(results.map(r=>r.kind==="calculation"&&r.reused).sort()).toEqual([false,true]);
   expect((await pool.query("SELECT id FROM evidence_calculations WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
+ }));
+});
+
+async function calculationReportCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const c=await calculationCase(x),calculation=await executeEvidenceCalculation(x.session,c.args);
+ if(calculation.kind!=="calculation")throw new Error("missing calculation");
+ const run=(await getRun(pool,x.runId))!;
+ const basis={briefRevision:1,evidenceRevision:run.evidence_revision,consentEpoch:run.consent_epoch,cancellationEpoch:0,workerLeaseFence:x.fence};
+ const args={accountId:x.accountId,runId:x.runId,briefRevision:1,evidenceRevision:run.evidence_revision,calculationId:calculation.id};
+ const prepared=await x.session.write(db=>prepareCalculationClaim(db,args));
+ if(prepared.kind!=="claim")throw new Error("missing calculation claim");
+ const claim=prepared.claim;
+ const report:CanonicalReport={reportId:crypto.randomUUID(),runId:x.runId,version:1,basis,outcome:"completed_with_limitations",
+  blocks:[{id:"arithmetic",kind:"text",text:claim.text,claimIds:[claim.id],citationIds:claim.passageIds}],claimIds:[claim.id],
+  limitations:["Arithmetic alone does not establish complete question coverage."],sourceAccessSummary:[],routeMode:"controlled-research"};
+ return {c,args,prepared,report,publication:{report,accountId:x.accountId,loaded:basis,claims:[claim],passages:[],deleted:false}};
+}
+describe("W05 arithmetic proof at real publication",()=>{
+ it("recomputes, publishes and reopens exact arithmetic with input citations and canonical lineage",async()=>runCase(async x=>{
+  const c=await calculationReportCase(x),fetch=vi.fn();globalThis.fetch=fetch;
+  expect(c.prepared.claim.text).toContain("(12 hectares) − (8 hectares) = 4 hectares");
+  expect(c.prepared.claim.text).toContain("not establish matching scope");
+  expect(await x.session.write(db=>prepareCalculationClaim(db,c.args))).toEqual(c.prepared);
+  expect(await publishReport(pool,c.publication)).toMatchObject({accepted:true});
+  const reopened=await getReportForAccount(pool,c.report.reportId,x.accountId);
+  expect(reopened.claim_ids).toEqual([c.prepared.claim.id]);expect(reopened.blocks).toEqual(c.report.blocks);
+  const inputs=await pool.query("SELECT exact_text FROM authorized_run_passages WHERE id=ANY($1::uuid[]) AND account_id=$2 AND run_id=$3",[reopened.blocks[0].citationIds,x.accountId,x.runId]);
+  expect(inputs.rows).toHaveLength(2);expect(inputs.rows.every(p=>!p.exact_text.includes("4 hectares"))).toBe(true);
+  expect((await pool.query("SELECT support_status FROM claims WHERE id=$1",[c.prepared.claim.id])).rows[0].support_status).toBe("inference");
+  expect((await pool.query("SELECT checker_version,explanation FROM claim_evidence WHERE claim_id=$1",[c.prepared.claim.id])).rows).toEqual(expect.arrayContaining([expect.objectContaining({checker_version:"calculation-report.v1",explanation:expect.stringContaining("not direct source wording")})]));
+  expect((await pool.query("SELECT scope FROM claim_revisions WHERE id=$1",[c.prepared.revisionId])).rows[0].scope.inputClaimRevisionIds).toEqual(c.c.support.checks.map(c=>c.claimRevisionId));
+  expect(fetch).not.toHaveBeenCalled();
+  await withTx(pool,db=>deleteAccount(db,x.accountId));
+  expect((await pool.query("SELECT * FROM calculation_claims WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+ it("rejects changed wording, omitted operands/citations, type laundering and forged completion",async()=>runCase(async x=>{
+  const c=await calculationReportCase(x);
+  for(const patch of [{text:"The total verified restoration is 4 hectares."},{passageIds:c.prepared.claim.passageIds.slice(0,1)},{type:"external-fact"}]) {
+   const claim={...c.prepared.claim,...patch};
+   const report={...c.report,blocks:[{...c.report.blocks[0]!,text:claim.text,citationIds:claim.passageIds}]};
+   expect((await publishReport(pool,{...c.publication,report,claims:[claim]})).accepted).toBe(false);
+  }
+  expect((await publishReport(pool,{...c.publication,report:{...c.report,blocks:[{...c.report.blocks[0]!,citationIds:[]}]}})).accepted).toBe(false);
+  expect(await publishReport(pool,{...c.publication,report:{...c.report,outcome:"completed",limitations:[]}})).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+  expect((await publishReport(pool,c.publication)).accepted).toBe(true);
+ }));
+ it("wrong owner or basis cannot prepare a derived claim; changed stored operands invalidate publication",async()=>runCase(async x=>{
+  const c=await calculationReportCase(x);
+  await expect(x.session.write(db=>prepareCalculationClaim(db,{...c.args,accountId:crypto.randomUUID()}))).rejects.toThrow("calculation_publication_basis_mismatch");
+  await expect(x.session.write(db=>prepareCalculationClaim(db,{...c.args,evidenceRevision:c.args.evidenceRevision+1}))).rejects.toThrow("calculation_publication_basis_mismatch");
+  await pool.query("UPDATE evidence_calculations SET result=jsonb_set(result,'{output,numerator}','\"7\"') WHERE id=$1",[c.args.calculationId]);
+  await expect(publishReport(pool,c.publication)).rejects.toThrow("stored_calculation_mismatch");
+  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+ it("stored derivation text tampering is rejected rather than recanonicalized silently",async()=>runCase(async x=>{
+  const c=await calculationReportCase(x);
+  await pool.query("UPDATE claim_revisions SET text='a forged calculation' WHERE id=$1",[c.prepared.revisionId]);
+  await expect(publishReport(pool,c.publication)).rejects.toThrow("calculation_claim_mismatch");
  }));
 });

@@ -106,3 +106,6 @@ Scope comparison derived store: migration025 belongs to the account/run evidence
 
 
 Calculation derived store: migration027 contains private source spans, input revisions and exact arithmetic under existing account/run ownership. Account deletion explicitly removes it before support/claims; task/model-operation removal also cascades. Strict actions accept references only, never caller numbers or expression code. Restored support, evidence identity and fencing precede arithmetic and persistence. This local handler performs no network/model call and confers no publication or budget authority. Production selection/publication integration remains open.
+
+
+Calculation publication mappings (migration028) are private account/run-derived records. Revalidation checks calculation, input support/evidence, canonical claim/revision ownership and current basis. The server constructs approvals; request-supplied approvals are ignored. No network transaction or additional provider call. Deletion removes mappings before calculation proofs and claim revisions. Rollback retains deletion and rejects unvalidated calculation publication.

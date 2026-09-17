@@ -115,6 +115,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query("DELETE FROM research_change_sets WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM source_read_operations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM search_operations WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM calculation_claims WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM evidence_calculations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM scope_comparisons WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM research_coverage WHERE account_id=$1", [accountId]);

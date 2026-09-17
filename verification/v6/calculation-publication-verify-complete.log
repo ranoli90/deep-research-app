@@ -1,0 +1,115 @@
+
+> deep-research-mobile@0.1.0 verify /home/oranolio/Desktop/Deep
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts || true
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/p1-p2.test.ts (24 tests) 121ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 82ms
+ ✓ test/scope-comparison.test.ts (11 tests) 593ms
+   ✓ compact projection preserves every pair, field relation and original assertion binding  566ms
+ ✓ test/scoped-support.test.ts (12 tests) 53ms
+ ✓ test/admission.test.ts (21 tests) 65ms
+ ✓ test/evidence-calculation.test.ts (14 tests) 100ms
+ ✓ test/model-bindings.test.ts (6 tests) 31ms
+ ✓ test/v6-publication.test.ts (22 tests) 43ms
+ ✓ test/policy.test.ts (8 tests) 71ms
+ ✓ test/generic-candidates.test.ts (3 tests) 30ms
+ ✓ test/research-coverage.test.ts (8 tests) 29ms
+ ✓ test/calculation-report.test.ts (1 test) 28ms
+
+ Test Files  12 passed (12)
+      Tests  143 passed (143)
+   Start at  16:47:50
+   Duration  3.65s (transform 1.28s, setup 0ms, collect 3.18s, tests 1.25s, environment 5ms, prepare 2.36s)
+
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/eval-benchmark.unit.test.ts (1 test) 281ms
+stdout | test/scope-context.unit.test.ts > W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values
+scope-context-serialization { full: 1042010, compact: 14626, request: 43085, pairs: 1770 }
+
+ ✓ test/scope-context.unit.test.ts (1 test) 1131ms
+   ✓ W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values  1115ms
+ ✓ test/model-gateway.unit.test.ts (14 tests) 259ms
+ ✓ test/identity.unit.test.ts (14 tests) 250ms
+ ✓ test/live-search.unit.test.ts (8 tests) 161ms
+ ✓ test/governance.test.ts (6 tests) 2860ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  2269ms
+   ✓ W05 production runtime isolation > the explicit historical diagnostic is detected as reaching fixture data  556ms
+ ✓ test/ssrf.unit.test.ts (11 tests) 56ms
+ ✓ test/config.unit.test.ts (8 tests) 23ms
+ ✓ test/admission.unit.test.ts (5 tests) 35ms
+ ✓ test/usage.unit.test.ts (14 tests) 15ms
+ ✓ test/openrouter.unit.test.ts (4 tests) 14ms
+ ✓ test/route-capabilities.unit.test.ts (2 tests) 16ms
+ ✓ test/diagnostic-worker.unit.test.ts (2 tests) 15ms
+ ✓ test/live-policy.unit.test.ts (3 tests) 7ms
+
+ Test Files  14 passed (14)
+      Tests  93 passed (93)
+   Start at  16:47:55
+   Duration  7.96s (transform 2.44s, setup 0ms, collect 9.34s, tests 5.12s, environment 9ms, prepare 3.07s)
+
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/journey.test.ts (15 tests) 33ms
+ ✓ test/lifecycle.test.ts (12 tests) 31ms
+ ✓ test/request-scope.test.ts (10 tests) 127ms
+ ✓ test/session-storage.test.ts (9 tests) 27ms
+ ✓ test/report-layout.test.ts (6 tests) 20ms
+
+ Test Files  5 passed (5)
+      Tests  52 passed (52)
+   Start at  16:48:05
+   Duration  1.60s (transform 694ms, setup 0ms, collect 1.34s, tests 237ms, environment 5ms, prepare 1.04s)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/governance.test.ts (6 tests) 1584ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  1238ms
+   ✓ W05 production runtime isolation > the explicit historical diagnostic is detected as reaching fixture data  320ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  16:48:09
+   Duration  3.29s (transform 84ms, setup 0ms, collect 1.32s, tests 1.58s, environment 0ms, prepare 128ms)
+

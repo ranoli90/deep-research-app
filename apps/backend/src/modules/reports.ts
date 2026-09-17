@@ -1,3 +1,4 @@
+import { calculationPublicationClaims } from "./calculation-publication.js";
 import { deriveReportChanges } from "./report-changes.js";
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
 import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
@@ -56,10 +57,12 @@ export async function publishReport(
     sources: evidence.sources.map((s) => ({ id: s.id, title: s.title, locator: s.canonical_locator,
       accessLevel: s.access_level, originCluster: s.origin_cluster ?? undefined, language: s.language ?? undefined })) };
   const scoped=await scopedPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
+  const calculations=await calculationPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
+  const rejected=new Set([...scoped.rejected,...calculations.rejected]);
   const problems = validateMaterialCitations({
     blocks: args.report.blocks, claims: args.claims, passages,
     runPassageIds: new Set(passages.map((p) => p.id)),
-    derivationContext,scopedApprovals:scoped.approved,rejectedScopedClaims:scoped.rejected,
+    derivationContext,scopedApprovals:scoped.approved,calculationApprovals:calculations.approved,rejectedScopedClaims:rejected,
   });
   const storedById = new Map(passages.map((p) => [p.id, p]));
   const alteredEvidence = args.passages.some((p) => {
@@ -90,7 +93,7 @@ export async function publishReport(
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],
   );
   if (reason !== "ok") return { accepted: false, reason };
-  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext, scopedApprovals:scoped.approved });
+  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext, scopedApprovals:scoped.approved,calculationApprovals:calculations.approved });
   const changes=await deriveReportChanges(db,args.accountId,checkedReport);
   const changeSummary=changes.managed?changes.summary:args.report.changeSummary;
   const reportId = args.report.reportId;
