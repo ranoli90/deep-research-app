@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -21,6 +21,7 @@ import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api, isExpiredSession } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
+import { breakLongTokens, parseTable } from "./src/report-layout";
 import {
   androidBack,
   applySnapshot,
@@ -407,23 +408,18 @@ function AppInner() {
                     <Text style={styles.link}>{detailed ? "Concise" : "Detailed"}</Text>
                   </Pressable>
                 </View>
-                {blocks.map((b) => (
-                  <View key={b.id} style={{ marginBottom: space.md }}>
-                    <Text selectable style={b.kind === "caveat" ? styles.caveat : styles.bodyText}>
-                      {b.text}
-                    </Text>
-                    {b.citationIds.map((id) => (
-                      <Pressable
-                        key={id}
-                        onPress={() => void onOpenSource(id)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Open source ${id.slice(0, 8)}`}
-                        hitSlop={8}
-                      >
-                        <Text style={styles.link}>Source {id.slice(0, 8)}</Text>
-                      </Pressable>
+                {detailed && blocks.length > 4 ? (
+                  <View style={styles.outline} accessibilityLabel="Report outline">
+                    <Text style={styles.kicker}>Outline</Text>
+                    {blocks.map((b) => (
+                      <Text key={`outline-${b.id}`} style={styles.outlineItem}>
+                        {b.kind} · {b.id}
+                      </Text>
                     ))}
                   </View>
+                ) : null}
+                {blocks.map((b) => (
+                  <ReportBlockView key={b.id} block={b} styles={styles} onOpenSource={(id) => void onOpenSource(id)} />
                 ))}
                 {state.report.limitations.map((l) => (
                   <Text key={l} style={styles.caveat}>
@@ -477,9 +473,11 @@ function AppInner() {
 
         {state.source ? (
           <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-            <Text style={styles.title} accessibilityRole="header">{state.source.title}</Text>
+            <Text style={styles.title} accessibilityRole="header">{breakLongTokens(state.source.title)}</Text>
             <Text style={styles.kicker}>{state.source.accessLevel}</Text>
-            <Text style={styles.bodyText}>{state.source.exactText}</Text>
+            <ScrollView style={styles.sheetBody} nestedScrollEnabled>
+              <Text selectable style={styles.bodyText}>{breakLongTokens(state.source.exactText)}</Text>
+            </ScrollView>
             <Pressable
               onPress={() => setState((s) => ({ ...s, source: null }))}
               accessibilityRole="button"
@@ -659,7 +657,7 @@ function Library({
       {items.map((it) => (
         <View key={it.id} style={styles.card}>
           <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
-            <Text style={styles.title}>{it.title}</Text>
+            <Text style={styles.title}>{breakLongTokens(it.title)}</Text>
             <Text style={styles.kicker}>{it.status}</Text>
           </Pressable>
           {it.report_id ? (
@@ -721,6 +719,75 @@ function Settings({
   );
 }
 
+function ReportBlockView({
+  block,
+  styles,
+  onOpenSource,
+}: {
+  block: ReportBlock;
+  styles: ReturnType<typeof makeStyles>;
+  onOpenSource: (id: string) => void;
+}) {
+  const text = breakLongTokens(block.text);
+  let body: ReactNode;
+  if (block.kind === "table") {
+    const rows = parseTable(block.text);
+    body = (
+      <View style={styles.bounded}>
+        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Table ${block.id}`}>
+          <View>
+            {rows.map((row, i) => (
+              <View key={`${block.id}-r${i}`} style={styles.tableRow}>
+                {row.map((cell, j) => (
+                  <Text
+                    key={`${block.id}-c${i}-${j}`}
+                    selectable
+                    style={i === 0 ? styles.tableHead : styles.tableCell}
+                  >
+                    {cell}
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  } else if (block.kind === "code") {
+    body = (
+      <View style={styles.bounded}>
+        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Code ${block.id}`}>
+          <Text selectable style={styles.code}>{block.text}</Text>
+        </ScrollView>
+      </View>
+    );
+  } else if (block.kind === "heading") {
+    body = <Text selectable accessibilityRole="header" style={styles.title}>{text}</Text>;
+  } else if (block.kind === "quote") {
+    body = <Text selectable style={styles.quote}>{text}</Text>;
+  } else {
+    body = <Text selectable style={block.kind === "caveat" ? styles.caveat : styles.bodyText}>{text}</Text>;
+  }
+  return (
+    <View style={{ marginBottom: space.md }}>
+      {body}
+      <View style={styles.citeRow}>
+        {block.citationIds.map((id) => (
+          <Pressable
+            key={id}
+            onPress={() => onOpenSource(id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Open source ${id.slice(0, 8)}`}
+            hitSlop={8}
+          >
+            <Text style={[styles.link, styles.citeLink]}>Source {id.slice(0, 8)}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg },
@@ -733,8 +800,19 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     error: { color: theme.danger, padding: space.md },
     body: { flex: 1, padding: space.md },
     welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
-    card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md },
-    sheet: { backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md },
+    card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, overflow: "hidden" },
+    sheet: { backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: "100%" },
+    sheetBody: { maxHeight: 280 },
+    bounded: { width: "100%", maxWidth: "100%" },
+    outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
+    outlineItem: { ...typeTokens.caption, color: theme.muted, marginBottom: 2 },
+    tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: theme.line },
+    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 6, paddingRight: 12 },
+    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 6, paddingRight: 12, textTransform: "uppercase" },
+    code: { fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 13, color: theme.ink, paddingVertical: 8 },
+    quote: { ...typeTokens.body, color: theme.ink, fontStyle: "italic", paddingLeft: space.sm, borderLeftWidth: 2, borderLeftColor: theme.line },
+    citeRow: { flexDirection: "row", flexWrap: "wrap" },
+    citeLink: { paddingRight: 16 },
     kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 6 },
     title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
     bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },

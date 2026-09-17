@@ -71,6 +71,24 @@ afterAll(async () => {
 });
 
 describe("remaining launch-scope IDs", () => {
+  it("M04 fixture comparison publishes a wide table, code listing, unicode-safe text, and many citations", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    await processRun(pool, config, created.json().runId);
+    const report = await getLatestReportForRun(pool, created.json().runId, accountId);
+    expect(report).toBeTruthy();
+    const table = report!.blocks.find((b) => b.kind === "table");
+    const code = report!.blocks.find((b) => b.kind === "code");
+    expect(table?.id).toBe("comparison-table");
+    expect(table?.text).toMatch(/Vendor \| Region \| Price/);
+    expect(table?.text).toMatch(/Vendor A/);
+    expect((table?.citationIds ?? []).length).toBeGreaterThan(1);
+    expect(code?.id).toBe("candidate-listing");
+    expect(code?.text).toMatch(/Vendor A/);
+    const cited = report!.blocks.flatMap((b) => b.citationIds);
+    expect(new Set(cited).size).toBeGreaterThan(1);
+  });
+
   it("R06 preserves event date vs publication date", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "Compare the 2019 outage with the 2026 policy period");

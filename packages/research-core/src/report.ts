@@ -173,6 +173,33 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       claimIds: [],
       citationIds: extracted.map((c) => c.discoveredFrom),
     });
+    blocks.push({
+      id: "comparison-table",
+      kind: "table",
+      text: [
+        "Vendor | Region | Price | Currency | Status | Evidence",
+        ...extracted.map((c) => {
+          const status = c.excludedBy ? `ineligible (${c.excludedBy})` : c.feasibility;
+          return `${c.identity} | ${c.region ?? "—"} | ${c.price ?? "—"} | ${c.currency ?? "—"} | ${status} | ${c.discoveredFrom.slice(0, 8)}`;
+        }),
+      ].join("\n"),
+      claimIds: [],
+      citationIds: extracted.map((c) => c.discoveredFrom),
+    });
+    blocks.push({
+      id: "candidate-listing",
+      kind: "code",
+      text: extracted
+        .map((c) => {
+          const p = state.passages.find((x) => x.id === c.discoveredFrom);
+          const src = state.sources.find((s) => s.id === p?.sourceId);
+          const price = c.price != null ? `${c.price} ${c.currency ?? ""}`.trim() : "—";
+          return `${c.identity.padEnd(14)} ${price.padEnd(12)} ${c.feasibility.padEnd(10)} ${src?.locator ?? c.discoveredFrom}`;
+        })
+        .join("\n"),
+      claimIds: [],
+      citationIds: extracted.map((c) => c.discoveredFrom),
+    });
   }
 
   const percentNote = explainPercentages(state.passages);
@@ -205,7 +232,7 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       const calc = calculate("grams_to_milligrams", [{ name: "grams", value: grams, units: "g" }]);
       blocks.push({
         id: "calculation-dose",
-        kind: "text",
+        kind: "code",
         text: `Recomputed dose: ${calc.expression}.`,
         claimIds: [],
         citationIds: [],
@@ -230,7 +257,7 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       ]);
       blocks.push({
         id: "calculation-annual",
-        kind: "text",
+        kind: "code",
         text: `Calculation ${calc.formulaName}@${calc.formulaVersion}: ${calc.expression}.`,
         claimIds: [],
         citationIds: state.passages.map((p) => p.id).slice(0, 2),

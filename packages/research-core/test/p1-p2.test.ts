@@ -234,6 +234,42 @@ describe("V2-03 gold-evidence diagnostic", () => {
   });
 });
 
+describe("M04 comparison table and code listing", () => {
+  it("emits a wide table and code listing from extracted vendors", () => {
+    const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    s.passages = [
+      {
+        id: "pa",
+        sourceId: "sa",
+        sourceVersionId: "va",
+        exactText: "Vendor A costs 40 EUR in Germany for managed Postgres.",
+        locator: "document",
+      },
+      {
+        id: "pb",
+        sourceId: "sb",
+        sourceVersionId: "vb",
+        exactText: "Vendor B costs 40 EUR and is only in us-east, not Germany.",
+        locator: "document",
+      },
+    ];
+    s.sources = [
+      { id: "sa", title: "A", locator: "fixture://vendor-a/pricing-de", accessLevel: "full-text", sourceType: "vendor-docs" },
+      { id: "sb", title: "B", locator: "fixture://vendor-b/pricing-us", accessLevel: "full-text", sourceType: "vendor-docs" },
+    ];
+    const report = composeReport(s, "00000000-0000-4000-8000-000000000040");
+    const table = report.blocks.find((b) => b.kind === "table");
+    const code = report.blocks.find((b) => b.kind === "code");
+    expect(table?.id).toBe("comparison-table");
+    expect(table?.text.split("\n")[0]).toMatch(/Vendor \| Region \| Price/);
+    expect(table?.text).toMatch(/Vendor A/);
+    expect(table?.text).toMatch(/Vendor B/);
+    expect(table?.citationIds.length).toBeGreaterThan(1);
+    expect(code?.id).toBe("candidate-listing");
+    expect(code?.text).toMatch(/fixture:\/\/vendor-a\/pricing-de/);
+  });
+});
+
 describe("V2-19 unread scanned table", () => {
   it("does not guess a scanned table and names extract_table as unavailable", () => {
     const s = state("What does the unreadable scanned table say about compatibility?");

@@ -1,0 +1,40 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "M04",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "app": "Expo Go host.exp.exponent SDK 54"
+  },
+  "observed": {
+    "report_outline": ["text · answer", "text · constraints", "text · eligibility", "table · comparison-table", "code · candidate-listing", "text · independence"],
+    "table": {
+      "accessibilityLabel": "Table comparison-table",
+      "class": "android.widget.HorizontalScrollView",
+      "visible_before_hscroll": ["Vendor A", "germany", "40", "EUR", "Vendor B", "germany", "90", "EUR"],
+      "visible_after_hscroll": ["satisfies", "202ebba1", "ineligible (geography)", "ddef581e"],
+      "whole_screen_horizontal_overflow": false
+    },
+    "code": {
+      "accessibilityLabel": "Code candidate-listing",
+      "class": "android.widget.HorizontalScrollView",
+      "visible_after_hscroll": ["satisfies", "fixture://gossip/swift", "violates", "fixture://vendor-b/pricing-de"],
+      "whole_screen_horizontal_overflow": false
+    },
+    "citations": "wrapped onto multiple rows (Source 97feec33, 8878499f, ddef581e, 202ebba1) without widening the screen",
+    "source_sheet": {
+      "title": "Postgres pricing page that also plugs a tour",
+      "accessLevel": "FULL-TEXT",
+      "wrapped": true,
+      "selectable": true
+    },
+    "library": "long titles wrap onto multiple lines; no whole-screen horizontal overflow"
+  },
+  "unicode": "breakLongTokens preserves café and 漢字 in unit tests; this device run was English/Latin fixture text",
+  "tests": {
+    "mobile": "pnpm --filter @deep/mobile test 29/29",
+    "research_core": "pnpm --filter @deep/research-core test 22/22",
+    "integration": "pnpm --filter @deep/backend test:integration 76/76 including M04 fixture comparison"
+  },
+  "status": "implemented and verified on Android device for table, code, many citations, source sheet, and library wrap. iOS unverified."
+}

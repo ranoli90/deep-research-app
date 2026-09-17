@@ -17,13 +17,15 @@ Working tree: `main` at `15303d10c890a4705d18ae3af35aaaa3339ffa35`. P0 is **not*
 - `publishReport` re-reads `accounts.deleted_at` so a late worker cannot pass `deleted: false` and resurrect private text. Native Flag stored challenge `9806c317` (`claim-primary`, "Flagged from the app") without rewriting the report.
 - TalkBack on Xiaomi: composer, progress (`writing` + Cancel), report, source sheet (FULL-TEXT + Close), library Open/Share, and settings (including Delete) all exposed content-descriptions. TalkBack was disabled after capture. Enlarged text and iOS VoiceOver were not exercised.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
+- M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0, twice | 73 tests |
+| `pnpm test:integration` | 0 | 76 tests including M04 table/code |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm --filter @deep/mobile test` | 0 | 25 tests including persist/hydrate and a11y label scan |
+| `pnpm --filter @deep/mobile test` | 0 | 29 tests including report-layout M04 |
+| `pnpm --filter @deep/research-core test` | 0 | 22 tests including comparison table/code |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |

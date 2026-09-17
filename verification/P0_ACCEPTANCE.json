@@ -64,7 +64,7 @@
         "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
       "evidence": {
-        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; attach 99391a32 source FULL-TEXT; native Share Markdown sheet; 120 EUR correction cbc04309 Vendor C + previous version; EAS APK d7e7b407; writing-cancel via pnpm p0:launch; TalkBack M02 labels on composer/progress/report/source sheet/library/settings then disabled; compact keyboard hides attach and keeps Send; composer hidden on Library/Settings"
+        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; attach 99391a32 source FULL-TEXT; native Share Markdown sheet; 120 EUR correction cbc04309 Vendor C + previous version; EAS APK d7e7b407; writing-cancel via pnpm p0:launch; TalkBack M02 labels then disabled; compact keyboard hides attach and keeps Send; M04 table/code nested horizontal scroll, wrapping citations, wrapping source/library titles"
       },
       "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
