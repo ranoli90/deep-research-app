@@ -51,7 +51,7 @@ export async function assertLiveCallAllowed(db: Queryable, config: AppConfig, es
 /** One logical action, one issued attempt until its outcome is reconciled. */
 export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args: {
   runId: string; fence: number; briefRevision: number; evidenceRevision?: number; requiredConsentPolicy?: string; logicalKey: string;
-  kind: string; route: string; requestDigest: string; reserveMicro: number;
+  kind: string; route: string; requestDigest: string; reserveMicro: number; maxRunRouteAttempts?: number;
 }): Promise<{ intentId: string; issue: boolean }> {
   return withTx(pool, async (db) => {
     const identity = await getRun(db, args.runId);
@@ -72,6 +72,11 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if (prior.rows[0]) {
       if (prior.rows[0].request_digest !== args.requestDigest) throw new Error("logical_action_conflict");
       return { intentId: prior.rows[0].id, issue: false };
+    }
+    if(args.maxRunRouteAttempts!==undefined) {
+      if(!Number.isSafeInteger(args.maxRunRouteAttempts)||args.maxRunRouteAttempts<1)throw new Error("invalid_route_attempt_limit");
+      const count=await db.query("SELECT count(*)::integer AS count FROM provider_intents WHERE run_id=$1 AND route=$2",[args.runId,args.route]);
+      if(count.rows[0].count>=args.maxRunRouteAttempts)throw new Error("route_attempt_limit");
     }
     const allowance = await db.query<{ amount_micro: string }>(
       "SELECT amount_micro FROM reservations WHERE run_id = $1 AND account_id = $2 AND state = 'reserved' FOR UPDATE",

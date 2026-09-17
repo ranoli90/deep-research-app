@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { CONSENT_POLICY_VERSION,ResearchModelOutputs } from "@deep/contracts";
-import { validateModelBindings } from "@deep/research-core";
+import { MAX_DISCOVERY_QUERIES,validateModelBindings } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { withTx } from "../platform/db.js";
 import { getBrief,getRun } from "../modules/runs.js";
@@ -33,8 +33,10 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  await validate();
  const bodyDigest=publicSearchDigest(proposal.action.query);
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:DISCOVERY_POLICY.id,briefRevision:args.briefRevision})).digest("hex");
- const attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
-  route:`openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`,requestDigest:digest,reserveMicro:DISCOVERY_RESERVE_MICRO});
+ let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;
+ try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
+  route:`openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`,requestDigest:digest,reserveMicro:DISCOVERY_RESERVE_MICRO,maxRunRouteAttempts:MAX_DISCOVERY_QUERIES});}
+ catch(error){if(error instanceof Error&&error.message==="route_attempt_limit")return {kind:"blocked" as const,reason:"discovery_query_limit"};throw error;}
  const finish=(result:SearchResult,reused:boolean)=>result.receipt.state==="confirmed"&&result.receipt.actualMicro!==undefined
   ?{kind:"search" as const,intentId:attempt.intentId,hits:result.hits,reused}
   :result.receipt.actualMicro===undefined?{kind:"pending" as const,intentId:attempt.intentId}

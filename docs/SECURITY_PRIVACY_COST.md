@@ -95,3 +95,6 @@ Strict executable search proposals revalidate exact original-question spans and 
 
 
 Durable source reads now bind owned handles, task/brief and exact source version under the worker fence. Network/extraction execute outside transactions; a late URL change, deletion or lease loss prevents content persistence. Issued unknown reads are not blindly repeated. Deletion removes migration023 records. Initial search uses only the original public question; attachments still require a separate public-query approval flow. Activation, current paid allowance, native identity and real-model quality remain unverified. Rollback disables structured discovery without removing existing authorization, fetching, financial or deletion safeguards.
+
+
+Criterion discovery reuses only exact original-question provenance and existing public-query validation. Per-run/per-route query attempts are capped at3 under the same account/run locks as reservation; unknown attempts count and existing identities can replay. No new processor, consent policy, route price, allowance or live authorization. Disable structured discovery to roll back; retain atomic spend and privacy gates.

@@ -1,3 +1,4 @@
+import { nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
 import { getRun,getBrief,emitEvent,setPhase,markTerminal } from "../modules/runs.js";
@@ -29,6 +30,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
   if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
   const run=(await getRun(pool,args.runId))!;
+  const brief=await getBrief(pool,run.brief_id);
+  const queries:string[]=[];
   await ingestAttachments(pool,run,await getBrief(pool,run.brief_id),session);
   await session.write(async(db)=>{
     await setPhase(db,args.runId,"researching");
@@ -42,10 +45,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   let selected=await selectPassages();
   const priorDiscovery=await session.write((db)=>db.query("SELECT 1 FROM search_operations WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 LIMIT 1",[args.runId,args.accountId,args.briefRevision]));
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount)) {
-    const brief=await getBrief(pool,run.brief_id),questionKeys=Object.keys(prepared.task.questionIds);
+    const questionKeys=Object.keys(prepared.task.questionIds);
     if(brief.attachmentIds.length)return unresolved("document_search_requires_public_query_approval");
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     // A bounded initial discovery pass. Completion still requires executed criterion coverage.
+    queries.push(brief.originalQuestion);
     const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:{
       rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
         publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
@@ -58,26 +62,51 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     selected=await selectPassages();
   }
-  // Do not silently replace discovery with fixtures or truncate a document to fit the context.
-  if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
-  const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selected.rows.map((p)=>p.id)});
-  if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
-  if(!extraction.output.assertions.length)return unresolved("no_relevant_assertions");
-  const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
-  const support=await executeAssertionSupport(pool,config,session,target);
-  if(support.kind!=="support")return pendingOrBlocked(support);
-  const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
-  if(review.kind!=="coverage")return pendingOrBlocked(review);
-  await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",
-    summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
-    payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
-  if(!support.checks.some((c)=>c.decision==="supported"))return unresolved("no_supported_assertions");
-  await session.write(async(db)=>{
-    await setPhase(db,args.runId,"writing");
-    await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
-  });
-  if(opts.pauseAt==="writing")return;
-  const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId});
-  if(result.kind!=="publication")return pendingOrBlocked(result);
-  if(!result.accepted)return unresolved(result.reason);
+  // Repeat actual extraction/checking after new evidence, never count search events as coverage.
+  for(let iteration=0;iteration<4;iteration++) {
+    // Do not silently replace discovery with fixtures or truncate a document to fit the context.
+    if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
+    const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selected.rows.map((p)=>p.id)});
+    if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
+    if(!extraction.output.assertions.length)return unresolved("no_relevant_assertions");
+    const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
+    const support=await executeAssertionSupport(pool,config,session,target);
+    if(support.kind!=="support")return pendingOrBlocked(support);
+    const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
+    if(review.kind!=="coverage")return pendingOrBlocked(review);
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",
+      summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
+      payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
+    if(!review.coverage.complete&&config.structuredDiscoveryEnabled&&!brief.attachmentIds.length&&config.liveRetrievalEnabled) {
+      const next=nextCriterionSearch({question:brief.originalQuestion,task:prepared.task.specification,
+        unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries});
+      if(next.kind==="search") {
+        queries.push(next.proposal.action.query);
+        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal});
+        if(search.kind!=="search")return pendingOrBlocked(search);
+        const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+        for(const sourceHandle of sources) {
+          const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
+            rationale:"Read evidence for an unresolved criterion.",action:{type:"fetch",sourceHandle,questionKeys:next.proposal.action.questionKeys}}});
+          if(read.kind!=="read")return unresolved(read.kind==="blocked"?read.reason:"source_read_outcome_unknown");
+        }
+        selected=await selectPassages();
+        continue;
+      }
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"discovery_exhausted",phase:"researching",
+        summary:"Some criteria remain unresolved after the available public discovery actions.",
+        payload:{reason:next.reason,plannerVersion:DISCOVERY_PLANNER_VERSION,coverageIntentId:review.intentId,unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys}}));
+    }
+    if(!support.checks.some((c)=>c.decision==="supported"))return unresolved("no_supported_assertions");
+    await session.write(async(db)=>{
+      await setPhase(db,args.runId,"writing");
+      await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
+    });
+    if(opts.pauseAt==="writing")return;
+    const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId});
+    if(result.kind!=="publication")return pendingOrBlocked(result);
+    if(!result.accepted)return unresolved(result.reason);
+    return;
+  }
+  return unresolved("research_iteration_limit");
 }

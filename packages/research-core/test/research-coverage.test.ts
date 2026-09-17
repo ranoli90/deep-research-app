@@ -1,3 +1,4 @@
+import { nextCriterionSearch } from "../src/discovery-planning.js";
 import { describe,it,expect } from "vitest";
 import type { ResearchModelOutput } from "@deep/contracts";
 import { resolveResearchCoverage } from "../src/research-coverage.js";
@@ -33,5 +34,19 @@ describe("W05 criterion-linked answer coverage",()=>{
  it("requires exact complete review bindings",()=>{
   expect(()=>resolveResearchCoverage({...args,proposal:{...proposal,questions:[]}})).toThrow("missing_question_review");
   expect(()=>resolveResearchCoverage({...args,proposal:{...proposal,questions:[{...proposal.questions[0]!,assertionKeys:["invented"]}]}})).toThrow("unknown_model_handle");
+ });
+});
+
+describe("W05 criterion discovery policy",()=>{
+ it("uses only an unmet criterion's exact original-question span",()=>{
+  const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};
+  const focused={...task,criteria:[{...task.criteria[0]!,provenance}]};
+  expect(nextCriterionSearch({question,task:focused,unresolvedCriterionKeys:["area"],queries:[question]})).toMatchObject({kind:"search",proposal:{action:{query:"Reef-X",questionKeys:["q"],publicQueryBasis:provenance}}});
+  expect(nextCriterionSearch({question,task:focused,unresolvedCriterionKeys:[],queries:[]})).toMatchObject({kind:"stop"});
+  expect(()=>nextCriterionSearch({question,task:{...focused,criteria:[{...focused.criteria[0]!,provenance:{...provenance,quote:"private source words"}}]},unresolvedCriterionKeys:["area"],queries:[]})).toThrow("invalid_discovery_provenance");
+ });
+ it("stops explicitly for repeated questions or the query ceiling",()=>{
+  expect(nextCriterionSearch({question,task,unresolvedCriterionKeys:["area"],queries:[question.toUpperCase()]})).toEqual({kind:"stop",reason:"no_distinct_public_criterion_query"});
+  expect(nextCriterionSearch({question,task,unresolvedCriterionKeys:["area"],queries:["one","two","three"]})).toEqual({kind:"stop",reason:"discovery_query_limit"});
  });
 });

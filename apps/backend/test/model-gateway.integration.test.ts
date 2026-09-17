@@ -737,7 +737,7 @@ async function searchCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
  if(task.kind!=="task")throw new Error("missing task");
  return {args:{...x,briefRevision:1,taskId:task.task.id,proposal:{rationale:"Investigate public restoration evidence",action:{type:"search",query:"coral kelp restoration",questionKeys:["q1"],publicQueryBasis:span}}},config:{...x.config,structuredDiscoveryEnabled:true}};
 }
-function searchReply(known=true) {return new Response(JSON.stringify({id:"nonbillable-search",model:"openai/gpt-4o-mini",provider:"OpenAI",...(known?{usage:{cost:"0.000003"}}:{}),choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:"https://example.org/study",title:"Study",content:"Restoration findings"}}]}}]}));}
+function searchReply(known=true,url="https://example.org/study") {return new Response(JSON.stringify({id:"nonbillable-search",model:"openai/gpt-4o-mini",provider:"OpenAI",...(known?{usage:{cost:"0.000003"}}:{}),choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url,title:"Study",content:"Restoration findings"}}]}}]}));}
 describe("W02/W05 durable pinned public discovery",()=>{
  it("pins engine/provider and reuses saved results even after unrelated evidence arrives",async()=>runCase(async(x)=>{
   const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
@@ -853,3 +853,34 @@ describe("W04/W05 durable discovered source reading",()=>{
   else expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId])).rows[0].payload.reason).toBe("readable_evidence_unavailable");
  }));
 });
+
+it("W05 unresolved criteria trigger a distinct public query and rechecked synthesis",async()=>runCase(async(x)=>{
+ const model=structuredWorkerTransport(),queries:string[]=[];
+ const focusedBrief={...brief,criteria:[{...brief.criteria[0]!,provenance:{start:question.indexOf("kelp"),end:question.length-1,quote:"kelp restoration"}}]};
+ globalThis.fetch=vi.fn(async(input,init)=>{
+  const body=JSON.parse(String(init?.body));
+  if(body.plugins?.length){queries.push(body.messages[1].content);return searchReply(true,`https://example.org/study-${queries.length}`);}
+  const c=JSON.parse(body.messages[1].content),op=body.response_format.json_schema.name;
+  if(op==="research_brief_v1")return response(focusedBrief);
+  if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:c.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
+  if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:c.passages.length>1?"supported":"unresolved_at_limit",assertionKeys:c.approvedClaimKeys,reason:"Nonbillable review control"}],omittedRequirements:[]});
+  return model(input,init);
+ }) as typeof fetch;
+ const names=[`Coral-${crypto.randomUUID()}`,`Kelp-${crypto.randomUUID()}`];
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url,`${url.endsWith("1")?names[0]:names[1]} restored 12 hectares in 2024.`));
+ await releaseForWorker(x);const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
+ await processRun(pool,config,x.runId,{pauseAt:"writing"});await processRun(pool,config,x.runId);
+ expect(queries).toEqual([question,"kelp restoration"]);expect(sourceReader.readSource).toHaveBeenCalledTimes(2);
+ expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed");
+ const report=(await pool.query("SELECT blocks FROM reports WHERE run_id=$1",[x.runId])).rows[0];
+ for(const name of names)expect(JSON.stringify(report.blocks)).toContain(name);
+ expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='evidence_checked' ORDER BY created_at",[x.runId])).rows.map((r)=>r.payload.complete)).toEqual([false,true,true]);
+}));
+it("W02/W05 concurrent distinct searches obey the durable per-run query ceiling",async()=>runCase(async(x)=>{
+ const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+ const results=await Promise.all(["coral","kelp","restoration","Compare"].map((query)=>performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})));
+ expect(results.filter((r)=>r.kind==="search")).toHaveLength(3);expect(results.filter((r)=>r.kind==="blocked")).toEqual([{kind:"blocked",reason:"discovery_query_limit"}]);expect(fetch).toHaveBeenCalledTimes(3);
+ const query=["coral","kelp","restoration","Compare"][results.findIndex((r)=>r.kind==="search")]!;
+ expect(await performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})).toMatchObject({kind:"search",reused:true});
+ expect(fetch).toHaveBeenCalledTimes(3);
+}));

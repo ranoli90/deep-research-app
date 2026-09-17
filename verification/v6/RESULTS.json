@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Durable source reads and initial structured discovery scheduling;251 full PostgreSQL,79 focused,12 actual extraction,115/88/47/4 verify. Adaptive discovery/corrections and W01-W09 incomplete.",
+  "workingTree": "Criterion-driven follow-up discovery with durable query cap;253 full PostgreSQL,81 focused,117/88/47/4 verify. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3308,6 +3308,111 @@
       "scope": "handoff integrity only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "pnpm verify",
+      "artifact": "criterion-loop-verify.log",
+      "exitCode": 2,
+      "evidenceClass": "deterministic_typecheck",
+      "scope": "test helper unknown JSON type; fixed with typed response constructor",
+      "sha256": "8c74fe3f4ed0b7a85d1b0e772e38c0865e47601be33f9123738c07b6dc555057"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "criterion-loop-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_criterion_loop",
+      "scope": "81/81; criterion refinement, fresh evidence/support/coverage, concurrent query cap",
+      "sha256": "76db3ae1136c206a5b4111abb7995fad2cc194dea1ca8877b648a42d449fea61"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "pnpm verify",
+      "artifact": "criterion-loop-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117 core/88 backend/47 mobile/4 governance, types and boundaries",
+      "sha256": "8f1e2bce3ce52eca5b980643e68c2dd2d8398301b12a787668f95d00d70622c5"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "pnpm test:integration",
+      "artifact": "criterion-loop-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "253/253 in16 files;147.39s; final cap-replay assertion checked separately",
+      "sha256": "cceb8e1d4f01330a807f53d5e88bafd8abcc1e3557dc04de96b4f0e355ec4b3b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "criterion-loop-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "review structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "criterion-driven loop and atomic route cap; revision recorded after commit",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "criterion-loop-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "handoff structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "ccba73c",
+      "workingTree": "final criterion loop including replay-at-ceiling assertion",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "criterion-loop-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_criterion_loop",
+      "scope": "81/81 final controls; same-query replay succeeds after durable query cap without another HTTP request",
+      "sha256": "d360c34d08f97e46fac030a41b1b7a5f410ad03f61dbc315987c3e9227b16cd0"
     }
   ],
   "unresolved": [

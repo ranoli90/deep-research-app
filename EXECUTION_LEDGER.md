@@ -442,3 +442,12 @@ Initial focused integration:76 passed/3 failed due new read receipts outliving t
 Final durable-read checks: `pnpm verify` exit0 (115core/88backend/47mobile/4governance); focused79/79 exit0; `pnpm test:integration` exit0,251/251 across16files,151.08s; actual extraction12/12 exit0. Both document validators exit0. Exact saved-byte PDF trace under verification/v6/discovery-journey/ distinguishes actual parsing/API/worker/database from fabricated search/model/network responses. No corrected follow-up, live semantic benchmark, paid/native/hosted execution or release claim.
 
 Durable-read implementation/evidence committed as `0b8e27e8e3aee7f50920416ca5172fb3e61be39a`. Full251-case integration and final verify exercised final code. Earlier extraction execution preceded the type-only completion of the saved-bytes test response body field; actual parser/source behavior is unchanged. Overall W01-W09 remains incomplete.
+
+
+## W05 criterion-driven discovery loop — 2026-09-17
+Base ccba73c; implementation revision recorded after commit. W05 criterion-driven discovery: unresolved executed coverage can now select a distinct query from the relevant criterion’s exact original-question span. New results are read and all selected evidence is extracted/supported/reviewed again before writing. criterion-discovery.v1 stops explicitly at three distinct queries or no available distinct public criterion wording. The query ceiling is checked atomically during provider admission and includes unknown attempts; replay remains allowed. This is a bounded refinement policy, not proof of general discovery or semantic quality.
+Focused PostgreSQL81/81 exit0; new controls prove a second query/read changes executed coverage and survives writing-pause replay, and four concurrent distinct searches issue only3 requests. Initial verify exit2 caught unknown-typed response JSON in the new test helper; replaced it with a typed response constructor without weakening assertions. Final verify/full-suite outcomes follow. No paid/native/hosted execution. W01-W09 remains incomplete.
+
+Final verify exit0 (117core/88backend/47mobile/4governance); full PostgreSQL253/253 exit0 across16files in147.39s. Both document validators exit0. Final focused run adds replay-at-ceiling assertion after the full suite; no production behavior changed. Rollback disables structured discovery; retain atomic caps, financial holds, privacy and support gates.
+
+Final focused81/81 exit0,20.31s, including replay at the durable query ceiling. No hidden live calls or skipped assertions.
