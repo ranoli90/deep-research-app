@@ -14,6 +14,7 @@ import { insertVersionAndPassage, loadEvidence } from "../src/modules/evidence.j
 import { getLatestReportForRun, getReportForAccount, publishReport, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";
 import { claimLease } from "../src/modules/runs.js";
 import { recordIntent, reconcileIntent } from "../src/modules/billing.js";
+import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";
 import { providerFailureState } from "../src/adapters/model/outcomes.js";
 import { redact } from "../src/platform/log.js";
 
@@ -728,6 +729,20 @@ describe("remaining launch-scope IDs", () => {
     });
     expect(exp.statusCode).toBe(200);
     expect(exp.json().markdown).toMatch(/Widget 4|ACME/i);
+  });
+
+  it("V2-14 outcome-unknown live spend is not treated as zero against the cap", async () => {
+    await pool.query(
+      `INSERT INTO provider_intents (id, run_id, correlation_id, route, request_digest, reserved_max_micro, state)
+       VALUES ($1,$2,$3,'openrouter:web','digest',$4,'outcome-unknown')`,
+      [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID(), 4_000_000],
+    );
+    const used = await liveSpendUsedMicro(pool);
+    expect(used).toBeGreaterThanOrEqual(4_000_000);
+    const blocked = canIssueLiveCall({ capMicro: 5_000_000, usedMicro: used, estimatedMicro: 1_200_000 });
+    expect(blocked.ok).toBe(false);
+    const ifUnknownWereZero = canIssueLiveCall({ capMicro: 5_000_000, usedMicro: 0, estimatedMicro: 1_200_000 });
+    expect(ifUnknownWereZero.ok).toBe(true);
   });
 
   it("M09 web deletion page is reachable without the app and deletes with a session token", async () => {

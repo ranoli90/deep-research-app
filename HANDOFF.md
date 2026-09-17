@@ -22,13 +22,16 @@ Working tree: `main` at `408d3d2850dfba7008057fbfb6bfed2e31ce0a3b`. P0 is **not*
 - R02: a filing-deadline question without geography showed Need one detail / jurisdiction on the Xiaomi. Continue with Germany produced a report with `geography=germany` and no second clarify. New runs now clear the previous report and attachments so the clarification card is visible.
 - S12: Log out keeps the composer draft, hides the report, and Library says sign in. Polling stops so a late snapshot cannot resurrect the previous account’s report. Signed in again afterward.
 - M09: Settings “Open web deletion page” launched Chrome at `http://127.0.0.1:8787/account/deletion` with a session-token form. GET is public HTML; POST with a valid token deletes. The form was not submitted on the phone.
+- S02: `safeFetch` uses `redirect: manual` and re-runs `assertSafeUrl` on Location. Unit tests mock a 302 from `http://1.1.1.1/public` onto metadata/loopback/private hosts and assert those targets are never fetched.
+- V2-14: an `outcome-unknown` OpenRouter intent of 4 USD micros counts against the live cap; a further 1.2 USD estimated call is refused. Treating unknown as zero would have allowed it.
 - Compact layout: composer is research-only so Settings/Library are not covered; attach chrome hides while the keyboard is open; Start research stays on screen.
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 77 tests including M09 web deletion |
+| `pnpm test:integration` | 0 | 78 tests including V2-14 unknown spend |
+| `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
 | `pnpm --filter @deep/research-core test` | 0 | 23 tests including follow-up changeSummary |
