@@ -451,3 +451,5 @@ Focused PostgreSQL81/81 exit0; new controls prove a second query/read changes ex
 Final verify exit0 (117core/88backend/47mobile/4governance); full PostgreSQL253/253 exit0 across16files in147.39s. Both document validators exit0. Final focused run adds replay-at-ceiling assertion after the full suite; no production behavior changed. Rollback disables structured discovery; retain atomic caps, financial holds, privacy and support gates.
 
 Final focused81/81 exit0,20.31s, including replay at the durable query ceiling. No hidden live calls or skipped assertions.
+
+Criterion-loop implementation/evidence committed as `2ad2a905351e3b8f459861b0f653ff564734601c`. W01-W09 incomplete; next work is typed corrections and authorized immutable evidence reuse, with broader discovery/semantic evaluation still open.
