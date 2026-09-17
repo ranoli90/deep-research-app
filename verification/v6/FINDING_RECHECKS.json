@@ -6,7 +6,7 @@
       "title": "Citation checking accepts opposite and insufficiently supported claims",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Production negatives reproduced; literal/scope abstention, mapping/type-label guards, persisted revisions/support and deterministic derivations added. General semantic checker and complete writer remain open."
+      "basis": "Production negatives reproduced; literal/scope abstention, mapping/type-label guards, persisted revisions/support and deterministic derivations added. General semantic checker and complete writer remain open. Scoped publication now rechecks managed canonical assertion revisions and permits a supported paraphrase without weakening default literal/mapping/owner gates; partial/stale/missing/corrupt/forged approvals reject. Real-model semantic quality and generic writer integration remain open."
     },
     {
       "id": "V6-F02",

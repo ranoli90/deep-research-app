@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Executed scoped support with stable claim revisions/digests/checker outcomes;209 final local integration cases. General worker/publication integration and W01-W09 incomplete.",
+  "workingTree": "Scoped support integrated into real publication with canonical assertion identity and read-only revalidation;215 integration and43 focused pass. Writer/general controller/W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2304,6 +2304,118 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "a02515e9d30ff65b07217d69eacedf0536c163cf"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "pnpm typecheck",
+      "artifact": "scoped-publication-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "typecheck",
+      "scope": "Initial scoped publication typecheck",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scoped-publication-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_publication",
+      "scope": "42/42 initial scoped publication plus gateway/task/extraction/support cases",
+      "sha256": "e3bdceb5b52a372d1312be54d88eca5560a889def1df6808e2f65e216cbe51f5"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "pnpm verify",
+      "artifact": "scoped-publication-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "106core/80backend/47mobile/4governance; no network or paid calls",
+      "sha256": "8f82bb2d342f7d3d8de70689637e527b23834a65be243fc789ce3102bd15008b"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "pnpm test:integration",
+      "artifact": "scoped-publication-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "215/215 final implementation; before additional derivation-label assertion in existing test",
+      "sha256": "1a6f159d2e8acd4dd5d97627c8a3db993b7f1389b015335a1ba705b525de4adc"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scoped-publication-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_publication",
+      "scope": "43/43 including extra managed-claim derivation-label bypass assertion",
+      "sha256": "24908c77778ec951e7253699c4503e166193861f800de0c8286775369c98f097"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scoped-publication-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W05",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "commit": "dbba471",
+      "workingTree": "scoped publication integration based ondbba471; implementation commit recorded in ledger",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scoped-publication-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

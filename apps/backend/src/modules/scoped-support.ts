@@ -34,7 +34,7 @@ export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:
 }
 
 /** Fenced transaction. A model verdict is recorded alongside independently executed checks. */
-export async function persistScopedSupport(db:Queryable,args:SupportArgs & {modelIntentId:string;evidenceRevision:number;context:ModelContext},versions:TaskModelVersions) {
+export async function persistScopedSupport(db:Queryable,args:SupportArgs & {modelIntentId:string;evidenceRevision:number;context:ModelContext},versions:TaskModelVersions,requireStored=false) {
   const basis=await loadSupportContext(db,args,versions);
   if (basis.evidenceRevision!==args.evidenceRevision || digest(basis.context)!==digest(args.context)) throw new Error("stale_support_context");
   const task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,versions);
@@ -62,6 +62,7 @@ export async function persistScopedSupport(db:Queryable,args:SupportArgs & {mode
       FROM extracted_assertions e JOIN claims c ON c.id=e.claim_id JOIN claim_revisions r ON r.id=e.claim_revision_id
       WHERE e.extraction_intent_id=$1 AND e.claim_key=$2`,
       [args.extractionIntentId,claim.key,args.accountId,args.runId,task.id,claim.text,textDigest(claim.text),JSON.stringify(scope)])).rows[0];
+    if (requireStored && !existing) throw new Error("missing_stored_assertion_revision");
     if (existing && !existing.valid) throw new Error("stored_assertion_revision_mismatch");
     const claimId=existing?.claim_id??crypto.randomUUID(), revisionId=existing?.claim_revision_id??crypto.randomUUID();
     if (!existing) {
@@ -73,6 +74,7 @@ export async function persistScopedSupport(db:Queryable,args:SupportArgs & {mode
       AND brief_revision=$8 AND evidence_revision=$9 AND evidence_digest=$10 AND scope_digest=$11 AND checker_version=$12
       AND decision=$13 AND result=$14::jsonb) AS valid FROM scoped_support_results WHERE model_intent_id=$1 AND claim_key=$2`,
       [args.modelIntentId,claim.key,args.extractionIntentId,revisionId,args.accountId,args.runId,task.id,args.briefRevision,args.evidenceRevision,evidenceDigest,scopeDigest,SCOPED_SUPPORT_VERSION,outcome.decision,JSON.stringify(outcome)])).rows[0];
+    if (requireStored && !prior) throw new Error("missing_stored_support_result");
     if (prior && !prior.valid) throw new Error("stored_support_result_mismatch");
     if (!prior) await db.query(`INSERT INTO scoped_support_results(model_intent_id,extraction_intent_id,claim_key,claim_revision_id,account_id,run_id,task_id,brief_revision,evidence_revision,evidence_digest,scope_digest,checker_version,decision,result)
       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,

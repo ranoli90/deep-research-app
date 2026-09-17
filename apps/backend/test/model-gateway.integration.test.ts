@@ -1,10 +1,12 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
-import { CreateRunRequestSchema } from "@deep/contracts";
+import { CreateRunRequestSchema, type CanonicalReport } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
-import { claimLease } from "../src/modules/runs.js";
+import { publishReport,getReportForAccount } from "../src/modules/reports.js";
+import { passageSupportsClaim, type StoredClaim } from "@deep/research-core";
+import { claimLease,getRun } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
@@ -40,6 +42,8 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
   finally {
     session.stop();
     await withTx(pool, async (db) => {
+      await db.query("DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE run_id=$1)",[runId]);
+      for(const table of ["notification_fanout","completion_outbox","publication_attempts","reports"]) await db.query(`DELETE FROM ${table} WHERE run_id=$1`,[runId]);
       for (const table of ["provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
         if (table === "sources") await db.query("DELETE FROM source_versions WHERE source_id IN (SELECT id FROM sources WHERE run_id=$1)", [runId]);
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
@@ -318,15 +322,16 @@ describe("W05 evidence-bound arbitrary assertion extraction", () => {
 });
 
 
-async function supportCase(x: Parameters<Parameters<typeof runCase>[0]>[0],wrongUnit=false) {
+async function supportCase(x: Parameters<Parameters<typeof runCase>[0]>[0],wrongUnit=false,paraphrase=false) {
   const prepared=await extractionCase(x);
+  if (paraphrase) prepared.output.assertions[0]!.text=prepared.output.assertions[0]!.text.replace(/^(.+) restored 12 hectares in 2024\.$/,"In 2024, $1 restored an area of 12 hectares.");
   if (wrongUnit) prepared.output.assertions[0]!.text=prepared.output.assertions[0]!.text.replace("hectares","acres");
   globalThis.fetch=vi.fn(async()=>response(prepared.output)) as typeof fetch;
   const extraction=await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
   if(extraction.kind!=="extraction") throw new Error("missing extraction");
   const claim=prepared.output.assertions[0]!;
   const proposal={assessments:[{claimKey:claim.key,status:"supported",scope:claim.scope,evidence:claim.evidence,
-    rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[]}]};
+    rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[] as string[]}]};
   return {...prepared,proposal,args:{...prepared.args,extractionIntentId:extraction.intentId}};
 }
 describe("W05 substantive support execution and persisted revisions",()=>{
@@ -395,5 +400,74 @@ describe("W05 substantive support execution and persisted revisions",()=>{
     await deleteAccount(pool,x.accountId);
     for(const table of ["extracted_assertions","scoped_support_results","claim_revisions"])
       expect((await pool.query(`SELECT * FROM ${table} WHERE account_id=$1`,[x.accountId])).rows).toHaveLength(0);
+  }));
+});
+
+
+async function scopedReportCase(x:Parameters<Parameters<typeof runCase>[0]>[0],partial=false,paraphrase=true) {
+  const prepared=await supportCase(x,false,paraphrase);
+  if(partial) prepared.proposal.assessments[0]!.missingEvidence.push("Applicability is unresolved");
+  globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+  const checked=await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+  if(checked.kind!=="support") throw new Error("support missing");
+  const claim=checked.checks[0]!;
+  const run=(await getRun(pool,x.runId))!;
+  const basis={briefRevision:1,evidenceRevision:run.evidence_revision,consentEpoch:run.consent_epoch,cancellationEpoch:0,workerLeaseFence:x.fence};
+  const report:CanonicalReport={reportId:crypto.randomUUID(),runId:x.runId,version:1,basis,outcome:"completed_with_limitations",blocks:[{
+    id:"answer",kind:"text",text:prepared.output.assertions[0]!.text,claimIds:[claim.claimId],citationIds:[prepared.p.passageId]}],
+    claimIds:[claim.claimId],limitations:[],sourceAccessSummary:[],routeMode:"controlled-research"};
+  return {prepared,checked,claim,report,publication:{report,accountId:x.accountId,loaded:basis,deleted:false,
+    claims:[{id:claim.claimId,text:report.blocks[0]!.text,type:"external-fact",supportStatus:"direct",passageIds:[prepared.p.passageId]}] as StoredClaim[],
+    passages:[{id:prepared.p.passageId,sourceId:prepared.sourceId,sourceVersionId:prepared.p.versionId,exactText:prepared.text,locator:"document"}]}};
+}
+describe("W01/W05 scoped support at the real publication gate",()=>{
+  it("publishes a checked paraphrase and preserves canonical assertion identity on reopen",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x);
+    expect(passageSupportsClaim(c.prepared.text,c.report.blocks[0]!.text)).not.toBe("supports");
+    expect(await publishReport(pool,c.publication)).toMatchObject({accepted:true,reportId:c.report.reportId});
+    const reopened=await getReportForAccount(pool,c.report.reportId,x.accountId);
+    expect(reopened.claim_ids).toEqual([c.claim.claimId]);
+    expect((await pool.query("SELECT support_status FROM claims WHERE id=$1",[c.claim.claimId])).rows[0].support_status).toBe("direct");
+    expect(reopened.blocks[0].claimIds).toEqual([c.claim.claimId]);
+    expect((await pool.query("SELECT id FROM claims WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
+    expect((await pool.query("SELECT claim_revision_id FROM scoped_support_results WHERE run_id=$1",[x.runId])).rows[0].claim_revision_id).toBe(c.claim.claimRevisionId);
+    expect(await getReportForAccount(pool,c.report.reportId,crypto.randomUUID())).toBeNull();
+  }));
+  it("does not fall back to literal support when a managed assertion is partial",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x,true,false);
+    expect(passageSupportsClaim(c.prepared.text,c.report.blocks[0]!.text)).toBe("supports");
+    expect((await publishReport(pool,c.publication)).accepted).toBe(false);
+    // A deterministic metadata derivation cannot launder this rejected managed identity.
+    const text="Recorded 1 source(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.";
+    c.publication.claims[0]={...c.publication.claims[0]!,text,type:"calculation",derivation:"source-counts",passageIds:[]};
+    c.report.blocks[0]!.text=text;c.report.blocks[0]!.citationIds=[];
+    expect((await publishReport(pool,c.publication)).accepted).toBe(false);
+  }));
+  it("rejects stale support even if the caller updates the report's revision",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x);
+    await pool.query("UPDATE runs SET evidence_revision=1 WHERE id=$1",[x.runId]);
+    c.report.basis.evidenceRevision=1;
+    expect((await publishReport(pool,c.publication)).accepted).toBe(false);
+  }));
+  it("rejects altered assertion text and unmapped extra prose",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x);
+    c.report.blocks[0]!.text+=" Survival was guaranteed.";
+    expect((await publishReport(pool,c.publication)).accepted).toBe(false);
+    c.publication.claims[0]!.text=c.report.blocks[0]!.text;
+    expect((await publishReport(pool,c.publication)).accepted).toBe(false);
+  }));
+  it("rejects a missing stored check despite a caller-supplied approval object",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x);
+    await pool.query("DELETE FROM scoped_support_results WHERE run_id=$1",[x.runId]);
+    const forged={...c.publication,scopedApprovals:new Map([[c.claim.claimId,{claimId:c.claim.claimId,text:c.report.blocks[0]!.text,passageIds:[c.prepared.p.passageId]}]])};
+    expect((await publishReport(pool,forged)).accepted).toBe(false);
+    expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+    expect((await pool.query("SELECT id FROM claim_revisions WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
+  }));
+  it("refuses corrupted persisted checks instead of trusting an approval flag",async()=>runCase(async(x)=>{
+    const c=await scopedReportCase(x);
+    await pool.query("UPDATE scoped_support_results SET result='{}' WHERE run_id=$1",[x.runId]);
+    await expect(publishReport(pool,c.publication)).rejects.toThrow("stored_support_result_mismatch");
+    expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
   }));
 });

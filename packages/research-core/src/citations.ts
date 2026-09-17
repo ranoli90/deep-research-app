@@ -37,6 +37,8 @@ export function validateMaterialCitations(args: {
   runPassageIds?: Set<string>;
   currentVersionBySource?: Map<string, string>;
   derivationContext?: ReportDerivationContext;
+  scopedApprovals?: ReadonlyMap<string,{claimId:string;text:string;passageIds:string[]}>;
+  rejectedScopedClaims?: ReadonlySet<string>;
 }): CitationValidation {
   const known = new Set(args.passages.map((p) => p.id));
   const owned = args.runPassageIds ?? known;
@@ -85,6 +87,7 @@ export function validateMaterialCitations(args: {
     for (const claimId of block.claimIds) {
       const claim = claimById.get(claimId);
       if (!claim) { missingClaims.push(claimId); continue; }
+      if(args.rejectedScopedClaims?.has(claim.id)) unsupported.push({claimId,passageId:"",decision:"unsupported"});
       if (claim.derivation) {
         for (const pid of claim.passageIds) checkBinding(pid);
         if (!args.derivationContext || deriveReportText(claim.derivation, args.derivationContext, claim.passageIds) !== claim.text ||
@@ -107,6 +110,9 @@ export function validateMaterialCitations(args: {
         unsupported.push({ claimId, passageId: "", decision: "unsupported" });
         continue;
       }
+      const scoped=args.scopedApprovals?.get(claim.id);
+      const scopedMatches=scoped?.claimId===claim.id && scoped.text===claim.text &&
+        JSON.stringify([...new Set(scoped.passageIds)].sort())===JSON.stringify([...new Set(claim.passageIds)].sort());
       for (const pid of claim.passageIds) {
         checkBinding(pid);
         const passage = passageById.get(pid);
@@ -114,6 +120,7 @@ export function validateMaterialCitations(args: {
           unknownIds.push(pid);
           continue;
         }
+        if(scopedMatches) continue;
         const decision = passageSupportsClaim(passage.exactText, claim.text);
         if (decision === "unsupported" || decision === "context-only" || decision === "contradicts") {
           unsupported.push({ claimId, passageId: pid, decision });

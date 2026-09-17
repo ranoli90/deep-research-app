@@ -5,6 +5,7 @@ import pg from "pg";
 import { currentConsent, lockActiveAccount } from "./access.js";
 import { getBrief, getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
+import { scopedPublicationClaims } from "./scoped-publication.js";
 import { persistCheckedClaims } from "./claim-support.js";
 import { loadEvidence } from "./evidence.js";
 
@@ -52,10 +53,11 @@ export async function publishReport(
     passages: evidence.passages.map((p) => ({ id: p.id, sourceId: p.source_id, sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" })),
     sources: evidence.sources.map((s) => ({ id: s.id, title: s.title, locator: s.canonical_locator,
       accessLevel: s.access_level, originCluster: s.origin_cluster ?? undefined, language: s.language ?? undefined })) };
+  const scoped=await scopedPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
   const problems = validateMaterialCitations({
     blocks: args.report.blocks, claims: args.claims, passages,
     runPassageIds: new Set(passages.map((p) => p.id)),
-    derivationContext,
+    derivationContext,scopedApprovals:scoped.approved,rejectedScopedClaims:scoped.rejected,
   });
   const storedById = new Map(passages.map((p) => [p.id, p]));
   const alteredEvidence = args.passages.some((p) => {
@@ -81,7 +83,7 @@ export async function publishReport(
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],
   );
   if (reason !== "ok") return { accepted: false, reason };
-  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext });
+  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext, scopedApprovals:scoped.approved });
   const reportId = args.report.reportId;
   const nextEpoch = run.completion_epoch + 1;
   await db.query(
