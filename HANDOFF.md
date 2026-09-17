@@ -1,6 +1,15 @@
 # Builder handoff
 
-Working tree: `main` after the Phase 2 adaptive-controller pass. P0 is **not** fully verified: iOS P0-N is blocked.
+## Active V6 checkpoint
+W01–W09 implementation is unfinished on base `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Read the current STATUS introduction and `verification/v6/RESULTS.json` before relying on historical passes below. Staged input: `/tmp/deep-v6-staging`. User ZIPs are preserved untracked.
+
+The safety/extraction checkpoint is recorded in STATUS and `verification/v6/RESULTS.json`. Focused PostgreSQL/transport tests: 23/23; new ingestion storage test: 1/1; real isolated parser tests: 3/3; `pnpm verify`: pass. Latest broad integration remains **62 failed / 69 passed (131 total)**, including extraction storage additions. The stricter publication gate rejects unmapped legacy composer blocks. Repair real claim/derivation bindings and lease recovery paths; do not exempt fixtures or weaken assertions.
+
+Next executable task: implement authoritative persisted claim revisions/support results and safe report composition, starting with extra unmapped assertions inside a block that has one valid claim. Then restore the complete API/worker regressions, complete scoped budgets/deletion/identity, actual binary documents, general gateway and typed actions, corrections/reuse and mobile/evaluation. The current extraction runtime is locally installed at `/tmp/deep-extraction-experiment/venv`; use the committed hash lock for a durable installation. Public saved bytes are temporary at `/tmp/deep-extraction-experiment/corpus`; only hashes, limited references and measurements are committed. No current paid allowance has been established. W10 remains separately gated.
+
+Working tree: `codex/v6-evidence-milestone`, based on the Phase 2 adaptive-controller commit. P0 is **not** fully verified: iOS P0-N is blocked.
+
+The legacy review-package validator also fails on `implemented_application_command` registry statuses (18 errors); this is recorded separately from the passing application checks. Its schema reconciliation is still open.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.

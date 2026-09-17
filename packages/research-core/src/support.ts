@@ -27,10 +27,7 @@ const STOP = new Set([
 ]);
 
 export function tokenize(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9.\- ]+/g, " ")
-    .split(/\s+/)
+  return (text.toLowerCase().match(/[\p{L}\p{N}]+(?:[.\-][\p{L}\p{N}]+)*/gu) ?? [])
     .filter((w) => w.length > 2 && !STOP.has(w));
 }
 
@@ -40,6 +37,15 @@ export function tokenize(text: string): string[] {
 export function passageSupportsClaim(passageText: string, claimText: string): SupportDecision {
   const p = passageText.toLowerCase();
   const c = claimText.toLowerCase();
+  if (p.trim() === c.trim() && c.trim()) return "supports";
+
+  const negated = /\b(?:not|never|no|cannot|can't|doesn't|isn't|unsupported)\b/;
+  for (const sentence of passageText.split(/(?<=[.!?])\s+(?=\p{Lu})/u)) {
+    if (negated.test(sentence.toLowerCase()) === negated.test(c)) continue;
+    const content = tokenize(claimText).filter((t) => !negated.test(t));
+    const overlap = content.filter((t) => tokenize(sentence).includes(t)).length;
+    if (content.length && overlap / content.length >= 0.5) return "contradicts";
+  }
 
   if (/\bdoes not exist\b|\bno such (product|feature)\b|\bnot offered\b|\bno evidence that\b/.test(p) &&
       /\bexists\b|\bincludes\b|\boffers\b/.test(c) &&
@@ -48,11 +54,9 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   }
 
   const claimNums = claimText.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  const passageNums = new Set(passageText.match(/-?\d+(?:\.\d+)?/g) ?? []);
   for (const n of claimNums) {
-    if (n.length >= 2 && !p.includes(n)) {
-      const entityHit = tokenize(claimText).some((t) => p.includes(t));
-      if (entityHit) return "unsupported";
-    }
+    if (!passageNums.has(n)) return "unsupported";
   }
 
   const claimTokens = tokenize(claimText);

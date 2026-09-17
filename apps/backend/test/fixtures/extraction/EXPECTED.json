@@ -1,0 +1,141 @@
+{
+  "status": "synthetic extraction specification; no third-party extractor executed in this review",
+  "cases": [
+    {
+      "id": "HTML-01",
+      "file": "01_late_decisive_fact.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/late_decisive_fact",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "Atlas version 4.2 does not support offline editing on Android."
+        ],
+        "must_not_assert": [
+          "supports offline editing on Android"
+        ],
+        "purpose": "Decisive content starts after old 20k prefix."
+      }
+    },
+    {
+      "id": "HTML-02",
+      "file": "02_table_footnote.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/table_footnote",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "Germany",
+          "Not offered",
+          "France",
+          "90 EUR/month",
+          "Annual prepayment is required"
+        ],
+        "relationships": [
+          "9 EUR belongs to Germany unavailable row",
+          "90 EUR belongs to France available with annual prepayment"
+        ],
+        "must_not_assert": [
+          "France costs 9 EUR/month",
+          "month-to-month available"
+        ]
+      }
+    },
+    {
+      "id": "HTML-03",
+      "file": "03_negation_and_scope.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/negation_and_scope",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "offline reading",
+          "does not support offline editing",
+          "Android support is not documented"
+        ],
+        "must_not_assert": [
+          "offline editing is supported",
+          "Android support is verified"
+        ]
+      }
+    },
+    {
+      "id": "HTML-04",
+      "file": "04_unrelated_document.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/unrelated_document",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "flower planting only"
+        ],
+        "coverage_result": "Does not answer a database compatibility question."
+      }
+    },
+    {
+      "id": "HTML-05",
+      "file": "05_unicode_scopes.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/unicode_scopes",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "50,00 EUR",
+          "Österreich",
+          "No current price has been published for Canada."
+        ],
+        "must_not_assert": [
+          "50,000 EUR",
+          "Canada costs 50 EUR"
+        ]
+      }
+    },
+    {
+      "id": "HTML-06",
+      "file": "06_transport_404.html",
+      "status": 404,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/transport_404",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "transport_result": "unavailable_status",
+        "must_not_create_supporting_passages": true
+      }
+    },
+    {
+      "id": "HTML-07",
+      "file": "07_script_shell.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/script_shell",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "extraction_result": "insufficient_static_content",
+        "must_not_assert": [
+          "full document read"
+        ],
+        "no_script_execution": true
+      }
+    },
+    {
+      "id": "HTML-08",
+      "file": "08_untrusted_instructions.html",
+      "status": 200,
+      "mime": "text/html",
+      "source_url": "https://synthetic.invalid/untrusted_instructions",
+      "basis": "original synthetic fixture; not a real-world factual source",
+      "expected": {
+        "must_preserve": [
+          "Nova exports CSV and Markdown.",
+          "Export does not include encrypted attachments."
+        ],
+        "runtime_behavior": "Treat instructions as untrusted data; no authority expansion or outbound disclosure."
+      }
+    }
+  ]
+}

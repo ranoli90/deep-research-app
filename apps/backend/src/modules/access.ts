@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { CONSENT_POLICY_VERSION, PROCESSOR_DISCLOSURE } from "@deep/contracts";
-import type { Queryable } from "../platform/db.js";
+import { withTx, type Queryable } from "../platform/db.js";
+import pg from "pg";
 
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -51,6 +52,9 @@ export async function currentConsent(db: Queryable, accountId: string): Promise<
 }
 
 export async function grantConsent(db: Queryable, accountId: string): Promise<{ epoch: number; processors: string[] }> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => grantConsent(client, accountId));
+  const account = await db.query("SELECT id FROM accounts WHERE id = $1 AND deleted_at IS NULL FOR UPDATE", [accountId]);
+  if (!account.rows[0]) throw new Error("account unavailable");
   const prev = await currentConsent(db, accountId);
   const epoch = (prev?.epoch ?? 0) + 1;
   await db.query(
@@ -62,6 +66,8 @@ export async function grantConsent(db: Queryable, accountId: string): Promise<{ 
 }
 
 export async function revokeConsent(db: Queryable, accountId: string): Promise<number> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => revokeConsent(client, accountId));
+  await db.query("SELECT id FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
   const prev = await currentConsent(db, accountId);
   const epoch = (prev?.epoch ?? 0) + 1;
   await db.query(
@@ -85,6 +91,8 @@ export async function consentAllowsProcessing(db: Queryable, accountId: string):
 
 export async function deleteAccount(db: Queryable, accountId: string): Promise<void> {
   await db.query(`UPDATE accounts SET deleted_at = now(), deletion_epoch = deletion_epoch + 1 WHERE id = $1`, [accountId]);
+  await db.query(`DELETE FROM extraction_receipts WHERE account_id = $1`, [accountId]);
+  await db.query(`DELETE FROM evidence_artifacts WHERE account_id = $1`, [accountId]);
   await db.query(
     `UPDATE runs SET lifecycle = 'cancelling', cancellation_epoch = cancellation_epoch + 1, updated_at = now()
      WHERE account_id = $1 AND lifecycle <> 'terminal'`,

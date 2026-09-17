@@ -166,5 +166,13 @@
     "network": true,
     "paid": true,
     "implementation": "scripts/p0-live-check.ts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "actual offline parser in Linux bubblewrap; Python runtime installed from extraction/requirements.lock; no network or paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.extraction.config.ts, apps/backend/test/html.extraction.test.ts"
   }
 ]

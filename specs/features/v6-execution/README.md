@@ -1,0 +1,13 @@
+# V6 execution repairs (W01–W03)
+
+Base: `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Status: implementation in progress; results belong to `verification/v6/RESULTS.json`.
+
+Outcome: an accepted research run survives the API/queue crash gap, only one attempt owns a live lease, and unsafe publication fails closed. Requirements: V6-F01/F09/F10/F11/F14/F15/F19, A01–A23 and A43–A48 as applicable. Existing acceptance requirements remain.
+
+Impact checklist: no new framework/service; W04 adds a pinned offline Python extraction dependency (Trafilatura/lxml), exact artifact lock and isolated process per ADR-009; additive PostgreSQL migrations 006–008 for durable dispatch, run request digest, logical provider attempts, bounded evidence byte artifacts and extraction receipts; queue and run modules retain ownership; no public response schema change; no new model route/prompt or spending authorization. Dispatch payload contains only run identity, never query/private bytes. Existing nonterminal runs need idempotent outbox backfill. Migration must not rewrite earlier migration files. Local test database only; hosted migration remains gated.
+
+Verification: production publication regressions with controls, actual multiple-connection PostgreSQL lease/admission tests, dispatcher interruption/replay tests and existing nonbillable suites. Tests must not hold a transaction during queue/network calls. Record failures rather than broadening accepted errors.
+
+Rollback: disable issuance/dispatch or new strategy; retain accepted outbox records, budget reservations, rejection gates and deletion tombstones. Restore execution only after reconciliation; never blindly retry unknown provider attempts. Do not drop durable safety data to roll back application code.
+
+Open: all-worker mutation fences/heartbeat, complete scoped provider accounting, atomic owner/consent validation, full semantic report coverage, and migration rehearsal. File existence is not completion.

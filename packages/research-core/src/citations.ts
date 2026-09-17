@@ -8,6 +8,8 @@ export type CitationValidation = {
   wrongVersion: { citationId: string; passageVersionId: string; expectedHint: string }[];
   unsupported: { claimId: string; passageId: string; decision: SupportDecision }[];
   overstrong: { claimId: string; reason: string }[];
+  missingClaims: string[];
+  unmappedBlocks: string[];
 };
 
 /**
@@ -31,37 +33,45 @@ export function validateMaterialCitations(args: {
   const wrongVersion: CitationValidation["wrongVersion"] = [];
   const unsupported: CitationValidation["unsupported"] = [];
   const overstrong: CitationValidation["overstrong"] = [];
+  const missingClaims: string[] = [];
+  const unmappedBlocks: string[] = [];
 
-  for (const block of args.blocks) {
-    for (const id of block.citationIds) {
-      if (!known.has(id)) unknownIds.push(id);
-      else if (!owned.has(id)) unownedIds.push(id);
-      const passage = passageById.get(id);
-      if (passage && args.currentVersionBySource) {
-        const current = args.currentVersionBySource.get(passage.sourceId);
-        if (current && current !== passage.sourceVersionId) {
-          wrongVersion.push({ citationId: id, passageVersionId: passage.sourceVersionId, expectedHint: current });
-        }
-      }
+  function checkBinding(id: string) {
+    if (!known.has(id)) unknownIds.push(id);
+    else if (!owned.has(id)) unownedIds.push(id);
+    const passage = passageById.get(id);
+    const current = passage && args.currentVersionBySource?.get(passage.sourceId);
+    if (passage && current && current !== passage.sourceVersionId) {
+      wrongVersion.push({ citationId: id, passageVersionId: passage.sourceVersionId, expectedHint: current });
     }
   }
 
   for (const block of args.blocks) {
+    for (const id of block.citationIds) {
+      checkBinding(id);
+    }
+  }
+
+  for (const block of args.blocks) {
+    if (block.kind !== "heading" && block.kind !== "caveat" && block.text.trim() && !block.claimIds.length) {
+      unmappedBlocks.push(block.id);
+    }
     for (const claimId of block.claimIds) {
       const claim = claimById.get(claimId);
-      if (!claim) continue;
+      if (!claim) { missingClaims.push(claimId); continue; }
       if (claim.passageIds.length === 0 && (claim.type === "external-fact" || claim.type === "conditional-conclusion")) {
         unsupported.push({ claimId, passageId: "", decision: "unsupported" });
         continue;
       }
       for (const pid of claim.passageIds) {
+        checkBinding(pid);
         const passage = passageById.get(pid);
         if (!passage) {
           unknownIds.push(pid);
           continue;
         }
         const decision = passageSupportsClaim(passage.exactText, claim.text);
-        if (decision === "unsupported" || decision === "context-only") {
+        if (decision === "unsupported" || decision === "context-only" || decision === "contradicts") {
           unsupported.push({ claimId, passageId: pid, decision });
         }
         if (decision === "qualifies") {
@@ -77,6 +87,8 @@ export function validateMaterialCitations(args: {
     wrongVersion,
     unsupported,
     overstrong,
+    missingClaims: [...new Set(missingClaims)],
+    unmappedBlocks: [...new Set(unmappedBlocks)],
   };
 }
 
@@ -85,6 +97,9 @@ export function citationValidationFails(v: CitationValidation): boolean {
     v.unknownIds.length > 0 ||
     v.unownedIds.length > 0 ||
     v.wrongVersion.length > 0 ||
-    v.unsupported.length > 0
+    v.unsupported.length > 0 ||
+    v.overstrong.length > 0 ||
+    v.missingClaims.length > 0 ||
+    v.unmappedBlocks.length > 0
   );
 }

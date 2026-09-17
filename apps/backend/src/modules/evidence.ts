@@ -1,6 +1,44 @@
 import { createHash } from "node:crypto";
 import type { AccessLevel } from "@deep/contracts";
 import type { Queryable } from "../platform/db.js";
+import type { ExtractedDocument } from "../adapters/extraction/offline.js";
+
+export type DownloadReceipt = {
+  requestedUrl: string; finalUrl: string; redirectChain: string[];
+  status: number | null; mime: string; retrievedAt: string;
+  outcome: "successful_body" | "unavailable_status" | "fetch_unavailable" | "extraction_unavailable";
+};
+
+/** Caller owns the account/run transaction and fence; failed retrieval never becomes a passage. */
+export async function insertExtractedVersion(db: Queryable, args: {
+  accountId: string; runId: string; sourceId: string; receipt: DownloadReceipt;
+  bytes?: Buffer; extraction?: ExtractedDocument;
+}): Promise<string> {
+  const owned = await db.query("SELECT id FROM sources WHERE id=$1 AND account_id=$2 AND run_id=$3", [args.sourceId, args.accountId, args.runId]);
+  if (!owned.rows.length) throw new Error("source_owner_mismatch");
+  const digest = args.bytes ? createHash("sha256").update(args.bytes).digest("hex") : null;
+  if (args.extraction && args.extraction.digest !== digest) throw new Error("extraction_digest_mismatch");
+  const readable = args.receipt.outcome === "successful_body" && args.extraction?.status !== "unavailable" && Boolean(args.extraction?.blocks.length);
+  const versionId = crypto.randomUUID();
+  let artifactId: string | null = null;
+  if (args.bytes) {
+    artifactId = crypto.randomUUID();
+    await db.query("INSERT INTO evidence_artifacts(id,account_id,run_id,body,digest) VALUES($1,$2,$3,$4,$5)", [artifactId, args.accountId, args.runId, args.bytes, digest]);
+  }
+  await db.query(`INSERT INTO source_versions(id,source_id,account_id,final_locator,content_hash,mime,access_level,text_coverage,quality_warnings)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [versionId,args.sourceId,args.accountId,args.receipt.finalUrl,digest,args.receipt.mime,
+    readable ? "partial-text" : "blocked", readable ? "selected_extracted_blocks" : "unavailable", JSON.stringify(args.extraction?.warnings ?? [args.receipt.outcome])]);
+  await db.query(`INSERT INTO extraction_receipts(account_id,run_id,source_version_id,artifact_id,transport,extraction) VALUES($1,$2,$3,$4,$5,$6)`,
+    [args.accountId,args.runId,versionId,artifactId,JSON.stringify({ ...args.receipt, bytes: args.bytes?.length ?? 0, digest }),
+      JSON.stringify(args.extraction ?? { status: "unavailable", blocks: [], warnings: [args.receipt.outcome] })]);
+  if (readable && args.extraction) for (const block of args.extraction.blocks) {
+    await db.query(`INSERT INTO passages(id,source_version_id,account_id,run_id,exact_text,locator,extraction_method,content_hash)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, [crypto.randomUUID(),versionId,args.accountId,args.runId,block.text,
+      JSON.stringify({ kind: block.kind, block: block.locator, rows: block.rows, normalization: "whitespace-v1" }),
+      args.extraction.version,createHash("sha256").update(block.text).digest("hex")]);
+  }
+  return versionId;
+}
 
 export async function insertSource(
   db: Queryable,

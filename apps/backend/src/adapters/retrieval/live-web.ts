@@ -4,6 +4,7 @@ import type { AppConfig } from "../../platform/config.js";
 import { providerFailureState } from "../model/outcomes.js";
 import { parseUrlCitations } from "../model/parse.js";
 import type { SearchHit } from "./fixture.js";
+import { costToMicro } from "../model/usage.js";
 
 export type LiveSearchResult = {
   hits: SearchHit[];
@@ -12,6 +13,9 @@ export type LiveSearchResult = {
     route: string;
     requestDigest: string;
     state: "issued" | "confirmed" | "failed" | "outcome-unknown";
+    providerId?: string;
+    actualMicro?: number;
+    rawCost?: string;
   };
 };
 
@@ -19,10 +23,11 @@ export type LiveSearchResult = {
  * Live discovery via OpenRouter web plugin. Hits are snippets/URLs only.
  * Full text requires a later safeFetch of http(s) locators. Isolated from fixture catalog.
  */
-export async function liveWebSearch(query: string, config: AppConfig): Promise<LiveSearchResult> {
+export async function liveWebSearch(query: string, config: AppConfig, signal?: AbortSignal): Promise<LiveSearchResult> {
   const correlationId = crypto.randomUUID();
   const body = {
     model: config.openRouterModel,
+    max_tokens: 1024,
     plugins: [{ id: "web", max_results: 3 }],
     messages: [
       {
@@ -49,12 +54,12 @@ export async function liveWebSearch(query: string, config: AppConfig): Promise<L
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(45_000),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45_000)]) : AbortSignal.timeout(45_000),
     });
     if (!res.ok) {
       return { hits: [], receipt: { ...receipt, state: "failed" } };
     }
-    const json = (await res.json()) as { choices?: { message?: Parameters<typeof parseUrlCitations>[0] }[] };
+    const json = (await res.json()) as { id?: unknown; usage?: { cost?: unknown }; choices?: { message?: Parameters<typeof parseUrlCitations>[0] }[] };
     const cites = parseUrlCitations(json.choices?.[0]?.message ?? {});
     const hits: SearchHit[] = cites.map((c) => ({
       locator: c.url,
@@ -65,7 +70,10 @@ export async function liveWebSearch(query: string, config: AppConfig): Promise<L
       family: safeHost(c.url),
       sourceType: "web",
     }));
-    return { hits, receipt: { ...receipt, state: "confirmed" } };
+    const actualMicro = costToMicro(json.usage?.cost);
+    return { hits, receipt: { ...receipt, state: "confirmed", actualMicro,
+      providerId: typeof json.id === "string" ? json.id : undefined,
+      rawCost: actualMicro === undefined ? undefined : String(json.usage?.cost) } };
   } catch (err) {
     return { hits: [], receipt: { ...receipt, state: providerFailureState(err as Error) } };
   }

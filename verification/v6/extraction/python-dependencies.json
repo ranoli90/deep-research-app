@@ -1,0 +1,216 @@
+{
+  "scope": "installed exact wheel metadata and license-file hashes; not a comprehensive security or legal audit",
+  "dependencies": [
+    {
+      "name": "babel",
+      "version": "2.18.0",
+      "license": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "path": "babel-2.18.0.dist-info/licenses/LICENSE",
+          "sha256": "86bad5758c7859ba06251f8f12eee885eca31369923dfb2b87a7c13c3634d870"
+        },
+        {
+          "path": "babel/locale-data/LICENSE.unicode",
+          "sha256": "b4c0ae8ef04f7059f96ce5bbe0467f9fe6f6d81bbe13517701dfeb961fb4d0b6"
+        }
+      ]
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        {
+          "path": "certifi-2026.7.22.dist-info/licenses/LICENSE",
+          "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+        }
+      ]
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.1",
+      "license": "MIT",
+      "licenseFiles": [
+        {
+          "path": "charset_normalizer-3.5.1.dist-info/licenses/LICENSE",
+          "sha256": "6d0d41bfe170ac6c7dc248c9a63e254d0fb45a60d50a8257d0af92c6e249b887"
+        }
+      ]
+    },
+    {
+      "name": "courlan",
+      "version": "1.4.0",
+      "license": "Apache-2.0",
+      "licenseFiles": [
+        {
+          "path": "courlan-1.4.0.dist-info/licenses/LICENSE",
+          "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+        }
+      ]
+    },
+    {
+      "name": "dateparser",
+      "version": "1.4.3",
+      "license": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "path": "dateparser-1.4.3.dist-info/licenses/AUTHORS.rst",
+          "sha256": "c7261e4f6006295aec1d8c683b180313c5e648aed536d24da85cf0db924b1368"
+        },
+        {
+          "path": "dateparser-1.4.3.dist-info/licenses/LICENSE",
+          "sha256": "b75db655bb7a42a8e8561d0db873158bb9dab9d468af244000f02d7dd83e97f4"
+        }
+      ]
+    },
+    {
+      "name": "htmldate",
+      "version": "1.10.0",
+      "license": "Apache-2.0",
+      "licenseFiles": [
+        {
+          "path": "htmldate-1.10.0.dist-info/licenses/LICENSE",
+          "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+        }
+      ]
+    },
+    {
+      "name": "jusText",
+      "version": "3.0.2",
+      "license": "The BSD 2-Clause License",
+      "licenseFiles": [
+        {
+          "path": "justext-3.0.2.dist-info/LICENSE.rst",
+          "sha256": "d71c0b2234fd22e9f295986ed8f22cf425b7a4c269248d214eb8bda2a32e7179"
+        }
+      ]
+    },
+    {
+      "name": "lxml",
+      "version": "6.1.3",
+      "license": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "path": "lxml-6.1.3.dist-info/licenses/LICENSE.txt",
+          "sha256": "8fc2b568133516e46845d2147917adeee1648e70ae9ab5ed6c5417afef4ce855"
+        },
+        {
+          "path": "lxml-6.1.3.dist-info/licenses/LICENSES.txt",
+          "sha256": "388fa99f3bde4447cd5a4cbb114037be026854db6cfe89e112691c1d8abdcf3c"
+        }
+      ]
+    },
+    {
+      "name": "lxml_html_clean",
+      "version": "0.4.5",
+      "license": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "path": "lxml_html_clean-0.4.5.dist-info/licenses/LICENSE.txt",
+          "sha256": "69edb445c1335a8312d4c09271847e9956d84f0d9f724d125340cc3fad767b2a"
+        }
+      ]
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "license": "Dual License",
+      "licenseFiles": [
+        {
+          "path": "python_dateutil-2.9.0.post0.dist-info/LICENSE",
+          "sha256": "ba00f51a0d92823b5a1cde27d8b5b9d2321e67ed8da9bc163eff96d5e17e577e"
+        }
+      ]
+    },
+    {
+      "name": "pytz",
+      "version": "2026.3.post1",
+      "license": "MIT",
+      "licenseFiles": [
+        {
+          "path": "pytz-2026.3.post1.dist-info/LICENSE.txt",
+          "sha256": "be8b1a37ebe26c592a90f6c0eb33103a7f383ce2f4d7498c0af9a526990a07b8"
+        }
+      ]
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.10",
+      "license": "Apache-2.0 AND CNRI-Python",
+      "licenseFiles": [
+        {
+          "path": "regex-2026.9.10.dist-info/licenses/LICENSE.txt",
+          "sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d"
+        }
+      ]
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "license": "MIT",
+      "licenseFiles": [
+        {
+          "path": "six-1.17.0.dist-info/LICENSE",
+          "sha256": "4375ba20e2b9c6c4e7cad2940a628fd90e95cc3d50ee92aae755715d8ba1fbd0"
+        }
+      ]
+    },
+    {
+      "name": "tld",
+      "version": "0.13.2",
+      "license": "MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later",
+      "licenseFiles": [
+        {
+          "path": "tld-0.13.2.dist-info/licenses/LICENSE.rst",
+          "sha256": "38e859c063ef83eb1c68d28ab67ffad56e056398c453e4c2968d56de2ea8e777"
+        },
+        {
+          "path": "tld-0.13.2.dist-info/licenses/LICENSE_GPL2.0.txt",
+          "sha256": "df0f0b30b87a86746921a95164387878646d6aa0683a7b211fa8a40e114d6111"
+        },
+        {
+          "path": "tld-0.13.2.dist-info/licenses/LICENSE_LGPL_2.1.txt",
+          "sha256": "96131738ed6ddc1cde3e1482a125a227b5a5b4988131b0b4bc275cfe373664d8"
+        },
+        {
+          "path": "tld-0.13.2.dist-info/licenses/LICENSE_MPL_1.1.txt",
+          "sha256": "3ea07a3dffe4f0b5ef7a92a3f474198dfdf7daca596c8bdbbcf184ae20443a8c"
+        }
+      ]
+    },
+    {
+      "name": "trafilatura",
+      "version": "2.2.0",
+      "license": "Apache-2.0",
+      "licenseFiles": [
+        {
+          "path": "trafilatura-2.2.0.dist-info/licenses/LICENSE",
+          "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+        }
+      ]
+    },
+    {
+      "name": "tzlocal",
+      "version": "5.4.4",
+      "license": "MIT",
+      "licenseFiles": [
+        {
+          "path": "tzlocal-5.4.4.dist-info/licenses/LICENSE.txt",
+          "sha256": "d99ab209aeb16aad2c25c90ffd83c1a981e290ffff76a420a2ab03e03f041b8c"
+        }
+      ]
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "license": "MIT",
+      "licenseFiles": [
+        {
+          "path": "urllib3-2.8.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686"
+        }
+      ]
+    }
+  ]
+}

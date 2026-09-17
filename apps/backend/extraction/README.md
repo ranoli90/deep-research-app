@@ -1,0 +1,15 @@
+# Offline extraction runtime
+
+W04 implementation checkpoint, Linux/Python 3.12. The API/worker remains TypeScript. HTML extraction uses **Trafilatura 2.2.0 only**, with lxml table structure preservation. No model assets or OCR are installed. Digital PDF remains unsupported at this checkpoint.
+
+Create a dedicated virtual environment outside the application source and install `requirements.lock` using `python -m pip install --require-hashes --only-binary=:all: -r apps/backend/extraction/requirements.lock`. This lock records the exact Linux x86_64 artifacts used in the experiment; other platforms need a separately reviewed artifact lock. Configure the worker's `EXTRACTION_RUNTIME` to the absolute virtual-environment directory. Dependency installation requires network access; extraction and its tests do not.
+
+The launcher requires `/usr/bin/bwrap` and unprivileged Linux namespaces. It mounts only system runtime directories, this parser and the dedicated virtual environment; clears the environment; creates a private network namespace and temporary filesystem; and applies CPU, address-space, file-size, input/output-size and wall-clock limits. Parser startup/isolation failure returns unavailable. It never falls back to unsandboxed parsing, fixture text or raw HTML. Do not place credentials or project files in the virtual environment.
+
+Run `EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm --filter @deep/backend test:extraction`. This separately registered check runs the actual subprocess and supplied synthetic bytes. `pnpm verify` remains independent of Python installation. Persistence and transport checks are in the PostgreSQL integration suite; these do not pretend to be parser tests.
+
+The byte digest, normalized blocks, original table cells/spans, extraction version and transport receipt are persisted under the owning account/run. HTML is always partial: main-content extraction may omit regions; tables retain their own order rather than an invented global reading order. Network failures and HTTP error bodies produce no supporting passages. The current transport outcome taxonomy remains coarse for DNS/deadline failures. Challenge/login detection, arbitrary footnote association, PDF parsing and native binary upload remain open W04 work.
+
+Dependency metadata, exact license-file hashes and limited comparison results live in `verification/v6/extraction/`. Apache-2.0 notices and transitive licenses must accompany distributed runtime packages. This inspection is not a complete vulnerability audit; run an approved vulnerability check before hosted use. No Python runtime has been deployed.
+
+Rollback: disable live retrieval or unset this runtime; retain evidence/deletion gates and immutable historical locators. Do not restore the raw-HTML-prefix fallback. Account deletion removes new raw byte objects and structured receipts as well as redacting passages; complete legacy derived-store deletion remains W03 work.

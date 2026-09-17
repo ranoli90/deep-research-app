@@ -60,6 +60,22 @@ function proposal(partial: Partial<PolicyDecision> = {}): PolicyDecision {
 }
 
 describe("admitProposedAction — shipped gates", () => {
+  it("V6-F15 rejects another run and either inconsistent revision basis", () => {
+    expect(admitProposedAction(state(), proposal({ runId: "00000000-0000-4000-8000-000000000099" })).rejectReason).toBe("wrong_run");
+    const s = state();
+    s.basis.briefRevision = 2;
+    expect(admitProposedAction(s, proposal()).rejectReason).toBe("stale_revision");
+    expect(admitProposedAction(s, proposal({ briefRevision: 2 })).rejectReason).toBe("stale_revision");
+  });
+  it("V6-F15 rejects an empty fetch locator", () => {
+    expect(admitProposedAction(state(), proposal({ type: "fetch", arguments: {} })).rejectReason).toBe("unsafe_url");
+  });
+  it("V6-F15 model flags cannot waive an untried blocking gap", () => {
+    const s = state({ gaps: [{ id: "gap", missingFact: "required compatibility", whyItCouldChangeAnswer: "eligibility",
+      importance: "blocking", suggestedQuery: "compatibility", latestOutcome: "untried" }] });
+    const d = admitProposedAction(s, proposal({ type: "synthesize", arguments: { allowOpenGaps: true, stopPolicy: "done" } }));
+    expect(d.rejectReason).toBe("blocking_gap_open");
+  });
   it("rejects hostile source proposals that expand tools, secrets, or spend", () => {
     const s = state();
     for (const bad of [

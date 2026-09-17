@@ -52,7 +52,8 @@ import {
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport } from "../modules/reports.js";
-import { enqueueRun } from "../adapters/queue.js";
+import { tryDispatchRun } from "../modules/run-dispatch.js";
+import { admitRun } from "../modules/run-admission.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -95,6 +96,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const body = (req.body ?? {}) as { grant?: boolean };
+    if (typeof body.grant !== "boolean") {
+      return reply.code(400).send(err("invalid_input", "An explicit consent choice is required.", crypto.randomUUID()));
+    }
     if (body.grant === false) {
       const epoch = await revokeConsent(pool, a.accountId);
       return { granted: false, consentEpoch: epoch, processors: PROCESSOR_DISCLOSURE };
@@ -134,64 +138,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));
     }
     const idempotencyKey = String(req.headers["idempotency-key"] ?? crypto.randomUUID());
-    const existing = await findRunByIdempotency(pool, a.accountId, idempotencyKey);
-    if (existing) {
-      const brief = await getBrief(pool, existing.brief_id);
-      if (brief.originalQuestion !== input.question || existing.route_mode !== input.routeMode) {
-        return reply.code(409).send(err("idempotency_conflict", "Idempotency key was reused with a different request.", correlationId));
-      }
-      return { runId: existing.id, reused: true, lifecycle: existing.lifecycle, phase: existing.phase };
-    }
-
     try {
-      const created = await withTx(pool, async (c) => {
-        const conversationId = input.conversationId ?? (await insertConversation(c, a.accountId, input.question));
-        const constraints = extractConstraints(input.question);
-        const briefId = crypto.randomUUID();
-        const brief = {
-          id: briefId,
-          conversationId,
-          originalQuestion: input.question,
-          language: "en",
-          attachmentIds: input.attachmentIds,
-          sourceRestrictions: [],
-          nonGoals: [],
-          constraints,
-          assumptions: [],
-          budgetPolicyId: "default",
-          consentPolicyVersion: CONSENT_POLICY_VERSION,
-          revision: 1,
-          outputPreferences: input.outputPreferences ?? inferOutputPreference(input.question),
-        };
-        await insertBrief(c, brief, a.accountId);
-        const runId = crypto.randomUUID();
-        await insertRun(c, {
-          id: runId,
-          accountId: a.accountId,
-          conversationId,
-          briefId,
-          parentRunId: input.parentRunId,
-          routeMode: input.routeMode,
-          briefRevision: 1,
-          consentEpoch: consent.epoch,
-          idempotencyKey,
-          budgetMicro: DEFAULT_RUN_BUDGET_MICRO,
-        });
-        await reserveAllowance(c, a.accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
-        await emitEvent(c, {
-          runId,
-          accountId: a.accountId,
-          type: "accepted",
-          summary: "Research accepted. Closing the app will not stop the server job.",
-          phase: "preparing",
-        });
-        return { runId, brief };
-      });
-      await enqueueRun(boss, created.runId);
+      const created = await admitRun(pool, a.accountId, idempotencyKey, input);
+      await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {
         runId: created.runId,
-        reused: false,
+        reused: created.reused,
         lifecycle: run?.lifecycle,
         phase: run?.phase,
         routeMode: input.routeMode,
@@ -200,9 +153,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       };
     } catch (e) {
       const code = (e as { code?: string }).code;
-      if (code === "23505") {
-        const again = await findRunByIdempotency(pool, a.accountId, idempotencyKey);
-        if (again) return { runId: again.id, reused: true, lifecycle: again.lifecycle, phase: again.phase };
+      if (code === "idempotency_conflict" || code === "stale_revision") {
+        return reply.code(409).send(err(code, "Request conflicts with the accepted revision or idempotency key.", correlationId));
+      }
+      if (code === "permission_denied" || code === "consent_required") {
+        return reply.code(403).send(err(code, "Run inputs are not authorized for this account and consent.", correlationId));
       }
       if (code === "allowance_exhausted") {
         return reply.code(402).send(err("allowance_exhausted", "Not enough remaining allowance.", correlationId));
@@ -313,16 +268,21 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         },
       ];
     }
-    await pool.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify(brief)]);
-    await pool.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
-    await emitEvent(pool, {
+    await withTx(pool, async (db) => {
+    await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify(brief)]);
+    await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
+    await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
+      ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
+        lease_until = NULL, next_attempt_at = now()`, [id]);
+    await emitEvent(db, {
       runId: id,
       accountId: a.accountId,
       type: "clarification_answered",
       summary: "Clarification recorded. Research will continue.",
       phase: "preparing",
     });
-    await enqueueRun(boss, id);
+    });
+    await tryDispatchRun(pool, boss, id);
     return { runId: id, lifecycle: "queued" };
   });
 
@@ -393,7 +353,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
       return { childId, brief, impact, fullRerun };
     });
-    await enqueueRun(boss, created.childId);
+    await tryDispatchRun(pool, boss, created.childId);
     return { runId: created.childId, parentRunId: id, impact: created.impact, fullRerun: created.fullRerun, briefRevision: created.brief.revision };
   });
 
@@ -445,7 +405,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
       return { childId, revision };
     });
-    await enqueueRun(boss, created.childId);
+    await tryDispatchRun(pool, boss, created.childId);
     return { runId: created.childId, parentRunId: id, briefRevision: created.revision, reopenedDiscovery: false };
   });
 

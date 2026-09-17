@@ -1,6 +1,8 @@
 # Research engine contracts — revision 3
 Owner role: research/backend lead. Status: normative design to implement; no runtime schemas or application tests executed. Reviewed: 2026-09-16.
 
+Implementation checkpoint 2026-09-17: the repository now has an application; historical design status above is not a test result. W02 adds durable dispatch, atomic admission/reservation and worker attempt fences; W04 replaces the controlled fetch prefix with offline extraction. `source_versions`, `extraction_receipts`, `evidence_artifacts` and immutable block locators retain transport/digest/extractor provenance. HTTP failure text cannot become passages. HTML reading is partial, not full-document comprehension. `apps/backend/extraction/README.md` records the selected runtime and remaining PDF/upload/coverage limitations. Exact evidence and failures are in `verification/v6/RESULTS.json`; the entire W01–W09 milestone remains incomplete.
+
 ## 1. Scope and trust
 These contracts refine the original evidence-first design. In a real repository, validated executable schemas become the source of truth and documentation is generated or checked against them. Do not maintain two independent schema definitions. Version external contracts and inspect installed clients before changing them.
 
@@ -59,6 +61,8 @@ Source escalation examples: comparison page -> vendor compatibility matrix; tech
 `Claim`: id, text, type (`external-fact|user-provided|calculation|inference|conditional-conclusion|limitation`), materiality, scope/date/units, supportStatus (`direct|inference|disputed|unverified`), evidenceLinks and validation records. `ClaimEvidence`: claimId, passageId, relation (`supports|contradicts|qualifies|context-only`), checkerVersion, decision and concise support explanation. Context-only cannot support the displayed assertion.
 
 Citation integrity has distinct checks: referenced ID exists; user owns access; locator resolves; actual passage supports scope of statement; consequential uncited claims are detected; inference does not overreach. A working link is not verification, and a supporting source can itself be wrong. Model agreement is not independent confirmation.
+
+V6 W01 implementation: the validator preserves missing-claim, unmapped-block, contradiction, qualification, ownership and source-version failures through the report wrapper. Publication reloads passages through their run/account/source ownership chain and rejects altered caller text/version. This is a deterministic safety layer, not a calibrated semantic verifier. Revision-scoped assessments, complete factual-clause coverage and legacy composer bindings remain open; passing the isolated regressions does not close those requirements. Rollback must keep these rejections and disable unsafe generation rather than restore false acceptance.
 
 ## 6. Calculations and contradictions
 `Calculation`: id, named formula/version, inputs with source/claim IDs, exact units/currency/time basis, transformation/rounding, output, error bounds when justified, executionReceipt. Use deterministic bounded arithmetic; no arbitrary model-generated shell/code in production. Missing inputs stay unknown. A sensitivity range may be more useful than invented precision.

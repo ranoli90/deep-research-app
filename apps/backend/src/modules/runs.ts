@@ -1,5 +1,6 @@
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
-import type { Queryable } from "../platform/db.js";
+import { withTx, type Queryable } from "../platform/db.js";
+import pg from "pg";
 
 export type RunRow = {
   id: string;
@@ -97,6 +98,7 @@ export async function insertRun(
     budgetMicro: number;
   },
 ): Promise<void> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => insertRun(client, row));
   await db.query(
     `INSERT INTO runs (
       id, account_id, conversation_id, brief_id, parent_run_id, route_mode, lifecycle, phase,
@@ -115,6 +117,7 @@ export async function insertRun(
       row.budgetMicro,
     ],
   );
+  await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1) ON CONFLICT DO NOTHING`, [row.id]);
 }
 
 export async function emitEvent(
@@ -145,22 +148,17 @@ export async function listEvents(db: Queryable, runId: string, after = 0): Promi
 }
 
 export async function claimLease(db: Queryable, runId: string, owner: string, leaseMs: number): Promise<number | null> {
-  const run = await getRun(db, runId);
+  if (db instanceof pg.Pool) return withTx(db, (client) => claimLease(client, runId, owner, leaseMs));
+  if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
+  const run = await getRun(db, runId, { forUpdate: true });
   if (!run || run.lifecycle === "terminal") return null;
   const existing = await db.query<{ fence: string; owner: string; expires_at: Date }>(
     `SELECT fence, owner, expires_at FROM run_leases WHERE run_id = $1`,
     [runId],
   );
   const held = existing.rows[0];
-  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner !== owner) {
+  if (held && new Date(held.expires_at).getTime() > Date.now()) {
     return null;
-  }
-  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner === owner) {
-    await db.query(
-      `UPDATE run_leases SET expires_at = now() + ($2 || ' milliseconds')::interval WHERE run_id = $1`,
-      [runId, String(leaseMs)],
-    );
-    return Number(held.fence);
   }
   const fence = run.worker_lease_fence + 1;
   await db.query(
@@ -178,6 +176,14 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
     [runId, fence, owner, String(leaseMs)],
   );
   return fence;
+}
+
+export async function renewLease(db: Queryable, runId: string, owner: string, fence: number, leaseMs: number): Promise<boolean> {
+  const result = await db.query(`UPDATE run_leases l SET expires_at = now() + ($4 * interval '1 millisecond')
+    FROM runs r WHERE l.run_id = $1 AND r.id = l.run_id AND l.owner = $2 AND l.fence = $3
+      AND r.worker_lease_fence = $3 AND r.lifecycle <> 'terminal' AND l.expires_at > now()`,
+    [runId, owner, fence, leaseMs]);
+  return result.rowCount === 1;
 }
 
 export async function checkpoint(db: Queryable, runId: string, evidenceRevision: number, phase: Phase, payload: unknown): Promise<void> {

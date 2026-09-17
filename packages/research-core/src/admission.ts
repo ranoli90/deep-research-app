@@ -25,6 +25,7 @@ export type AdmitOptions = {
 };
 
 function liveCallPermitted(gate: LiveSpendGate): boolean {
+  if (![gate.capMicro, gate.usedMicro, gate.estimatedMicro].every((v) => Number.isSafeInteger(v) && v >= 0)) return false;
   if (gate.capMicro <= 0) return false;
   return gate.capMicro - gate.usedMicro >= gate.estimatedMicro;
 }
@@ -117,7 +118,10 @@ export function admitProposedAction(
     });
   }
 
-  if (proposal.briefRevision !== state.brief.revision && proposal.briefRevision !== state.basis.briefRevision) {
+  if (proposal.runId !== state.runId) {
+    return asDecision(proposal, { type: "stop", rejectReason: "wrong_run", rationale: "proposal belongs to another run", arguments: { reason: "wrong_run" } });
+  }
+  if (proposal.briefRevision !== state.brief.revision || proposal.briefRevision !== state.basis.briefRevision) {
     return asDecision(proposal, {
       type: "stop",
       rejectReason: "stale_revision",
@@ -138,7 +142,7 @@ export function admitProposedAction(
 
   if (proposal.type === "fetch") {
     const locator = String(proposal.arguments.locator ?? "");
-    if (locator && !isAllowedLocator(locator)) {
+    if (!locator || !isAllowedLocator(locator)) {
       return asDecision(proposal, {
         type: "stop",
         rejectReason: "unsafe_url",
@@ -152,7 +156,10 @@ export function admitProposedAction(
     const blockingUntried = (state.gaps ?? []).find(
       (g) => g.importance === "blocking" && (g.latestOutcome === "untried" || !g.latestOutcome) && g.resolution !== "resolved" && g.suggestedQuery,
     );
-    if (blockingUntried && !proposal.arguments.stopPolicy && !proposal.arguments.allowOpenGaps) {
+    const explorationAvailable = canSpendExploration({ totalBudgetMicro: state.budgetMicro,
+      spentPlusReservedMicro: state.spentMicro, actionCostMicro: FIXTURE_SEARCH_COST_MICRO,
+      isFinishingAction: false, finishingCostMicro: FIXTURE_SYNTH_COST_MICRO });
+    if (blockingUntried && explorationAvailable) {
       return asDecision(proposal, {
         type: "stop",
         rejectReason: "blocking_gap_open",

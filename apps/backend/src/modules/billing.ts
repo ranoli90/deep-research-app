@@ -65,10 +65,7 @@ export async function recordIntent(
 
 /** Confirmed usage must not rewrite the historical estimate. */
 export async function reconcileIntent(db: Queryable, intentId: string, confirmedMicro: number): Promise<void> {
-  await db.query(`UPDATE provider_intents SET confirmed_micro = $2, state = 'confirmed' WHERE id = $1`, [
-    intentId,
-    confirmedMicro,
-  ]);
+  await updateIntentState(db, intentId, "confirmed", confirmedMicro);
 }
 
 /** After issuance, settle the intent without clearing the reservation on unknown/failed. */
@@ -79,12 +76,15 @@ export async function updateIntentState(
   confirmedMicro?: number,
 ): Promise<void> {
   if (confirmedMicro != null) {
-    await db.query(`UPDATE provider_intents SET state = $2, confirmed_micro = $3 WHERE id = $1`, [
+    if (!Number.isSafeInteger(confirmedMicro) || confirmedMicro < 0) throw new Error("invalid_provider_cost");
+    const result = await db.query(`UPDATE provider_intents SET state = $2, confirmed_micro = $3 WHERE id = $1
+      AND (confirmed_micro IS NULL OR confirmed_micro = $3)`, [
       intentId,
       state,
       confirmedMicro,
     ]);
+    if (result.rowCount !== 1) throw new Error("conflicting_or_missing_provider_receipt");
     return;
   }
-  await db.query(`UPDATE provider_intents SET state = $2 WHERE id = $1`, [intentId, state]);
+  await db.query(`UPDATE provider_intents SET state = $2 WHERE id = $1 AND confirmed_micro IS NULL`, [intentId, state]);
 }

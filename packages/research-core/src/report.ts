@@ -1,7 +1,7 @@
 import type { CanonicalReport, ReportBlock, TerminalOutcome } from "@deep/contracts";
 import { extractCandidates } from "./candidates.js";
 import { calculate, extractMonthlyPrice, tryCalculate } from "./calculate.js";
-import { validateMaterialCitations } from "./citations.js";
+import { validateMaterialCitations, type CitationValidation } from "./citations.js";
 import { detectContradictions } from "./contradictions.js";
 import { needsPrimaryEvidence } from "./gaps.js";
 import { PRIMARY_SOURCE_TYPES } from "./independence.js";
@@ -9,10 +9,7 @@ import { independentClusterCount } from "./policy.js";
 import { citationIdsExist } from "./support.js";
 import type { ControllerState, StoredClaim, StoredPassage } from "./types.js";
 
-export type CitationProblem = {
-  unknownIds: string[];
-  unsupported: { claimId: string; passageId: string; decision: string }[];
-};
+export type CitationProblem = CitationValidation;
 
 export function stripUnsafeMarkup(text: string): string {
   return text.replace(/<\/?script\b[^>]*>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "").replace(/javascript:/gi, "");
@@ -86,11 +83,7 @@ export function checkReportCitations(
   claims: StoredClaim[],
   passages: StoredPassage[],
 ): CitationProblem {
-  const extra = validateMaterialCitations({ blocks, claims, passages });
-  return {
-    unknownIds: extra.unknownIds,
-    unsupported: extra.unsupported.map((u) => ({ claimId: u.claimId, passageId: u.passageId, decision: u.decision })),
-  };
+  return validateMaterialCitations({ blocks, claims, passages });
 }
 
 export function conciseFromCanonical(blocks: ReportBlock[]): ReportBlock[] {

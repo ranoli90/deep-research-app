@@ -266,4 +266,17 @@ No live paid calls were made.
 
 
 
+# V6 checkpoint — 2026-09-17, W01/W02 in progress
 
+Base commit `03fab6b9d6a04ce9fdaeb48636383757213f7242`, Node 20.20.2, pnpm 9.15.9, Linux, local PostgreSQL test database at port 55432. Exact commands, exit codes, evidence classes and artifact hashes: `verification/v6/RESULTS.json`. Baseline verify passed; sandbox integration failed before tests (EPERM), approved local integration passed 107/107. New core regressions failed 8/11 before fixes (six supplied negative probes + two ownership/version probes); three controls passed. Intermediate core suite passed 63/63. Intermediate full integration failed 62/118 after stricter publication rejection. Focused PostgreSQL publication suite subsequently passed 11/11, including the repaired paraphrase control. The legacy composer still needs correct material bindings; broad suite is not declared passed. No paid calls or native/hosted tests executed. Standalone supplied Node-22 probe runner failed to load on Node 20; source hashes match and production modules were tested using installed Vitest instead.
+
+
+## 2026-09-17 15:10 UTC — V6 safety and isolated HTML extraction checkpoint
+
+Base remains `03fab6b9d6a04ce9fdaeb48636383757213f7242` plus recorded implementation diff. Added atomic run admission/dispatch, scoped provider attempt reservation and actual cost parsing, unique lease attempts/heartbeat/fenced writes, pinned safe HTTP transport, publication ownership/version guards and isolated Trafilatura extraction with original byte receipts. Additive migrations 006–008 were exercised only in local PostgreSQL. Exact commands/exits/log hashes/environment are in `verification/v6/RESULTS.json`.
+
+Results: focused safety integration 23/23; ingestion storage/deletion 1/1; parser initially 1 failed/2 passed (detached table footnote), repaired and 3/3 passed; `pnpm verify` exit 0. Full integration remains failed, 62 failed/68 passed at the earlier tree. All failures remain recorded. No regression assertions were removed; no production fixture exemption was introduced.
+
+Extraction experiment: Readability/structured DOM versus Trafilatura over identical synthetic and real bytes; selected Trafilatura after it retained a caveat omitted by Readability. Actual production adapter preserves 11/11 selected real-document spans; another download exceeded the transport bound and failed. Agent reference review only, no human adjudication. Dependency/license-file hashes and limited artifacts are committed; full third-party source pages remain temporary. No new paid provider cost, native execution or deployment. Milestone incomplete. Rollback disables issuance/reading and retains reservations, outboxes, privacy and publication gates; never restore unsafe fallback paths.
+
+Checkpoint broad rerun at 15:14 UTC: `pnpm test:integration` exit 1, 62 failed / 69 passed / 131 total. `python3 scripts/validate_review.py` exit 1, 18 unknown application command-status errors in the legacy review schema. Both failures retained in RESULTS and raw logs.

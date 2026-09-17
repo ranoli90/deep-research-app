@@ -1,5 +1,18 @@
 # Execution status — application implementation
+## V6 implementation checkpoint — 2026-09-17
+Base HEAD matches review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. W01–W09 are **in progress, not complete**. The v6 archive is staged at `/tmp/deep-v6-staging`; it has not been installed as application code. Historical evidence below retains its original scope.
+
+Fresh baseline: `pnpm verify` passed; real local PostgreSQL integration passed 107/107 after sandbox TCP denial was resolved through approved execution. Reproduced six supplied citation failures plus two claim-only ownership/version failures; three controls passed. The supplied standalone runner could not execute on Node 20 (requires Node 22); actual production-module Vitest regressions reproduced them instead.
+
+Current safety checkpoint: contradiction/qualification/missing bindings propagate; publication reloads owned stored evidence; admission and dispatch are atomic; project reservations and logical provider attempts are serialized; worker leases use unique attempt owners and fenced writes; safe fetching pins the validated destination and bounds streaming/deadlines. Focused publication/execution/transport tests pass 23/23. **The latest full integration run remains failed: 62 failed / 69 passed (131 total, checkpoint tree)**. Unmapped legacy composer output and recovery semantics remain unresolved; no fixture exemption is allowed.
+
+W04 partial implementation: Trafilatura 2.2.0 in a network-disabled offline process replaces raw HTML prefixes in controlled fetching. Original bytes, transport/extraction receipts and block/table locators persist under account ownership; HTML remains partial. Real parser tests pass 3/3 after fixing a table footnote defect; storage provenance/deletion test passes 1/1. The actual adapter preserved 11/11 selected spans on saved real documentation; one further oversized fetch failed. These are small extraction checks with agent-inspected references, not human adjudication or research superiority. Binary PDF/upload and broader quality work remain open.
+
+`pnpm verify` passes at this checkpoint (2026-09-17 15:10 UTC). No paid provider call, native build, deployment or release occurred. Current paid allowance is not established. The W01–W09 journey, W03 identity/deletion/mobile account work and W05–W09 generic intelligence/corrections/evaluation remain incomplete. See `verification/v6/RESULTS.json`, ADR-009 and the extraction runtime README. Historical claims below describe prior builds only and do not establish current release readiness.
+
 As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documents.
+
+The legacy review-package validator also fails on `implemented_application_command` registry statuses (18 errors); this is recorded separately from the passing application checks. Its schema reconciliation is still open.
 
 ## P0 gates
 | Gate | Status | Evidence |

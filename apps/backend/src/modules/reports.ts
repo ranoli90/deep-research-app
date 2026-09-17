@@ -1,6 +1,7 @@
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
-import { canPublish, checkReportCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
-import type { Queryable } from "../platform/db.js";
+import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
+import { withTx, type Queryable } from "../platform/db.js";
+import pg from "pg";
 import { currentConsent } from "./access.js";
 import { getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
@@ -16,8 +17,14 @@ export async function publishReport(
     deleted: boolean;
   },
 ): Promise<{ accepted: boolean; reason: string; reportId?: string }> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => publishReport(client, args));
+  const acc = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1 FOR UPDATE`, [args.accountId]);
   const run = await getRun(db, args.report.runId, { forUpdate: true });
   if (!run) return { accepted: false, reason: "missing_run" };
+  if (run.account_id !== args.accountId) return { accepted: false, reason: "wrong_owner" };
+  if (Object.keys(args.loaded).some((key) => args.report.basis[key as keyof RevisionBasis] !== args.loaded[key as keyof RevisionBasis])) {
+    return { accepted: false, reason: "stale_report_basis" };
+  }
   const current: RevisionBasis = {
     briefRevision: run.brief_revision,
     evidenceRevision: run.evidence_revision,
@@ -25,29 +32,48 @@ export async function publishReport(
     cancellationEpoch: run.cancellation_epoch,
     workerLeaseFence: run.worker_lease_fence,
   };
-  const problems = checkReportCitations(args.report.blocks, args.claims, args.passages);
-  const acc = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1`, [args.accountId]);
-  const deletedNow = args.deleted || Boolean(acc.rows[0]?.deleted_at);
+  // Reload evidence from storage: caller-supplied text/ownership/version is not authority.
+  const stored = await db.query<{
+    id: string; source_id: string; source_version_id: string; exact_text: string;
+  }>(`SELECT p.id, v.source_id, p.source_version_id, p.exact_text
+      FROM passages p JOIN source_versions v ON v.id = p.source_version_id
+      JOIN sources s ON s.id = v.source_id
+      WHERE p.run_id = $1 AND s.run_id = $1
+        AND p.account_id = $2 AND v.account_id = $2 AND s.account_id = $2`,
+    [run.id, args.accountId]);
+  const passages = stored.rows.map((p) => ({ id: p.id, sourceId: p.source_id,
+    sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" }));
+  const problems = validateMaterialCitations({
+    blocks: args.report.blocks, claims: args.claims, passages,
+    runPassageIds: new Set(passages.map((p) => p.id)),
+  });
+  const storedById = new Map(passages.map((p) => [p.id, p]));
+  const alteredEvidence = args.passages.some((p) => {
+    const persisted = storedById.get(p.id);
+    return !persisted || persisted.sourceVersionId !== p.sourceVersionId ||
+      persisted.sourceId !== p.sourceId || persisted.exactText !== p.exactText;
+  });
+  const deletedNow = args.deleted || !acc.rows[0] || Boolean(acc.rows[0].deleted_at);
   let reason = canPublish({
     loaded: args.loaded,
     current,
     deleted: deletedNow,
     unknownCitationIds: problems.unknownIds,
-    unsupportedCitationCount: problems.unsupported.length,
+    unsupportedCitationCount: citationValidationFails(problems) || alteredEvidence ? 1 : 0,
   });
   if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
     reason = "cancelled";
   }
   if (reason === "ok") {
     const consent = await currentConsent(db, args.accountId);
-    if (!consent || consent.revoked) reason = "consent_revoked";
+    if (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch) reason = "consent_revoked";
   }
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],
   );
   if (reason !== "ok") return { accepted: false, reason };
-  if (run.lifecycle === "terminal" && run.terminal_outcome && run.terminal_outcome !== "cancelled") {
+  if (run.lifecycle === "terminal") {
     return { accepted: false, reason: "already_published" };
   }
   const reportId = args.report.reportId;

@@ -1,0 +1,230 @@
+{
+  "task": "V6-W01-W09",
+  "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+  "workingTree": "uncommitted; implementation in progress",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "postgres": "local 127.0.0.1:55432, test database"
+  },
+  "paidCalls": 0,
+  "results": [
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm verify",
+      "artifact": "baseline-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "baseline",
+      "sha256": "215e56ba72f9b1f9c667adc02b5ee45d0938d18b15efff55fd3a61a89aa70786"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm test:integration",
+      "artifact": "baseline-integration.log",
+      "exitCode": 1,
+      "evidenceClass": "environment_failure",
+      "scope": "sandbox rejected local TCP; 107 tests skipped",
+      "sha256": "81b427a36255171af60853294ab1595ea3740e1a4013e19aabe39f6d53c2a9db"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm test:integration",
+      "artifact": "baseline-integration-unsandboxed.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "baseline; 107 passed",
+      "sha256": "30ef05c17996a474c667502f3792460752d43a07ea607ac0925111178c6a1a6c"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm --filter @deep/research-core test -- test/v6-publication.test.ts",
+      "artifact": "probes-current-before.log",
+      "exitCode": 1,
+      "evidenceClass": "isolated_module_probe",
+      "scope": "8 failures, 3 controls passed before fix",
+      "sha256": "bc1e05acc6a97cc22ff30b18d7280c52f0b7eda46d1eb9da798821faf560c620"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm --filter @deep/research-core test",
+      "artifact": "core-first-fix.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit",
+      "scope": "63 passed at intermediate tree",
+      "sha256": "23e233fec243186ebd365d1de5a32995fd34254f52e58b80d48c9c2b2245eb43"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm --filter @deep/backend test:integration -- test/v6-publication.integration.test.ts",
+      "artifact": "publication-after.log",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_integration",
+      "scope": "CLI double dash ran whole suite; 62 failed, 56 passed; retained",
+      "sha256": "119d68b02edb9107f959cc56971950cce77b1186213ce53e266940bbcb9b740f"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F01",
+        "V6-F19"
+      ],
+      "command": "pnpm --filter @deep/backend test:integration test/v6-publication.integration.test.ts",
+      "artifact": "publication-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "11 passed; valid paraphrase repaired",
+      "sha256": "92d57863f085ba4e52aaebe679a3ffa076fdecbad904cc8989729ed4cbe62328"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W04"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "current safety/extraction tree; typecheck, core/backend/mobile units and boundary checks",
+      "artifact": "verify-current.log",
+      "sha256": "ffd752c6535f626ef16f3d2a2bb61a313368e69c26069f8b9e3cf59b8b88b795"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "pnpm test:integration",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_integration",
+      "scope": "pre-extraction tree: 62 failed / 68 passed; legacy unmapped reports and lease recovery semantics remain failing",
+      "artifact": "integration-current.log",
+      "sha256": "f74b9683001d119acf0553fe940afd62ef8d178fd6d491f0e7e65a6e98a3fffd"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "pnpm --filter @deep/backend test:integration test/pinned-http.integration.test.ts test/v6-execution.integration.test.ts test/v6-publication.integration.test.ts",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "23 passed; real local PostgreSQL and local HTTP server",
+      "artifact": "focused-boundaries.log",
+      "sha256": "64646c7d6b88b31f141e52c702790c76347dad8b1dbf15e44add34a08885c8db"
+    },
+    {
+      "requirementIds": [
+        "W04"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-ingestion.integration.test.ts",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_integration",
+      "scope": "1 passed: storage provenance, 404 no supporting passage, ownership/digest denial, new artifact deletion",
+      "artifact": "ingestion-storage.log",
+      "sha256": "46190665c92339aa0859e8d32b148562491ce13ebd924b1089846064a96936a9"
+    },
+    {
+      "requirementIds": [
+        "W04"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "exitCode": 1,
+      "evidenceClass": "real_isolated_extraction",
+      "scope": "1 failed / 2 passed: table footnote was detached; retained before fix",
+      "artifact": "extraction-production-initial-failure.log",
+      "sha256": "4facb9b779b326b7aebdc52d6ca455632da182522e933629a5cbb63a14f64dca"
+    },
+    {
+      "requirementIds": [
+        "W04"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified working tree; see checkpoint commit",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-extraction-experiment/venv pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "evidenceClass": "real_isolated_extraction",
+      "scope": "3 passed after footnote fix; actual sandboxed Python process; PDF explicitly unavailable",
+      "artifact": "extraction-production.log",
+      "sha256": "60125fb7d6d70ee3f7bf095767ff51a961e8a197f7064e5931f22827a50c1d23"
+    },
+    {
+      "requirementIds": [
+        "W01"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "modified checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 1,
+      "evidenceClass": "review_document_validation",
+      "scope": "18 unknown implemented_application_command status errors; legacy review-only schema unreconciled",
+      "artifact": "review-validator.log",
+      "sha256": "f4b326db29d5ef5a8c01b62fa1b5151e7bbba0fc44e482ff802bce5c2b9263ae"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04"
+      ],
+      "revision": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+      "treeState": "checkpoint working tree",
+      "command": "pnpm test:integration",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_integration",
+      "scope": "current checkpoint: 62 failed / 69 passed / 131 total; 7 files failed, 5 passed",
+      "artifact": "integration-checkpoint.log",
+      "sha256": "55c903a9d19d0c4dbad42bfd3c8c635c77a57d1ce6b05a52b4767aa48a10dd7e"
+    }
+  ],
+  "unresolved": [
+    "W01: general semantic support, persisted claim revisions and complete material block mappings; full legacy integration remains failed",
+    "W02: run/key-scoped budgets and complete action execution/identity/fence coverage",
+    "W03: production identity, complete legacy deletion and mobile account generations",
+    "W04: PDF/binary native upload, challenge detection and broader structure quality",
+    "W05-W09: general model gateway, real typed verification actions, correction-safe reuse, mobile essentials, held-out API/worker evaluation",
+    "W10: release gates separate; no deploy, purchases, iOS or live quality claim"
+  ],
+  "liveSpend": {
+    "newPaidCalls": 0,
+    "newConfirmedCostMicro": 0,
+    "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
+    "historicalReservations": "not used as current authorization"
+  }
+}

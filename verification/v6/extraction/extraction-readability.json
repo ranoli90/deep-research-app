@@ -1,0 +1,93 @@
+{
+  "versions": {
+    "readability": "0.6.0",
+    "jsdom": "26.1.0"
+  },
+  "scope": "synthetic only; structure-preserving DOM with Readability diagnostic",
+  "results": [
+    {
+      "id": "HTML-01",
+      "sha256": "822994eb320f4d8eb046ec7ea09da0b9406a942bb97e00f0b445d582831c3ed7",
+      "elapsedMs": 175.34708500000005,
+      "rssBytes": 107745280,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-02",
+      "sha256": "db324807269434d511d58390f5f169dd0b04365200dc39e6e8eea905dfb9cc23",
+      "elapsedMs": 44.96386300000006,
+      "rssBytes": 108204032,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": true,
+      "passed": true
+    },
+    {
+      "id": "HTML-03",
+      "sha256": "ad75e3964789c8a368841aabe44e9085f34361aa98f70981cec762cfae8c66bb",
+      "elapsedMs": 22.860797000000048,
+      "rssBytes": 109121536,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-04",
+      "sha256": "7d0f22b6396b491af4c725aedd550e3064b6ace9b82e46959702b406f22dddd8",
+      "elapsedMs": 19.32419100000004,
+      "rssBytes": 108945408,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-05",
+      "sha256": "74de170e8f1e627ea254737a237ec2becf7c782bb111cb9263a8e34b7fb81f6c",
+      "elapsedMs": 23.099695999999994,
+      "rssBytes": 109731840,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-06",
+      "sha256": "97dad642bd7586471f92309ff17fc381bb66a192394261e263dfef32cf611f32",
+      "elapsedMs": 0.030344000000013693,
+      "rssBytes": 109731840,
+      "warnings": [
+        "unavailable_status"
+      ],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-07",
+      "sha256": "271fe89d43f498aaad35ee2ff2de846a47dd356668498c79ef74864c95bb93ef",
+      "elapsedMs": 21.069259999999986,
+      "rssBytes": 111542272,
+      "warnings": [
+        "insufficient_static_content"
+      ],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    },
+    {
+      "id": "HTML-08",
+      "sha256": "eaefd47ed466d3e24651ba00a3fabd0207fa7ce760d2d7bb8fabde43627bdb53",
+      "elapsedMs": 25.947050999999988,
+      "rssBytes": 112197632,
+      "warnings": [],
+      "missing": [],
+      "hasTableRelationships": false,
+      "passed": true
+    }
+  ]
+}

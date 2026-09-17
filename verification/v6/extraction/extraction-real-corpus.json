@@ -1,0 +1,177 @@
+{
+  "scope": "Registered source classes; temporary private research cache. No human adjudication; not a product-quality benchmark.",
+  "records": [
+    {
+      "id": "postgres-connect",
+      "url": "https://www.postgresql.org/docs/current/libpq-connect.html",
+      "sourceClass": "technical options/table",
+      "rights": "PostgreSQL documentation license",
+      "file": "postgres-connect.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 125107,
+      "sha256": "b923116c8f59af2ec6850236887869323e504f27bc36bbddb0560c8c18afcabb",
+      "retrievedAt": "2026-09-17T14:51:30.665Z",
+      "redirects": [
+        "https://www.postgresql.org/docs/current/libpq-connect.html"
+      ]
+    },
+    {
+      "id": "postgres-numeric",
+      "url": "https://www.postgresql.org/docs/current/datatype-numeric.html",
+      "sourceClass": "numeric scopes/table",
+      "rights": "PostgreSQL documentation license",
+      "file": "postgres-numeric.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 41398,
+      "sha256": "6c22c8edb738adebc4713060f9328a1d2982e2cbe6f0b3b985ae08114a455bb7",
+      "retrievedAt": "2026-09-17T14:51:31.111Z",
+      "redirects": [
+        "https://www.postgresql.org/docs/current/datatype-numeric.html"
+      ]
+    },
+    {
+      "id": "postgres-isolation",
+      "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "sourceClass": "versioned behavior/table",
+      "rights": "PostgreSQL documentation license",
+      "file": "postgres-isolation.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 47710,
+      "sha256": "beef1cd1c5f512e3934fd049454730e3cc9d459e69db8e938bf941125387cefc",
+      "retrievedAt": "2026-09-17T14:51:31.420Z",
+      "redirects": [
+        "https://www.postgresql.org/docs/current/transaction-iso.html"
+      ]
+    },
+    {
+      "id": "python-decimal",
+      "url": "https://docs.python.org/3/library/decimal.html",
+      "sourceClass": "long technical manual",
+      "rights": "PSF documentation license",
+      "file": "python-decimal.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 308861,
+      "sha256": "8b96da623aacbcbb95030dd7a82b05d958e57bdf7ac6cdbacd6c5d02b5634d60",
+      "retrievedAt": "2026-09-17T14:51:32.199Z",
+      "redirects": [
+        "https://docs.python.org/3/library/decimal.html"
+      ]
+    },
+    {
+      "id": "python-csv",
+      "url": "https://docs.python.org/3/library/csv.html",
+      "sourceClass": "technical manual/code",
+      "rights": "PSF documentation license",
+      "file": "python-csv.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 99850,
+      "sha256": "70b409803ada2f3a5c497c34731fdb64d0e741ebf6c8e7f48d54240ac7205f61",
+      "retrievedAt": "2026-09-17T14:51:32.403Z",
+      "redirects": [
+        "https://docs.python.org/3/library/csv.html"
+      ]
+    },
+    {
+      "id": "python-sqlite",
+      "url": "https://docs.python.org/3/library/sqlite3.html",
+      "sourceClass": "version exceptions",
+      "rights": "PSF documentation license",
+      "file": "python-sqlite.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 314934,
+      "sha256": "3fe30e8afed56948455d8680a62ae6831d195476eb70ba4df304bc667b02c833",
+      "retrievedAt": "2026-09-17T14:51:32.753Z",
+      "redirects": [
+        "https://docs.python.org/3/library/sqlite3.html"
+      ]
+    },
+    {
+      "id": "node-http",
+      "url": "https://nodejs.org/docs/latest-v20.x/api/http.html",
+      "sourceClass": "versioned long API manual",
+      "rights": "Node.js documentation license",
+      "file": "node-http.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 319625,
+      "sha256": "8573c4155c0b62934d3b780b5dd66296ad27f64dacb701152fbbb4c7ee57d67d",
+      "retrievedAt": "2026-09-17T14:51:33.176Z",
+      "redirects": [
+        "https://nodejs.org/docs/latest-v20.x/api/http.html"
+      ]
+    },
+    {
+      "id": "node-fs",
+      "url": "https://nodejs.org/docs/latest-v20.x/api/fs.html",
+      "sourceClass": "long code/constraints",
+      "rights": "Node.js documentation license",
+      "file": "node-fs.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 661064,
+      "sha256": "95767bdf95e8b6e0eaee943c613fe17844beaacb25bb127cd60fc58f955b61d5",
+      "retrievedAt": "2026-09-17T14:51:33.634Z",
+      "redirects": [
+        "https://nodejs.org/docs/latest-v20.x/api/fs.html"
+      ]
+    },
+    {
+      "id": "mdn-table-de",
+      "url": "https://developer.mozilla.org/de/docs/Web/HTML/Reference/Elements/table",
+      "sourceClass": "localized table documentation",
+      "rights": "CC-BY-SA MDN prose attribution required",
+      "file": "mdn-table-de.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 269021,
+      "sha256": "372c8edae9c098e5e47addc6ae70d16eccaf5ea39a34964edae3daaddc6d36a3",
+      "retrievedAt": "2026-09-17T14:51:34.305Z",
+      "redirects": [
+        "https://developer.mozilla.org/de/docs/Web/HTML/Reference/Elements/table"
+      ]
+    },
+    {
+      "id": "mdn-table-en",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table",
+      "sourceClass": "table semantics",
+      "rights": "CC-BY-SA MDN prose attribution required",
+      "file": "mdn-table-en.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 247442,
+      "sha256": "f7aded973aee008f2082d6a81cdf1a8d6db052ce6f27e0b0d43750233ff0441d",
+      "retrievedAt": "2026-09-17T14:51:34.758Z",
+      "redirects": [
+        "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table"
+      ]
+    },
+    {
+      "id": "sqlite-select",
+      "url": "https://www.sqlite.org/lang_select.html",
+      "sourceClass": "technical grammar/manual",
+      "rights": "SQLite public-domain documentation",
+      "error": "Error: response_too_large"
+    },
+    {
+      "id": "sqlite-support",
+      "url": "https://www.sqlite.org/prosupport.html",
+      "sourceClass": "product support/pricing grid",
+      "rights": "SQLite public-domain documentation",
+      "file": "sqlite-support.html",
+      "status": 200,
+      "mime": "text/html",
+      "bytes": 17643,
+      "sha256": "55a5a0643f1f8a023f19e0f3279c89d32f91e663bf5c7748fcc35513f15fa4a8",
+      "retrievedAt": "2026-09-17T14:51:35.574Z",
+      "redirects": [
+        "https://www.sqlite.org/prosupport.html"
+      ]
+    }
+  ]
+}

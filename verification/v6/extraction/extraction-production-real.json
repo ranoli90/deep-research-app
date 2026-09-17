@@ -1,0 +1,142 @@
+{
+  "scope": "real adapter; same saved bytes; agent reference inspection; no independent human review",
+  "results": [
+    {
+      "id": "postgres-connect",
+      "digest": "b923116c8f59af2ec6850236887869323e504f27bc36bbddb0560c8c18afcabb",
+      "elapsedMs": 782.1877589999999,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 361
+    },
+    {
+      "id": "postgres-numeric",
+      "digest": "6c22c8edb738adebc4713060f9328a1d2982e2cbe6f0b3b985ae08114a455bb7",
+      "elapsedMs": 657.6959339999999,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 64
+    },
+    {
+      "id": "postgres-isolation",
+      "digest": "beef1cd1c5f512e3934fd049454730e3cc9d459e69db8e938bf941125387cefc",
+      "elapsedMs": 652.0358860000001,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 64
+    },
+    {
+      "id": "python-decimal",
+      "digest": "8b96da623aacbcbb95030dd7a82b05d958e57bdf7ac6cdbacd6c5d02b5634d60",
+      "elapsedMs": 1127.1897130000002,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 166
+    },
+    {
+      "id": "python-csv",
+      "digest": "70b409803ada2f3a5c497c34731fdb64d0e741ebf6c8e7f48d54240ac7205f61",
+      "elapsedMs": 756.2759940000005,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 76
+    },
+    {
+      "id": "python-sqlite",
+      "digest": "3fe30e8afed56948455d8680a62ae6831d195476eb70ba4df304bc667b02c833",
+      "elapsedMs": 1107.1734160000005,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 198
+    },
+    {
+      "id": "node-http",
+      "digest": "8573c4155c0b62934d3b780b5dd66296ad27f64dacb701152fbbb4c7ee57d67d",
+      "elapsedMs": 1044.4914159999998,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 721
+    },
+    {
+      "id": "node-fs",
+      "digest": "95767bdf95e8b6e0eaee943c613fe17844beaacb25bb127cd60fc58f955b61d5",
+      "elapsedMs": 1587.4746170000008,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 1313
+    },
+    {
+      "id": "mdn-table-de",
+      "digest": "372c8edae9c098e5e47addc6ae70d16eccaf5ea39a34964edae3daaddc6d36a3",
+      "elapsedMs": 681.4728950000008,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 128
+    },
+    {
+      "id": "mdn-table-en",
+      "digest": "f7aded973aee008f2082d6a81cdf1a8d6db052ce6f27e0b0d43750233ff0441d",
+      "elapsedMs": 670.1460900000002,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 127
+    },
+    {
+      "id": "sqlite-support",
+      "digest": "55a5a0643f1f8a023f19e0f3279c89d32f91e663bf5c7748fcc35513f15fa4a8",
+      "elapsedMs": 661.9946490000002,
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "missing": [],
+      "blocks": 34
+    },
+    {
+      "id": "sqlite-select",
+      "error": "response_too_large",
+      "scope": "transport failure; no extraction"
+    }
+  ]
+}

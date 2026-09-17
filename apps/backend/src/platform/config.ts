@@ -15,6 +15,7 @@ export type AppConfig = {
   openRouterApiKey: string | undefined;
   openRouterModel: string;
   liveSpendCapMicro: number;
+  liveBudgetScope?: string;
   consentPolicyVersion: string;
   writingCancelWindowMs: number;
   /** Live comparison arm. Default adaptive; baseline is the bounded chooser. */
@@ -24,13 +25,14 @@ export type AppConfig = {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const nodeEnv = env.NODE_ENV ?? "development";
   const authMode = (env.APP_AUTH_MODE ?? "development") as AppConfig["authMode"];
+  if (authMode !== "development" && authMode !== "production") throw new Error("Invalid APP_AUTH_MODE");
   const liveRouteEnabled = env.LIVE_ROUTE_ENABLED === "true";
   const fixtureRouteAllowed = env.DEV_ALLOW_FIXTURE_ROUTE !== "false";
   if (nodeEnv === "production" && authMode === "development") {
     throw new Error("APP_AUTH_MODE=development is forbidden in production");
   }
-  if (nodeEnv === "production" && fixtureRouteAllowed && env.ALLOW_FIXTURE_IN_PRODUCTION !== "true") {
-    throw new Error("Fixture route cannot start in production without explicit ALLOW_FIXTURE_IN_PRODUCTION");
+  if (nodeEnv === "production" && fixtureRouteAllowed) {
+    throw new Error("Fixture route cannot start in production");
   }
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is required");
@@ -39,18 +41,28 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     authMode,
     databaseUrl,
     apiHost: env.API_HOST ?? "127.0.0.1",
-    apiPort: Number(env.API_PORT ?? 8787),
+    apiPort: integerConfig(env, "API_PORT", 8787, 1, 65535),
     workerId: env.WORKER_ID ?? "worker-1",
-    leaseMs: Number(env.LEASE_MS ?? 30_000),
+    leaseMs: integerConfig(env, "LEASE_MS", 30_000, 1),
     storageDir: env.STORAGE_DIR ?? "./data/storage",
     fixtureRouteAllowed,
     liveRouteEnabled,
     liveRetrievalEnabled: env.LIVE_RETRIEVAL_ENABLED === "true",
     openRouterApiKey: env.OPENROUTER_API_KEY,
     openRouterModel: env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
-    liveSpendCapMicro: Number(env.LIVE_SPEND_CAP_MICRO ?? 0),
+    liveSpendCapMicro: integerConfig(env, "LIVE_SPEND_CAP_MICRO", 0),
+    liveBudgetScope: env.LIVE_BUDGET_SCOPE ?? "project",
     consentPolicyVersion: env.CONSENT_POLICY_VERSION ?? CONSENT_POLICY_VERSION,
-    writingCancelWindowMs: Number(env.WRITING_CANCEL_WINDOW_MS ?? 150),
+    writingCancelWindowMs: integerConfig(env, "WRITING_CANCEL_WINDOW_MS", 150),
     liveControllerKind: env.LIVE_CONTROLLER_KIND === "baseline" ? "baseline" : "adaptive",
   };
+}
+
+function integerConfig(env: NodeJS.ProcessEnv, name: string, fallback: number, min = 0, max = Number.MAX_SAFE_INTEGER): number {
+  const raw = env[name];
+  const value = raw === undefined ? fallback : Number(raw);
+  if ((raw !== undefined && !/^\d+$/.test(raw)) || !Number.isSafeInteger(value) || value < min || value > max) {
+    throw new Error(`${name} must be an integer from ${min} to ${max}`);
+  }
+  return value;
 }

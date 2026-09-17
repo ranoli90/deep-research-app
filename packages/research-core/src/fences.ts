@@ -19,9 +19,9 @@ export function canPublish(args: {
   unsupportedCitationCount: number;
 }): PublishRejectReason {
   if (args.deleted) return "deleted";
-  if (args.current.cancellationEpoch > args.loaded.cancellationEpoch) return "cancelled";
-  if (args.current.consentEpoch > args.loaded.consentEpoch) return "consent_revoked";
-  if (args.current.workerLeaseFence > args.loaded.workerLeaseFence) return "stale_lease";
+  if (args.current.cancellationEpoch !== args.loaded.cancellationEpoch) return "cancelled";
+  if (args.current.consentEpoch !== args.loaded.consentEpoch) return "consent_revoked";
+  if (args.current.workerLeaseFence !== args.loaded.workerLeaseFence) return "stale_lease";
   if (args.current.briefRevision !== args.loaded.briefRevision) return "stale_brief";
   if (args.current.evidenceRevision !== args.loaded.evidenceRevision) return "stale_evidence";
   if (args.unknownCitationIds.length > 0) return "unknown_citation";

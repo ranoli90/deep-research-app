@@ -25,15 +25,15 @@ import {
 import { fixtureProposeAction } from "../adapters/model/fixture.js";
 import { fixtureFetch, fixtureSearch, type SearchHit } from "../adapters/retrieval/fixture.js";
 import { liveWebSearch } from "../adapters/retrieval/live-web.js";
-import { assertLiveCallAllowed, liveSpendUsedMicro } from "../modules/live-spend.js";
+import { reserveLiveAttempt, liveSpendUsedMicro } from "../modules/live-spend.js";
 import { providerFailureState } from "../adapters/model/outcomes.js";
-import { safeFetch } from "../platform/ssrf.js";
+import { readSource } from "../adapters/retrieval/read-source.js";
 import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
 import { logInfo } from "../platform/log.js";
 import { consentAllowsProcessing } from "../modules/access.js";
 import { recordIntent, settleRun, updateIntentState } from "../modules/billing.js";
-import { insertSource, insertVersionAndPassage, loadEvidence } from "../modules/evidence.js";
+import { insertSource, insertVersionAndPassage, insertExtractedVersion, loadEvidence } from "../modules/evidence.js";
 import { publishReport } from "../modules/reports.js";
 import {
   addSpent,
@@ -49,6 +49,7 @@ import {
 } from "../modules/runs.js";
 import { createHash } from "node:crypto";
 import pg from "pg";
+import { fencedSession, LostWorkerLease } from "./fenced-session.js";
 
 export class InjectedCrash extends Error {
   constructor(public readonly at: string) {
@@ -200,6 +201,7 @@ async function ingestAttachments(
   pool: pg.Pool,
   run: { id: string; account_id: string },
   brief: { attachmentIds: string[] },
+  session: ReturnType<typeof fencedSession>,
 ): Promise<void> {
   for (const id of brief.attachmentIds ?? []) {
     const row = await pool.query<{
@@ -216,7 +218,7 @@ async function ingestAttachments(
     const locator = `attachment://${id}`;
     const exists = await pool.query(`SELECT 1 FROM sources WHERE run_id = $1 AND canonical_locator = $2`, [run.id, locator]);
     if ((exists.rowCount ?? 0) > 0) continue;
-    await withTx(pool, async (c) => {
+    await session.write(async (c) => {
       const sourceId = await insertSource(c, {
         accountId: run.account_id,
         runId: run.id,
@@ -254,7 +256,7 @@ async function privateCanaries(db: Queryable, accountId: string): Promise<string
 }
 
 export async function processRun(pool: pg.Pool, config: AppConfig, runId: string, opts: ProcessOptions = {}): Promise<void> {
-  const workerId = opts.workerId ?? config.workerId;
+  const workerId = `${opts.workerId ?? config.workerId}:${crypto.randomUUID()}`;
   const peek = await getRun(pool, runId);
   if (peek?.route_mode === "controlled-research" && !config.liveRouteEnabled) {
     logInfo("skip_live_job", { runId, reason: "fixture_worker_cannot_run_live_route" });
@@ -262,16 +264,32 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
   }
   const fence = await withTx(pool, async (c) => claimLease(c, runId, workerId, config.leaseMs));
   if (fence == null) return;
+  if (!peek) return;
+  const session = fencedSession(pool, { runId, accountId: peek.account_id, owner: workerId, fence,
+    briefRevision: peek.brief_revision, leaseMs: config.leaseMs });
+  let graceful = true;
+  try {
+    await processOwnedRun(pool, config, runId, opts, fence, session);
+  } catch (error) {
+    if (!(error instanceof LostWorkerLease)) { graceful = false; throw error; }
+  } finally {
+    session.stop();
+    if (graceful) await pool.query("UPDATE run_leases SET expires_at = now() WHERE run_id = $1 AND owner = $2 AND fence = $3", [runId, workerId, fence]);
+  }
+}
+
+async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, opts: ProcessOptions,
+  fence: number, session: ReturnType<typeof fencedSession>): Promise<void> {
   const declinedOffCoverage = new Set<string>();
 
   for (let step = 0; step < 16; step++) {
     const run = await getRun(pool, runId);
-    if (!run) return;
+    if (!run || run.worker_lease_fence !== fence || session.signal.aborted) return;
     const deleted = await isDeleted(pool, run.account_id);
     if (run.lifecycle === "terminal") return;
 
     if (run.lifecycle === "cancelling" || run.cancellation_epoch > 0) {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, run.account_id, runId, run.spent_micro);
         await emitEvent(c, {
@@ -281,12 +299,12 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Run cancelled. No new work will be issued. Partial evidence is retained unless deleted.",
           phase: run.phase,
         });
-      });
+      }, true);
       return;
     }
 
     if (deleted) {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, run.account_id, runId, run.spent_micro);
         await emitEvent(c, {
@@ -296,12 +314,12 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Account or content deleted; late work discarded.",
           phase: run.phase,
         });
-      });
+      }, true);
       return;
     }
 
     if (!(await consentAllowsProcessing(pool, run.account_id))) {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, run.account_id, runId, run.spent_micro);
         await emitEvent(c, {
@@ -311,12 +329,12 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Consent revoked; remaining processing is discarded.",
           phase: run.phase,
         });
-      });
+      }, true);
       return;
     }
 
     const brief = await getBrief(pool, run.brief_id);
-    await ingestAttachments(pool, run, brief);
+    await ingestAttachments(pool, run, brief, session);
     const evidence = await loadEvidence(pool, runId);
     const canaries = await privateCanaries(pool, run.account_id);
     const ev = await listEvents(pool, runId, 0);
@@ -335,7 +353,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         config.liveControllerKind === "baseline" ? selectBaselineAction(state) : selectAdaptiveAction(state);
       liveProposed.actionId = `live-${step}`;
       liveProposed.dedupeKey = `live-${runId}-${step}-${liveProposed.type}`;
-      const usedMicro = await liveSpendUsedMicro(pool);
+      const usedMicro = await liveSpendUsedMicro(pool, config.liveBudgetScope);
       const livePaid = liveProposed.type === "search" || liveProposed.type === "challenge";
       decision = admitProposedAction(state, liveProposed, {
         seenDedupeKeys: seenDedupe,
@@ -350,14 +368,14 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     // Retrieved gossip/bait must be declined without skipping inspection of remaining sources.
     if (decision.rejectReason === "off_coverage") {
       if (!declinedOffCoverage.has(decision.dedupeKey)) {
-        await emitEvent(pool, {
+        await session.write((c) => emitEvent(c, {
           runId,
           accountId: run.account_id,
           type: "action_rejected",
           summary: decision.rationale,
           phase: run.phase,
           payload: { reason: decision.rejectReason },
-        });
+        }));
         declinedOffCoverage.add(decision.dedupeKey);
       }
       decision = admitProposedAction(state, selectNextAction(state), { seenDedupeKeys: seenDedupe });
@@ -367,11 +385,18 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
 
     const challengeSearch = decision.type === "challenge" && decision.arguments.query && !decision.arguments.recordOnly;
     if (challengeSearch) {
-      decision = { ...decision, type: "search", arguments: { ...decision.arguments, disconfirm: true } };
+      const executable = { ...decision, type: "search" as const, arguments: { ...decision.arguments, disconfirm: true } };
+      decision = admitProposedAction(state, executable, {
+        seenDedupeKeys: seenDedupe,
+        liveSpend: run.route_mode === "controlled-research" ? {
+          capMicro: config.liveSpendCapMicro, usedMicro: await liveSpendUsedMicro(pool, config.liveBudgetScope),
+          estimatedMicro: LIVE_CALL_RESERVE_MICRO,
+        } : undefined,
+      });
     }
 
     if (decision.type === "clarify") {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await setPhase(c, runId, "preparing");
         await emitEvent(c, {
           runId,
@@ -395,40 +420,32 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       let hits: SearchHit[] = [];
       let searchRoute = "fixture:search";
       if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
+        const digest = createHash("sha256").update(JSON.stringify({ query: query.trim(), model: config.openRouterModel, revision: run.brief_revision })).digest("hex");
+        let intentId: string | undefined;
         try {
-          await assertLiveCallAllowed(pool, config);
-        } catch {
-          hits = [];
-          searchRoute = "openrouter:blocked-by-spend-cap";
-        }
-        if (searchRoute !== "openrouter:blocked-by-spend-cap") {
-          const intentId = await recordIntent(pool, runId, {
-            correlationId: decision.actionId,
-            route: `openrouter:${config.openRouterModel}:web`,
-            digest: query,
-            reserved: LIVE_CALL_RESERVE_MICRO,
-            state: "issued",
+          const attempt = await reserveLiveAttempt(pool, config, {
+            runId, fence, briefRevision: run.brief_revision, logicalKey: `search:${digest}`,
+            kind: "search", route: `openrouter:${config.openRouterModel}:web`, requestDigest: digest,
+            reserveMicro: LIVE_CALL_RESERVE_MICRO,
           });
-          try {
-            const live = await liveWebSearch(query, config);
-            await updateIntentState(
-              pool,
-              intentId,
-              live.receipt.state,
-              live.receipt.state === "confirmed" ? LIVE_CALL_RESERVE_MICRO : undefined,
-            );
+          intentId = attempt.intentId;
+          if (attempt.issue) {
+            const live = await liveWebSearch(query, config, session.signal);
+            await updateIntentState(pool, intentId, live.receipt.state, live.receipt.actualMicro);
+            await pool.query("UPDATE provider_intents SET receipt = $2 WHERE id = $1", [intentId, JSON.stringify(live.receipt)]);
             hits = live.hits;
             searchRoute = live.receipt.route;
-          } catch (err) {
-            await updateIntentState(pool, intentId, providerFailureState(err as Error));
-            hits = [];
-            searchRoute = `openrouter:${config.openRouterModel}:web`;
+          } else {
+            searchRoute = "openrouter:existing-attempt-not-reissued";
           }
+        } catch (error) {
+          if (intentId) await updateIntentState(pool, intentId, providerFailureState(error as Error));
+          searchRoute = "openrouter:blocked-or-unresolved";
         }
       } else {
         hits = fixtureSearch(query);
       }
-      const evidenceRev = await withTx(pool, async (c) => {
+      const evidenceRev = await session.write(async (c) => {
         const existing = await c.query<{ canonical_locator: string }>(
           `SELECT canonical_locator FROM sources WHERE run_id = $1`,
           [runId],
@@ -459,6 +476,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           }
         }
         const rev = await bumpEvidence(c, runId);
+        if (run.route_mode === "fixture") {
         await addSpent(c, runId, FIXTURE_SEARCH_COST_MICRO);
         await recordIntent(c, runId, {
           correlationId: decision.actionId,
@@ -467,6 +485,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           reserved: FIXTURE_SEARCH_COST_MICRO,
           state: "confirmed",
         });
+        }
         await emitEvent(c, {
           runId,
           accountId: run.account_id,
@@ -519,30 +538,38 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         return rev;
       });
       if (opts.crashAfter === "persist-evidence") throw new InjectedCrash("persist-evidence");
-      await checkpoint(pool, runId, evidenceRev, "researching", { action: "search", query });
+      await session.write((c) => checkpoint(c, runId, evidenceRev, "researching", { action: "search", query }));
       continue;
     }
 
     if (decision.type === "fetch") {
       const locator = String(decision.arguments.locator ?? "");
-      let doc = fixtureFetch(locator);
-      if (run.route_mode === "controlled-research" && config.liveRetrievalEnabled && locator.startsWith("http")) {
-        try {
-          const fetched = await safeFetch(locator);
-          doc = {
-            locator: fetched.url,
-            title: locator,
-            publisher: new URL(fetched.url).host,
-            originCluster: fetched.url,
-            family: fetched.url,
-            text: fetched.body.slice(0, 20_000),
-            accessLevel: "full-text",
-          };
-        } catch (err) {
-          doc = { ...doc, accessLevel: "blocked", text: `fetch blocked: ${(err as Error).message}` };
-        }
+      if (run.route_mode !== "fixture") {
+        const sourceId = await session.write(async (c) => {
+          const supplied = String(decision.arguments.sourceId ?? "");
+          const owned = await c.query<{ id: string }>(`SELECT id FROM sources WHERE run_id=$1 AND account_id=$2 AND canonical_locator=$3 AND ($4='' OR id::text=$4)`,
+            [runId,run.account_id,locator,supplied]);
+          if (supplied && !owned.rows.length) throw new Error("source_owner_or_locator_mismatch");
+          return owned.rows[0]?.id ?? insertSource(c, { accountId: run.account_id, runId, locator,
+            title: locator, publisher: new URL(locator).host, originCluster: locator });
+        });
+        const read = config.liveRetrievalEnabled ? await readSource(locator, session.signal) : {
+          receipt: { requestedUrl: locator, finalUrl: locator, redirectChain: [], status: null,
+            mime: "application/octet-stream", retrievedAt: new Date().toISOString(), outcome: "fetch_unavailable" as const },
+        };
+        await session.write(async (c) => {
+          const versionId = await insertExtractedVersion(c, { accountId: run.account_id, runId, sourceId, ...read });
+          const revision = await bumpEvidence(c, runId);
+          await emitEvent(c, { runId, accountId: run.account_id, type: "opened_source", phase: "researching",
+            summary: read.receipt.outcome === "successful_body" ? "Extracted source blocks; coverage remains partial." : "Source reading unavailable.",
+            payload: { sourceId, versionId, outcome: read.receipt.outcome } });
+          await checkpoint(c, runId, revision, "researching", { action: "fetch", sourceId, versionId });
+        });
+        if (opts.crashAfter === "persist-evidence") throw new InjectedCrash("persist-evidence");
+        continue;
       }
-      await withTx(pool, async (c) => {
+      const doc = fixtureFetch(locator);
+      await session.write(async (c) => {
         let sourceId = String(decision.arguments.sourceId ?? "");
         if (!sourceId) {
           const found = await c.query<{ id: string }>(`SELECT id FROM sources WHERE run_id = $1 AND canonical_locator = $2`, [
@@ -605,17 +632,17 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         `SELECT evidence_revision FROM runs WHERE id = $1`,
         [runId],
       );
-      await checkpoint(pool, runId, Number(fetchRev.rows[0]?.evidence_revision ?? 0), "researching", {
+      await session.write((c) => checkpoint(c, runId, Number(fetchRev.rows[0]?.evidence_revision ?? 0), "researching", {
         action: "fetch",
         locator,
-      });
+      }));
       continue;
     }
 
     if (decision.type === "compare" || decision.type === "calculate" || decision.type === "verify" || decision.type === "replan" || decision.type === "extract_text" || decision.type === "challenge") {
       const planned = decision.type === "challenge" ? planDisconfirmation(state) : null;
       const evaluated = planned ? evaluateDisconfirmation(state, planned) : null;
-      await emitEvent(pool, {
+      await session.write((c) => emitEvent(c, {
         runId,
         accountId: run.account_id,
         type: decision.type,
@@ -627,24 +654,24 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           dedupeKey: decision.dedupeKey,
           gapId: decision.gapId,
         },
-      });
-      await checkpoint(pool, runId, run.evidence_revision, "researching", { action: decision.type });
+      }));
+      await session.write((c) => checkpoint(c, runId, run.evidence_revision, "researching", { action: decision.type }));
       continue;
     }
 
     if (decision.rejectReason) {
-      await emitEvent(pool, {
+      await session.write((c) => emitEvent(c, {
         runId,
         accountId: run.account_id,
         type: "action_rejected",
         summary: decision.rationale,
         phase: run.phase,
         payload: { reason: decision.rejectReason },
-      });
+      }));
     }
 
     if (decision.type === "stop" || decision.arguments?.stopPolicy || decision.arguments?.reason) {
-      await emitEvent(pool, {
+      await session.write((c) => emitEvent(c, {
         runId,
         accountId: run.account_id,
         type: "stop_policy",
@@ -654,19 +681,19 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           reason: decision.arguments?.reason ?? decision.rejectReason ?? "stop",
           stopPolicy: decision.arguments?.stopPolicy ?? decision.arguments?.reason,
         },
-      });
+      }));
     }
 
     // synthesize or stop — persist writing before compose so clients can cancel during writing.
-    await setPhase(pool, runId, "writing");
-    await emitEvent(pool, {
+    await session.write((c) => setPhase(c, runId, "writing"));
+    await session.write((c) => emitEvent(c, {
       runId,
       accountId: run.account_id,
       type: "writing",
       summary: "Drafting a bounded cited report from stored evidence.",
       phase: "writing",
-    });
-    await checkpoint(pool, runId, run.evidence_revision, "writing", { action: "enter-writing" });
+    }));
+    await session.write((c) => checkpoint(c, runId, run.evidence_revision, "writing", { action: "enter-writing" }));
     if (opts.pauseAt === "writing") return;
     if (config.writingCancelWindowMs > 0) {
       await new Promise((r) => setTimeout(r, config.writingCancelWindowMs));
@@ -675,7 +702,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const latest = await getRun(pool, runId);
     if (!latest) return;
     if (latest.cancellation_epoch > 0 || latest.lifecycle === "cancelling") {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, latest.account_id, runId, latest.spent_micro);
         await emitEvent(c, {
@@ -685,15 +712,15 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Cancelled during writing. Late publication is rejected.",
           phase: "writing",
         });
-      });
+      }, true);
       return;
     }
     if (await isDeleted(pool, latest.account_id)) {
-      await markTerminal(pool, runId, "cancelled");
+      await session.write((c) => markTerminal(c, runId, "cancelled"), true);
       return;
     }
     if (!(await consentAllowsProcessing(pool, latest.account_id))) {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, latest.account_id, runId, latest.spent_micro);
         await emitEvent(c, {
@@ -703,7 +730,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Consent revoked during writing. Late publication is rejected.",
           phase: "writing",
         });
-      });
+      }, true);
       return;
     }
 
@@ -714,19 +741,19 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     state2.basis.workerLeaseFence = fence;
     state2.phase = "writing";
     const compacted = compactForContext(state2);
-    await checkpoint(pool, runId, latest.evidence_revision, "writing", { compact: compacted });
+    await session.write((c) => checkpoint(c, runId, latest.evidence_revision, "writing", { compact: compacted }));
     const reportId = crypto.randomUUID();
     const report = composeReport(state2, reportId);
     report.routeMode = latest.route_mode as typeof report.routeMode;
     for (const c of state2.candidates) {
-      await pool.query(
+      await session.write((db) => db.query(
         `INSERT INTO candidates (id, run_id, identity, discovered_from, excluded_by) VALUES ($1,$2,$3,$4,$5)`,
         [crypto.randomUUID(), runId, c.identity, c.id, c.excludedBy ?? null],
-      );
+      ));
     }
-    await pool.query(`DELETE FROM evidence_gaps WHERE run_id = $1`, [runId]);
+    await session.write((c) => c.query(`DELETE FROM evidence_gaps WHERE run_id = $1`, [runId]));
     for (const g of state2.gaps) {
-      await pool.query(
+      await session.write((c) => c.query(
         `INSERT INTO evidence_gaps (id, run_id, missing_fact, why_it_could_change_answer, importance, source_type_needed, latest_outcome, payload)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
         [
@@ -748,24 +775,24 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             resolution: g.resolution ?? null,
           }),
         ],
-      );
+      ));
     }
-    await pool.query(`DELETE FROM research_contradictions WHERE run_id = $1`, [runId]).catch(() => undefined);
+    await session.write((c) => c.query(`DELETE FROM research_contradictions WHERE run_id = $1`, [runId]));
     for (const c of state2.contradictions ?? []) {
-      await pool.query(
+      await session.write((db) => db.query(
         `INSERT INTO research_contradictions (id, run_id, payload, resolution_status) VALUES ($1,$2,$3,$4)`,
         [crypto.randomUUID(), runId, JSON.stringify(c), c.resolutionStatus],
-      );
+      ));
     }
-    await pool.query(`DELETE FROM research_disconfirmations WHERE run_id = $1`, [runId]).catch(() => undefined);
+    await session.write((c) => c.query(`DELETE FROM research_disconfirmations WHERE run_id = $1`, [runId]));
     for (const d of state2.disconfirmations ?? []) {
-      await pool.query(`INSERT INTO research_disconfirmations (id, run_id, payload) VALUES ($1,$2,$3)`, [
+      await session.write((c) => c.query(`INSERT INTO research_disconfirmations (id, run_id, payload) VALUES ($1,$2,$3)`, [
         crypto.randomUUID(),
         runId,
         JSON.stringify(d),
-      ]);
+      ]));
     }
-    await pool.query(`UPDATE runs SET controller_kind = $2, controller_artifacts = $3 WHERE id = $1`, [
+    await session.write((c) => c.query(`UPDATE runs SET controller_kind = $2, controller_artifacts = $3 WHERE id = $1`, [
       runId,
       latest.route_mode === "controlled-research" ? (config.liveControllerKind ?? "adaptive") : "adaptive",
       JSON.stringify({
@@ -774,7 +801,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         lastPivotReason: state2.lastPivotReason ?? null,
         controllerVersion: "research-controller.v1",
       }),
-    ]).catch(() => undefined);
+    ]));
     const claims: StoredClaim[] = state2.claims;
     const passages: StoredPassage[] = state2.passages;
 
@@ -783,7 +810,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const prePublish = await getRun(pool, runId);
     if (!prePublish) return;
     if (prePublish.cancellation_epoch > 0 || prePublish.lifecycle === "cancelling") {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, prePublish.account_id, runId, prePublish.spent_micro);
         await emitEvent(c, {
@@ -793,11 +820,11 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Cancelled during writing. Late publication is rejected.",
           phase: "writing",
         });
-      });
+      }, true);
       return;
     }
     if (!(await consentAllowsProcessing(pool, prePublish.account_id))) {
-      await withTx(pool, async (c) => {
+      await session.write(async (c) => {
         await markTerminal(c, runId, "cancelled");
         await settleRun(c, prePublish.account_id, runId, prePublish.spent_micro);
         await emitEvent(c, {
@@ -807,22 +834,22 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           summary: "Consent revoked during writing. Late publication is rejected.",
           phase: "writing",
         });
-      });
+      }, true);
       return;
     }
     state2.basis.cancellationEpoch = prePublish.cancellation_epoch;
     state2.basis.workerLeaseFence = fence;
 
-    await addSpent(pool, runId, FIXTURE_SYNTH_COST_MICRO);
-    await recordIntent(pool, runId, {
+    await session.write((c) => addSpent(c, runId, FIXTURE_SYNTH_COST_MICRO));
+    await session.write((c) => recordIntent(c, runId, {
       correlationId: reportId,
       route: "fixture:synthesize",
       digest: "compose-report",
       reserved: FIXTURE_SYNTH_COST_MICRO,
       state: "confirmed",
-    });
-    const result = await withTx(pool, async (c) => {
-      return publishReport(c, {
+    }));
+    const result = await session.write(async (c) => {
+      const result = await publishReport(c, {
         report,
         accountId: latest.account_id,
         loaded: state2.basis,
@@ -830,8 +857,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         passages,
         deleted: await isDeleted(c, latest.account_id),
       });
-    });
-    await emitEvent(pool, {
+    await emitEvent(c, {
       runId,
       accountId: latest.account_id,
       type: result.accepted ? "published" : "publication_rejected",
@@ -841,6 +867,8 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       phase: "writing",
       payload: { reason: result.reason, reportId: result.reportId },
     });
+      return result;
+    });
     if (result.accepted) return;
     if (
       result.reason === "cancelled" ||
@@ -848,10 +876,18 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       result.reason === "stale_lease" ||
       result.reason === "consent_revoked"
     ) {
-      await markTerminal(pool, runId, "cancelled");
+      await session.write((c) => markTerminal(c, runId, "cancelled"), true);
       return;
     }
-    await markTerminal(pool, runId, "failed");
+    await session.write((c) => markTerminal(c, runId, "failed"));
     return;
   }
+  await session.write(async (db) => {
+    const run = await getRun(db, runId);
+    if (!run) return;
+    await emitEvent(db, { runId, accountId: run.account_id, type: "step_limit", phase: run.phase,
+      summary: "Research reached its execution limit. Stored evidence is retained; no complete answer was published." });
+    await markTerminal(db, runId, "failed");
+    await settleRun(db, run.account_id, runId, run.spent_micro);
+  });
 }
