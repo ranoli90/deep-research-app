@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Durable versioned criterion/question task prerequisite,193 local integration cases. General workflow and W01-W09 incomplete.",
+  "workingTree": "Whole-passage assertion extraction service and exact model input manifests;200 full integration cases plus29 focused. Support/general processRun integration and W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2015,6 +2015,134 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm typecheck",
+      "artifact": "assertion-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "typecheck",
+      "scope": "Initial typecheck before later failure-branch refinement",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "assertion-extraction-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "28/28 initial extraction/gateway/task cases",
+      "sha256": "7d2f04f840d9397b16d2c33f29e067f6997ffa66b9006e7448d7312c2118a15c"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm verify",
+      "artifact": "assertion-extraction-verify.log",
+      "exitCode": 2,
+      "evidenceClass": "typecheck_failure",
+      "scope": "Type error TS2322 on optional failure reason; no unit suite ran",
+      "sha256": "b1e5e0699714508069ff71fea571516a1ef8bedd1f6964ff6c232f8a0b231ba4"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm verify",
+      "artifact": "assertion-extraction-verify-corrected.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Explicit result discriminant fixed type;97core/80backend/47mobile/4governance",
+      "sha256": "77685fa47b9643ada416746abfe8fb3752c8909a3760fa900a60290ebf040567"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm test:integration",
+      "artifact": "assertion-extraction-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "200/200; full suite before final cross-account selection control",
+      "sha256": "6557d6d48182d346b690b5abd19b7c565633604bf9b8bd5b8a03014fbe7ce5d0"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "assertion-extraction-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "29/29 final extraction/gateway/task cases, actual foreign passage and final discriminator code",
+      "sha256": "0fda9fbbfde8766ff30ce9127356dd1fce73a5dd8e38df5fc7bae238a2eb4fe9"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "assertion-extraction-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F02",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "0fae59e",
+      "workingTree": "assertion extraction and input-manifest change based on0fae59e; see ledger implementation commit",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "assertion-extraction-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

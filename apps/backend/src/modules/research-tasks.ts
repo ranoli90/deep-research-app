@@ -4,6 +4,7 @@ import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs, type ResearchModel
 import { validateModelBindings } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
+import { modelInputManifest } from "./model-operations.js";
 import { getBrief, getRun } from "./runs.js";
 
 export interface TaskModelVersions { promptVersion: string; policyId: string }
@@ -39,9 +40,9 @@ async function checkedProposal(db: Queryable, runId: string, accountId: string, 
     WHERE m.run_id=$1 AND m.account_id=$2 AND m.brief_revision=$3 AND m.operation='brief'
       AND m.schema_version=$4 AND m.prompt_version=$5 AND m.policy_id=$6
       AND ($7::uuid IS NULL OR m.intent_id=$7) AND m.result->>'status'='succeeded'
-      AND m.result->'receipt'=i.receipt AND i.run_id=m.run_id AND i.request_digest=m.request_digest
+      AND m.input_manifest=$8::jsonb AND m.result->'receipt'=i.receipt AND i.run_id=m.run_id AND i.request_digest=m.request_digest
     ORDER BY m.created_at,m.intent_id LIMIT 1`,
-    [runId,accountId,revision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,intentId ?? null]);
+    [runId,accountId,revision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,intentId ?? null,JSON.stringify(modelInputManifest(briefContext(question)))]);
   if (!result.rows[0]) return null;
   const parsed = z.object({ status: z.literal("succeeded"), output: ResearchModelOutputs.brief, receipt: ModelReceiptSchema }).strict().safeParse(result.rows[0].result);
   if (!parsed.success || validateModelBindings("brief", parsed.data.output, briefContext(question)).length) throw new Error("invalid_research_task_proposal");

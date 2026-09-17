@@ -8,6 +8,7 @@ import { claimLease } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
+import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
 import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
 import { loadResearchTask } from "../src/modules/research-tasks.js";
 import { performModelOperation } from "../src/worker/model-gateway.js";
@@ -225,5 +226,92 @@ describe("W05 durable versioned research task", () => {
     await deleteAccount(pool,x.accountId);
     expect((await pool.query("SELECT * FROM research_tasks WHERE account_id=$1",[x.accountId])).rows).toHaveLength(0);
     await expect(loadResearchTask(pool,x.runId,x.accountId,1,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task");
+  }));
+});
+
+
+async function extractionCase(x: Parameters<Parameters<typeof runCase>[0]>[0]) {
+  globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+  const task = await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+  if (task.kind !== "task") throw new Error("task missing");
+  const entity = `Reef-${crypto.randomUUID().slice(0,8)}`;
+  const text = `${entity} restored 12 hectares in 2024. Monitoring did not measure long-term survival.`;
+  const sourceId = await insertSource(pool,{ accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",title:"Restoration observations",publisher:"Test",originCluster:"study" });
+  const p = await insertVersionAndPassage(pool,{ sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",text,accessLevel:"partial-text" });
+  const quote = { passageId:p.passageId,start:0,end:text.indexOf(".")+1,quote:text.slice(0,text.indexOf(".")+1) };
+  const output = { candidates:[{key:"new_entity",label:entity,evidence:[quote]}],
+    assertions:[{key:"area",candidateKey:"new_entity",criterionKeys:["c1"],text:quote.quote,scope:{...scope,entity,time:"2024"},
+      quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[quote]}],
+    limitations:["Long-term survival was not measured."] };
+  return { args:{ ...x,briefRevision:1,taskId:task.task.id,passageIds:[p.passageId] },output,p,text,sourceId };
+}
+describe("W05 evidence-bound arbitrary assertion extraction", () => {
+  it("executes general extraction, records selected version/digest/access and reuses the exact result", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn(async () => response(prepared.output)) as typeof fetch;
+    const result = await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
+    expect(result).toMatchObject({ kind:"extraction",reused:false,output:prepared.output });
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toMatchObject({ kind:"extraction",reused:true });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const row = (await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows[0];
+    expect(row.input_manifest.passages).toEqual([{id:prepared.p.passageId,sourceVersionId:prepared.p.versionId,digest:expect.stringMatching(/^[a-f0-9]{64}$/),accessLevel:"partial-text"}]);
+    expect(JSON.stringify(row.input_manifest)).not.toContain(prepared.text);
+    expect((await pool.query("SELECT * FROM support_assessments WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("retains all selected passages even when output has no assertions", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    const second = await insertVersionAndPassage(pool,{sourceId:prepared.sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",text:"No further field observations were available.",accessLevel:"partial-text"});
+    prepared.args.passageIds.push(second.passageId);
+    globalThis.fetch = vi.fn(async () => response({candidates:[],assertions:[],limitations:["No relevant assertion found"]})) as typeof fetch;
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toMatchObject({kind:"extraction",output:{assertions:[]}});
+    const row = (await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows[0];
+    expect(row.input_manifest.passages).toHaveLength(2);
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,{...prepared.args,passageIds:[...prepared.args.passageIds].reverse()})).toMatchObject({kind:"extraction",reused:true});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("rejects an invented evidence binding instead of creating assertions", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    prepared.output.assertions[0]!.evidence[0]!.passageId=crypto.randomUUID();
+    globalThis.fetch = vi.fn(async () => response(prepared.output)) as typeof fetch;
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"extraction_invalid_output"});
+  }));
+  it("rejects wrong-task, missing passage and duplicate selection before dispatch", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn() as typeof fetch;
+    await expect(extractEvidenceAssertions(pool,x.config,x.session,{...prepared.args,taskId:crypto.randomUUID()})).rejects.toThrow("extraction_task_mismatch");
+    await expect(extractEvidenceAssertions(pool,x.config,x.session,{...prepared.args,passageIds:[crypto.randomUUID()]})).rejects.toThrow("extraction_evidence_owner_mismatch");
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,{...prepared.args,passageIds:[...prepared.args.passageIds,...prepared.args.passageIds]})).toEqual({kind:"blocked",reason:"invalid_extraction_selection"});
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  }));
+  it("rejects another account's actual passage before any extraction request", async () => runCase(async (x) => runCase(async (other) => {
+    const owned = await extractionCase(x);
+    const foreign = await extractionCase(other);
+    globalThis.fetch = vi.fn() as typeof fetch;
+    await expect(extractEvidenceAssertions(pool,x.config,x.session,{...owned.args,passageIds:foreign.args.passageIds})).rejects.toThrow("extraction_evidence_owner_mismatch");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  })));
+  it("does not silently prefix-truncate an oversized passage", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    await pool.query("UPDATE passages SET exact_text=repeat('x',24001) WHERE id=$1",[prepared.p.passageId]);
+    globalThis.fetch = vi.fn() as typeof fetch;
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"extraction_context_unavailable"});
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  }));
+  it("rejects stale source digests and corrupted input manifests", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn(async () => response(prepared.output)) as typeof fetch;
+    await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
+    await pool.query("UPDATE model_operation_results SET input_manifest='{}' WHERE run_id=$1 AND operation='extract_assertions'",[x.runId]);
+    expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"invalid_stored_model_result"});
+    await pool.query("UPDATE passages SET exact_text='Different source text' WHERE id=$1",[prepared.p.passageId]);
+    await expect(extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).rejects.toThrow("model_evidence_digest_mismatch");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("discards late extraction after evidence changes but retains actual cost", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn(async () => {await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);return response(prepared.output);}) as typeof fetch;
+    await expect(extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).rejects.toThrow("stale_model_context");
+    expect((await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows).toHaveLength(0);
+    expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:extract_assertions'",[x.runId])).rows[0].confirmed_micro).toBe("1");
   }));
 });
