@@ -78,15 +78,16 @@ describe("remaining launch-scope IDs", () => {
     await processRun(pool, config, created.json().runId);
     const report = await getLatestReportForRun(pool, created.json().runId, accountId);
     expect(report).toBeTruthy();
-    const table = report!.blocks.find((b) => b.kind === "table");
-    const code = report!.blocks.find((b) => b.kind === "code");
+    const blocks = (report!.blocks ?? []) as { id?: string; kind?: string; text?: string; citationIds?: string[] }[];
+    const table = blocks.find((b) => b.kind === "table");
+    const code = blocks.find((b) => b.kind === "code");
     expect(table?.id).toBe("comparison-table");
     expect(table?.text).toMatch(/Vendor \| Region \| Price/);
     expect(table?.text).toMatch(/Vendor A/);
     expect((table?.citationIds ?? []).length).toBeGreaterThan(1);
     expect(code?.id).toBe("candidate-listing");
     expect(code?.text).toMatch(/Vendor A/);
-    const cited = report!.blocks.flatMap((b) => b.citationIds);
+    const cited = blocks.flatMap((b) => b.citationIds ?? []);
     expect(new Set(cited).size).toBeGreaterThan(1);
   });
 
@@ -282,7 +283,9 @@ describe("remaining launch-scope IDs", () => {
     expect(md).toMatch(/Vendor A/);
     expect(md).toMatch(/\| Vendor \|/);
     expect(md).toMatch(/Café|Vendor|EUR/);
-    const ids = [...md.matchAll(/\[([0-9a-f]{8})\]/gi)].map((m) => m[1]);
+    const ids = [...md.matchAll(/\[([0-9a-f]{8})\]/gi)]
+      .map((m) => m[1])
+      .filter((id): id is string => typeof id === "string");
     expect(ids.length).toBeGreaterThan(0);
     const passages = await pool.query<{ id: string }>(`SELECT id FROM passages WHERE account_id = $1 AND run_id = $2`, [accountId, runId]);
     const prefixes = new Set(passages.rows.map((r) => r.id.slice(0, 8)));

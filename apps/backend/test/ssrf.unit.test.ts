@@ -33,7 +33,7 @@ describe("S02 safe fetch guards", () => {
     ];
     for (const location of targets) {
       const fetched: string[] = [];
-      globalThis.fetch = (async (input: RequestInfo | URL) => {
+      globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
         const u = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
         fetched.push(u);
         return new Response(null, { status: 302, headers: { location } });

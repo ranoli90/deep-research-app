@@ -1,0 +1,35 @@
+{
+  "as_of": "2026-09-16",
+  "suite": "P4 local recovery drill",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p4-recovery.integration.test.ts",
+  "cwd": "apps/backend",
+  "database": "postgres://deep@127.0.0.1:55432/deep_research_test",
+  "route": "fixture",
+  "paid": false,
+  "exit_code": 0,
+  "tests": 2,
+  "integration_totals": { "files": 5, "tests": 90 },
+  "typecheck": "pnpm --filter @deep/backend typecheck exit 0",
+  "results": [
+    {
+      "id": "P4-crash-after-fetch",
+      "status": "passed",
+      "observed": "InjectedCrash persist-evidence left sources/passages and a reserved (not settled) reservation. Live lease could not be stolen. After expiry, worker-b published one report and settled exactly one reservation."
+    },
+    {
+      "id": "P4-crash-before-publish-lease-failover",
+      "status": "passed",
+      "observed": "InjectedCrash before-publish left no report. Expired lease recovered by writer-b: one report row, reservations n=1 settled=1."
+    }
+  ],
+  "not_claimed": [
+    "G03 both-platform native",
+    "G04 quality targets",
+    "G05 competitive/repair experiment",
+    "G06 live route probes",
+    "G07 store disclosures/purchases",
+    "iOS P0-N",
+    "hosted Supabase RLS/auth/storage/pooler"
+  ],
+  "p0_fully_verified": false
+}

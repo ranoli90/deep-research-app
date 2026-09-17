@@ -101,7 +101,7 @@
     "scope": "P0 smoke + launch-scope + remaining fixture/postgres IDs against real local PostgreSQL and pg-boss; fixture route only",
     "network": false,
     "paid": false,
-    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts, apps/backend/test/g01-g02.integration.test.ts"
+    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts, apps/backend/test/g01-g02.integration.test.ts, apps/backend/test/p4-recovery.integration.test.ts"
   },
   {
     "command": "pnpm test:e2e:ios",

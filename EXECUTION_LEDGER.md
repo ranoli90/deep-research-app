@@ -163,6 +163,11 @@ No live paid calls were made.
 - Revoking consent now bumps in-flight `runs.consent_epoch`; `publishReport` re-reads `currentConsent`; the worker stops on revoked consent during search and writing.
 - `pnpm test:integration` 88/88; backend unit 14/14. Artifact `verification/g01-g02.json`. G03–G07, iOS, hosted auth, and purchases remain unpassed. No OpenRouter spend.
 
+## 2026-09-16 — backend typecheck + P4 recovery drill
+
+- Fixed `apps/backend` typecheck: clarify events use `public_summary`; M04 blocks are typed; export citation match ids are narrowed; S02 fetch mock uses `Parameters<typeof fetch>[0]`. `pnpm --filter @deep/backend typecheck` exit 0.
+- P4 drill `apps/backend/test/p4-recovery.integration.test.ts`: crash after fetch keeps evidence, live lease is not stolen, expired lease recovered by another worker with one report and one settlement; crash before publish then failover also one report/one debit. Integration 90/90. Artifact `verification/p4-recovery.json`. iOS/G03–G07/hosted auth unpassed. No OpenRouter spend.
+
 
 
 
