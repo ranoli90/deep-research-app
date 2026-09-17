@@ -25,7 +25,13 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
 }): Promise<Outcome<K>> {
   if (!config.structuredModelEnabled || !config.liveRouteEnabled || config.openRouterModel !== STRUCTURED_MODEL_POLICY.model) return { kind: "blocked", reason: "structured_model_policy_unavailable" };
   const context = ModelContextSchema.parse(args.context);
-  const prepared = prepareModelRequest(args.operation, context);
+  let prepared: ReturnType<typeof prepareModelRequest<K>>;
+  try { prepared = prepareModelRequest(args.operation, context); }
+  catch(error) {
+    if(error instanceof Error && ["model_context_too_large","model_context_exceeds_policy"].includes(error.message))
+      return {kind:"blocked",reason:error.message};
+    throw error;
+  }
   const request = { ...prepared, digest: createHash("sha256").update(JSON.stringify({ digest: prepared.digest,
     policy: prepared.policyId, schema: prepared.schemaVersion, prompt: prepared.promptVersion,
     brief: args.briefRevision, evidence: args.evidenceRevision })).digest("hex") };

@@ -1,3 +1,6 @@
+import { reserveLiveAttempt } from "../src/modules/live-spend.js";
+import { executeScopeComparison } from "../src/worker/scope-comparison.js";
+import { loadWriterSourceContext } from "../src/modules/scoped-support.js";
 import { admitResearchCorrection } from "../src/modules/research-corrections.js";
 import { inheritRunEvidence } from "../src/modules/run-evidence.js";
 import { createHash } from "node:crypto";
@@ -869,12 +872,15 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
   if(op==="research_brief_v1")return response(focusedBrief);
   if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:c.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
   if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:c.passages.length>1?"supported":"unresolved_at_limit",assertionKeys:c.approvedClaimKeys,reason:"Nonbillable review control"}],omittedRequirements:[]});
+  if(op==="research_write_report_v1")expect(c.scopeComparison).toMatchObject({version:"scope-comparison.v1",pairs:[{status:"scope_incomplete",entailment:"not_assessed"}]});
   return model(input,init);
  }) as typeof fetch;
  const names=[`Coral-${crypto.randomUUID()}`,`Kelp-${crypto.randomUUID()}`];
  vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url,`${url.endsWith("1")?names[0]:names[1]} restored 12 hectares in 2024.`));
  await releaseForWorker(x);const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
  await processRun(pool,config,x.runId,{pauseAt:"writing"});await processRun(pool,config,x.runId);
+ const comparisonRows=await pool.query("SELECT result FROM scope_comparisons WHERE run_id=$1",[x.runId]);expect(comparisonRows.rows).toHaveLength(1);
+ expect((await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest).toMatchObject({version:"model-input.v2",scopeComparisonDigest:expect.stringMatching(/^[a-f0-9]{64}$/)});
  expect(queries).toEqual([question,"kelp restoration"]);expect(sourceReader.readSource).toHaveBeenCalledTimes(2);
  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed");
  const report=(await pool.query("SELECT blocks FROM reports WHERE run_id=$1",[x.runId])).rows[0];
@@ -981,3 +987,73 @@ describe("W05 production executor has no diagnostic fallback",()=>{
   expect((await pool.query("SELECT id FROM sources WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
  }));
 });
+
+async function comparisonCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const c=await extractionCase(x),first=c.output.assertions[0]!;
+ c.output.assertions.push({...first,key:"area_rephrased",text:`In 2024, ${first.scope.entity} restored an area of 12 hectares.`});
+ globalThis.fetch=vi.fn(async()=>response(c.output)) as typeof fetch;
+ const extraction=await extractEvidenceAssertions(pool,x.config,x.session,c.args);if(extraction.kind!=="extraction")throw new Error("missing extraction");
+ globalThis.fetch=vi.fn(async()=>response({assessments:c.output.assertions.map(a=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Nonbillable comparison control",missingEvidence:[]}))})) as typeof fetch;
+ const args={...c.args,extractionIntentId:extraction.intentId};
+ const support=await executeAssertionSupport(pool,x.config,x.session,args);if(support.kind!=="support")throw new Error("missing support");
+ expect(support.checks.map(c=>c.decision)).toEqual(["supported","supported"]);
+ return {...c,support,args:{...args,supportIntentId:support.intentId,action:{type:"compare_scopes",claimKeys:c.output.assertions.map(a=>a.key)}}};
+}
+describe("W05 executed scope comparisons",()=>{
+ it("persists exact revisions and reuses the result without a provider call; writer receives it",async()=>runCase(async x=>{
+  const c=await comparisonCase(x);const provider=vi.fn();globalThis.fetch=provider;
+  const result=await executeScopeComparison(x.session,c.args);expect(result).toMatchObject({kind:"comparison",reused:false,result:{pairs:[{status:"scope_incomplete",entailment:"not_assessed"}]}});
+  if(result.kind!=="comparison")throw new Error("missing comparison");
+  expect(await executeScopeComparison(x.session,{...c.args,action:{type:"compare_scopes",claimKeys:[...c.args.action.claimKeys].reverse()}})).toEqual({...result,reused:true});
+  const row=(await pool.query("SELECT * FROM scope_comparisons WHERE id=$1",[result.id])).rows[0];
+  expect(row.claim_revision_ids).toEqual(c.support.checks.map(c=>c.claimRevisionId));expect(row.input_digest).toMatch(/^[a-f0-9]{64}$/);
+  const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+  expect(writer.context.scopeComparison).toEqual(result.result);expect(provider).not.toHaveBeenCalled();
+ }));
+ it("rejects foreign owners, wrong revisions, unknown targets and extra authority",async()=>runCase(async x=>{
+  const c=await comparisonCase(x);
+  await expect(executeScopeComparison(x.session,{...c.args,accountId:crypto.randomUUID()})).rejects.toThrow("support_extraction_owner_or_version_mismatch");
+  await expect(executeScopeComparison(x.session,{...c.args,briefRevision:2})).rejects.toThrow("support_extraction_owner_or_version_mismatch");
+  await expect(executeScopeComparison(x.session,{...c.args,action:{type:"compare_scopes",claimKeys:["area","foreign"]}})).rejects.toThrow("comparison_target_unavailable");
+  expect(await executeScopeComparison(x.session,{...c.args,action:{...c.args.action,budgetMicro:1}})).toEqual({kind:"blocked",reason:"invalid_scope_comparison_action"});
+  expect((await pool.query("SELECT id FROM scope_comparisons WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+ it("corrupt comparison output cannot be reused or passed to the writer",async()=>runCase(async x=>{
+  const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
+  await pool.query("UPDATE scope_comparisons SET result=jsonb_set(result,'{pairs,0,status}','\"scope_matches\"') WHERE run_id=$1",[x.runId]);
+  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_comparison_mismatch");
+  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_comparison_mismatch");
+ }));
+ it("changed claim revision invalidates a comparison and deletion removes derived records",async()=>runCase(async x=>{
+  const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
+  await pool.query("UPDATE claim_revisions SET text='tampered' WHERE id=$1",[c.support.checks[0]!.claimRevisionId]);
+  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_assertion_revision_mismatch");
+  await withTx(pool,db=>deleteAccount(db,x.accountId));
+  expect((await pool.query("SELECT id FROM scope_comparisons WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stale_worker");
+ }));
+});
+it("W05 concurrent scope comparison execution produces one durable result",async()=>runCase(async x=>{
+ const c=await comparisonCase(x);
+ const results=await Promise.all([executeScopeComparison(x.session,c.args),executeScopeComparison(x.session,c.args)]);
+ expect(results.every(r=>r.kind==="comparison")).toBe(true);
+ if(results[0]?.kind!=="comparison"||results[1]?.kind!=="comparison")throw new Error("missing comparison");
+ expect(results[0].id).toBe(results[1].id);expect(results.map(r=>r.kind==="comparison"&&r.reused).sort()).toEqual([false,true]);
+ expect((await pool.query("SELECT id FROM scope_comparisons WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
+}));
+it("W02/W05 unknown prior writer attempt blocks a context upgrade without releasing its hold",async()=>runCase(async x=>{
+ const c=await comparisonCase(x);
+ const attempt=await reserveLiveAttempt(pool,x.config,{runId:x.runId,fence:x.fence,briefRevision:1,kind:"write_report",logicalKey:"old-writer-context",route:"openrouter:nonbillable-control",requestDigest:"old-context",reserveMicro:1});
+ expect(attempt.issue).toBe(true);const provider=vi.fn();globalThis.fetch=provider;
+ expect(await executeScopeComparison(x.session,c.args)).toEqual({kind:"blocked",reason:"comparison_upgrade_requires_reconciled_writer"});
+ const intent=(await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE id=$1",[attempt.intentId])).rows[0];
+ expect(intent).toMatchObject({state:"issued",confirmed_micro:null,reserved_max_micro:"1"});expect(provider).not.toHaveBeenCalled();
+ expect((await pool.query("SELECT id FROM scope_comparisons WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));
+it("W05 oversized structured context is an explicit blocked outcome before provider admission",async()=>runCase(async x=>{
+ const provider=vi.fn();globalThis.fetch=provider;
+ const text="Evidence text. ".repeat(1500),hash=createHash("sha256").update(text).digest("hex");
+ const large={...context,passages:Array.from({length:12},()=>({id:crypto.randomUUID(),sourceVersionId:crypto.randomUUID(),digest:hash,text,accessLevel:"partial-text"}))};
+ expect(await performModelOperation(pool,x.config,x.session,{...x,briefRevision:1,evidenceRevision:1,operation:"brief",context:large})).toEqual({kind:"blocked",reason:"model_context_too_large"});
+ expect(provider).not.toHaveBeenCalled();expect((await pool.query("SELECT id FROM provider_intents WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));

@@ -1,3 +1,4 @@
+import { compareAssertionScopes } from "@deep/research-core";
 import { createHash } from "node:crypto";
 import type { Queryable } from "../platform/db.js";
 import type { ModelContext, PreparedModelRequest, ModelResult } from "../ports/model.js";
@@ -9,6 +10,10 @@ export async function validateOwnedModelContext(db: Queryable, args: {
 }): Promise<void> {
   const run = await getRun(db, args.runId);
   if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision || run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
+  if(args.context.scopeComparison) {
+    const computed=compareAssertionScopes({type:"compare_scopes",claimKeys:args.context.assertions.map(a=>a.key)},args.context.assertions);
+    if(JSON.stringify(computed)!==JSON.stringify(args.context.scopeComparison))throw new Error("model_scope_comparison_mismatch");
+  }
   const brief = await getBrief(db, run.brief_id);
   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
   for (const p of args.context.passages) {
@@ -47,8 +52,9 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 /** Metadata only: exact selected membership, never a claim of full-document coverage. */
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-  return { version:"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  return { version:context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
-    approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft) };
+    approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
+    ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}) };
 }

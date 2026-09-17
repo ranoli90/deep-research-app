@@ -30,3 +30,4 @@ export { draftStatements, type DraftStatement } from "./draft-assertions.js";
 export { compileCheckedDraft } from "./draft-report.js";
 export * from "./research-coverage.js";
 export * from "./discovery-planning.js";
+export { compareAssertionScopes } from "./scope-comparison.js";

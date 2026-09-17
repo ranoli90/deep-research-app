@@ -1,3 +1,4 @@
+import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
@@ -96,7 +97,15 @@ export async function loadWriterSourceContext(db:Queryable,args:SupportArgs & {s
   const checks=await persistScopedSupport(db,{...args,...basis,modelIntentId:args.sourceSupportIntentId},versions,true);
   const approved=checks.filter((c)=>c.decision==="supported");
   if(!approved.length)throw new Error("writer_has_no_supported_premises");
-  return {...basis,context:{...basis.context,approvedClaimKeys:approved.map((c)=>c.claimKey)},approved};
+  const savedComparison=await db.query("SELECT id FROM scope_comparisons WHERE run_id=$1 AND account_id=$2 AND extraction_intent_id=$3 AND support_intent_id=$4",[args.runId,args.accountId,args.extractionIntentId,args.sourceSupportIntentId]);
+  let scopeComparison;
+  if(savedComparison.rowCount) {
+    const compared=await persistScopeComparison(db,{...args,supportIntentId:args.sourceSupportIntentId,
+      action:{type:"compare_scopes",claimKeys:basis.context.assertions.map(a=>a.key)}},versions,true);
+    if(compared.kind!=="comparison")throw new Error(compared.reason);
+    scopeComparison=compared.result;
+  }
+  return {...basis,context:{...basis.context,approvedClaimKeys:approved.map((c)=>c.claimKey),...(scopeComparison?{scopeComparison}:{})},approved};
 }
 
 /** Durable one-level lineage prevents a draft from citing itself or expanding authority. */
@@ -117,6 +126,6 @@ async function loadWriterAssertionContext(db:Queryable,args:SupportArgs,versions
   const {basis,draft}=await restoreWriterDraft(db,args,versions);
   const statements=draftStatements(draft,basis.context.assertions,basis.context.approvedClaimKeys);
   const targets=statements.flatMap((s)=>s.assertion?[s.assertion]:[]);
-  return {context:{...basis.context,assertions:targets,approvedClaimKeys:[],draft},evidenceRevision:basis.evidenceRevision,claimType:"inference",
+  return {context:{...basis.context,assertions:targets,approvedClaimKeys:[],draft,scopeComparison:undefined},evidenceRevision:basis.evidenceRevision,claimType:"inference",
     premiseRevisionIds:Object.fromEntries(statements.filter((s)=>s.assertion).map((s)=>[s.key,s.premiseKeys.map((key)=>basis.approved.find((a)=>a.claimKey===key)!.claimRevisionId)]))};
 }

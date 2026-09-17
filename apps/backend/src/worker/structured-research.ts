@@ -1,3 +1,4 @@
+import { executeScopeComparison } from "./scope-comparison.js";
 import { nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
@@ -73,6 +74,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
     const support=await executeAssertionSupport(pool,config,session,target);
     if(support.kind!=="support")return pendingOrBlocked(support);
+    if(extraction.output.assertions.length>=2) {
+      const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
+        action:{type:"compare_scopes",claimKeys:extraction.output.assertions.map(a=>a.key)}});
+      if(comparison.kind!=="comparison")return unresolved(comparison.reason);
+    }
     const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
     if(review.kind!=="coverage")return pendingOrBlocked(review);
     await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",

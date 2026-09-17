@@ -1,5 +1,7 @@
 # Builder handoff
 
+W05 scope comparison checkpoint: the production loop now executes a deterministic compare_scopes action over exact owned assertion revisions and persists its result. The writer receives validated scope differences/unknowns as versioned context. Matching recorded scope never grants support, agreement or numeric compatibility. Final269/269 PostgreSQL and127 core/92 backend/52 mobile/6 governance passed; Android JS export passed. Real extraction/API14/14 also passed. Large pairwise comparison contexts can exceed the current input ceiling and are explicitly blocked; compact projection remains open. W01-W09 remains incomplete.
+
 Production worker isolation checkpoint: standard worker now uses only structured research; the bounded fixture/controller runtime has a separate development-only entrypoint. Shared lease/cancellation/consent/deletion preflight is retained. Historical tests keep every assertion and explicitly target that runtime; real PDF and structured workflow suites continue targeting production. Current checks:262 PostgreSQL integration tests and117 core/92 backend/52 mobile/6 governance checks passed; 14 actual extraction/API tests also passed. W01-W09 remains incomplete.
 ## Active V6 checkpoint
 

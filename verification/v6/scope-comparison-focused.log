@@ -1,0 +1,42 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (94 tests) 49888ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  325ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  379ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  342ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  340ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1288ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1321ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  610ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  315ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  393ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  431ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  1351ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  662ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  371ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  312ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  383ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  2615ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  747ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  366ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  1495ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  396ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  1749ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  403ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true  2644ms
+   ✓ W05 unresolved criteria trigger a distinct public query and rechecked synthesis  7482ms
+   ✓ W02/W05 concurrent distinct searches obey the durable per-run query ceiling  376ms
+   ✓ W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker  4983ms
+   ✓ W06 fresh cited versions change evidence without claiming changed assertion wording  5412ms
+   ✓ W06 missing parent publication cannot produce an unchanged comparison  2502ms
+   ✓ W05 executed scope comparisons > persists exact revisions and reuses the result without a provider call; writer receives it  580ms
+   ✓ W05 executed scope comparisons > rejects foreign owners, wrong revisions, unknown targets and extra authority  374ms
+   ✓ W05 executed scope comparisons > corrupt comparison output cannot be reused or passed to the writer  612ms
+   ✓ W05 executed scope comparisons > changed claim revision invalidates a comparison and deletion removes derived records  605ms
+
+ Test Files  1 passed (1)
+      Tests  94 passed (94)
+   Start at  15:56:07
+   Duration  51.05s (transform 634ms, setup 0ms, collect 929ms, tests 49.89s, environment 0ms, prepare 74ms)
+

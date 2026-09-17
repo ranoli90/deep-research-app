@@ -294,3 +294,4 @@ export const DELETION_VS_SUBSCRIPTION =
 export { ExecutableArguments, type ExecutableAction, type ExecutableActionKind } from "./action-arguments.js";
 
 export * from "./research-model.js";
+export * from "./scope-comparison.js";

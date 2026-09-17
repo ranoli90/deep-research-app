@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Production worker excludes diagnostic/fixture runtime;262 integration,117/92/52/6 verify,14 actual extraction. W01-W09 incomplete.",
+  "workingTree": "Executed deterministic scope comparison feeds writer;269 full PostgreSQL,14 actual extraction,127/92/52/6 verify and Android JS export pass. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -4123,6 +4123,243 @@
       "evidenceClass": "document_integrity",
       "scope": "Final checkpoint documentation; no application execution",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-comparison-verify-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Initial implementation before new regressions;117/92/52/6",
+      "sha256": "689b770ec0822f071b87cafa43c8a5feac4a319b1805067c1410e4fabde0001a"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-comparison-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "127core/92backend/52mobile/6governance",
+      "sha256": "4539cfdd886519d90abb7b012fc48f148d60d0d1871f834741edd89df4ddd9cf"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scope-comparison-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "94/94;51.05s; comparison persistence, writer context, ownership, tamper and deletion",
+      "sha256": "4bbd73726988bd95b848da6233fc47673271613f06b3dca7a9cdc910dc37dc16"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-comparison-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "127/92/52/6",
+      "sha256": "25110ccb18dc97a92757a43ace5d6d87f83caa3d28ec66a63ae7fc62115dbab7"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "scope-comparison-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "267/267;137.50s; before unknown-writer upgrade guard",
+      "sha256": "1fb95a47d501e5a6fa95f794a638217dab30e9c619163393fba83eb382b569a4"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-comparison-verify-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "127/92/52/6; unit/type checks did not catch later SQL typo",
+      "sha256": "6625bcb44a3dfe269adbaccb153e3ef729c655a4f6a71f729a8e3a15a203faf1"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scope-comparison-focused-final.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "6 failures/90passes: unknown-writer guard referenced nonexistent actual_micro; corrected to confirmed_micro, assertions retained",
+      "sha256": "d02d7922ffc702ba244dba49352af71cdb8373b80ba9de468f86a1f45938beab"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scope-comparison-focused-complete.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "96/96;50.01s; corrected guard preserves unknown holds without provider call",
+      "sha256": "90d78e1ab3d65c59841a412d681d29a12d25c8904438775bfd128bfbc7b9cb1d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-comparison-verify-checked.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Final127core/92backend/52mobile/6governance",
+      "sha256": "6c422b65a43f1f00410b4c9de77fdc5f10b524ec41a9c6536bc9e0c137bcb267"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "scope-comparison-integration-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "Final269/269;16files;172.39s;97 structured-service cases; capacity block, unknown upgrade gate and concurrent comparison replay",
+      "sha256": "9768467e4f87dc6a52b178001e58482c974cd38943ef2fb1aad7835ee99bf813"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "scope-comparison-bundle.log",
+      "exitCode": 0,
+      "evidenceClass": "android_javascript_export",
+      "scope": "Hermes2.04MB; public contract exports resolve; no native execution; hashes in scope-comparison-bundle-manifest.json",
+      "sha256": "1d11e96090e30eba5f82ca723b26cc29b4abe33082ee43319167a04f57679ee6"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scope-comparison-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "executed scope comparison and versioned writer context; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scope-comparison-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "final substantive scope comparison checkpoint",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "scope-comparison-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "14/14;56.71s; real HTML/PDF parser and API/worker corrected report/source flow; fabricated model/search responses",
+      "sha256": "2bf73dd9850f35b14d5349a874bf6abf38e743d1160bdcf6979d386702734567"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "final substantive scope comparison checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scope-comparison-review-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "65f23ec",
+      "workingTree": "final substantive scope comparison checkpoint",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scope-comparison-handoff-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
@@ -4130,7 +4367,7 @@
     "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: broader discovery/evidence selection, substantive remaining actions",
+    "W05: compact comparison context and broader discovery/evidence selection, substantive calculation/counterevidence actions",
     "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",
