@@ -1,7 +1,7 @@
 # Execution status — application implementation
 ## V6 implementation checkpoint — 2026-09-17 19:19 UTC
 
-W05 scoped support service: assertions now undergo an actual structured evidence comparison plus independent binding, scope, number/unit, access, contradiction and qualification checks. Stable claim revisions and exact evidence/scope/checker provenance persist in migration019; replay/corruption/deletion controls pass. Counterevidence omitted by the model is checked and linked. Claims remain unverified at final publication; processRun/general report integration and real semantic evaluation remain open.
+W05 scoped support service (`a02515e`): assertions now undergo an actual structured evidence comparison plus independent binding, scope, number/unit, access, contradiction and qualification checks. Stable claim revisions and exact evidence/scope/checker provenance persist in migration019; replay/corruption/deletion controls pass. Counterevidence omitted by the model is checked and linked. Claims remain unverified at final publication; processRun/general report integration and real semantic evaluation remain open.
 
 W05 assertion extraction prerequisite (`ec83848`): the worker service now extracts arbitrary scoped assertions from explicitly selected whole owned passages through the structured gateway. Migration018 records every selected passage/version/digest/access, even omitted output, and cached reuse requires that exact manifest. Digest mismatch, invalid bindings, oversize selection and stale results fail closed. These are unverified proposals; substantive support and processRun integration remain open.
 
