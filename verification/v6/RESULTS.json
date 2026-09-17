@@ -2078,7 +2078,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Explicit result discriminant fixed type;97core/80backend/47mobile/4governance",
-      "sha256": "77685fa47b9643ada416746abfe8fb3752c8909a3760fa900a60290ebf040567"
+      "sha256": "77685fa47b9643ada416746abfe8fb3752c8909a3760fa900a60290ebf040567",
+      "testedCodeCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
     },
     {
       "requirementIds": [
@@ -2110,7 +2111,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_worker_service",
       "scope": "29/29 final extraction/gateway/task cases, actual foreign passage and final discriminator code",
-      "sha256": "0fda9fbbfde8766ff30ce9127356dd1fce73a5dd8e38df5fc7bae238a2eb4fe9"
+      "sha256": "0fda9fbbfde8766ff30ce9127356dd1fce73a5dd8e38df5fc7bae238a2eb4fe9",
+      "testedCodeCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
     },
     {
       "requirementIds": [
@@ -2126,7 +2128,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
     },
     {
       "requirementIds": [
@@ -2142,7 +2145,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
     }
   ],
   "unresolved": [
@@ -2160,5 +2164,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "5d4482757d268aff5cc2e47b2135a821f36cacd3"
+  "implementationCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
 }

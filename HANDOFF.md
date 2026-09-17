@@ -1,7 +1,7 @@
 # Builder handoff
 ## Active V6 checkpoint
 
-W05 assertion extraction prerequisite: the worker service now extracts arbitrary scoped assertions from explicitly selected whole owned passages through the structured gateway. Migration018 records every selected passage/version/digest/access, even omitted output, and cached reuse requires that exact manifest. Digest mismatch, invalid bindings, oversize selection and stale results fail closed. These are unverified proposals; substantive support and processRun integration remain open.
+W05 assertion extraction prerequisite (`ec83848`): the worker service now extracts arbitrary scoped assertions from explicitly selected whole owned passages through the structured gateway. Migration018 records every selected passage/version/digest/access, even omitted output, and cached reuse requires that exact manifest. Digest mismatch, invalid bindings, oversize selection and stale results fail closed. These are unverified proposals; substantive support and processRun integration remain open.
 
 W05 durable task preparation (`5d44827`): migration017 and the worker task service now preserve one versioned criterion/question specification per owned run/brief revision, with server-generated IDs. New evidence and crash recovery reuse the stored valid proposal; ambiguities remain explicit. Ten new PostgreSQL cases cover identity, recovery, concurrency, corruption, ownership and deletion. This service is not yet integrated into processRun, and does not claim intent quality, answered criteria or corrected-report behavior.
 
