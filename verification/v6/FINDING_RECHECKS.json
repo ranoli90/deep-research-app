@@ -62,7 +62,7 @@
       "title": "Live spending admission is non-atomic and estimated cost is called confirmed",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Atomic project and run-cap reservation, active owned account allowance, stable logical attempt and actual usage.cost conversion added. Unknown outcomes retain the full run allowance until reconciliation; receipt settlement is idempotent and does not clamp overruns. Provider-key scope, automatic reconciliation, historical settlement repair and cost-view separation remain open."
+      "basis": "Atomic project/run/provider-key reservations, active owned account allowance, stable attempt identity and actual usage.cost conversion added. Unknown outcomes retain run allowance; receipt settlement is idempotent without clamping overruns. Unattributed historical costs conservatively consume key cap; real PostgreSQL races pass. Automatic reconciliation, historical settlement repair, cost-view separation and bounded route estimates remain open."
     },
     {
       "id": "V6-F10",
@@ -135,5 +135,5 @@
       "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
     }
   ],
-  "checkpointEvidence": "153/153 local integration; pnpm verify; 10/10 clean-runtime extraction/API-worker checks; public PDF diagnostic; overall milestone incomplete"
+  "checkpointEvidence": "163/163 local integration; pnpm verify; prior 10/10 clean-runtime extraction and public PDF diagnostic; overall milestone incomplete"
 }

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
 import type { Queryable } from "../platform/db.js";
 import type { AppConfig } from "../platform/config.js";
@@ -83,6 +84,15 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if (!canIssueLiveCall({ capMicro: runCap, usedMicro: used, estimatedMicro: args.reserveMicro }).ok) {
       throw new Error("run_spend_cap_exhausted");
     }
+    if (!config.openRouterApiKey?.trim()) throw new Error("missing_provider_key");
+    const keyScope = createHash("sha256").update(`openrouter:${config.openRouterApiKey.trim()}`).digest("hex");
+    // Key lock precedes project lock for every issuer, including different accounts/projects.
+    await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-key-budget:${keyScope}`]);
+    const keyCosts = await db.query<{ used: string }>(`SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
+      FROM provider_intents WHERE route LIKE 'openrouter:%' AND (provider_key_scope = $1 OR provider_key_scope IS NULL)`, [keyScope]);
+    if (!canIssueLiveCall({ capMicro: config.liveKeySpendCapMicro ?? 0, usedMicro: Number(keyCosts.rows[0]?.used ?? 0), estimatedMicro: args.reserveMicro }).ok) {
+      throw new Error("provider_key_cap_exhausted");
+    }
     const scope = config.liveBudgetScope ?? "project";
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-budget:${scope}`]);
     await assertLiveCallAllowed(db, config, args.reserveMicro);
@@ -90,8 +100,8 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     const intentId = crypto.randomUUID();
     await db.query(`INSERT INTO run_actions (id, run_id, brief_revision, logical_key, kind, request_digest)
       VALUES ($1,$2,$3,$4,$5,$6)`, [actionId, args.runId, args.briefRevision, args.logicalKey, args.kind, args.requestDigest]);
-    await db.query(`INSERT INTO provider_intents (id, run_id, correlation_id, route, request_digest, reserved_max_micro, state, action_id, scope_key)
-      VALUES ($1,$2,$8,$3,$4,$5,'issued',$6,$7)`, [intentId, args.runId, args.route, args.requestDigest, args.reserveMicro, actionId, scope, intentId]);
+    await db.query(`INSERT INTO provider_intents (id, run_id, correlation_id, route, request_digest, reserved_max_micro, state, action_id, scope_key, provider_key_scope)
+      VALUES ($1,$2,$8,$3,$4,$5,'issued',$6,$7,$9)`, [intentId, args.runId, args.route, args.requestDigest, args.reserveMicro, actionId, scope, intentId, keyScope]);
     return { intentId, issue: true };
   });
 }

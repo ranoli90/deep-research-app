@@ -1,0 +1,81 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/v6-execution.integration.test.ts (16 tests | 3 failed) 675ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent 94ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 run cap blocks concurrent calls despite a larger project cap 50ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 issuance requires an active account allowance reservation 24ms
+   ✓ W02 real PostgreSQL execution boundaries > A09 unknown provider outcome retains allowance until an actual receipt; repeated settlement is idempotent 42ms
+   ✓ W02 real PostgreSQL execution boundaries > A09 actual receipt overrun is recorded without clamping or stealing another account reservation 54ms
+   × W02 real PostgreSQL execution boundaries > A08 the same provider key cannot bypass its cap through different project scopes or accounts 61ms
+     → expected [ { status: 'fulfilled', …(1) }, …(1) ] to have a length of 1 but got 2
+   × W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: missing key 33ms
+     → promise resolved "{ …(2) }" instead of rejecting
+   × W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: zero cap 32ms
+     → promise resolved "{ …(2) }" instead of rejecting
+   ✓ W02 real PostgreSQL execution boundaries > A14 a stale session cannot mutate the active run 25ms
+   ✓ W02 real PostgreSQL execution boundaries > A43 concurrent conflicting idempotency reuse accepts one full request 32ms
+   ✓ W02 real PostgreSQL execution boundaries > A43 identical concurrent admission reserves and dispatches only once 24ms
+   ✓ W02 real PostgreSQL execution boundaries > A24 wrong-owner parent is denied before admission 28ms
+   ✓ W02 real PostgreSQL execution boundaries > A13 two connections starting together cannot acquire the same live lease 19ms
+   ✓ W02 real PostgreSQL execution boundaries > A14 expired owner cannot renew after takeover 21ms
+   ✓ W02 real PostgreSQL execution boundaries > A11 admission remains dispatchable after commit without contacting queue 26ms
+   ✓ W02 real PostgreSQL execution boundaries > A12 queue failure preserves pending admission for retry 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-execution.integration.test.ts > W02 real PostgreSQL execution boundaries > A08 the same provider key cannot bypass its cap through different project scopes or accounts
+AssertionError: expected [ { status: 'fulfilled', …(1) }, …(1) ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ test/v6-execution.integration.test.ts:141:61
+    139|       reserveLiveAttempt(pool, { ...config, liveBudgetScope: crypto.ra…
+    140|     ]);
+    141|     expect(results.filter((r) => r.status === "fulfilled")).toHaveLeng…
+       |                                                             ^
+    142|     expect((results.find((r) => r.status === "rejected") as PromiseRej…
+    143|   })));
+ ❯ runCase test/v6-execution.integration.test.ts:44:5
+ ❯ runCase test/v6-execution.integration.test.ts:44:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/v6-execution.integration.test.ts > W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: missing key
+ FAIL  test/v6-execution.integration.test.ts > W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: zero cap
+AssertionError: promise resolved "{ …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "intentId": "32eed4ab-ed7e-4d68-99b4-d2be2d3375dd",
++   "issue": true,
+  }
+
+ ❯ test/v6-execution.integration.test.ts:149:189
+    147|     const config = { ...loadConfig({ DATABASE_URL: "postgres://localho…
+    148|       openRouterApiKey: which === "missing key" ? undefined : "nonbill…
+    149|     await expect(reserveLiveAttempt(pool, config, { runId, fence, brie…
+       |                                                                                                                                                                                             ^
+    150|       .rejects.toThrow(which === "missing key" ? "missing_provider_key…
+    151|     const intents = await pool.query("SELECT id FROM provider_intents …
+ ❯ runCase test/v6-execution.integration.test.ts:44:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 13 passed (16)
+   Start at  11:56:23
+   Duration  1.42s (transform 343ms, setup 0ms, collect 535ms, tests 675ms, environment 0ms, prepare 71ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts

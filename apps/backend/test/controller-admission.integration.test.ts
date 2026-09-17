@@ -129,6 +129,7 @@ describe("controller admission on the fixture worker path", () => {
       liveRouteEnabled: true,
       liveRetrievalEnabled: false,
       openRouterApiKey: "test-not-billed",
+      liveKeySpendCapMicro: LIVE_CALL_RESERVE_MICRO,
       liveSpendCapMicro: usedBefore + LIVE_CALL_RESERVE_MICRO + 1_000_000,
     };
     expect(
@@ -181,7 +182,8 @@ describe("controller admission on the fixture worker path", () => {
     let calls = 0;
     globalThis.fetch = (async () => { calls += 1; throw new Error("unexpected network call"); }) as typeof fetch;
     await processRun(pool, { ...config, liveRouteEnabled: true, liveRetrievalEnabled: false,
-      openRouterApiKey: "test-not-billed", liveBudgetScope: crypto.randomUUID(), liveSpendCapMicro: 1_000_000 }, runId);
+      openRouterApiKey: "test-not-billed",
+      liveKeySpendCapMicro: LIVE_CALL_RESERVE_MICRO, liveBudgetScope: crypto.randomUUID(), liveSpendCapMicro: 1_000_000 }, runId);
     expect(calls).toBe(0);
     const intents = await pool.query("SELECT id FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'", [runId]);
     expect(intents.rows).toHaveLength(0);

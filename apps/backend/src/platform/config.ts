@@ -17,6 +17,7 @@ export type AppConfig = {
   openRouterModel: string;
   liveSpendCapMicro: number;
   liveBudgetScope?: string;
+  liveKeySpendCapMicro?: number;
   consentPolicyVersion: string;
   writingCancelWindowMs: number;
   /** Live comparison arm. Default adaptive; baseline is the bounded chooser. */
@@ -66,6 +67,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     openRouterModel: env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
     liveSpendCapMicro: integerConfig(env, "LIVE_SPEND_CAP_MICRO", 0),
     liveBudgetScope: env.LIVE_BUDGET_SCOPE ?? "project",
+    liveKeySpendCapMicro: integerConfig(env, "LIVE_KEY_SPEND_CAP_MICRO", 0),
     consentPolicyVersion: env.CONSENT_POLICY_VERSION ?? CONSENT_POLICY_VERSION,
     writingCancelWindowMs: integerConfig(env, "WRITING_CANCEL_WINDOW_MS", 150),
     liveControllerKind: env.LIVE_CONTROLLER_KIND === "baseline" ? "baseline" : "adaptive",

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Account/run budget and truthful blocked-search checkpoint on 33269f9; 158 local integration cases pass; W01-W09 incomplete",
+  "workingTree": "Provider-key budget checkpoint on 83ab9fe; 163 local integration cases pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1383,11 +1383,76 @@
       "evidenceClass": "document_integrity",
       "scope": "structural handoff only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "83ab9fe plus provider-key budget working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts",
+      "artifact": "key-budget-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres",
+      "scope": "3 failed / 13 passed before key gate",
+      "sha256": "b64151e730ad140b5b9d04b1f0893536325a4cb765bc851571654c5c647c0b56"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "83ab9fe plus provider-key budget working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "key-budget-after.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "22/22 initial key gate",
+      "sha256": "438e19f82e938294b97cd183e9cf515f33ed6ab060bde35c6f881756274ad2d4"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "83ab9fe plus provider-key budget working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "key-budget-controls.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "24/24 including legacy receipt and distinct-key controls",
+      "sha256": "f8a09d75b63417e825049e11f77306af5107646cf324e9b5d737e99fd8613c27"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "83ab9fe plus provider-key budget working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-key-budget.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "91/66/47/4; before final credential whitespace normalization (covered by subsequent integration)",
+      "sha256": "185020b61b7dcd395b3271b609f3315f037f847a8ca3c93d2e2b7866b4c480ae"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "83ab9fe plus provider-key budget working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-key-budget.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "163/163 including same trimmed key across accounts/project scopes; no paid/provider-native proof",
+      "sha256": "ee153a2952e9befea737ab58394f0f92f6dcb8772e1dccf2f4a1c29e2c9a3aa5"
     }
   ],
   "unresolved": [
     "W01: general semantic checking and criterion-linked support",
-    "W02: provider-key buckets, automatic receipt reconciliation, historical settlement repair, confirmed/held cost reporting and substantive named action execution",
+    "W02: automatic receipt reconciliation, historical settlement repair, confirmed/held cost reporting, bounded model-route estimates and substantive named action execution",
     "W03: hosted identity lifecycle/native login and privacy routing",
     "W04: native binary picker, broader extraction fidelity and independent corpus",
     "W05-W09: general gateway, criteria, real typed actions, immutable correction reuse, mobile essentials and held-out evaluation",

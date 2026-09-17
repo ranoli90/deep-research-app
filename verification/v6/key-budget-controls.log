@@ -1,0 +1,40 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"f8e0e89c-ff95-45b5-9254-ad0a0ef49b6f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T17:58:16.954Z"}
+{"level":"info","event":"action","runId":"f8e0e89c-ff95-45b5-9254-ad0a0ef49b6f","type":"stop","rationale":"action type reveal_keys is not a permitted research action","step":1,"t":"2026-09-17T17:58:16.978Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T17:58:17.620Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"search","rationale":"Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.","step":1,"t":"2026-09-17T17:58:17.731Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"fetch","rationale":"Inspect the preferred source type (vendor-matrix) before more weak sources","step":2,"t":"2026-09-17T17:58:17.794Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T17:58:17.829Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T17:58:17.882Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T17:58:17.949Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"verify","rationale":"Scope-check contradiction on compatibility before treating newest as correct","step":6,"t":"2026-09-17T17:58:17.994Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"challenge","rationale":"Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.","step":7,"t":"2026-09-17T17:58:18.049Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":8,"t":"2026-09-17T17:58:18.126Z"}
+{"level":"info","event":"action","runId":"65a904fe-0da8-4c90-99c3-a27cc1ff2833","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":9,"t":"2026-09-17T17:58:18.180Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T17:58:19.227Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T17:58:19.333Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T17:58:19.418Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T17:58:19.485Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T17:58:19.574Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T17:58:19.635Z"}
+{"level":"info","event":"action","runId":"1a528434-444b-4a9a-bfcf-4c982e23c29b","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T17:58:19.679Z"}
+{"level":"info","event":"action","runId":"6d71cc3b-75eb-479f-b8ac-5c252c5b758c","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T17:58:20.766Z"}
+{"level":"info","event":"action","runId":"6d71cc3b-75eb-479f-b8ac-5c252c5b758c","type":"search","rationale":"Investigate an uncovered required question","step":1,"t":"2026-09-17T17:58:20.909Z"}
+{"level":"info","event":"action","runId":"6d71cc3b-75eb-479f-b8ac-5c252c5b758c","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":2,"t":"2026-09-17T17:58:20.969Z"}
+{"level":"info","event":"action","runId":"ddc8a80b-00da-456a-b05a-fbd406974546","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T17:58:22.078Z"}
+ ✓ test/controller-admission.integration.test.ts (6 tests) 6070ms
+   ✓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources  617ms
+   ✓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap  1499ms
+   ✓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun  1458ms
+   ✓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search  1232ms
+   ✓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call  671ms
+   ✓ controller admission on the fixture worker path > issued then failed live intents still consume the reservation  374ms
+ ✓ test/v6-execution.integration.test.ts (18 tests) 2480ms
+
+ Test Files  2 passed (2)
+      Tests  24 passed (24)
+   Start at  11:58:15
+   Duration  11.02s (transform 677ms, setup 0ms, collect 1.49s, tests 8.55s, environment 1ms, prepare 278ms)
+
