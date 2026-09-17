@@ -34,11 +34,12 @@ Working tree: `main` at `ecb55c2a546b0ed406bd1fa914910a7c8b843234`. P0 is **not*
 - P4 recovery drill (`verification/p4-recovery.json`): crash after fetch keeps passages; a live lease cannot be stolen; an expired lease is recovered by another worker; crash before publish plus failover still yields one report and one settlement. `pnpm --filter @deep/backend typecheck` now exits 0.
 - G06 local (`verification/g06-cost.json`): `GET /v1/routes/capabilities` pins fixture tariffs and refuses internal-search visibility; `GET /v1/runs/:id/cost` reconciles fixture spent_micro to intents. Settings shows processor disclosures from `GET /v1/settings`. Not a live OpenRouter invoice probe.
 - G03 Android (`verification/g03-android.json`): create, source FULL-TEXT, share chooser, library open, 120 EUR correction (Vendor C eligible), close/reopen, deletion page. Conversation is hidden while the source sheet is open. iOS still blocked — G03 is not both-platform.
+- G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 92 tests including G06 fixture cost |
+| `pnpm test:integration` | 0 | 95 tests including G07/M10 |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
 | `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
@@ -60,4 +61,4 @@ Working tree: `main` at `ecb55c2a546b0ed406bd1fa914910a7c8b843234`. P0 is **not*
 - P1/P2/P3 fixture tests are not a competitor win. Do not spend more OpenRouter unless remaining cap and a new live need justify it.
 
 ## Next
-iOS P0-N / G03 iOS at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS, both-platform G03, hosted auth, purchases, G04, G05, or G07 as passed. Unblocked local IDs can continue.
+iOS P0-N / G03 iOS at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS, both-platform G03, hosted auth, M11 purchases, G04, G05, or full G07 store review as passed.

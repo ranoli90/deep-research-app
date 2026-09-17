@@ -83,6 +83,12 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
     expect(src).toMatch(/Processor disclosures/);
+    expect(src).toMatch(/Report generated output/);
+    expect(src).toMatch(/Include report excerpt/);
+    expect(src).toMatch(/Submit generated-output report/);
+    expect(src).toMatch(/Restore purchases/);
+    expect(src).toMatch(/api\.restorePurchases/);
+    expect(src).toMatch(/Privacy data flows/);
     expect(src).toMatch(/Open web deletion page/);
     expect(src).toMatch(/state\.report \|\| state\.status === "completed"/);
     expect(src).toMatch(/api\.correct/);

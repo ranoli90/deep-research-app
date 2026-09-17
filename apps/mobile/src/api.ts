@@ -79,8 +79,13 @@ export const api = {
   source: (token: string, id: string) => req(`/v1/sources/${id}`, { token }),
   library: (token: string) => req("/v1/library", { token }),
   exportMd: (token: string, id: string) => req(`/v1/reports/${id}/export`, { token }),
-  challenge: (token: string, reportId: string, claimId: string, note: string) =>
-    req(`/v1/reports/${reportId}/challenges`, { method: "POST", token, body: JSON.stringify({ claimId, category: "claim", note }) }),
+  challenge: (
+    token: string,
+    reportId: string,
+    body: { claimId: string; category: string; note: string; includeExcerpt: boolean },
+  ) => req(`/v1/reports/${reportId}/challenges`, { method: "POST", token, body: JSON.stringify(body) }),
+  restorePurchases: (token: string) =>
+    req("/v1/purchases/restore", { method: "POST", token, body: "{}" }),
   settings: (token: string) => req("/v1/settings", { token }),
   deleteAccount: (token: string) => req("/v1/account/deletion", { method: "POST", token, body: "{}" }),
 };

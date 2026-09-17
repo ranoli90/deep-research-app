@@ -1,0 +1,33 @@
+{
+  "as_of": "2026-09-16",
+  "suite": "G07/M10 in-app privacy disclosure and output reporting",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/g07-output.integration.test.ts",
+  "paid": false,
+  "exit_code": 0,
+  "integration_totals": { "files": 7, "tests": 95 },
+  "results": [
+    {
+      "id": "G07-privacy-disclosure",
+      "status": "passed",
+      "observed": "GET /v1/settings includes privacyDisclosure.dataFlows, deletionVsSubscription, outputReporting.available=true with categories harmful/inaccurate/legal/privacy/other. purchases.available=false restore.available=false."
+    },
+    {
+      "id": "M10-output-report",
+      "status": "passed",
+      "observed": "POST /v1/reports/:id/challenges with includeExcerpt=true stores owned answer excerpt. includeExcerpt=false ignores client-forged excerptText. Other account 404/403."
+    },
+    {
+      "id": "G07-restore-gated",
+      "status": "passed",
+      "observed": "POST /v1/purchases/restore is 403, entitlements remain 0."
+    }
+  ],
+  "not_claimed": [
+    "G07 store review / App Store or Play submission",
+    "M11 purchase sandbox",
+    "iOS P0-N / G03 iOS",
+    "hosted auth",
+    "G04/G05 experimental quality"
+  ],
+  "p0_fully_verified": false
+}

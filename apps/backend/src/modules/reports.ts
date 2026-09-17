@@ -134,12 +134,37 @@ export function fanoutAllowed(currentBindingEpoch: number, rowBindingEpoch: numb
 
 export async function insertChallenge(
   db: Queryable,
-  args: { accountId: string; reportId: string; claimId?: string; category: string; note?: string },
+  args: {
+    accountId: string;
+    reportId: string;
+    claimId?: string;
+    category: string;
+    note?: string;
+    includeExcerpt?: boolean;
+    excerptText?: string | null;
+  },
 ): Promise<string> {
   const id = crypto.randomUUID();
   await db.query(
-    `INSERT INTO challenges (id, account_id, report_id, claim_id, category, note) VALUES ($1,$2,$3,$4,$5,$6)`,
-    [id, args.accountId, args.reportId, args.claimId ?? null, args.category, args.note ?? null],
+    `INSERT INTO challenges (id, account_id, report_id, claim_id, category, note, include_excerpt, excerpt_text)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [
+      id,
+      args.accountId,
+      args.reportId,
+      args.claimId ?? null,
+      args.category,
+      args.note ?? null,
+      Boolean(args.includeExcerpt),
+      args.includeExcerpt ? (args.excerptText ?? null) : null,
+    ],
   );
   return id;
+}
+
+export function excerptFromReport(report: { blocks?: unknown }, limit = 800): string {
+  const blocks = Array.isArray(report.blocks) ? (report.blocks as { id?: string; text?: string }[]) : [];
+  const answer = blocks.find((b) => b.id === "answer") ?? blocks[0];
+  const text = String(answer?.text ?? "").trim();
+  return text.slice(0, limit);
 }

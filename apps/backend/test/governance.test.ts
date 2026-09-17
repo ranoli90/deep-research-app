@@ -47,6 +47,7 @@ describe("V2-16 test weakening", () => {
       "g01-g02.integration.test.ts",
       "p4-recovery.integration.test.ts",
       "g06-cost.integration.test.ts",
+      "g07-output.integration.test.ts",
     ]) {
       const src = readFileSync(join(dir, name), "utf8");
       expect(src).not.toMatch(/\bit\.skip\(|\bxit\(|\bdescribe\.skip\(/);

@@ -259,3 +259,10 @@ export const PROCESSOR_DISCLOSURE = [
   "Optional OpenRouter model gateway when live route is enabled",
   "Optional retrieval/fetch of public URLs when live retrieval is enabled",
 ];
+export const OUTPUT_REPORT_CATEGORIES = ["harmful", "inaccurate", "legal", "privacy", "other"] as const;
+export type OutputReportCategory = (typeof OUTPUT_REPORT_CATEGORIES)[number];
+export const PRIVACY_DATA_FLOWS =
+  "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter. Private attachment text is not copied into public search queries.";
+export const DELETION_VS_SUBSCRIPTION =
+  "Deleting the app account cancels in-flight research and removes derived text. Cancelling a store subscription is a separate store action and does not by itself delete the account.";
+

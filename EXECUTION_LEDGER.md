@@ -179,6 +179,12 @@ No live paid calls were made.
 - Source inspection was covered by the conversation ScrollView. Conversation now renders only when `tab === "research" && !state.source`; sheet uses flex 1; conversation paddingBottom is 200 so citations clear attach/composer.
 - Xiaomi 25098RA98G Expo Go: create (new source ids), FULL-TEXT source sheet, Share ChooserActivity, library open, correction budget=120 EUR Eligible Vendor A+C, force-stop reopen restored 120 EUR, Settings processors, Chrome `/account/deletion` (form not submitted). Screenshots in `verification/g03-android/`. iOS/G04/G05/G07/hosted auth unpassed. No OpenRouter spend.
 
+## 2026-09-16 — G07/M10 in-app output reporting and privacy disclosure
+
+- Flag form: category (harmful/inaccurate/legal/privacy/other), optional explanation, include-excerpt permission, submitted/error states. Server stores owned answer excerpt only when includeExcerpt is true; client-forged excerpt is ignored.
+- Settings shows privacy data flows and deletion-vs-subscription. Restore purchases POSTs `/v1/purchases/restore` and stays 403 with zero entitlements.
+- Integration 95/95; mobile 32/32. Artifact `verification/g07-output.json`. Store review, M11 sandbox, iOS, hosted auth unpassed.
+
 
 
 

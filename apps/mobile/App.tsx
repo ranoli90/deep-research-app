@@ -21,6 +21,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
 import { api, deletionPageUrl, isExpiredSession, isOfflineError } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
@@ -69,6 +70,14 @@ function AppInner() {
   const [showAttach, setShowAttach] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [processors, setProcessors] = useState<string[]>([]);
+  const [privacyFlows, setPrivacyFlows] = useState("");
+  const [deletionVsSub, setDeletionVsSub] = useState("");
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const [flagOpen, setFlagOpen] = useState(false);
+  const [flagCategory, setFlagCategory] = useState<(typeof OUTPUT_REPORT_CATEGORIES)[number]>("inaccurate");
+  const [flagNote, setFlagNote] = useState("");
+  const [flagInclude, setFlagInclude] = useState(false);
+  const [flagStatus, setFlagStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const conversationScroll = useRef<ScrollView>(null);
   const blockY = useRef<Record<string, number>>({});
@@ -236,8 +245,13 @@ function AppInner() {
 
   useEffect(() => {
     if (state.tab !== "settings" || !token) return;
-    void api.settings(token).then((s: { processors?: string[] }) => {
+    void api.settings(token).then((s: {
+      processors?: string[];
+      privacyDisclosure?: { dataFlows?: string; deletionVsSubscription?: string };
+    }) => {
       if (Array.isArray(s.processors)) setProcessors(s.processors);
+      if (s.privacyDisclosure?.dataFlows) setPrivacyFlows(s.privacyDisclosure.dataFlows);
+      if (s.privacyDisclosure?.deletionVsSubscription) setDeletionVsSub(s.privacyDisclosure.deletionVsSubscription);
     }).catch(() => {
       /* keep last known processors; signed-out path shows the sign-in prompt */
     });
@@ -565,17 +579,72 @@ function AppInner() {
                 <Pressable onPress={onFollowUp} accessibilityRole="button" accessibilityLabel="Verify the answer claim">
                   <Text style={styles.link}>Verify this claim</Text>
                 </Pressable>
-                <Pressable
-                  onPress={async () => {
-                    if (!token || !state.report) return;
-                    await api.challenge(token, state.report.reportId, state.report.blocks[0]?.claimIds[0] ?? "answer", "Flagged from the app");
-                    setState((s) => ({ ...s, flagSent: true }));
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Flag this generated answer"
-                >
-                  <Text style={styles.link}>{state.flagSent ? "Flag submitted" : "Flag this answer"}</Text>
-                </Pressable>
+                {state.flagSent || flagStatus === "submitted" ? (
+                  <Text style={styles.caveat} accessibilityLabel="Flag submitted">Report submitted. Thank you.</Text>
+                ) : flagOpen ? (
+                  <View accessibilityLabel="Report generated output">
+                    <Text style={styles.kicker}>Report this generated answer</Text>
+                    {OUTPUT_REPORT_CATEGORIES.map((cat) => (
+                      <Pressable
+                        key={cat}
+                        onPress={() => setFlagCategory(cat)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Category ${cat}`}
+                        accessibilityState={{ selected: flagCategory === cat }}
+                      >
+                        <Text style={flagCategory === cat ? styles.link : styles.bodyText}>{cat}</Text>
+                      </Pressable>
+                    ))}
+                    <TextInput
+                      value={flagNote}
+                      onChangeText={setFlagNote}
+                      placeholder="Optional explanation"
+                      accessibilityLabel="Report explanation"
+                      style={styles.input}
+                      multiline
+                    />
+                    <Pressable
+                      onPress={() => setFlagInclude((v) => !v)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Include report excerpt"
+                      accessibilityState={{ selected: flagInclude }}
+                    >
+                      <Text style={styles.link}>{flagInclude ? "Include excerpt: yes" : "Include excerpt: no"}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={async () => {
+                        if (!token || !state.report) return;
+                        setFlagStatus("submitting");
+                        try {
+                          await api.challenge(token, state.report.reportId, {
+                            claimId: state.report.blocks[0]?.claimIds[0] ?? "answer",
+                            category: flagCategory,
+                            note: flagNote,
+                            includeExcerpt: flagInclude,
+                          });
+                          setFlagStatus("submitted");
+                          setState((s) => ({ ...s, flagSent: true }));
+                        } catch {
+                          setFlagStatus("error");
+                        }
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Submit generated-output report"
+                      disabled={flagStatus === "submitting"}
+                    >
+                      <Text style={styles.link}>{flagStatus === "submitting" ? "Submitting…" : "Submit report"}</Text>
+                    </Pressable>
+                    {flagStatus === "error" ? <Text style={styles.error}>Could not submit. Try again.</Text> : null}
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setFlagOpen(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Flag this generated answer"
+                  >
+                    <Text style={styles.link}>Flag this answer</Text>
+                  </Pressable>
+                )}
               </View>
             ) : null}
             {state.previousReport ? (
@@ -653,9 +722,24 @@ function AppInner() {
           <Settings
             styles={styles}
             processors={processors}
+            privacyFlows={privacyFlows}
+            deletionVsSub={deletionVsSub}
+            restoreMessage={restoreMessage}
             state={state}
             onConsent={grantConsent}
             onSignIn={ensureSession}
+            onRestore={async () => {
+              if (!token) {
+                setRestoreMessage("Sign in first. Restore still requires a store sandbox.");
+                return;
+              }
+              try {
+                await api.restorePurchases(token);
+                setRestoreMessage("Unexpected restore success; purchases remain gated.");
+              } catch (e) {
+                setRestoreMessage(e instanceof Error ? e.message : "Restore is unavailable until a store sandbox is connected.");
+              }
+            }}
             onMode={(routeMode) => setState((s) => ({ ...s, routeMode }))}
             onDelete={async () => {
               if (!token) return;
@@ -833,9 +917,13 @@ function Settings({
   styles,
   state,
   processors,
+  privacyFlows,
+  deletionVsSub,
+  restoreMessage,
   onConsent,
   onSignIn,
   onMode,
+  onRestore,
   onDelete,
   onLogout,
   onRevoke,
@@ -843,9 +931,13 @@ function Settings({
   styles: ReturnType<typeof makeStyles>;
   state: UiState;
   processors: string[];
+  privacyFlows: string;
+  deletionVsSub: string;
+  restoreMessage: string | null;
   onConsent: () => void;
   onSignIn: () => void;
   onMode: (m: UiState["routeMode"]) => void;
+  onRestore: () => void;
   onDelete: () => void;
   onLogout: () => void;
   onRevoke: () => void;
@@ -868,7 +960,13 @@ function Settings({
         Processors: {processors.length ? processors.join(". ") : state.signedIn ? "Loading processor list." : "Sign in to see processor disclosures."}
       </Text>
       <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
-      <Text style={styles.caveat}>Purchases: unavailable until a store sandbox is connected. Restore is listed but will explain that prerequisite.</Text>
+      {privacyFlows ? <Text style={styles.bodyText} accessibilityLabel="Privacy data flows">{privacyFlows}</Text> : null}
+      {deletionVsSub ? <Text style={styles.caveat} accessibilityLabel="Deletion versus subscription">{deletionVsSub}</Text> : null}
+      <Pressable onPress={onRestore} accessibilityRole="button" accessibilityLabel="Restore purchases">
+        <Text style={styles.link}>Restore purchases</Text>
+      </Pressable>
+      {restoreMessage ? <Text style={styles.caveat} accessibilityLabel="Restore result">{restoreMessage}</Text> : null}
+      <Text style={styles.caveat}>Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.</Text>
       <Text style={styles.caveat}>Notifications: optional. The app works if permission is denied; reopen to refresh.</Text>
       <Pressable onPress={onRevoke} accessibilityRole="button" accessibilityLabel="Revoke AI processing consent">
         <Text style={styles.link}>Revoke consent (stops new research)</Text>

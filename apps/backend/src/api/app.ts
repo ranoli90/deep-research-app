@@ -4,7 +4,10 @@ import {
   CorrectionRequestSchema,
   CreateRunRequestSchema,
   DEFAULT_RUN_BUDGET_MICRO,
+  DELETION_VS_SUBSCRIPTION,
   MAX_ATTACHMENT_BYTES,
+  OUTPUT_REPORT_CATEGORIES,
+  PRIVACY_DATA_FLOWS,
   PROCESSOR_DISCLOSURE,
 } from "@deep/contracts";
 import {
@@ -48,7 +51,7 @@ import {
   listLibrary,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
-import { getLatestReportForRun, getReportForAccount, insertChallenge, publishReport } from "../modules/reports.js";
+import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport } from "../modules/reports.js";
 import { enqueueRun } from "../adapters/queue.js";
 
 export type AppDeps = {
@@ -490,15 +493,28 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
-    const body = (req.body ?? {}) as { claimId?: string; category?: string; note?: string };
+    const body = (req.body ?? {}) as {
+      claimId?: string;
+      category?: string;
+      note?: string;
+      includeExcerpt?: boolean;
+    };
+    const category = body.category ?? "other";
+    if (!(OUTPUT_REPORT_CATEGORIES as readonly string[]).includes(category) && category !== "claim") {
+      return reply.code(400).send(err("invalid_input", "Unknown report category.", crypto.randomUUID()));
+    }
+    const includeExcerpt = body.includeExcerpt === true;
+    const excerptText = includeExcerpt ? excerptFromReport(report) : null;
     const id = await insertChallenge(pool, {
       accountId: a.accountId,
       reportId: report.id,
       claimId: body.claimId,
-      category: body.category ?? "claim",
+      category,
       note: body.note,
+      includeExcerpt,
+      excerptText,
     });
-    return { challengeId: id };
+    return { challengeId: id, submitted: true, includedExcerpt: includeExcerpt };
   });
 
   app.get("/v1/reports/:id/export", async (req, reply) => {
@@ -599,6 +615,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return reply.code(401).send(err("permission_denied", "Purchase verification is gated until sandbox credentials exist.", crypto.randomUUID()));
   });
 
+  app.post("/v1/purchases/restore", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const count = await pool.query(`SELECT count(*)::int AS n FROM entitlements WHERE account_id = $1`, [a.accountId]);
+    return reply.code(403).send({
+      code: "permission_denied",
+      message: "Restore is unavailable until a store sandbox is connected. No entitlement was granted.",
+      entitlements: count.rows[0]?.n ?? 0,
+      available: false,
+    });
+  });
+
   app.post("/v1/purchases/verify", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
@@ -621,11 +649,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return {
       consent,
       processors: PROCESSOR_DISCLOSURE,
+      privacyDisclosure: {
+        policyVersion: CONSENT_POLICY_VERSION,
+        processors: PROCESSOR_DISCLOSURE,
+        dataFlows: PRIVACY_DATA_FLOWS,
+        deletionVsSubscription: DELETION_VS_SUBSCRIPTION,
+      },
+      outputReporting: { available: true, categories: [...OUTPUT_REPORT_CATEGORIES] },
       allowance: allow.rows[0] ?? null,
       liveRouteEnabled: config.liveRouteEnabled,
       fixtureRouteAllowed: config.fixtureRouteAllowed,
       capabilities: pinRouteCapabilities(config),
       purchases: { available: false, reason: "Store purchases are gated until sandbox credentials exist." },
+      restore: { available: false, reason: "Restore is unavailable until a store sandbox is connected." },
       push: { available: false, reason: "Live push is gated; reopen the app to refresh research." },
     };
   });
