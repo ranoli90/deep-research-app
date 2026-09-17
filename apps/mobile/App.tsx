@@ -315,7 +315,7 @@ function AppInner() {
       <StatusBar style={theme === color.dark ? "light" : "dark"} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={insets.top}>
         <View style={styles.header}>
-          <Text style={styles.wordmark} accessibilityRole="header">
+          <Text style={styles.wordmark} accessibilityRole="header" allowFontScaling maxFontSizeMultiplier={2}>
             Deep Research
           </Text>
           <Pressable onPress={() => setState((s) => ({ ...s, tab: "settings" }))} accessibilityRole="button" accessibilityLabel="Open profile and settings">
@@ -379,6 +379,8 @@ function AppInner() {
                   placeholder="Germany"
                   placeholderTextColor={theme.muted}
                   style={styles.input}
+                  allowFontScaling
+                  maxFontSizeMultiplier={2}
                   accessibilityLabel="Clarification answer"
                 />
                 <Pressable
@@ -461,6 +463,8 @@ function AppInner() {
                   placeholder="Actually, the budget is 120 EUR"
                   placeholderTextColor={theme.muted}
                   style={styles.input}
+                  allowFontScaling
+                  maxFontSizeMultiplier={2}
                   accessibilityLabel="Correction field"
                 />
                 <Pressable onPress={onCorrect} accessibilityRole="button" accessibilityLabel="Submit correction">
@@ -534,6 +538,8 @@ function AppInner() {
               value={attachName}
               onChangeText={setAttachName}
               style={styles.input}
+              allowFontScaling
+              maxFontSizeMultiplier={2}
               accessibilityLabel="Attachment filename"
             />
             <TextInput
@@ -541,6 +547,8 @@ function AppInner() {
               onChangeText={setAttachText}
               placeholder="Paste supported text or PDF extract"
               placeholderTextColor={theme.muted}
+              allowFontScaling
+              maxFontSizeMultiplier={2}
               style={styles.input}
               accessibilityLabel="Attachment text"
             />
@@ -589,6 +597,8 @@ function AppInner() {
             placeholderTextColor={theme.muted}
             style={styles.composer}
             multiline
+            allowFontScaling
+            maxFontSizeMultiplier={2}
             accessibilityLabel="Research question"
           />
           <Pressable
@@ -791,8 +801,8 @@ function ReportBlockView({
 function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg },
-    header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    wordmark: { ...typeTokens.title, color: theme.ink },
+    header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 },
+    wordmark: { ...typeTokens.title, color: theme.ink, flexShrink: 1 },
     link: { color: theme.accent, fontSize: 16, paddingVertical: 8 },
     banner: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
     bannerLive: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
@@ -819,13 +829,13 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     caveat: { ...typeTokens.body, color: theme.caveat, marginTop: 8 },
     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     composerWrap: { flexDirection: "row", alignItems: "flex-end", padding: space.sm, borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.surface },
-    composer: { flex: 1, minHeight: 44, maxHeight: 120, ...typeTokens.body, color: theme.ink, padding: space.sm },
+    composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, padding: space.sm },
     sendBtn: { paddingHorizontal: space.md, paddingVertical: space.sm },
     send: { color: theme.accent, fontWeight: "600", fontSize: 16 },
     tabs: { flexDirection: "row", borderTopWidth: 1, borderColor: theme.line },
-    tab: { flex: 1, alignItems: "center", paddingVertical: 12 },
-    tabOn: { color: theme.ink, fontWeight: "600", textTransform: "capitalize" },
-    tabOff: { color: theme.muted, textTransform: "capitalize" },
+    tab: { flex: 1, alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
+    tabOn: { color: theme.ink, fontWeight: "600", textTransform: "capitalize", textAlign: "center" },
+    tabOff: { color: theme.muted, textTransform: "capitalize", textAlign: "center" },
     input: { borderWidth: 1, borderColor: theme.line, borderRadius: 8, padding: space.sm, color: theme.ink, marginBottom: 8 },
     attachRow: { paddingHorizontal: space.md, paddingTop: space.sm },
   });

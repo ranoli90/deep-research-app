@@ -99,6 +99,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/announceForAccessibility/);
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);
     expect(src).toMatch(/!keyboardOpen/);
+    expect(src).not.toMatch(/allowFontScaling=\{false\}/);
+    expect(src).toMatch(/maxFontSizeMultiplier=\{2\}/);
+    expect(src).toMatch(/maxHeight: 180/);
   });
 
   it("expired session keeps the draft and routes to settings", () => {

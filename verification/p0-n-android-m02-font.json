@@ -1,0 +1,20 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "M02 enlarged text",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "font_scale": 1.3,
+    "restored_to": 1.0
+  },
+  "observed": {
+    "library": "titles wrap; Research/Library/Settings tabs remain labeled and tappable",
+    "research": "composer and Send remain fully visible; report answer and Source 97feec33 readable; banner wraps",
+    "source_sheet": "note.txtt FULL-TEXT and Close readable at 1.3",
+    "settings": "sign-in, consent, route, revoke, log out readable; Delete account reachable after scroll"
+  },
+  "note": "Changing font_scale remounts Expo Go to a white screen until the experience is relaunched via exp://127.0.0.1:8081. Capture used that reload. Font scale restored to 1.0 afterward.",
+  "code": "TextInputs set allowFontScaling with maxFontSizeMultiplier=2; composer maxHeight 180; header wraps; no allowFontScaling={false}",
+  "ios_voiceover": "blocked — no Xcode",
+  "status": "implemented and verified on Android at font_scale 1.3"
+}
