@@ -2849,7 +2849,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "Initial document test types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     },
     {
       "requirementIds": [
@@ -2881,7 +2882,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "115 core/80 backend/47 mobile/4 governance",
-      "sha256": "7e079498e21a0a94a375d438f898792e2577ecb81cb2763de165441c8c85de53"
+      "sha256": "7e079498e21a0a94a375d438f898792e2577ecb81cb2763de165441c8c85de53",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     },
     {
       "requirementIds": [
@@ -2897,7 +2899,8 @@
       "exitCode": 0,
       "evidenceClass": "local_actual_extraction_api_worker",
       "scope": "11/11; actual isolated parser/API/worker/database/reopen/deletion, fabricated semantic responses",
-      "sha256": "9bb9cce88a2296566f3a52d67b061ed577aa769ea411b48ee111dc94e6e4817a"
+      "sha256": "9bb9cce88a2296566f3a52d67b061ed577aa769ea411b48ee111dc94e6e4817a",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     },
     {
       "requirementIds": [
@@ -2913,7 +2916,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     },
     {
       "requirementIds": [
@@ -2929,7 +2933,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     },
     {
       "requirementIds": [
@@ -2945,7 +2950,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "236/236 including preserved publication negatives and checker-version controls",
-      "sha256": "9a30af693c5904c2250bb63d2f2646cef6a9d06d147db21d5d62f212698902c3"
+      "sha256": "9a30af693c5904c2250bb63d2f2646cef6a9d06d147db21d5d62f212698902c3",
+      "testedCodeCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
     }
   ],
   "unresolved": [
@@ -2963,5 +2969,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "d55bab4472bba5d756fc7e3d0e5ea95f545411bf"
+  "implementationCommit": "7a4e93a733ce065b1dcfeaf9d6d62fe4142b8061"
 }
