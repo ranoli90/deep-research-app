@@ -76,7 +76,7 @@
       "title": "Leases and terminal mutations are not fully fenced",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Unique attempt ownership, row-serialized acquisition, heartbeat and fenced worker writes added. Legacy recovery setup and complete evidence-basis checks remain."
+      "basis": "Unique attempt ownership, row-serialized acquisition, heartbeat and fenced worker writes added. Recovery tests now assert same-name workers cannot steal leases. Complete evidence-basis mutation checks remain open."
     },
     {
       "id": "V6-F12",
@@ -89,8 +89,8 @@
       "id": "V6-F13",
       "title": "Deletion does not cover all private data paths",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-      "status": "rechecked; open",
-      "basis": "Deletion covers added extraction/support stores but legacy raw attachment files and derived stores still need complete purge."
+      "status": "reproduced; local server boundary repaired, external/mobile gates open",
+      "basis": "Twelve retained-data/raw-file assertions reproduced; nine local database/filesystem tests now cover current stores, raw bytes, legacy cleanup failure/retry, prior tombstone replay, real upload contention and late API writes. Hosted backup/retention and mobile caches remain unverified."
     },
     {
       "id": "V6-F14",
@@ -135,5 +135,5 @@
       "basis": "Current status/handoff now distinguish historical evidence, failures and scope. Legacy review validator and broader canonical reconciliation remain open."
     }
   ],
-  "checkpointEvidence": "139/139 local integration and pnpm verify pass; overall milestone incomplete"
+  "checkpointEvidence": "148/148 local integration and pnpm verify pass; overall milestone incomplete"
 }

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Report/support checkpoint in progress on 500ce1e; 139/139 integration and pnpm verify passed; W01-W09 incomplete",
+  "workingTree": "Deletion checkpoint on 8b05f70; 148/148 integration and pnpm verify passed; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -451,6 +451,126 @@
       "scope": "typecheck; core 81, backend 52, mobile 32 and governance 4 passed; boundaries pass",
       "artifact": "verify-report-repair.log",
       "sha256": "698ecd368b3fc02769bb9440e8fb0975a6acbf4f447ee95bf0cabb6cf3643bb8"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-deletion.integration.test.ts",
+      "artifact": "deletion-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "one test failed with twelve retained-data/raw-file assertions",
+      "sha256": "f48b796f4fbc175378fa008279d99f03061f7771d924968c3fde1762434aa445"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-deletion.integration.test.ts",
+      "artifact": "deletion-initial-after.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "initial current-store purge regression passed",
+      "sha256": "7c952ce982d3c171b376eecdf2cddb1fa35ad94ac9acdd82d6b663acaaa55bbb"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-deletion.integration.test.ts",
+      "artifact": "deletion-races.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "four tests; actual PostgreSQL upload contention and filesystem cleanup failures/retry",
+      "sha256": "c3723164cd3bebe3ece042daa440035da7fc6d5bf4b337b21952fcc0ad73767c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-deletion.integration.test.ts",
+      "artifact": "deletion-api-races.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "eight tests including four API requests authenticated before deletion",
+      "sha256": "1028c0289ee50720317693b98f9df48ac5fd99d91bdc87a352cfc060d0754290"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm test:integration",
+      "artifact": "integration-deletion.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "148/148 local PostgreSQL integration checks; no paid/native/hosted evidence",
+      "sha256": "a3baee79e750daf2245cc0f1a10da8fc4502a3c6a7894434f89490590628d65c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm verify",
+      "artifact": "verify-deletion.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "core 81/backend 52/mobile 32/governance 4, typecheck and boundaries passed",
+      "sha256": "7373b8130cfe59d18b4ee9b376292ecf39cdefa61277ed5b225da3332ae4ee32"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-deletion.integration.test.ts",
+      "artifact": "deletion-controls.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_filesystem",
+      "scope": "9/9 including strengthened other-account/raw-byte controls and prior tombstone replay",
+      "sha256": "9f32ab035ee871dd24511dbc691e617d3acac40d45fd87c3a19c2261930cc65d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F13",
+        "V6-F14"
+      ],
+      "commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+      "workingTree": "uncommitted deletion repair",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "deletion-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "final backend/test TypeScript check",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
     }
   ],
   "unresolved": [

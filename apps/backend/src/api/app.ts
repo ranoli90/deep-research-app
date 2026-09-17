@@ -21,8 +21,6 @@ import {
 } from "@deep/research-core";
 import type PgBoss from "pg-boss";
 import type pg from "pg";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { createHash } from "node:crypto";
 import type { AppConfig } from "../platform/config.js";
 import { withTx } from "../platform/db.js";
@@ -33,6 +31,7 @@ import {
   currentConsent,
   deleteAccount,
   grantConsent,
+  lockActiveAccount,
   revokeConsent,
 } from "../modules/access.js";
 import { reserveAllowance } from "../modules/billing.js";
@@ -54,6 +53,8 @@ import { getPassageForAccount } from "../modules/evidence.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
+import { storeAttachment } from "../modules/attachments.js";
+import { drainFileDeletions } from "../modules/file-deletion.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -269,6 +270,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       ];
     }
     await withTx(pool, async (db) => {
+    await lockActiveAccount(db, a.accountId);
+    const current = await getRun(db, id, { forUpdate: true });
+    if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== run.brief_revision) {
+      throw Object.assign(new Error("This run is no longer waiting for this input."), { statusCode: 409 });
+    }
     await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify(brief)]);
     await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
     await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
@@ -314,6 +320,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     });
     const fullRerun = shouldFullRerun(impact);
     const created = await withTx(pool, async (c) => {
+      await lockActiveAccount(c, a.accountId);
+      const authorizedConsent = await currentConsent(c, a.accountId);
+      if (!authorizedConsent || authorizedConsent.revoked || authorizedConsent.epoch !== consent.epoch) {
+        throw Object.assign(new Error("Consent required."), { statusCode: 403 });
+      }
       const briefId = crypto.randomUUID();
       const revision = parentBrief.revision + 1;
       const brief = {
@@ -372,6 +383,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const body = (req.body ?? {}) as { claimId?: string; note?: string };
     const parentBrief = await getBrief(pool, run.brief_id);
     const created = await withTx(pool, async (c) => {
+      await lockActiveAccount(c, a.accountId);
+      const authorizedConsent = await currentConsent(c, a.accountId);
+      if (!authorizedConsent || authorizedConsent.revoked || authorizedConsent.epoch !== consent.epoch) {
+        throw Object.assign(new Error("Consent required."), { statusCode: 403 });
+      }
       const briefId = crypto.randomUUID();
       const revision = parentBrief.revision + 1;
       const brief = {
@@ -503,15 +519,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (buf.length > MAX_ATTACHMENT_BYTES) {
       return reply.code(400).send(err("invalid_input", "File exceeds size limit.", crypto.randomUUID()));
     }
-    const id = crypto.randomUUID();
-    await mkdir(config.storageDir, { recursive: true });
-    const ptr = join(config.storageDir, `${a.accountId}-${id}`);
-    await writeFile(ptr, buf);
-    await pool.query(
-      `INSERT INTO attachments (id, account_id, filename, mime, size_bytes, storage_ptr, sha256, processing_state, extracted_text)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,'extracted',$8)`,
-      [id, a.accountId, body.filename ?? "note.txt", mime, buf.length, ptr, createHash("sha256").update(buf).digest("hex"), mime === "application/pdf" ? text : text],
-    );
+    const id = await storeAttachment(pool, { accountId: a.accountId, filename: body.filename ?? "note.txt", mime, bytes: buf, extractedText: text });
+    if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return { attachmentId: id, processingState: "extracted", coverage: mime === "application/pdf" ? "text-only" : "complete" };
   });
 
@@ -541,12 +550,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     await withTx(pool, async (c) => {
       await deleteAccount(c, a.accountId);
     });
+    // Storage work happens after commit. A durable worker retries outages and lost acknowledgements.
+    try { await drainFileDeletions(pool, config.storageDir, a.accountId); }
+    catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
+    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [a.accountId]);
+    const fileCleanupPending = pending.rowCount !== 0;
     if (asHtml) {
       reply.header("content-type", "text/html; charset=utf-8");
-      return reply.send("<!doctype html><p>Account deleted. Active research was cancelled. Private derived text was removed.</p>");
+      return reply.send(`<!doctype html><p>Account deleted. Active research was cancelled. Private derived text was removed.${fileCleanupPending ? " Stored file deletion is queued and will retry." : ""}</p>`);
     }
     return {
       deleted: true,
+      fileCleanupPending,
       note: "Active research is cancelled. Private derived text is removed. Store subscriptions are a separate action.",
     };
   }

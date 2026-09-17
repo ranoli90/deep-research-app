@@ -2,7 +2,7 @@ import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
 import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
-import { currentConsent } from "./access.js";
+import { currentConsent, lockActiveAccount } from "./access.js";
 import { getBrief, getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
 import { persistCheckedClaims } from "./claim-support.js";
@@ -176,6 +176,10 @@ export async function insertChallenge(
     excerptText?: string | null;
   },
 ): Promise<string> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => insertChallenge(client, args));
+  await lockActiveAccount(db, args.accountId);
+  const report = await db.query("SELECT id FROM reports WHERE id=$1 AND account_id=$2 AND redacted_at IS NULL", [args.reportId, args.accountId]);
+  if (!report.rows[0]) throw new Error("report_unavailable");
   const id = crypto.randomUUID();
   await db.query(
     `INSERT INTO challenges (id, account_id, report_id, claim_id, category, note, include_excerpt, excerpt_text)
