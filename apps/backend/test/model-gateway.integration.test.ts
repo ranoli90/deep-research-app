@@ -1,3 +1,4 @@
+import { executeEvidenceCalculation } from "../src/worker/evidence-calculation.js";
 import { modelInputManifest } from "../src/modules/model-operations.js";
 import { reserveLiveAttempt } from "../src/modules/live-spend.js";
 import { executeScopeComparison } from "../src/worker/scope-comparison.js";
@@ -1089,3 +1090,60 @@ it("W05 projection metadata and model-bound pair tampering fail closed",async()=
  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_context_version_mismatch");
  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_context_version_mismatch");
 }));
+
+async function calculationCase(x:Parameters<Parameters<typeof runCase>[0]>[0],wrongBinding=false) {
+ const c=await extractionCase(x),entity=`Kelp-${crypto.randomUUID().slice(0,8)}`,text=`${entity} restored 8 hectares in 2024.`;
+ const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/second-study",title:"Other restoration",publisher:"Control",originCluster:"other-study"});
+ const p=await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/second-study",text,accessLevel:"partial-text"});
+ c.args.passageIds.push(p.passageId);
+ c.output.assertions.push({key:"second_area",candidateKey:null,criterionKeys:["c1"],text,scope:{...scope,entity,time:"2024"},
+  quantities:[{value:wrongBinding?"2024":"8",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[{passageId:p.passageId,start:0,end:text.length,quote:text}]});
+ globalThis.fetch=vi.fn(async()=>response(c.output)) as typeof fetch;
+ const extracted=await extractEvidenceAssertions(pool,x.config,x.session,c.args);if(extracted.kind!=="extraction")throw new Error("missing extraction");
+ globalThis.fetch=vi.fn(async()=>response({assessments:c.output.assertions.map(a=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Nonbillable numeric input control",missingEvidence:[]}))})) as typeof fetch;
+ const args={...c.args,extractionIntentId:extracted.intentId};
+ const support=await executeAssertionSupport(pool,x.config,x.session,args);if(support.kind!=="support")throw new Error("missing support");
+ expect(support.checks.map(c=>c.decision)).toEqual(["supported","supported"]);
+ return {...c,support,args:{...args,supportIntentId:support.intentId,action:{type:"calculate",formula:"difference",inputs:[{claimKey:"area",quantityIndex:0},{claimKey:"second_area",quantityIndex:0}]}}};
+}
+describe("W05 evidence-bound calculation execution",()=>{
+ it("computes from exact supported revisions, binds numeric spans and replays without provider work",async()=>runCase(async x=>{
+  const c=await calculationCase(x),provider=vi.fn();globalThis.fetch=provider;
+  const result=await executeEvidenceCalculation(x.session,c.args);
+  expect(result).toMatchObject({kind:"calculation",reused:false,result:{status:"computed",output:{numerator:"4",denominator:"1",unit:"hectares"}}});
+  if(result.kind!=="calculation")throw new Error("missing calculation");
+  for(const input of result.result.inputs)for(const quote of input.evidence) {
+   const text=(await pool.query("SELECT exact_text FROM passages WHERE id=$1",[quote.passageId])).rows[0].exact_text;
+   expect(text.slice(quote.start,quote.end)).toBe(quote.quote);
+  }
+  expect(await executeEvidenceCalculation(x.session,c.args)).toEqual({...result,reused:true});
+  expect((await pool.query("SELECT claim_revision_ids FROM evidence_calculations WHERE id=$1",[result.id])).rows[0].claim_revision_ids).toEqual(c.support.checks.map(c=>c.claimRevisionId));
+  expect(provider).not.toHaveBeenCalled();
+ }));
+ it("a model-supported year cannot masquerade as an area input",async()=>runCase(async x=>{
+  const c=await calculationCase(x,true);
+  expect(await executeEvidenceCalculation(x.session,c.args)).toMatchObject({kind:"calculation",result:{status:"unknown",reason:"quantity_binding_or_qualification_unresolved",output:null}});
+ }));
+ it("rejects foreign/versioned targets, caller values and corrupt results",async()=>runCase(async x=>{
+  const c=await calculationCase(x);
+  await expect(executeEvidenceCalculation(x.session,{...c.args,accountId:crypto.randomUUID()})).rejects.toThrow("support_extraction_owner_or_version_mismatch");
+  await expect(executeEvidenceCalculation(x.session,{...c.args,briefRevision:2})).rejects.toThrow("support_extraction_owner_or_version_mismatch");
+  expect(await executeEvidenceCalculation(x.session,{...c.args,action:{...c.args.action,values:[12,8]}})).toEqual({kind:"blocked",reason:"invalid_calculation_action"});
+  const result=await executeEvidenceCalculation(x.session,c.args);if(result.kind!=="calculation")throw new Error("missing calculation");
+  await pool.query("UPDATE evidence_calculations SET result=jsonb_set(result,'{output,numerator}','\"999\"') WHERE id=$1",[result.id]);
+  await expect(executeEvidenceCalculation(x.session,c.args)).rejects.toThrow("stored_calculation_mismatch");
+ }));
+ it("changed input revision invalidates the proof and account deletion removes it",async()=>runCase(async x=>{
+  const c=await calculationCase(x);await executeEvidenceCalculation(x.session,c.args);
+  await pool.query("UPDATE claim_revisions SET text='tampered quantity' WHERE id=$1",[c.support.checks[0]!.claimRevisionId]);
+  await expect(executeEvidenceCalculation(x.session,c.args)).rejects.toThrow("stored_assertion_revision_mismatch");
+  await withTx(pool,db=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT id FROM evidence_calculations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+  await expect(executeEvidenceCalculation(x.session,c.args)).rejects.toThrow("stale_worker");
+ }));
+ it("concurrent attempts share one durable calculation",async()=>runCase(async x=>{
+  const c=await calculationCase(x);const results=await Promise.all([executeEvidenceCalculation(x.session,c.args),executeEvidenceCalculation(x.session,c.args)]);
+  if(results[0]?.kind!=="calculation"||results[1]?.kind!=="calculation")throw new Error("missing calculation");
+  expect(results[0].id).toBe(results[1].id);expect(results.map(r=>r.kind==="calculation"&&r.reused).sort()).toEqual([false,true]);
+  expect((await pool.query("SELECT id FROM evidence_calculations WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
+ }));
+});

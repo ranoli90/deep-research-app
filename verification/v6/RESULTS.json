@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Compact comparison projection:271 full PostgreSQL,99 final focused,14 actual extraction,128/93/52/6 verify. Legacy request representation preserved. W01-W09 incomplete.",
+  "workingTree": "Evidence-bound exact calculation handler; production selection/writer/publication integration remains open. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -4552,6 +4552,166 @@
       "scope": "14/14;32.10s; actual HTML/PDF parser and production corrected report/source flow; model/search responses fabricated",
       "sha256": "19760f2524f41985d53d978f00c291a7ecc377c8fd7ef49a4be9740dd3466034",
       "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "evidence-calculation-verify-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "128 core/93 backend/52 mobile/6 governance; initial handler before new arithmetic regressions",
+      "sha256": "f64fffb37f240c41f5f526cb0adb842858ff4d70110b4a64cd0fd6ca3715d117"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "evidence-calculation-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "141 core/93 backend/52 mobile/6 governance; intermediate before final numeric-span/dedup changes",
+      "sha256": "310d949c09797f3430f788c0d36e4cfb0370c49086c57c17868812c5701e2453"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "evidence-calculation-verify-final.log",
+      "exitCode": null,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Log reports142 core/93 backend/52 mobile/6 governance passed; terminal exit receipt lost at context handoff",
+      "sha256": "d67ec6e5089ac641c80a35b0df349ec76fa6df1116cf56aa0e46777ef4242e3d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "evidence-calculation-focused.log",
+      "exitCode": null,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "Log reports104/104 passed in71.90s; terminal exit receipt lost at context handoff; real PostgreSQL and calculation, fabricated model responses",
+      "sha256": "2c9bfe8ec8d48209eda23c3f02c18645302ee37e504dbcdfea492337e725c08c"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "evidence-calculation-bundle.log",
+      "exitCode": 0,
+      "evidenceClass": "local_android_javascript_export",
+      "scope": "2.04MB Hermes export; not a native build or device execution",
+      "sha256": "6d620bb7edfbc40cec3d9e40021fbc073f0c04822b4b8e644768459f7bd9ef72"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "evidence-calculation-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "276/276 across16 files;135.29s; final production code. Subsequent test-only candidate association correction is covered separately",
+      "sha256": "8c4e38080a7a113dba80459463c0634413fe14b71b9c4c025265e7f03fe14570"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "evidence-calculation-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Canonical review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Evidence-calculation handler, implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "evidence-calculation-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Canonical handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Final evidence-calculation handler",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "evidence-calculation-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "14/14;31.39s; actual HTML/PDF extraction, production report/source/correction controls with fabricated model/search responses",
+      "sha256": "49792aec3cf56850af4c12ffd11b3aa1b0c6bad9f5d2b96bbe07d9c613b36440"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "946e3ff40d079a5d16a563841939beeccc96e6de",
+      "workingTree": "Final evidence-calculation handler and corrected independent-entity test association",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "evidence-calculation-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_model",
+      "scope": "104/104;44.39s; real PostgreSQL and calculation with fabricated extraction/support model responses",
+      "sha256": "b12bd83a414cd92ba56a1d673464103a3e9a5cefcc43e2901d15e55402478f94"
     }
   ],
   "unresolved": [
@@ -4559,7 +4719,7 @@
     "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: broader discovery/evidence selection and complete-context capacity, substantive calculation/counterevidence actions",
+    "W05: broader discovery/evidence selection and complete-context capacity, production calculation selection/proof-aware publication and substantive counterevidence actions",
     "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",
