@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONSENT_POLICY_VERSION } from "@deep/contracts";
+import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
 import { admitProposedAction } from "../src/admission.js";
 import { extractConstraints } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
@@ -35,7 +35,7 @@ function state(partial: Partial<ControllerState> = {}): ControllerState {
     constraints: b.constraints,
     candidates: [],
     spentMicro: 0,
-    budgetMicro: 100_000,
+    budgetMicro: DEFAULT_RUN_BUDGET_MICRO,
     deleted: false,
     privateCanaries: [],
     ...partial,
@@ -107,6 +107,17 @@ describe("admitProposedAction — shipped gates", () => {
 
   it("admits a well-formed search", () => {
     const d = admitProposedAction(state(), proposal());
+    expect(d.type).toBe("search");
+    expect(d.rejectReason).toBeUndefined();
+  });
+
+  it("does not treat LIVE_CALL_RESERVE_MICRO as a fixture run-budget cost when liveSpend remains", () => {
+    expect(LIVE_CALL_RESERVE_MICRO).toBeGreaterThan(DEFAULT_RUN_BUDGET_MICRO);
+    const d = admitProposedAction(
+      state({ budgetMicro: DEFAULT_RUN_BUDGET_MICRO, spentMicro: 0 }),
+      proposal({ type: "search", estimatedMaxCostMicro: LIVE_CALL_RESERVE_MICRO, arguments: { query: "managed postgres germany" } }),
+      { liveSpend: { capMicro: 5_000_000, usedMicro: 0, estimatedMicro: LIVE_CALL_RESERVE_MICRO } },
+    );
     expect(d.type).toBe("search");
     expect(d.rejectReason).toBeUndefined();
   });

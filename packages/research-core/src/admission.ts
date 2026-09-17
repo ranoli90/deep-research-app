@@ -1,11 +1,43 @@
-import { ActionProposalSchema, ActionTypeSchema, FIXTURE_SYNTH_COST_MICRO } from "@deep/contracts";
+import {
+  ActionProposalSchema,
+  ActionTypeSchema,
+  FIXTURE_FETCH_COST_MICRO,
+  FIXTURE_SEARCH_COST_MICRO,
+  FIXTURE_SYNTH_COST_MICRO,
+} from "@deep/contracts";
 import { canSpendExploration } from "./fences.js";
 import { offCoverage, queryLeaksPrivate, rejectPrivilegedProposal } from "./injection.js";
 import type { ControllerState, PolicyDecision } from "./types.js";
 
+export type LiveSpendGate = {
+  capMicro: number;
+  usedMicro: number;
+  estimatedMicro: number;
+};
+
 export type AdmitOptions = {
   seenDedupeKeys?: Iterable<string>;
+  /**
+   * Live provider spend is a separate ledger from the fixture run-budget reserve.
+   * When set, estimatedMaxCostMicro is not compared to DEFAULT_RUN_BUDGET_MICRO.
+   */
+  liveSpend?: LiveSpendGate;
 };
+
+function liveCallPermitted(gate: LiveSpendGate): boolean {
+  if (gate.capMicro <= 0) return false;
+  return gate.capMicro - gate.usedMicro >= gate.estimatedMicro;
+}
+
+function runBudgetCostMicro(proposal: PolicyDecision, opts: AdmitOptions): number {
+  if (opts.liveSpend) {
+    if (proposal.type === "search") return FIXTURE_SEARCH_COST_MICRO;
+    if (proposal.type === "fetch") return FIXTURE_FETCH_COST_MICRO;
+    if (proposal.type === "synthesize") return FIXTURE_SYNTH_COST_MICRO;
+    return 0;
+  }
+  return proposal.estimatedMaxCostMicro ?? 0;
+}
 
 const UNAVAILABLE_CAPABILITIES = new Set(["extract_table", "inspect_visual"]);
 
@@ -118,8 +150,19 @@ export function admitProposedAction(
     }
   }
 
+  if (opts.liveSpend && proposal.type === "search") {
+    if (!liveCallPermitted(opts.liveSpend)) {
+      return asDecision(proposal, {
+        type: "stop",
+        rejectReason: "live_spend_cap_exhausted",
+        rationale: "live spend cap would be exceeded; no new paid call issued",
+        arguments: { reason: "live_spend_cap_exhausted" },
+      });
+    }
+  }
+
   const finishing = proposal.type === "synthesize" || proposal.type === "stop";
-  const cost = proposal.estimatedMaxCostMicro ?? 0;
+  const cost = runBudgetCostMicro(proposal, opts);
   if (
     cost > 0 &&
     !canSpendExploration({

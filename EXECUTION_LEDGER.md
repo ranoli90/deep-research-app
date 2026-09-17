@@ -235,6 +235,13 @@ No live paid calls were made.
 - Fixture baseline vs adaptive comparison recorded (`verification/benchmark-fixture.json`). Adaptive Nimbus arm pivots and fetches the vendor matrix; baseline does not. Not live quality. OpenRouter not spent.
 - `pnpm test:unit` exit 0; `pnpm test:integration` 106/106; `pnpm verify` exit 0; `pnpm p0:launch` twice ok (citations 10, cancel during writing, no report). `pnpm test:e2e:ios` exit 2 (no Xcode). Android device absent; prior Android evidence not re-run. iOS/hosted/M11/G04/G05/live invoice/competitor unpassed.
 
+## 2026-09-17 — live search must not use the fixture run-budget reserve
+
+- Bug: `estimatedMaxCostMicro=LIVE_CALL_RESERVE_MICRO` (200_000) was admitted against `DEFAULT_RUN_BUDGET_MICRO` (100_000), so every live search became `stop/allowance_exhausted` and never called OpenRouter.
+- Fix: `admitProposedAction({ liveSpend })` checks `liveSpendUsedMicro`/`LIVE_SPEND_CAP_MICRO`; run-budget still uses fixture tariffs. Worker records `issued` before `liveWebSearch`.
+- Tests: research-core + backend unit drive a well-formed live search (reserve > run budget, cap remaining) to `type==='search'`. Integration `processRun` asserts a provider fetch occurs and an `issued` openrouter intent already exists at that moment.
+- `pnpm test:integration` 107/107; `pnpm verify` exit 0; `pnpm p0:launch` twice ok. iOS/hosted/StoreKit/OS-push remain blocked, not passed.
+
 
 
 

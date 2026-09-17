@@ -20,7 +20,7 @@ import {
 import { fixtureProposeAction } from "../adapters/model/fixture.js";
 import { fixtureFetch, fixtureSearch, type SearchHit } from "../adapters/retrieval/fixture.js";
 import { liveWebSearch } from "../adapters/retrieval/live-web.js";
-import { assertLiveCallAllowed } from "../modules/live-spend.js";
+import { assertLiveCallAllowed, liveSpendUsedMicro } from "../modules/live-spend.js";
 import { providerFailureState } from "../adapters/model/outcomes.js";
 import { safeFetch } from "../platform/ssrf.js";
 import type { AppConfig } from "../platform/config.js";
@@ -303,9 +303,16 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     if (run.route_mode === "controlled-research" && config.liveRouteEnabled && !decision.rejectReason) {
       const liveProposed = selectBaselineAction(state);
       liveProposed.actionId = `live-${step}`;
-      liveProposed.estimatedMaxCostMicro = liveProposed.type === "search" ? LIVE_CALL_RESERVE_MICRO : liveProposed.estimatedMaxCostMicro;
       liveProposed.dedupeKey = `live-${runId}-${step}-${liveProposed.type}`;
-      decision = admitProposedAction(state, liveProposed, { seenDedupeKeys: seenDedupe });
+      const usedMicro = await liveSpendUsedMicro(pool);
+      decision = admitProposedAction(state, liveProposed, {
+        seenDedupeKeys: seenDedupe,
+        liveSpend: {
+          capMicro: config.liveSpendCapMicro,
+          usedMicro,
+          estimatedMicro: liveProposed.type === "search" ? LIVE_CALL_RESERVE_MICRO : 0,
+        },
+      });
     }
 
     // Retrieved gossip/bait must be declined without skipping inspection of remaining sources.

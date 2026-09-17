@@ -16,6 +16,8 @@
     "source_pivot_event": true,
     "stop_policy_event": true,
     "issued_failed_live_intent_retains_reservation": true,
+    "live_search_not_blocked_by_fixture_run_budget": true,
+    "issued_intent_recorded_before_provider_fetch": true,
     "live_nextLiveAction_not_adaptive": true
   },
   "not_claimed": [

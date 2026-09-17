@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
 import pg from "pg";
+import { DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
@@ -25,6 +26,7 @@ let pool: pg.Pool;
 let app: FastifyInstance;
 let boss: PgBoss;
 let config: AppConfig;
+const origFetch = globalThis.fetch;
 
 async function authed() {
   const s = await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} });
@@ -56,6 +58,9 @@ beforeAll(async () => {
 });
 beforeEach(async () => {
   await pool.query("TRUNCATE accounts CASCADE");
+});
+afterEach(() => {
+  globalThis.fetch = origFetch;
 });
 afterAll(async () => {
   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run' AND state IN ('created', 'retry', 'active')`);
@@ -103,6 +108,67 @@ describe("controller admission on the fixture worker path", () => {
     expect(corr.statusCode).toBe(200);
     expect(corr.json().fullRerun).toBe(true);
     expect(corr.json().impact.dependencyCompleteness).toBe("unknown");
+  });
+
+  it("processRun records an issued live intent before the provider call for a well-formed search", async () => {
+    expect(LIVE_CALL_RESERVE_MICRO).toBeGreaterThan(DEFAULT_RUN_BUDGET_MICRO);
+    const { token } = await authed();
+    const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    expect(created.statusCode).toBe(200);
+    const runId = created.json().runId as string;
+    await pool.query(`UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1`, [
+      runId,
+      DEFAULT_RUN_BUDGET_MICRO,
+    ]);
+
+    const usedBefore = await liveSpendUsedMicro(pool);
+    const liveConfig: AppConfig = {
+      ...config,
+      liveRouteEnabled: true,
+      liveRetrievalEnabled: false,
+      openRouterApiKey: "test-not-billed",
+      liveSpendCapMicro: usedBefore + LIVE_CALL_RESERVE_MICRO + 1_000_000,
+    };
+    expect(
+      canIssueLiveCall({
+        capMicro: liveConfig.liveSpendCapMicro,
+        usedMicro: usedBefore,
+        estimatedMicro: LIVE_CALL_RESERVE_MICRO,
+      }).ok,
+    ).toBe(true);
+
+    let providerFetches = 0;
+    let issuedBeforeFetch = 0;
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("openrouter.ai")) {
+        providerFetches += 1;
+        const issued = await pool.query<{ n: string }>(
+          `SELECT count(*)::text AS n FROM provider_intents WHERE run_id = $1 AND state = 'issued' AND route LIKE 'openrouter:%'`,
+          [runId],
+        );
+        issuedBeforeFetch = Number(issued.rows[0]?.n ?? 0);
+        return new Response(JSON.stringify({ choices: [{ message: { content: "{}", annotations: [] } }] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return origFetch(input as never);
+    }) as typeof fetch;
+
+    await processRun(pool, liveConfig, runId);
+
+    expect(providerFetches).toBeGreaterThan(0);
+    expect(issuedBeforeFetch).toBeGreaterThan(0);
+    const events = await listEvents(pool, runId, 0);
+    expect(events.some((e) => e.type === "searched")).toBe(true);
+    expect(events.some((e) => e.type === "stop_policy" && /allowance_exhausted/.test(e.public_summary))).toBe(false);
+    const intents = await pool.query<{ state: string; reserved_max_micro: string }>(
+      `SELECT state, reserved_max_micro FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%' ORDER BY created_at ASC`,
+      [runId],
+    );
+    expect(intents.rows.length).toBeGreaterThan(0);
+    expect(Number(intents.rows[0]?.reserved_max_micro)).toBe(LIVE_CALL_RESERVE_MICRO);
   });
 
   it("issued then failed live intents still consume the reservation", async () => {
