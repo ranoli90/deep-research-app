@@ -174,6 +174,11 @@ No live paid calls were made.
 - Fixture synthesize now records a `fixture:synthesize` intent. `GET /v1/runs/:id/cost` reconciles `spent_micro` to intents; allowance `settled_micro` matches spent. Cross-account cost is 404.
 - Settings loads processor disclosures from `GET /v1/settings`. Integration 92/92; backend unit 16/16; mobile 32/32. Artifact `verification/g06-cost.json`. G03/G04/G05/G07 and live G06 remain unpassed.
 
+## 2026-09-16 — G03 Android recapture and source-sheet layout
+
+- Source inspection was covered by the conversation ScrollView. Conversation now renders only when `tab === "research" && !state.source`; sheet uses flex 1; conversation paddingBottom is 200 so citations clear attach/composer.
+- Xiaomi 25098RA98G Expo Go: create (new source ids), FULL-TEXT source sheet, Share ChooserActivity, library open, correction budget=120 EUR Eligible Vendor A+C, force-stop reopen restored 120 EUR, Settings processors, Chrome `/account/deletion` (form not submitted). Screenshots in `verification/g03-android/`. iOS/G04/G05/G07/hosted auth unpassed. No OpenRouter spend.
+
 
 
 

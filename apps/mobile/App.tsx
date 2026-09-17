@@ -455,11 +455,11 @@ function AppInner() {
           </Text>
         ) : null}
 
-        {state.tab === "research" ? (
+        {state.tab === "research" && !state.source ? (
           <ScrollView
             ref={conversationScroll}
             style={styles.body}
-            contentContainerStyle={{ paddingBottom: 24 }}
+            contentContainerStyle={{ paddingBottom: 200 }}
             keyboardShouldPersistTaps="handled"
             accessibilityLabel="Research conversation"
           >
@@ -978,8 +978,8 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     body: { flex: 1, padding: space.md },
     welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
     card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, overflow: "hidden" },
-    sheet: { backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: "100%" },
-    sheetBody: { maxHeight: 280 },
+    sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: "100%" },
+    sheetBody: { flex: 1, maxHeight: "100%" },
     bounded: { width: "100%", maxWidth: "100%" },
     outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
     outlineItem: { ...typeTokens.caption, color: theme.muted, marginBottom: 2 },

@@ -91,6 +91,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/restoreAnchor/);
     expect(src).toMatch(/scrollTo/);
     expect(src).toMatch(/restoreReadingPosition/);
+    expect(src).toMatch(/tab === "research" && !state\.source \? \(\s*<ScrollView/);
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {

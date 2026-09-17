@@ -1,0 +1,36 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "G03 Android native create/close/reopen/read/cite/correct/share/delete",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "app": "Expo Go host.exp.exponent SDK 54"
+  },
+  "code_fix": "Conversation ScrollView is hidden while a source is open (tab === research && !state.source). Sheet uses flex:1. Conversation paddingBottom=200 so citations clear the attach/composer overlay.",
+  "observed": {
+    "create": "Send published a new fixture report with sources 6d716dd0 / 70fa77f5 / b3563df0",
+    "read": "Concise view: Vendor A 40 EUR Germany, geography=germany budget shown, Eligible Vendor A ineligible Vendor B",
+    "cite": "Open source 6d716dd0 opened Source sheet title Vendor A managed Postgres pricing (Germany), FULL-TEXT, Close returned to the report",
+    "share": "Share Markdown opened com.android.intentresolver/.ChooserActivity preview Vendor A managed Postgres is available in ...",
+    "library": "Library listed COMPLETED items; Open first item returned to Research with the same report",
+    "correct": "Correction text budget is 120 EUR then Update research: budget=120 EUR; Eligible Vendor A, Vendor C",
+    "close_reopen": "am force-stop host.exp.exponent then exp://127.0.0.1:8081 restored fixture report with budget=120 EUR",
+    "delete": "Settings Open web deletion page launched Chrome at http://127.0.0.1:8787/account/deletion with session-token form. Form was not submitted.",
+    "settings_processors": "Settings showed Signed in, Consent granted, and Processors list including App-owned research worker and Optional OpenRouter"
+  },
+  "screenshots": [
+    "verification/g03-android/01-settings-processors.png",
+    "verification/g03-android/02-source-sheet-fulltext.png",
+    "verification/g03-android/03-share-chooser.png",
+    "verification/g03-android/04-library.png",
+    "verification/g03-android/05-correction-120-vendor-c.png",
+    "verification/g03-android/06-reopen-120.png",
+    "verification/g03-android/07-deletion-page.png"
+  ],
+  "g03_both_platforms": false,
+  "g03_ios": "blocked — no Xcode on this Linux host",
+  "g07": "blocked — store purchases/restore/review access not connected",
+  "hosted_auth": "blocked — no Supabase/Render credentials",
+  "openrouter_spend_this_gate": 0,
+  "p0_fully_verified": false
+}
