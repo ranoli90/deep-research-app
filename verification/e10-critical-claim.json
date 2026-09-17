@@ -1,0 +1,12 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "E10 critical claim removal",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'E10 withdraws'",
+  "first_run": "failed: answer copied the 24% table instead of withdrawing the unsupported 42% assertion",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 96 },
+  "research_core": "27/27 including composeReport E10",
+  "observed": "Question 'Confirm the 42% completion figure from the 2024 table' against fixture table 24%: answer is withdrawn caveat, limitation records critical-claim removal, remaining-evidence still shows 24%. E04 (ask what the table lists) still uses 24% and does not mention 42%.",
+  "p0_fully_verified": false
+}

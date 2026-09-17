@@ -35,16 +35,17 @@ Working tree: `main` at `33fce7b8069ed59b917721ff25f34c1c9e56caa1`. P0 is **not*
 - G06 local (`verification/g06-cost.json`): `GET /v1/routes/capabilities` pins fixture tariffs and refuses internal-search visibility; `GET /v1/runs/:id/cost` reconciles fixture spent_micro to intents. Settings shows processor disclosures from `GET /v1/settings`. Not a live OpenRouter invoice probe.
 - G03 Android (`verification/g03-android.json`): create, source FULL-TEXT, share chooser, library open, 120 EUR correction (Vendor C eligible), close/reopen, deletion page. Conversation is hidden while the source sheet is open. iOS still blocked — G03 is not both-platform.
 - G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
+- E10 (`verification/e10-critical-claim.json`): worker/fixture withdraws an asserted 42% conclusion when the inspected table is 24%; remaining evidence keeps 24%. Not G04 quality.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 95 tests including G07/M10 |
+| `pnpm test:integration` | 0 | 96 tests including E10 worker-path withdrawal |
+| `pnpm --filter @deep/research-core test` | 0 | 27 tests including composeReport E10 |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
 | `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
-| `pnpm --filter @deep/research-core test` | 0 | 26 tests including V2-03 gold-evidence diagnostic |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |

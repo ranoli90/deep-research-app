@@ -197,9 +197,12 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       const src = state.sources.find((s) => s.id === p.sourceId);
       return src?.accessLevel === "full-text";
     }) ?? state.passages[0]!;
+    const assertedPct = assertedPercentMissingFromPassages(state.brief.originalQuestion, state.passages);
     addClaim(claims, blocks, {
       id: "claim-primary",
-      text: primary.exactText.slice(0, 400),
+      text: assertedPct
+        ? `Completion is ${assertedPct} this year.`
+        : primary.exactText.slice(0, 400),
       type: "external-fact",
       passageIds: [primary.id],
     });
@@ -478,6 +481,16 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
   const repaired = repairUnsupportedConclusion(blocks, claims, state.passages);
   if (repaired.revisited) {
     limitations.push("A critical claim was removed during verification; the summary was revisited rather than left unsupported.");
+    const remaining = state.passages[0];
+    if (remaining && !blocks.some((b) => b.id === "remaining-evidence")) {
+      blocks.push({
+        id: "remaining-evidence",
+        kind: "text",
+        text: remaining.exactText.slice(0, 400),
+        claimIds: [],
+        citationIds: [remaining.id],
+      });
+    }
   }
 
   return {
@@ -549,6 +562,12 @@ export function explainFreshness(state: ControllerState): string | null {
   return null;
 }
 
+/** Question-asserted percents that no inspected passage contains. */
+export function assertedPercentMissingFromPassages(question: string, passages: { exactText: string }[]): string | null {
+  const pcts = [...question.matchAll(/(\d+(?:\.\d+)?)%/g)].map((m) => m[0]);
+  return pcts.find((pct) => !passages.some((p) => p.exactText.includes(pct))) ?? null;
+}
+
 export function repairUnsupportedConclusion(
   blocks: ReportBlock[],
   claims: StoredClaim[],
@@ -562,6 +581,13 @@ export function repairUnsupportedConclusion(
   answer.text =
     "The conclusion was withdrawn because verification removed an unsupported claim. Remaining evidence is listed with its limitations.";
   answer.kind = "caveat";
+  answer.claimIds = [];
+  for (const claim of claims) {
+    if (hits.some((h) => h.claimId === claim.id)) {
+      claim.supportStatus = "withdrawn";
+      claim.text = answer.text;
+    }
+  }
   return { revisited: true };
 }
 

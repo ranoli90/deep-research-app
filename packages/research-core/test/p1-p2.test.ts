@@ -276,6 +276,28 @@ describe("E10 critical claim removal", () => {
     const repaired = repairUnsupportedConclusion(blocks, [{ id: "c1", text: "Completion is 42% this year.", type: "fact", supportStatus: "direct", passageIds: ["p1"] }], passages);
     expect(repaired.revisited).toBe(true);
     expect(blocks[0]!.text).toMatch(/withdrawn/i);
+    expect(blocks[0]!.claimIds).toEqual([]);
+  });
+
+  it("composeReport withdraws a question-asserted 42% that the 24% table does not support", () => {
+    const s = state("Confirm the 42% completion figure from the 2024 table");
+    s.passages = [
+      {
+        id: "p-table",
+        sourceId: "s1",
+        sourceVersionId: "v1",
+        exactText: "The official table lists 24% completion in 2024. Units are percent of assigned tasks in that calendar year.",
+        locator: "document",
+      },
+    ];
+    s.sources = [{ id: "s1", title: "table", locator: "fixture://table/completion-2024", accessLevel: "full-text" }];
+    const report = composeReport(s, "00000000-0000-4000-8000-000000000099");
+    const answer = report.blocks.find((b) => b.id === "answer");
+    expect(answer?.text).toMatch(/withdrawn/i);
+    expect(answer?.kind).toBe("caveat");
+    expect(JSON.stringify(report.limitations)).toMatch(/critical claim was removed/i);
+    expect(JSON.stringify(report.blocks)).toMatch(/24%/);
+    expect(answer?.text).not.toMatch(/Completion is 42%/);
   });
 });
 

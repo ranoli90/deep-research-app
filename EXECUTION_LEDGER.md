@@ -185,6 +185,12 @@ No live paid calls were made.
 - Settings shows privacy data flows and deletion-vs-subscription. Restore purchases POSTs `/v1/purchases/restore` and stays 403 with zero entitlements.
 - Integration 95/95; mobile 32/32. Artifact `verification/g07-output.json`. Store review, M11 sandbox, iOS, hosted auth unpassed.
 
+## 2026-09-16 — E10 critical-claim removal on the worker path
+
+- First test failed: `Confirm the 42% completion figure from the 2024 table` published the 24% table as the answer.
+- composeReport now drafts the asserted percent, verification withdraws it when passages lack that percent, remaining-evidence still shows 24%. E04 still asks the table and never mentions 42%.
+- Integration 96/96; research-core 27/27. Artifact `verification/e10-critical-claim.json`. G04/G05/iOS unpassed.
+
 
 
 

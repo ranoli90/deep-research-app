@@ -529,6 +529,21 @@ describe("remaining launch-scope IDs", () => {
     expect(text).not.toMatch(/42%/);
   });
 
+  it("E10 withdraws the conclusion when the asserted 42% is unsupported by the 24% table", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "Confirm the 42% completion figure from the 2024 table");
+    expect(created.statusCode).toBe(200);
+    await processRun(pool, config, created.json().runId);
+    const report = await getLatestReportForRun(pool, created.json().runId, accountId);
+    expect(report).toBeTruthy();
+    const answer = (report!.blocks as { id: string; text: string; kind: string }[]).find((b) => b.id === "answer");
+    expect(answer?.text).toMatch(/withdrawn|removed an unsupported claim/i);
+    expect(answer?.kind).toBe("caveat");
+    expect(JSON.stringify(report?.limitations)).toMatch(/critical claim was removed/i);
+    expect(JSON.stringify(report?.blocks)).toMatch(/24%/);
+    expect(answer?.text).not.toMatch(/Completion is 42%/);
+  });
+
   it("J07 expired lease is reclaimed; a live lease is not stolen", async () => {
     const { token } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
