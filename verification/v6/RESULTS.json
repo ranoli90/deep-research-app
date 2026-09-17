@@ -3915,7 +3915,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Initial move117/88/52/4; before graph controls",
-      "sha256": "56d64595f719d9c82806eae3a404af37c83a1076f7ba276b831b8c5529e717eb"
+      "sha256": "56d64595f719d9c82806eae3a404af37c83a1076f7ba276b831b8c5529e717eb",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -3932,7 +3933,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117/90/52/6; initial graph and runtime controls",
-      "sha256": "1f9d9892daf700346b6c216470332ba6c5e87f05bd29428b49a63bfd6fe847e5"
+      "sha256": "1f9d9892daf700346b6c216470332ba6c5e87f05bd29428b49a63bfd6fe847e5",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -3949,7 +3951,8 @@
       "exitCode": 1,
       "evidenceClass": "local_postgres_integration",
       "scope": "89 passed/1 failed; fixture test setup incorrectly running instead of queued; assertion retained and setup fixed",
-      "sha256": "8986d24c4f817df26b27473ff8aae9583d6dbb86e6f5125a7d90d22a80b098e0"
+      "sha256": "8986d24c4f817df26b27473ff8aae9583d6dbb86e6f5125a7d90d22a80b098e0",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -3966,7 +3969,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117/90/52/6; before additional diagnostic rejection controls",
-      "sha256": "75c393e56a401f5460a101f5cd386142b6b8d84da167d14f238596d2352420a5"
+      "sha256": "75c393e56a401f5460a101f5cd386142b6b8d84da167d14f238596d2352420a5",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -3983,7 +3987,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117 core/92 backend/52 mobile/6 governance; transitive graph plus production environment/auth diagnostic rejection",
-      "sha256": "2101dd61d5fd9b9b9fde037cab165e4a477f166f9cb54d8efd50bab1b898b626"
+      "sha256": "2101dd61d5fd9b9b9fde037cab165e4a477f166f9cb54d8efd50bab1b898b626",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4000,7 +4005,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "262/262 across16files;168.58s; historical assertions unchanged; production fixture refusal and disabled execution failure",
-      "sha256": "9419ddf898857ef2dfe8971ed5fe2a09783102d68c057174b347a48873ed93c7"
+      "sha256": "9419ddf898857ef2dfe8971ed5fe2a09783102d68c057174b347a48873ed93c7",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4017,7 +4023,8 @@
       "exitCode": 1,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "13 passed/1 failed; old fixture-run PDF test still invoked production executor; no fixture work correctly performed",
-      "sha256": "77acc2a362aa03b405cd26ad28953e222b6278f7cbf3b20be8d4f1523ec2f88a"
+      "sha256": "77acc2a362aa03b405cd26ad28953e222b6278f7cbf3b20be8d4f1523ec2f88a",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4034,7 +4041,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;52.52s; old fixture PDF case explicitly diagnostic with unchanged assertions; structured upload/search/correction and disabled production admission use production",
-      "sha256": "32891a354f33760ac9d3f626444e1038b478a1b40cb58c541a7b88e51ea94edc"
+      "sha256": "32891a354f33760ac9d3f626444e1038b478a1b40cb58c541a7b88e51ea94edc",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4051,7 +4059,8 @@
       "exitCode": 0,
       "evidenceClass": "typescript",
       "scope": "Final source and test types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4068,7 +4077,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
     },
     {
       "requirementIds": [
@@ -4085,6 +4095,33 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09"
+      ],
+      "commit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "production-isolation-review-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final checkpoint documentation; no application execution",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "W09"
+      ],
+      "commit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "production-isolation-handoff-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final checkpoint documentation; no application execution",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
@@ -4105,6 +4142,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
+  "checkpointCommit": "4a84a95",
+  "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
 }
