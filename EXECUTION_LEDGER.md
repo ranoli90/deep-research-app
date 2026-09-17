@@ -464,3 +464,5 @@ Full PostgreSQL integration exit0:258/258 across16files,189.96s. Final source ve
 Final actual extraction exit0:12/12,47.91s, including explicitly observed parsing before cancellation/deletion and corrected API/PDF report compared with a full-rerun control. Exact PDF/hash/source/support/correction trace is in verification/v6/correction-journey/. Search/model responses remain fabricated; no independent semantic benchmark, paid/native/hosted claim. A final focused migration/reuse run checks the view’s explicit column projection rather than SELECT-star before commit.
 
 Final focused86/86 exit0,38.87s, reapplying migration024 with explicit view columns. All listed final checks passed; initial typecheck failure and intermediate extraction scope remain preserved. No paid/native/hosted execution.
+
+Typed correction/membership implementation and evidence committed as `088b59942babc0c42d121f4fa9bf7186c128ec63`. Final document validators pass. Next: result-derived correction changes, granular patch/freshness handling and mobile adoption; W01-W09 remains incomplete.

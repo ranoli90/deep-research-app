@@ -3434,7 +3434,8 @@
       "exitCode": 2,
       "evidenceClass": "deterministic_typecheck",
       "scope": "nullable parent/consent narrowing failed; fixed never-returning rejection helper",
-      "sha256": "7a113f8c0c0155d9a8d1ae73d5266d741abf1a6c16cf00dfbc8eca76b7c15600"
+      "sha256": "7a113f8c0c0155d9a8d1ae73d5266d741abf1a6c16cf00dfbc8eca76b7c15600",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3449,7 +3450,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_correction",
       "scope": "85/85 including immutable reuse, child recomputation, concurrent admission, refresh, digest revocation and deletion",
-      "sha256": "bddf6552e18330d68be59c07b19c161a4d7052b3ca0a4cf7f2fd2ce6ba278afb"
+      "sha256": "bddf6552e18330d68be59c07b19c161a4d7052b3ca0a4cf7f2fd2ce6ba278afb",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3464,7 +3466,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117/88/47/4 after narrowing fix",
-      "sha256": "bad94d8e90f835765b4d6ac910b33e15a7022a4978b0d0b3406a7cba4a5c70b1"
+      "sha256": "bad94d8e90f835765b4d6ac910b33e15a7022a4978b0d0b3406a7cba4a5c70b1",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3479,7 +3482,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117/88/47/4 after cross-owner membership control",
-      "sha256": "b514dd4721fd5a8d43fe08782734acce48b3735c43f3ad64e5d630e2b660dde8"
+      "sha256": "b514dd4721fd5a8d43fe08782734acce48b3735c43f3ad64e5d630e2b660dde8",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3494,7 +3498,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117/88/47/4 final source and strengthened actual-parser cancellation control",
-      "sha256": "78730544b14f7a3c4fca3306626e46a7f2a1932d266d06c22d8bea08e3522e3e"
+      "sha256": "78730544b14f7a3c4fca3306626e46a7f2a1932d266d06c22d8bea08e3522e3e",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3509,7 +3514,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_pdf_correction",
       "scope": "12/12; actual PDF corrected report/full-rerun control; cancellation timing coverage superseded by final rerun",
-      "sha256": "d93d598ecccd9fecbd5749ff28bf893ce0f4329e7ab7b9689d1697d7a610e0b4"
+      "sha256": "d93d598ecccd9fecbd5749ff28bf893ce0f4329e7ab7b9689d1697d7a610e0b4",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3524,7 +3530,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "review structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3539,7 +3546,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "handoff structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3554,7 +3562,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "258/258 across16files in189.96s; includes corrupt cross-account membership denial",
-      "sha256": "d01ac1278f37db5c97835b36e4065251818487d19f2f100a7252c976d0098717"
+      "sha256": "d01ac1278f37db5c97835b36e4065251818487d19f2f100a7252c976d0098717",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3569,7 +3578,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_pdf_correction",
       "scope": "12/12;47.91s; actual parser revocation, API correction/reopen/full-rerun match/deletion; fabricated model responses",
-      "sha256": "f3a6f40312b6501c63cdb76725a953d442ac9e7ed4637b1f8af60a41e5ed7ead"
+      "sha256": "f3a6f40312b6501c63cdb76725a953d442ac9e7ed4637b1f8af60a41e5ed7ead",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
     },
     {
       "requirementIds": [
@@ -3584,7 +3594,34 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_correction",
       "scope": "86/86;38.87s; reexecuted migration024, exact reuse, recomputation, ownership, idempotency, deletion",
-      "sha256": "75fac6234951633b8fabb1916a085a909d818886bca33639a1166c3b542559dc"
+      "sha256": "75fac6234951633b8fabb1916a085a909d818886bca33639a1166c3b542559dc",
+      "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W09"
+      ],
+      "commit": "088b59942babc0c42d121f4fa9bf7186c128ec63",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "correction-membership-review-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "final documentation structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W09"
+      ],
+      "commit": "088b59942babc0c42d121f4fa9bf7186c128ec63",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "correction-membership-handoff-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "final documentation structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
@@ -3605,5 +3642,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "2ad2a905351e3b8f459861b0f653ff564734601c"
+  "implementationCommit": "088b59942babc0c42d121f4fa9bf7186c128ec63"
 }
