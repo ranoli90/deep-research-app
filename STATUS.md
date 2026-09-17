@@ -7,7 +7,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 | P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 78/78; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
 | P0-L live model/retrieval | implemented and verified (bounded) | One consented `controlled-research` run `1351c267` published report `6cdf6f92` from HTTP passages (IONOS/SysEleven/ayedo full-text 20k chars) plus correction `5f8a7af2` report `cce6aadb`. Model `openai/gpt-4o-mini` + web plugin. OpenRouter usage **$0.096 of $5**. |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
-| P0-N Android | implemented and verified on device (cancel-during-writing via API launch-check) | Xiaomi `25098RA98G`; this session: consent, fixture report, force-stop/reopen restored report+sources+draft, FULL-TEXT source 3fc2e7b9; `pnpm p0:launch` cancelOutcome=cancelled cancelReportId=null. Prior: attach, share, 120 EUR Vendor C, Flag, TalkBack, M04/M02/M05/M08/R02/S12/M09 |
+| P0-N Android | implemented and verified on device (cancel-during-writing via API launch-check) | Xiaomi `25098RA98G`; 120 EUR correction this session shows Vendor C 70 EUR, discovery reopened, newly feasible A+C; force-stop/reopen, FULL-TEXT source, `pnpm p0:launch` cancelOutcome=cancelled |
 
 P0 is **not** fully verified.
 

@@ -300,15 +300,31 @@ function AppInner() {
   }
 
   async function onCorrect() {
-    if (!token || !state.run || !correction.trim()) return;
+    if (!token || !state.run) return;
+    const text = correction.trim();
+    if (!text) {
+      setState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
+      return;
+    }
     try {
       const snap = await api.getRun(token, state.run.runId);
-      const child = await api.correct(token, state.run.runId, snap.brief.revision, correction.trim());
+      const child = await api.correct(token, state.run.runId, snap.brief.revision, text);
       setCorrection("");
+      setShowAttach(false);
       setState((s) => {
         const next = {
           ...s,
+          status: "progress" as const,
+          error: null,
           previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+          run: {
+            runId: child.runId,
+            lifecycle: "queued",
+            phase: "preparing",
+            outcome: null,
+            reportId: null,
+            labeledDemo: s.run?.labeledDemo ?? true,
+          },
         };
         void persistSession(AsyncStorage, { token, state: next });
         return next;
@@ -316,7 +332,9 @@ function AppInner() {
       startPolling(token, child.runId);
     } catch (e) {
       if (isExpiredSession(e)) await onAuthFailure();
-      else setState((s) => ({ ...s, error: (e as Error).message }));
+      else if (isOfflineError(e)) {
+        setState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+      } else setState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 

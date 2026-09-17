@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "P2 correction newly eligible candidate / P0-N revision-safe correction",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "method": "Typed 'Actually, the budget is 120 EUR' with adb input text so React onChangeText fired (clipboard paste does not). Tapped Update research.",
+  "observed": {
+    "constraints": "geography=germany; budget=120 EUR; date=2026-03-01",
+    "eligibility": "Eligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: open (reopened after constraint change).",
+    "table": "Vendor C germany 70 EUR",
+    "code_listing": "Vendor C 70 EUR satisfies fixture://vendor-c/pricing-de",
+    "change_summary": "Hard constraint change reopened candidate discovery. Newly feasible: Vendor A, Vendor C. Newly ineligible: Vendor B."
+  },
+  "code": "onCorrect no longer silently returns on empty text; binds child runId and polls it; sets progress so the new report replaces the 50 EUR answer.",
+  "tests": "pnpm --filter @deep/mobile test 32/32",
+  "status": "implemented and verified on Android device this session"
+}

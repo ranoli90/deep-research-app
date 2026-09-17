@@ -81,6 +81,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/Open web deletion page/);
     expect(src).toMatch(/state\.report \|\| state\.status === "completed"/);
+    expect(src).toMatch(/api\.correct/);
+    expect(src).toMatch(/Write a correction first/);
+    expect(src).toMatch(/startPolling\(token, child\.runId\)/);
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
