@@ -3181,7 +3181,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "initial source implementation, before added read controls;115/88/47/4",
-      "sha256": "d859a4f344bcae1f85ce1241ddf6b471304b5a5cacf366c60cf2b43b3d45c919"
+      "sha256": "d859a4f344bcae1f85ce1241ddf6b471304b5a5cacf366c60cf2b43b3d45c919",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3195,7 +3196,8 @@
       "exitCode": 1,
       "evidenceClass": "local_postgres_reading",
       "scope": "76 passed/3 failed: test cleanup omitted extraction receipts",
-      "sha256": "b82babdbf64e398dd0a39fecdd5196d2ce28b7334c1561cf49facd6144208805"
+      "sha256": "b82babdbf64e398dd0a39fecdd5196d2ce28b7334c1561cf49facd6144208805",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3209,7 +3211,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_reading",
       "scope": "79/79; replay, unknown in-flight, ownership, deletion, URL change, worker publication/reopen",
-      "sha256": "cafe9a775094bf11974548c766c40dfb34785e47f4ed4a45e562f90979ac3ba9"
+      "sha256": "cafe9a775094bf11974548c766c40dfb34785e47f4ed4a45e562f90979ac3ba9",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3223,7 +3226,8 @@
       "exitCode": 2,
       "evidenceClass": "deterministic_typecheck",
       "scope": "new saved-bytes transport double omitted required body field; repaired",
-      "sha256": "df1c5e976169394acfee48b6d420a94fa3d96d5edcb527ea0634cb8df9657d89"
+      "sha256": "df1c5e976169394acfee48b6d420a94fa3d96d5edcb527ea0634cb8df9657d89",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3237,7 +3241,9 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "115 core/88 backend/47 mobile/4 governance, types and boundaries",
-      "sha256": "0d5e53c6710708bef133d92945015cad918ae8c9221600828bbe324d4457c1d3"
+      "sha256": "0d5e53c6710708bef133d92945015cad918ae8c9221600828bbe324d4457c1d3",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a",
+      "testedCodeCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3251,7 +3257,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_isolated_extraction",
       "scope": "12/12; actual PDF parsing, public discovery/read worker path with saved-byte and model/search doubles; no live quality claim",
-      "sha256": "233fa95137104df0d4dc8df03e5440a7ce963f004022113b084a69c568b1334f"
+      "sha256": "233fa95137104df0d4dc8df03e5440a7ce963f004022113b084a69c568b1334f",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3266,7 +3273,9 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "251/251 in16 files;151.08s; actual local PostgreSQL, no paid provider calls",
-      "sha256": "943a6948c48978bc625f8c2ec3b4bc5a26c25a4a9278e56e9c9e257e368f3ab8"
+      "sha256": "943a6948c48978bc625f8c2ec3b4bc5a26c25a4a9278e56e9c9e257e368f3ab8",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a",
+      "testedCodeCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3281,7 +3290,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "review document integrity only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     },
     {
       "requirementIds": [
@@ -3296,7 +3306,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "handoff integrity only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
     }
   ],
   "unresolved": [
@@ -3314,5 +3325,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
+  "implementationCommit": "0b8e27e8e3aee7f50920416ca5172fb3e61be39a"
 }
