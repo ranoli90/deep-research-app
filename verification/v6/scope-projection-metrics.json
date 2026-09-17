@@ -9,5 +9,6 @@
   "fullComparisonBytes": 1042010,
   "compactComparisonBytes": 14626,
   "wholeRequestBytes": 43085,
-  "pairCount": 1770
+  "pairCount": 1770,
+  "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
 }

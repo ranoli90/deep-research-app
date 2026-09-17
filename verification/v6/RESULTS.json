@@ -4390,7 +4390,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Initial128core/93backend/52mobile/6governance;60assertion size control",
-      "sha256": "65d0ea2d0a5ef36d3d32738a3acf0149c3c06d46c90581ce3e767c2cb5bed75b"
+      "sha256": "65d0ea2d0a5ef36d3d32738a3acf0149c3c06d46c90581ce3e767c2cb5bed75b",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4405,7 +4406,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Final128/93/52/6;full1,042,010B,compact14,626B,request43,085B;1770pairs retained",
-      "sha256": "cc6d6bd694fc5428bf80ebea6285d50f11ffab9da917cd8e20481ea7ad8aaf9f"
+      "sha256": "cc6d6bd694fc5428bf80ebea6285d50f11ffab9da917cd8e20481ea7ad8aaf9f",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4420,7 +4422,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "99/99;47.38s; pinned legacy context, corruption and production compact writer",
-      "sha256": "5347d484a5836a0400afe661e30257126b7257f5ad56814c2f78df174da4a205"
+      "sha256": "5347d484a5836a0400afe661e30257126b7257f5ad56814c2f78df174da4a205",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4435,7 +4438,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "271/271;16files;122.74s; before strengthened gateway replay assertion",
-      "sha256": "e7148111f2e4190ed1b66710c208590dd75ff8bc16d7b772abf22a111e1b55f8"
+      "sha256": "e7148111f2e4190ed1b66710c208590dd75ff8bc16d7b772abf22a111e1b55f8",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4450,7 +4454,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "Final99/99;67.57s; actual unknown writer outcome replays with one provider transport-double invocation and original context",
-      "sha256": "9e5054d82473a9d4de85bd868ad78f8e7691d0d9965d919fd8764a1e1c798426"
+      "sha256": "9e5054d82473a9d4de85bd868ad78f8e7691d0d9965d919fd8764a1e1c798426",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4465,7 +4470,8 @@
       "exitCode": 0,
       "evidenceClass": "typescript",
       "scope": "Final source/tests",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4480,7 +4486,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4495,7 +4502,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4510,7 +4518,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Final review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4525,7 +4534,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Final handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     },
     {
       "requirementIds": [
@@ -4540,7 +4550,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;32.10s; actual HTML/PDF parser and production corrected report/source flow; model/search responses fabricated",
-      "sha256": "19760f2524f41985d53d978f00c291a7ecc377c8fd7ef49a4be9740dd3466034"
+      "sha256": "19760f2524f41985d53d978f00c291a7ecc377c8fd7ef49a4be9740dd3466034",
+      "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
     }
   ],
   "unresolved": [
@@ -4560,6 +4571,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "8d99098",
-  "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
+  "checkpointCommit": "009fd62",
+  "implementationCommit": "009fd62bff0cc5665d104a9ecb231f70acf012d8"
 }
