@@ -61,3 +61,11 @@ export function queryLeaksPrivate(query: string, privateCanaries: string[]): str
   }
   return null;
 }
+
+/** Retrieved-page bait must not steer a public search off the user's task. */
+export function offCoverage(query: string, question: string): boolean {
+  const q = query.toLowerCase();
+  const orig = question.toLowerCase();
+  const bait = /taylor swift|celebrity gossip|hollywood tour|sports scores|unrelated movie/;
+  return bait.test(q) && !bait.test(orig);
+}

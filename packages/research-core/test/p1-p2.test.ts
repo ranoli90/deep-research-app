@@ -219,6 +219,15 @@ describe("V2-04 budget parse", () => {
   });
 });
 
+describe("geography correction intent", () => {
+  it("treats 'Actually, Germany is required' as a hard geography change", () => {
+    const prev = extractConstraints("What is the filing deadline for employment tax?");
+    const { next, reopenedDiscovery } = applyCorrectionToConstraints(prev, "Actually, Germany is required.");
+    expect(next.find((c) => c.field === "geography")?.value).toBe("germany");
+    expect(reopenedDiscovery).toBe(true);
+  });
+});
+
 describe("V2-05 dose correction", () => {
   it("updates dose units without reopening budget discovery", () => {
     const prev = extractConstraints("Give 10 g daily");

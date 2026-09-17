@@ -40,14 +40,27 @@ export type Coverage = {
   limitation?: string;
 };
 
+export type GapAttempt = {
+  actionType: string;
+  query?: string;
+  outcome: string;
+  atEvidenceRevision: number;
+};
+
 export type Gap = {
   id: string;
   missingFact: string;
   whyItCouldChangeAnswer: string;
+  /** Conclusion or candidate status that stays conditional until this gap is resolved. */
+  dependentConclusion?: string;
+  /** What evidence would resolve it. */
+  resolvingEvidence?: string;
   importance: "blocking" | "material" | "background";
   sourceTypeNeeded?: string;
   suggestedQuery?: string;
+  attempts?: GapAttempt[];
   latestOutcome?: string;
+  remainingUncertainty?: string;
 };
 
 export type SearchTrace = {
@@ -76,6 +89,11 @@ export type ControllerState = {
   privateCanaries: string[];
   reopenedDiscovery?: boolean;
   dependencyCompleteness?: "known" | "partial" | "unknown";
+  /** Dedupe keys already issued or rejected for this run. */
+  issuedDedupeKeys?: string[];
+  /** Typed actions already completed (compare/calculate/verify/replan). */
+  completedActionTypes?: string[];
+  stopReason?: string;
 };
 
 export type PolicyDecision = ActionProposal & { rejectReason?: string };

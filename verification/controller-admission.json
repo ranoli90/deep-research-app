@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "evidence_class": "fixture",
+  "as_of": "2026-09-17",
+  "gate": "admitProposedAction",
+  "commands": [
+    "pnpm --filter @deep/research-core test",
+    "pnpm --filter @deep/backend test:unit",
+    "pnpm test:integration"
+  ],
+  "observed": {
+    "hostile_privileged_rejected": true,
+    "extract_table_inspect_visual_unavailable": true,
+    "allowance_exhausted_refuses_next_call": true,
+    "unknown_dependency_full_rerun": true,
+    "source_pivot_event": true,
+    "stop_policy_event": true,
+    "issued_failed_live_intent_retains_reservation": true,
+    "live_nextLiveAction_not_adaptive": true
+  },
+  "not_claimed": [
+    "live OpenRouter planner as default chooser",
+    "live same-model quality",
+    "competitor comparison",
+    "iOS",
+    "hosted auth/RLS"
+  ]
+}

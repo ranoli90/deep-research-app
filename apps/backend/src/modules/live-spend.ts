@@ -8,7 +8,7 @@ export async function liveSpendUsedMicro(db: Queryable): Promise<number> {
     `SELECT COALESCE(SUM(
        CASE
          WHEN confirmed_micro IS NOT NULL THEN confirmed_micro
-         WHEN state IN ('issued', 'outcome-unknown') THEN reserved_max_micro
+         WHEN state IN ('issued', 'outcome-unknown', 'failed') THEN reserved_max_micro
          ELSE 0
        END
      ), 0)::text AS used

@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `c00b1b1fd51eed60b533825b728cd168f1b4c8ae`. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` after the controller-admission foundation pass. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
@@ -39,19 +39,21 @@ Working tree: `main` at `c00b1b1fd51eed60b533825b728cd168f1b4c8ae`. P0 is **not*
 - JOB-1 (`verification/job1-eligibility.json`, `verification/job1-linux-correction.json`, `verification/job1-linux-drop.json`): adding Linux excludes NoteKeep; dropping Linux re-includes it. EVAL-01 is still draft_not_validated.
 - P0-N Android recapture (`verification/p0n-android-recapture.json`): persist/hydrate after force-stop, library open, FULL-TEXT source, cancel-during-writing `3e0f50a5` cancelled with no report. iOS still blocked.
 - R02 (`verification/r02-continue.json`, `verification/r02-geo-search.json`): empty continue is 400; confirmed geography is appended to the search query so France does not reuse the Germany default note.
+- Controller admission: every fixture/live/model proposal passes `admitProposedAction` (schema, allowlist, capability flags, consent/cancel/delete, revision, dedupe, private query, spend). Live `nextLiveAction()` is a bounded baseline chooser, not an adaptive engine. Live provider intents are inserted as `issued` before HTTP; `failed`/`outcome-unknown` keep the reservation. Gaps persist `payload` (dependent conclusion, resolving evidence, attempts, remaining uncertainty). Fixture baseline vs adaptive: `verification/benchmark-fixture.json` (Nimbus gold matrix recalled only on the adaptive arm). Not live quality. Not a competitor win.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 102 tests including JOB-1 Linux drop |
-| `pnpm --filter @deep/research-core test` | 0 | 28 tests including JOB-1 platform constraints |
-| `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
-| `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
+| `pnpm test:integration` | 0 | 106 tests including controller admission |
+| `pnpm --filter @deep/research-core test` | 0 | 38 tests including `admitProposedAction` |
+| `pnpm --filter @deep/backend typecheck` | 0 | |
+| `pnpm --filter @deep/backend test:unit` | 0 | 20 tests including fixture benchmark |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
-| `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
-| `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
+| `pnpm --filter @deep/mobile test` | 0 | 32 tests |
+| `pnpm p0:launch` | 0, twice | citations=10; `cancelOutcome=cancelled`; `cancelReportId=null`; `latePublicationRejected=true` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |
+| `pnpm test:e2e:android` | 2 | no device online; prior Android evidence not re-run |
 
 ## Blockers
 - **P0-N iOS:** Xcode / iOS runtime. TestFlight deferred by user.

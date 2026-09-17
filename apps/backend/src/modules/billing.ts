@@ -70,3 +70,21 @@ export async function reconcileIntent(db: Queryable, intentId: string, confirmed
     confirmedMicro,
   ]);
 }
+
+/** After issuance, settle the intent without clearing the reservation on unknown/failed. */
+export async function updateIntentState(
+  db: Queryable,
+  intentId: string,
+  state: string,
+  confirmedMicro?: number,
+): Promise<void> {
+  if (confirmedMicro != null) {
+    await db.query(`UPDATE provider_intents SET state = $2, confirmed_micro = $3 WHERE id = $1`, [
+      intentId,
+      state,
+      confirmedMicro,
+    ]);
+    return;
+  }
+  await db.query(`UPDATE provider_intents SET state = $2 WHERE id = $1`, [intentId, state]);
+}

@@ -1,4 +1,4 @@
-import { authorizeAction, selectNextAction, sourceLooksLikeInjection } from "@deep/research-core";
+import { admitProposedAction, selectNextAction, sourceLooksLikeInjection } from "@deep/research-core";
 import type { ControllerState, PolicyDecision } from "@deep/research-core";
 
 /**
@@ -21,7 +21,7 @@ export function fixtureProposeAction(state: ControllerState): PolicyDecision {
         dedupeKey: `inject-${passage.id}`,
         privileged: true,
       };
-      return authorizeAction(state, naive);
+      return admitProposedAction(state, naive);
     }
     if (/taylor swift|celebrity gossip/i.test(passage.exactText) && !/taylor swift|celebrity gossip/i.test(state.brief.originalQuestion)) {
       const naive: PolicyDecision = {
@@ -37,8 +37,8 @@ export function fixtureProposeAction(state: ControllerState): PolicyDecision {
         dedupeKey: `gossip-${passage.id}`,
         privileged: false,
       };
-      return authorizeAction(state, naive);
+      return admitProposedAction(state, naive);
     }
   }
-  return authorizeAction(state, selectNextAction(state));
+  return admitProposedAction(state, selectNextAction(state));
 }

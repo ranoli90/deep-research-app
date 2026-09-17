@@ -179,36 +179,51 @@ export function neededClarifications(brief: Pick<ResearchBrief, "originalQuestio
   return questions;
 }
 
-export function parseCorrection(text: string): {
+export type CorrectionIntent = {
+  kind: "constraint_change" | "unknown_dependencies" | "unparsed";
   field?: string;
   value?: string;
   units?: string;
   drop?: boolean;
   relaxedHardConstraint: boolean;
   unknownDependencies: boolean;
-} {
+};
+
+export function parseCorrection(text: string): CorrectionIntent {
   if (/dependency completeness unknown|dependencies? (are )?unknown/i.test(text)) {
-    return { relaxedHardConstraint: false, unknownDependencies: true };
+    return { kind: "unknown_dependencies", relaxedHardConstraint: false, unknownDependencies: true };
   }
   const dose = text.match(/(\d+(?:\.\d+)?)\s*(mg|milligrams?|g|grams?)/i);
   if (dose && /dose|instead of|not \d/i.test(text)) {
     const units = /^mg|milligram/i.test(dose[2]!) ? "mg" : "g";
-    return { field: "dose", value: dose[1], units, relaxedHardConstraint: false, unknownDependencies: false };
+    return { kind: "constraint_change", field: "dose", value: dose[1], units, relaxedHardConstraint: false, unknownDependencies: false };
   }
   const budget = text.match(/\bbudget\s+is\s+(\d+(?:[.,]\d+)?)/i) ?? text.match(/\bbudget\s+(\d+(?:[.,]\d+)?)/i);
   if (budget) {
-    return { field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
+    return { kind: "constraint_change", field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
+  }
+  for (const country of COUNTRIES) {
+    const named = new RegExp(`\\b${country.replace(/\s+/g, "\\s+")}\\b`, "i").test(text);
+    if (named && /required|instead|actually|must|use/i.test(text)) {
+      return {
+        kind: "constraint_change",
+        field: "geography",
+        value: country,
+        relaxedHardConstraint: true,
+        unknownDependencies: false,
+      };
+    }
   }
   if (/\blinux\b/i.test(text) && /\bno longer required|not required|optional|drop linux|without linux/i.test(text)) {
-    return { field: "platform", value: "linux", drop: true, relaxedHardConstraint: true, unknownDependencies: false };
+    return { kind: "constraint_change", field: "platform", value: "linux", drop: true, relaxedHardConstraint: true, unknownDependencies: false };
   }
   if (/\blinux\b/i.test(text) && /\b(required|also|hard|desktop)\b/i.test(text)) {
-    return { field: "platform", value: "linux", relaxedHardConstraint: false, unknownDependencies: false };
+    return { kind: "constraint_change", field: "platform", value: "linux", relaxedHardConstraint: false, unknownDependencies: false };
   }
   if (/actually,?\s+include/i.test(text) || /relax/i.test(text) || /no longer required/i.test(text)) {
-    return { relaxedHardConstraint: true, unknownDependencies: false };
+    return { kind: "constraint_change", relaxedHardConstraint: true, unknownDependencies: false };
   }
-  return { relaxedHardConstraint: false, unknownDependencies: false };
+  return { kind: "unparsed", relaxedHardConstraint: false, unknownDependencies: false };
 }
 
 export function applyCorrectionToConstraints(
@@ -258,6 +273,25 @@ export function applyCorrectionToConstraints(
       });
     }
     if (prev !== undefined && incoming > prev) reopenedDiscovery = true;
+  }
+  if (parsed.field === "geography" && parsed.value) {
+    const existing = next.find((c) => c.field === "geography");
+    if (!existing || existing.value !== parsed.value) reopenedDiscovery = true;
+    if (existing) {
+      existing.value = parsed.value;
+      existing.origin = "confirmed";
+      existing.explanation = `Corrected geography to ${parsed.value}`;
+    } else {
+      next.push({
+        id: `geo-${parsed.value.replace(/\s+/g, "-")}`,
+        field: "geography",
+        operator: "eq",
+        value: parsed.value,
+        origin: "confirmed",
+        importance: "hard",
+        explanation: `Correction requires ${parsed.value}`,
+      });
+    }
   }
   if (parsed.field === "platform" && parsed.value) {
     if (parsed.drop) {

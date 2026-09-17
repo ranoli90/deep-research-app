@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { extractConstraints, neededClarifications } from "../src/brief.js";
 import { canPublish, canSpendExploration } from "../src/fences.js";
-import { authorizeAction, independentClusterCount, queryWithGeography, saturationReached, selectNextAction } from "../src/policy.js";
+import { authorizeAction } from "../src/admission.js";
+import { independentClusterCount, queryWithGeography, saturationReached, selectNextAction } from "../src/policy.js";
 import { passageSupportsClaim } from "../src/support.js";
 import { rejectPrivilegedProposal, sourceLooksLikeInjection } from "../src/injection.js";
 import type { ControllerState } from "../src/types.js";

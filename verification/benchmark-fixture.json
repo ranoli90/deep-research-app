@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "evidence_class": "fixture",
+  "not_live_quality": true,
+  "not_competitor_comparison": true,
+  "provider": "app-owned-fixture-catalog",
+  "model": "none \u2014 deterministic controller",
+  "budget_policy": "DEFAULT_RUN_BUDGET_MICRO with fixture tariffs",
+  "protocol": "EVALUATION.md fixture-first baseline vs adaptive; same catalog, tariffs, and questions",
+  "arms": [
+    "baseline",
+    "adaptive"
+  ],
+  "ablations": {
+    "gap_detection": "adaptive emits source-type pivots; baseline does not",
+    "source_type_pivot": "observed on conflicting-nimbus adaptive only",
+    "verification_action": "admitted but not auto-emitted by selectNextAction (12-step budget)",
+    "selective_correction": "unknown-dependency fullRerun=true vs budget reopen fullRerun=false (integration)"
+  },
+  "measures": [
+    "citation_correctness",
+    "decisive_evidence_recall",
+    "hard_constraint_violations",
+    "unsupported_claims",
+    "contradiction_handling",
+    "correction_accuracy",
+    "latency",
+    "cost"
+  ],
+  "live_same_model_benchmark": "not_run",
+  "live_same_model_benchmark_reason": "remaining OpenRouter cap reserved; no new live need",
+  "competitor_comparison": "not_run",
+  "rows": [
+    {
+      "taskId": "hard-constraint-postgres",
+      "family": "hard-constraint-comparisons",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-a/pricing-de",
+            "fixture://vendor-b/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-a/pricing-de",
+            "fixture://vendor-b/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B"
+        ]
+      }
+    },
+    {
+      "taskId": "conflicting-nimbus",
+      "family": "conflicting-claims",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [],
+          "missed": [
+            "fixture://vendor/nimbus-matrix"
+          ]
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "NimbusDB"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor/nimbus-matrix"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": true,
+        "latency_steps": 6,
+        "cost_fixture_micro": 25000,
+        "pivots": 1,
+        "stop_reasons": [
+          "inaccessible_or_unresolved_gap"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "NimbusDB"
+        ]
+      }
+    },
+    {
+      "taskId": "niche-deepseek",
+      "family": "niche-research",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://catalog/deepseek-research-pro"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 3,
+        "cost_fixture_micro": 16000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": []
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://catalog/deepseek-research-pro"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 3,
+        "cost_fixture_micro": 16000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": []
+      }
+    },
+    {
+      "taskId": "contradict-price",
+      "family": "document-web-synthesis",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://price/a",
+            "fixture://price/b"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 4,
+        "cost_fixture_micro": 19000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Gadget Mini"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://price/a",
+            "fixture://price/b"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 4,
+        "cost_fixture_micro": 19000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Gadget Mini"
+        ]
+      }
+    },
+    {
+      "taskId": "purchase-50",
+      "family": "purchase-decisions",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-a/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-a/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": false,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B"
+        ]
+      }
+    },
+    {
+      "taskId": "notes-tradeoff",
+      "family": "technical-tradeoffs",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": true,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "NoteKeep",
+          "NoteDroid",
+          "NoteAll"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": true,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "NoteKeep",
+          "NoteDroid",
+          "NoteAll"
+        ]
+      }
+    },
+    {
+      "taskId": "correction-120",
+      "family": "changed-assumption-corrections",
+      "baseline": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-c/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": true,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B",
+          "Vendor C"
+        ]
+      },
+      "adaptive": {
+        "citation_correctness": "pass",
+        "unknown_citation_count": 0,
+        "decisive_evidence_recall": {
+          "fetched": [
+            "fixture://vendor-c/pricing-de"
+          ],
+          "missed": []
+        },
+        "hard_constraint_violations": 0,
+        "unsupported_claims": "not_scored_beyond_composeReport_citations",
+        "contradiction_handling": "fixture_report_text_present",
+        "correction_accuracy": true,
+        "latency_steps": 5,
+        "cost_fixture_micro": 22000,
+        "pivots": 0,
+        "stop_reasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "candidates": [
+          "Vendor A",
+          "Vendor B",
+          "Vendor C"
+        ]
+      }
+    }
+  ]
+}

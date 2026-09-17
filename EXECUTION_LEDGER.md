@@ -226,6 +226,15 @@ No live paid calls were made.
 - parseCorrection drops platform=linux and marks discovery reopened. Child Eligible includes NoteKeep.
 - Integration 102/102; research-core 31/31. Artifact `verification/job1-linux-drop.json`. iOS/hosted/M11/G04 unpassed.
 
+## 2026-09-17 — foundation audit + controller admission (V4)
+
+- Audited V4 vs source. Confirmed live worker used `nextLiveAction()` and skipped `authorizeAction`; OpenRouter planner unused; live intent recorded after HTTP.
+- Added `admitProposedAction` as the single gate; fixture, live baseline, and model proposals go through it. `extract_table`/`inspect_visual` fail closed. Hostile privileged fields rejected.
+- Live spend: insert `issued` before `liveWebSearch`; `failed` and `outcome-unknown` count against the cap.
+- Gaps gained dependent conclusion / resolving evidence / attempts / remaining uncertainty; `004_gap_payload.sql`. Worker emits `source_pivot` and `stop_policy`. Geography correction intent (“Actually, Germany is required”).
+- Fixture baseline vs adaptive comparison recorded (`verification/benchmark-fixture.json`). Adaptive Nimbus arm pivots and fetches the vendor matrix; baseline does not. Not live quality. OpenRouter not spent.
+- `pnpm test:unit` exit 0; `pnpm test:integration` 106/106; `pnpm verify` exit 0; `pnpm p0:launch` twice ok (citations 10, cancel during writing, no report). `pnpm test:e2e:ios` exit 2 (no Xcode). Android device absent; prior Android evidence not re-run. iOS/hosted/M11/G04/G05/live invoice/competitor unpassed.
+
 
 
 

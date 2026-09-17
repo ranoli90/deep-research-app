@@ -6,7 +6,7 @@ import {
 import { neededClarifications } from "./brief.js";
 import { canSpendExploration } from "./fences.js";
 import { detectGaps, triedSourceType } from "./gaps.js";
-import { queryLeaksPrivate, rejectPrivilegedProposal } from "./injection.js";
+import { queryLeaksPrivate } from "./injection.js";
 import type { ControllerState, PolicyDecision, SearchTrace } from "./types.js";
 
 export function saturationReached(searches: SearchTrace[]): boolean {
@@ -135,7 +135,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
       ...base,
       type: "stop",
       rationale: "Repeated searches returned no novel source family or coverage progress",
-      arguments: { reason: "diminishing_returns" },
+      arguments: { reason: "diminishing_returns", stopPolicy: "low_decision_value" },
     };
   }
 
@@ -179,63 +179,19 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
     };
   }
 
+  const blockingOpen = gaps.find((g) => g.importance === "blocking");
+  const stopReason = blockingOpen
+    ? "inaccessible_or_unresolved_gap"
+    : "evidence_sufficient_or_low_decision_value";
   return {
     ...base,
     type: "synthesize",
-    rationale: "Authorized investigation has diminishing expected value; write from stored evidence",
+    rationale: blockingOpen
+      ? `Write with localized uncertainty; blocking gap remains: ${blockingOpen.missingFact}`
+      : "Authorized investigation has diminishing expected value; write from stored evidence",
     estimatedMaxCostMicro: FIXTURE_SYNTH_COST_MICRO,
+    arguments: { reason: stopReason, stopPolicy: stopReason },
   };
-}
-
-export function authorizeAction(state: ControllerState, proposal: PolicyDecision): PolicyDecision {
-  const privileged = rejectPrivilegedProposal(proposal);
-  if (privileged) {
-    return {
-      ...proposal,
-      type: "stop",
-      rationale: privileged,
-      rejectReason: privileged,
-      arguments: { reason: "unauthorized_action", detail: privileged },
-    };
-  }
-  if (proposal.type === "search") {
-    const query = String(proposal.arguments.query ?? "");
-    if (offCoverage(query, state.brief.originalQuestion)) {
-      return {
-        ...proposal,
-        type: "stop",
-        rationale: "Declined an out-of-coverage branch suggested by page content",
-        rejectReason: "off_coverage",
-        arguments: { reason: "off_coverage", query },
-      };
-    }
-    const leak = queryLeaksPrivate(query, state.privateCanaries);
-    if (leak) {
-      return {
-        ...proposal,
-        type: "stop",
-        rationale: "private document text cannot be used as a public query",
-        rejectReason: "private_query_blocked",
-        arguments: { reason: "private_query_blocked" },
-      };
-    }
-  }
-  if (proposal.type === "extract_table" || proposal.type === "inspect_visual") {
-    return {
-      ...proposal,
-      type: "stop",
-      rationale: "table/visual extraction adapters are unavailable",
-      rejectReason: "capability_unavailable",
-    };
-  }
-  return proposal;
-}
-
-export function offCoverage(query: string, question: string): boolean {
-  const q = query.toLowerCase();
-  const orig = question.toLowerCase();
-  const bait = /taylor swift|celebrity gossip|hollywood tour|sports scores|unrelated movie/;
-  return bait.test(q) && !bait.test(orig);
 }
 
 export function searchDelta(

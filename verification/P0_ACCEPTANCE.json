@@ -2,7 +2,7 @@
   "schema_version": 1,
   "status": "partial_p0_checkpoint",
   "authority": "IMPLEMENTATION_PLAN.md",
-  "as_of": "2026-09-16",
+  "as_of": "2026-09-17",
   "smoke_case_ids": [
     "R01",
     "R04",
@@ -28,8 +28,8 @@
       "evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
-        "tests": "pnpm test:integration 102/102, exit 0 (includes original 12 smoke IDs plus JOB-1 Linux add/drop, JOB-2, G01/G02, G06/G07 local, P4 recovery, E10, R02 France discovery, and remaining launch-scope IDs). V2-03 gold-evidence diagnostic is research-core, not a live A/B.",
-        "launch": "pnpm p0:launch twice: citations resolved; cancel during writing; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
+        "tests": "pnpm test:integration 106/106, exit 0 (includes original 12 smoke IDs plus JOB-1 Linux add/drop, JOB-2, G01/G02, G06/G07 local, P4 recovery, E10, R02 France discovery, controller admission, and remaining launch-scope IDs). V2-03 gold-evidence diagnostic is research-core, not a live A/B.",
+        "launch": "pnpm p0:launch twice 2026-09-17: citationCount=10; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
       "scope": "Smoke suite plus transaction, authorization, privacy, budget and fencing cases. Not live-model or hosted-service proof. Local PostgreSQL does not prove hosted auth/RLS/storage/pooler."

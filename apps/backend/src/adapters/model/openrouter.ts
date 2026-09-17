@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
-import { authorizeAction, selectNextAction } from "@deep/research-core";
+import { admitProposedAction, selectNextAction } from "@deep/research-core";
 import type { ControllerState, PolicyDecision } from "@deep/research-core";
 import type { AppConfig } from "../../platform/config.js";
 import { providerFailureState } from "./outcomes.js";
@@ -47,7 +47,7 @@ export async function openRouterProposeAction(
     state: "planned",
   };
   if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
-    return { decision: authorizeAction(state, selectNextAction(state)), receipt: { ...receipt, state: "failed" } };
+    return { decision: admitProposedAction(state, selectNextAction(state)), receipt: { ...receipt, state: "failed" } };
   }
   receipt.state = "issued";
   receipt.rawCost = String(LIVE_CALL_RESERVE_MICRO);
@@ -63,7 +63,7 @@ export async function openRouterProposeAction(
     });
     if (!res.ok) {
       receipt.state = "failed";
-      return { decision: authorizeAction(state, selectNextAction(state)), receipt };
+      return { decision: admitProposedAction(state, selectNextAction(state)), receipt };
     }
     const json = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -87,9 +87,9 @@ export async function openRouterProposeAction(
       dedupeKey: `or:${digest}`,
       privileged: false,
     };
-    return { decision: authorizeAction(state, proposal), receipt };
+    return { decision: admitProposedAction(state, proposal), receipt };
   } catch (err) {
     receipt.state = providerFailureState(err as Error);
-    return { decision: authorizeAction(state, selectNextAction(state)), receipt };
+    return { decision: admitProposedAction(state, selectNextAction(state)), receipt };
   }
 }

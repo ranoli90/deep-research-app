@@ -1,4 +1,4 @@
-import type { ControllerState } from "@deep/research-core";
+import { selectBaselineAction, type ControllerState } from "@deep/research-core";
 
 export type LiveNext = {
   type: "search" | "fetch" | "synthesize";
@@ -8,31 +8,15 @@ export type LiveNext = {
   sourceId?: string;
 };
 
-const MAX_LIVE_FETCHES = 3;
-
-/** App-owned live controller: one discovery search, then inspect URLs, then write. */
+/** Bounded live chooser. Not an adaptive engine; proposals still require admitProposedAction. */
 export function nextLiveAction(state: ControllerState): LiveNext {
-  const httpSources = state.sources.filter((s) => (s.locator ?? "").startsWith("http"));
-  const unfetched = httpSources.filter((s) => s.accessLevel === "discovered" || s.accessLevel === "snippet");
-  const fetchedCount = httpSources.length - unfetched.length;
-
-  if (httpSources.length === 0 && state.searches.length === 0) {
-    return {
-      type: "search",
-      rationale: "Live discovery of public sources for the task",
-      query: state.brief.originalQuestion,
-    };
-  }
-  if (unfetched[0] && fetchedCount < MAX_LIVE_FETCHES) {
-    return {
-      type: "fetch",
-      rationale: "Inspect an already-known live source before another paid search",
-      locator: unfetched[0].locator,
-      sourceId: unfetched[0].id,
-    };
-  }
+  const d = selectBaselineAction(state);
+  const type = d.type === "fetch" || d.type === "search" || d.type === "synthesize" ? d.type : "synthesize";
   return {
-    type: "synthesize",
-    rationale: "Write a bounded cited report from accessed live evidence",
+    type,
+    rationale: d.rationale,
+    query: d.arguments.query ? String(d.arguments.query) : undefined,
+    locator: d.arguments.locator ? String(d.arguments.locator) : undefined,
+    sourceId: d.arguments.sourceId ? String(d.arguments.sourceId) : undefined,
   };
 }

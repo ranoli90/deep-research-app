@@ -101,7 +101,7 @@
     "scope": "P0 smoke + launch-scope + remaining fixture/postgres IDs against real local PostgreSQL and pg-boss; fixture route only",
     "network": false,
     "paid": false,
-    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts, apps/backend/test/g01-g02.integration.test.ts, apps/backend/test/p4-recovery.integration.test.ts, apps/backend/test/g06-cost.integration.test.ts, apps/backend/test/g07-output.integration.test.ts"
+    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts, apps/backend/test/g01-g02.integration.test.ts, apps/backend/test/p4-recovery.integration.test.ts, apps/backend/test/g06-cost.integration.test.ts, apps/backend/test/g07-output.integration.test.ts, apps/backend/test/controller-admission.integration.test.ts"
   },
   {
     "command": "pnpm test:e2e:ios",
@@ -114,7 +114,7 @@
   {
     "command": "pnpm test:e2e:android",
     "status": "implemented_application_command",
-    "scope": "device a3fa7852 was online this session; Expo Go + installed preview APK; script still exits 2 if adb is empty",
+    "scope": "exits 2 when no emulator/device is online; prior Xiaomi a3fa7852 recapture is native-Android-only and was not re-run this session",
     "network": false,
     "paid": false,
     "implementation": "scripts/e2e-android.mjs"

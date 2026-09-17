@@ -6,11 +6,12 @@ import {
   LIVE_CALL_RESERVE_MICRO,
 } from "@deep/contracts";
 import {
-  authorizeAction,
+  admitProposedAction,
   compactForContext,
   composeReport,
   detectGaps,
   extractCandidates,
+  selectBaselineAction,
   selectNextAction,
   type ControllerState,
   type StoredClaim,
@@ -20,13 +21,13 @@ import { fixtureProposeAction } from "../adapters/model/fixture.js";
 import { fixtureFetch, fixtureSearch, type SearchHit } from "../adapters/retrieval/fixture.js";
 import { liveWebSearch } from "../adapters/retrieval/live-web.js";
 import { assertLiveCallAllowed } from "../modules/live-spend.js";
-import { nextLiveAction } from "./live-policy.js";
+import { providerFailureState } from "../adapters/model/outcomes.js";
 import { safeFetch } from "../platform/ssrf.js";
 import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
 import { logInfo } from "../platform/log.js";
 import { consentAllowsProcessing } from "../modules/access.js";
-import { recordIntent, settleRun } from "../modules/billing.js";
+import { recordIntent, settleRun, updateIntentState } from "../modules/billing.js";
 import { insertSource, insertVersionAndPassage, loadEvidence } from "../modules/evidence.js";
 import { publishReport } from "../modules/reports.js";
 import {
@@ -148,6 +149,13 @@ function toState(
     privateCanaries,
     reopenedDiscovery: Boolean(run.parent_run_id) && /budget/i.test(correctionTail),
     dependencyCompleteness: /unknown/i.test(correctionTail) ? "unknown" : run.parent_run_id ? "partial" : "known",
+    issuedDedupeKeys: searchEvents
+      .map((e) => (e.payload as { dedupeKey?: string } | null)?.dedupeKey)
+      .filter((k): k is string => Boolean(k)),
+    completedActionTypes: searchEvents
+      .map((e) => e.type)
+      .filter((t) => t === "compare" || t === "calculate" || t === "verify" || t === "replan" || t === "extract_text"),
+    stopReason: searchEvents.find((e) => e.type === "stop_policy")?.public_summary,
   };
   state.gaps = detectGaps(state);
   return state;
@@ -290,22 +298,14 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       return;
     }
 
+    const seenDedupe = new Set<string>([...declinedOffCoverage, ...(state.issuedDedupeKeys ?? [])]);
     let decision = fixtureProposeAction(state);
-    if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
-      const liveNext = nextLiveAction(state);
-      decision = {
-        actionId: `live-${step}`,
-        runId,
-        briefRevision: state.brief.revision,
-        type: liveNext.type,
-        coverageIds: [],
-        arguments: { query: liveNext.query, locator: liveNext.locator, sourceId: liveNext.sourceId },
-        rationale: liveNext.rationale,
-        estimatedMaxCostMicro: liveNext.type === "search" ? LIVE_CALL_RESERVE_MICRO : 0,
-        sourceAccessConstraints: [],
-        dedupeKey: `live-${runId}-${step}-${liveNext.type}`,
-        privileged: false,
-      };
+    if (run.route_mode === "controlled-research" && config.liveRouteEnabled && !decision.rejectReason) {
+      const liveProposed = selectBaselineAction(state);
+      liveProposed.actionId = `live-${step}`;
+      liveProposed.estimatedMaxCostMicro = liveProposed.type === "search" ? LIVE_CALL_RESERVE_MICRO : liveProposed.estimatedMaxCostMicro;
+      liveProposed.dedupeKey = `live-${runId}-${step}-${liveProposed.type}`;
+      decision = admitProposedAction(state, liveProposed, { seenDedupeKeys: seenDedupe });
     }
 
     // Retrieved gossip/bait must be declined without skipping inspection of remaining sources.
@@ -321,7 +321,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         });
         declinedOffCoverage.add(decision.dedupeKey);
       }
-      decision = authorizeAction(state, selectNextAction(state));
+      decision = admitProposedAction(state, selectNextAction(state), { seenDedupeKeys: seenDedupe });
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
@@ -353,19 +353,33 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       if (run.route_mode === "controlled-research" && config.liveRouteEnabled) {
         try {
           await assertLiveCallAllowed(pool, config);
-          const live = await liveWebSearch(query, config);
-          await recordIntent(pool, runId, {
-            correlationId: live.receipt.correlationId,
-            route: live.receipt.route,
-            digest: live.receipt.requestDigest,
-            reserved: LIVE_CALL_RESERVE_MICRO,
-            state: live.receipt.state,
-          });
-          hits = live.hits;
-          searchRoute = live.receipt.route;
         } catch {
           hits = [];
           searchRoute = "openrouter:blocked-by-spend-cap";
+        }
+        if (searchRoute !== "openrouter:blocked-by-spend-cap") {
+          const intentId = await recordIntent(pool, runId, {
+            correlationId: decision.actionId,
+            route: `openrouter:${config.openRouterModel}:web`,
+            digest: query,
+            reserved: LIVE_CALL_RESERVE_MICRO,
+            state: "issued",
+          });
+          try {
+            const live = await liveWebSearch(query, config);
+            await updateIntentState(
+              pool,
+              intentId,
+              live.receipt.state,
+              live.receipt.state === "confirmed" ? LIVE_CALL_RESERVE_MICRO : undefined,
+            );
+            hits = live.hits;
+            searchRoute = live.receipt.route;
+          } catch (err) {
+            await updateIntentState(pool, intentId, providerFailureState(err as Error));
+            hits = [];
+            searchRoute = `openrouter:${config.openRouterModel}:web`;
+          }
         }
       } else {
         hits = fixtureSearch(query);
@@ -415,8 +429,30 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
           type: "searched",
           summary: `Searched: ${query.slice(0, 160)}`,
           phase: "researching",
-          payload: { locators: hits.map((h) => h.locator), pivot: Boolean(decision.arguments.pivot) },
+          payload: {
+            locators: hits.map((h) => h.locator),
+            pivot: Boolean(decision.arguments.pivot),
+            trigger: decision.arguments.trigger,
+            sourceTypeNeeded: decision.arguments.sourceTypeNeeded,
+            dedupeKey: decision.dedupeKey,
+            gapId: decision.gapId,
+          },
         });
+        if (decision.arguments.pivot) {
+          await emitEvent(c, {
+            runId,
+            accountId: run.account_id,
+            type: "source_pivot",
+            summary: decision.rationale,
+            phase: "researching",
+            payload: {
+              reason: decision.rationale,
+              trigger: decision.arguments.trigger,
+              sourceTypeNeeded: decision.arguments.sourceTypeNeeded,
+              gapId: decision.gapId,
+            },
+          });
+        }
         await setPhase(c, runId, "researching");
         return rev;
       });
@@ -514,6 +550,19 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       continue;
     }
 
+    if (decision.type === "compare" || decision.type === "calculate" || decision.type === "verify" || decision.type === "replan" || decision.type === "extract_text") {
+      await emitEvent(pool, {
+        runId,
+        accountId: run.account_id,
+        type: decision.type,
+        summary: decision.rationale,
+        phase: "researching",
+        payload: { ...decision.arguments, dedupeKey: decision.dedupeKey, gapId: decision.gapId },
+      });
+      await checkpoint(pool, runId, run.evidence_revision, "researching", { action: decision.type });
+      continue;
+    }
+
     if (decision.rejectReason) {
       await emitEvent(pool, {
         runId,
@@ -522,6 +571,20 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         summary: decision.rationale,
         phase: run.phase,
         payload: { reason: decision.rejectReason },
+      });
+    }
+
+    if (decision.type === "stop" || decision.arguments?.stopPolicy || decision.arguments?.reason) {
+      await emitEvent(pool, {
+        runId,
+        accountId: run.account_id,
+        type: "stop_policy",
+        summary: decision.rationale,
+        phase: run.phase,
+        payload: {
+          reason: decision.arguments?.reason ?? decision.rejectReason ?? "stop",
+          stopPolicy: decision.arguments?.stopPolicy ?? decision.arguments?.reason,
+        },
       });
     }
 
@@ -592,11 +655,27 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
         [crypto.randomUUID(), runId, c.identity, c.id, c.excludedBy ?? null],
       );
     }
+    await pool.query(`DELETE FROM evidence_gaps WHERE run_id = $1`, [runId]);
     for (const g of state2.gaps) {
       await pool.query(
-        `INSERT INTO evidence_gaps (id, run_id, missing_fact, why_it_could_change_answer, importance, source_type_needed, latest_outcome)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [crypto.randomUUID(), runId, g.missingFact, g.whyItCouldChangeAnswer, g.importance, g.sourceTypeNeeded ?? null, g.latestOutcome ?? null],
+        `INSERT INTO evidence_gaps (id, run_id, missing_fact, why_it_could_change_answer, importance, source_type_needed, latest_outcome, payload)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [
+          crypto.randomUUID(),
+          runId,
+          g.missingFact,
+          g.whyItCouldChangeAnswer,
+          g.importance,
+          g.sourceTypeNeeded ?? null,
+          g.latestOutcome ?? null,
+          JSON.stringify({
+            dependentConclusion: g.dependentConclusion ?? null,
+            resolvingEvidence: g.resolvingEvidence ?? null,
+            remainingUncertainty: g.remainingUncertainty ?? null,
+            attempts: g.attempts ?? [],
+            gapId: g.id,
+          }),
+        ],
       );
     }
     const claims: StoredClaim[] = state2.claims;
