@@ -2544,7 +2544,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "113 core/80 backend/47 mobile/4 governance",
-      "sha256": "122319dd02cc1aef2430a0f7c2d8db522361851c092c93966c92c1f5a795b597"
+      "sha256": "122319dd02cc1aef2430a0f7c2d8db522361851c092c93966c92c1f5a795b597",
+      "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
     },
     {
       "requirementIds": [
@@ -2558,7 +2559,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_coverage",
       "scope": "56/56; before migration replay repair",
-      "sha256": "e95a469b560251cfcf0f2f796bfc205887fe00d41d7234fd145ee936437ceaf0"
+      "sha256": "e95a469b560251cfcf0f2f796bfc205887fe00d41d7234fd145ee936437ceaf0",
+      "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
     },
     {
       "requirementIds": [
@@ -2586,7 +2588,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "228/228 after replay-safe migration declaration",
-      "sha256": "9ebfc0d1f67efd0691d3bcf9573a0dc3ff8bae60231e8ab794dafba49f9b4f24"
+      "sha256": "9ebfc0d1f67efd0691d3bcf9573a0dc3ff8bae60231e8ab794dafba49f9b4f24",
+      "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
     },
     {
       "requirementIds": [
@@ -2600,7 +2603,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
     },
     {
       "requirementIds": [
@@ -2614,7 +2618,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
     }
   ],
   "unresolved": [
@@ -2632,5 +2637,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "fbd7fb3a15bb5280168b372c6045579e88c5806e"
+  "implementationCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
 }
