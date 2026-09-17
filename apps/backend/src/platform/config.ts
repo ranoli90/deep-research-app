@@ -3,6 +3,7 @@ import { CONSENT_POLICY_VERSION } from "@deep/contracts";
 export type AppConfig = {
   nodeEnv: string;
   authMode: "development" | "production";
+  supabaseAuth?: { url: string; publishableKey: string };
   databaseUrl: string;
   apiHost: string;
   apiPort: number;
@@ -34,11 +35,24 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (nodeEnv === "production" && fixtureRouteAllowed) {
     throw new Error("Fixture route cannot start in production");
   }
+  let supabaseAuth: AppConfig["supabaseAuth"];
+  if (authMode === "production") {
+    if (!env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY?.startsWith("sb_publishable_")) {
+      throw new Error("Production auth requires SUPABASE_URL and a SUPABASE_PUBLISHABLE_KEY");
+    }
+    let url: URL;
+    try { url = new URL(env.SUPABASE_URL); } catch { throw new Error("Invalid SUPABASE_URL"); }
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/") {
+      throw new Error("SUPABASE_URL must be an HTTPS project origin");
+    }
+    supabaseAuth = { url: url.origin, publishableKey: env.SUPABASE_PUBLISHABLE_KEY };
+  }
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is required");
   return {
     nodeEnv,
     authMode,
+    supabaseAuth,
     databaseUrl,
     apiHost: env.API_HOST ?? "127.0.0.1",
     apiPort: integerConfig(env, "API_PORT", 8787, 1, 65535),

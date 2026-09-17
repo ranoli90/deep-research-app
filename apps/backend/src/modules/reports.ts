@@ -180,6 +180,9 @@ export async function insertChallenge(
   await lockActiveAccount(db, args.accountId);
   const report = await db.query("SELECT id FROM reports WHERE id=$1 AND account_id=$2 AND redacted_at IS NULL", [args.reportId, args.accountId]);
   if (!report.rows[0]) throw new Error("report_unavailable");
+  if (args.claimId && !await reportOwnsClaim(db, args.reportId, args.accountId, args.claimId)) {
+    throw Object.assign(new Error("Claim not found in this report."), { statusCode: 404 });
+  }
   const id = crypto.randomUUID();
   await db.query(
     `INSERT INTO challenges (id, account_id, report_id, claim_id, category, note, include_excerpt, excerpt_text)
@@ -196,6 +199,13 @@ export async function insertChallenge(
     ],
   );
   return id;
+}
+
+export async function reportOwnsClaim(db: Queryable, reportId: string, accountId: string, claimId: string): Promise<boolean> {
+  const row = await db.query(`SELECT c.id FROM claims c JOIN reports r ON r.run_id=c.run_id AND r.account_id=c.account_id
+    WHERE r.id=$1 AND r.account_id=$2 AND r.redacted_at IS NULL AND c.id::text=$3 AND c.id::text=ANY(r.claim_ids)`,
+  [reportId, accountId, claimId]);
+  return row.rowCount === 1;
 }
 
 export function excerptFromReport(report: { blocks?: unknown }, limit = 800): string {

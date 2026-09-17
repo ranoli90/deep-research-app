@@ -410,7 +410,11 @@ function AppInner() {
   async function onFollowUp() {
     if (!token || !state.run) return;
     try {
-      const claimId = state.report?.blocks.find((b) => b.id === "answer")?.claimIds[0] ?? "answer";
+      const claimId = state.report?.blocks.find((b) => b.id === "answer")?.claimIds[0];
+      if (!claimId) {
+        setState((s) => ({ ...s, error: "This answer has no supported claim to check. Add a follow-up question in the composer." }));
+        return;
+      }
       const child = await api.followUp(token, state.run.runId, claimId, "Verify the answer claim only");
       setState((s) => {
         const next = {
@@ -622,7 +626,7 @@ function AppInner() {
                         setFlagStatus("submitting");
                         try {
                           await api.challenge(token, state.report.reportId, {
-                            claimId: state.report.blocks[0]?.claimIds[0] ?? "answer",
+                            claimId: state.report.blocks.find((b) => b.id === "answer")?.claimIds[0],
                             category: flagCategory,
                             note: flagNote,
                             includeExcerpt: flagInclude,

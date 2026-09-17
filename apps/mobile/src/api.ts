@@ -82,7 +82,7 @@ export const api = {
   challenge: (
     token: string,
     reportId: string,
-    body: { claimId: string; category: string; note: string; includeExcerpt: boolean },
+    body: { claimId?: string; category: string; note: string; includeExcerpt: boolean },
   ) => req(`/v1/reports/${reportId}/challenges`, { method: "POST", token, body: JSON.stringify(body) }),
   restorePurchases: (token: string) =>
     req("/v1/purchases/restore", { method: "POST", token, body: "{}" }),

@@ -585,7 +585,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${created.json().runId}/follow-up`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { claimId: "answer", note: "Verify the Widget 4 announcement only" },
+      payload: { claimId: parent?.claim_ids[0], note: "Verify the Widget 4 announcement only" },
     });
     expect(follow.statusCode).toBe(200);
     expect(follow.json().reopenedDiscovery).toBe(false);

@@ -379,11 +379,13 @@ describe("launch-scope fixture/postgres cases", () => {
     const snap = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: { authorization: `Bearer ${token}` } });
     const reportId = snap.json().reportId as string;
     const before = await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: { authorization: `Bearer ${token}` } });
+    const claimId = before.json().blocks.find((b: { id: string }) => b.id === "answer").claimIds[0];
+    expect(claimId).toMatch(/^[a-f0-9-]{36}$/);
     const ch = await app.inject({
       method: "POST",
       url: `/v1/reports/${reportId}/challenges`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { claimId: "answer", category: "claim", note: "check the announcement date" },
+      payload: { claimId, category: "claim", note: "check the announcement date" },
     });
     expect(ch.statusCode).toBe(200);
     expect(ch.json().challengeId).toBeTruthy();
@@ -391,7 +393,7 @@ describe("launch-scope fixture/postgres cases", () => {
       `SELECT claim_id, note, report_id FROM challenges WHERE id = $1 AND account_id = $2`,
       [ch.json().challengeId, accountId],
     );
-    expect(row.rows[0]?.claim_id).toBe("answer");
+    expect(row.rows[0]?.claim_id).toBe(claimId);
     expect(row.rows[0]?.note).toMatch(/announcement date/);
     expect(row.rows[0]?.report_id).toBe(reportId);
     const after = await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: { authorization: `Bearer ${token}` } });

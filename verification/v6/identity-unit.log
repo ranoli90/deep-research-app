@@ -1,0 +1,15 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/identity.unit.test.ts test/config.unit.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/config.unit.test.ts (8 tests) 6ms
+ ✓ test/identity.unit.test.ts (14 tests) 55ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  10:27:48
+   Duration  429ms (transform 153ms, setup 0ms, collect 216ms, tests 61ms, environment 0ms, prepare 171ms)
+

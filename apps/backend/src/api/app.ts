@@ -50,11 +50,13 @@ import {
   listLibrary,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
-import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport } from "../modules/reports.js";
+import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { storeAttachment } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
+import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
+import { accountForIdentity } from "../modules/identity.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -90,8 +92,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   async function auth(req: { headers: Record<string, unknown> }) {
-    return accountFromBearer(pool, String(req.headers.authorization ?? ""));
+    const header = String(req.headers.authorization ?? "");
+    if (config.authMode === "development") return accountFromBearer(pool, header);
+    if (!config.supabaseAuth || !header.startsWith("Bearer ")) return null;
+    const identity = await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth);
+    if (identity.status === "unavailable") throw Object.assign(new Error("Sign-in verification is temporarily unavailable."), { statusCode: 503 });
+    if (identity.status !== "verified") return null;
+    return accountForIdentity(pool, identity.identity);
   }
+
+  app.get("/v1/session", async (req, reply) => {
+    const account = await auth(req as never);
+    if (!account || account.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    return { accountId: account.accountId, authMode: config.authMode };
+  });
 
   app.post("/v1/consent", async (req, reply) => {
     const a = await auth(req as never);
@@ -396,6 +410,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         originalQuestion: `${parentBrief.originalQuestion}\n\nFollow-up: verify only ${body.claimId ?? "the named claim"}. ${body.note ?? ""}`.trim(),
         revision,
       };
+      const parentReport = await getLatestReportForRun(c, run.id, a.accountId);
+      if (typeof body.claimId !== "string" || !parentReport || !await reportOwnsClaim(c, parentReport.id, a.accountId, body.claimId)) {
+        throw Object.assign(new Error("Claim not found in the current report."), { statusCode: 404 });
+      }
       await insertBrief(c, brief, a.accountId);
       const childId = crypto.randomUUID();
       await insertRun(c, {
@@ -569,7 +587,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.post("/account/deletion", async (req, reply) => {
     const raw = typeof req.body === "string" ? req.body : "";
     const token = decodeURIComponent((raw.match(/(?:^|&)token=([^&]*)/)?.[1] ?? "").replace(/\+/g, " "));
-    const a = token ? await accountFromBearer(pool, `Bearer ${token}`) : await auth(req as never);
+    const a = token ? await auth({ headers: { authorization: `Bearer ${token}` } }) : await auth(req as never);
     return performDeletion(a, reply, true);
   });
 

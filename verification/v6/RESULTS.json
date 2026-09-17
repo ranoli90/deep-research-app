@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Deletion checkpoint on 8b05f70; 148/148 integration and pnpm verify passed; W01-W09 incomplete",
+  "workingTree": "Identity/ownership checkpoint on fcbc163;151/151 integration and pnpm verify pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -655,6 +655,118 @@
       "evidenceClass": "document_integrity_only",
       "scope": "12 mutation tests; no application execution",
       "sha256": "06fa3076810bbe03f93af1917b6d20d17526346a3238d0a2e4310ce99f803d49"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm --filter @deep/backend test:unit test/identity.unit.test.ts test/config.unit.test.ts",
+      "artifact": "identity-unit.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "22 adapter/config tests; transport doubles, not provider crypto",
+      "sha256": "785386ff9e6c2a1455219a7b6409219cc778efda501227c9948b03984ddd7992"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-identity.integration.test.ts",
+      "artifact": "identity-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_with_auth_transport_double",
+      "scope": "3 local PostgreSQL identity mapping/API checks; auth transport doubles",
+      "sha256": "8d6c669b0fef65d7083fe5bb370b0fd8b69e2be320c7faef32abb774abb74286"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm --filter @deep/backend test:integration test/v6-identity.integration.test.ts test/g07-output.integration.test.ts test/v6-deletion.integration.test.ts",
+      "artifact": "identity-ownership.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_with_auth_transport_double",
+      "scope": "15 local identity/deletion/output ownership tests",
+      "sha256": "538dc7fbc73acbfa7ec3af8f4b650d55351b294cd2880f59d4b9520e776fe22a"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm test:integration",
+      "artifact": "integration-identity.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_with_auth_transport_double",
+      "scope": "150 pass, 1 old positive control failed on invalid block-alias claim ID",
+      "sha256": "5addc233748d7be86190664b8c5bd02c75437e9f49a30f3792fff98774d31d0c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm --filter @deep/backend test:integration test/launch-scope.integration.test.ts",
+      "artifact": "identity-valid-claim-control.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_with_auth_transport_double",
+      "scope": "19 pass with actual persisted claim ID positive control",
+      "sha256": "b36aa17fee3edca078270574533a61133d67c462f9564fd46cce5e8b554813f7"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm test:integration",
+      "artifact": "integration-identity-controls.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_with_auth_transport_double",
+      "scope": "151/151 local PostgreSQL tests",
+      "sha256": "7fc91d4586dccaf465902783330c814c5bfdfa7c0bd0daae71cc5843cf74d9ec"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm verify",
+      "artifact": "verify-identity.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "core81/backend66/mobile32/governance4 and type/boundary checks",
+      "sha256": "1ac3efb760cea59c1faf14ecc48d076dbd07df62a312a35cba25df55482ea022"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "V6-F14"
+      ],
+      "commit": "fcbc1638e1154ce9f730a71f92dd2324a275bd33",
+      "workingTree": "uncommitted identity/ownership repair",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-identity-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "TypeScript only, not native execution",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
     }
   ],
   "unresolved": [
