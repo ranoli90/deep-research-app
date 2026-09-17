@@ -22,9 +22,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F6F3EE"
-      }
+      },
+      "allowBackup": false
     },
-    "plugins": [],
+    "plugins": [
+      "expo-secure-store"
+    ],
     "experiments": {
       "typedRoutes": false
     },

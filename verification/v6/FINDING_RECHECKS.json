@@ -117,8 +117,8 @@
       "id": "V6-F17",
       "title": "Mobile secret storage and in-flight account isolation need strengthening",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-      "status": "rechecked; open",
-      "basis": "Mobile token still uses AsyncStorage; request/account generations are not implemented."
+      "status": "rechecked; local repair, native verification open",
+      "basis": "SecureStore-only credentials, owner/backend-scoped cache, serialized persistence and account/run/source generations implemented. Delayed transport/write and failure controls pass; Android JS bundle passes. No native keychain/device proof; production login/refresh remains open."
     },
     {
       "id": "V6-F18",

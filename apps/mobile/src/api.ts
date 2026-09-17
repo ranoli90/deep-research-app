@@ -1,4 +1,9 @@
+import { createRequestScope, SupersededRequest } from "./request-scope";
+
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
+export const backendUrl = API;
+const requests = createRequestScope();
+export const isSupersededRequest = (error: unknown): boolean => error instanceof SupersededRequest;
 
 /** Browser deletion path (M09). No secrets in the URL. */
 export const deletionPageUrl = `${API}/account/deletion`;
@@ -24,48 +29,66 @@ export function isOfflineError(err: unknown): boolean {
   return err instanceof ApiError && err.status === 0;
 }
 
-async function req(path: string, init: RequestInit & { token?: string } = {}) {
+async function req(path: string, init: RequestInit & { token?: string; scope?: "account" | "view" | "source"; runId?: string } = {}) {
+  const lease = requests.capture(init.scope ?? "account", init.token, init.runId);
   const headers: Record<string, string> = { "content-type": "application/json", ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;
   const ctrl = new AbortController();
+  const abort = () => ctrl.abort();
+  lease.signal.addEventListener("abort", abort, { once: true });
+  init.signal?.addEventListener("abort", abort, { once: true });
   const timer = setTimeout(() => ctrl.abort(), 15_000);
   try {
     const res = await fetch(`${API}${path}`, { ...init, headers, signal: ctrl.signal });
     const body = await res.json().catch(() => ({}));
+    if (!lease.current() || init.signal?.aborted) throw new SupersededRequest();
     if (!res.ok) {
       throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
     }
     return body;
   } catch (e) {
+    if (!lease.current() || init.signal?.aborted || e instanceof SupersededRequest) throw new SupersededRequest();
     if (e instanceof ApiError) throw e;
     throw new ApiError(0, e instanceof Error && e.name === "AbortError" ? "The API did not respond. Check the connection." : (e as Error).message);
   } finally {
     clearTimeout(timer);
+    lease.signal.removeEventListener("abort", abort);
+    init.signal?.removeEventListener("abort", abort);
+    lease.release();
   }
 }
 
 export const api = {
+  activateSession: requests.setSession,
+  selectRun: requests.selectRun,
+  closeSource: requests.closeSource,
+  currentRun: requests.currentRun,
+  capture: () => requests.capture("account"),
+  captureView: () => requests.capture("view"),
   health: () => req("/health"),
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
+  sessionInfo: (token: string) => req("/v1/session", { token }) as Promise<{ accountId: string; authMode: string }>,
   consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
   createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = []) =>
     req("/v1/runs", {
       method: "POST",
       token,
+      scope: "view",
       headers: { "idempotency-key": idempotencyKey },
       body: JSON.stringify({ question, routeMode, attachmentIds }),
     }),
   attach: (token: string, filename: string, mime: string, text: string) =>
-    req("/v1/attachments", { method: "POST", token, body: JSON.stringify({ filename, mime, text }) }),
+    req("/v1/attachments", { method: "POST", token, scope: "view", body: JSON.stringify({ filename, mime, text }) }),
   continueRun: (token: string, id: string, geography: string) =>
-    req(`/v1/runs/${id}/continue`, { method: "POST", token, body: JSON.stringify({ geography }) }),
-  getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token }),
-  events: (token: string, id: string, after = 0) => req(`/v1/runs/${id}/events?after=${after}`, { token }),
+    req(`/v1/runs/${id}/continue`, { method: "POST", token, scope: "view", runId: id, body: JSON.stringify({ geography }) }),
+  getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token, scope: "view", runId: id }),
+  events: (token: string, id: string, after = 0) => req(`/v1/runs/${id}/events?after=${after}`, { token, scope: "view", runId: id }),
   cancel: (token: string, id: string) => req(`/v1/runs/${id}/cancel`, { method: "POST", token, body: "{}" }),
   correct: (token: string, id: string, expectedBriefRevision: number, correctionText: string) =>
     req(`/v1/runs/${id}/corrections`, {
       method: "POST",
       token,
+      scope: "view", runId: id,
       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
       body: JSON.stringify({ expectedBriefRevision, correctionText }),
     }),
@@ -73,17 +96,18 @@ export const api = {
     req(`/v1/runs/${id}/follow-up`, {
       method: "POST",
       token,
+      scope: "view", runId: id,
       body: JSON.stringify({ claimId, note }),
     }),
-  report: (token: string, id: string) => req(`/v1/reports/${id}`, { token }),
-  source: (token: string, id: string) => req(`/v1/sources/${id}`, { token }),
+  report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
+  source: (token: string, id: string) => { requests.closeSource(); return req(`/v1/sources/${id}`, { token, scope: "source" }); },
   library: (token: string) => req("/v1/library", { token }),
-  exportMd: (token: string, id: string) => req(`/v1/reports/${id}/export`, { token }),
+  exportMd: (token: string, id: string) => req(`/v1/reports/${id}/export`, { token, scope: "view" }),
   challenge: (
     token: string,
     reportId: string,
     body: { claimId?: string; category: string; note: string; includeExcerpt: boolean },
-  ) => req(`/v1/reports/${reportId}/challenges`, { method: "POST", token, body: JSON.stringify(body) }),
+  ) => req(`/v1/reports/${reportId}/challenges`, { method: "POST", token, scope: "view", body: JSON.stringify(body) }),
   restorePurchases: (token: string) =>
     req("/v1/purchases/restore", { method: "POST", token, body: "{}" }),
   settings: (token: string) => req("/v1/settings", { token }),

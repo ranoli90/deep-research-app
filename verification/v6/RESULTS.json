@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Identity/ownership checkpoint on fcbc163;151/151 integration and pnpm verify pass; W01-W09 incomplete",
+  "workingTree": "Mobile isolation checkpoint on ae2d074; W01-W09 remains incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -767,6 +767,104 @@
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "TypeScript only, not native execution",
       "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-mobile-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "81 core,66 backend,47 mobile,4 governance; types and boundaries",
+      "sha256": "2e41f9ab65372bf6135003bf64cac2a0715c0fc65dc5d3d7bec900135560637c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-types-checkpoint.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "mobile",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+      "artifact": "mobile-android-bundle.log",
+      "exitCode": 0,
+      "evidenceClass": "javascript_bundle",
+      "scope": "Android JS/Hermes only; preceding final best-effort cache cleanup change",
+      "sha256": "fcd5f8bad6e92d7c689a93b78daef6d47c89b39b95441a10f7d9ebc28a56d417"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm audit --prod --json",
+      "artifact": "mobile-dependency-audit.json",
+      "exitCode": 1,
+      "evidenceClass": "dependency_audit",
+      "scope": "7 unresolved advisories",
+      "sha256": "729439752d425cc2a1a18f3062a73905352b8a43fc16fafe4fb59f1c8030775d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm --dir /tmp/deep-v6-audit-baseline audit --prod --json",
+      "artifact": "dependency-audit-before-secure-store.json",
+      "exitCode": 1,
+      "evidenceClass": "dependency_audit",
+      "scope": "ae2d074 lockfile/manifests; same7advisories",
+      "sha256": "cdbaa54768698d6aedd1c3dd14f9633db79eb1e66cf73cd52b1a07b3f5b7b57d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-session-types-before.log",
+      "exitCode": 2,
+      "evidenceClass": "static_typecheck_failure",
+      "scope": "intermediate old persistence test signature",
+      "sha256": "4d9b74204e6006ad0124b0877048a146a6912fe80105fa2fc1521e072f5f8d74"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W07",
+        "V6-F17"
+      ],
+      "commit": "ae2d074 plus mobile working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-session-types-mid.log",
+      "exitCode": 2,
+      "evidenceClass": "static_typecheck_failure",
+      "scope": "intermediate migration of test signatures",
+      "sha256": "4d9b74204e6006ad0124b0877048a146a6912fe80105fa2fc1521e072f5f8d74"
     }
   ],
   "unresolved": [

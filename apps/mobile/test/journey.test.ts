@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearAccountLocal, hydrateOnLaunch, loadDraft, logoutLocal, memoryStore, persistDraft, persistSession } from "../src/persist.js";
+import { activateLocalSession, createSessionStorage, clearAccountLocal, hydrateOnLaunch, loadDraft, logoutLocal, memoryStore, persistDraft, persistSession } from "../src/persist.js";
 import {
   androidBack,
   attachFile,
@@ -15,7 +15,7 @@ import {
 
 describe("P3 native journeys (structural)", () => {
   it("M05 persists a draft offline and will not submit", async () => {
-    const store = memoryStore();
+    const store = createSessionStorage(memoryStore(), memoryStore());
     await persistDraft(store, "Compare options in Germany");
     expect(await loadDraft(store)).toContain("Germany");
   });
@@ -32,7 +32,7 @@ describe("P3 native journeys (structural)", () => {
     expect(r.next.source).toBeNull();
   });
 
-  it("S07 / S12 logout clears cached reports but keeps the draft", () => {
+  it("S07 / S12 logout clears cached reports and account draft", () => {
     const s = {
       ...emptyState(),
       draft: "keep me",
@@ -42,7 +42,7 @@ describe("P3 native journeys (structural)", () => {
     const next = logout(s);
     expect(next.report).toBeNull();
     expect(next.signedIn).toBe(false);
-    expect(next.draft).toBe("keep me");
+    expect(next.draft).toBe("");
   });
 
   it("J08 mergeEvents deduplicates by sequence", () => {
@@ -109,7 +109,8 @@ describe("P3 native journeys (structural)", () => {
   });
 
   it("M09 deletion store wipe drops draft, token, and reports", async () => {
-    const store = memoryStore({ "deep.draft": "secret", "deep.ui": "{}", "deep.token": "tok" });
+    const store = createSessionStorage(memoryStore({ "deep.draft": "secret", "deep.ui": "{}", "deep.token": "tok" }), memoryStore());
+    await activateLocalSession(store, { accountId: "account-a", token: "tok" });
     await persistSession(store, {
       token: "tok",
       state: { ...emptyState(), draft: "secret", signedIn: true, report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true } },
@@ -121,8 +122,9 @@ describe("P3 native journeys (structural)", () => {
     expect(hydrated.state.report).toBeNull();
   });
 
-  it("S12 logoutLocal keeps the draft and drops token and cached reports", async () => {
-    const store = memoryStore();
+  it("S12 logoutLocal clears the account draft, credential and cached reports", async () => {
+    const store = createSessionStorage(memoryStore(), memoryStore());
+    await activateLocalSession(store, { accountId: "account-a", token: "tok" });
     await persistSession(store, {
       token: "tok",
       state: {
@@ -132,10 +134,10 @@ describe("P3 native journeys (structural)", () => {
         report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true },
       },
     });
-    await logoutLocal(store, "keep me");
+    await logoutLocal(store);
     const hydrated = await hydrateOnLaunch(store);
     expect(hydrated.token).toBeNull();
-    expect(hydrated.state.draft).toBe("keep me");
+    expect(hydrated.state.draft).toBe("");
     expect(hydrated.state.report).toBeNull();
     expect(hydrated.state.signedIn).toBe(false);
   });

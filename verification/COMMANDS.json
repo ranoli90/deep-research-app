@@ -174,5 +174,13 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/vitest.extraction.config.ts, apps/backend/test/html.extraction.test.ts"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+    "status": "implemented_application_command",
+    "scope": "local Android JavaScript/asset bundle only; not native build or device execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#bundle:android"
   }
 ]

@@ -141,7 +141,7 @@ export function androidBack(state: UiState): { consumed: boolean; next: UiState 
 }
 
 export function logout(state: UiState): UiState {
-  return { ...emptyState(), draft: state.draft, routeMode: state.routeMode };
+  return { ...emptyState(), routeMode: state.routeMode };
 }
 
 export function attachFile(state: UiState, file: AttachmentDraft): UiState {
@@ -162,11 +162,9 @@ export function submitPrerequisite(state: UiState): "research" | "settings" {
 export function expireLocalSession(state: UiState): UiState {
   return {
     ...emptyState(),
-    draft: state.draft,
     routeMode: state.routeMode,
-    attachments: state.attachments,
     tab: "settings",
-    error: "Session expired. Sign in again. Your draft is kept.",
+    error: "Session expired. Sign in again. Account data was cleared from this device.",
   };
 }
 

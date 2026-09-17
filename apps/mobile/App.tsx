@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
+  Alert,
   ActivityIndicator,
   AppState,
   BackHandler,
@@ -20,10 +21,11 @@ import {
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { sessionStorage } from "./src/native-session";
+import { SupersededRequest } from "./src/request-scope";
 import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
-import { api, deletionPageUrl, isExpiredSession, isOfflineError } from "./src/api";
-import { clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
+import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
+import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
   androidBack,
@@ -60,8 +62,22 @@ function useTheme() {
 function AppInner() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const [state, setState] = useState<UiState>(emptyState());
+  const [state, setStateRaw] = useState<UiState>(emptyState());
+  const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
+    const guard = api.capture();
+    setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
+    guard.release();
+  }, []);
+  const setViewState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
+    const guard = api.captureView();
+    setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
+    guard.release();
+  }, []);
   const [token, setToken] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const submitting = useRef(false);
+  const signingIn = useRef<Promise<string> | null>(null);
+  const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
   const [correction, setCorrection] = useState("");
   const [clarifyAnswer, setClarifyAnswer] = useState("");
@@ -81,8 +97,6 @@ function AppInner() {
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const conversationScroll = useRef<ScrollView>(null);
   const blockY = useRef<Record<string, number>>({});
-  const draftRef = useRef(state.draft);
-  draftRef.current = state.draft;
 
   function restoreReadingPosition(blocks: ReportBlock[] | undefined, saved: UiState["readingAnchor"]) {
     if (!blocks?.length || !saved) return;
@@ -98,28 +112,55 @@ function AppInner() {
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    const guard = api.capture();
+    void persistSession(sessionStorage, { token, state }).catch(() => {
+      if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
+    }).finally(() => guard.release());
+  }, [state, token, hydrated, setState]);
+
   const persistAnchor = useCallback((reportId: string, blockId: string) => {
     setState((s) => {
       const next = { ...s, readingAnchor: { reportId, blockId, offset: 0 } };
-      void persistSession(AsyncStorage, { token, state: next });
+
       return next;
     });
-  }, [token]);
+  }, [setState]);
 
   async function ensureSession() {
+    if (signingIn.current) return signingIn.current;
+    const pending = startSession(); signingIn.current = pending;
+    try { return await pending; }
+    finally { if (signingIn.current === pending) signingIn.current = null; }
+  }
+
+  async function startSession() {
+    if (token) return token;
+    if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
+    let guard: ReturnType<typeof api.capture> | undefined;
     try {
       const s = await api.session();
-      setToken(s.token);
+      api.activateSession(s.token);
+      guard = api.capture();
+      await activateLocalSession(sessionStorage, s);
+      if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
+      const accepted = guard;
+      setToken((previous) => accepted.current() ? s.token : previous);
       setState((prev) => {
-        const next = { ...prev, signedIn: true, error: null };
-        void persistSession(AsyncStorage, { token: s.token, state: next });
+        if (!accepted.current()) return prev;
+        const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null };
+
         return next;
       });
+      guard.release();
       return s.token;
     } catch (e) {
+      if (isSupersededRequest(e)) throw e;
+      if (guard?.current()) api.activateSession(null);
       setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
       throw e;
-    }
+    } finally { guard?.release(); }
   }
 
   async function grantConsent() {
@@ -128,28 +169,41 @@ function AppInner() {
       await api.consent(t, true);
       setState((s) => {
         const next = { ...s, consentGranted: true, error: null };
-        void persistSession(AsyncStorage, { token: t, state: next });
+
         return next;
       });
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
     }
   }
 
+  function clearPanels() {
+    refreshing.current.clear();
+    setCorrection(""); setClarifyAnswer(""); setAttachText(""); setAttachName("note.txt");
+    setFlagNote(""); setFlagOpen(false); setFlagStatus("idle"); setFlagInclude(false);
+    setRestoreMessage(null); setProcessors([]); setPrivacyFlows(""); setDeletionVsSub("");
+  }
+
   async function onAuthFailure() {
-    await clearAccountLocal(AsyncStorage);
-    setToken(null);
-    setState((s) => expireLocalSession(s));
+    stopPolling(); api.activateSession(null); clearPanels();
+    setToken(null); setState((s) => expireLocalSession(s));
+    try { await clearAccountLocal(sessionStorage); }
+    catch { setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." })); }
   }
 
   async function refreshRun(t: string, runId: string) {
+    if (!api.currentRun(t, runId)) return;
+    const key = `${t}:${runId}`;
+    if (refreshing.current.has(key)) return;
+    const attempt = Symbol(); refreshing.current.set(key, attempt);
     try {
       const snap = await api.getRun(t, runId);
       const ev = await api.events(t, runId, 0);
       const report = snap.reportId ? await api.report(t, snap.reportId) : null;
-      setState((s) => {
-        if (!s.signedIn) return s;
+      setViewState((s) => {
+        if (!s.signedIn || !api.currentRun(t, runId)) return s;
         let next = applySnapshot(s, snap);
         next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
         if (report) {
@@ -168,20 +222,21 @@ function AppInner() {
         } else if (!snap.reportId && (snap.lifecycle === "awaiting_input" || snap.lifecycle === "queued" || snap.lifecycle === "running")) {
           next = { ...next, report: null };
         }
-        void persistSession(AsyncStorage, { token: t, state: next });
+
         return next;
       });
-      setState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
+      setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
-        setState((s) => {
+        setViewState((s) => {
           const next = { ...s, offline: true, error: (e as Error).message };
-          void persistSession(AsyncStorage, { token: t, state: next });
+
           return next;
         });
-      } else setState((s) => ({ ...s, error: (e as Error).message }));
-    }
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally { if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
   }
 
   function stopPolling() {
@@ -192,6 +247,7 @@ function AppInner() {
   }
 
   function startPolling(t: string, runId: string) {
+    if (!api.currentRun(t, runId)) return;
     stopPolling();
     poll.current = setInterval(() => {
       void refreshRun(t, runId);
@@ -200,6 +256,7 @@ function AppInner() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      api.closeSource();
       let consumed = false;
       setState((s) => {
         const r = androidBack(s);
@@ -211,15 +268,35 @@ function AppInner() {
     void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (v) setState((s) => ({ ...s, reducedMotion: true }));
     });
-    void hydrateOnLaunch(AsyncStorage).then(({ token: t, state: s }) => {
-      setToken(t);
-      setState(s);
+    let mounted = true;
+    const hydration = api.capture();
+    void hydrateOnLaunch(sessionStorage).then(async ({ token: t, accountId, state: saved }) => {
+      if (!hydration.current()) return;
+      api.activateSession(t);
+      const restored = api.capture();
+      let s = saved;
+      if (t) {
+        try {
+          const identity = await api.sessionInfo(t);
+          if (identity.accountId !== accountId) { restored.release(); await onAuthFailure(); return; }
+        } catch (error) {
+          if (isSupersededRequest(error)) { restored.release(); return; }
+          if (isExpiredSession(error)) { restored.release(); await onAuthFailure(); return; }
+          s = { ...saved, offline: true, error: "Could not refresh this session. Saved content remains on this device; new research is disabled until reconnected." };
+        }
+      }
+      if (!restored.current()) { restored.release(); return; }
+      setToken((previous) => restored.current() ? t : previous);
+      setState((previous) => restored.current() ? s : previous);
       if (t && s.run?.runId) {
+        api.selectRun(s.run.runId);
         void refreshRun(t, s.run.runId);
         startPolling(t, s.run.runId);
       }
-      requestAnimationFrame(() => restoreReadingPosition(s.report?.blocks, s.readingAnchor));
-    });
+      requestAnimationFrame(() => { if (restored.current()) restoreReadingPosition(s.report?.blocks, s.readingAnchor); });
+      restored.release();
+    }).catch(() => setState((s) => ({ ...s, error: "Secure session storage is unavailable. Sign in again when device storage is available." })))
+      .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
     const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
@@ -235,10 +312,12 @@ function AppInner() {
         });
     });
     return () => {
+      mounted = false;
       sub.remove();
       show.remove();
       hide.remove();
       appSub.remove();
+      api.activateSession(null);
       if (poll.current) clearInterval(poll.current);
     };
   }, []);
@@ -258,13 +337,17 @@ function AppInner() {
   }, [state.tab, token]);
 
   async function onSend() {
+    if (!hydrated || submitting.current) return;
     const gate = canSubmit(state);
     if (!gate.ok) {
       const tab = submitPrerequisite(state);
-      setState((s) => ({ ...s, error: gate.reason ?? "Cannot send", tab }));
+      setViewState((s) => ({ ...s, error: gate.reason ?? "Cannot send", tab }));
       return;
     }
     try {
+      submitting.current = true;
+      api.selectRun(null);
+      stopPolling();
       const t = token ?? (await ensureSession());
       const ids: string[] = [];
       for (const file of state.attachments) {
@@ -272,7 +355,8 @@ function AppInner() {
         ids.push(up.attachmentId);
       }
       const created = await api.createRun(t, state.draft.trim(), state.routeMode, newId(), ids);
-      setState((s) => {
+      api.selectRun(created.runId);
+      setViewState((s) => {
         const next = {
           ...s,
           status: "progress" as const,
@@ -291,7 +375,7 @@ function AppInner() {
             labeledDemo: created.labeledDemo,
           },
         };
-        void persistSession(AsyncStorage, { token: t, state: next });
+
         return next;
       });
       setShowAttach(false);
@@ -301,41 +385,47 @@ function AppInner() {
       await refreshRun(t, created.runId);
       startPolling(t, created.runId);
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
-        setState((s) => {
+        setViewState((s) => {
           const next = {
             ...s,
             offline: true,
             error: (e as Error).message,
           };
-          void persistSession(AsyncStorage, { token, state: next });
+
           return next;
         });
-      } else setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
-    }
+      } else setViewState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
+    } finally { submitting.current = false; }
   }
 
   async function onCancel() {
     if (!token || !state.run) return;
-    await api.cancel(token, state.run.runId);
-    await refreshRun(token, state.run.runId);
+    try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
+    catch (error) {
+      if (isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: "Could not confirm cancellation. Retry or reopen this run." }));
+    }
   }
 
   async function onOpenSource(id: string) {
     try {
-      const t = token ?? (await hydrateOnLaunch(AsyncStorage)).token;
+      const t = token;
       if (!t) {
-        setState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
+        setViewState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
         return;
       }
       if (state.report) persistAnchor(state.report.reportId, "answer");
       const src = await api.source(t, id);
-      setState((s) => ({ ...s, source: src, tab: "research" }));
+      setViewState((s) => ({ ...s, source: src, tab: "research" }));
       AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
-      else setState((s) => ({ ...s, error: (e as Error).message }));
+      else setViewState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -343,15 +433,16 @@ function AppInner() {
     if (!token || !state.run) return;
     const text = correction.trim();
     if (!text) {
-      setState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
+      setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
       return;
     }
     try {
       const snap = await api.getRun(token, state.run.runId);
       const child = await api.correct(token, state.run.runId, snap.brief.revision, text);
+      api.selectRun(child.runId);
       setCorrection("");
       setShowAttach(false);
-      setState((s) => {
+      setViewState((s) => {
         const next = {
           ...s,
           status: "progress" as const,
@@ -366,15 +457,16 @@ function AppInner() {
             labeledDemo: s.run?.labeledDemo ?? true,
           },
         };
-        void persistSession(AsyncStorage, { token, state: next });
+
         return next;
       });
       startPolling(token, child.runId);
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
-        setState((s) => ({ ...s, offline: true, error: (e as Error).message }));
-      } else setState((s) => ({ ...s, error: (e as Error).message }));
+        setViewState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -382,28 +474,29 @@ function AppInner() {
     if (!token || !state.run) return;
     const geography = clarifyAnswer.trim();
     if (!geography) {
-      setState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
+      setViewState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
       return;
     }
     try {
       await api.continueRun(token, state.run.runId, geography);
-      setState((s) => {
+      setViewState((s) => {
         const next = { ...s, status: "progress" as const, error: null };
-        void persistSession(AsyncStorage, { token, state: next });
+
         return next;
       });
       AccessibilityInfo.announceForAccessibility("Clarification saved. Research continues on the server.");
       await refreshRun(token, state.run.runId);
       startPolling(token, state.run.runId);
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
-        setState((s) => {
+        setViewState((s) => {
           const next = { ...s, offline: true, error: (e as Error).message };
-          void persistSession(AsyncStorage, { token, state: next });
+
           return next;
         });
-      } else setState((s) => ({ ...s, error: (e as Error).message }));
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -412,23 +505,25 @@ function AppInner() {
     try {
       const claimId = state.report?.blocks.find((b) => b.id === "answer")?.claimIds[0];
       if (!claimId) {
-        setState((s) => ({ ...s, error: "This answer has no supported claim to check. Add a follow-up question in the composer." }));
+        setViewState((s) => ({ ...s, error: "This answer has no supported claim to check. Add a follow-up question in the composer." }));
         return;
       }
       const child = await api.followUp(token, state.run.runId, claimId, "Verify the answer claim only");
-      setState((s) => {
+      api.selectRun(child.runId);
+      setViewState((s) => {
         const next = {
           ...s,
           previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
           status: "progress" as const,
         };
-        void persistSession(AsyncStorage, { token, state: next });
+
         return next;
       });
       startPolling(token, child.runId);
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
-      else setState((s) => ({ ...s, error: (e as Error).message }));
+      else setViewState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -439,6 +534,7 @@ function AppInner() {
       const md = await api.exportMd(token, id);
       await Share.share({ message: md.markdown, title: "Research report" });
     } catch (e) {
+      if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else setState((s) => ({ ...s, error: (e as Error).message }));
     }
@@ -633,7 +729,8 @@ function AppInner() {
                           });
                           setFlagStatus("submitted");
                           setState((s) => ({ ...s, flagSent: true }));
-                        } catch {
+                        } catch (error) {
+                          if (isSupersededRequest(error)) return;
                           setFlagStatus("error");
                         }
                       }}
@@ -699,13 +796,14 @@ function AppInner() {
               <Text selectable style={styles.bodyText}>{breakLongTokens(state.source.exactText)}</Text>
             </ScrollView>
             <Pressable
-              onPress={() =>
+              onPress={() => {
+                api.closeSource();
                 setState((s) => {
                   const next = { ...s, source: null };
                   requestAnimationFrame(() => restoreReadingPosition(next.report?.blocks, next.readingAnchor));
                   return next;
-                })
-              }
+                });
+              }}
               accessibilityRole="button"
               accessibilityLabel="Close source sheet"
             >
@@ -719,6 +817,7 @@ function AppInner() {
             token={token}
             styles={styles}
             onOpen={async (id) => {
+              api.selectRun(id);
               if (!token) return;
               setState((s) => openLibraryItem(s, id));
               await refreshRun(token, id);
@@ -736,7 +835,7 @@ function AppInner() {
             restoreMessage={restoreMessage}
             state={state}
             onConsent={grantConsent}
-            onSignIn={ensureSession}
+            onSignIn={() => { void ensureSession().catch(() => undefined); }}
             onRestore={async () => {
               if (!token) {
                 setRestoreMessage("Sign in first. Restore still requires a store sandbox.");
@@ -746,29 +845,38 @@ function AppInner() {
                 await api.restorePurchases(token);
                 setRestoreMessage("Unexpected restore success; purchases remain gated.");
               } catch (e) {
+      if (isSupersededRequest(e)) return;
                 setRestoreMessage(e instanceof Error ? e.message : "Restore is unavailable until a store sandbox is connected.");
               }
             }}
             onMode={(routeMode) => setState((s) => ({ ...s, routeMode }))}
             onDelete={async () => {
               if (!token) return;
-              stopPolling();
-              await api.deleteAccount(token);
-              await clearAccountLocal(AsyncStorage);
-              setToken(null);
-              setState(emptyState());
+              try {
+                stopPolling();
+                const result = await api.deleteAccount(token);
+                api.activateSession(null); clearPanels();
+                setToken(null); setState({ ...emptyState(), error: result.fileCleanupPending ? "Account access removed. Stored file deletion is queued for retry." : null });
+                await clearAccountLocal(sessionStorage);
+              } catch (error) {
+                if (isSupersededRequest(error)) return;
+                setState((s) => ({ ...s, error: "Could not confirm complete deletion. Retry deletion or device cleanup." }));
+              }
             }}
             onLogout={() => {
               stopPolling();
-              const draft = draftRef.current;
-              void logoutLocal(AsyncStorage, draft);
+              api.activateSession(null); clearPanels();
+              void logoutLocal(sessionStorage).catch(() => setState((s) => ({ ...s, error: "Device cleanup failed. Retry signing out." })));
               setToken(null);
               setState((s) => logoutState(s));
             }}
             onRevoke={async () => {
               if (!token) return;
-              await api.consent(token, false);
-              setState((s) => ({ ...s, consentGranted: false }));
+              try { await api.consent(token, false); setState((s) => ({ ...s, consentGranted: false })); }
+              catch (error) {
+                if (isSupersededRequest(error)) return;
+                setState((s) => ({ ...s, error: "Could not confirm consent revocation. Retry." }));
+              }
             }}
           />
         ) : null}
@@ -826,11 +934,12 @@ function AppInner() {
         {state.tab === "research" && !state.source ? (
         <View style={styles.composerWrap}>
           <TextInput
+            editable={hydrated}
             value={state.draft}
             onChangeText={(draft) => {
               setState((s) => {
                 const next = { ...s, draft };
-                void persistSession(AsyncStorage, { token, state: next });
+
                 return next;
               });
             }}
@@ -843,6 +952,7 @@ function AppInner() {
             accessibilityLabel="Research question"
           />
           <Pressable
+            disabled={!hydrated}
             onPress={onSend}
             style={styles.sendBtn}
             accessibilityRole="button"
@@ -884,10 +994,15 @@ function Library({
   onOpen: (id: string) => void;
   onShare: (reportId: string) => void;
 }) {
-  const [items, setItems] = useState<{ id: string; title: string; status: string; report_id?: string | null }[]>([]);
+  type LibraryItem = { id: string; title: string; status: string; report_id?: string | null };
+  const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryItem[]; error: string | null }>({ token: null, items: [], error: null });
+  const items = loaded.token === token ? loaded.items : [];
   useEffect(() => {
     if (!token) return;
-    void api.library(token).then((r) => setItems(r.items ?? []));
+    let current = true;
+    void api.library(token).then((r) => { if (current) setLoaded((previous) => current ? { token, items: r.items ?? [], error: null } : previous); })
+      .catch((error) => { if (current && !isSupersededRequest(error)) setLoaded({ token, items: [], error: "Could not load saved reports. Reopen Library to retry." }); });
+    return () => { current = false; };
   }, [token]);
   if (!token) {
     return (
@@ -899,7 +1014,7 @@ function Library({
   if (items.length === 0) {
     return (
       <Text style={styles.bodyText} accessibilityLabel="Saved reports">
-        No reports yet.
+        {loaded.token !== token ? "Loading saved reports…" : loaded.error ?? "No reports yet."}
       </Text>
     );
   }
@@ -980,8 +1095,9 @@ function Settings({
       <Pressable onPress={onRevoke} accessibilityRole="button" accessibilityLabel="Revoke AI processing consent">
         <Text style={styles.link}>Revoke consent (stops new research)</Text>
       </Pressable>
-      <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear cached reports">
-        <Text style={styles.link}>Log out (clears cached reports)</Text>
+      <Text style={styles.caveat}>Drafts and reports are saved on this device while signed in. Signing out clears this account’s saved content.</Text>
+      <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear saved drafts and reports">
+        <Text style={styles.link}>Log out and clear saved content</Text>
       </Pressable>
       <Pressable
         onPress={() => void Linking.openURL(deletionPageUrl)}
@@ -990,7 +1106,9 @@ function Settings({
       >
         <Text style={styles.link}>Open web deletion page</Text>
       </Pressable>
-      <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel="Delete account and derived data">
+      <Pressable onPress={() => Alert.alert("Delete account and research?", "This removes saved research and cancels active runs. Store subscriptions are managed separately.", [
+        { text: "Cancel", style: "cancel" }, { text: "Delete account", style: "destructive", onPress: onDelete },
+      ])} accessibilityRole="button" accessibilityLabel="Delete account and derived data">
         <Text style={styles.error}>Delete account and derived research</Text>
       </Pressable>
     </ScrollView>

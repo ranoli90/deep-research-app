@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applySnapshot, canSubmit, conciseBlocks, emptyState, expireLocalSession, openLibraryItem } from "../src/state.js";
-import { hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
+import { activateLocalSession, createSessionStorage, hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
 import { ApiError, isExpiredSession, isOfflineError } from "../src/api.js";
 
 describe("P0-N native state mapping", () => {
@@ -16,7 +16,7 @@ describe("P0-N native state mapping", () => {
   });
 
   it("persistSession then hydrateOnLaunch restores token, draft, and last run", async () => {
-    const store = memoryStore();
+    const store = createSessionStorage(memoryStore(), memoryStore());
     const s = applySnapshot(
       { ...emptyState(), draft: "Compare options in Germany", signedIn: true, consentGranted: true },
       { runId: "r1", lifecycle: "running", phase: "writing", outcome: null, reportId: null, labeledDemo: true },
@@ -28,10 +28,13 @@ describe("P0-N native state mapping", () => {
       labeledDemo: true,
     };
     s.readingAnchor = { reportId: "rep-1", blockId: "eligibility", offset: 0 };
+    await activateLocalSession(store, { accountId: "account-a", token: "tok-session-1" });
     await persistSession(store, { token: "tok-session-1", state: s });
-    expect(await store.getItem("deep.token")).toBe("tok-session-1");
-    expect(await store.getItem("deep.draft")).toContain("Germany");
-    expect(await store.getItem("deep.ui")).toMatch(/r1/);
+    expect(await store.cache.getItem("deep.token")).toBeNull();
+    expect(await store.credentials.getItem("deep.session.v2")).toContain("tok-session-1");
+    expect(await store.cache.getItem("deep.ui.v2")).toContain("Germany");
+    expect(await store.cache.getItem("deep.ui.v2")).toMatch(/r1/);
+    expect(await store.cache.getItem("deep.ui.v2")).not.toContain("tok-session-1");
     const hydrated = await hydrateOnLaunch(store);
     expect(hydrated.token).toBe("tok-session-1");
     expect(hydrated.state.draft).toContain("Germany");
@@ -45,18 +48,20 @@ describe("P0-N native state mapping", () => {
   });
 
   it("persistSession with a null token does not wipe a stored session token", async () => {
-    const store = memoryStore();
+    const store = createSessionStorage(memoryStore(), memoryStore());
     const s = { ...emptyState(), draft: "Compare options in Germany", signedIn: true };
+    await activateLocalSession(store, { accountId: "account-a", token: "tok-session-1" });
     await persistSession(store, { token: "tok-session-1", state: s });
     await persistSession(store, { token: null, state: { ...s, draft: "still Germany" } });
-    expect(await store.getItem("deep.token")).toBe("tok-session-1");
+    expect(await store.cache.getItem("deep.token")).toBeNull();
+    expect(await store.credentials.getItem("deep.session.v2")).toContain("tok-session-1");
     const hydrated = await hydrateOnLaunch(store);
     expect(hydrated.token).toBe("tok-session-1");
     expect(hydrated.state.draft).toContain("Germany");
   });
 
   it("hydrateOnLaunch does not invent a session when persistSession never ran", async () => {
-    const hydrated = await hydrateOnLaunch(memoryStore());
+    const hydrated = await hydrateOnLaunch(createSessionStorage(memoryStore(), memoryStore()));
     expect(hydrated.token).toBeNull();
     expect(hydrated.state.draft).toBe("");
     expect(hydrated.state.run).toBeNull();
@@ -73,15 +78,15 @@ describe("P0-N native state mapping", () => {
 
   it("App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem", () => {
     const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
-    expect(src).toMatch(/hydrateOnLaunch\(AsyncStorage\)/);
-    expect(src).toMatch(/persistSession\(AsyncStorage/);
+    expect(src).toMatch(/hydrateOnLaunch\(sessionStorage\)/);
+    expect(src).toMatch(/persistSession\(sessionStorage/);
     expect(src).toMatch(/openLibraryItem\(s, id\)/);
     expect(src).not.toMatch(/clarifyAnswer\.trim\(\)\s*\|\|\s*"Germany"/);
     expect(src).toMatch(/Enter a jurisdiction/);
     expect(src).toMatch(/api\.followUp/);
-    expect(src).toMatch(/logoutLocal\(AsyncStorage/);
+    expect(src).toMatch(/logoutLocal\(sessionStorage/);
     expect(src).toMatch(/stopPolling\(\)/);
-    expect(src).toMatch(/if \(!s\.signedIn\) return s;/);
+    expect(src).toMatch(/if \(!s\.signedIn \|\| !api\.currentRun\(t, runId\)\) return s;/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
     expect(src).toMatch(/Processor disclosures/);
@@ -145,9 +150,9 @@ describe("P0-N native state mapping", () => {
     expect(s.draft).toContain("Germany");
   });
 
-  it("expired session keeps the draft and routes to settings", () => {
+  it("expired session clears account content and routes to settings", () => {
     const next = expireLocalSession({ ...emptyState(), draft: "Compare options in Germany", signedIn: true, report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true } });
-    expect(next.draft).toContain("Germany");
+    expect(next.draft).toBe("");
     expect(next.signedIn).toBe(false);
     expect(next.report).toBeNull();
     expect(next.tab).toBe("settings");
