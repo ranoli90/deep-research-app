@@ -1,0 +1,13 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "R02 confirmed geography is used in discovery",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'R02 after France continue discovery'",
+  "first_run": "failed: after France continue the answer was still DEFAULT_SRC '50 EUR Germany constraint'",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 100 },
+  "research_core": "29/29",
+  "observed": "Search query includes confirmed geography. France continue fetches the France employment-tax fixture (2 May), not the generic Germany 50 EUR note. Search events mention france.",
+  "not_claimed": ["iOS P0-N", "hosted auth", "M11", "G04/G05"],
+  "p0_fully_verified": false
+}

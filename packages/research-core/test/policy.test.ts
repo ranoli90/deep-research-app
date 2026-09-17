@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { extractConstraints, neededClarifications } from "../src/brief.js";
 import { canPublish, canSpendExploration } from "../src/fences.js";
-import { authorizeAction, independentClusterCount, saturationReached, selectNextAction } from "../src/policy.js";
+import { authorizeAction, independentClusterCount, queryWithGeography, saturationReached, selectNextAction } from "../src/policy.js";
 import { passageSupportsClaim } from "../src/support.js";
 import { rejectPrivilegedProposal, sourceLooksLikeInjection } from "../src/injection.js";
 import type { ControllerState } from "../src/types.js";
@@ -60,6 +60,28 @@ describe("R01 constraint extraction", () => {
     const c = extractConstraints(q);
     expect(c.map((x) => x.field).sort()).toEqual(["budget", "date", "geography"]);
     expect(neededClarifications({ originalQuestion: q, constraints: c })).toEqual([]);
+  });
+});
+
+describe("R02 geography in search query", () => {
+  it("appends confirmed geography that is missing from the question", () => {
+    const b = brief("What is the filing deadline for employment tax?");
+    b.constraints = [
+      {
+        id: "geo-france",
+        field: "geography",
+        operator: "eq",
+        value: "france",
+        origin: "confirmed",
+        importance: "hard",
+        explanation: "supplied after clarification",
+      },
+    ];
+    const s = state({ brief: b, constraints: b.constraints, phase: "researching" });
+    expect(queryWithGeography(s, b.originalQuestion)).toMatch(/france/i);
+    const d = selectNextAction(s);
+    expect(d.type).toBe("search");
+    expect(String(d.arguments.query)).toMatch(/france/i);
   });
 });
 

@@ -203,6 +203,12 @@ No live paid calls were made.
 - Continue now requires a jurisdiction (400 otherwise); run stays awaiting_input. France is recorded as geography=france. Mobile no longer defaults empty clarification to Germany.
 - Integration 99/99; mobile 32/32. Artifact `verification/r02-continue.json`. iOS/hosted/M11/G04 unpassed.
 
+## 2026-09-16 — R02 confirmed geography is used in discovery
+
+- First test failed: after France continue the answer was still DEFAULT_SRC “50 EUR Germany constraint”.
+- Search queries now include confirmed geography; France employment-tax fixture is used instead of the generic Germany note.
+- Integration 100/100; research-core 29/29. Artifact `verification/r02-geo-search.json`. iOS/hosted/M11/G04 unpassed.
+
 
 
 

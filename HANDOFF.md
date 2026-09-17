@@ -37,12 +37,12 @@ Working tree: `main` at `46ef0b8e84590cd62d236615ff4e1db3f61178a3`. P0 is **not*
 - G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
 - E10 (`verification/e10-critical-claim.json`): worker/fixture withdraws an asserted 42% conclusion when the inspected table is 24%; remaining evidence keeps 24%. Not G04 quality.
 - JOB-1 (`verification/job1-eligibility.json`): note-taking comparison under iPhone/Android/offline/export constraints; NoteKeep eligible, NoteDroid ineligible. EVAL-01 seed is still draft_not_validated.
-- R02 (`verification/r02-continue.json`): empty continue is 400 and does not invent Germany; France is recorded; the composer no longer defaults the jurisdiction to Germany.
+- R02 (`verification/r02-continue.json`, `verification/r02-geo-search.json`): empty continue is 400; confirmed geography is appended to the search query so France does not reuse the Germany default note.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 99 tests including R02 continue-without-geography |
+| `pnpm test:integration` | 0 | 100 tests including R02 France discovery |
 | `pnpm --filter @deep/research-core test` | 0 | 28 tests including JOB-1 platform constraints |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
 | `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |

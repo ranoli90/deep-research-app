@@ -898,4 +898,27 @@ describe("remaining launch-scope IDs", () => {
     const report = await getLatestReportForRun(pool, runId, accountId);
     expect(JSON.stringify(report?.blocks)).toMatch(/geography=france/i);
   });
+
+  it("R02 after France continue discovery uses France evidence not the Germany default note", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(token, "What is the filing deadline for employment tax?");
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    const cont = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/continue`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { geography: "France" },
+    });
+    expect(cont.statusCode).toBe(200);
+    await processRun(pool, config, runId);
+    const report = await getLatestReportForRun(pool, runId, accountId);
+    const text = JSON.stringify(report?.blocks);
+    expect(text).toMatch(/France|french/i);
+    expect(text).not.toMatch(/50 EUR Germany constraint/i);
+    expect(text).not.toMatch(/Option A meets a 50 EUR/i);
+    const events = await listEvents(pool, runId, 0);
+    const searches = events.filter((e) => e.type === "searched");
+    expect(searches.some((e) => /france/i.test(e.public_summary))).toBe(true);
+  });
 });

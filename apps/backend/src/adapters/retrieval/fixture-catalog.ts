@@ -307,6 +307,36 @@ const MARKUP: CatalogSource[] = [
   },
 ];
 
+const TAX_FR: CatalogSource[] = [
+  {
+    locator: "fixture://tax/fr-employment-deadline",
+    title: "France employment tax filing deadline",
+    publisher: "Fixture tax desk",
+    originCluster: "fr-employment-tax",
+    family: "primary-docs",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "France annual employment tax return is due in May.",
+    fullText:
+      "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.",
+  },
+];
+
+const TAX_DE: CatalogSource[] = [
+  {
+    locator: "fixture://tax/de-employment-deadline",
+    title: "Germany employment tax filing deadline",
+    publisher: "Fixture tax desk",
+    originCluster: "de-employment-tax",
+    family: "primary-docs",
+    sourceType: "primary-docs",
+    accessOnSearch: "snippet",
+    snippet: "Germany electronically filed employment returns are due in July.",
+    fullText:
+      "In Germany, the employment tax filing deadline is 31 July following the tax year for electronically filed returns, as of 2026-03-01. This is a bounded fixture for the confirmed Germany jurisdiction.",
+  },
+];
+
 const DEFAULT_SRC: CatalogSource[] = [
   {
     locator: "fixture://generic/note",
@@ -543,6 +573,10 @@ export function matchCatalog(query: string): CatalogSource[] {
     if (q.includes("pediatric") && q.includes("population")) return [...R09_ADULT, ...R09_PED];
     return R09_ADULT;
   }
+  if ((q.includes("filing") || q.includes("employment tax")) && (q.includes("france") || q.includes("germany"))) {
+    if (q.includes("france")) return TAX_FR;
+    return TAX_DE;
+  }
   if (q.includes("germany") && (q.includes("eur") || q.includes("postgres") || q.includes("managed"))) {
     const budget = q.match(/(\d+)\s*eur/);
     const n = budget ? Number(budget[1]) : 50;
@@ -577,6 +611,8 @@ export function fetchCatalog(locator: string): CatalogSource | undefined {
     ...GERMAN,
     ...NUMERIC,
     ...JOB1_NOTES,
+    ...TAX_FR,
+    ...TAX_DE,
     ...DEFAULT_SRC,
   ];
   return all.find((s) => s.locator === locator);

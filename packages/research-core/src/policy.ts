@@ -15,6 +15,15 @@ export function saturationReached(searches: SearchTrace[]): boolean {
   return last.every((s) => s.newFamilies === 0 && !s.coverageProgress);
 }
 
+/** Confirmed geography must appear in the public query so discovery cannot silently reuse another country's fixture. */
+export function queryWithGeography(state: ControllerState, query: string): string {
+  const geo = state.constraints.find((c) => c.field === "geography");
+  const value = geo ? String(geo.value).trim() : "";
+  if (!value) return query;
+  if (query.toLowerCase().includes(value.toLowerCase())) return query;
+  return `${query} ${value}`;
+}
+
 export function independentClusterCount(sources: { originCluster?: string; id: string }[]): number {
   const clusters = new Set<string>();
   for (const s of sources) {
@@ -80,7 +89,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
   const gaps = detectGaps(state);
   const blockingGap = gaps.find((g) => g.importance === "blocking" && g.suggestedQuery);
   if (blockingGap && blockingGap.sourceTypeNeeded && !triedSourceType(state, blockingGap.sourceTypeNeeded) && state.searches.length < 5) {
-    const q = blockingGap.suggestedQuery!;
+    const q = queryWithGeography(state, blockingGap.suggestedQuery!);
     const leak = queryLeaksPrivate(q, state.privateCanaries);
     if (leak) {
       return { ...base, type: "stop", rationale: "private text cannot enter a public query", arguments: { reason: "private_query_blocked" } };
@@ -104,7 +113,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
     const pediatricish = state.sources.some((s) => (s.population ?? "").includes("child") || (s.population ?? "").includes("pediatric"));
     const wantsChild = /child|pediatric|under/i.test(popConstraint.value);
     if (wantsChild && !pediatricish && !covered && state.searches.length < 4) {
-      const q = `${state.brief.originalQuestion} pediatric children population`;
+      const q = queryWithGeography(state, `${state.brief.originalQuestion} pediatric children population`);
       const leak = queryLeaksPrivate(q, state.privateCanaries);
       if (leak) {
         return { ...base, type: "stop", rationale: "private text cannot enter a public query", arguments: { reason: "private_query_blocked" } };
@@ -132,7 +141,7 @@ export function selectNextAction(state: ControllerState): PolicyDecision {
 
   const uncovered = state.coverage.find((c) => c.status === "unstarted" || c.status === "investigating");
   if (uncovered && state.searches.length < 5) {
-    const query = uncovered.question || state.brief.originalQuestion;
+    const query = queryWithGeography(state, uncovered.question || state.brief.originalQuestion);
     const leak = queryLeaksPrivate(query, state.privateCanaries);
     if (leak) {
       return {
