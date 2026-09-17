@@ -2351,7 +2351,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "106core/80backend/47mobile/4governance; no network or paid calls",
-      "sha256": "8f82bb2d342f7d3d8de70689637e527b23834a65be243fc789ce3102bd15008b"
+      "sha256": "8f82bb2d342f7d3d8de70689637e527b23834a65be243fc789ce3102bd15008b",
+      "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
     },
     {
       "requirementIds": [
@@ -2367,7 +2368,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "215/215 final implementation; before additional derivation-label assertion in existing test",
-      "sha256": "1a6f159d2e8acd4dd5d97627c8a3db993b7f1389b015335a1ba705b525de4adc"
+      "sha256": "1a6f159d2e8acd4dd5d97627c8a3db993b7f1389b015335a1ba705b525de4adc",
+      "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
     },
     {
       "requirementIds": [
@@ -2383,7 +2385,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_publication",
       "scope": "43/43 including extra managed-claim derivation-label bypass assertion",
-      "sha256": "24908c77778ec951e7253699c4503e166193861f800de0c8286775369c98f097"
+      "sha256": "24908c77778ec951e7253699c4503e166193861f800de0c8286775369c98f097",
+      "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
     },
     {
       "requirementIds": [
@@ -2399,7 +2402,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
     },
     {
       "requirementIds": [
@@ -2415,7 +2419,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
     }
   ],
   "unresolved": [
@@ -2433,5 +2438,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "a02515e9d30ff65b07217d69eacedf0536c163cf"
+  "implementationCommit": "09a2dae4ab6f2f81cd294d6524e5f795dcd3abe0"
 }
