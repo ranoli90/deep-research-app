@@ -36,12 +36,13 @@ Working tree: `main` at `bf46d3013596901185c55f24bf7dd6dd04b82815`. P0 is **not*
 - G03 Android (`verification/g03-android.json`): create, source FULL-TEXT, share chooser, library open, 120 EUR correction (Vendor C eligible), close/reopen, deletion page. Conversation is hidden while the source sheet is open. iOS still blocked — G03 is not both-platform.
 - G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
 - E10 (`verification/e10-critical-claim.json`): worker/fixture withdraws an asserted 42% conclusion when the inspected table is 24%; remaining evidence keeps 24%. Not G04 quality.
+- JOB-1 (`verification/job1-eligibility.json`): note-taking comparison under iPhone/Android/offline/export constraints; NoteKeep eligible, NoteDroid ineligible. EVAL-01 seed is still draft_not_validated.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 96 tests including E10 worker-path withdrawal |
-| `pnpm --filter @deep/research-core test` | 0 | 27 tests including composeReport E10 |
+| `pnpm test:integration` | 0 | 97 tests including JOB-1 eligibility |
+| `pnpm --filter @deep/research-core test` | 0 | 28 tests including JOB-1 platform constraints |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
 | `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |

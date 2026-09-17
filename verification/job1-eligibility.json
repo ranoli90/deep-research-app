@@ -1,0 +1,13 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "JOB-1 eligibility-aware comparison under hard constraints",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'JOB-1 eligibility'",
+  "first_run": "failed: DEFAULT_SRC generic Option A/B, no NoteKeep",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 97 },
+  "research_core": "28/28",
+  "observed": "Question requiring offline editing, Android, iPhone, and full export: Eligible includes NoteKeep; NoteDroid is ineligible (iPhone not supported); brief.constraints include platform. Not a claim that no option exists outside the inspected set. EVAL-01 seed remains draft_not_validated.",
+  "not_claimed": ["G04/G05", "EVAL-01 human-validated", "iOS P0-N", "hosted auth", "M11"],
+  "p0_fully_verified": false
+}

@@ -92,6 +92,62 @@ export function extractConstraints(question: string): Constraint[] {
     });
   }
 
+  if (/\biphone\b|\bios\b/i.test(lower)) {
+    constraints.push({
+      id: "platform-iphone",
+      field: "platform",
+      operator: "eq",
+      value: "iphone",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires iPhone support",
+    });
+  }
+  if (/\bandroid\b/i.test(lower)) {
+    constraints.push({
+      id: "platform-android",
+      field: "platform",
+      operator: "eq",
+      value: "android",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires Android support",
+    });
+  }
+  if (/\blinux\b/i.test(lower) && /\b(required|hard|also|desktop)\b/i.test(lower)) {
+    constraints.push({
+      id: "platform-linux",
+      field: "platform",
+      operator: "eq",
+      value: "linux",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires Linux support",
+    });
+  }
+  if (/\boffline editing\b/i.test(lower)) {
+    constraints.push({
+      id: "feature-offline",
+      field: "feature",
+      operator: "eq",
+      value: "offline",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires offline editing",
+    });
+  }
+  if (/\bfull export\b|\bexport required\b/i.test(lower)) {
+    constraints.push({
+      id: "feature-export",
+      field: "feature",
+      operator: "eq",
+      value: "export",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires full export",
+    });
+  }
+
   const pop = question.match(/\b(children under \d+|pediatric|under-?5|adults? only)\b/i);
   if (pop) {
     constraints.push({

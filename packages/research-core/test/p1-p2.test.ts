@@ -47,6 +47,28 @@ function state(question: string, sources: ControllerState["sources"] = []): Cont
   };
 }
 
+describe("JOB-1 platform constraints", () => {
+  it("marks NoteDroid ineligible for missing iPhone and NoteKeep eligible", () => {
+    const q = "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.";
+    const constraints = extractConstraints(q);
+    expect(constraints.map((c) => `${c.field}=${c.value}`).sort()).toEqual(
+      expect.arrayContaining(["platform=iphone", "platform=android", "feature=offline", "feature=export"]),
+    );
+    const found = extractCandidates(
+      [
+        { id: "p1", exactText: "NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux is not supported." },
+        { id: "p2", exactText: "NoteDroid: Android, Linux, offline editing, and full export are supported. iPhone is not supported." },
+        { id: "p3", exactText: "NoteAll: iPhone, Android, Linux, offline editing, and full export are supported." },
+      ],
+      constraints,
+    );
+    expect(found.find((c) => c.identity === "NoteKeep")?.feasibility).toBe("satisfies");
+    expect(found.find((c) => c.identity === "NoteDroid")?.feasibility).toBe("violates");
+    expect(found.find((c) => c.identity === "NoteDroid")?.excludedBy).toMatch(/iphone/i);
+    expect(found.find((c) => c.identity === "NoteAll")?.feasibility).toBe("satisfies");
+  });
+});
+
 describe("V2-01 / P1 gaps", () => {
   it("names a vendor-matrix gap when only review summaries exist for a compatibility question", () => {
     const s = state("Is NimbusDB compatible with Postgres 14?", [

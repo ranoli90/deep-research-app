@@ -209,6 +209,32 @@ describe("remaining launch-scope IDs", () => {
     void accountId;
   });
 
+  it("JOB-1 eligibility-aware comparison under platform and export constraints", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(
+      token,
+      "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.",
+    );
+    expect(created.statusCode).toBe(200);
+    await processRun(pool, config, created.json().runId);
+    const report = await getLatestReportForRun(pool, created.json().runId, accountId);
+    const text = JSON.stringify(report?.blocks);
+    expect(text).toMatch(/NoteKeep/);
+    expect(text).toMatch(/Eligible:.*NoteKeep/i);
+    expect(text).toMatch(/NoteDroid/);
+    expect(text).toMatch(/ineligible|violates/i);
+    expect(text).toMatch(/iPhone/i);
+    expect(text).not.toMatch(/no option exists outside/i);
+    expect(text).not.toMatch(/notes are a type of/i);
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${created.json().runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const fields = (snap.json().brief?.constraints ?? []).map((c: { field: string }) => c.field);
+    expect(fields).toEqual(expect.arrayContaining(["platform"]));
+  });
+
   it("JOB-2 attached document text is stored as supplied evidence and not used as a public query", async () => {
     const { token, accountId } = await authed();
     const att = await app.inject({

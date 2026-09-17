@@ -460,6 +460,45 @@ const NUMERIC: CatalogSource[] = [
   },
 ];
 
+const JOB1_NOTES: CatalogSource[] = [
+  {
+    locator: "fixture://notes/notekeep",
+    title: "NoteKeep platform matrix",
+    publisher: "NoteKeep",
+    originCluster: "notekeep-matrix",
+    family: "vendor-docs",
+    sourceType: "vendor-matrix",
+    accessOnSearch: "snippet",
+    snippet: "NoteKeep supports iPhone and Android with offline editing.",
+    fullText:
+      "NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux is not supported. As of 2026-03-01 this is the official matrix, not a review summary.",
+  },
+  {
+    locator: "fixture://notes/notedroid",
+    title: "NoteDroid platform matrix",
+    publisher: "NoteDroid",
+    originCluster: "notedroid-matrix",
+    family: "vendor-docs",
+    sourceType: "vendor-matrix",
+    accessOnSearch: "snippet",
+    snippet: "NoteDroid lists Android and Linux.",
+    fullText:
+      "NoteDroid: Android, Linux, offline editing, and full export are supported. iPhone is not supported. As of 2026-03-01 this is the official matrix.",
+  },
+  {
+    locator: "fixture://notes/noteall",
+    title: "NoteAll platform matrix",
+    publisher: "NoteAll",
+    originCluster: "noteall-matrix",
+    family: "vendor-docs",
+    sourceType: "vendor-matrix",
+    accessOnSearch: "snippet",
+    snippet: "NoteAll covers phone and desktop platforms.",
+    fullText:
+      "NoteAll: iPhone, Android, Linux, offline editing, and full export are supported. As of 2026-03-01 this is the official matrix.",
+  },
+];
+
 const SCANNED: CatalogSource[] = [
   {
     locator: "fixture://scan/table",
@@ -495,6 +534,9 @@ export function matchCatalog(query: string): CatalogSource[] {
     return COMPAT_SUMMARIES;
   }
   if (q.includes("widget 4") || q.includes("acme")) return R05;
+  if (q.includes("note-taking") || q.includes("notekeep") || (q.includes("offline editing") && q.includes("iphone"))) {
+    return JOB1_NOTES;
+  }
   if (q.includes("deepseek-research-pro") || q.includes("built-in vector database")) return R04;
   if (q.includes("diminishing") || q.includes("repeat the same query") || q.includes("quota")) return R13;
   if ((q.includes("children under 5") || q.includes("pediatric")) && q.includes("dose")) {
@@ -534,6 +576,7 @@ export function fetchCatalog(locator: string): CatalogSource | undefined {
     ...FRESHNESS,
     ...GERMAN,
     ...NUMERIC,
+    ...JOB1_NOTES,
     ...DEFAULT_SRC,
   ];
   return all.find((s) => s.locator === locator);

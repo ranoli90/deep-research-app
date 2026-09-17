@@ -191,6 +191,12 @@ No live paid calls were made.
 - composeReport now drafts the asserted percent, verification withdraws it when passages lack that percent, remaining-evidence still shows 24%. E04 still asks the table and never mentions 42%.
 - Integration 96/96; research-core 27/27. Artifact `verification/e10-critical-claim.json`. G04/G05/iOS unpassed.
 
+## 2026-09-16 — JOB-1 eligibility-aware comparison
+
+- First test failed: note-taking comparison returned generic DEFAULT_SRC Option A/B.
+- Fixture matrices for NoteKeep/NoteDroid/NoteAll; platform/feature constraints; NoteDroid ineligible (iPhone not supported). EVAL-01 remains draft_not_validated.
+- Integration 97/97; research-core 28/28. Artifact `verification/job1-eligibility.json`. iOS/hosted auth/M11 unpassed.
+
 
 
 

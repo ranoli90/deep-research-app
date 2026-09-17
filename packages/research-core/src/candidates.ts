@@ -13,8 +13,8 @@ export type CandidateRecord = {
   feasibility: Feasibility;
 };
 
-const PRICE = /\b(Vendor [A-C]|NimbusDB|Gadget Mini|Widget 4)\b[^.]*?(\d+(?:\.\d+)?)\s*(EUR|USD|GBP)/gi;
-const NAMED = /\b(Vendor [A-C]|NimbusDB|Widget 4|Gadget Mini)\b/g;
+const PRICE = /\b(Vendor [A-C]|NimbusDB|Gadget Mini|Widget 4|NoteKeep|NoteDroid|NoteAll)\b[^.]*?(\d+(?:\.\d+)?)\s*(EUR|USD|GBP)/gi;
+const NAMED = /\b(Vendor [A-C]|NimbusDB|Widget 4|Gadget Mini|NoteKeep|NoteDroid|NoteAll)\b/g;
 
 export function extractCandidates(passages: { id: string; exactText: string }[], constraints: Constraint[]): CandidateRecord[] {
   const byName = new Map<string, CandidateRecord>();
@@ -68,17 +68,31 @@ export function extractCandidates(passages: { id: string; exactText: string }[],
         const identity = m[1]!;
         const id = identity.toLowerCase().replace(/\s+/g, "-");
         if (!byName.has(id)) {
-          byName.set(id, {
+          byName.set(id, applyHardConstraints({
             id,
             identity,
             discoveredFrom: p.id,
             feasibility: "unknown",
-          });
+          }, constraints, p.exactText));
         }
       }
     }
   }
   return [...byName.values()];
+}
+
+function applyHardConstraints(rec: CandidateRecord, constraints: Constraint[], text: string): CandidateRecord {
+  const next = { ...rec };
+  for (const c of constraints.filter((x) => x.field === "platform" || x.field === "feature")) {
+    if (new RegExp(`${c.value} is not supported`, "i").test(text)) {
+      next.feasibility = "violates";
+      next.excludedBy = `${c.field}=${c.value}`;
+    }
+  }
+  if (next.feasibility === "unknown" && constraints.some((c) => c.field === "platform" || c.field === "feature")) {
+    next.feasibility = "satisfies";
+  }
+  return next;
 }
 
 export function discoveryStatus(args: {
