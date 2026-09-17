@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `408d3d2850dfba7008057fbfb6bfed2e31ce0a3b`. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` at `6c2fefab012f7069804bdb12b8a1d4ba5953d742`. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
