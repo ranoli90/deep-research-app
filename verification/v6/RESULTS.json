@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Late-receipt/explicit cost checkpoint on 30a98db; 167 local integration cases pass; W01-W09 incomplete",
+  "workingTree": "Committed safety/accounting checkpoint bdc61a3; 167 local integration cases pass; general W01-W09 milestone remains incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1213,7 +1213,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "91 core / 66 backend / 47 mobile / 4 governance",
-      "sha256": "fdc6cc33759d81f7384a551c9204624fb6db4ae07813dd6e11f50042d9b98997"
+      "sha256": "fdc6cc33759d81f7384a551c9204624fb6db4ae07813dd6e11f50042d9b98997",
+      "testedCodeCommit": "33269f9ac7c5734005373a37e56d8c8a54163c22"
     },
     {
       "requirementIds": [
@@ -1226,7 +1227,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "153/153; local fixture research, no live model proof",
-      "sha256": "70b851bf1d9b33b955f3ae1d20995b59e42440ea8c8a2209d3878f0ae4e561d9"
+      "sha256": "70b851bf1d9b33b955f3ae1d20995b59e42440ea8c8a2209d3878f0ae4e561d9",
+      "testedCodeCommit": "33269f9ac7c5734005373a37e56d8c8a54163c22"
     },
     {
       "requirementIds": [
@@ -1343,7 +1345,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "91 core / 66 backend / 47 mobile / 4 governance",
-      "sha256": "a67469288859faa037584d475cf0e36c71e49142e4d401ecb5b7c29d0652a927"
+      "sha256": "a67469288859faa037584d475cf0e36c71e49142e4d401ecb5b7c29d0652a927",
+      "testedCodeCommit": "83ab9feeb1c98eb172db39fdf40e39a3e3526c91"
     },
     {
       "requirementIds": [
@@ -1356,7 +1359,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "158/158, real local PostgreSQL, provider transport doubles; no live quality evidence",
-      "sha256": "73aaf90283d3a11b4d5d974fddfd0f4d0f21a35bbd345b54e672e555124fc163"
+      "sha256": "73aaf90283d3a11b4d5d974fddfd0f4d0f21a35bbd345b54e672e555124fc163",
+      "testedCodeCommit": "83ab9feeb1c98eb172db39fdf40e39a3e3526c91"
     },
     {
       "requirementIds": [
@@ -1447,7 +1451,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "163/163 including same trimmed key across accounts/project scopes; no paid/provider-native proof",
-      "sha256": "ee153a2952e9befea737ab58394f0f92f6dcb8772e1dccf2f4a1c29e2c9a3aa5"
+      "sha256": "ee153a2952e9befea737ab58394f0f92f6dcb8772e1dccf2f4a1c29e2c9a3aa5",
+      "testedCodeCommit": "30a98dba0988370a82e8024d612121aad688ee60"
     },
     {
       "requirementIds": [
@@ -1499,7 +1504,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "91 core / 66 backend / 47 mobile / 4 governance",
-      "sha256": "90213f6384ceec9af4a0b003662c5f9e4f43dbe64f19cd6a095c200eb94a4894"
+      "sha256": "90213f6384ceec9af4a0b003662c5f9e4f43dbe64f19cd6a095c200eb94a4894",
+      "testedCodeCommit": "bdc61a339f5cd123df6400ecbb85917ae8f9f975"
     },
     {
       "requirementIds": [
@@ -1512,7 +1518,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "167/167; actual PostgreSQL and provider transport doubles; no paid model/native proof",
-      "sha256": "6cdc79ac6807272d56bdcfeb4d7365fcdb52e12d5f5981247a3a332faaed5a95"
+      "sha256": "6cdc79ac6807272d56bdcfeb4d7365fcdb52e12d5f5981247a3a332faaed5a95",
+      "testedCodeCommit": "bdc61a339f5cd123df6400ecbb85917ae8f9f975"
     },
     {
       "requirementIds": [
@@ -1556,5 +1563,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "7cabb91d1b6cdefd685336af2e34f757d6878eff"
+  "implementationCommit": "bdc61a339f5cd123df6400ecbb85917ae8f9f975"
 }
