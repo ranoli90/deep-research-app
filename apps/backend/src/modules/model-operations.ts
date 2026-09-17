@@ -39,7 +39,7 @@ export async function saveModelOperation<K extends ResearchModelOperation>(db: Q
     args.request.digest,args.request.schemaVersion,args.request.promptVersion,args.request.policyId,JSON.stringify(args.result),JSON.stringify(modelInputManifest(args.context))]);
 }
 export async function loadModelOperation(db: Queryable, intentId: string, runId: string, accountId: string, digest: string, context: ModelContext): Promise<unknown | null> {
-  const result = await db.query<{ result: unknown; receipt_matches: boolean }>("SELECT m.result, (m.result->'receipt'=i.receipt AND m.input_manifest=$5::jsonb) AS receipt_matches FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id WHERE m.intent_id=$1 AND m.run_id=$2 AND m.account_id=$3 AND m.request_digest=$4", [intentId,runId,accountId,digest,JSON.stringify(modelInputManifest(context))]);
+  const result = await db.query<{ result: unknown; receipt_matches: boolean }>("SELECT m.result, (m.result->'receipt'=i.receipt AND i.request_digest=m.request_digest AND i.run_id=m.run_id AND m.input_manifest=$5::jsonb) AS receipt_matches FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id WHERE m.intent_id=$1 AND m.run_id=$2 AND m.account_id=$3 AND m.request_digest=$4", [intentId,runId,accountId,digest,JSON.stringify(modelInputManifest(context))]);
   if (result.rows[0] && !result.rows[0].receipt_matches) return { status: "invalid_stored_receipt" };
   return result.rows[0]?.result ?? null;
 }

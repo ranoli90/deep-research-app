@@ -24,3 +24,4 @@ export * from "./stop.js";
 export * from "./support.js";
 export * from "./types.js";
 export { validateModelBindings } from "./model-bindings.js";
+export { resolveScopedSupport, SCOPED_SUPPORT_VERSION, type ScopedSupportResult } from "./scoped-support.js";

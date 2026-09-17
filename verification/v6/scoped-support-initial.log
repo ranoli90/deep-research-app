@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (36 tests) 2887ms
+
+ Test Files  1 passed (1)
+      Tests  36 passed (36)
+   Start at  13:14:37
+   Duration  3.72s (transform 414ms, setup 0ms, collect 631ms, tests 2.89s, environment 0ms, prepare 67ms)
+

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Whole-passage assertion extraction service and exact model input manifests;200 full integration cases plus29 focused. Support/general processRun integration and W01-W09 incomplete.",
+  "workingTree": "Executed scoped support with stable claim revisions/digests/checker outcomes;209 final local integration cases. General worker/publication integration and W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2147,6 +2147,159 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "ec8384859ba3c0639c19383eb4e7342c5d6919ab"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm --filter @deep/research-core test",
+      "artifact": "scoped-support-core-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_core",
+      "scope": "104/104 initial pure guards with seven support tests",
+      "sha256": "671e5cb404636504ed013a49587d663cb7deed021faa54b39515bbefa76de9f6"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm typecheck",
+      "artifact": "scoped-support-typecheck.log",
+      "exitCode": 2,
+      "evidenceClass": "typecheck_failure",
+      "scope": "Numeric match helper inferred empty-array union; later fixed with explicit string[]",
+      "sha256": "81517aa79012f308b5f0a16dbacb4c8457498cc49c60645ad7d36eeb0f72aada"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scoped-support-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "36/36 initial gateway/task/extraction/support execution cases",
+      "sha256": "a4d6f2108cebe79c9fecc6a5e00a0e491af35fec2488620eb20608335deb1c13"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scoped-support-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "37/37 with persisted changed-unit veto; before addition of counterevidence IDs to result",
+      "sha256": "0bc29a3ceb7fff122b1d75075a2b16453ef1db34ecf6a9d4f1ef762577733630"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm verify",
+      "artifact": "scoped-support-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "106core/80backend/47mobile/4governance before final counterevidence result field",
+      "sha256": "366427f5cad8debcfcb937a23863574b78daf0741848e9201c7a0fc85bd7fdab"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm verify",
+      "artifact": "scoped-support-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "106core/80backend/47mobile/4governance; final code",
+      "sha256": "71242ae821c872a9089bd22130a438db8dcf85df380392f1dcd8a204bfa69275"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "pnpm test:integration",
+      "artifact": "scoped-support-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "209/209 final code; real local PostgreSQL with fabricated provider transport",
+      "sha256": "a5ab1229fb36f43e49fd5ee51d4d4842d733c32c825e2f8c3c2999bb5656bd86"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scoped-support-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F01",
+        "V6-F03",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "6473676",
+      "workingTree": "scoped support execution based on6473676; see implementation commit in ledger",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scoped-support-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

@@ -72,3 +72,10 @@ Use one additive PostgreSQL table with owned JSON specification/ID maps, rather 
 
 
 ADR-013 input-membership amendment: persist a bounded metadata manifest of the exact model context alongside the existing result, rather than storing another full prompt/source copy or inferring attempted evidence from output citations. Unmentioned passages still belong to the attempted input. Historical missing manifests are unknown, not synthesized during migration. Reuse checks the exact manifest; this intentionally blocks old cached operations until explicitly handled, without automatic paid resend. No claim of full-document coverage or semantic verification follows from selection.
+
+
+## ADR-015 — executed scoped support, separate from final publication
+
+Use a fallible structured evidence-comparison operation plus independent deterministic binding/scope/numeric/access/contradiction/qualification checks. The resolver inspects all selected in-scope passages, not only the model's chosen quotes. Preserve conflicts and unknowns instead of collapsing them into a progress event. Legitimate paraphrases can pass the combined check; no lexical-overlap score proves entailment. Semantic quality still requires held-out real-model/reference evidence.
+
+Persist canonical claim revisions and typed checks behind existing fences in two small PostgreSQL relations, reusing source/model/task identities. Keep claims unverified at the publication boundary until the report service validates the full report mapping and current basis. Rollback disables the new strategy; never restore overlap-only publication or delete receipt/privacy safeguards. No new model/service/dependency is required; a later checker version or processor must produce separately versioned evidence, not silently reinterpret prior results.

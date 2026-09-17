@@ -8,6 +8,7 @@ import { claimLease } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
+import { executeAssertionSupport } from "../src/worker/support-execution.js";
 import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
 import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
 import { loadResearchTask } from "../src/modules/research-tasks.js";
@@ -39,7 +40,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
   finally {
     session.stop();
     await withTx(pool, async (db) => {
-      for (const table of ["provider_intents", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
+      for (const table of ["provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
         if (table === "sources") await db.query("DELETE FROM source_versions WHERE source_id IN (SELECT id FROM sources WHERE run_id=$1)", [runId]);
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
       }
@@ -313,5 +314,86 @@ describe("W05 evidence-bound arbitrary assertion extraction", () => {
     await expect(extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).rejects.toThrow("stale_model_context");
     expect((await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows).toHaveLength(0);
     expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:extract_assertions'",[x.runId])).rows[0].confirmed_micro).toBe("1");
+  }));
+});
+
+
+async function supportCase(x: Parameters<Parameters<typeof runCase>[0]>[0],wrongUnit=false) {
+  const prepared=await extractionCase(x);
+  if (wrongUnit) prepared.output.assertions[0]!.text=prepared.output.assertions[0]!.text.replace("hectares","acres");
+  globalThis.fetch=vi.fn(async()=>response(prepared.output)) as typeof fetch;
+  const extraction=await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
+  if(extraction.kind!=="extraction") throw new Error("missing extraction");
+  const claim=prepared.output.assertions[0]!;
+  const proposal={assessments:[{claimKey:claim.key,status:"supported",scope:claim.scope,evidence:claim.evidence,
+    rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[]}]};
+  return {...prepared,proposal,args:{...prepared.args,extractionIntentId:extraction.intentId}};
+}
+describe("W05 substantive support execution and persisted revisions",()=>{
+  it("performs and stores scoped checks with stable claim revisions on replay",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+    const first=await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+    expect(first).toMatchObject({kind:"support",reused:false,checks:[{claimKey:"area",decision:"supported",modelStatus:"supported"}]});
+    const second=await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+    expect(second).toEqual({...first,reused:true});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const rows=await pool.query("SELECT claim_revision_id,evidence_digest,scope_digest,checker_version,result FROM scoped_support_results WHERE run_id=$1",[x.runId]);
+    expect(rows.rows).toHaveLength(1);
+    expect(rows.rows[0]).toMatchObject({evidence_digest:expect.stringMatching(/^[a-f0-9]{64}$/),scope_digest:expect.stringMatching(/^[a-f0-9]{64}$/),checker_version:"scoped-support.v1"});
+    expect(rows.rows[0].result.checks.length).toBeGreaterThan(5);
+    expect((await pool.query("SELECT support_status FROM claims WHERE run_id=$1",[x.runId])).rows).toEqual([{support_status:"unverified"}]);
+    expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("persists a deterministic veto when the model approves changed units",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x,true);
+    globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+    const result=await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+    expect(result).toMatchObject({kind:"support",checks:[{decision:"insufficient",modelStatus:"supported"}]});
+    const row=(await pool.query("SELECT decision,result FROM scoped_support_results WHERE run_id=$1",[x.runId])).rows[0];
+    expect(row.decision).toBe("insufficient");
+    expect(row.result.checks).toContainEqual({rule:"numeric_context_preserved",passed:false});
+  }));
+  it("records uncertainty instead of turning missing evidence into full support",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>response({assessments:[{...prepared.proposal.assessments[0],missingEvidence:["Independent outcome replication unavailable"]}]})) as typeof fetch;
+    expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toMatchObject({kind:"support",checks:[{decision:"partially_supported"}]});
+  }));
+  it("rejects missing bindings without a support record",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>response({assessments:[]})) as typeof fetch;
+    expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"support_invalid_output"});
+    expect((await pool.query("SELECT * FROM scoped_support_results WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("denies a foreign extraction result before spending",async()=>runCase(async(x)=>runCase(async(other)=>{
+    const prepared=await supportCase(other);
+    globalThis.fetch=vi.fn() as typeof fetch;
+    await expect(executeAssertionSupport(pool,x.config,x.session,{...prepared.args,...x,briefRevision:1})).rejects.toThrow("support_extraction_owner_or_version_mismatch");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  })));
+  it("rejects changed evidence basis instead of checking old assertions as current",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    await pool.query("UPDATE runs SET evidence_revision=1 WHERE id=$1",[x.runId]);
+    globalThis.fetch=vi.fn() as typeof fetch;
+    await expect(executeAssertionSupport(pool,x.config,x.session,prepared.args)).rejects.toThrow("support_extraction_basis_changed");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  }));
+  it("does not reuse corrupted claim revisions or support receipts",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+    await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+    await pool.query("UPDATE scoped_support_results SET decision='supported',result='{}' WHERE run_id=$1",[x.runId]);
+    await expect(executeAssertionSupport(pool,x.config,x.session,prepared.args)).rejects.toThrow("stored_support_result_mismatch");
+    await pool.query("UPDATE claim_revisions SET text='Changed claim' WHERE run_id=$1",[x.runId]);
+    await expect(executeAssertionSupport(pool,x.config,x.session,prepared.args)).rejects.toThrow("stored_assertion_revision_mismatch");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("purges scoped assertions and support results on deletion",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
+    await executeAssertionSupport(pool,x.config,x.session,prepared.args);
+    await deleteAccount(pool,x.accountId);
+    for(const table of ["extracted_assertions","scoped_support_results","claim_revisions"])
+      expect((await pool.query(`SELECT * FROM ${table} WHERE account_id=$1`,[x.accountId])).rows).toHaveLength(0);
   }));
 });
