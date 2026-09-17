@@ -254,6 +254,7 @@ function AppInner() {
         void persistSession(AsyncStorage, { token: t, state: next });
         return next;
       });
+      setShowAttach(false);
       AccessibilityInfo.announceForAccessibility(
         "Research in progress. Cancel is available. Closing the app will not stop the job.",
       );
@@ -535,7 +536,7 @@ function AppInner() {
               </View>
             ) : null}
 
-            {(state.status === "completed" || state.status === "partial") && state.run ? (
+            {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
               <View style={styles.card} accessibilityLabel="Correction">
                 <Text style={styles.kicker}>Correction</Text>
                 <TextInput

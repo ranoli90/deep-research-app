@@ -1,0 +1,21 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "P0-N Android lifecycle",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "app": "Expo Go host.exp.exponent SDK 54"
+  },
+  "observed": {
+    "consent": "Settings showed Signed in (development) and Consent granted before research",
+    "input_report": "Fixture report after send: Vendor A managed Postgres 40 EUR Germany; sources 3fc2e7b9 / c974e4c3 / 2fe34abd",
+    "close_reopen": "am force-stop host.exp.exponent then exp://127.0.0.1:8081 restored Research report, outline, table, sources, and the composer draft",
+    "citation": "Open source 3fc2e7b9 opened Source sheet FULL-TEXT Vendor A managed Postgres pricing (Germany)",
+    "correction_ui": "Correction card and previous version were on screen after restoreAfterReopen treats a persisted report as completed. 120 EUR submit did not finish Vendor C this capture (USB drop; correction React state was empty until paste)",
+    "cancel_during_writing": "pnpm p0:launch cancelRunId 37f14e03 cancelOutcome=cancelled cancelReportId=null latePublicationRejected=true"
+  },
+  "code": "persistSession/hydrateOnLaunch/openLibraryItem remain on App.tsx. restoreAfterReopen sets status=completed when a report is persisted. Correction renders when state.report is present. onSend sets showAttach false.",
+  "tests": "pnpm --filter @deep/mobile test 32/32; pnpm p0:launch ok",
+  "p0_n_ios": "blocked — no Xcode",
+  "p0_fully_verified": false
+}

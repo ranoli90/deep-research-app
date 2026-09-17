@@ -39,6 +39,7 @@ describe("P0-N native state mapping", () => {
     expect(hydrated.state.report?.reportId).toBe("rep-1");
     expect(hydrated.state.consentGranted).toBe(true);
     expect(hydrated.state.source).toBeNull();
+    expect(hydrated.state.status).toBe("completed");
   });
 
   it("persistSession with a null token does not wipe a stored session token", async () => {
@@ -79,6 +80,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/if \(!s\.signedIn\) return s;/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/Open web deletion page/);
+    expect(src).toMatch(/state\.report \|\| state\.status === "completed"/);
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {

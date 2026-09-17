@@ -84,9 +84,14 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
 }
 
 export function restoreAfterReopen(saved: UiState): UiState {
+  let status = saved.status;
+  if (saved.report && (status === "progress" || status === "empty" || status === "loading")) {
+    status = "completed";
+  }
   return {
     ...saved,
     source: null,
+    status,
     error: saved.offline ? "Offline. Saved draft and last report remain on this device." : null,
   };
 }
