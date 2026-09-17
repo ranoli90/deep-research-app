@@ -1,5 +1,7 @@
 # Builder handoff
 
+W02/F15 checkpoint: strict bounded executable schemas reject undeclared authority/SQL/expression/result fields; challenge-to-search validates before and after transformation. `pnpm verify` passes (91 core/66 backend/47 mobile/4 governance), local integration 153/153. Scoped budget accounting and substantive named actions remain open. No paid/native/hosted execution.
+
 ## Active V6 checkpoint
 
 W01–W09 is unfinished on branch `codex/v6-evidence-milestone`, based on `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Safety/extraction checkpoint `0e9fc9b`, evidence commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`; identity `ae2d074`; mobile isolation `b84fc8d`; binary evidence `7cabb91`. Current `pnpm verify` passes and local integration is **153/153**. Read STATUS, `verification/v6/RESULTS.json` and `FINDING_RECHECKS.json`; historical fixture passes below are not general quality or release evidence. Both document validators and their mutation suites now pass; these are structural evidence checks, not runtime or native proof.
@@ -14,7 +16,7 @@ Production identity verification and immutable local owner mapping are implement
 
 Binary uploads now transfer real bytes, persist digests and produce owned page/block/cell evidence through isolated Docling Parse. Ten real parser/API/worker/database checks pass; partial/empty/encrypted/malformed and cancel/delete-after-parse states remain explicit. RFC9112 public-byte diagnostics exposed detached negations in baselines and confirmed the selected geometry path on page 18. Read verification/v6/documents/README.md for measured limits and rejected alternatives. No table/column/OCR correctness or general synthesis is inferred. Native picker and broader independent corpus remain open.
 
-Next executable work: strict executable actions/scoped budgets, native binary picker and remaining identity lifecycle. Then finish the general model gateway, criterion-linked completion, real correction reuse and held-out API/worker evaluation. Do not use the green fixture suite as evidence that these exist. Do not restore permissive publication behavior to preserve prose.
+Next executable work: scoped budgets and actual receipt settlement, native binary picker and remaining identity lifecycle. Then finish the general model gateway, criterion-linked completion, real correction reuse and held-out API/worker evaluation. Do not use the green fixture suite as evidence that these exist. Do not restore permissive publication behavior to preserve prose.
 
 The clean extraction runtime is temporarily at `/tmp/deep-v6-extraction-runtime`; install the committed hash lock for a durable runtime. Saved public bytes remain temporary at `/tmp/deep-extraction-experiment/corpus`; only limited references, hashes and measurements are committed. No current paid allowance has been established. No new paid/native/hosted result is claimed. W10 remains separately gated. User ZIPs remain untracked.
 

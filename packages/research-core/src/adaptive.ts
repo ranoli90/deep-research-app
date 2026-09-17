@@ -307,7 +307,7 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
           ...b,
           type: "challenge",
           rationale: evaluated.impact,
-          arguments: { ...evaluated, recordOnly: true },
+          arguments: { targetConclusion: evaluated.targetConclusion, falsificationHypothesis: evaluated.falsificationHypothesis, recordOnly: true },
           dedupeKey: `challenge-record:${evaluated.id}`,
         },
         "record_disconfirmation_result",
@@ -396,7 +396,7 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
     }
     if (stop.reason === "contradiction_unhandled") {
       return withReason(
-        { ...b, type: "verify", rationale: "Scope-check remaining contradiction", dedupeKey: `verify:continue:${state.basis.evidenceRevision}` },
+        { ...b, type: "verify", rationale: "Scope-check remaining contradiction", arguments: { contradictionId: unresolved[0]?.id, checks: ["scope", "contradiction"] }, dedupeKey: `verify:continue:${state.basis.evidenceRevision}` },
         "continue_contradiction",
       );
     }
@@ -408,7 +408,7 @@ export function selectAdaptiveAction(state: ControllerState): PolicyDecision {
             ...b,
             type: "challenge",
             rationale: planned.impact,
-            arguments: { ...planned, recordOnly: true },
+            arguments: { targetConclusion: planned.targetConclusion, falsificationHypothesis: planned.falsificationHypothesis, recordOnly: true },
             dedupeKey: `challenge-record:${planned.id}`,
           },
           "continue_disconfirm",

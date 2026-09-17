@@ -1,4 +1,6 @@
 # Execution status — application implementation
+
+W02/F15 checkpoint: strict bounded executable schemas reject undeclared authority/SQL/expression/result fields; challenge-to-search validates before and after transformation. `pnpm verify` passes (91 core/66 backend/47 mobile/4 governance), local integration 153/153. Scoped budget accounting and substantive named actions remain open. No paid/native/hosted execution.
 ## V6 implementation checkpoint — 2026-09-17 17:30 UTC
 
 Branch `codex/v6-evidence-milestone`, based on exact review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Recoverable safety/extraction code checkpoint `0e9fc9b`, artifact commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`; identity `ae2d074`; mobile isolation `b84fc8d`; binary evidence `7cabb91`. **W01–W09 remains incomplete.** ZIPs are preserved untracked; staging is `/tmp/deep-v6-staging`.
@@ -15,7 +17,7 @@ W03 mobile account isolation now uses SecureStore credentials, owner/backend-bou
 
 W03 production identity adapter now verifies the configured Supabase user endpoint and maps issuer/subject to a local owner with zero implicit allowance. Local tests use transport doubles; hosted verification, native sign-in/refresh and provider-side identity deletion are still activation gates. Published claim membership now gates follow-ups/challenges.
 
-Next: remaining identity lifecycle; strict executable actions and fully scoped budgets; W04 broader document fidelity/native file input; W05 general gateway, criteria and substantive named actions; W06 immutable evidence membership/real correction reuse; W07 mobile essentials; W08–W09 held-out same-pipeline evaluation. Source-presence coverage and event-only verification remain open. No paid provider calls, native builds or deployment occurred. Current live allowance is not established; historical reserved-cost notes below do not authorize spend. W10 release gates remain separate. Historical evidence below describes prior builds only.
+Next: remaining identity lifecycle; fully scoped budgets and actual receipt settlement; W04 broader document fidelity/native file input; W05 general gateway, criteria and substantive named actions; W06 immutable evidence membership/real correction reuse; W07 mobile essentials; W08–W09 held-out same-pipeline evaluation. Source-presence coverage and event-only verification remain open. No paid provider calls, native builds or deployment occurred. Current live allowance is not established; historical reserved-cost notes below do not authorize spend. W10 release gates remain separate. Historical evidence below describes prior builds only.
 
 As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documents.
 

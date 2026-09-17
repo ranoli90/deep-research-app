@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Binary/Docling extraction checkpoint on b84fc8d; 153 local integration and 10 real extraction-flow tests pass; W01-W09 incomplete",
+  "workingTree": "Strict executable argument checkpoint on 8601aca; 153 local integration cases pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1162,15 +1162,80 @@
       "evidenceClass": "document_integrity",
       "scope": "structural handoff only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F15"
+      ],
+      "commit": "8601aca plus strict action validation working tree",
+      "command": "pnpm --filter @deep/research-core test",
+      "artifact": "action-schema-before.log",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit",
+      "scope": "9 failing new negatives; 81 controls/existing cases passed",
+      "sha256": "93096293eb95602b7b1ffa685e428a944dfd7428ccfea36091a8eb9ca65881ea"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F15"
+      ],
+      "commit": "8601aca plus strict action validation working tree",
+      "command": "pnpm --filter @deep/research-core test",
+      "artifact": "action-schema-after.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit",
+      "scope": "90/90 before additional transformation regression",
+      "sha256": "4d9a63758543c59fb0e688ccb083d119392b9687be1b553b5260f3bee0ad272c"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F15"
+      ],
+      "commit": "8601aca plus strict action validation working tree",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "action-schema-types.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "strict argument integration",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F15"
+      ],
+      "commit": "8601aca plus strict action validation working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-action-schema.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "91 core / 66 backend / 47 mobile / 4 governance",
+      "sha256": "fdc6cc33759d81f7384a551c9204624fb6db4ae07813dd6e11f50042d9b98997"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F15"
+      ],
+      "commit": "8601aca plus strict action validation working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-action-schema.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "153/153; local fixture research, no live model proof",
+      "sha256": "70b851bf1d9b33b955f3ae1d20995b59e42440ea8c8a2209d3878f0ae4e561d9"
     }
   ],
   "unresolved": [
-    "W01: general semantic checking, criterion-linked support and further adversarial derived-report coverage; local integration now 139/139",
-    "W02: run/key-scoped budgets and complete action execution/identity/fence coverage",
-    "W03: production identity, complete legacy deletion and mobile account generations",
-    "W04: PDF/binary native upload, challenge detection and broader structure quality",
-    "W05-W09: general model gateway, real typed verification actions, correction-safe reuse, mobile essentials, held-out API/worker evaluation",
-    "W10: release gates separate; no deploy, purchases, iOS or live quality claim"
+    "W01: general semantic checking and criterion-linked support",
+    "W02: run/account/key budget scopes, actual settlement and substantive named action execution",
+    "W03: hosted identity lifecycle/native login and privacy routing",
+    "W04: native binary picker, broader extraction fidelity and independent corpus",
+    "W05-W09: general gateway, criteria, real typed actions, immutable correction reuse, mobile essentials and held-out evaluation",
+    "W10: separate release gates; no new deployment, paid model or native quality claim"
   ],
   "liveSpend": {
     "newPaidCalls": 0,

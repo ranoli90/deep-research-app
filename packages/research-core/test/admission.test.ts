@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
-import { admitProposedAction } from "../src/admission.js";
+import { admitProposedAction, admitExecutableAction } from "../src/admission.js";
 import { extractConstraints } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
 import type { ControllerState, PolicyDecision } from "../src/types.js";
@@ -167,4 +167,49 @@ describe("unknown-dependency correction forces full rerun", () => {
       ),
     ).toBe(false);
   });
+});
+
+
+describe("V6-F15 executable argument boundaries", () => {
+  it.each([
+    { query: "postgres", sql: "SELECT * FROM accounts" },
+    { query: "postgres", accountId: "another-owner" },
+    { query: "postgres", budget: { cap: 999999 } },
+    { query: ["postgres"] },
+    { query: "" },
+    { query: "x".repeat(4001) },
+    { query: "postgres", options: { headers: { Authorization: "unapproved" } } },
+  ])("rejects undeclared, mistyped or oversized executable search arguments", (arguments_) => {
+    expect(admitProposedAction(state(), proposal({ arguments: arguments_ })).rejectReason).toBe("invalid_arguments");
+  });
+  it("rejects arbitrary calculation code and unbound verification; valid named controls remain admitted", () => {
+    expect(admitProposedAction(state(), proposal({ type: "calculate", arguments: { expression: "process.exit()" } })).rejectReason).toBe("invalid_arguments");
+    expect(admitProposedAction(state(), proposal({ type: "verify", arguments: {} })).rejectReason).toBe("invalid_arguments");
+    expect(admitProposedAction(state(), proposal({ type: "calculate", arguments: { formula: "ratio", inputClaimIds: ["c1", "c2"] } })).rejectReason).toBeUndefined();
+    expect(admitProposedAction(state(), proposal({ type: "verify", arguments: { claimId: "c1", checks: ["support"] } })).rejectReason).toBeUndefined();
+    expect(admitProposedAction(state(), proposal()).rejectReason).toBeUndefined();
+  });
+  it("does not accept a model's proposed check result as executable challenge input", () => {
+    expect(admitProposedAction(state(), proposal({ type: "challenge", arguments: {
+      targetConclusion: "candidate is eligible", falsificationHypothesis: "an exclusion applies", recordOnly: true,
+      result: "no_counterexample_found", counterevidenceFound: false,
+    } })).rejectReason).toBe("invalid_arguments");
+  });
+});
+
+
+it("V6-F15 transformed challenges retain data targets but cannot waive executable search policy", () => {
+  const challenge = proposal({ type: "challenge", estimatedMaxCostMicro: 0, arguments: {
+    query: "managed postgres germany", targetConclusion: "candidate is eligible",
+    falsificationHypothesis: "an exclusion applies", recordOnly: false,
+  } });
+  const actual = admitExecutableAction(state(), challenge);
+  expect(actual.rejectReason).toBeUndefined(); expect(actual.type).toBe("search");
+  expect(actual.arguments).toMatchObject({ query: "managed postgres germany", disconfirm: true });
+  expect(actual.arguments).not.toHaveProperty("recordOnly");
+  expect(admitExecutableAction(state({ spentMicro: DEFAULT_RUN_BUDGET_MICRO }), challenge).rejectReason).toBe("allowance_exhausted");
+  const privateChallenge = { ...challenge, arguments: { ...challenge.arguments, query: "find CANARY:PRIVATE" } };
+  expect(admitExecutableAction(state({ privateCanaries: ["CANARY:PRIVATE"] }), privateChallenge).rejectReason).toBe("private_query_blocked");
+  const extra = { ...challenge, arguments: { ...challenge.arguments, headers: { authorization: "unapproved" } } };
+  expect(admitExecutableAction(state(), extra).rejectReason).toBe("invalid_arguments");
 });

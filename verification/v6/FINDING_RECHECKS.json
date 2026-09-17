@@ -104,7 +104,7 @@
       "title": "Model admission trusts an overly broad proposal shape",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Run/revision match, post-transform admission and server tariff floor repaired. Executable action arguments remain overly broad."
+      "basis": "Run/revision match, strict bounded per-action executable arguments, post-transform re-admission and server tariff floor enforced. Nine invalid-argument regressions reproduced then passed; valid controls and transformed challenge privacy/cost checks pass. General model gateway and named action results remain open."
     },
     {
       "id": "V6-F16",

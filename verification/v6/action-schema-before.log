@@ -1,0 +1,117 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ❯ test/admission.test.ts (20 tests | 9 failed) 39ms
+   ✓ admitProposedAction — shipped gates > V6-F15 rejects another run and either inconsistent revision basis 8ms
+   ✓ admitProposedAction — shipped gates > V6-F15 rejects an empty fetch locator 1ms
+   ✓ admitProposedAction — shipped gates > V6-F15 model flags cannot waive an untried blocking gap 1ms
+   ✓ admitProposedAction — shipped gates > rejects hostile source proposals that expand tools, secrets, or spend 2ms
+   ✓ admitProposedAction — shipped gates > rejects extract_table and inspect_visual as unavailable capabilities 1ms
+   ✓ admitProposedAction — shipped gates > refuses the next paid call when the run allowance is exhausted 1ms
+   ✓ admitProposedAction — shipped gates > server tariffs cannot be waived by a zero proposed cost 1ms
+   ✓ admitProposedAction — shipped gates > rejects cancelled, deleted, stale-revision, duplicate, and private-query proposals 1ms
+   ✓ admitProposedAction — shipped gates > admits a well-formed search 1ms
+   ✓ admitProposedAction — shipped gates > does not treat LIVE_CALL_RESERVE_MICRO as a fixture run-budget cost when liveSpend remains 1ms
+   ✓ unknown-dependency correction forces full rerun > shouldFullRerun is true only when completeness is unknown 0ms
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 10ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 2ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments 2ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > rejects arbitrary calculation code and unbound verification; valid named controls remain admitted 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+   × V6-F15 executable argument boundaries > does not accept a model's proposed check result as executable challenge input 1ms
+     → expected undefined to be 'invalid_arguments' // Object.is equality
+ ✓ test/p1-p2.test.ts (24 tests) 57ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 62ms
+ ✓ test/v6-publication.test.ts (22 tests) 20ms
+ ✓ test/generic-candidates.test.ts (3 tests) 13ms
+ ✓ test/policy.test.ts (8 tests) 18ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects undeclared, mistyped or oversized executable search arguments
+AssertionError: expected undefined to be 'invalid_arguments' // Object.is equality
+
+- Expected: 
+"invalid_arguments"
+
++ Received: 
+undefined
+
+ ❯ test/admission.test.ts:183:92
+    181|     { query: "postgres", options: { headers: { Authorization: "unappro…
+    182|   ])("rejects undeclared, mistyped or oversized executable search argu…
+    183|     expect(admitProposedAction(state(), proposal({ arguments: argument…
+       |                                                                                            ^
+    184|   });
+    185|   it("rejects arbitrary calculation code and unbound verification; val…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > rejects arbitrary calculation code and unbound verification; valid named controls remain admitted
+AssertionError: expected undefined to be 'invalid_arguments' // Object.is equality
+
+- Expected: 
+"invalid_arguments"
+
++ Received: 
+undefined
+
+ ❯ test/admission.test.ts:186:133
+    184|   });
+    185|   it("rejects arbitrary calculation code and unbound verification; val…
+    186|     expect(admitProposedAction(state(), proposal({ type: "calculate", …
+       |                                                                                                                                     ^
+    187|     expect(admitProposedAction(state(), proposal({ type: "verify", arg…
+    188|     expect(admitProposedAction(state(), proposal({ type: "calculate", …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  test/admission.test.ts > V6-F15 executable argument boundaries > does not accept a model's proposed check result as executable challenge input
+AssertionError: expected undefined to be 'invalid_arguments' // Object.is equality
+
+- Expected: 
+"invalid_arguments"
+
++ Received: 
+undefined
+
+ ❯ test/admission.test.ts:196:25
+    194|       targetConclusion: "candidate is eligible", falsificationHypothes…
+    195|       result: "no_counterexample_found", counterevidenceFound: false,
+    196|     } })).rejectReason).toBe("invalid_arguments");
+       |                         ^
+    197|   });
+    198| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  9 failed | 81 passed (90)
+   Start at  11:37:27
+   Duration  1.10s (transform 618ms, setup 0ms, collect 1.22s, tests 209ms, environment 1ms, prepare 583ms)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

@@ -1,5 +1,6 @@
 import {
   ActionProposalSchema,
+  ExecutableArguments,
   ActionTypeSchema,
   FIXTURE_FETCH_COST_MICRO,
   FIXTURE_SEARCH_COST_MICRO,
@@ -221,7 +222,12 @@ export function admitProposedAction(
     });
   }
 
-  return proposal;
+  const executable = ExecutableArguments[typeParse.data].safeParse(proposal.arguments);
+  if (!executable.success) {
+    return asDecision(proposal, { type: "stop", rejectReason: "invalid_arguments",
+      rationale: "Action arguments do not match the executable contract", arguments: { reason: "invalid_arguments" } });
+  }
+  return { ...parsed.data, arguments: executable.data };
 }
 
 /** Back-compat alias used by fixture/OpenRouter adapters. */
@@ -231,4 +237,15 @@ export function authorizeAction(
   opts?: AdmitOptions,
 ): PolicyDecision {
   return admitProposedAction(state, proposal, opts);
+}
+
+/** Validate the proposal and then the exact transformed operation; no authority fields are carried through. */
+export function admitExecutableAction(state: ControllerState, proposal: PolicyDecision, opts: AdmitOptions = {}): PolicyDecision {
+  const admitted = admitProposedAction(state, proposal, opts);
+  if (admitted.rejectReason || admitted.type !== "challenge" || admitted.arguments.recordOnly === true) return admitted;
+  return admitProposedAction(state, { ...admitted, type: "search", arguments: {
+    query: admitted.arguments.query, targetConclusion: admitted.arguments.targetConclusion,
+    falsificationHypothesis: admitted.arguments.falsificationHypothesis, disconfirm: true,
+    selectionReason: admitted.arguments.selectionReason,
+  } }, opts);
 }

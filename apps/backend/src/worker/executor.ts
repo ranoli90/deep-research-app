@@ -7,6 +7,7 @@ import {
 } from "@deep/contracts";
 import {
   admitProposedAction,
+  admitExecutableAction,
   compactForContext,
   composeReport,
   detectContradictions,
@@ -342,8 +343,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
 
     const challengeSearch = decision.type === "challenge" && decision.arguments.query && !decision.arguments.recordOnly;
     if (challengeSearch) {
-      const executable = { ...decision, type: "search" as const, arguments: { ...decision.arguments, disconfirm: true } };
-      decision = admitProposedAction(state, executable, {
+      decision = admitExecutableAction(state, decision, {
         seenDedupeKeys: seenDedupe,
         liveSpend: run.route_mode === "controlled-research" ? {
           capMicro: config.liveSpendCapMicro, usedMicro: await liveSpendUsedMicro(pool, config.liveBudgetScope),

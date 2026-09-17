@@ -111,19 +111,19 @@ export type ActionType = z.infer<typeof ActionTypeSchema>;
 export const PrivilegedActionTypes = ["reveal_keys", "grant_tool", "change_policy", "purchase"] as const;
 
 export const ActionProposalSchema = z.object({
-  actionId: z.string(),
+  actionId: z.string().min(1).max(200),
   runId: IdSchema,
-  briefRevision: z.number().int(),
-  type: z.string(),
-  coverageIds: z.array(z.string()).default([]),
-  gapId: z.string().optional(),
+  briefRevision: z.number().int().positive().safe(),
+  type: z.string().min(1).max(100),
+  coverageIds: z.array(z.string().min(1).max(200)).max(50).default([]),
+  gapId: z.string().min(1).max(200).optional(),
   arguments: z.record(z.unknown()).default({}),
-  rationale: z.string(),
-  estimatedMaxCostMicro: z.number().int().nonnegative().default(0),
-  sourceAccessConstraints: z.array(z.string()).default([]),
-  dedupeKey: z.string(),
+  rationale: z.string().max(4000),
+  estimatedMaxCostMicro: z.number().int().nonnegative().safe().default(0),
+  sourceAccessConstraints: z.array(z.string().max(200)).max(20).default([]),
+  dedupeKey: z.string().min(1).max(4000),
   privileged: z.boolean().default(false),
-});
+}).strict();
 export type ActionProposal = z.infer<typeof ActionProposalSchema>;
 
 export const RevisionBasisSchema = z.object({
@@ -277,3 +277,5 @@ export const PRIVACY_DATA_FLOWS =
 export const DELETION_VS_SUBSCRIPTION =
   "Deleting the app account cancels in-flight research and removes derived text. Cancelling a store subscription is a separate store action and does not by itself delete the account.";
 
+
+export { ExecutableArguments, type ExecutableAction, type ExecutableActionKind } from "./action-arguments.js";
