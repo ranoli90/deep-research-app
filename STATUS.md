@@ -118,3 +118,5 @@ P0 is **not** fully verified while iOS is blocked.
 5. Remaining blocked: iOS G03, hosted auth, M11 purchase sandbox, G04/G05 experiments, live G06 invoice probe. Do not mark those as passed.
 
 Mobile correction final verification:117 core/88 backend/52 mobile/4 governance and mobile typecheck exit0;260 PostgreSQL tests exit0. Actual extraction log reports13/13, including server correction capability and disabled-route controls. Final Android Hermes export reports success; final asset hashes are recorded. Exit receipts for these last two processes were unavailable after context handoff and are recorded as null, not invented. Prior Android export exit0 is retained. No online device/native app execution, paid calls or hosted changes. Rollback disables typed correction UI/admission while retaining owner, privacy, allowance and publication gates. W01-W09 remains incomplete.
+
+Mobile typed correction implementation/evidence committed as `0ac295d401efa187fe45195289c42ab802b89d69`. Next: isolate production worker from historical fixture/controller imports; native input, granular corrections and held-out evaluation remain open.

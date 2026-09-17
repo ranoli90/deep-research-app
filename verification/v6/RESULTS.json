@@ -3747,7 +3747,8 @@
       "exitCode": 0,
       "evidenceClass": "typescript",
       "scope": "Baseline mobile typecheck",
-      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3761,7 +3762,8 @@
       "exitCode": 0,
       "evidenceClass": "typescript",
       "scope": "Updated mobile typecheck",
-      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3775,7 +3777,8 @@
       "exitCode": 2,
       "evidenceClass": "native_device_gate",
       "scope": "No online device; launcher does not execute app assertions",
-      "sha256": "761fb4ccd58996982028f6432f1e2d9368ef9273185291ce63635b5688faf68f"
+      "sha256": "761fb4ccd58996982028f6432f1e2d9368ef9273185291ce63635b5688faf68f",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3789,7 +3792,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "117 core /88 backend /52 mobile /4 governance",
-      "sha256": "4b37179a5d0c301ea7e41f026654d7108ada87d209aeca647d4c5e6e52db8316"
+      "sha256": "4b37179a5d0c301ea7e41f026654d7108ada87d209aeca647d4c5e6e52db8316",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3803,7 +3807,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "260/260;16 files;149.78 seconds",
-      "sha256": "c7ffd233cc1715c32d90ce2eaa857e0caa1df4da4cb27f3c6417a70ce853163c"
+      "sha256": "c7ffd233cc1715c32d90ce2eaa857e0caa1df4da4cb27f3c6417a70ce853163c",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3817,7 +3822,8 @@
       "exitCode": null,
       "evidenceClass": "local_api_worker_actual_pdf",
       "scope": "Log reports13/13;39.23 seconds; correction mode and disabled-route controls. Process exit receipt unavailable after context handoff; model responses fabricated.",
-      "sha256": "12afaa731352b6004a81ebb17f8736e78daedae9285db0cfa2e2a47c0f5c8bf2"
+      "sha256": "12afaa731352b6004a81ebb17f8736e78daedae9285db0cfa2e2a47c0f5c8bf2",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3831,7 +3837,8 @@
       "exitCode": 1,
       "evidenceClass": "android_javascript_export",
       "scope": "Failed Metro resolution of relative NodeNext .js contract import",
-      "sha256": "e9cca4823cedfe48e48df2d3905fbbeaa571d7dcca0347bffb82ad8b5899a8e6"
+      "sha256": "e9cca4823cedfe48e48df2d3905fbbeaa571d7dcca0347bffb82ad8b5899a8e6",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3845,7 +3852,8 @@
       "exitCode": 0,
       "evidenceClass": "android_javascript_export",
       "scope": "Successful Hermes export after scoped Metro resolution repair; no native execution",
-      "sha256": "212048b9299234488eebd328d4854f9913c3f20fa6bae1c1fa83def01ca40ff0"
+      "sha256": "212048b9299234488eebd328d4854f9913c3f20fa6bae1c1fa83def01ca40ff0",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3859,7 +3867,8 @@
       "exitCode": null,
       "evidenceClass": "android_javascript_export",
       "scope": "Final wording export log reports success; process exit receipt unavailable after context handoff; manifest hashes final artifacts",
-      "sha256": "35c349b8559b3a14b5671f10e5b4a4a01bdf78277fe2e21af5d45b05148946b4"
+      "sha256": "35c349b8559b3a14b5671f10e5b4a4a01bdf78277fe2e21af5d45b05148946b4",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3873,7 +3882,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     },
     {
       "requirementIds": [
@@ -3887,7 +3897,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
     }
   ],
   "unresolved": [
@@ -3908,5 +3919,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "6e0cce011f73cbf899930e0d765e4a363e741e85"
+  "implementationCommit": "0ac295d401efa187fe45195289c42ab802b89d69"
 }
