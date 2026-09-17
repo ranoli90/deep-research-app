@@ -1,0 +1,25 @@
+
+> deep-research-mobile@0.1.0 verify /home/oranolio/Desktop/Deep
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts || true
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: test/document-flow.extraction.test.ts(84,75): error TS2345: Argument of type '(url: string) => Promise<{ url: string; status: number; mime: string; bytes: Buffer<ArrayBuffer>; redirectChain: never[]; }>' is not assignable to parameter of type 'NormalizedProcedure<(raw: string, init?: { signal?: AbortSignal | undefined; }) => Promise<{ url: string; body: string; bytes: Buffer<ArrayBufferLike>; status: number; mime: string; redirectChain: string[]; }>>'.
+apps/backend typecheck:   Type 'Promise<{ url: string; status: number; mime: string; bytes: Buffer<ArrayBuffer>; redirectChain: never[]; }>' is not assignable to type 'Promise<{ url: string; body: string; bytes: Buffer<ArrayBufferLike>; status: number; mime: string; redirectChain: string[]; }>'.
+apps/backend typecheck:     Property 'body' is missing in type '{ url: string; status: number; mime: string; bytes: Buffer<ArrayBuffer>; redirectChain: never[]; }' but required in type '{ url: string; body: string; bytes: Buffer<ArrayBufferLike>; status: number; mime: string; redirectChain: string[]; }'.
+apps/backend typecheck: Failed
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.

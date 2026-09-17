@@ -8,6 +8,9 @@ import { ingestAttachments } from "./attachment-ingestion.js";
 import { extractEvidenceAssertions } from "./assertion-extraction.js";
 import { executeAssertionSupport } from "./support-execution.js";
 import { executeCoverageReview } from "./research-coverage.js";
+import { performPublicSearch } from "./public-search.js";
+import { executeSourceRead } from "./source-reading.js";
+import { adoptSearchSources } from "../modules/search-sources.js";
 import { writeResearchReport } from "./research-writer.js";
 
 /** Production structured path. No fixture catalog, scenario composer or event-as-verification fallback. */
@@ -33,9 +36,28 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision}});
   });
   if(opts.pauseAt==="researching")return;
-  const selected=await session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM passages p JOIN source_versions v ON v.id=p.source_version_id
+  const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM passages p JOIN source_versions v ON v.id=p.source_version_id
     JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1 AND s.run_id=$2
     AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]));
+  let selected=await selectPassages();
+  const priorDiscovery=await session.write((db)=>db.query("SELECT 1 FROM search_operations WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 LIMIT 1",[args.runId,args.accountId,args.briefRevision]));
+  if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount)) {
+    const brief=await getBrief(pool,run.brief_id),questionKeys=Object.keys(prepared.task.questionIds);
+    if(brief.attachmentIds.length)return unresolved("document_search_requires_public_query_approval");
+    if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
+    // A bounded initial discovery pass. Completion still requires executed criterion coverage.
+    const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:{
+      rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
+        publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
+    if(search.kind!=="search")return pendingOrBlocked(search);
+    const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+    for(const sourceHandle of sources) {
+      const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
+        rationale:"Read the discovered source before assessing its assertions.",action:{type:"fetch",sourceHandle,questionKeys}}});
+      if(read.kind!=="read")return unresolved(read.kind==="blocked"?read.reason:"source_read_outcome_unknown");
+    }
+    selected=await selectPassages();
+  }
   // Do not silently replace discovery with fixtures or truncate a document to fit the context.
   if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
   const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selected.rows.map((p)=>p.id)});

@@ -135,5 +135,5 @@
       "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
     }
   ],
-  "checkpointEvidence": "178/178 local integration; pnpm verify97 core/80 backend/47 mobile/4 governance; gateway transport uses doubles, no paid semantic probe; overall milestone incomplete"
+  "checkpointEvidence": "79 focused PostgreSQL read/model cases;12 actual extraction/API/worker controls;115/88/47/4 verify. Search/model and public-source transport use doubles; no live quality or corrected journey proof; W01-W09 incomplete."
 }

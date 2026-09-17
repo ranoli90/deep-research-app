@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import * as sourceReader from "../src/adapters/retrieval/read-source.js";
+import { executeSourceRead } from "../src/worker/source-reading.js";
+import { adoptSearchSources } from "../src/modules/search-sources.js";
 import { performPublicSearch } from "../src/worker/public-search.js";
 import { processRun } from "../src/worker/executor.js";
 import { reportCompletionCovered } from "../src/modules/publication-coverage.js";
@@ -24,7 +28,7 @@ import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
 const originalFetch = globalThis.fetch;
 let pool: pg.Pool;
 beforeAll(async () => { pool = createPool(process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test"); await migrate(pool); });
-afterEach(() => { globalThis.fetch = originalFetch; });
+afterEach(() => { globalThis.fetch = originalFetch; vi.restoreAllMocks(); });
 afterAll(async () => { await pool.end(); });
 const question = "Compare coral and kelp restoration.";
 const span = { start: 0, end: question.length, quote: question };
@@ -49,7 +53,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
     await withTx(pool, async (db) => {
       await db.query("DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE run_id=$1)",[runId]);
       for(const table of ["notification_fanout","completion_outbox","publication_attempts","reports"]) await db.query(`DELETE FROM ${table} WHERE run_id=$1`,[runId]);
-      for (const table of ["provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
+      for (const table of ["extraction_receipts", "evidence_artifacts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
         if (table === "sources") await db.query("DELETE FROM source_versions WHERE source_id IN (SELECT id FROM sources WHERE run_id=$1)", [runId]);
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
       }
@@ -788,3 +792,64 @@ it("W03/W05 mixed document tasks require explicit public-query approval",async()
  await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[x.runId,JSON.stringify([crypto.randomUUID()])]);
  await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("document_search_requires_public_query_approval");expect(fetch).not.toHaveBeenCalled();
 }));
+
+// Reader/model transport doubles below prove orchestration and stored provenance, not live extraction quality.
+async function readCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+ const search=await performPublicSearch(pool,c.config,x.session,c.args);if(search.kind!=="search")throw new Error("missing search");
+ const adopt=()=>x.session.write((db)=>adoptSearchSources(db,{...c.args,intentId:search.intentId}));
+ const ids=await adopt();expect(await adopt()).toEqual(ids);
+ return {config:{...c.config,liveRetrievalEnabled:true},args:{...c.args,proposal:{rationale:"Read public evidence",action:{type:"fetch",sourceHandle:ids[0]!,questionKeys:["q1"]}}}};
+}
+function readControl(locator:string,text="Reef-Z restored 12 hectares in 2024."):Awaited<ReturnType<typeof sourceReader.readSource>> {
+ const bytes=Buffer.from(text),digest=createHash("sha256").update(bytes).digest("hex");
+ return {receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},bytes,
+  extraction:{version:"utf8-notes-v1",digest,status:"partial",warnings:["Test transport double"],blocks:[{kind:"text",locator:"block:0",text,rows:[]}]}};
+}
+describe("W04/W05 durable discovered source reading",()=>{
+ it("persists read provenance once and reuses the exact version",async()=>runCase(async(x)=>{
+  const c=await readCase(x),read=vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url));
+  const first=await executeSourceRead(c.config,x.session,c.args);expect(first).toMatchObject({kind:"read",readable:true,reused:false});
+  expect(await executeSourceRead(c.config,x.session,c.args)).toEqual({...first,reused:true});expect(read).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT extraction_method FROM passages WHERE run_id=$1 ORDER BY extraction_method",[x.runId])).rows).toEqual([{extraction_method:"search-snippet"},{extraction_method:"utf8-notes-v1"}]);
+  await withTx(pool,(db)=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT 1 FROM source_read_operations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+ it("rejects unknown source handles and invalid question bindings before network",async()=>runCase(async(x)=>{
+  const c=await readCase(x),read=vi.spyOn(sourceReader,"readSource");
+  await expect(executeSourceRead(c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,sourceHandle:crypto.randomUUID()}}})).rejects.toThrow("read_source_owner_mismatch");
+  await expect(executeSourceRead(c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,questionKeys:["foreign"]}}})).rejects.toThrow("read_task_mismatch");expect(read).not.toHaveBeenCalled();
+ }));
+ it("does not repeat an in-flight read or hold database locks during it",async()=>runCase(async(x)=>{
+  const c=await readCase(x);let entered!:()=>void,release!:()=>void;
+  const started=new Promise<void>((r)=>entered=r),waiting=new Promise<void>((r)=>release=r);
+  const read=vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>{entered();await waiting;return readControl(url);});
+  const first=executeSourceRead(c.config,x.session,c.args);await started;
+  try {expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"pending"});} finally {release();}
+  expect(await first).toMatchObject({kind:"read"});expect(read).toHaveBeenCalledTimes(1);
+ }));
+ it.each(["delete","change"])("discards late content after %s",async(kind)=>runCase(async(x)=>{
+  const c=await readCase(x);vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>{
+   if(kind==="delete")await withTx(pool,(db)=>deleteAccount(db,x.accountId));
+   else await pool.query("UPDATE sources SET canonical_locator='https://example.org/changed' WHERE id=$1",[c.args.proposal.action.sourceHandle]);
+   return readControl(url);
+  });
+  await expect(executeSourceRead(c.config,x.session,c.args)).rejects.toThrow(kind==="delete"?"stale_worker":"read_source_changed");
+  expect((await pool.query("SELECT 1 FROM extraction_receipts WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+ it.each([true,false])("production worker reads discovered evidence; readable=%s",async(readable)=>runCase(async(x)=>{
+  const model=structuredWorkerTransport();let searches=0;
+  globalThis.fetch=vi.fn(async(input,init)=>{if(JSON.parse(String(init?.body)).plugins?.length){searches++;return searchReply();}return model(input,init);}) as typeof fetch;
+  const text=`Reef-${crypto.randomUUID()} restored 12 hectares in 2024.`;
+  vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readable?readControl(url,text):{receipt:{...readControl(url).receipt,outcome:"fetch_unavailable",status:null}});
+  await releaseForWorker(x);
+  const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
+  if(readable){await processRun(pool,config,x.runId,{pauseAt:"writing"});expect(model).toHaveBeenCalledTimes(4);}
+  await processRun(pool,config,x.runId);
+  if(readable){expect(model).toHaveBeenCalledTimes(7);expect(sourceReader.readSource).toHaveBeenCalledTimes(1);}
+  expect(searches).toBe(1);
+  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(readable?"completed_with_limitations":"failed");
+  const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows;expect(reports).toHaveLength(readable?1:0);
+  if(readable){expect(reports[0].blocks[1].text).toBe(text);const p=(await pool.query("SELECT id FROM passages WHERE run_id=$1 AND extraction_method='utf8-notes-v1'",[x.runId])).rows[0];expect(reports[0].blocks[1].citationIds).toEqual([p.id]);}
+  else expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId])).rows[0].payload.reason).toBe("readable_evidence_unavailable");
+ }));
+});

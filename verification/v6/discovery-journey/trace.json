@@ -1,0 +1,151 @@
+{
+  "evidenceClass": "local_api_worker_actual_pdf_fabricated_model",
+  "sourceTransport": "saved bytes transport double",
+  "question": "What does the HKUVAW field note say about underwater recording?",
+  "originalBytesSha256": "12229168afe8fedece8fbe0e19499933fbd3c54ffe2f6a790e05cfa77bb0a71f",
+  "runId": "4b774bce-3140-4006-a5b9-668f60c43bf8",
+  "reportId": "3de9327c-7a82-4f94-900d-6c86bb618999",
+  "reportText": "HKUVAW does not support underwater recording.",
+  "source": {
+    "passageId": "11d2ad48-91a8-4ac1-9cd6-cb49413e5dbd",
+    "sourceVersionId": "4272bbf2-86bb-4f9e-b96b-b2fdbbd66bac",
+    "locator": {
+      "kind": "text",
+      "rows": [],
+      "block": "page:1/block:0",
+      "geometry": [
+        {
+          "box": [
+            50,
+            737.516,
+            272.744,
+            748.616
+          ],
+          "text": "Field notes: HKUVAW sensor deployment"
+        },
+        {
+          "box": [
+            50,
+            719.516,
+            355.4360000000002,
+            730.616
+          ],
+          "text": "HKUVAW supports offline recording only on firmware 4.2."
+        },
+        {
+          "box": [
+            50,
+            701.516,
+            315.44000000000017,
+            712.616
+          ],
+          "text": "HKUVAW does not support underwater recording."
+        }
+      ],
+      "coordinates": "PDF points; bottom-left origin",
+      "normalization": "extractor-output-v1"
+    },
+    "access": "partial-text",
+    "method": "docling-parse-7.20.0/geometry-v1",
+    "warnings": [
+      "pdf_layout_tables_and_ocr_unverified"
+    ]
+  },
+  "support": [
+    {
+      "claimRevisionId": "e377b445-1b56-4402-bbbb-9e759b247427",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "claimRevisionId": "606d94fb-c0e8-46d4-801e-7a3ea962ca67",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "paidProviderCalls": 0,
+  "modelResponses": "fabricated",
+  "correctionJourney": "not tested"
+}

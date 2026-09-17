@@ -83,6 +83,7 @@ export async function insertVersionAndPassage(
     locator: string;
     text: string;
     accessLevel: AccessLevel;
+    extractionMethod?: "search-snippet";
   },
 ): Promise<{ versionId: string; passageId: string }> {
   const versionId = crypto.randomUUID();
@@ -95,8 +96,8 @@ export async function insertVersionAndPassage(
   );
   await db.query(
     `INSERT INTO passages (id, source_version_id, account_id, run_id, exact_text, locator, extraction_method, content_hash)
-     VALUES ($1,$2,$3,$4,$5,$6,'fixture-text',$7)`,
-    [passageId, versionId, args.accountId, args.runId, args.text, JSON.stringify({ kind: "document" }), hash],
+     VALUES ($1,$2,$3,$4,$5,$6,$8,$7)`,
+    [passageId, versionId, args.accountId, args.runId, args.text, JSON.stringify({ kind: "document" }), hash, args.extractionMethod ?? "fixture-text"],
   );
   return { versionId, passageId };
 }

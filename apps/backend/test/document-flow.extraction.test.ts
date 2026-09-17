@@ -1,3 +1,4 @@
+import * as publicTransport from "../src/platform/ssrf.js";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { beforeAll, afterAll, afterEach, expect, it, vi } from "vitest";
@@ -13,7 +14,7 @@ import { ingestAttachments } from "../src/worker/attachment-ingestion.js";
 import { claimLease, getBrief, getRun } from "../src/modules/runs.js";
 import { fencedSession } from "../src/worker/fenced-session.js";
 const originalFetch=globalThis.fetch;
-afterEach(()=>{globalThis.fetch=originalFetch;});
+afterEach(()=>{globalThis.fetch=originalFetch;vi.restoreAllMocks();});
 let app: FastifyInstance, pool: pg.Pool, boss: PgBoss, config: AppConfig;
 beforeAll(async () => {
   const databaseUrl = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
@@ -22,7 +23,7 @@ beforeAll(async () => {
   app = await buildApp({ pool, boss, config });
 });
 afterAll(async () => { await app.close(); await boss.stop({ graceful: false, timeout: 2000 }); await pool.end(); });
-async function setup(structured=false) {
+async function setup(structured=false,publicSource=false) {
   const session = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json();
   const headers = { authorization: `Bearer ${session.token}` };
   expect((await app.inject({ method: "POST", url: "/v1/consent", headers, payload: { grant: true } })).statusCode).toBe(200);
@@ -30,13 +31,13 @@ async function setup(structured=false) {
   const entity=structured?Array.from(crypto.getRandomValues(new Uint8Array(6)),n=>String.fromCharCode(65+n%26)).join(""):"Ardent";
   // Same-length substitution preserves PDF object offsets; the extractor still reads actual binary bytes.
   const bytes=Buffer.from(original.toString("latin1").replaceAll("Ardent",entity),"latin1");
-  const question=`What does the supplied ${entity} field note say about underwater recording?`;
+  const question=`What does the ${entity} field note say about underwater recording?`;
   const uploaded = await app.inject({ method: "POST", url: "/v1/attachments/bytes", headers: { ...headers,
     "content-type": "application/octet-stream", "x-document-mime": "application/pdf", "x-file-name": "field-notes.pdf" }, payload: bytes });
   expect(uploaded.statusCode).toBe(201);
   const attachmentId = uploaded.json().attachmentId;
   const response = await app.inject({ method: "POST", url: "/v1/runs", headers: { ...headers, "idempotency-key": crypto.randomUUID() },
-    payload: { question, routeMode: structured?"controlled-research":"fixture", attachmentIds: [attachmentId] } });
+    payload: { question, routeMode: structured?"controlled-research":"fixture", attachmentIds: publicSource?[]:[attachmentId] } });
   expect(response.statusCode).toBe(200);
   return { accountId: session.accountId, headers, attachmentId, runId: response.json().runId, bytes,entity,question };
 }
@@ -78,13 +79,19 @@ it.each(["cancel", "delete"])("W04 %s after actual parsing prevents late result 
 });
 
 
-it("W04/W05 binary API -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding",async()=>{
- const task=await setup(true);
+it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured worker -> report/source reopen preserves a renamed negative finding",async(mode)=>{
+ const publicSource=mode==="public-search",task=await setup(true,publicSource);
+ if(publicSource)vi.spyOn(publicTransport,"safeFetch").mockImplementation(async(url)=>{
+  expect(url).toBe("https://example.org/field-note.pdf");
+  return {url,body:task.bytes.toString("utf8"),status:200,mime:"application/pdf",bytes:task.bytes,redirectChain:[]};
+ });
  const scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
  const reply=(output:unknown)=>new Response(JSON.stringify({id:"nonbillable-document-test",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000001"},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]}),{status:200});
  globalThis.fetch=vi.fn(async(input,init)=>{
   if(String(input)!=="https://openrouter.ai/api/v1/chat/completions")throw new Error("unexpected external request");
-  const body=JSON.parse(String(init?.body)),context=JSON.parse(body.messages[1].content),operation=body.response_format.json_schema.name;
+  const body=JSON.parse(String(init?.body));
+  if(body.plugins?.length)return new Response(JSON.stringify({id:"nonbillable-search-document",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:"https://example.org/field-note.pdf",title:"Field note",content:"A field note is available."}}]}}]}));
+  const context=JSON.parse(body.messages[1].content),operation=body.response_format.json_schema.name;
   if(operation==="research_brief_v1") {
    const provenance={start:0,end:context.question.length,quote:context.question};
    return reply({objective:context.question,objectiveProvenance:provenance,intendedOutput:"Document-grounded answer",criteria:[{key:"recording",description:"Underwater recording support",field:"recording",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],questions:[{key:"q",text:context.question,criterionKeys:["recording"],importance:"critical",evidenceStandard:"Explicit statement in the supplied document"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]});
@@ -101,7 +108,7 @@ it("W04/W05 binary API -> isolated PDF -> structured worker -> report/source reo
   if(operation==="research_write_report_v1")return reply({title:"Document finding",sections:[{heading:"Evidence",paragraphs:[{text:context.assertions[0].text,claimKeys:[context.assertions[0].key]}]}],unresolvedQuestionKeys:[],limitations:[]});
   throw new Error("unexpected model operation");
  }) as typeof fetch;
- await processRun(pool,config,task.runId);
+ await processRun(pool,{...config,structuredDiscoveryEnabled:publicSource,liveRetrievalEnabled:publicSource},task.runId);
  const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[task.runId])).rows;
  expect(reports).toHaveLength(1);expect(reports[0].outcome).toBe("completed");
  const reopened=await app.inject({method:"GET",url:`/v1/reports/${reports[0].id}`,headers:task.headers});
@@ -115,8 +122,9 @@ it("W04/W05 binary API -> isolated PDF -> structured worker -> report/source reo
  expect((await pool.query("SELECT body FROM evidence_artifacts WHERE account_id=$1",[task.accountId])).rows[0].body).toEqual(task.bytes);
  const checks=(await pool.query("SELECT result,claim_revision_id FROM scoped_support_results WHERE run_id=$1",[task.runId])).rows;
  expect(checks).toHaveLength(2);expect(checks.every((c)=>c.result.decision==="supported")).toBe(true);
- expect(globalThis.fetch).toHaveBeenCalledTimes(7);
- console.info(JSON.stringify({evidenceClass:"local_api_worker_actual_pdf_fabricated_model",question:task.question,
+ expect(globalThis.fetch).toHaveBeenCalledTimes(publicSource?8:7);
+ if(publicSource)expect(publicTransport.safeFetch).toHaveBeenCalledTimes(1);
+ console.info(JSON.stringify({evidenceClass:"local_api_worker_actual_pdf_fabricated_model",sourceTransport:publicSource?"saved bytes transport double":"binary upload",question:task.question,
   originalBytesSha256:createHash("sha256").update(task.bytes).digest("hex"),runId:task.runId,reportId:reports[0].id,
   reportText:reopened.json().blocks[1].text,source:{passageId,sourceVersionId:source.json().sourceVersionId,locator:source.json().passageLocator,
    access:source.json().accessLevel,method:source.json().extractionMethod,warnings:source.json().warnings},

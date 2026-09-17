@@ -1,0 +1,42 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (79 tests) 31985ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call  306ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call  547ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts  567ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result  346ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  316ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request  364ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  445ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  319ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  307ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  476ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  417ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  382ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1606ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1960ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  662ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  386ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  381ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  440ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  1243ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  686ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  345ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  336ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  316ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  514ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  2804ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  938ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  392ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  1499ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  377ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  1490ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  404ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true  1307ms
+
+ Test Files  1 passed (1)
+      Tests  79 passed (79)
+   Start at  14:45:08
+   Duration  35.90s (transform 2.26s, setup 0ms, collect 3.07s, tests 31.98s, environment 1ms, prepare 334ms)
+
