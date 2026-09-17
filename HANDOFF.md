@@ -32,13 +32,14 @@ Working tree: `main` at `c81654ab19178eafaebe38b1255f59a09747a3e8`. P0 is **not*
 - M04 on Xiaomi: fixture reports emit a wide `comparison-table` and `candidate-listing` code block. Nested horizontal ScrollViews show extra columns/locators without widening the screen. Citations wrap. Source sheet and library titles wrap. Unicode long-token breaking is unit-tested (`café`, `漢字`).
 - G01/G02 local suite (`verification/g01-g02.json`): cross-user deny, private canary omitted from search, missing/declined/revoked consent cannot process (including revoke-during-writing), deletion blocks late resurrection, unknown citations cannot publish, accepted runs remain in library/GET, replayed completion debits once, stale brief/evidence/lease cannot publish, cancel-during-writing leaves no report. Hosted RLS/auth is not this suite.
 - P4 recovery drill (`verification/p4-recovery.json`): crash after fetch keeps passages; a live lease cannot be stolen; an expired lease is recovered by another worker; crash before publish plus failover still yields one report and one settlement. `pnpm --filter @deep/backend typecheck` now exits 0.
+- G06 local (`verification/g06-cost.json`): `GET /v1/routes/capabilities` pins fixture tariffs and refuses internal-search visibility; `GET /v1/runs/:id/cost` reconciles fixture spent_micro to intents. Settings shows processor disclosures from `GET /v1/settings`. Not a live OpenRouter invoice probe.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 90 tests including G01/G02 and P4 recovery |
+| `pnpm test:integration` | 0 | 92 tests including G06 fixture cost |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
-| `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
+| `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
 | `pnpm --filter @deep/research-core test` | 0 | 26 tests including V2-03 gold-evidence diagnostic |

@@ -638,6 +638,13 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     state2.basis.workerLeaseFence = fence;
 
     await addSpent(pool, runId, FIXTURE_SYNTH_COST_MICRO);
+    await recordIntent(pool, runId, {
+      correlationId: reportId,
+      route: "fixture:synthesize",
+      digest: "compose-report",
+      reserved: FIXTURE_SYNTH_COST_MICRO,
+      state: "confirmed",
+    });
     const result = await withTx(pool, async (c) => {
       return publishReport(c, {
         report,

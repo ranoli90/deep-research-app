@@ -60,7 +60,7 @@ These are predeclared product hurdles to test, not calibrated scientific truths:
 | G03 | Engineering requirement | Native create/close/reopen/read/cite/correct/share/delete flows pass on both platforms and accessible layouts | Not run |
 | G04 | Experimental quality target | Original candidate targets: at least 95% audited support precision and 90% consequential-claim coverage, with stated denominators, independently sampled claims and no unaddressed critical fabrication | Unvalidated target; no observations |
 | G05 | Experimental product target | Repair reduction/decisive-evidence benefit and incremental-update safety under the registered task protocol | Not run |
-| G06 | Engineering/economic requirement | Route privacy/capability probes and measured bounded-cost admission/reconciliation pass; effective processor and tariffs pinned | Not run |
+| G06 | Engineering/economic requirement | Route privacy/capability probes and measured bounded-cost admission/reconciliation pass; effective processor and tariffs pinned | Local fixture pin + measured C_run passed (`verification/g06-cost.json`). Live OpenRouter invoice/tariff probe not run (no additional spend). Hosted processor unverified. Not a full G06 pass. |
 | G07 | Release policy | Actual privacy disclosures, output report flow, purchases/restore/deletion obligations and review access complete under current store rules | Not run |
 
 “Zero observed” in finite tests is not proof of zero future risk. A 95% point estimate from a tiny claim sample is not a 95% guarantee. Report sample sizes, per-task failures and uncertainty. Public superiority language requires a larger relevant evaluation and remains scoped to modes/tasks/dates.

@@ -33,6 +33,8 @@ import {
   revokeConsent,
 } from "../modules/access.js";
 import { reserveAllowance } from "../modules/billing.js";
+import { pinRouteCapabilities } from "../modules/route-capabilities.js";
+import { measureRunCost } from "../modules/run-cost.js";
 import {
   cancelRun,
   emitEvent,
@@ -622,9 +624,25 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       allowance: allow.rows[0] ?? null,
       liveRouteEnabled: config.liveRouteEnabled,
       fixtureRouteAllowed: config.fixtureRouteAllowed,
+      capabilities: pinRouteCapabilities(config),
       purchases: { available: false, reason: "Store purchases are gated until sandbox credentials exist." },
       push: { available: false, reason: "Live push is gated; reopen the app to refresh research." },
     };
+  });
+
+  app.get("/v1/routes/capabilities", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    return { capabilities: pinRouteCapabilities(config), paidProbe: false };
+  });
+
+  app.get("/v1/runs/:id/cost", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = (req.params as { id: string }).id;
+    const cost = await measureRunCost(pool, id, a.accountId);
+    if (!cost) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+    return cost;
   });
 
   // Test-only publish helper is not exposed. Tests import publishReport.

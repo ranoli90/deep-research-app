@@ -168,6 +168,12 @@ No live paid calls were made.
 - Fixed `apps/backend` typecheck: clarify events use `public_summary`; M04 blocks are typed; export citation match ids are narrowed; S02 fetch mock uses `Parameters<typeof fetch>[0]`. `pnpm --filter @deep/backend typecheck` exit 0.
 - P4 drill `apps/backend/test/p4-recovery.integration.test.ts`: crash after fetch keeps evidence, live lease is not stolen, expired lease recovered by another worker with one report and one settlement; crash before publish then failover also one report/one debit. Integration 90/90. Artifact `verification/p4-recovery.json`. iOS/G03–G07/hosted auth unpassed. No OpenRouter spend.
 
+## 2026-09-16 — G06 local capability pin and measured fixture C_run
+
+- `GET /v1/routes/capabilities` pins fixture search/fetch/synthesize tariffs (5000/3000/8000) and marks provider-internal search visibility and hosted-baseline unsupported. Live search is unsupported when the route is off. `paidProbe=false`; no OpenRouter completion.
+- Fixture synthesize now records a `fixture:synthesize` intent. `GET /v1/runs/:id/cost` reconciles `spent_micro` to intents; allowance `settled_micro` matches spent. Cross-account cost is 404.
+- Settings loads processor disclosures from `GET /v1/settings`. Integration 92/92; backend unit 16/16; mobile 32/32. Artifact `verification/g06-cost.json`. G03/G04/G05/G07 and live G06 remain unpassed.
+
 
 
 

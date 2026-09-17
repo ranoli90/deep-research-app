@@ -68,6 +68,7 @@ function AppInner() {
   const [attachText, setAttachText] = useState("");
   const [showAttach, setShowAttach] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [processors, setProcessors] = useState<string[]>([]);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const conversationScroll = useRef<ScrollView>(null);
   const blockY = useRef<Record<string, number>>({});
@@ -232,6 +233,15 @@ function AppInner() {
       if (poll.current) clearInterval(poll.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (state.tab !== "settings" || !token) return;
+    void api.settings(token).then((s: { processors?: string[] }) => {
+      if (Array.isArray(s.processors)) setProcessors(s.processors);
+    }).catch(() => {
+      /* keep last known processors; signed-out path shows the sign-in prompt */
+    });
+  }, [state.tab, token]);
 
   async function onSend() {
     const gate = canSubmit(state);
@@ -642,6 +652,7 @@ function AppInner() {
         {state.tab === "settings" ? (
           <Settings
             styles={styles}
+            processors={processors}
             state={state}
             onConsent={grantConsent}
             onSignIn={ensureSession}
@@ -821,6 +832,7 @@ function Library({
 function Settings({
   styles,
   state,
+  processors,
   onConsent,
   onSignIn,
   onMode,
@@ -830,6 +842,7 @@ function Settings({
 }: {
   styles: ReturnType<typeof makeStyles>;
   state: UiState;
+  processors: string[];
   onConsent: () => void;
   onSignIn: () => void;
   onMode: (m: UiState["routeMode"]) => void;
@@ -851,6 +864,10 @@ function Settings({
         <Text style={styles.link}>Route: {state.routeMode}</Text>
       </Pressable>
       <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
+      <Text style={styles.bodyText} accessibilityLabel="Processor disclosures">
+        Processors: {processors.length ? processors.join(". ") : state.signedIn ? "Loading processor list." : "Sign in to see processor disclosures."}
+      </Text>
+      <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
       <Text style={styles.caveat}>Purchases: unavailable until a store sandbox is connected. Restore is listed but will explain that prerequisite.</Text>
       <Text style={styles.caveat}>Notifications: optional. The app works if permission is denied; reopen to refresh.</Text>
       <Pressable onPress={onRevoke} accessibilityRole="button" accessibilityLabel="Revoke AI processing consent">

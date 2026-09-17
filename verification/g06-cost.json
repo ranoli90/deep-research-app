@@ -1,0 +1,34 @@
+{
+  "as_of": "2026-09-16",
+  "suite": "G06 local fixture capability pin and measured C_run",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/g06-cost.integration.test.ts",
+  "cwd": "apps/backend",
+  "paid": false,
+  "live_provider_probe": false,
+  "exit_code": 0,
+  "unit_tests": 2,
+  "integration_tests": 2,
+  "integration_totals": { "files": 6, "tests": 92 },
+  "results": [
+    {
+      "id": "G06-capabilities",
+      "status": "passed",
+      "observed": "GET /v1/routes/capabilities paidProbe=false. Fixture search/fetch/synthesize tariffs 5000/3000/8000. internal_search_visibility unsupported. controlled-research search unsupported with live off. hosted-baseline unsupported. Unauthenticated GET is 401."
+    },
+    {
+      "id": "G06-measured-cost",
+      "status": "passed",
+      "observed": "After fixture processRun, GET /v1/runs/:id/cost reconciled spent_micro to intent totals. Search/fetch multiples of pinned tariffs; synthesize=8000. Reservation settled; allowance settled_micro equals spent and reserved_micro=0. Other account 404."
+    }
+  ],
+  "not_claimed": [
+    "G03 both-platform native",
+    "G04 quality targets",
+    "G05 competitive/repair experiment",
+    "G06 live OpenRouter invoice/tariff probe",
+    "G07 store disclosures/purchases",
+    "iOS P0-N",
+    "hosted processor/auth"
+  ],
+  "p0_fully_verified": false
+}
