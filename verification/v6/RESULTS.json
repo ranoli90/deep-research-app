@@ -4737,7 +4737,8 @@
       "exitCode": 2,
       "evidenceClass": "typecheck_failure",
       "scope": "Previous test-only candidate null change exposed inferred string type; fixed using the actual shared extraction output type, no weakened assertions",
-      "sha256": "a4bb202174f47ccc37c17fbe1ef0dcf99589b627a799dceb4070b9e12fa959aa"
+      "sha256": "a4bb202174f47ccc37c17fbe1ef0dcf99589b627a799dceb4070b9e12fa959aa",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4753,7 +4754,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "142/93/52/6 before final citation/rendering/scope controls",
-      "sha256": "34c7d8564c2c5257f8f67f331ed907e7424841deb497e4c80f5c6bc28bce4dec"
+      "sha256": "34c7d8564c2c5257f8f67f331ed907e7424841deb497e4c80f5c6bc28bce4dec",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4769,7 +4771,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "108/108;81.42s; publication/reopen/proof controls before final citation/operand-scope changes",
-      "sha256": "dc80a39789b619ee125449af436a3a970f46610eec2ea28cbc186d3bb62491c3"
+      "sha256": "dc80a39789b619ee125449af436a3a970f46610eec2ea28cbc186d3bb62491c3",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4785,7 +4788,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "143 core/93 backend/52 mobile/6 governance; final gates and scope, before display-only formula labels",
-      "sha256": "4cacd19c0381864514f201452aee4d15a56291c65f10c751b7d10369648a09a9"
+      "sha256": "4cacd19c0381864514f201452aee4d15a56291c65f10c751b7d10369648a09a9",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4801,7 +4805,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4817,7 +4822,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Canonical handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4833,7 +4839,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "280/280 across16 files;149.37s; real publication revalidation and local PostgreSQL; fabricated model transport",
-      "sha256": "ab37439bc3d03fa58db68dac10d69e30b45be7ff0c50ccbeb0801d580dd2f809"
+      "sha256": "ab37439bc3d03fa58db68dac10d69e30b45be7ff0c50ccbeb0801d580dd2f809",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4847,7 +4854,8 @@
       "exitCode": 0,
       "evidenceClass": "static_types",
       "scope": "Final registered workspace typecheck; no native claim",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4863,7 +4871,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_fabricated_model",
       "scope": "108/108;74.35s; final exact arithmetic, scope, citation and publication controls; fabricated model transport",
-      "sha256": "a0efe003ec131bdf1a556a5ae69521a0622f609bbcd760cee7194586a0553b70"
+      "sha256": "a0efe003ec131bdf1a556a5ae69521a0622f609bbcd760cee7194586a0553b70",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     },
     {
       "requirementIds": [
@@ -4879,7 +4888,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;48.92s; actual HTML/PDF source/reopen/correction/deletion journeys, fabricated model/search transport; not an automatically selected calculation journey",
-      "sha256": "1a22764c95c38ad6f7d9a202bc569683fe7d39a91192cb23963caf7dde5def42"
+      "sha256": "1a22764c95c38ad6f7d9a202bc569683fe7d39a91192cb23963caf7dde5def42",
+      "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
     }
   ],
   "unresolved": [
@@ -4899,6 +4909,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "5db808b",
-  "implementationCommit": "5db808b9923606d38128c040fdb1015fb45e2cc1"
+  "checkpointCommit": "7ea64d9",
+  "implementationCommit": "7ea64d995a26230739813681ac79e5d49f3abfb2"
 }
