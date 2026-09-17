@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` at `2d59f155eda7d98ba071810926892b0cc016dd58`. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` at `46ef0b8e84590cd62d236615ff4e1db3f61178a3`. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
@@ -42,7 +42,7 @@ Working tree: `main` at `2d59f155eda7d98ba071810926892b0cc016dd58`. P0 is **not*
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 97 tests including JOB-1 eligibility |
+| `pnpm test:integration` | 0 | 99 tests including R02 continue-without-geography |
 | `pnpm --filter @deep/research-core test` | 0 | 28 tests including JOB-1 platform constraints |
 | `pnpm --filter @deep/backend typecheck` | 0 | previously failing test/unit files now typecheck |
 | `pnpm --filter @deep/backend test:unit` | 0 | 16 tests including G06 capability pin |
