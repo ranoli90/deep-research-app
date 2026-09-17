@@ -15,6 +15,7 @@ P0 is **not** fully verified.
 | Item | Status |
 |---|---|
 | P1 decision-blocking gap + source-type switch (V2-01, V2-02, R08) | implemented and verified on the labeled fixture route |
+| P1 gold-evidence diagnostic (V2-03) | implemented and verified on composeReport: summaries-only miss the limitation; injecting the vendor-matrix passage surfaces it (`bottleneck=retrieval`). Not a live A/B vs competitors. |
 | P2 relaxed-constraint candidate reopen (V2-04) | implemented and verified (Vendor C appears only after budget 50→120) |
 | P2 numeric unit correction (V2-05) | implemented and verified |
 | P2 unknown-dependency full rerun (V2-06) | implemented and verified |

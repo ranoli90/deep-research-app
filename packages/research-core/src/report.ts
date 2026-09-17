@@ -14,6 +14,30 @@ export function stripUnsafeMarkup(text: string): string {
   return text.replace(/<\/?script\b[^>]*>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "").replace(/javascript:/gi, "");
 }
 
+export type GoldDiagnostic = {
+  withoutGoldUsesLimitation: boolean;
+  withGoldUsesLimitation: boolean;
+  bottleneck: "retrieval" | "synthesis" | "none";
+};
+
+/** V2-03: inject an independently verified passage. If only the gold copy succeeds, retrieval was the bottleneck. */
+export function goldEvidenceDiagnostic(args: {
+  withoutGold: ControllerState;
+  withGold: ControllerState;
+  limitationPattern: RegExp;
+  reportIdWithout: string;
+  reportIdWith: string;
+}): GoldDiagnostic {
+  const withoutText = JSON.stringify(composeReport(args.withoutGold, args.reportIdWithout).blocks);
+  const withText = JSON.stringify(composeReport(args.withGold, args.reportIdWith).blocks);
+  const withoutGoldUsesLimitation = args.limitationPattern.test(withoutText);
+  const withGoldUsesLimitation = args.limitationPattern.test(withText);
+  let bottleneck: GoldDiagnostic["bottleneck"] = "none";
+  if (!withoutGoldUsesLimitation && withGoldUsesLimitation) bottleneck = "retrieval";
+  else if (!withGoldUsesLimitation) bottleneck = "synthesis";
+  return { withoutGoldUsesLimitation, withGoldUsesLimitation, bottleneck };
+}
+
 /** Canonical Markdown export. Citations are 8-char owned passage prefixes. No PDF. */
 export function blocksToMarkdown(blocks: ReportBlock[]): string {
   return blocks

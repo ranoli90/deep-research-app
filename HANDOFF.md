@@ -9,7 +9,7 @@ Working tree: `main` at `38f6b7e1a5c1be5458032c4dff338bc87c009313`. P0 is **not*
 - Attachments are ingested as `attachment://` evidence and are not copied into public search queries (JOB-2, V2-13).
 - Off-coverage bait from retrieved pages is declined without skipping remaining fetches (R10 + R14).
 - Paywalled fetches persist `access_level=blocked` even when snippet bytes match (R07). Reports use the latest source version (V2-19).
-- P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02).
+- P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02). V2-03 gold-evidence diagnostic: without the matrix passage the report does not use the limitation; with the injected matrix it does (`bottleneck=retrieval`). Not a competitor A/B.
 - P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04). A known candidate-space reopen is **not** a full rerun (`fullRerun=false`); unknown-dependency completeness still forces `fullRerun=true`. A scratch run of the corrected 120 EUR task also finds Vendor C.
 - Close/reopen restores token, draft, and last run via `persistSession`/`hydrateOnLaunch`. Library opens a saved run on Research immediately. Cancel during writing is asserted by `pnpm p0:launch`.
 - Native Android attach: run `99391a32` ingested `attachment://700ba177` (`note.txtt`); source sheet showed FULL-TEXT `INTERNAL-PROPOSAL`. Attach fields collapse while a report is open.
@@ -38,7 +38,7 @@ Working tree: `main` at `38f6b7e1a5c1be5458032c4dff338bc87c009313`. P0 is **not*
 | `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
-| `pnpm --filter @deep/research-core test` | 0 | 25 tests including selective vs full rerun |
+| `pnpm --filter @deep/research-core test` | 0 | 26 tests including V2-03 gold-evidence diagnostic |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |

@@ -5,7 +5,7 @@ import { compactForContext } from "../src/compact.js";
 import { detectGaps } from "../src/gaps.js";
 import { canSpendExploration } from "../src/fences.js";
 import { passageSupportsClaim } from "../src/support.js";
-import { blocksToMarkdown, composeReport, repairUnsupportedConclusion, stripUnsafeMarkup } from "../src/report.js";
+import { blocksToMarkdown, composeReport, goldEvidenceDiagnostic, repairUnsupportedConclusion, stripUnsafeMarkup } from "../src/report.js";
 import { applyCorrectionToConstraints, extractConstraints, inferOutputPreference } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
@@ -60,6 +60,65 @@ describe("V2-01 / P1 gaps", () => {
     ]);
     const gaps = detectGaps(s);
     expect(gaps.some((g) => g.sourceTypeNeeded === "vendor-matrix")).toBe(true);
+  });
+});
+
+describe("V2-03 gold-evidence diagnostic", () => {
+  it("records retrieval as the bottleneck when only the injected matrix passage surfaces the limitation", () => {
+    const question = "Is NimbusDB compatible with Postgres 14?";
+    const without = state(question, [
+      {
+        id: "review",
+        title: "blog roundup",
+        locator: "fixture://reviews/nimbus",
+        accessLevel: "full-text",
+        sourceType: "review-summary",
+      },
+    ]);
+    without.passages = [
+      {
+        id: "p-review",
+        sourceId: "review",
+        sourceVersionId: "v-review",
+        exactText: "Many reviewers say NimbusDB works great with Postgres. Five summaries agree.",
+        locator: "document",
+      },
+    ];
+    const withGold = state(question, [
+      ...without.sources,
+      {
+        id: "matrix",
+        title: "vendor matrix",
+        locator: "fixture://nimbus/matrix",
+        accessLevel: "full-text",
+        sourceType: "vendor-matrix",
+      },
+    ]);
+    withGold.passages = [
+      ...without.passages,
+      {
+        id: "p-gold",
+        sourceId: "matrix",
+        sourceVersionId: "v-gold",
+        exactText: "NimbusDB is not compatible with Postgres 14 according to the vendor compatibility matrix.",
+        locator: "matrix-row",
+      },
+    ];
+    expect(detectGaps(without).some((g) => g.sourceTypeNeeded === "vendor-matrix")).toBe(true);
+    expect(detectGaps(withGold).some((g) => g.sourceTypeNeeded === "vendor-matrix")).toBe(false);
+    const diag = goldEvidenceDiagnostic({
+      withoutGold: without,
+      withGold,
+      limitationPattern: /not compatible|incompatible/i,
+      reportIdWithout: "00000000-0000-4000-8000-0000000000aa",
+      reportIdWith: "00000000-0000-4000-8000-0000000000bb",
+    });
+    expect(diag.withoutGoldUsesLimitation).toBe(false);
+    expect(diag.withGoldUsesLimitation).toBe(true);
+    expect(diag.bottleneck).toBe("retrieval");
+    expect(JSON.stringify(composeReport(without, "00000000-0000-4000-8000-0000000000aa").blocks)).not.toMatch(
+      /certified compatible from \d+ summaries/i,
+    );
   });
 });
 
