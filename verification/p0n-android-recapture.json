@@ -1,0 +1,30 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "P0-N Android persist/library/source and cancel-during-writing",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G",
+    "app": "Expo Go host.exp.exponent"
+  },
+  "skeptic": {
+    "persist": "am force-stop host.exp.exponent then exp://127.0.0.1:8081 restored fixture report with budget=120 EUR; hydrateOnLaunch/persistSession are called from App.tsx",
+    "library": "Library listed COMPLETED items; Open first item switched to Research with the 120 EUR Vendor C report (openLibraryItem then refreshRun then startPolling)",
+    "launch_check": "Against running API 8787: waited until phase=writing, POST cancel, terminal outcome=cancelled, reportId=null, events cancel_requested+cancelled. runId 3e0f50a5"
+  },
+  "observed": {
+    "hydrate": "Settings showed Signed in and Consent granted before Research; Research showed restored 120 EUR correction",
+    "close_reopen": "force-stop + relaunch restored Fixture report constraints budget=120 EUR",
+    "library_open": "tap Open Compare... returned to Research report with Eligible Vendor A, Vendor C",
+    "cite": "Open source a77f6087 showed FULL-TEXT Vendor A managed Postgres pricing (Germany); Close returned",
+    "cancel_during_writing": "run 3e0f50a5-598b-463c-9d12-17417a62e2f0; cancel at writing; outcome cancelled; reportId null"
+  },
+  "screenshots": [
+    "verification/p0n-android-recapture/01-hydrate-120-vendor-c.png",
+    "verification/p0n-android-recapture/02-reopen-120.png",
+    "verification/p0n-android-recapture/03-library.png",
+    "verification/p0n-android-recapture/04-library-open-research.png",
+    "verification/p0n-android-recapture/05-source-fulltext.png"
+  ],
+  "p0_fully_verified": false,
+  "ios": "blocked — no Xcode"
+}

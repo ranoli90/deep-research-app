@@ -37,6 +37,7 @@ Working tree: `main` at `cbe2e4edb4e568cc19a929fa4a4cd6a51f392e49`. P0 is **not*
 - G07/M10 local (`verification/g07-output.json`): in-app generated-output report with category, explanation, excerpt permission; privacy data flows; restore purchases gated 403. Not store review or M11 sandbox.
 - E10 (`verification/e10-critical-claim.json`): worker/fixture withdraws an asserted 42% conclusion when the inspected table is 24%; remaining evidence keeps 24%. Not G04 quality.
 - JOB-1 (`verification/job1-eligibility.json`, `verification/job1-linux-correction.json`): NoteKeep eligible until Linux is required; then NoteAll is eligible, NoteKeep is ineligible, and the answer leads with NoteAll. EVAL-01 is still draft_not_validated.
+- P0-N Android recapture (`verification/p0n-android-recapture.json`): persist/hydrate after force-stop, library open, FULL-TEXT source, cancel-during-writing `3e0f50a5` cancelled with no report. iOS still blocked.
 - R02 (`verification/r02-continue.json`, `verification/r02-geo-search.json`): empty continue is 400; confirmed geography is appended to the search query so France does not reuse the Germany default note.
 
 ## Commands (this session)

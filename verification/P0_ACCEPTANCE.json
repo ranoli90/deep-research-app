@@ -64,7 +64,7 @@
         "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
       "evidence": {
-        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; 120 EUR Vendor C; force-stop/reopen; FULL-TEXT source; p0:launch cancel during writing; scan.pdf attach + unread-pages caveat; Share Markdown opened ChooserActivity. Prior: TalkBack, M04/M02/M05/M08/R02/S12/M09"
+        "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; recapture 2026-09-16 verification/p0n-android-recapture.json: persist/hydrate 120 EUR after force-stop; library Open switches to Research report; FULL-TEXT source a77f6087; live API cancel-during-writing run 3e0f50a5 outcome=cancelled reportId=null. Prior G03 share/deletion/Vendor C."
       },
       "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
       "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."

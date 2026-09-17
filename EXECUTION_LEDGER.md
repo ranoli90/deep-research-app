@@ -215,6 +215,11 @@ No live paid calls were made.
 - parseCorrection/applyCorrectionToConstraints add platform=linux. Child eligibility: NoteAll eligible, NoteKeep ineligible (linux). Answer uses the eligible NoteAll passage.
 - Integration 101/101; research-core 30/30. Artifact `verification/job1-linux-correction.json`. iOS/hosted/M11/G04 unpassed.
 
+## 2026-09-16 — Android P0-N recapture of persist, library, source, cancel-during-writing
+
+- Device a3fa7852: force-stop Expo Go then `exp://127.0.0.1:8081` restored budget=120 EUR. Library Open returned to Research with Vendor A+C. Source a77f6087 FULL-TEXT. Live API cancel at writing: run `3e0f50a5`, outcome=cancelled, reportId=null.
+- Artifact `verification/p0n-android-recapture.json`. iOS still blocked.
+
 
 
 
