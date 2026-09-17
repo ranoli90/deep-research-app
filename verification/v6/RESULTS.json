@@ -4137,7 +4137,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Initial implementation before new regressions;117/92/52/6",
-      "sha256": "689b770ec0822f071b87cafa43c8a5feac4a319b1805067c1410e4fabde0001a"
+      "sha256": "689b770ec0822f071b87cafa43c8a5feac4a319b1805067c1410e4fabde0001a",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4152,7 +4153,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "127core/92backend/52mobile/6governance",
-      "sha256": "4539cfdd886519d90abb7b012fc48f148d60d0d1871f834741edd89df4ddd9cf"
+      "sha256": "4539cfdd886519d90abb7b012fc48f148d60d0d1871f834741edd89df4ddd9cf",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4167,7 +4169,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "94/94;51.05s; comparison persistence, writer context, ownership, tamper and deletion",
-      "sha256": "4bbd73726988bd95b848da6233fc47673271613f06b3dca7a9cdc910dc37dc16"
+      "sha256": "4bbd73726988bd95b848da6233fc47673271613f06b3dca7a9cdc910dc37dc16",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4182,7 +4185,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "127/92/52/6",
-      "sha256": "25110ccb18dc97a92757a43ace5d6d87f83caa3d28ec66a63ae7fc62115dbab7"
+      "sha256": "25110ccb18dc97a92757a43ace5d6d87f83caa3d28ec66a63ae7fc62115dbab7",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4197,7 +4201,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "267/267;137.50s; before unknown-writer upgrade guard",
-      "sha256": "1fb95a47d501e5a6fa95f794a638217dab30e9c619163393fba83eb382b569a4"
+      "sha256": "1fb95a47d501e5a6fa95f794a638217dab30e9c619163393fba83eb382b569a4",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4212,7 +4217,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "127/92/52/6; unit/type checks did not catch later SQL typo",
-      "sha256": "6625bcb44a3dfe269adbaccb153e3ef729c655a4f6a71f729a8e3a15a203faf1"
+      "sha256": "6625bcb44a3dfe269adbaccb153e3ef729c655a4f6a71f729a8e3a15a203faf1",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4227,7 +4233,8 @@
       "exitCode": 1,
       "evidenceClass": "local_postgres_integration",
       "scope": "6 failures/90passes: unknown-writer guard referenced nonexistent actual_micro; corrected to confirmed_micro, assertions retained",
-      "sha256": "d02d7922ffc702ba244dba49352af71cdb8373b80ba9de468f86a1f45938beab"
+      "sha256": "d02d7922ffc702ba244dba49352af71cdb8373b80ba9de468f86a1f45938beab",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4242,7 +4249,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "96/96;50.01s; corrected guard preserves unknown holds without provider call",
-      "sha256": "90d78e1ab3d65c59841a412d681d29a12d25c8904438775bfd128bfbc7b9cb1d"
+      "sha256": "90d78e1ab3d65c59841a412d681d29a12d25c8904438775bfd128bfbc7b9cb1d",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4257,7 +4265,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "Final127core/92backend/52mobile/6governance",
-      "sha256": "6c422b65a43f1f00410b4c9de77fdc5f10b524ec41a9c6536bc9e0c137bcb267"
+      "sha256": "6c422b65a43f1f00410b4c9de77fdc5f10b524ec41a9c6536bc9e0c137bcb267",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4272,7 +4281,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "Final269/269;16files;172.39s;97 structured-service cases; capacity block, unknown upgrade gate and concurrent comparison replay",
-      "sha256": "9768467e4f87dc6a52b178001e58482c974cd38943ef2fb1aad7835ee99bf813"
+      "sha256": "9768467e4f87dc6a52b178001e58482c974cd38943ef2fb1aad7835ee99bf813",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4287,7 +4297,8 @@
       "exitCode": 0,
       "evidenceClass": "android_javascript_export",
       "scope": "Hermes2.04MB; public contract exports resolve; no native execution; hashes in scope-comparison-bundle-manifest.json",
-      "sha256": "1d11e96090e30eba5f82ca723b26cc29b4abe33082ee43319167a04f57679ee6"
+      "sha256": "1d11e96090e30eba5f82ca723b26cc29b4abe33082ee43319167a04f57679ee6",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4302,7 +4313,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4317,7 +4329,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4331,7 +4344,8 @@
       "exitCode": 0,
       "evidenceClass": "local_api_worker_actual_extraction",
       "scope": "14/14;56.71s; real HTML/PDF parser and API/worker corrected report/source flow; fabricated model/search responses",
-      "sha256": "2bf73dd9850f35b14d5349a874bf6abf38e743d1160bdcf6979d386702734567"
+      "sha256": "2bf73dd9850f35b14d5349a874bf6abf38e743d1160bdcf6979d386702734567",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4345,7 +4359,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Final review structure",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     },
     {
       "requirementIds": [
@@ -4359,7 +4374,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Final handoff structure",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
     }
   ],
   "unresolved": [
@@ -4379,6 +4395,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "4a84a95",
-  "implementationCommit": "4a84a95fa2bf3e1d54262c1c662f5d604e2013f2"
+  "checkpointCommit": "8d99098",
+  "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
 }

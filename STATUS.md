@@ -126,3 +126,5 @@ Mobile correction final verification:117 core/88 backend/52 mobile/4 governance 
 Mobile typed correction implementation/evidence committed as `0ac295d401efa187fe45195289c42ab802b89d69`. Next: isolate production worker from historical fixture/controller imports; native input, granular corrections and held-out evaluation remain open.
 
 Production runtime isolation implementation/evidence committed as `4a84a95fa2bf3e1d54262c1c662f5d604e2013f2`. Final document validators passed. Mobile correction checkpoint is `0ac295d`. Full milestone remains active and incomplete; no paid/native/hosted evidence or release approval added.
+
+Scope comparison implementation/evidence committed as `8d99098eafd3cb2ab30d488e61d93ea9924b68c1`. Checks:269 full PostgreSQL,14 actual extraction/API,127/92/52/6 verify and Android JS export. Initial SQL failure retained. Large comparison projection and remaining calculation/counterevidence/evaluation/mobile work remain open; no paid/native/hosted claim.
