@@ -3031,7 +3031,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "Initial policy/coordinator types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3047,7 +3048,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_discovery",
       "scope": "70/70 before final old-consent and mixed-document controls",
-      "sha256": "385f95a0958dfb1f7c854c19dce66389b35ee3bd05e97e7e89c877403b42af74"
+      "sha256": "385f95a0958dfb1f7c854c19dce66389b35ee3bd05e97e7e89c877403b42af74",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3063,7 +3065,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "115 core/88 backend/47 mobile/4 governance",
-      "sha256": "f8b85605b289d9cdc59478c2a66ffeadde1a1af48cc3a8047b50a16ad4c5db1d"
+      "sha256": "f8b85605b289d9cdc59478c2a66ffeadde1a1af48cc3a8047b50a16ad4c5db1d",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3079,7 +3082,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "Final implementation/test types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3095,7 +3099,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3111,7 +3116,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3143,7 +3149,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_discovery",
       "scope": "72/72 after fixing test setup to research_briefs; includes old consent/mixed-document controls",
-      "sha256": "9e0d7acabbdb92be97dba9b54b61f50f8da39f0a3f297c2a2e85cb1702bb5535"
+      "sha256": "9e0d7acabbdb92be97dba9b54b61f50f8da39f0a3f297c2a2e85cb1702bb5535",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     },
     {
       "requirementIds": [
@@ -3159,7 +3166,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_discovery",
       "scope": "244/244 final code/tests after setup table-name correction",
-      "sha256": "21a36297474ccd96cd28daf2e4415f90b8d18986a3ca671c79d62d663c3ebcf2"
+      "sha256": "21a36297474ccd96cd28daf2e4415f90b8d18986a3ca671c79d62d663c3ebcf2",
+      "testedCodeCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
     }
   ],
   "unresolved": [
@@ -3177,5 +3185,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "04fa478800bc40e8b4cee3d02cbd1c95e3493271"
+  "implementationCommit": "3b808523e78e99cd17be749f5a75403dc74cde55"
 }

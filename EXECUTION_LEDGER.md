@@ -431,3 +431,5 @@ Migration022 joins deletion; query body/policy/brief identity excludes unrelated
 First full integration exit1:243 passed/1 failed because the new mixed-document setup referenced nonexistent briefs instead of research_briefs. Corrected only the setup table name; focused final72/72 exit0, including old consent and mixed-document denial. No assertions weakened. Full rerun recorded below.
 
 Final durable discovery full integration exit0:244/244,16 files,103.98s. Focused72/72, verify115/88/47/4, final typecheck and document validators pass. Earlier243-pass/1-setup-failure run remains preserved. No paid/native/hosted evidence or deployment. Next: wire criterion-linked public search/read scheduling into structured processRun, retaining explicit limits and public-query privacy gates.
+
+Durable discovery implementation/evidence committed as `3b808523e78e99cd17be749f5a75403dc74cde55`. Final244-case integration exercised the final source and test setup. Worker integration, public-query approval for document tasks and overall W01-W09 remain incomplete.

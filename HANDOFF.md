@@ -1,7 +1,7 @@
 # Builder handoff
 ## Active V6 checkpoint
 
-W02/W03/W05 durable public discovery: default-off policy pins Exa auto plus the existing OpenAI model provider, requires consent2026-09-17.1 and stores immutable owned results with exact receipts. Concurrent/replayed queries issue once; unrelated evidence changes do not resend unknown outcomes. Known costs survive deletion while content is discarded. Mixed document searches require a future explicit public-query approval flow. Worker discovery/read scheduling and real paid quality evidence remain open.
+W02/W03/W05 durable public discovery (`3b80852`): default-off policy pins Exa auto plus the existing OpenAI model provider, requires consent2026-09-17.1 and stores immutable owned results with exact receipts. Concurrent/replayed queries issue once; unrelated evidence changes do not resend unknown outcomes. Known costs survive deletion while content is discarded. Mixed document searches require a future explicit public-query approval flow. Worker discovery/read scheduling and real paid quality evidence remain open.
 
 W02/W05 search transport (`04fa478`) now rejects redirects, enforces a 45-second total fetch/body deadline and 1MB strict-UTF8 response limit, validates bounded citation envelopes, rejects malformed/truncated output, and preserves parsed actual cost on invalid results. Titles no longer become invented snippets; citations deduplicate by URL and share an origin cluster. No engine/model/prompt/allowance change or paid call. Durable discovery output, explicit processor/policy selection and structured-worker discovery remain open.
 
