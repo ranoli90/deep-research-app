@@ -85,6 +85,25 @@ describe("JOB-1 platform constraints", () => {
     expect(found.find((c) => c.identity === "NoteKeep")?.excludedBy).toMatch(/linux/i);
     expect(found.find((c) => c.identity === "NoteAll")?.feasibility).toBe("satisfies");
   });
+
+  it("dropping Linux as a correction reopens NoteKeep", () => {
+    const q = "Compare note-taking apps with offline editing, Android and iPhone support, Linux required, and full export required.";
+    const withLinux = extractConstraints(q);
+    expect(withLinux.some((c) => c.field === "platform" && c.value === "linux")).toBe(true);
+    const applied = applyCorrectionToConstraints(withLinux, "Linux is no longer required");
+    expect(applied.reopenedDiscovery).toBe(true);
+    expect(applied.next.some((c) => c.field === "platform" && c.value === "linux")).toBe(false);
+    const found = extractCandidates(
+      [
+        { id: "p1", exactText: "NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux is not supported." },
+        { id: "p2", exactText: "NoteDroid: Android, Linux, offline editing, and full export are supported. iPhone is not supported." },
+        { id: "p3", exactText: "NoteAll: iPhone, Android, Linux, offline editing, and full export are supported." },
+      ],
+      applied.next,
+    );
+    expect(found.find((c) => c.identity === "NoteKeep")?.feasibility).toBe("satisfies");
+    expect(found.find((c) => c.identity === "NoteAll")?.feasibility).toBe("satisfies");
+  });
 });
 
 describe("V2-01 / P1 gaps", () => {

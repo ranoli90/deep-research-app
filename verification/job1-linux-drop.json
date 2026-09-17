@@ -1,0 +1,13 @@
+{
+  "as_of": "2026-09-17",
+  "requirement": "JOB-1 / V2-04 relaxing Linux re-includes NoteKeep",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'JOB-1 removing Linux'",
+  "first_run": "failed: after 'Linux is no longer required' NoteKeep stayed Ineligible (platform=linux)",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 102 },
+  "research_core": "31/31",
+  "observed": "Correction drops platform=linux and reopens discovery. Child eligibility includes NoteKeep; linux is absent from brief.constraints. Tightening Linux still excludes NoteKeep.",
+  "not_claimed": ["iOS P0-N", "hosted auth", "M11", "G04/G05", "EVAL-01 validated"],
+  "p0_fully_verified": false
+}

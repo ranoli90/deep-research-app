@@ -220,6 +220,12 @@ No live paid calls were made.
 - Device a3fa7852: force-stop Expo Go then `exp://127.0.0.1:8081` restored budget=120 EUR. Library Open returned to Research with Vendor A+C. Source a77f6087 FULL-TEXT. Live API cancel at writing: run `3e0f50a5`, outcome=cancelled, reportId=null.
 - Artifact `verification/p0n-android-recapture.json`. iOS still blocked.
 
+## 2026-09-17 — JOB-1 dropping Linux re-includes NoteKeep
+
+- First test failed: “Linux is no longer required” left NoteKeep ineligible (platform=linux).
+- parseCorrection drops platform=linux and marks discovery reopened. Child Eligible includes NoteKeep.
+- Integration 102/102; research-core 31/31. Artifact `verification/job1-linux-drop.json`. iOS/hosted/M11/G04 unpassed.
+
 
 
 

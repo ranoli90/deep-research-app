@@ -183,6 +183,7 @@ export function parseCorrection(text: string): {
   field?: string;
   value?: string;
   units?: string;
+  drop?: boolean;
   relaxedHardConstraint: boolean;
   unknownDependencies: boolean;
 } {
@@ -197,6 +198,9 @@ export function parseCorrection(text: string): {
   const budget = text.match(/\bbudget\s+is\s+(\d+(?:[.,]\d+)?)/i) ?? text.match(/\bbudget\s+(\d+(?:[.,]\d+)?)/i);
   if (budget) {
     return { field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
+  }
+  if (/\blinux\b/i.test(text) && /\bno longer required|not required|optional|drop linux|without linux/i.test(text)) {
+    return { field: "platform", value: "linux", drop: true, relaxedHardConstraint: true, unknownDependencies: false };
   }
   if (/\blinux\b/i.test(text) && /\b(required|also|hard|desktop)\b/i.test(text)) {
     return { field: "platform", value: "linux", relaxedHardConstraint: false, unknownDependencies: false };
@@ -256,7 +260,11 @@ export function applyCorrectionToConstraints(
     if (prev !== undefined && incoming > prev) reopenedDiscovery = true;
   }
   if (parsed.field === "platform" && parsed.value) {
-    if (!next.some((c) => c.field === "platform" && c.value === parsed.value)) {
+    if (parsed.drop) {
+      const kept = next.filter((c) => !(c.field === "platform" && c.value === parsed.value));
+      if (kept.length !== next.length) reopenedDiscovery = true;
+      next.splice(0, next.length, ...kept);
+    } else if (!next.some((c) => c.field === "platform" && c.value === parsed.value)) {
       next.push({
         id: `platform-${parsed.value}`,
         field: "platform",
