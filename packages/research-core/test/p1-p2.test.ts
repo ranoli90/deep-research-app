@@ -234,6 +234,25 @@ describe("V2-03 gold-evidence diagnostic", () => {
   });
 });
 
+describe("M08 follow-up change summary", () => {
+  it("emits a follow-up change summary without reopening discovery", () => {
+    const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nFollow-up: verify only claim-primary. Verify the answer claim only");
+    s.passages = [
+      {
+        id: "pa",
+        sourceId: "sa",
+        sourceVersionId: "va",
+        exactText: "Vendor A costs 40 EUR in Germany for managed Postgres.",
+        locator: "document",
+      },
+    ];
+    s.sources = [{ id: "sa", title: "A", locator: "fixture://vendor-a/pricing-de", accessLevel: "full-text", sourceType: "vendor-docs" }];
+    const report = composeReport(s, "00000000-0000-4000-8000-000000000080");
+    expect(report.changeSummary?.conclusionChanged).toBe(false);
+    expect(report.changeSummary?.notes).toMatch(/without reopening candidate discovery/);
+  });
+});
+
 describe("M04 comparison table and code listing", () => {
   it("emits a wide table and code listing from extracted vendors", () => {
     const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");

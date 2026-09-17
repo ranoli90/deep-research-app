@@ -1,0 +1,21 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "M08",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "observed": {
+    "action": "tapped Verify this claim",
+    "change_summary": "Targeted follow-up verified the named claim without reopening candidate discovery. Earlier conclusion kept unless a cited passage changed.",
+    "previous_version": "INTERNAL-PROPOSAL: dedicated vector engine is included in the German 40 EUR plan.",
+    "share_previous": "Share previous Markdown button present (content-desc Share previous report as Markdown)",
+    "share_current": "Share report as Markdown"
+  },
+  "tests": {
+    "mobile": "pnpm --filter @deep/mobile test 31/31",
+    "research_core": "pnpm --filter @deep/research-core test 23/23",
+    "integration": "pnpm --filter @deep/backend test:integration 76/76 including strengthened R19 change_summary"
+  },
+  "status": "implemented and verified on Android device"
+}

@@ -440,7 +440,15 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
           newlyInfeasible: extracted.filter((c) => c.feasibility === "violates").map((c) => c.identity),
           notes: "Hard constraint change reopened candidate discovery.",
         }
-      : undefined,
+      : /Follow-up: verify only/i.test(state.brief.originalQuestion)
+        ? {
+            evidenceUpdated: true,
+            conclusionChanged: false,
+            newlyFeasible: [],
+            newlyInfeasible: [],
+            notes: "Targeted follow-up verified the named claim without reopening candidate discovery.",
+          }
+        : undefined,
     routeMode: state.brief.desiredOutcome === "hosted" ? "hosted-baseline" : "fixture",
   };
 }

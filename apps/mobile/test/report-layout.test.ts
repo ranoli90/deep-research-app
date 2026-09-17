@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { breakLongTokens, needsHorizontalScroll, parseTable } from "../src/report-layout.js";
+import { breakLongTokens, formatChangeSummary, needsHorizontalScroll, parseTable } from "../src/report-layout.js";
 
 describe("M04 report layout", () => {
   it("inserts break opportunities in long unbroken URLs and code tokens", () => {
@@ -41,5 +41,18 @@ describe("M04 report layout", () => {
     expect(src).toMatch(/citeRow/);
     expect(src).toMatch(/breakLongTokens/);
     expect(src).toMatch(/styles\.sheetBody/);
+    expect(src).toMatch(/accessibilityLabel="Change summary"/);
+    expect(src).toMatch(/Share previous report as Markdown/);
+  });
+
+  it("M08 change summary keeps a follow-up note without claiming a new conclusion", () => {
+    const text = formatChangeSummary({
+      evidenceUpdated: true,
+      conclusionChanged: false,
+      newlyFeasible: [],
+      notes: "Targeted follow-up verified the named claim without reopening candidate discovery.",
+    });
+    expect(text).toMatch(/without reopening candidate discovery/);
+    expect(text).toMatch(/Earlier conclusion kept/);
   });
 });

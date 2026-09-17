@@ -30,3 +30,19 @@ export function parseTable(text: string): string[][] {
 export function needsHorizontalScroll(kind: string): boolean {
   return kind === "code" || kind === "table";
 }
+
+export type ChangeSummary = {
+  evidenceUpdated: boolean;
+  conclusionChanged: boolean;
+  newlyFeasible?: string[];
+  newlyInfeasible?: string[];
+  notes: string;
+};
+
+export function formatChangeSummary(cs: ChangeSummary): string {
+  const parts = [cs.notes];
+  if (cs.newlyFeasible && cs.newlyFeasible.length > 0) parts.push(`Newly feasible: ${cs.newlyFeasible.join(", ")}.`);
+  if (cs.newlyInfeasible && cs.newlyInfeasible.length > 0) parts.push(`Newly ineligible: ${cs.newlyInfeasible.join(", ")}.`);
+  if (!cs.conclusionChanged) parts.push("Earlier conclusion kept unless a cited passage changed.");
+  return parts.filter(Boolean).join(" ");
+}

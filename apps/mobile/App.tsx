@@ -22,7 +22,7 @@ import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api, isExpiredSession, isOfflineError } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
-import { breakLongTokens, parseTable } from "./src/report-layout";
+import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
   androidBack,
   applySnapshot,
@@ -133,6 +133,7 @@ function AppInner() {
               blocks: report.blocks,
               limitations: report.limitations ?? [],
               labeledDemo: report.labeledDemo,
+              changeSummary: report.changeSummary ?? null,
             },
           };
         }
@@ -452,6 +453,11 @@ function AppInner() {
                 {blocks.map((b) => (
                   <ReportBlockView key={b.id} block={b} styles={styles} onOpenSource={(id) => void onOpenSource(id)} />
                 ))}
+                {state.report.changeSummary ? (
+                  <Text style={styles.caveat} accessibilityLabel="Change summary">
+                    {formatChangeSummary(state.report.changeSummary)}
+                  </Text>
+                ) : null}
                 {state.report.limitations.map((l) => (
                   <Text key={l} style={styles.caveat}>
                     {l}
@@ -480,6 +486,13 @@ function AppInner() {
               <View style={styles.card} accessibilityLabel="Previous report version">
                 <Text style={styles.kicker}>Previous version</Text>
                 <Text style={styles.bodyText}>{state.previousReport.blocks.find((b) => b.id === "answer")?.text ?? "Earlier result kept."}</Text>
+                <Pressable
+                  onPress={() => void onShare(state.previousReport?.reportId)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Share previous report as Markdown"
+                >
+                  <Text style={styles.link}>Share previous Markdown</Text>
+                </Pressable>
               </View>
             ) : null}
 

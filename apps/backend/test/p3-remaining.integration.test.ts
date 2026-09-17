@@ -467,6 +467,11 @@ describe("remaining launch-scope IDs", () => {
     expect(parent?.id).toBeTruthy();
     const childEvents = await listEvents(pool, follow.json().runId, 0);
     expect(JSON.stringify(childEvents)).toMatch(/verify the named claim|Follow-up/i);
+    const childReport = await getLatestReportForRun(pool, follow.json().runId, accountId);
+    expect(childReport?.id).not.toBe(parent?.id);
+    const summary = childReport?.change_summary ?? childReport?.changeSummary;
+    const notes = typeof summary === "string" ? summary : JSON.stringify(summary);
+    expect(notes).toMatch(/without reopening candidate discovery/i);
   });
 
   it("R20 dates a retrieved price and keeps a founding year as history", async () => {

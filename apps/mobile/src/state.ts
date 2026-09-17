@@ -30,7 +30,13 @@ export type UiState = {
   offline: boolean;
   routeMode: RouteMode;
   run: RunSnapshot | null;
-  report: { reportId: string; blocks: ReportBlock[]; limitations: string[]; labeledDemo: boolean } | null;
+  report: {
+    reportId: string;
+    blocks: ReportBlock[];
+    limitations: string[];
+    labeledDemo: boolean;
+    changeSummary?: { evidenceUpdated: boolean; conclusionChanged: boolean; newlyFeasible?: string[]; newlyInfeasible?: string[]; notes: string } | null;
+  } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
   events: { sequence: number; type: string; publicSummary: string }[];
   source: { passageId: string; title: string; exactText: string; accessLevel: string } | null;
