@@ -475,3 +475,5 @@ Initial verify passed; focused86/86 passed in38.72s with unchanged wording and e
 Final verify exit0:117core/88backend/48mobile/4governance. Full PostgreSQL integration exit0:260/260 across16files,146.02s. Production gate ignores forged structured summary flags; a fresh cited version can change evidence without changing assertion wording; missing parent publication yields no comparison. Both document validators passed. Actual PDF comparison check follows separately.
 
 Actual extraction exit0:12/12,36.56s. Corrected PDF API response records1 added/1 removed assertion revision with unchanged cited source version, agrees with the full-rerun fabricated-model control, and is deleted afterward. Exact new trace/bytes under verification/v6/report-change-journey/ preserve prior correction evidence separately. No paid/native/hosted or semantic superiority claim.
+
+Result-derived comparison implementation/evidence committed as `6e0cce011f73cbf899930e0d765e4a363e741e85`. No comparison provider calls. Overall W01-W09 remains incomplete; next is mobile typed correction adoption, granular patch/freshness behavior and held-out evaluation.
