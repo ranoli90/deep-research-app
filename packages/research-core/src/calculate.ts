@@ -14,6 +14,33 @@ export type CalcResult = {
   expression: string;
 };
 
+export type CalcOutcome =
+  | { status: "computed"; result: CalcResult }
+  | { status: "unknown"; missing: string[]; formulaName: string };
+
+const REQUIRED_INPUTS: Record<string, string[]> = {
+  annual_from_monthly: ["monthly"],
+  grams_to_milligrams: ["grams"],
+  percent_difference: ["left", "right"],
+  date_interval_days: ["startMs", "endMs"],
+};
+
+/** Missing inputs stay unknown. Never invent a number. */
+export function tryCalculate(formulaName: string, inputs: CalcInput[]): CalcOutcome {
+  const required = REQUIRED_INPUTS[formulaName];
+  if (!required) return { status: "unknown", missing: ["formula"], formulaName };
+  const missing = required.filter((n) => {
+    const found = inputs.find((i) => i.name === n);
+    return !found || !Number.isFinite(found.value);
+  });
+  if (missing.length) return { status: "unknown", missing, formulaName };
+  try {
+    return { status: "computed", result: calculate(formulaName, inputs) };
+  } catch {
+    return { status: "unknown", missing: ["evaluation"], formulaName };
+  }
+}
+
 export function calculate(formulaName: string, inputs: CalcInput[]): CalcResult {
   if (formulaName === "annual_from_monthly") {
     const monthly = inputs.find((i) => i.name === "monthly") ?? inputs[0];
@@ -40,6 +67,36 @@ export function calculate(formulaName: string, inputs: CalcInput[]): CalcResult 
       output,
       units: "mg",
       expression: `${grams.value} g × 1000 = ${output} mg`,
+    };
+  }
+  if (formulaName === "percent_difference") {
+    const left = inputs.find((i) => i.name === "left") ?? inputs[0];
+    const right = inputs.find((i) => i.name === "right") ?? inputs[1];
+    if (!left || !right) throw new Error("missing left/right");
+    if (left.value === 0) throw new Error("division by zero");
+    const output = ((right.value - left.value) / left.value) * 100;
+    const rounded = Math.round(output * 100) / 100;
+    return {
+      formulaName,
+      formulaVersion: "1",
+      inputs: [left, right],
+      output: rounded,
+      units: "percent",
+      expression: `((${right.value} - ${left.value}) / ${left.value}) × 100 = ${rounded}%`,
+    };
+  }
+  if (formulaName === "date_interval_days") {
+    const start = inputs.find((i) => i.name === "startMs") ?? inputs[0];
+    const end = inputs.find((i) => i.name === "endMs") ?? inputs[1];
+    if (!start || !end) throw new Error("missing dates");
+    const output = Math.round((end.value - start.value) / 86_400_000);
+    return {
+      formulaName,
+      formulaVersion: "1",
+      inputs: [start, end],
+      output,
+      units: "day",
+      expression: `(${end.value} - ${start.value}) / 86400000 = ${output} day`,
     };
   }
   throw new Error(`unknown formula ${formulaName}`);

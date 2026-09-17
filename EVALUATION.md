@@ -1,5 +1,5 @@
 # Research evaluation and release protocol
-Owner role: evaluation lead. Status: protocol and draft task seeds only. **No research benchmark, human study or competitor trial has been run by this review.** Reviewed: 2026-09-16.
+Owner role: evaluation lead. Status: protocol plus a **fixture-class** 12-family baseline vs adaptive harness in `apps/backend/src/eval-benchmark.ts`. **No competitor trial or human study has been run.** Fixture results are not live quality. Reviewed: 2026-09-17.
 
 ## Main question
 Does the controlled system help a person finish a constrained technical decision or document-grounded check with less repair, without worse consequential correctness, than a simpler credible baseline and available dedicated research products?

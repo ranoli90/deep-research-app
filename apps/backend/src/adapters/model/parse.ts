@@ -1,6 +1,18 @@
 export type ParsedAction = { type: string; rationale: string; query?: string };
 
-const ALLOWED = new Set(["search", "fetch", "synthesize", "stop", "clarify"]);
+const ALLOWED = new Set([
+  "search",
+  "fetch",
+  "synthesize",
+  "stop",
+  "clarify",
+  "compare",
+  "calculate",
+  "verify",
+  "challenge",
+  "replan",
+  "extract_text",
+]);
 
 /** Nonbillable: parse a model action payload without calling a provider. */
 export function parseActionJson(text: string): ParsedAction {

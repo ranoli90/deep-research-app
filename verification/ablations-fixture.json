@@ -1,0 +1,111 @@
+{
+  "evidenceClass": "fixture",
+  "not_competitor_comparison": true,
+  "taskId": "conflicting-nimbus",
+  "ablations": {
+    "full": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noGapDetection": {
+      "pivots": 0,
+      "goldLocatorsFetched": [],
+      "actions": [
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "search",
+        "fetch",
+        "search",
+        "search",
+        "stop"
+      ],
+      "unknownCitations": 0
+    },
+    "noSourcePivot": {
+      "pivots": 0,
+      "goldLocatorsFetched": [],
+      "actions": [
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "search",
+        "fetch",
+        "search",
+        "search",
+        "stop"
+      ],
+      "unknownCitations": 0
+    },
+    "noContradictionHandling": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noDisconfirmation": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noEvidenceAwareStop": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    }
+  }
+}

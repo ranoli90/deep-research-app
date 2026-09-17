@@ -1,3 +1,4 @@
+import { projectControllerState } from "./projection.js";
 import type { ControllerState } from "./types.js";
 
 /** Keep hard constraints and evidence IDs when a long run is compacted. */
@@ -6,6 +7,7 @@ export function compactForContext(state: ControllerState): {
   passageIds: string[];
   provenance: { passageId: string; sourceId: string }[];
   droppedSearchCount: number;
+  projection: Record<string, unknown>;
 } {
   return {
     constraints: state.constraints.map((c) => ({
@@ -17,5 +19,6 @@ export function compactForContext(state: ControllerState): {
     passageIds: state.passages.map((p) => p.id),
     provenance: state.passages.map((p) => ({ passageId: p.id, sourceId: p.sourceId })),
     droppedSearchCount: Math.max(0, state.searches.length - 2),
+    projection: projectControllerState(state),
   };
 }

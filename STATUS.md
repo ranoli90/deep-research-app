@@ -5,7 +5,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 | Gate | Status | Evidence |
 |---|---|---|
 | P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 107/107 including live-search admission; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
-| P0-L live model/retrieval | implemented and verified (bounded) | One consented `controlled-research` run `1351c267` published report `6cdf6f92` from HTTP passages (IONOS/SysEleven/ayedo full-text 20k chars) plus correction `5f8a7af2` report `cce6aadb`. Model `openai/gpt-4o-mini` + web plugin. OpenRouter usage **$0.096 of $5**. |
+| P0-L live model/retrieval | implemented and verified (bounded baseline historically; adaptive smoke 2026-09-17) | Historical bounded run `1351c267`. Adaptive live smoke `1ceed974` published report `1a5a089d` from HTTP passages (IONOS/bnerd/SysEleven full-text) with search→fetch→source_pivot→verify→challenge→cited report. Model `openai/gpt-4o-mini` + web plugin. Ledger after that smoke: **$1.60 of $5 reserved** (`LIVE_CALL_RESERVE_MICRO` 200_000 × 8 searches). Remaining **~$3.40**. |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
 | P0-N Android | implemented and verified on device | Xiaomi `25098RA98G`; recapture `verification/p0n-android-recapture.json`: persist/hydrate 120 EUR after force-stop, library open shows report, FULL-TEXT source, cancel-during-writing run `3e0f50a5` outcome=cancelled reportId=null. iOS still blocked. |
 
@@ -28,29 +28,31 @@ These are fixture-route behavioral tests. They are not evidence of advantage ove
 ## Additional launch-scope cases now executed against Postgres/fixture
 R02 (continue requires a jurisdiction; confirmed geography is used in search so France does not reuse the Germany default note), R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (worker/fixture: asserted 42% withdrawn against 24% table), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S02 (safeFetch redirect revalidation), S03, S04, S05, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), JOB-1 (note-taking eligibility; adding Linux excludes NoteKeep; dropping Linux re-includes NoteKeep; EVAL-01 still draft_not_validated), JOB-2, V2-03, V2-09, V2-10, V2-11, V2-13, V2-14, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20, G01 (local fixture/Postgres), G02 (local fixture/Postgres), P4 recovery drill (crash after fetch + before-publish lease failover, one settlement), G06 local fixture capability pin + measured C_run (live OpenRouter tariff probe not run), G07/M10 in-app privacy disclosure and output reporting (purchases/store review still gated). Native structural: M03, M04, M05, M06, M07, M08, M09, M10, M12, V2-12. Native device: Library, persist, attach+source, Share Markdown, 120 EUR correction (Vendor C), Flag/challenge, TalkBack M02 labels, compact keyboard Send-usable, M04 table/code nested scroll, M02 enlarged text (font_scale 1.3), M05 offline (draft+report kept, no new run), M08 follow-up change summary + previous Markdown, R02 clarification (jurisdiction → Germany, no second ask), S12 logout keeps draft and drops cached reports, M09 web deletion page opened in Chrome, V2-12 reading-anchor restore wired, scan.pdf attach + unread-pages caveat + Android Chooser share sheet on Xiaomi.
 
-## Foundation controller (fixture, not a competitive claim)
+## Foundation controller (research-controller.v1)
 | Item | Status |
 |---|---|
-| Single `admitProposedAction` gate on fixture, live baseline, and model proposals | implemented and verified on fixture + unit |
-| Live `nextLiveAction()` / `selectBaselineAction` is a bounded chooser, not an adaptive engine | documented and admitted |
-| First-class gaps (dependent conclusion, resolving evidence, attempts, remaining uncertainty) | implemented; persisted in `evidence_gaps.payload` |
-| Source-type pivot recorded | fixture worker `source_pivot` event + Nimbus adaptive arm |
-| Stop reasons recorded | `stop_policy` events |
-| Live intent issued before provider HTTP; failed/unknown keep reservation | unit + integration |
-| Fixture baseline vs adaptive comparison | `verification/benchmark-fixture.json` — fixture only, not live quality |
+| Single `admitProposedAction` gate on fixture, live, and model proposals | implemented and verified on fixture + unit |
+| Typed adaptive selector `selectAdaptiveAction` is the fixture and live default | implemented; bounded `selectBaselineAction` remains the comparison arm (`LIVE_CONTROLLER_KIND=baseline`) |
+| Compact `projectControllerState` projection for model proposals (not a DB dump) | implemented |
+| First-class gaps, questions, contradictions, disconfirmations, calculations | implemented; persisted in gaps payload + `005_controller_intelligence.sql` |
+| Source-type pivot recorded with reason | fixture + live `source_pivot` events |
+| Evidence-aware stop reasons recorded | `stop_policy` events |
+| Live intent issued before provider HTTP; failed/unknown keep reservation | unit + integration + live smoke |
+| Fixture baseline vs adaptive comparison (12 families) | `verification/benchmark-fixture.json` — fixture only, not a competitor comparison |
+| Live adaptive causal smoke | run `1ceed974` — not a 12-family live A/B |
 
 ## Still open (not claimed done)
 - **P0-N iOS** blocked: no Xcode on this Linux host; TestFlight deferred.
 - iOS VoiceOver blocked. M11 purchase sandbox.
 - J14 live push transport; S08 signed store webhooks; hosted Supabase/Render/auth/RLS/storage/pooler.
 - Seed eval validation and competitor comparison. Do not spend more OpenRouter unless remaining cap and a new live need justify it (~$4.90 of $5 left).
-- Live same-model adaptive planner (`openRouterProposeAction`) is admitted but not the default live chooser (would spend). Android was not re-run this session (no device).
+- Live same-model 12-family A/B vs bounded chooser is not run (spend). `openRouterProposeAction` remains optional; the application-owned adaptive selector is the live default. Android was not re-run this session (no device).
 
 P0 is **not** fully verified while iOS is blocked.
 
 ## Next executable task
-1. macOS/Xcode for iOS P0-N (deferred by user until the end). G03 both-platform remains unpassed while iOS is blocked.
-2. Hosted auth/storage/pooler only when those credentials exist. Do not mark iOS or hosted auth as passed.
-3. M11 purchase sandbox when a store sandbox exists.
-4. Remaining blocked: iOS G03, hosted auth, M11 purchase sandbox, G04/G05 experiments, live G06 invoice probe. Do not mark those as passed.
-5. After those gates: REAL RESEARCH INTELLIGENCE + PRODUCT DIFFERENTIATION (live same-model planner, adjudicated gold, design polish). Not this phase.
+1. Phase 3 product/UX (report design, source exploration, evidence visualization, mobile polish) — engine intelligence for this phase is in place on fixture + one live smoke.
+2. macOS/Xcode for iOS P0-N (deferred by user until the end). G03 both-platform remains unpassed while iOS is blocked.
+3. Hosted auth/storage/pooler only when those credentials exist. Do not mark iOS or hosted auth as passed.
+4. M11 purchase sandbox when a store sandbox exists.
+5. Remaining blocked: iOS G03, hosted auth, M11 purchase sandbox, G04/G05 experiments, live G06 invoice probe. Do not mark those as passed.

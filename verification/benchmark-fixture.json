@@ -1,57 +1,39 @@
 {
-  "schema_version": 1,
-  "evidence_class": "fixture",
-  "not_live_quality": true,
-  "not_competitor_comparison": true,
+  "protocol": "EVALUATION.md fixture-first baseline vs adaptive; same catalog, tariffs, and questions",
+  "evidenceClass": "fixture",
   "provider": "app-owned-fixture-catalog",
   "model": "none \u2014 deterministic controller",
-  "budget_policy": "DEFAULT_RUN_BUDGET_MICRO with fixture tariffs",
-  "protocol": "EVALUATION.md fixture-first baseline vs adaptive; same catalog, tariffs, and questions",
-  "arms": [
-    "baseline",
-    "adaptive"
-  ],
-  "ablations": {
-    "gap_detection": "adaptive emits source-type pivots; baseline does not",
-    "source_type_pivot": "observed on conflicting-nimbus adaptive only",
-    "verification_action": "admitted but not auto-emitted by selectNextAction (12-step budget)",
-    "selective_correction": "unknown-dependency fullRerun=true vs budget reopen fullRerun=false (integration)"
-  },
-  "measures": [
-    "citation_correctness",
-    "decisive_evidence_recall",
-    "hard_constraint_violations",
-    "unsupported_claims",
-    "contradiction_handling",
-    "correction_accuracy",
-    "latency",
-    "cost"
-  ],
-  "live_same_model_benchmark": "not_run",
-  "live_same_model_benchmark_reason": "remaining OpenRouter cap reserved; no new live need",
-  "competitor_comparison": "not_run",
+  "budgetPolicy": "DEFAULT_RUN_BUDGET_MICRO with fixture tariffs",
+  "competitorComparison": "not_run",
   "rows": [
     {
       "taskId": "hard-constraint-postgres",
       "family": "hard-constraint-comparisons",
+      "gold": {
+        "expectedConstraints": [
+          "geography=germany",
+          "budget=50",
+          "date=2026-03-01"
+        ],
+        "decisiveClaims": [
+          "Vendor A 40 EUR Germany",
+          "Vendor B 90 EUR Germany exceeds 50"
+        ],
+        "goldEvidence": [
+          "fixture://vendor-a/pricing-de",
+          "fixture://vendor-b/pricing-de"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "us-east 35 EUR SKU is not Germany"
+        ],
+        "freshnessWindow": "as of 2026-03-01",
+        "acceptableUncertainty": "bounded inspected set, not an exhaustive market"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-a/pricing-de",
-            "fixture://vendor-b/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
@@ -59,243 +41,693 @@
           "fetch",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-3",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-a/pricing-de",
+          "fixture://vendor-b/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Vendor A",
           "Vendor B"
-        ]
+        ],
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-a/pricing-de",
-            "fixture://vendor-b/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [
-          "evidence_sufficient_or_low_decision_value"
-        ],
+        "kind": "adaptive",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        "steps": 6,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 27000,
+        "citationIds": [
+          "p-3",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-a/pricing-de",
+          "fixture://vendor-b/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Vendor A",
           "Vendor B"
-        ]
+        ],
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
       }
     },
     {
       "taskId": "conflicting-nimbus",
       "family": "conflicting-claims",
+      "gold": {
+        "expectedConstraints": [],
+        "decisiveClaims": [
+          "not compatible with Postgres 14"
+        ],
+        "goldEvidence": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "review summaries claiming universal compatibility"
+        ],
+        "freshnessWindow": "version-specific matrix, not recency",
+        "acceptableUncertainty": "summaries remain on the record as secondary"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [],
-          "missed": [
-            "fixture://vendor/nimbus-matrix"
-          ]
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Is NimbusDB compatible with Postgres 14?",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
-          "synthesize"
+          "stop"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [
+          "blocking_gap_open",
+          "blocking_gap_open"
+        ],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [],
+        "goldLocatorsMissed": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "NimbusDB"
-        ]
+        ],
+        "reportText": "INFERENCE (not established fact): summaries are not primary documentation. This summary says NimbusDB is compatible with all Postgres versions. It cites no matrix.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://blogs/nimbus-1\nFACT: none recorded. CALCULATION: see calculation blocks. INFERENCE: INFERENCE (not established fact): summaries are not primary documentation. This . UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected..\nAccessed 3 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "synthesize rejected while blocking gap is untried: authoritative compatibility limitation"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor/nimbus-matrix"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": true,
-        "latency_steps": 6,
-        "cost_fixture_micro": 25000,
-        "pivots": 1,
-        "stop_reasons": [
-          "inaccessible_or_unresolved_gap"
-        ],
+        "kind": "adaptive",
+        "question": "Is NimbusDB compatible with Postgres 14?",
+        "steps": 9,
         "actions": [
+          "search",
           "search",
           "fetch",
           "fetch",
           "fetch",
           "fetch",
+          "verify",
+          "challenge",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 1,
+        "stopReasons": [
+          "inaccessible_or_unresolved_gap"
+        ],
+        "spentMicro": 35000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-3",
+          "p-1",
+          "p-4",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "NimbusDB"
-        ]
+        ],
+        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "blocking_gap_source_pivot",
+          "inspect_preferred_source_before_generic_query",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "unresolved_contradiction_requires_verify",
+          "material_conclusion_disconfirm",
+          "inaccessible_or_unresolved_gap"
+        ],
+        "contradictions": 3,
+        "disconfirmations": 1,
+        "trace": {
+          "task": "Is NimbusDB compatible with Postgres 14?",
+          "family": "conflicting-claims",
+          "controllerVersion": "research-controller.v1",
+          "kind": "adaptive",
+          "questions": [
+            {
+              "id": "q-compatibility",
+              "text": "What does primary documentation establish about compatibility or eligibility under the named versions?",
+              "importance": "blocking",
+              "blocking": true,
+              "answerShape": "boolean",
+              "evidenceRequirement": "Official compatibility matrix or first-party support documentation for the named versions.",
+              "completionCondition": "A primary source has been opened that states support or incompatibility for the named versions.",
+              "dependentClaimIds": [],
+              "status": "answered"
+            }
+          ],
+          "gaps": [
+            {
+              "id": "compat-primary",
+              "missingFact": "authoritative compatibility limitation",
+              "description": "authoritative compatibility limitation",
+              "whyItCouldChangeAnswer": "Summary count cannot certify compatibility",
+              "dependentConclusion": "eligibility of named products under the stated stack",
+              "resolvingEvidence": "vendor compatibility matrix or official support matrix for the named versions",
+              "importance": "blocking",
+              "sourceTypeNeeded": "vendor-matrix",
+              "preferredSourceTypes": [
+                "vendor-matrix",
+                "vendor-docs",
+                "primary-docs"
+              ],
+              "suggestedQuery": "Is NimbusDB compatible with Postgres 14? vendor compatibility matrix",
+              "attempts": [],
+              "latestOutcome": "untried",
+              "remainingUncertainty": "Compatibility remains unverified until a primary matrix is inspected.",
+              "questionId": "q-compatibility",
+              "resolution": "open"
+            },
+            {
+              "id": "gap-contradiction-compat-p-1-p-2",
+              "missingFact": "unresolved disagreement (compatibility)",
+              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no",
+              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
+              "importance": "blocking",
+              "sourceTypeNeeded": "primary-docs",
+              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "questionId": "q-compatibility",
+              "resolution": "open",
+              "dependencies": [
+                "p-1",
+                "p-2"
+              ]
+            },
+            {
+              "id": "gap-contradiction-compat-p-1-p-3",
+              "missingFact": "unresolved disagreement (compatibility)",
+              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho",
+              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
+              "importance": "blocking",
+              "sourceTypeNeeded": "primary-docs",
+              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "questionId": "q-compatibility",
+              "resolution": "open",
+              "dependencies": [
+                "p-1",
+                "p-3"
+              ]
+            },
+            {
+              "id": "gap-contradiction-compat-p-1-p-4",
+              "missingFact": "unresolved disagreement (compatibility)",
+              "description": "Two sources disagree: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima",
+              "whyItCouldChangeAnswer": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dependentConclusion": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "resolvingEvidence": "scope-aligned verification or explicit preservation of uncertainty",
+              "importance": "blocking",
+              "sourceTypeNeeded": "primary-docs",
+              "remainingUncertainty": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "questionId": "q-compatibility",
+              "resolution": "open",
+              "dependencies": [
+                "p-1",
+                "p-4"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "step": 0,
+              "type": "search",
+              "rationale": "Investigate an uncovered required question",
+              "selectionReason": "uncovered_research_question"
+            },
+            {
+              "step": 1,
+              "type": "search",
+              "rationale": "Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.",
+              "selectionReason": "blocking_gap_source_pivot",
+              "pivot": true,
+              "sourceTypeNeeded": "vendor-matrix",
+              "gapId": "compat-primary"
+            },
+            {
+              "step": 2,
+              "type": "fetch",
+              "rationale": "Inspect the preferred source type (vendor-matrix) before more weak sources",
+              "selectionReason": "inspect_preferred_source_before_generic_query",
+              "gapId": "compat-primary"
+            },
+            {
+              "step": 3,
+              "type": "fetch",
+              "rationale": "Inspect an already-known source before another generic query",
+              "selectionReason": "inspect_known_source"
+            },
+            {
+              "step": 4,
+              "type": "fetch",
+              "rationale": "Inspect an already-known source before another generic query",
+              "selectionReason": "inspect_known_source"
+            },
+            {
+              "step": 5,
+              "type": "fetch",
+              "rationale": "Inspect an already-known source before another generic query",
+              "selectionReason": "inspect_known_source"
+            },
+            {
+              "step": 6,
+              "type": "verify",
+              "rationale": "Scope-check contradiction on compatibility before treating newest as correct",
+              "selectionReason": "unresolved_contradiction_requires_verify",
+              "gapId": "gap-contradiction-compat-p-1-p-2"
+            },
+            {
+              "step": 7,
+              "type": "challenge",
+              "rationale": "Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.",
+              "selectionReason": "material_conclusion_disconfirm"
+            },
+            {
+              "step": 8,
+              "type": "synthesize",
+              "rationale": "Write with localized uncertainty; blocking gap remains: authoritative compatibility limitation",
+              "selectionReason": "inaccessible_or_unresolved_gap",
+              "stopPolicy": "inaccessible_or_unresolved_gap"
+            }
+          ],
+          "sources": [
+            {
+              "locator": "fixture://blogs/nimbus-1",
+              "sourceType": "review-summary",
+              "accessLevel": "full-text"
+            },
+            {
+              "locator": "fixture://blogs/nimbus-2",
+              "sourceType": "review-summary",
+              "accessLevel": "full-text"
+            },
+            {
+              "locator": "fixture://blogs/nimbus-3",
+              "sourceType": "review-summary",
+              "accessLevel": "full-text"
+            },
+            {
+              "locator": "fixture://vendor/nimbus-matrix",
+              "sourceType": "vendor-matrix",
+              "accessLevel": "full-text"
+            }
+          ],
+          "contradictions": [
+            {
+              "id": "contradiction-compat-p-1-p-2",
+              "claimA": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.",
+              "claimB": "This summary says NimbusDB is compatible with all Postgres versions. It cites no matrix.",
+              "sourceA": "fixture://vendor/nimbus-matrix",
+              "sourceB": "fixture://blogs/nimbus-1",
+              "passageAId": "p-1",
+              "passageBId": "p-2",
+              "dates": [],
+              "productVersion": "postgres 14",
+              "evidenceQuality": "vendor-matrix vs review-summary",
+              "possibleExplanation": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "resolutionStatus": "unresolved",
+              "impact": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dimension": "compatibility"
+            },
+            {
+              "id": "contradiction-compat-p-1-p-3",
+              "claimA": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.",
+              "claimB": "Commentators repeat that NimbusDB is compatible with all Postgres versions without checking vendor docs.",
+              "sourceA": "fixture://vendor/nimbus-matrix",
+              "sourceB": "fixture://blogs/nimbus-2",
+              "passageAId": "p-1",
+              "passageBId": "p-3",
+              "dates": [],
+              "productVersion": "postgres 14",
+              "evidenceQuality": "vendor-matrix vs review-summary",
+              "possibleExplanation": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "resolutionStatus": "unresolved",
+              "impact": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dimension": "compatibility"
+            },
+            {
+              "id": "contradiction-compat-p-1-p-4",
+              "claimA": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.",
+              "claimB": "A third recap claims NimbusDB is compatible with all Postgres versions. No primary matrix is attached.",
+              "sourceA": "fixture://vendor/nimbus-matrix",
+              "sourceB": "fixture://blogs/nimbus-3",
+              "passageAId": "p-1",
+              "passageBId": "p-4",
+              "dates": [],
+              "productVersion": "postgres 14",
+              "evidenceQuality": "vendor-matrix vs review-summary",
+              "possibleExplanation": "Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.",
+              "resolutionStatus": "unresolved",
+              "impact": "Compatibility conclusion stays disputed until primary evidence is weighed; summaries are not treated as independent confirmation.",
+              "dimension": "compatibility"
+            }
+          ],
+          "disconfirmations": [
+            {
+              "id": "disconfirm-7",
+              "targetConclusion": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.",
+              "falsificationHypothesis": "Official compatibility documentation that lists the named version as supported.",
+              "searchStrategy": "Is NimbusDB compatible with Postgres 14? official compatibility matrix supported",
+              "result": "no_counterexample_found",
+              "counterevidenceFound": false,
+              "impact": "No counterexample found in accessed primary sources. This is not proof that the conclusion is true."
+            }
+          ],
+          "stopReason": "inaccessible_or_unresolved_gap",
+          "cost": 35000
+        }
       }
     },
     {
       "taskId": "niche-deepseek",
       "family": "niche-research",
+      "gold": {
+        "expectedConstraints": [],
+        "decisiveClaims": [
+          "not a real product"
+        ],
+        "goldEvidence": [
+          "fixture://catalog/deepseek-research-pro"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "inventing a vector database feature"
+        ],
+        "freshnessWindow": "catalog snapshot",
+        "acceptableUncertainty": "absence is not a probability of existence"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://catalog/deepseek-research-pro"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 3,
-        "cost_fixture_micro": 16000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Does DeepSeek-Research-Pro include a built-in vector database?",
+        "steps": 3,
         "actions": [
           "search",
           "fetch",
           "synthesize"
         ],
-        "candidates": []
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 16000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://catalog/deepseek-research-pro"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "DeepSeek-Research-Pro is not a real product in this catalog. There is no such feature as a built-in vector database under that name. Do not invent the feature. Related public models exist under other names without that bundle. The named premise is rejected rather than invented.\nFACT: DeepSeek-Research-Pro is not a real product in this catalog. There is no such fe. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://catalog/deepseek-research-pro"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 3,
-        "cost_fixture_micro": 16000,
-        "pivots": 0,
-        "stop_reasons": [
-          "evidence_sufficient_or_low_decision_value"
-        ],
+        "kind": "adaptive",
+        "question": "Does DeepSeek-Research-Pro include a built-in vector database?",
+        "steps": 4,
         "actions": [
           "search",
           "fetch",
+          "challenge",
           "synthesize"
         ],
-        "candidates": []
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 21000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://catalog/deepseek-research-pro"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "DeepSeek-Research-Pro is not a real product in this catalog. There is no such feature as a built-in vector database under that name. Do not invent the feature. Related public models exist under other names without that bundle. The named premise is rejected rather than invented.\nFACT: DeepSeek-Research-Pro is not a real product in this catalog. There is no such fe. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cDeepSeek-Research-Pro is not a real product in this catalog. There is no such feature as a built-in vector database unde\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
       }
     },
     {
       "taskId": "contradict-price",
       "family": "document-web-synthesis",
+      "gold": {
+        "expectedConstraints": [
+          "date=2026-03-01"
+        ],
+        "decisiveClaims": [
+          "19 EUR vs 45 EUR unresolved"
+        ],
+        "goldEvidence": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "averaging the two prices"
+        ],
+        "freshnessWindow": "2026-03-01",
+        "acceptableUncertainty": "unresolved shop disagreement"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://price/a",
-            "fixture://price/b"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 4,
-        "cost_fixture_micro": 19000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "What does Gadget Mini cost on 2026-03-01?",
+        "steps": 4,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 19000,
+        "citationIds": [
+          "p-1",
+          "p-2",
+          "p-2",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Gadget Mini"
-        ]
+        ],
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 1,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://price/a",
-            "fixture://price/b"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 4,
-        "cost_fixture_micro": 19000,
-        "pivots": 0,
-        "stop_reasons": [
-          "evidence_sufficient_or_low_decision_value"
-        ],
+        "kind": "adaptive",
+        "question": "What does Gadget Mini cost on 2026-03-01?",
+        "steps": 6,
         "actions": [
           "search",
           "fetch",
           "fetch",
+          "verify",
+          "challenge",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [
+          "inaccessible_or_unresolved_gap"
+        ],
+        "spentMicro": 24000,
+        "citationIds": [
+          "p-1",
+          "p-2",
+          "p-2",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Gadget Mini"
-        ]
+        ],
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "unresolved_contradiction_requires_verify",
+          "material_conclusion_disconfirm",
+          "inaccessible_or_unresolved_gap"
+        ],
+        "contradictions": 1,
+        "disconfirmations": 1
       }
     },
     {
       "taskId": "purchase-50",
       "family": "purchase-decisions",
+      "gold": {
+        "expectedConstraints": [
+          "budget=50",
+          "geography=germany"
+        ],
+        "decisiveClaims": [
+          "Vendor A eligible"
+        ],
+        "goldEvidence": [
+          "fixture://vendor-a/pricing-de"
+        ],
+        "acceptableAlternateEvidence": [
+          "fixture://vendor-b/pricing-de"
+        ],
+        "knownTraps": [
+          "including Vendor C at 70 EUR"
+        ],
+        "freshnessWindow": "2026-03-01",
+        "acceptableUncertainty": "bounded listing"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-a/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
@@ -303,61 +735,125 @@
           "fetch",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-3",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-a/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Vendor A",
           "Vendor B"
-        ]
+        ],
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-a/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": false,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [
-          "evidence_sufficient_or_low_decision_value"
-        ],
+        "kind": "adaptive",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+        "steps": 6,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 27000,
+        "citationIds": [
+          "p-3",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-3",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-a/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Vendor A",
           "Vendor B"
-        ]
+        ],
+        "reportText": "Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylor Swift tour dates and celebrity gossip do not belong in this research coverage contract.\nApplied supplied constraints: geography=germany; budget=50 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-3\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor A       40 EUR       satisfies  fixture://gossip/swift\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nFACT: Vendor A managed Postgres in Germany is 40 EUR per month. Unrelated aside: Taylo. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
       }
     },
     {
       "taskId": "notes-tradeoff",
       "family": "technical-tradeoffs",
+      "gold": {
+        "expectedConstraints": [
+          "platform=iphone",
+          "platform=android",
+          "feature=offline",
+          "feature=export"
+        ],
+        "decisiveClaims": [
+          "NoteDroid ineligible without iPhone",
+          "NoteKeep eligible"
+        ],
+        "goldEvidence": [
+          "fixture://notes/notekeep",
+          "fixture://notes/notedroid"
+        ],
+        "acceptableAlternateEvidence": [
+          "fixture://notes/noteall"
+        ],
+        "knownTraps": [
+          "treating Linux as required when not stated"
+        ],
+        "freshnessWindow": "as of 2026-03-01",
+        "acceptableUncertainty": "inspected vendor matrices only"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": true,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
@@ -365,63 +861,139 @@
           "fetch",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://notes/notekeep",
+          "fixture://notes/notedroid",
+          "fixture://notes/noteall"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "NoteKeep",
           "NoteDroid",
           "NoteAll"
-        ]
+        ],
+        "reportText": "NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux is not supported. As of 2026-03-01 this is the official matrix, not a review summary.\nApplied supplied constraints: platform=iphone; platform=android; feature=offline; feature=export. These were taken from the question and were not re-asked.\nEligible: NoteKeep, NoteAll. Ineligible: NoteDroid (platform=iphone). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nNoteKeep | \u2014 | \u2014 | \u2014 | satisfies | p-1\nNoteDroid | \u2014 | \u2014 | \u2014 | ineligible (platform=iphone) | p-2\nNoteAll | \u2014 | \u2014 | \u2014 | satisfies | p-3\nNoteKeep       \u2014            satisfies  fixture://notes/notekeep\nNoteDroid      \u2014            violates   fixture://notes/notedroid\nNoteAll        \u2014            satisfies  fixture://notes/noteall\nFACT: NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": true,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [
-          "evidence_sufficient_or_low_decision_value"
-        ],
+        "kind": "adaptive",
+        "question": "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.",
+        "steps": 6,
         "actions": [
           "search",
           "fetch",
           "fetch",
           "fetch",
+          "challenge",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 27000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://notes/notekeep",
+          "fixture://notes/notedroid",
+          "fixture://notes/noteall"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "NoteKeep",
           "NoteDroid",
           "NoteAll"
-        ]
+        ],
+        "reportText": "NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux is not supported. As of 2026-03-01 this is the official matrix, not a review summary.\nApplied supplied constraints: platform=iphone; platform=android; feature=offline; feature=export. These were taken from the question and were not re-asked.\nEligible: NoteKeep, NoteAll. Ineligible: NoteDroid (platform=iphone). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nNoteKeep | \u2014 | \u2014 | \u2014 | satisfies | p-1\nNoteDroid | \u2014 | \u2014 | \u2014 | ineligible (platform=iphone) | p-2\nNoteAll | \u2014 | \u2014 | \u2014 | satisfies | p-3\nNoteKeep       \u2014            satisfies  fixture://notes/notekeep\nNoteDroid      \u2014            violates   fixture://notes/notedroid\nNoteAll        \u2014            satisfies  fixture://notes/noteall\nFACT: NoteKeep: iPhone, Android, offline editing, and full export are supported. Linux. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: NoteKeep, NoteAll\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
       }
     },
     {
       "taskId": "correction-120",
       "family": "changed-assumption-corrections",
+      "gold": {
+        "expectedConstraints": [
+          "budget=120",
+          "geography=germany"
+        ],
+        "decisiveClaims": [
+          "Vendor C newly eligible"
+        ],
+        "goldEvidence": [
+          "fixture://vendor-c/pricing-de"
+        ],
+        "acceptableAlternateEvidence": [
+          "fixture://vendor-a/pricing-de"
+        ],
+        "knownTraps": [
+          "keeping the 50 EUR exclusion"
+        ],
+        "freshnessWindow": "2026-03-01",
+        "acceptableUncertainty": "reopened discovery is bounded"
+      },
       "baseline": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-c/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": true,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
-        "pivots": 0,
-        "stop_reasons": [],
+        "kind": "baseline",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nCorrection: Actually, the budget is 120 EUR",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
@@ -429,31 +1001,124 @@
           "fetch",
           "synthesize"
         ],
-        "candidates": [
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-c/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
           "Vendor A",
           "Vendor B",
           "Vendor C"
-        ]
+        ],
+        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
       },
       "adaptive": {
-        "citation_correctness": "pass",
-        "unknown_citation_count": 0,
-        "decisive_evidence_recall": {
-          "fetched": [
-            "fixture://vendor-c/pricing-de"
-          ],
-          "missed": []
-        },
-        "hard_constraint_violations": 0,
-        "unsupported_claims": "not_scored_beyond_composeReport_citations",
-        "contradiction_handling": "fixture_report_text_present",
-        "correction_accuracy": true,
-        "latency_steps": 5,
-        "cost_fixture_micro": 22000,
+        "kind": "adaptive",
+        "question": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nCorrection: Actually, the budget is 120 EUR",
+        "steps": 6,
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "challenge",
+          "synthesize"
+        ],
         "pivots": 0,
-        "stop_reasons": [
+        "stopReasons": [
           "evidence_sufficient_or_low_decision_value"
         ],
+        "spentMicro": 27000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor-c/pricing-de"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "Vendor A",
+          "Vendor B",
+          "Vendor C"
+        ],
+        "reportText": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.\nApplied supplied constraints: geography=germany; budget=120 EUR; date=2026-03-01. These were taken from the question and were not re-asked.\nEligible: Vendor A, Vendor C. Ineligible: Vendor B (geography). Discovery: bounded-complete for inspected listings.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | germany | 40 | EUR | satisfies | p-1\nVendor B | germany | 90 | EUR | ineligible (geography) | p-2\nVendor C | germany | 70 | EUR | satisfies | p-3\nVendor A       40 EUR       satisfies  fixture://vendor-a/pricing-de\nVendor B       90 EUR       violates   fixture://vendor-b/pricing-de\nVendor C       70 EUR       satisfies  fixture://vendor-c/pricing-de\nFACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cEligible under hard constraints: Vendor A, Vendor C\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 3 source version(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
+      }
+    },
+    {
+      "taskId": "primary-nimbus",
+      "family": "primary-source-requirement",
+      "gold": {
+        "expectedConstraints": [],
+        "decisiveClaims": [
+          "not compatible with Postgres 14"
+        ],
+        "goldEvidence": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "certifying from blog roundups"
+        ],
+        "freshnessWindow": "matrix version, not page date",
+        "acceptableUncertainty": "unopened summaries"
+      },
+      "baseline": {
+        "kind": "baseline",
+        "question": "Is NimbusDB compatible with Postgres 14 according to official documentation?",
+        "steps": 5,
         "actions": [
           "search",
           "fetch",
@@ -461,12 +1126,613 @@
           "fetch",
           "synthesize"
         ],
-        "candidates": [
-          "Vendor A",
-          "Vendor B",
-          "Vendor C"
-        ]
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 22000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-3"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [],
+        "goldLocatorsMissed": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "NimbusDB"
+        ],
+        "reportText": "INFERENCE (not established fact): summaries are not primary documentation. This summary says NimbusDB is compatible with all Postgres versions. It cites no matrix.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://blogs/nimbus-1\nFACT: none recorded. CALCULATION: see calculation blocks. INFERENCE: INFERENCE (not established fact): summaries are not primary documentation. This . UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected..\nAccessed 3 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
+      },
+      "adaptive": {
+        "kind": "adaptive",
+        "question": "Is NimbusDB compatible with Postgres 14 according to official documentation?",
+        "steps": 9,
+        "actions": [
+          "search",
+          "search",
+          "fetch",
+          "fetch",
+          "fetch",
+          "fetch",
+          "verify",
+          "challenge",
+          "synthesize"
+        ],
+        "pivots": 1,
+        "stopReasons": [
+          "inaccessible_or_unresolved_gap"
+        ],
+        "spentMicro": 35000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-3",
+          "p-1",
+          "p-4",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://vendor/nimbus-matrix"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "NimbusDB"
+        ],
+        "reportText": "NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim universal compatibility are incorrect for version 14.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nNimbusDB | \u2014 | \u2014 | \u2014 | unknown | p-1\nNimbusDB       \u2014            unknown    fixture://vendor/nimbus-matrix\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs This summary says NimbusDB is compatible with all Postgres versions. It cites no. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs Commentators repeat that NimbusDB is compatible with all Postgres versions witho. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nUnresolved disagreement on compatibility: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre vs A third recap claims NimbusDB is compatible with all Postgres versions. No prima. Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: NimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgre. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Compatibility remains unverified until a primary matrix is inspected.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically.; Secondary summaries may overgeneralize; a version-specific primary matrix can disagree without either date winning automatically..\nDisconfirmation of \u201cNimbusDB compatibility matrix: not compatible with Postgres 14. Requires Postgres 15 or later. Summary blogs that claim \u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 4 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nDiscovery switched from review summaries to a vendor compatibility matrix after the summary family stopped adding coverage.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "blocking_gap_source_pivot",
+          "inspect_preferred_source_before_generic_query",
+          "inspect_known_source",
+          "inspect_known_source",
+          "inspect_known_source",
+          "unresolved_contradiction_requires_verify",
+          "material_conclusion_disconfirm",
+          "inaccessible_or_unresolved_gap"
+        ],
+        "contradictions": 3,
+        "disconfirmations": 1
+      }
+    },
+    {
+      "taskId": "freshness-price",
+      "family": "freshness-sensitive",
+      "gold": {
+        "expectedConstraints": [
+          "freshness=current"
+        ],
+        "decisiveClaims": [
+          "40 EUR as of 2024 is not current",
+          "founded 2011 is historical"
+        ],
+        "goldEvidence": [
+          "fixture://price/historical-list",
+          "fixture://company/founding"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "presenting 2024 list as live price"
+        ],
+        "freshnessWindow": "current vs 2024-01-01",
+        "acceptableUncertainty": "current live quote not retrieved"
+      },
+      "baseline": {
+        "kind": "baseline",
+        "question": "What is the current price of Vendor A and when was it founded in 2011?",
+        "steps": 4,
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 19000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/historical-list",
+          "fixture://company/founding"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "Vendor A"
+        ],
+        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Retrieved price is dated 2024-01-01 and is not the current price..\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
+      },
+      "adaptive": {
+        "kind": "adaptive",
+        "question": "What is the current price of Vendor A and when was it founded in 2011?",
+        "steps": 5,
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "challenge",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 24000,
+        "citationIds": [
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/historical-list",
+          "fixture://company/founding"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "Vendor A"
+        ],
+        "reportText": "Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as the current price.\nApplied supplied constraints: freshness=current. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nVendor A | \u2014 | 40 | EUR | unknown | p-1\nVendor A       40 EUR       unknown    fixture://price/historical-list\nFACT: Vendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is hi. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Retrieved price is dated 2024-01-01 and is not the current price..\nDisconfirmation of \u201cVendor A listed at 40 EUR per month as of 2024-01-01. This retrieved price is historical and must not be presented as th\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.\nRetrieved price is as of 2024-01-01 and is not presented as the current price. The founding year 2011 is an immutable historical fact.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
+      }
+    },
+    {
+      "taskId": "negative-unobtainium",
+      "family": "negative-evidence",
+      "gold": {
+        "expectedConstraints": [],
+        "decisiveClaims": [
+          "no reliable measurement found"
+        ],
+        "goldEvidence": [
+          "fixture://unknown/unobtainium"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "inventing a melting point"
+        ],
+        "freshnessWindow": "registry snapshot",
+        "acceptableUncertainty": "absence is not a claim that it cannot melt"
+      },
+      "baseline": {
+        "kind": "baseline",
+        "question": "What is the melting point of Unobtainium-99?",
+        "steps": 3,
+        "actions": [
+          "search",
+          "fetch",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 16000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://unknown/unobtainium"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "No reliable measurement of the melting point of Unobtainium-99 was found in the accessed registry. Absence of a figure is not a claim that the substance cannot melt. No probability is assigned.\nFACT: No reliable measurement of the melting point of Unobtainium-99 was found in the . CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
+      },
+      "adaptive": {
+        "kind": "adaptive",
+        "question": "What is the melting point of Unobtainium-99?",
+        "steps": 4,
+        "actions": [
+          "search",
+          "fetch",
+          "challenge",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 21000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://unknown/unobtainium"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "No reliable measurement of the melting point of Unobtainium-99 was found in the accessed registry. Absence of a figure is not a claim that the substance cannot melt. No probability is assigned.\nFACT: No reliable measurement of the melting point of Unobtainium-99 was found in the . CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cNo reliable measurement of the melting point of Unobtainium-99 was found in the accessed registry. Absence of a figure i\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
+      }
+    },
+    {
+      "taskId": "numeric-conflict",
+      "family": "contradictory-numerical",
+      "gold": {
+        "expectedConstraints": [
+          "date=2026-03-01"
+        ],
+        "decisiveClaims": [
+          "19 EUR vs 45 EUR"
+        ],
+        "goldEvidence": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "picking the newer scrape automatically"
+        ],
+        "freshnessWindow": "same date both shops",
+        "acceptableUncertainty": "unresolved numerical conflict"
+      },
+      "baseline": {
+        "kind": "baseline",
+        "question": "What does Gadget Mini cost on 2026-03-01 in the two shop lists?",
+        "steps": 4,
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 19000,
+        "citationIds": [
+          "p-1",
+          "p-2",
+          "p-2",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "Gadget Mini"
+        ],
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 1,
+        "disconfirmations": 0
+      },
+      "adaptive": {
+        "kind": "adaptive",
+        "question": "What does Gadget Mini cost on 2026-03-01 in the two shop lists?",
+        "steps": 6,
+        "actions": [
+          "search",
+          "fetch",
+          "fetch",
+          "verify",
+          "challenge",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [
+          "inaccessible_or_unresolved_gap"
+        ],
+        "spentMicro": 24000,
+        "citationIds": [
+          "p-1",
+          "p-2",
+          "p-2",
+          "p-2",
+          "p-1",
+          "p-2",
+          "p-1",
+          "p-2"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://price/a",
+          "fixture://price/b"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [
+          "Gadget Mini"
+        ],
+        "reportText": "Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\nApplied supplied constraints: date=2026-03-01. These were taken from the question and were not re-asked.\nEligibility remains unknown for inspected candidates; discovery is incomplete.\nVendor | Region | Price | Currency | Status | Evidence\nGadget Mini | \u2014 | 45 | EUR | unknown | p-2\nGadget Mini    45 EUR       unknown    fixture://price/b\nUnresolved disagreement on value: 19 EUR vs 45 EUR. Genuinely conflicting figures for overlapping scope; both retained. Newest source is not automatically correct. Both sources are retained; values are not averaged.\nFACT: Gadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: Genuinely conflicting figures for overlapping scope; both retained..\nDisconfirmation of \u201cGadget Mini costs 19 EUR on 2026-03-01 in the Shop A list.\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 2 source version(s) in 2 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "inspect_known_source",
+          "unresolved_contradiction_requires_verify",
+          "material_conclusion_disconfirm",
+          "inaccessible_or_unresolved_gap"
+        ],
+        "contradictions": 1,
+        "disconfirmations": 1
+      }
+    },
+    {
+      "taskId": "multi-jurisdiction-tax",
+      "family": "multi-jurisdiction",
+      "gold": {
+        "expectedConstraints": [
+          "geography=france"
+        ],
+        "decisiveClaims": [
+          "France deadline 2 May"
+        ],
+        "goldEvidence": [
+          "fixture://tax/fr-employment-deadline"
+        ],
+        "acceptableAlternateEvidence": [],
+        "knownTraps": [
+          "Germany July deadline"
+        ],
+        "freshnessWindow": "as of 2026-03-01",
+        "acceptableUncertainty": "confirmed France only"
+      },
+      "baseline": {
+        "kind": "baseline",
+        "question": "What is the filing deadline for employment tax in France?",
+        "steps": 3,
+        "actions": [
+          "search",
+          "fetch",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [],
+        "spentMicro": 16000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://tax/fr-employment-deadline"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "Live discovery of public sources for the task",
+          "Inspect an already-known source before another paid search",
+          "Write a bounded cited report from accessed evidence"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 0
+      },
+      "adaptive": {
+        "kind": "adaptive",
+        "question": "What is the filing deadline for employment tax in France?",
+        "steps": 4,
+        "actions": [
+          "search",
+          "fetch",
+          "challenge",
+          "synthesize"
+        ],
+        "pivots": 0,
+        "stopReasons": [
+          "evidence_sufficient_or_low_decision_value"
+        ],
+        "spentMicro": 21000,
+        "citationIds": [
+          "p-1",
+          "p-1"
+        ],
+        "unknownCitations": 0,
+        "goldLocatorsFetched": [
+          "fixture://tax/fr-employment-deadline"
+        ],
+        "goldLocatorsMissed": [],
+        "hardConstraintViolations": 0,
+        "candidateIdentities": [],
+        "reportText": "In France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. This is a bounded fixture for the confirmed France jurisdiction, not a German 50 EUR product comparison.\nApplied supplied constraints: geography=france. These were taken from the question and were not re-asked.\nFACT: In France, the employment tax filing deadline for the annual return is 2 May fol. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: localized to listed limitations.\nDisconfirmation of \u201cIn France, the employment tax filing deadline for the annual return is 2 May following the tax year, as of 2026-03-01. T\u201d: no_counterexample_found. No counterexample found in accessed primary sources. This is not proof that the conclusion is true. No counterexample found is not proof.\nAccessed 1 source version(s) in 1 origin cluster(s). Repeated syndication is not counted as independent confirmation.",
+        "selectionReasons": [
+          "uncovered_research_question",
+          "inspect_known_source",
+          "material_conclusion_disconfirm",
+          "decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value"
+        ],
+        "contradictions": 0,
+        "disconfirmations": 1
       }
     }
-  ]
+  ],
+  "not_competitor_comparison": true,
+  "ablations": {
+    "full": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noGapDetection": {
+      "pivots": 0,
+      "goldLocatorsFetched": [],
+      "actions": [
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "search",
+        "fetch",
+        "search",
+        "search",
+        "stop"
+      ],
+      "unknownCitations": 0
+    },
+    "noSourcePivot": {
+      "pivots": 0,
+      "goldLocatorsFetched": [],
+      "actions": [
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "search",
+        "fetch",
+        "search",
+        "search",
+        "stop"
+      ],
+      "unknownCitations": 0
+    },
+    "noContradictionHandling": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noDisconfirmation": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    },
+    "noEvidenceAwareStop": {
+      "pivots": 1,
+      "goldLocatorsFetched": [
+        "fixture://vendor/nimbus-matrix"
+      ],
+      "actions": [
+        "search",
+        "search",
+        "fetch",
+        "fetch",
+        "fetch",
+        "fetch",
+        "verify",
+        "challenge",
+        "synthesize"
+      ],
+      "unknownCitations": 0
+    }
+  },
+  "note": "Fixture catalog only. Same model/tariffs/questions. Adaptive vs bounded baseline. Not live quality."
 }

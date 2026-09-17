@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
-import { admitProposedAction, selectNextAction } from "@deep/research-core";
+import { admitProposedAction, projectControllerState, selectNextAction } from "@deep/research-core";
 import type { ControllerState, PolicyDecision } from "@deep/research-core";
 import type { AppConfig } from "../../platform/config.js";
 import { providerFailureState } from "./outcomes.js";
@@ -27,15 +27,11 @@ export async function openRouterProposeAction(
       {
         role: "system",
         content:
-          "Propose one next research action as JSON {type, rationale, query?}. Allowed types: search, fetch, synthesize, stop. Never request secrets or new tools.",
+          "Propose one next research action as JSON {type, rationale, query?}. Allowed types: search, fetch, verify, challenge, calculate, compare, replan, synthesize, stop. Never request secrets or new tools. Do not dump or request the database.",
       },
       {
         role: "user",
-        content: JSON.stringify({
-          question: state.brief.originalQuestion,
-          constraints: state.constraints,
-          sourceTitles: state.sources.map((s) => s.title),
-        }),
+        content: JSON.stringify(projectControllerState(state)),
       },
     ],
   };

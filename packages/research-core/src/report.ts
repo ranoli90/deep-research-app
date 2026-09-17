@@ -1,8 +1,12 @@
 import type { CanonicalReport, ReportBlock, TerminalOutcome } from "@deep/contracts";
 import { extractCandidates } from "./candidates.js";
-import { calculate, extractMonthlyPrice } from "./calculate.js";
+import { calculate, extractMonthlyPrice, tryCalculate } from "./calculate.js";
+import { validateMaterialCitations } from "./citations.js";
+import { detectContradictions } from "./contradictions.js";
+import { needsPrimaryEvidence } from "./gaps.js";
+import { PRIMARY_SOURCE_TYPES } from "./independence.js";
 import { independentClusterCount } from "./policy.js";
-import { citationIdsExist, passageSupportsClaim } from "./support.js";
+import { citationIdsExist } from "./support.js";
 import type { ControllerState, StoredClaim, StoredPassage } from "./types.js";
 
 export type CitationProblem = {
@@ -82,36 +86,11 @@ export function checkReportCitations(
   claims: StoredClaim[],
   passages: StoredPassage[],
 ): CitationProblem {
-  const known = new Set(passages.map((p) => p.id));
-  const passageById = new Map(passages.map((p) => [p.id, p]));
-  const unknownIds: string[] = [];
-  const unsupported: CitationProblem["unsupported"] = [];
-
-  for (const block of blocks) {
-    for (const id of block.citationIds) {
-      if (!known.has(id)) unknownIds.push(id);
-    }
-  }
-
-  const claimById = new Map(claims.map((c) => [c.id, c]));
-  for (const block of blocks) {
-    for (const claimId of block.claimIds) {
-      const claim = claimById.get(claimId);
-      if (!claim) continue;
-      for (const pid of claim.passageIds) {
-        const passage = passageById.get(pid);
-        if (!passage) {
-          unknownIds.push(pid);
-          continue;
-        }
-        const decision = passageSupportsClaim(passage.exactText, claim.text);
-        if (decision === "unsupported" || decision === "context-only") {
-          unsupported.push({ claimId, passageId: pid, decision });
-        }
-      }
-    }
-  }
-  return { unknownIds: [...new Set(unknownIds)], unsupported };
+  const extra = validateMaterialCitations({ blocks, claims, passages });
+  return {
+    unknownIds: extra.unknownIds,
+    unsupported: extra.unsupported.map((u) => ({ claimId: u.claimId, passageId: u.passageId, decision: u.decision })),
+  };
 }
 
 export function conciseFromCanonical(blocks: ReportBlock[]): ReportBlock[] {
@@ -157,7 +136,16 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
   const injection = state.passages.find((p) => /ignore previous instructions|reveal .{0,12}key/i.test(p.exactText));
   const limitation = state.passages.find((p) => /not compatible|incompatible|does not support postgres 14/i.test(p.exactText));
   const blocked = state.sources.filter((s) => s.accessLevel === "blocked" || s.accessLevel === "snippet");
-  const contradictions = findContradictions(state.passages);
+  const contradictions = (state.contradictions?.length ? state.contradictions : detectContradictions(state)).map((c) => ({
+    topic: c.dimension,
+    left: c.claimA.slice(0, 80),
+    right: c.claimB.slice(0, 80),
+    passageIds: [c.passageAId, c.passageBId],
+    explanation: c.possibleExplanation,
+    status: c.resolutionStatus,
+  }));
+  const hasPrimary = state.sources.some((s) => PRIMARY_SOURCE_TYPES.has(s.sourceType ?? ""));
+  const needsPrimary = needsPrimaryEvidence(state.brief.originalQuestion);
 
   const claims: StoredClaim[] = [...state.claims];
   const blocks: ReportBlock[] = [];
@@ -203,12 +191,15 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       }) ??
       state.passages[0]!;
     const assertedPct = assertedPercentMissingFromPassages(state.brief.originalQuestion, state.passages);
+    const asInference = needsPrimary && !hasPrimary && !limitation;
     addClaim(claims, blocks, {
       id: "claim-primary",
       text: assertedPct
         ? `Completion is ${assertedPct} this year.`
-        : primary.exactText.slice(0, 400),
-      type: "external-fact",
+        : asInference
+          ? `INFERENCE (not established fact): summaries are not primary documentation. ${primary.exactText.slice(0, 280)}`
+          : primary.exactText.slice(0, 400),
+      type: asInference ? "inference" : "external-fact",
       passageIds: [primary.id],
     });
   }
@@ -289,11 +280,33 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       blocks.push({
         id: `contradiction-${c.topic}`,
         kind: "caveat",
-        text: `Unresolved disagreement on ${c.topic}: ${c.left} vs ${c.right}. Both sources are retained; values are not averaged.`,
+        text: `${c.status === "explained" ? "Scope-explained" : "Unresolved"} disagreement on ${c.topic}: ${c.left} vs ${c.right}. ${c.explanation} Newest source is not automatically correct. Both sources are retained; values are not averaged.`,
         claimIds: [],
         citationIds: c.passageIds,
       });
     }
+  }
+
+  const facts = claims.filter((c) => c.type === "external-fact" || c.type === "limitation");
+  const inferences = claims.filter((c) => c.type === "inference");
+  blocks.push({
+    id: "statement-classes",
+    kind: "text",
+    text: `FACT: ${facts.map((c) => c.text.slice(0, 80)).join(" | ") || "none recorded"}. CALCULATION: see calculation blocks. INFERENCE: ${inferences.map((c) => c.text.slice(0, 80)).join(" | ") || "none presented as fact"}. UNCERTAINTY: ${state.gaps.filter((g) => g.importance !== "background").map((g) => g.remainingUncertainty ?? g.missingFact).join("; ") || "localized to listed limitations"}.`,
+    claimIds: [],
+    citationIds: [],
+  });
+
+  for (const d of state.disconfirmations ?? []) {
+    blocks.push({
+      id: `disconfirm-${d.id}`.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 80) || "disconfirm",
+      kind: "caveat",
+      text: stripUnsafeMarkup(
+        `Disconfirmation of “${d.targetConclusion.slice(0, 120)}”: ${d.result}. ${d.impact} No counterexample found is not proof.`,
+      ),
+      claimIds: [],
+      citationIds: [],
+    });
   }
 
   const dose = state.constraints.find((c) => c.field === "dose");
@@ -321,17 +334,43 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
 
   if (/\b12 months|annual|times the .* monthly/i.test(state.brief.originalQuestion)) {
     const price = state.passages.map((p) => extractMonthlyPrice(p.exactText)).find(Boolean);
-    if (price) {
-      const calc = calculate("annual_from_monthly", [
-        { name: "monthly", value: price.value, units: price.units },
-        { name: "months", value: 12, units: "month" },
-      ]);
+    const outcome = tryCalculate(
+      "annual_from_monthly",
+      price
+        ? [
+            { name: "monthly", value: price.value, units: price.units },
+            { name: "months", value: 12, units: "month" },
+          ]
+        : [],
+    );
+    if (outcome.status === "unknown") {
+      blocks.push({
+        id: "calculation-annual",
+        kind: "caveat",
+        text: `CALCULATION annual_from_monthly is unknown; missing inputs: ${outcome.missing.join(", ")}. No number was invented.`,
+        claimIds: [],
+        citationIds: [],
+      });
+    } else {
+      const calc = outcome.result;
       blocks.push({
         id: "calculation-annual",
         kind: "code",
         text: `Calculation ${calc.formulaName}@${calc.formulaVersion}: ${calc.expression}.`,
         claimIds: [],
         citationIds: state.passages.map((p) => p.id).slice(0, 2),
+      });
+    }
+  }
+
+  for (const calc of state.calculations ?? []) {
+    if (calc.status === "unknown") {
+      blocks.push({
+        id: `calculation-${calc.id}`,
+        kind: "caveat",
+        text: `CALCULATION ${calc.formulaName} is unknown; missing inputs: ${calc.missing.join(", ")}. Result stays unknown.`,
+        claimIds: [],
+        citationIds: [],
       });
     }
   }
@@ -532,20 +571,6 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
         : undefined,
     routeMode: state.brief.desiredOutcome === "hosted" ? "hosted-baseline" : "fixture",
   };
-}
-
-function findContradictions(passages: StoredPassage[]): { topic: string; left: string; right: string; passageIds: string[] }[] {
-  const prices: { value: string; id: string }[] = [];
-  for (const p of passages) {
-    const m = p.exactText.match(/costs?\s+(\d+(?:\.\d+)?)\s*(EUR|USD)/i);
-    if (m) prices.push({ value: `${m[1]} ${m[2]}`, id: p.id });
-  }
-  if (prices.length >= 2) {
-    const first = prices[0]!;
-    const other = prices.find((p) => p.value !== first.value);
-    if (other) return [{ topic: "price", left: first.value, right: other.value, passageIds: [first.id, other.id] }];
-  }
-  return [];
 }
 
 export function explainFreshness(state: ControllerState): string | null {

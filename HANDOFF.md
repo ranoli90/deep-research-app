@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` after the controller-admission foundation pass. P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` after the Phase 2 adaptive-controller pass. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
@@ -39,19 +39,21 @@ Working tree: `main` after the controller-admission foundation pass. P0 is **not
 - JOB-1 (`verification/job1-eligibility.json`, `verification/job1-linux-correction.json`, `verification/job1-linux-drop.json`): adding Linux excludes NoteKeep; dropping Linux re-includes it. EVAL-01 is still draft_not_validated.
 - P0-N Android recapture (`verification/p0n-android-recapture.json`): persist/hydrate after force-stop, library open, FULL-TEXT source, cancel-during-writing `3e0f50a5` cancelled with no report. iOS still blocked.
 - R02 (`verification/r02-continue.json`, `verification/r02-geo-search.json`): empty continue is 400; confirmed geography is appended to the search query so France does not reuse the Germany default note.
-- Controller admission: every fixture/live/model proposal passes `admitProposedAction` (schema, allowlist, capability flags, consent/cancel/delete, revision, dedupe, private query, spend). Live `nextLiveAction()` is a bounded baseline chooser, not an adaptive engine. Live provider cost is gated by `liveSpendUsedMicro` / `LIVE_SPEND_CAP_MICRO`, not the fixture run-budget reserve (`LIVE_CALL_RESERVE_MICRO` 200_000 vs `DEFAULT_RUN_BUDGET_MICRO` 100_000). Intents are inserted as `issued` before HTTP; `failed`/`outcome-unknown` keep the reservation. Gaps persist `payload` (dependent conclusion, resolving evidence, attempts, remaining uncertainty). Fixture baseline vs adaptive: `verification/benchmark-fixture.json` (Nimbus gold matrix recalled only on the adaptive arm). Not live quality. Not a competitor win.
+- Controller admission: every fixture/live/model proposal passes `admitProposedAction` (schema, allowlist, capability flags, consent/cancel/delete, revision, dedupe, private query, spend, unsafe URL, untried blocking-gap synthesize). **Live default is `selectAdaptiveAction` (`research-controller.v1`)**. `nextLiveAction()` / `selectBaselineAction` remain the bounded comparison arm (`LIVE_CONTROLLER_KIND=baseline`). Live provider cost is gated by `liveSpendUsedMicro` / `LIVE_SPEND_CAP_MICRO`, not the fixture run-budget reserve (`LIVE_CALL_RESERVE_MICRO` 200_000 vs `DEFAULT_RUN_BUDGET_MICRO` 100_000). Intents are inserted as `issued` before HTTP; `failed`/`outcome-unknown` keep the reservation. Gaps persist `payload`; contradictions/disconfirmations persist via events + `005_controller_intelligence.sql`. Fixture baseline vs adaptive (12 families): `verification/benchmark-fixture.json` (Nimbus gold matrix recalled only on the adaptive arm; ablations show gap detection and source pivot are what retrieve it). Live adaptive smoke `1ceed974` / report `1a5a089d`. Not a competitor win.
 
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 107 tests including live-search issued-before-fetch |
-| `pnpm --filter @deep/research-core test` | 0 | 39 tests including `admitProposedAction` |
+| `pnpm test:integration` | 0, twice | 107 tests including live-search issued-before-fetch |
+| `pnpm --filter @deep/research-core test` | 0 | 48 tests including adaptive closed loop |
 | `pnpm --filter @deep/backend typecheck` | 0 | |
-| `pnpm --filter @deep/backend test:unit` | 0 | 22 tests including live vs run-budget admission |
+| `pnpm --filter @deep/backend test:unit` | 0 | 22 tests including 12-family fixture benchmark |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests |
 | `pnpm p0:launch` | 0, twice | citations=10; `cancelOutcome=cancelled`; `cancelReportId=null`; `latePublicationRejected=true` |
-| `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
+| `pnpm eval:fixture` | 0 | 12 families; Nimbus/primary gold only on adaptive; ablations |
+| `tsx scripts/p2-live-adaptive-check.ts` | 0 | run `1ceed974` report `1a5a089d`; adapted=true; $1.60 of $5 reserved |
+| `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; historical bounded |
 | `pnpm test:e2e:ios` | 2 | no Xcode |
 | `pnpm test:e2e:android` | 2 | no device online; prior Android evidence not re-run |
 
@@ -64,7 +66,7 @@ Working tree: `main` after the controller-admission foundation pass. P0 is **not
 ## Unresolved
 - iOS VoiceOver not exercised. Purchase sandbox not connected.
 - J14 proves application outbox dedupe, not OS push delivery.
-- P1/P2/P3 fixture tests are not a competitor win. Do not spend more OpenRouter unless remaining cap and a new live need justify it.
+- P1/P2/P3 fixture tests and the 12-family fixture benchmark are not a competitor win. Remaining OpenRouter cap ~$3.40 of $5 after the adaptive live smoke. Do not spend more unless a new live need justifies it.
 
 ## Next
 iOS P0-N / G03 iOS at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS, both-platform G03, hosted auth, M11 purchases, G04, G05, or full G07 store review as passed.

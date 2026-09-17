@@ -4,7 +4,7 @@ import {
   FIXTURE_SYNTH_COST_MICRO,
 } from "@deep/contracts";
 import { admitProposedAction } from "./admission.js";
-import { selectNextAction } from "./policy.js";
+import { selectAdaptiveAction } from "./adaptive.js";
 import type { ControllerState, PolicyDecision } from "./types.js";
 
 export type ControllerKind = "baseline" | "adaptive";
@@ -65,6 +65,6 @@ export function selectBaselineAction(state: ControllerState): PolicyDecision {
 }
 
 export function proposeControllerAction(state: ControllerState, kind: ControllerKind): PolicyDecision {
-  const raw = kind === "baseline" ? selectBaselineAction(state) : selectNextAction(state);
+  const raw = kind === "baseline" ? selectBaselineAction(state) : selectAdaptiveAction(state);
   return admitProposedAction(state, raw);
 }

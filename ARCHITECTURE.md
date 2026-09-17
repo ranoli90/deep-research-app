@@ -31,16 +31,16 @@ Postgres is the durable source of truth. Use relational dependency/link tables, 
 ## One request, intended trace
 1. Native composer preserves the draft and submits an authenticated, idempotent request after consent.
 2. API validates identity, brief schema, attachment ownership and server policy; transaction creates run/reservations/outbox or atomically enqueues.
-3. Worker claims the run with a lease fence, loads its revision basis and persisted state, and authorizes one action at a time.
-4. Model adapter proposes validated actions; retrieval adapter returns provenance plus source text/access limits. The controller persists receipts, evidence and costs.
-5. Verification evaluates support and coverage. Report service publishes canonical blocks/citations only if revision, consent and cancellation fences still match.
+3. Worker claims the run with a lease fence, loads a compact `research-controller.v1` projection (not a database dump), and authorizes one action at a time through `admitProposedAction`.
+4. The application-owned adaptive selector (`selectAdaptiveAction`) chooses the next typed action from gaps, source class, contradictions and remaining value. A model may propose; it cannot authorize. Retrieval adapters return provenance plus source text/access limits. The bounded chooser (`selectBaselineAction`) remains a comparison arm.
+5. Evidence update refreshes questions, gaps, contradictions, calculations and disconfirmations. Verification/challenge are first-class. Report service synthesizes from that structured state and publishes only if revision, consent and cancellation fences still match.
 6. Native snapshot/cursored events reveal actual progress and saved result. Closing the app affects observation, not the worker.
 7. A correction creates a revised brief/child run, invalidates affected conclusions and candidate selection where needed, then produces a versioned change result.
 
 This is a proposed trace. No executable request path was available to run in the inspected input.
 
 ## Execution strategies
-`fixture`: deterministic explicitly labeled local data. `hosted-baseline`: a provider-managed report, with honest limited visibility. `controlled-research`: own iterative controller with accessible evidence and receipts. All render through the same public report contract. Never upgrade citation-only hosted metadata into invented full-text evidence. OpenRouter beta capabilities are adapter-specific and must be probed under an authorized budget (S28).
+`fixture`: deterministic explicitly labeled local data. `hosted-baseline`: a provider-managed report, with honest limited visibility. `controlled-research`: own iterative **adaptive** controller (`research-controller.v1`) with accessible evidence and receipts; `LIVE_CONTROLLER_KIND=baseline` selects the bounded chooser for comparison. All render through the same public report contract. Never upgrade citation-only hosted metadata into invented full-text evidence. OpenRouter beta capabilities are adapter-specific and must be probed under an authorized budget (S28).
 
 ## Decisions and reversal
 See `docs/adr/DECISIONS.md` for chosen/rejected options, evidence that would reverse a choice, migration cost and rollback boundaries. API contracts are versioned. Do not silently replace original run-state labels in a real app: first inspect clients/migrations and introduce an explicit compatibility mapping.

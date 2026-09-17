@@ -41,6 +41,13 @@ function runBudgetCostMicro(proposal: PolicyDecision, opts: AdmitOptions): numbe
 
 const UNAVAILABLE_CAPABILITIES = new Set(["extract_table", "inspect_visual"]);
 
+function isAllowedLocator(locator: string): boolean {
+  if (locator.startsWith("fixture://") || locator.startsWith("attachment://")) return true;
+  if (/^(file|javascript|data|ftp):/i.test(locator)) return false;
+  if (/localhost|127\.0\.0\.1|0\.0\.0\.0|169\.254|metadata\.google/i.test(locator)) return false;
+  return locator.startsWith("http://") || locator.startsWith("https://");
+}
+
 function asDecision(proposal: PolicyDecision, patch: Partial<PolicyDecision>): PolicyDecision {
   return { ...proposal, ...patch };
 }
@@ -127,6 +134,32 @@ export function admitProposedAction(
       rationale: "duplicate action suppressed",
       arguments: { reason: "duplicate_action", dedupeKey: proposal.dedupeKey },
     });
+  }
+
+  if (proposal.type === "fetch") {
+    const locator = String(proposal.arguments.locator ?? "");
+    if (locator && !isAllowedLocator(locator)) {
+      return asDecision(proposal, {
+        type: "stop",
+        rejectReason: "unsafe_url",
+        rationale: "fetch locator is not an allowed fixture, attachment, or http(s) URL",
+        arguments: { reason: "unsafe_url", locator },
+      });
+    }
+  }
+
+  if (proposal.type === "synthesize") {
+    const blockingUntried = (state.gaps ?? []).find(
+      (g) => g.importance === "blocking" && (g.latestOutcome === "untried" || !g.latestOutcome) && g.resolution !== "resolved" && g.suggestedQuery,
+    );
+    if (blockingUntried && !proposal.arguments.stopPolicy && !proposal.arguments.allowOpenGaps) {
+      return asDecision(proposal, {
+        type: "stop",
+        rejectReason: "blocking_gap_open",
+        rationale: `synthesize rejected while blocking gap is untried: ${blockingUntried.missingFact}`,
+        arguments: { reason: "blocking_gap_open", gapId: blockingUntried.id },
+      });
+    }
   }
 
   if (proposal.type === "search") {

@@ -9,8 +9,13 @@ import {
   admitProposedAction,
   compactForContext,
   composeReport,
+  detectContradictions,
   detectGaps,
+  deriveResearchQuestions,
+  evaluateDisconfirmation,
   extractCandidates,
+  planDisconfirmation,
+  selectAdaptiveAction,
   selectBaselineAction,
   selectNextAction,
   type ControllerState,
@@ -154,9 +159,34 @@ function toState(
       .filter((k): k is string => Boolean(k)),
     completedActionTypes: searchEvents
       .map((e) => e.type)
-      .filter((t) => t === "compare" || t === "calculate" || t === "verify" || t === "replan" || t === "extract_text"),
+      .filter((t) => t === "compare" || t === "calculate" || t === "verify" || t === "replan" || t === "extract_text" || t === "challenge"),
     stopReason: searchEvents.find((e) => e.type === "stop_policy")?.public_summary,
+    lastPivotReason: searchEvents.find((e) => e.type === "source_pivot")?.public_summary,
+    disconfirmations: searchEvents
+      .filter((e) => e.type === "challenge" || e.type === "disconfirm")
+      .map((e) => {
+        const p = (e.payload ?? {}) as {
+          targetConclusion?: string;
+          falsificationHypothesis?: string;
+          searchStrategy?: string;
+          result?: "counterevidence_found" | "no_counterexample_found" | "untried";
+          counterevidenceFound?: boolean;
+          impact?: string;
+        };
+        return {
+          id: p.targetConclusion ?? e.type,
+          targetConclusion: p.targetConclusion ?? "",
+          falsificationHypothesis: p.falsificationHypothesis ?? "",
+          searchStrategy: p.searchStrategy ?? "",
+          result: p.result ?? "untried",
+          counterevidenceFound: Boolean(p.counterevidenceFound),
+          impact: p.impact ?? e.public_summary,
+        };
+      }),
+    controllerVersion: "research-controller.v1",
   };
+  state.questions = deriveResearchQuestions(state);
+  state.contradictions = detectContradictions(state);
   state.gaps = detectGaps(state);
   return state;
 }
@@ -234,7 +264,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
   if (fence == null) return;
   const declinedOffCoverage = new Set<string>();
 
-  for (let step = 0; step < 12; step++) {
+  for (let step = 0; step < 16; step++) {
     const run = await getRun(pool, runId);
     if (!run) return;
     const deleted = await isDeleted(pool, run.account_id);
@@ -301,16 +331,18 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     const seenDedupe = new Set<string>([...declinedOffCoverage, ...(state.issuedDedupeKeys ?? [])]);
     let decision = fixtureProposeAction(state);
     if (run.route_mode === "controlled-research" && config.liveRouteEnabled && !decision.rejectReason) {
-      const liveProposed = selectBaselineAction(state);
+      const liveProposed =
+        config.liveControllerKind === "baseline" ? selectBaselineAction(state) : selectAdaptiveAction(state);
       liveProposed.actionId = `live-${step}`;
       liveProposed.dedupeKey = `live-${runId}-${step}-${liveProposed.type}`;
       const usedMicro = await liveSpendUsedMicro(pool);
+      const livePaid = liveProposed.type === "search" || liveProposed.type === "challenge";
       decision = admitProposedAction(state, liveProposed, {
         seenDedupeKeys: seenDedupe,
         liveSpend: {
           capMicro: config.liveSpendCapMicro,
           usedMicro,
-          estimatedMicro: liveProposed.type === "search" ? LIVE_CALL_RESERVE_MICRO : 0,
+          estimatedMicro: livePaid ? LIVE_CALL_RESERVE_MICRO : 0,
         },
       });
     }
@@ -332,6 +364,11 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
     }
 
     logInfo("action", { runId, type: decision.type, rationale: decision.rationale, step });
+
+    const challengeSearch = decision.type === "challenge" && decision.arguments.query && !decision.arguments.recordOnly;
+    if (challengeSearch) {
+      decision = { ...decision, type: "search", arguments: { ...decision.arguments, disconfirm: true } };
+    }
 
     if (decision.type === "clarify") {
       await withTx(pool, async (c) => {
@@ -457,6 +494,26 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
               trigger: decision.arguments.trigger,
               sourceTypeNeeded: decision.arguments.sourceTypeNeeded,
               gapId: decision.gapId,
+              pivotReason: decision.arguments.pivotReason ?? decision.rationale,
+              selectionReason: decision.arguments.selectionReason,
+            },
+          });
+        }
+        if (decision.arguments.disconfirm || challengeSearch) {
+          const planned = planDisconfirmation(state);
+          const evaluated = planned ? evaluateDisconfirmation(state, planned) : undefined;
+          await emitEvent(c, {
+            runId,
+            accountId: run.account_id,
+            type: "challenge",
+            summary: evaluated?.impact ?? decision.rationale,
+            phase: "researching",
+            payload: {
+              ...(evaluated ?? {}),
+              targetConclusion: decision.arguments.targetConclusion ?? evaluated?.targetConclusion,
+              falsificationHypothesis: decision.arguments.falsificationHypothesis ?? evaluated?.falsificationHypothesis,
+              searchStrategy: query,
+              selectionReason: decision.arguments.selectionReason,
             },
           });
         }
@@ -557,7 +614,7 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
       continue;
     }
 
-    if (decision.type === "compare" || decision.type === "calculate" || decision.type === "verify" || decision.type === "replan" || decision.type === "extract_text") {
+    if (decision.type === "compare" || decision.type === "calculate" || decision.type === "verify" || decision.type === "replan" || decision.type === "extract_text" || decision.type === "challenge") {
       await emitEvent(pool, {
         runId,
         accountId: run.account_id,
@@ -681,10 +738,38 @@ export async function processRun(pool: pg.Pool, config: AppConfig, runId: string
             remainingUncertainty: g.remainingUncertainty ?? null,
             attempts: g.attempts ?? [],
             gapId: g.id,
+            preferredSourceTypes: g.preferredSourceTypes ?? [],
+            questionId: g.questionId ?? null,
+            resolution: g.resolution ?? null,
           }),
         ],
       );
     }
+    await pool.query(`DELETE FROM research_contradictions WHERE run_id = $1`, [runId]).catch(() => undefined);
+    for (const c of state2.contradictions ?? []) {
+      await pool.query(
+        `INSERT INTO research_contradictions (id, run_id, payload, resolution_status) VALUES ($1,$2,$3,$4)`,
+        [crypto.randomUUID(), runId, JSON.stringify(c), c.resolutionStatus],
+      );
+    }
+    await pool.query(`DELETE FROM research_disconfirmations WHERE run_id = $1`, [runId]).catch(() => undefined);
+    for (const d of state2.disconfirmations ?? []) {
+      await pool.query(`INSERT INTO research_disconfirmations (id, run_id, payload) VALUES ($1,$2,$3)`, [
+        crypto.randomUUID(),
+        runId,
+        JSON.stringify(d),
+      ]);
+    }
+    await pool.query(`UPDATE runs SET controller_kind = $2, controller_artifacts = $3 WHERE id = $1`, [
+      runId,
+      latest.route_mode === "controlled-research" ? (config.liveControllerKind ?? "adaptive") : "adaptive",
+      JSON.stringify({
+        questions: state2.questions ?? [],
+        stopReason: state2.stopReason ?? null,
+        lastPivotReason: state2.lastPivotReason ?? null,
+        controllerVersion: "research-controller.v1",
+      }),
+    ]).catch(() => undefined);
     const claims: StoredClaim[] = state2.claims;
     const passages: StoredPassage[] = state2.passages;
 

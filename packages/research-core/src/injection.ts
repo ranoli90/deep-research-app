@@ -20,6 +20,7 @@ export const TOOL_ALLOWLIST = [
   "compare",
   "calculate",
   "verify",
+  "challenge",
   "replan",
   "synthesize",
   "stop",

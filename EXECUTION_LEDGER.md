@@ -242,6 +242,16 @@ No live paid calls were made.
 - Tests: research-core + backend unit drive a well-formed live search (reserve > run budget, cap remaining) to `type==='search'`. Integration `processRun` asserts a provider fetch occurs and an `issued` openrouter intent already exists at that moment.
 - `pnpm test:integration` 107/107; `pnpm verify` exit 0; `pnpm p0:launch` twice ok. iOS/hosted/StoreKit/OS-push remain blocked, not passed.
 
+## 2026-09-17 — Phase 2 research intelligence (adaptive controller)
+
+- Typed `research-controller.v1` projection, provenance-tagged constraints, research questions, first-class gaps/contradictions/calculations/disconfirmations, evidence-adaptive `selectAdaptiveAction`, bounded `selectBaselineAction` kept as comparison arm.
+- Live `controlled-research` default is adaptive (`LIVE_CONTROLLER_KIND=baseline` restores the chooser). Admission still the only gate.
+- Migration `005_controller_intelligence.sql`.
+- Fixture 12-family benchmark: Nimbus/primary gold matrix recalled only on adaptive; ablations show gap detection and source pivot are the retrieval cause. `verification/benchmark-fixture.json` remains `evidenceClass: fixture`.
+- Adaptive closed-loop unit test: weak summaries → blocking gap → source-type pivot → contradiction → verify/challenge → evidence-aware stop.
+- Live smoke `1ceed974` / report `1a5a089d`: search → fetch → source_pivot → verify → challenge → published HTTP passages. Reserved **$1.60 of $5**. Remaining ~$3.40.
+- `pnpm test:integration` 107/107 twice; `pnpm verify` 0; `pnpm p0:launch` twice ok. iOS/Android this session not re-run (no device / no Xcode).
+
 
 
 

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const SCHEMA_VERSION = "1";
+/** Versioned research-controller state projection. Additive to SCHEMA_VERSION. */
+export const CONTROLLER_CONTRACT_VERSION = "research-controller.v1";
 
 export const IdSchema = z.string().uuid();
 export type Id = z.infer<typeof IdSchema>;
@@ -22,8 +24,15 @@ export const TerminalOutcomeSchema = z.enum([
 ]);
 export type TerminalOutcome = z.infer<typeof TerminalOutcomeSchema>;
 
-export const ConstraintOriginSchema = z.enum(["explicit", "confirmed", "assumed"]);
+export const ConstraintOriginSchema = z.enum(["explicit", "confirmed", "assumed", "document", "system"]);
 export const ConstraintImportanceSchema = z.enum(["hard", "preference"]);
+export const ConstraintProvenanceSchema = z.enum([
+  "user_provided",
+  "model_inferred",
+  "document_derived",
+  "system_generated",
+]);
+export type ConstraintProvenance = z.infer<typeof ConstraintProvenanceSchema>;
 
 export const ConstraintSchema = z.object({
   id: z.string(),
@@ -35,6 +44,7 @@ export const ConstraintSchema = z.object({
   importance: ConstraintImportanceSchema,
   explanation: z.string(),
   appliesTo: z.string().optional(),
+  provenance: ConstraintProvenanceSchema.optional(),
 });
 export type Constraint = z.infer<typeof ConstraintSchema>;
 
@@ -91,6 +101,7 @@ export const ActionTypeSchema = z.enum([
   "compare",
   "calculate",
   "verify",
+  "challenge",
   "replan",
   "synthesize",
   "stop",

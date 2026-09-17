@@ -17,6 +17,8 @@ export type AppConfig = {
   liveSpendCapMicro: number;
   consentPolicyVersion: string;
   writingCancelWindowMs: number;
+  /** Live comparison arm. Default adaptive; baseline is the bounded chooser. */
+  liveControllerKind: "baseline" | "adaptive";
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -49,5 +51,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     liveSpendCapMicro: Number(env.LIVE_SPEND_CAP_MICRO ?? 0),
     consentPolicyVersion: env.CONSENT_POLICY_VERSION ?? CONSENT_POLICY_VERSION,
     writingCancelWindowMs: Number(env.WRITING_CANCEL_WINDOW_MS ?? 150),
+    liveControllerKind: env.LIVE_CONTROLLER_KIND === "baseline" ? "baseline" : "adaptive",
   };
 }

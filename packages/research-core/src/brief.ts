@@ -1,4 +1,5 @@
 import type { Assumption, Constraint, ResearchBrief } from "@deep/contracts";
+import { provenanceFromOrigin } from "./provenance.js";
 
 const COUNTRIES = [
   "germany",
@@ -34,6 +35,7 @@ export function extractConstraints(question: string): Constraint[] {
         origin: "explicit",
         importance: "hard",
         explanation: `Question names geography: ${country}`,
+        provenance: provenanceFromOrigin("explicit"),
       });
       break;
     }
@@ -50,6 +52,7 @@ export function extractConstraints(question: string): Constraint[] {
       origin: "explicit",
       importance: "hard",
       explanation: `Question names budget ${money[0]}`,
+      provenance: provenanceFromOrigin("explicit"),
     });
   }
 
@@ -159,6 +162,48 @@ export function extractConstraints(question: string): Constraint[] {
       importance: "hard",
       explanation: `Question names population ${pop[1]}`,
     });
+  }
+
+  const exclude = question.match(/\b(?:excluding|exclude|not including|without)\s+([A-Z][A-Za-z0-9-]+(?:\s+[A-Z][A-Za-z0-9-]+)?)/);
+  if (exclude) {
+    constraints.push({
+      id: `exclude-${exclude[1]!.toLowerCase().replace(/\s+/g, "-")}`,
+      field: "exclusion",
+      operator: "neq",
+      value: exclude[1]!,
+      origin: "explicit",
+      importance: "hard",
+      explanation: `Question excludes ${exclude[1]}`,
+    });
+  }
+
+  if (/\bprefer(?:ably)?\b|\bideally\b|\bnice to have\b/i.test(question)) {
+    const prefer = question.match(/\bprefer(?:ably)?\s+([^.;]+)/i);
+    constraints.push({
+      id: "preference",
+      field: "preference",
+      operator: "eq",
+      value: prefer?.[1]?.trim() ?? "stated preference",
+      origin: "explicit",
+      importance: "preference",
+      explanation: "Soft preference; not a hard requirement",
+    });
+  }
+
+  if (/\bcurrent\b|\blatest\b|\bas of now\b|\btoday\b/i.test(question) && !constraints.some((c) => c.field === "date")) {
+    constraints.push({
+      id: "freshness",
+      field: "freshness",
+      operator: "eq",
+      value: "current",
+      origin: "explicit",
+      importance: "hard",
+      explanation: "Question requires current/fresh evidence",
+    });
+  }
+
+  for (const c of constraints) {
+    if (!c.provenance) c.provenance = provenanceFromOrigin(c.origin);
   }
 
   return constraints;
