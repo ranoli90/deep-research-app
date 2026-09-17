@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applySnapshot, canSubmit, conciseBlocks, emptyState, expireLocalSession, openLibraryItem } from "../src/state.js";
 import { hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
-import { ApiError, isExpiredSession } from "../src/api.js";
+import { ApiError, isExpiredSession, isOfflineError } from "../src/api.js";
 
 describe("P0-N native state mapping", () => {
   it("maps composer gates for consent, auth, offline, and empty draft", () => {
@@ -102,6 +102,17 @@ describe("P0-N native state mapping", () => {
     expect(src).not.toMatch(/allowFontScaling=\{false\}/);
     expect(src).toMatch(/maxFontSizeMultiplier=\{2\}/);
     expect(src).toMatch(/maxHeight: 180/);
+    expect(src).toMatch(/isOfflineError/);
+    expect(src).toMatch(/AppState\.addEventListener/);
+  });
+
+  it("M05 network failures are offline errors and block submit without dropping the draft", () => {
+    expect(isOfflineError(new ApiError(0, "The API did not respond. Check the connection."))).toBe(true);
+    expect(isOfflineError(new ApiError(500, "server"))).toBe(false);
+    const s = { ...emptyState(), draft: "Compare options in Germany", signedIn: true, consentGranted: true, offline: true };
+    expect(canSubmit(s).ok).toBe(false);
+    expect(canSubmit(s).reason).toMatch(/offline/i);
+    expect(s.draft).toContain("Germany");
   });
 
   it("expired session keeps the draft and routes to settings", () => {

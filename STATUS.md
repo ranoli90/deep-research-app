@@ -24,7 +24,7 @@ P0 is **not** fully verified.
 These are fixture-route behavioral tests. They are not evidence of advantage over ChatGPT/Gemini/Claude/Perplexity/Grok.
 
 ## Additional launch-scope cases now executed against Postgres/fixture
-R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (unit), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S03, S04, S05, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), JOB-2, V2-03, V2-09, V2-10, V2-11, V2-13, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20. Native structural: M03, M04, M05, M06, M07, M08, M09, M10, M12, V2-12. Native device: Library, persist, attach+source, Share Markdown, 120 EUR correction (Vendor C), Flag/challenge, TalkBack M02 labels, compact keyboard Send-usable, M04 table/code nested scroll, M02 enlarged text (font_scale 1.3) on Xiaomi.
+R02, R03, R06, R07, R10, R11, R12, R14, R15, R16, R17, R18, R19, R20, R21, R22, E03, E04, E05, E06, E07, E08, E09, E10 (unit), J02, J04, J06, J07, J08, J09, J10, J11, J12, J13, J14 (application outbox, not OS delivery), S03, S04, S05, S06, S07, S08 (unsigned reject; sandbox still gated), S10, S11, S12 (logout cache; live push gated), JOB-2, V2-03, V2-09, V2-10, V2-11, V2-13, V2-15, V2-16, V2-17, V2-18, V2-19, V2-20. Native structural: M03, M04, M05, M06, M07, M08, M09, M10, M12, V2-12. Native device: Library, persist, attach+source, Share Markdown, 120 EUR correction (Vendor C), Flag/challenge, TalkBack M02 labels, compact keyboard Send-usable, M04 table/code nested scroll, M02 enlarged text (font_scale 1.3), M05 offline (draft+report kept, no new run) on Xiaomi.
 
 ## Still open (not claimed done)
 - **P0-N iOS** blocked: no Xcode on this Linux host; TestFlight deferred.
@@ -37,4 +37,4 @@ P0 is **not** fully verified while iOS is blocked.
 ## Next executable task
 1. macOS/Xcode for iOS P0-N (deferred by user until the end).
 2. Hosted auth/storage/pooler only when those credentials exist. Do not mark iOS or hosted auth as passed.
-3. Remaining M05 device offline capture; M11 purchase sandbox when a store sandbox exists.
+3. M11 purchase sandbox when a store sandbox exists.

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   AccessibilityInfo,
   ActivityIndicator,
+  AppState,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
@@ -19,7 +20,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-
 import { StatusBar } from "expo-status-bar";
 import { color, space, type as typeTokens } from "@deep/design";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api, isExpiredSession } from "./src/api";
+import { api, isExpiredSession, isOfflineError } from "./src/api";
 import { clearAccountLocal, hydrateOnLaunch, persistSession } from "./src/persist";
 import { breakLongTokens, parseTable } from "./src/report-layout";
 import {
@@ -138,9 +139,16 @@ function AppInner() {
         void persistSession(AsyncStorage, { token: t, state: next });
         return next;
       });
+      setState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
     } catch (e) {
       if (isExpiredSession(e)) await onAuthFailure();
-      else setState((s) => ({ ...s, error: (e as Error).message }));
+      else if (isOfflineError(e)) {
+        setState((s) => {
+          const next = { ...s, offline: true, error: (e as Error).message };
+          void persistSession(AsyncStorage, { token: t, state: next });
+          return next;
+        });
+      } else setState((s) => ({ ...s, error: (e as Error).message }));
     }
   }
 
@@ -176,10 +184,21 @@ function AppInner() {
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
     const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
     const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
+    const appSub = AppState.addEventListener("change", (st) => {
+      if (st !== "active") return;
+      void api.health()
+        .then(() => setState((s) => (s.offline ? { ...s, offline: false, error: null } : s)))
+        .catch((e) => {
+          if (isOfflineError(e)) {
+            setState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+          }
+        });
+    });
     return () => {
       sub.remove();
       show.remove();
       hide.remove();
+      appSub.remove();
       if (poll.current) clearInterval(poll.current);
     };
   }, []);
@@ -223,7 +242,17 @@ function AppInner() {
       startPolling(t, created.runId);
     } catch (e) {
       if (isExpiredSession(e)) await onAuthFailure();
-      else setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
+      else if (isOfflineError(e)) {
+        setState((s) => {
+          const next = {
+            ...s,
+            offline: true,
+            error: (e as Error).message,
+          };
+          void persistSession(AsyncStorage, { token, state: next });
+          return next;
+        });
+      } else setState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
     }
   }
 

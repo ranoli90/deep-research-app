@@ -16,6 +16,11 @@ export function isExpiredSession(err: unknown): boolean {
   return err instanceof ApiError && err.status === 401;
 }
 
+/** Fetch failures and timeouts are mapped to ApiError status 0. */
+export function isOfflineError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 0;
+}
+
 async function req(path: string, init: RequestInit & { token?: string } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json", ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;

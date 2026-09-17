@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "M05",
+  "device": {
+    "serial": "a3fa7852",
+    "model": "25098RA98G"
+  },
+  "method": "Stopped the local API on 8787, tapped Start research, waited for the 15s fetch abort, captured UI, then restarted the API.",
+  "observed": {
+    "error": "Network request failed",
+    "offline_banner": "Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.",
+    "draft_preserved": "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01",
+    "report_preserved": "FIXTURE REPORT INTERNAL-PROPOSAL… Source 84d58a3a (same source as before the failed send)",
+    "new_run_submitted": false
+  },
+  "code": "ApiError status 0 is isOfflineError; App.tsx sets offline and persists the session; canSubmit blocks further sends; AppState active pings /health to clear offline.",
+  "tests": "pnpm --filter @deep/mobile test 30/30",
+  "status": "implemented and verified on Android device"
+}
