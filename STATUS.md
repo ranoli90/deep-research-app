@@ -1,7 +1,7 @@
 # Execution status — application implementation
 ## V6 implementation checkpoint — 2026-09-17 17:30 UTC
 
-Branch `codex/v6-evidence-milestone`, based on exact review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Recoverable safety/extraction code checkpoint `0e9fc9b`, artifact commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`; identity `ae2d074`; mobile isolation `b84fc8d`. **W01–W09 remains incomplete.** ZIPs are preserved untracked; staging is `/tmp/deep-v6-staging`.
+Branch `codex/v6-evidence-milestone`, based on exact review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Recoverable safety/extraction code checkpoint `0e9fc9b`, artifact commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`; identity `ae2d074`; mobile isolation `b84fc8d`; binary evidence `7cabb91`. **W01–W09 remains incomplete.** ZIPs are preserved untracked; staging is `/tmp/deep-v6-staging`.
 
 Current checks: `pnpm verify` passed (core 81, backend 66, mobile 47, governance 4); full local PostgreSQL integration passed **153/153**. The run includes the 19 production publication regressions and valid controls. Earlier 62/61/13-failure integration runs remain preserved in `verification/v6/RESULTS.json`; they are superseded, not hidden. Review document validation and its 16 mutation tests now pass. Handoff validation and its 12 tests pass after distinguishing current local evidence from historical live/native observations.
 

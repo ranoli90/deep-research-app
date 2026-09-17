@@ -1074,7 +1074,8 @@
       "exitCode": 0,
       "evidenceClass": "real_isolated_extraction_and_postgres",
       "scope": "10/10 in fresh hash-locked runtime; no model/provider calls",
-      "sha256": "eccfaeb8fdc7a716d4c21960aa04ca31075b5d160c730df2de8c0d46e6cf5f65"
+      "sha256": "eccfaeb8fdc7a716d4c21960aa04ca31075b5d160c730df2de8c0d46e6cf5f65",
+      "testedCodeCommit": "7cabb91d1b6cdefd685336af2e34f757d6878eff"
     },
     {
       "requirementIds": [
@@ -1102,7 +1103,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "81core/66backend/47mobile/4governance, types/boundaries",
-      "sha256": "9c68614d63d491858cdd82dde699b7e7edf70f99e236cb92f5ef80a008de5e11"
+      "sha256": "9c68614d63d491858cdd82dde699b7e7edf70f99e236cb92f5ef80a008de5e11",
+      "testedCodeCommit": "7cabb91d1b6cdefd685336af2e34f757d6878eff"
     },
     {
       "requirementIds": [
@@ -1116,7 +1118,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_api_worker",
       "scope": "153/153; fixtures for research behavior; separate real parser suite",
-      "sha256": "1beaab228857a03b8db87748827b39932f372118c6d77a312d2a930e20c7e77a"
+      "sha256": "1beaab228857a03b8db87748827b39932f372118c6d77a312d2a930e20c7e77a",
+      "testedCodeCommit": "7cabb91d1b6cdefd685336af2e34f757d6878eff"
     },
     {
       "requirementIds": [
@@ -1175,5 +1178,6 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "0e9fc9b"
+  "checkpointCommit": "0e9fc9b",
+  "implementationCommit": "7cabb91d1b6cdefd685336af2e34f757d6878eff"
 }

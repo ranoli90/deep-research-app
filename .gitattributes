@@ -1,0 +1,2 @@
+# Original PDF fixtures contain fixed-width cross-reference records; never normalize their bytes.
+apps/backend/test/fixtures/documents/*.pdf binary
