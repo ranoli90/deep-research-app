@@ -342,7 +342,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       previousConstraints: parentBrief.constraints,
       nextConstraints: applied.next,
       reopenedDiscovery: applied.reopenedDiscovery,
-      dependencyCompleteness: parsedCorrection.unknownDependencies ? "unknown" : applied.reopenedDiscovery ? "unknown" : "partial",
+      dependencyCompleteness: parsedCorrection.unknownDependencies ? "unknown" : "known",
     });
     const fullRerun = shouldFullRerun(impact);
     const created = await withTx(pool, async (c) => {

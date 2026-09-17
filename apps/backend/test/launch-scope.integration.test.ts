@@ -183,6 +183,7 @@ describe("launch-scope fixture/postgres cases", () => {
     });
     const childId = corr.json().runId as string;
     expect(corr.json().impact.reopenedDiscoveryScopes).toContain("candidate-discovery");
+    expect(corr.json().fullRerun).toBe(false);
     await processRun(pool, config, childId);
     const childEv = await loadEvidence(pool, childId);
     expect(childEv.sources.some((s) => s.canonical_locator.includes("vendor-c"))).toBe(true);
@@ -236,6 +237,51 @@ describe("launch-scope fixture/postgres cases", () => {
     const child = await getRun(pool, childId);
     expect(child?.parent_run_id).toBe(runId);
     expect(child?.lifecycle).toBe("terminal");
+  });
+
+  it("P2 selective budget reopen is not a full rerun; unknown-dependency correction is; both 120 EUR paths find Vendor C", async () => {
+    const { token, accountId } = await authed();
+    const parent = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    const parentId = parent.json().runId as string;
+    await processRun(pool, config, parentId);
+    const snap = await app.inject({ method: "GET", url: `/v1/runs/${parentId}`, headers: { authorization: `Bearer ${token}` } });
+    const selective = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${parentId}/corrections`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { expectedBriefRevision: snap.json().brief.revision, correctionText: "Actually, the budget is 120 EUR" },
+    });
+    expect(selective.json().fullRerun).toBe(false);
+    expect(selective.json().impact.reopenedDiscoveryScopes).toContain("candidate-discovery");
+    await processRun(pool, config, selective.json().runId);
+    const selectiveEv = await loadEvidence(pool, selective.json().runId);
+    expect(selectiveEv.sources.some((s) => s.canonical_locator.includes("vendor-c"))).toBe(true);
+
+    const unknownParent = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    await processRun(pool, config, unknownParent.json().runId);
+    const unknownSnap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${unknownParent.json().runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const unknownCorr = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${unknownParent.json().runId}/corrections`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        expectedBriefRevision: unknownSnap.json().brief.revision,
+        correctionText: "dependency completeness unknown; please recheck the conclusion",
+      },
+    });
+    expect(unknownCorr.json().fullRerun).toBe(true);
+    expect(unknownCorr.json().impact.dependencyCompleteness).toBe("unknown");
+
+    const full = await createRun(token, "Compare managed Postgres options in Germany under 120 EUR as of 2026-03-01");
+    await processRun(pool, config, full.json().runId);
+    const fullEv = await loadEvidence(pool, full.json().runId);
+    expect(fullEv.sources.some((s) => s.canonical_locator.includes("vendor-c"))).toBe(true);
+    const fullReport = await getLatestReportForRun(pool, full.json().runId, accountId);
+    expect(JSON.stringify(fullReport?.blocks)).toMatch(/Vendor C/);
   });
 
   it("P2 a non-budget correction does not reopen candidate discovery or add Vendor C", async () => {

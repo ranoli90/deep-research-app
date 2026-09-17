@@ -120,6 +120,21 @@ describe("V2-06 unknown dependency fallback", () => {
     });
     expect(shouldFullRerun(impact)).toBe(true);
   });
+
+  it("does not treat a known candidate-space reopen as a full rerun", () => {
+    const impact = impactForCorrection({
+      previousConstraints: [
+        { id: "budget", field: "budget", operator: "lte", value: "50", units: "EUR", origin: "explicit", importance: "hard", explanation: "x" },
+      ],
+      nextConstraints: [
+        { id: "budget", field: "budget", operator: "lte", value: "120", units: "EUR", origin: "explicit", importance: "hard", explanation: "x" },
+      ],
+      reopenedDiscovery: true,
+      dependencyCompleteness: "known",
+    });
+    expect(impact.reopenedDiscoveryScopes).toContain("candidate-discovery");
+    expect(shouldFullRerun(impact)).toBe(false);
+  });
 });
 
 describe("candidate prices", () => {

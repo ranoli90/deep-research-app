@@ -10,7 +10,7 @@ Working tree: `main` at `675b5ffc0908aa193f45232c5cefc74944c9cb37`. P0 is **not*
 - Off-coverage bait from retrieved pages is declined without skipping remaining fetches (R10 + R14).
 - Paywalled fetches persist `access_level=blocked` even when snippet bytes match (R07). Reports use the latest source version (V2-19).
 - P1: compatibility questions escalate from review summaries to a vendor matrix (V2-01/V2-02).
-- P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04).
+- P2: relaxing a 50 EUR cap to 120 EUR discovers Vendor C (V2-04). A known candidate-space reopen is **not** a full rerun (`fullRerun=false`); unknown-dependency completeness still forces `fullRerun=true`. A scratch run of the corrected 120 EUR task also finds Vendor C.
 - Close/reopen restores token, draft, and last run via `persistSession`/`hydrateOnLaunch`. Library opens a saved run on Research immediately. Cancel during writing is asserted by `pnpm p0:launch`.
 - Native Android attach: run `99391a32` ingested `attachment://700ba177` (`note.txtt`); source sheet showed FULL-TEXT `INTERNAL-PROPOSAL`. Attach fields collapse while a report is open.
 - Native Share Markdown opened the Android share sheet with the report markdown. Native 120 EUR correction `cbc04309` (parent `99391a32`, brief revision 2) discovered Vendor C; UI shows `budget=120 EUR` and `Eligible: Vendor A, Vendor C` with the previous version retained. Concise view now keeps constraints and eligibility.
@@ -34,11 +34,11 @@ Working tree: `main` at `675b5ffc0908aa193f45232c5cefc74944c9cb37`. P0 is **not*
 ## Commands (this session)
 | Command | Exit | Notes |
 |---|---|---|
-| `pnpm test:integration` | 0 | 78 tests including V2-14 unknown spend |
+| `pnpm test:integration` | 0 | 79 tests including P2 selective vs full rerun |
 | `pnpm --filter @deep/backend test:unit` | 0 | 14 tests including S02 redirect SSRF |
 | `pnpm verify` | 0 | typecheck, unit, AST boundaries; nonbillable |
 | `pnpm --filter @deep/mobile test` | 0 | 32 tests including S12 logoutLocal |
-| `pnpm --filter @deep/research-core test` | 0 | 24 tests including E09 blocksToMarkdown |
+| `pnpm --filter @deep/research-core test` | 0 | 25 tests including selective vs full rerun |
 | `pnpm p0:launch` | 0, twice | citations resolve; `cancelOutcome=cancelled`; `cancelReportId=null` |
 | `tsx scripts/p0-live-check.ts` | 0 (earlier) | run `1351c267` / correction `5f8a7af2`; $0.096 of $5 |
 | `pnpm test:e2e:ios` | 2 | no Xcode |

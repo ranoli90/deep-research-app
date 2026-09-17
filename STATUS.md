@@ -4,7 +4,7 @@ As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documen
 ## P0 gates
 | Gate | Status | Evidence |
 |---|---|---|
-| P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 78/78; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
+| P0-D local Postgres/queue + twelve smoke + fencing | implemented and verified | `pnpm test:integration` 79/79; postgres:16.10-alpine on 55432; pg-boss 10.0.4 |
 | P0-L live model/retrieval | implemented and verified (bounded) | One consented `controlled-research` run `1351c267` published report `6cdf6f92` from HTTP passages (IONOS/SysEleven/ayedo full-text 20k chars) plus correction `5f8a7af2` report `cce6aadb`. Model `openai/gpt-4o-mini` + web plugin. OpenRouter usage **$0.096 of $5**. |
 | P0-N iOS | blocked by a named external dependency | Linux host, no Xcode |
 | P0-N Android | implemented and verified on device (cancel-during-writing via API launch-check) | Xiaomi `25098RA98G`; 120 EUR correction this session shows Vendor C 70 EUR, discovery reopened, newly feasible A+C; force-stop/reopen, FULL-TEXT source, `pnpm p0:launch` cancelOutcome=cancelled |
@@ -18,6 +18,7 @@ P0 is **not** fully verified.
 | P2 relaxed-constraint candidate reopen (V2-04) | implemented and verified (Vendor C appears only after budget 50→120) |
 | P2 numeric unit correction (V2-05) | implemented and verified |
 | P2 unknown-dependency full rerun (V2-06) | implemented and verified |
+| P2 selective budget reopen vs full rerun vs unknown-dependency | implemented and verified (120 EUR selective `fullRerun=false` and scratch 120 EUR both find Vendor C; unknown-dependency `fullRerun=true`) |
 | P2 non-budget correction does not reopen Vendor C | implemented and verified |
 | P1/P2 vs a live same-model baseline | not run — remaining OpenRouter cap ~$4.90 reserved |
 

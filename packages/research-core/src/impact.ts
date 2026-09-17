@@ -35,5 +35,5 @@ export function impactForCorrection(args: {
 }
 
 export function shouldFullRerun(impact: ImpactSet): boolean {
-  return impact.dependencyCompleteness !== "known" || impact.reopenedDiscoveryScopes.length > 0;
+  return impact.dependencyCompleteness === "unknown";
 }
