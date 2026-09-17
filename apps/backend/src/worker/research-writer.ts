@@ -10,6 +10,8 @@ import { publishReport } from "../modules/reports.js";
 import type { FencedSession } from "./fenced-session.js";
 import { TASK_MODEL_VERSIONS } from "./research-task.js";
 import { performModelOperation } from "./model-gateway.js";
+import { executeCoverageReview } from "./research-coverage.js";
+import { persistResearchCoverage } from "../modules/research-coverage.js";
 import { executeAssertionSupport } from "./support-execution.js";
 
 type WriterArgs=SupportArgs&{fence:number;sourceSupportIntentId:string};
@@ -36,12 +38,16 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
   const target={...args,extractionIntentId:draft.writerIntentId};
   const support=await executeAssertionSupport(pool,config,session,target);
   if(support.kind!=="support")return support;
+  const reviewed=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
+  if(reviewed.kind!=="coverage")return reviewed;
   return session.write(async(db)=>{
     const restored=await restoreWriterDraft(db,target,TASK_MODEL_VERSIONS);
     const basis=await loadSupportContext(db,target,TASK_MODEL_VERSIONS);
     const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},TASK_MODEL_VERSIONS,true);
     const statements=draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys);
     const compiled=compileCheckedDraft(statements,checks);
+    const coverage=await persistResearchCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true);
+    const complete=coverage.complete&&!compiled.unresolved.length;
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");
     const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
@@ -50,11 +56,11 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2 AND s.run_id=$3`,[cited,args.accountId,args.runId]);
     const report:CanonicalReport={reportId:crypto.randomUUID(),runId:args.runId,version:1,
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
-      outcome:"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
-      // Criterion completion is not inferred from statements or sources; the controller review remains separate.
-      limitations:["Some requested questions remain unresolved."],
+      outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
+      // Completion requires the separately executed coverage review and intact final assertions.
+      limitations:complete?[]:["Some requested questions remain unresolved."],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};
     const result=await publishReport(db,{report,accountId:args.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
-    return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,unresolvedStatements:compiled.unresolved};
+    return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,coverageIntentId:reviewed.intentId,unresolvedStatements:compiled.unresolved};
   });
 }

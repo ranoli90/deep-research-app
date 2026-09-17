@@ -392,3 +392,9 @@ Initial `pnpm verify` exit0 (113core/80backend/47mobile/4governance); focused ga
 Final coverage integration rerun exit0:228/228,16 files. Review/handoff validators exit0. Migration replay failure remains preserved in RESULTS; no failed test was skipped to obtain the final pass.
 
 Coverage implementation/evidence committed as `610bddcb30c027bcef9cb0e0a3a5353715d16369`. Final228-case integration exercised the replay repair; earlier verify/focused results preceded that SQL-only correction. Main worker/report coverage integration and W01-W09 remain incomplete.
+
+
+V6 W05/F04 final-report completion; base3178a9b. W05 report completion now consumes an executed final-draft coverage review. The publication gate revalidates that review and exact compiled blocks/claim IDs; missing/corrupt coverage or omitted answer content cannot grant completion. Limited reports remain available. General worker stopping/retrieval integration and real semantic evaluation remain open.
+Initial `pnpm verify` exit0 (113core/80backend/47mobile/4governance); focused58/58 exit0. Subsequent test-only extension exercises actual forged completion rejection and altered/corrupt/missing review controls; final full suite recorded below. No dependency, migration, schema, prompt or provider route change. Writer performs one extra budgeted structured review through existing gateway; invalid/unknown results cannot publish. Rollback disables structured writing while preserving the completion gate, private-data deletion and receipt holds. No paid/native/hosted run or deployment. W01-W09 remains incomplete.
+
+Final completion integration exit0:231/231,16 files,119.68s; final typecheck and review/handoff validators exit0. All model judgments fabricated; no live semantic claim. Exact artifacts/hashes in RESULTS.

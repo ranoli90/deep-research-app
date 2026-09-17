@@ -27,7 +27,7 @@
       "title": "Task coverage is inferred from source presence",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof. Legacy toState still uses source presence until general controller integration."
+      "basis": "W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof. Legacy toState still uses source presence until general controller integration. Final generic writer now executes coverage and publication independently revalidates complete outcomes against exact compiled report blocks/claim membership; legacy controller stopping remains open."
     },
     {
       "id": "V6-F05",

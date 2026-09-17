@@ -1,3 +1,4 @@
+import { reportCompletionCovered } from "../src/modules/publication-coverage.js";
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
@@ -484,10 +485,15 @@ async function writerCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
   const draft={title:"Restoration findings",sections:[{heading:"Evidence",paragraphs:[{text,claimKeys:["area"]}]}],unresolvedQuestionKeys:["q1"],limitations:[] as string[]};
   return {...prepared,draft,sourceSupport:support,args:{...prepared.args,sourceSupportIntentId:support.intentId}};
 }
-function optimisticWriterTransport(draft:unknown) {
+function optimisticWriterTransport(draft:unknown,complete=false) {
   return vi.fn(async (_input:unknown,init?:RequestInit)=>{
     const request=JSON.parse(String(init?.body));
     if(request.response_format.json_schema.name==="research_write_report_v1")return response(draft);
+    if(request.response_format.json_schema.name==="research_review_coverage_v1") {
+      const context=JSON.parse(request.messages[1].content);
+      return response({questions:context.task.questions.map((q:{key:string})=>({questionKey:q.key,status:complete?"supported":"unresolved_at_limit",
+        assertionKeys:context.approvedClaimKeys,reason:"Fabricated coverage judgment for boundary control"})),omittedRequirements:[]});
+    }
     if(request.response_format.json_schema.name!=="research_assess_support_v1")throw new Error("unexpected operation");
     const context=JSON.parse(request.messages[1].content);
     return response({assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
@@ -510,7 +516,7 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(revision.scope.premiseClaimRevisionIds).toEqual([c.sourceSupport.checks[0]!.claimRevisionId]);
     expect(revision.scope.dependencyCompleteness).toBe("partial");
     expect(revision).toMatchObject({type:"inference",support_status:"inference"});
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   }));
   it("keeps supported synthesis while blocking a made-up heading, paragraph and limitation",async()=>runCase(async(x)=>{
     const c=await writerCase(x);
@@ -621,3 +627,39 @@ describe("W05 durable criterion coverage review",()=>{
     expect((await pool.query("SELECT * FROM research_coverage WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
   }));
 });
+
+
+describe("W05 report completion requires exact final coverage",()=>{
+ it("completes and reopens a report only after final assertion coverage executes",async()=>runCase(async(x)=>{
+  const c=await writerCase(x);globalThis.fetch=optimisticWriterTransport(c.draft,true);
+  const result=await writeResearchReport(pool,x.config,x.session,c.args);
+  expect(result).toMatchObject({kind:"publication",accepted:true});
+  if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
+  const report=await getReportForAccount(pool,result.reportId,x.accountId);
+  expect(report.outcome).toBe("completed");expect(report.limitations).toEqual([]);
+  expect((await pool.query("SELECT result FROM research_coverage WHERE model_intent_id=$1",[result.coverageIntentId])).rows[0].result.complete).toBe(true);
+  expect(globalThis.fetch).toHaveBeenCalledTimes(3);
+  const canonical:CanonicalReport={reportId:report.id,runId:x.runId,version:report.version,outcome:report.outcome,basis:report.basis,
+    blocks:report.blocks,claimIds:report.claim_ids,limitations:report.limitations,sourceAccessSummary:report.source_access_summary,routeMode:"controlled-research"};
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(true);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,blocks:canonical.blocks.slice(0,1)})).toBe(false);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,claimIds:[]})).toBe(false);
+  await pool.query("UPDATE research_coverage SET result='{}' WHERE run_id=$1",[x.runId]);
+  await expect(reportCompletionCovered(pool,x.accountId,canonical)).rejects.toThrow("stored_coverage_mismatch");
+  await pool.query("DELETE FROM research_coverage WHERE run_id=$1",[x.runId]);
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(false);
+ }));
+ it("does not publish when the required review returns invalid output",async()=>runCase(async(x)=>{
+  const c=await writerCase(x);const normal=optimisticWriterTransport(c.draft);
+  globalThis.fetch=vi.fn(async(input,init)=>JSON.parse(String(init?.body)).response_format.json_schema.name==="research_review_coverage_v1"?response({questions:[],omittedRequirements:[]}):normal(input,init)) as typeof fetch;
+  expect(await writeResearchReport(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"coverage_invalid_output"});
+  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+});
+it("W05 publication rejects a forged complete outcome without a review while preserving limited publication",async()=>runCase(async(x)=>{
+ const c=await scopedReportCase(x);
+ expect(await publishReport(pool,{...c.publication,report:{...c.report,outcome:"completed"}})).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+ expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ expect((await pool.query("SELECT accepted,reason FROM publication_attempts WHERE run_id=$1",[x.runId])).rows).toEqual([{accepted:false,reason:"incomplete_question_coverage"}]);
+ expect(await publishReport(pool,c.publication)).toMatchObject({accepted:true});
+}));

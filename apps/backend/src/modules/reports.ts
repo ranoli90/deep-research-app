@@ -5,6 +5,7 @@ import pg from "pg";
 import { currentConsent, lockActiveAccount } from "./access.js";
 import { getBrief, getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
+import { reportCompletionCovered } from "./publication-coverage.js";
 import { scopedPublicationClaims } from "./scoped-publication.js";
 import { persistCheckedClaims } from "./claim-support.js";
 import { loadEvidence } from "./evidence.js";
@@ -78,6 +79,11 @@ export async function publishReport(
   }
   if (!deletedNow && (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch)) reason = "consent_revoked";
   if (reason === "ok" && run.lifecycle === "terminal") return { accepted: false, reason: "already_published" };
+  if(reason === "ok" && !(await reportCompletionCovered(db,args.accountId,args.report))) {
+    await db.query("INSERT INTO publication_attempts(run_id,fence,accepted,reason) VALUES($1,$2,false,'incomplete_question_coverage')",
+      [run.id,JSON.stringify({loaded:args.loaded,current})]);
+    return {accepted:false,reason:"incomplete_question_coverage"};
+  }
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],

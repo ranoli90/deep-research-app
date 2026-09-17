@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Criterion-linked coverage service with persisted current claim/support lineage; final228 integration and113/80/47/4 verify pass. Main worker/report completion integration and W01-W09 incomplete.",
+  "workingTree": "Generic writer and publication gate consume exact final-report coverage;231 integration passes. General worker and W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -2620,6 +2620,90 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "pnpm verify",
+      "artifact": "completion-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "113 core/80 backend/47 mobile/4 governance; before final test-only additions",
+      "sha256": "a0b2b1cf7e6316cb10d64973db55a6fcf5f82d5420cbc84647ad32ac8ce164de"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "completion-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_publication",
+      "scope": "58/58 before final forged-completion and saved-review negative assertions",
+      "sha256": "b8d6f7fc5681ca43432651547bf3593aaaff65d5008ad0135e826fffff542ac5"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "pnpm typecheck",
+      "artifact": "completion-typecheck-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_types",
+      "scope": "Final implementation and test types",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "completion-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "completion-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04"
+      ],
+      "commit": "3178a9b",
+      "workingTree": "final report coverage integration; code revision recorded in checkpoint",
+      "command": "pnpm test:integration",
+      "artifact": "completion-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "231/231 final code and all final test additions",
+      "sha256": "e3f0849f6aaef17977d576e05f21997b08ae050453b53e6c86b31412ce78ccb1"
     }
   ],
   "unresolved": [
