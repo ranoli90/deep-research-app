@@ -1,0 +1,46 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/html.extraction.test.ts (3 tests | 1 failed) 3557ms
+   × W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests 1590ms
+     → expected 'Monthly rates\nPlan | Region | Price …' to contain 'Annual prepayment is required'
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  1374ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  591ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/html.extraction.test.ts > W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests
+AssertionError: expected 'Monthly rates\nPlan | Region | Price …' to contain 'Annual prepayment is required'
+
+- Expected
++ Received
+
+- Annual prepayment is required
++ Monthly rates
++ Plan | Region | Price | Availability
++ Basic | Germany | 9 EUR/month | Not offered
++ Basic | France | 90 EUR/month | Available*
+
+ ❯ test/html.extraction.test.ts:22:28
+     20|         const table = result.blocks.find((b) => b.kind === "table")!;
+     21|         expect(table.rows.some((row) => row.some((c) => c.text === "Fr…
+     22|         expect(table.text).toContain("Annual prepayment is required");
+       |                            ^
+     23|       }
+     24|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  09:06:38
+   Duration  3.88s (transform 81ms, setup 0ms, collect 105ms, tests 3.56s, environment 0ms, prepare 78ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts`
+Exit status 1

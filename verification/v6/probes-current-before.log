@@ -1,0 +1,167 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts test/v6-publication.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ❯ test/v6-publication.test.ts (11 tests | 8 failed) 36ms
+   × W01 / V6-F01 production citation regressions > PROBE-01 rejects negated support 16ms
+     → expected 'supports' to be 'contradicts' // Object.is equality
+   × W01 / V6-F01 production citation regressions > PROBE-02 compares whole numbers including single digits 2ms
+     → expected 'supports' to be 'unsupported' // Object.is equality
+   × W01 / V6-F01 production citation regressions > PROBE-03 propagates failure through the report wrapper 4ms
+     → expected false to be true // Object.is equality
+   × W01 / V6-F01 production citation regressions > PROBE-04 propagates failure through the report wrapper 1ms
+     → expected false to be true // Object.is equality
+   × W01 / V6-F01 production citation regressions > PROBE-05 rejects unknown claim binding 2ms
+     → expected false to be true // Object.is equality
+   × W01 / V6-F01 production citation regressions > PROBE-06 rejects unmapped material prose 1ms
+     → expected false to be true // Object.is equality
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-01 accepts direct matching support 1ms
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-02 rejects unknown passage IDs 2ms
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-03 rejects a large numeric mismatch 1ms
+   × W01 / V6-F01 production citation regressions > checks ownership on claim-only citations 1ms
+     → expected false to be true // Object.is equality
+   × W01 / V6-F01 production citation regressions > checks exact source version on claim-only citations 1ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-01 rejects negated support
+AssertionError: expected 'supports' to be 'contradicts' // Object.is equality
+
+Expected: "contradicts"
+Received: "supports"
+
+ ❯ test/v6-publication.test.ts:16:112
+     14| describe("W01 / V6-F01 production citation regressions", () => {
+     15|   it("PROBE-01 rejects negated support", () => {
+     16|     expect(passageSupportsClaim("Atlas does not support offline editin…
+       |                                                                                                                ^
+     17|   });
+     18|   it("PROBE-02 compares whole numbers including single digits", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-02 compares whole numbers including single digits
+AssertionError: expected 'supports' to be 'unsupported' // Object.is equality
+
+Expected: "unsupported"
+Received: "supports"
+
+ ❯ test/v6-publication.test.ts:19:99
+     17|   });
+     18|   it("PROBE-02 compares whole numbers including single digits", () => {
+     19|     expect(passageSupportsClaim("Atlas costs 90 EUR per month.", "Atla…
+       |                                                                                                   ^
+     20|   });
+     21|   it.each([
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-03 propagates failure through the report wrapper
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-04 propagates failure through the report wrapper
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:26:70
+     24|   ])("%s propagates failure through the report wrapper", (_, passage, …
+     25|     const args = input(passage, claim);
+     26|     expect(citationValidationFails(validateMaterialCitations(args))).t…
+       |                                                                      ^
+     27|     expect(citationValidationFails(checkReportCitations(args.blocks, a…
+     28|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-05 rejects unknown claim binding
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:30:92
+     28|   });
+     29|   it("PROBE-05 rejects unknown claim binding", () => {
+     30|     expect(citationValidationFails(validateMaterialCitations({ ...inpu…
+       |                                                                                            ^
+     31|   });
+     32|   it("PROBE-06 rejects unmapped material prose", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > PROBE-06 rejects unmapped material prose
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:36:70
+     34|     args.blocks[0]!.claimIds = [];
+     35|     args.blocks[0]!.text = "Atlas costs 0 EUR and is available worldwi…
+     36|     expect(citationValidationFails(validateMaterialCitations(args))).t…
+       |                                                                      ^
+     37|   });
+     38|   it("CONTROL-01 accepts direct matching support", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > checks ownership on claim-only citations
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:51:103
+     49|     const args = input();
+     50|     args.blocks[0]!.citationIds = [];
+     51|     expect(citationValidationFails(validateMaterialCitations({ ...args…
+       |                                                                                                       ^
+     52|   });
+     53|   it("checks exact source version on claim-only citations", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > checks exact source version on claim-only citations
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:56:126
+     54|     const args = input();
+     55|     args.blocks[0]!.citationIds = [];
+     56|     expect(citationValidationFails(validateMaterialCitations({ ...args…
+       |                                                                                                                              ^
+     57|   });
+     58| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 3 passed (11)
+   Start at  08:09:23
+   Duration  623ms (transform 221ms, setup 0ms, collect 269ms, tests 36ms, environment 0ms, prepare 121ms)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts test/v6-publication.test.ts`
+Exit status 1

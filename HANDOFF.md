@@ -1,6 +1,7 @@
 # Builder handoff
 
 ## Active V6 checkpoint
+Code checkpoint: `0e9fc9b` on `codex/v6-evidence-milestone` (not a release).
 W01–W09 implementation is unfinished on base `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Read the current STATUS introduction and `verification/v6/RESULTS.json` before relying on historical passes below. Staged input: `/tmp/deep-v6-staging`. User ZIPs are preserved untracked.
 
 The safety/extraction checkpoint is recorded in STATUS and `verification/v6/RESULTS.json`. Focused PostgreSQL/transport tests: 23/23; new ingestion storage test: 1/1; real isolated parser tests: 3/3; `pnpm verify`: pass. Latest broad integration remains **62 failed / 69 passed (131 total)**, including extraction storage additions. The stricter publication gate rejects unmapped legacy composer blocks. Repair real claim/derivation bindings and lease recovery paths; do not exempt fixtures or weaken assertions.

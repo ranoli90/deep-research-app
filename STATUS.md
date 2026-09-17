@@ -1,5 +1,6 @@
 # Execution status — application implementation
 ## V6 implementation checkpoint — 2026-09-17
+Code checkpoint: `0e9fc9b` on `codex/v6-evidence-milestone` (not a release).
 Base HEAD matches review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. W01–W09 are **in progress, not complete**. The v6 archive is staged at `/tmp/deep-v6-staging`; it has not been installed as application code. Historical evidence below retains its original scope.
 
 Fresh baseline: `pnpm verify` passed; real local PostgreSQL integration passed 107/107 after sandbox TCP denial was resolved through approved execution. Reproduced six supplied citation failures plus two claim-only ownership/version failures; three controls passed. The supplied standalone runner could not execute on Node 20 (requires Node 22); actual production-module Vitest regressions reproduced them instead.

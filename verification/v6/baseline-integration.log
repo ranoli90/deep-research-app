@@ -1,0 +1,355 @@
+
+> deep-research-mobile@0.1.0 test:integration /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/backend test:integration
+
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/p3-remaining.integration.test.ts (51 tests | 51 skipped) 80ms
+   ↓ remaining launch-scope IDs > M04 fixture comparison publishes a wide table, code listing, unicode-safe text, and many citations
+   ↓ remaining launch-scope IDs > R06 preserves event date vs publication date
+   ↓ remaining launch-scope IDs > R10 declines an unrelated celebrity branch from page content
+   ↓ remaining launch-scope IDs > R12 explains different percentage denominators instead of averaging
+   ↓ remaining launch-scope IDs > R15 states unknown without a fake probability
+   ↓ remaining launch-scope IDs > R16 comparison names the requested entities and constraints
+   ↓ remaining launch-scope IDs > E05 new source version does not rewrite the original report citation
+   ↓ remaining launch-scope IDs > V2-13 private canary is stored as evidence, omitted from public queries, and denied to another account
+   ↓ remaining launch-scope IDs > JOB-1 eligibility-aware comparison under platform and export constraints
+   ↓ remaining launch-scope IDs > JOB-1 adding Linux as a hard requirement excludes NoteKeep and keeps NoteAll
+   ↓ remaining launch-scope IDs > JOB-1 removing Linux as a requirement makes NoteKeep eligible again
+   ↓ remaining launch-scope IDs > JOB-2 attached document text is stored as supplied evidence and not used as a public query
+   ↓ remaining launch-scope IDs > E06 PDF attachment is disclosed as text-only / unread pages
+   ↓ remaining launch-scope IDs > E08 quoted report text is taken from the stored passage
+   ↓ remaining launch-scope IDs > E09 export citation anchors resolve to owned passages
+   ↓ remaining launch-scope IDs > J02 a second processRun after completion does not duplicate the report or settlement
+   ↓ remaining launch-scope IDs > J04 timeout after issue is outcome-unknown, not assumed free
+   ↓ remaining launch-scope IDs > J06 cancel after completion keeps the published report
+   ↓ remaining launch-scope IDs > J08 event cursor returns only later sequences
+   ↓ remaining launch-scope IDs > J13 live spend kill switch blocks new paid routes but keeps saved reports
+   ↓ remaining launch-scope IDs > S03 oversized attachments are rejected
+   ↓ remaining launch-scope IDs > S07 cross-account reports are denied
+   ↓ remaining launch-scope IDs > S10 redacts tokens and question fields from logs
+   ↓ remaining launch-scope IDs > S06 / V2-20 does not silently fall back to an unauthorized live processor
+   ↓ remaining launch-scope IDs > V2-10 a later unavailable fetch does not retract last-access evidence
+   ↓ remaining launch-scope IDs > V2-11 concise view uses the same answer citations as the body
+   ↓ remaining launch-scope IDs > V2-19 scanned tables stay unread rather than guessed
+   ↓ remaining launch-scope IDs > R17 concise request still keeps limitations
+   ↓ remaining launch-scope IDs > R18 compacted checkpoint still lists stored passage ids
+   ↓ remaining launch-scope IDs > R19 follow-up verifies one claim and keeps the parent report
+   ↓ remaining launch-scope IDs > R20 dates a retrieved price and keeps a founding year as history
+   ↓ remaining launch-scope IDs > R21 labels a German original as a translation
+   ↓ remaining launch-scope IDs > E03 preserves the adults-over-65 qualifier
+   ↓ remaining launch-scope IDs > E04 report uses the table's 24% rather than 42%
+   ↓ remaining launch-scope IDs > E10 withdraws the conclusion when the asserted 42% is unsupported by the 24% table
+   ↓ remaining launch-scope IDs > J07 expired lease is reclaimed; a live lease is not stolen
+   ↓ remaining launch-scope IDs > J10 a tight budget still publishes a written report
+   ↓ remaining launch-scope IDs > J11 reports that app counters are not provider-internal guarantees
+   ↓ remaining launch-scope IDs > J12 confirmed usage does not rewrite the historical estimate
+   ↓ remaining launch-scope IDs > J14 duplicate completion epochs share one outbox row and omit query text
+   ↓ remaining launch-scope IDs > S08 unsigned purchase payloads cannot grant entitlement
+   ↓ remaining launch-scope IDs > V2-09 deleted attachment text is not left in reports
+   ↓ remaining launch-scope IDs > V2-09 late worker cannot republish deleted private text even if it claims deleted=false
+   ↓ remaining launch-scope IDs > expired session cannot read library or reports
+   ↓ remaining launch-scope IDs > library lists report_id for a completed run so share can resolve
+   ↓ remaining launch-scope IDs > V2-14 outcome-unknown live spend is not treated as zero against the cap
+   ↓ remaining launch-scope IDs > M09 web deletion page is reachable without the app and deletes with a session token
+   ↓ remaining launch-scope IDs > R02 continue without geography is rejected and does not invent Germany
+   ↓ remaining launch-scope IDs > clarification continue records geography and resumes
+   ↓ remaining launch-scope IDs > R02 continue with France records France and does not invent Germany
+   ↓ remaining launch-scope IDs > R02 after France continue discovery uses France evidence not the Germany default note
+ ❯ test/launch-scope.integration.test.ts (19 tests | 19 skipped) 129ms
+   ↓ launch-scope fixture/postgres cases > R02 asks a jurisdiction question when it would change the answer
+   ↓ launch-scope fixture/postgres cases > R03 does not interview a clear comparison over style
+   ↓ launch-scope fixture/postgres cases > R07 keeps a paywalled page snippet-only and does not claim a full read
+   ↓ launch-scope fixture/postgres cases > R11 records a real price contradiction without averaging
+   ↓ launch-scope fixture/postgres cases > R14 budget-limited outcome is not marked comprehensive
+   ↓ launch-scope fixture/postgres cases > R22 preserves a reproducible annual cost calculation
+   ↓ launch-scope fixture/postgres cases > V2-01 uses the compatibility matrix, not summary count
+   ↓ launch-scope fixture/postgres cases > V2-02 / R08 switches source type after summary-family saturation
+   ↓ launch-scope fixture/postgres cases > V2-04 relaxed budget discovers a previously omitted candidate
+   ↓ launch-scope fixture/postgres cases > V2-05 recomputes a corrected numeric unit
+   ↓ launch-scope fixture/postgres cases > V2-06 unknown dependency completeness forces a full rerun flag
+   ↓ launch-scope fixture/postgres cases > P2 selective budget reopen is not a full rerun; unknown-dependency correction is; both 120 EUR paths find Vendor C
+   ↓ launch-scope fixture/postgres cases > P2 a non-budget correction does not reopen candidate discovery or add Vendor C
+   ↓ launch-scope fixture/postgres cases > V2-18 distinguishes no eligible inspected option from universal absence
+   ↓ launch-scope fixture/postgres cases > E07 denies another account's evidence id
+   ↓ launch-scope fixture/postgres cases > S04 does not leave raw script markup in the canonical report
+   ↓ launch-scope fixture/postgres cases > S11 revoked consent blocks new runs
+   ↓ launch-scope fixture/postgres cases > J09 concurrent reservations cannot exceed the remaining allowance
+   ↓ launch-scope fixture/postgres cases > challenge and markdown export use the same stored report
+ ❯ test/p0-smoke.integration.test.ts (16 tests | 16 skipped) 38ms
+   ↓ P0 smoke against shipped API/worker/postgres > R01 already-known constraint is stored and not re-asked
+   ↓ P0 smoke against shipped API/worker/postgres > R04 false premise is reported and not invented
+   ↓ P0 smoke against shipped API/worker/postgres > R05 source duplication clusters five reprints as one origin
+   ↓ P0 smoke against shipped API/worker/postgres > R09 justified pivot opens a population-relevant source
+   ↓ P0 smoke against shipped API/worker/postgres > R13 diminishing returns stops instead of exhausting a quota
+   ↓ P0 smoke against shipped API/worker/postgres > E01 unknown citation ID blocks publication
+   ↓ P0 smoke against shipped API/worker/postgres > E02 non-supporting citation is flagged
+   ↓ P0 smoke against shipped API/worker/postgres > J01 double tap with the same idempotency key creates one run
+   ↓ P0 smoke against shipped API/worker/postgres > J03 crash after fetch recovers evidence without double settlement
+   ↓ P0 smoke against shipped API/worker/postgres > J05 / V2-07 cancel during writing rejects late publication
+   ↓ P0 smoke against shipped API/worker/postgres > S01 prompt injection cannot authorize tools or reveal keys
+   ↓ P0 smoke against shipped API/worker/postgres > S09 deletion during run purges derived text and blocks resurrection
+   ↓ P0 smoke against shipped API/worker/postgres > V2-08 stale worker lease cannot publish
+   ↓ P0 smoke against shipped API/worker/postgres > correction reopens discovery when a hard budget constraint is relaxed
+   ↓ P0 smoke against shipped API/worker/postgres > S05 private attachment canary is not copied into a public search query
+   ↓ P0 smoke against shipped API/worker/postgres > GET events and report citations resolve to stored evidence IDs
+ ❯ test/g01-g02.integration.test.ts (9 tests | 9 skipped) 70ms
+   ↓ G01 safety policy > G01-cross-user: another account cannot read run, events, report, source, export, or mutate
+   ↓ G01 safety policy > G01-private-to-public: attachment canary is stored as evidence and omitted from search queries
+   ↓ G01 safety policy > G01-consent: missing, declined, and revoked consent cannot start or continue processing
+   ↓ G01 safety policy > G01-deletion: derived text is purged and a late worker cannot resurrect it
+   ↓ G02 engineering requirement > G02-unknown-citation: invented passage IDs cannot publish
+   ↓ G02 engineering requirement > G02-lost-run: an accepted create remains recoverable from the server after the client drops state
+   ↓ G02 engineering requirement > G02-duplicate-debit: replayed completion and idempotent create settle once
+   ↓ G02 engineering requirement > G02-stale-revision: obsolete brief, evidence, or lease cannot publish
+   ↓ G02 engineering requirement > G02-cancel-writing: cancel during writing rejects late publication
+ ❯ test/controller-admission.integration.test.ts (5 tests | 5 skipped) 36ms
+   ↓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources
+   ↓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap
+   ↓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun
+   ↓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search
+   ↓ controller admission on the fixture worker path > issued then failed live intents still consume the reservation
+ ❯ test/p4-recovery.integration.test.ts (2 tests | 2 skipped) 27ms
+   ↓ P4 recovery drill against shipped worker/Postgres > crash after fetch: evidence kept, live lease not stolen, expired lease recovered without double-settle
+   ↓ P4 recovery drill against shipped worker/Postgres > crash before publish then expired-lease failover: one report and one settlement
+ ❯ test/g07-output.integration.test.ts (3 tests | 3 skipped) 25ms
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > GET /v1/settings exposes privacy disclosure and output-reporting categories; purchases stay gated
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > M10 includeExcerpt stores owned answer text; omitting it stores no excerpt; other accounts are denied
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > restore purchases stays gated and grants no entitlement
+ ❯ test/g06-cost.integration.test.ts (2 tests | 2 skipped) 55ms
+   ↓ G06 local capability probe and measured fixture cost > GET /v1/routes/capabilities pins fixture tariffs and does not enable a live paid probe
+   ↓ G06 local capability probe and measured fixture cost > GET /v1/runs/:id/cost reconciles spent_micro to fixture intents and denies other accounts
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/controller-admission.integration.test.ts [ test/controller-admission.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/controller-admission.integration.test.ts:54:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  test/controller-admission.integration.test.ts [ test/controller-admission.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/controller-admission.integration.test.ts:66:3
+     64| });
+     65| afterAll(async () => {
+     66|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     67|   await app.close();
+     68|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  test/g01-g02.integration.test.ts [ test/g01-g02.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g01-g02.integration.test.ts:112:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  test/g01-g02.integration.test.ts [ test/g01-g02.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/g01-g02.integration.test.ts:121:3
+    119| });
+    120| afterAll(async () => {
+    121|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+    122|   await app.close();
+    123|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  test/g06-cost.integration.test.ts [ test/g06-cost.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g06-cost.integration.test.ts:46:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  test/g06-cost.integration.test.ts [ test/g06-cost.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/g06-cost.integration.test.ts:55:3
+     53| });
+     54| afterAll(async () => {
+     55|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     56|   await app.close();
+     57|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  test/g07-output.integration.test.ts [ test/g07-output.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g07-output.integration.test.ts:41:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  test/g07-output.integration.test.ts [ test/g07-output.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/g07-output.integration.test.ts:50:3
+     48| });
+     49| afterAll(async () => {
+     50|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     51|   await app.close();
+     52|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  test/launch-scope.integration.test.ts [ test/launch-scope.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/launch-scope.integration.test.ts:53:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+ FAIL  test/launch-scope.integration.test.ts [ test/launch-scope.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/launch-scope.integration.test.ts:62:3
+     60| });
+     61| afterAll(async () => {
+     62|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     63|   await app.close();
+     64|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯
+
+ FAIL  test/p0-smoke.integration.test.ts [ test/p0-smoke.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p0-smoke.integration.test.ts:60:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯
+
+ FAIL  test/p0-smoke.integration.test.ts [ test/p0-smoke.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/p0-smoke.integration.test.ts:71:3
+     69| 
+     70| afterAll(async () => {
+     71|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     72|   await app.close();
+     73|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯
+
+ FAIL  test/p3-remaining.integration.test.ts [ test/p3-remaining.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p3-remaining.integration.test.ts:59:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯
+
+ FAIL  test/p3-remaining.integration.test.ts [ test/p3-remaining.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/p3-remaining.integration.test.ts:68:3
+     66| });
+     67| afterAll(async () => {
+     68|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     69|   await app.close();
+     70|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯
+
+ FAIL  test/p4-recovery.integration.test.ts [ test/p4-recovery.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p4-recovery.integration.test.ts:63:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯
+
+ FAIL  test/p4-recovery.integration.test.ts [ test/p4-recovery.integration.test.ts ]
+Error: connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/p4-recovery.integration.test.ts:72:3
+     70| });
+     71| afterAll(async () => {
+     72|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+       |   ^
+     73|   await app.close();
+     74|   await boss.stop({ graceful: false, timeout: 2000 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯
+
+
+ Test Files  8 failed (8)
+      Tests  107 skipped (107)
+   Start at  08:07:44
+   Duration  12.66s (transform 1.84s, setup 0ms, collect 7.69s, tests 460ms, environment 4ms, prepare 1.74s)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts`
+Exit status 1
+ ELIFECYCLE  Command failed with exit code 1.

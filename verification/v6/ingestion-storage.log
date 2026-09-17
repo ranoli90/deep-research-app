@@ -1,0 +1,14 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-ingestion.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/v6-ingestion.integration.test.ts (1 test) 123ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  09:09:37
+   Duration  577ms (transform 148ms, setup 0ms, collect 238ms, tests 123ms, environment 0ms, prepare 72ms)
+
