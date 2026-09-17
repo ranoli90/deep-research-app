@@ -198,6 +198,9 @@ export function parseCorrection(text: string): {
   if (budget) {
     return { field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
   }
+  if (/\blinux\b/i.test(text) && /\b(required|also|hard|desktop)\b/i.test(text)) {
+    return { field: "platform", value: "linux", relaxedHardConstraint: false, unknownDependencies: false };
+  }
   if (/actually,?\s+include/i.test(text) || /relax/i.test(text) || /no longer required/i.test(text)) {
     return { relaxedHardConstraint: true, unknownDependencies: false };
   }
@@ -251,6 +254,19 @@ export function applyCorrectionToConstraints(
       });
     }
     if (prev !== undefined && incoming > prev) reopenedDiscovery = true;
+  }
+  if (parsed.field === "platform" && parsed.value) {
+    if (!next.some((c) => c.field === "platform" && c.value === parsed.value)) {
+      next.push({
+        id: `platform-${parsed.value}`,
+        field: "platform",
+        operator: "eq",
+        value: parsed.value,
+        origin: "confirmed",
+        importance: "hard",
+        explanation: `Correction requires ${parsed.value}`,
+      });
+    }
   }
   if (parsed.relaxedHardConstraint) reopenedDiscovery = true;
   return { next, reopenedDiscovery };

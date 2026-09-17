@@ -193,10 +193,15 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       passageIds: [],
     });
   } else {
-    const primary = state.passages.find((p) => {
-      const src = state.sources.find((s) => s.id === p.sourceId);
-      return src?.accessLevel === "full-text";
-    }) ?? state.passages[0]!;
+    const extractedEarly = extractCandidates(state.passages, state.constraints);
+    const eligiblePassageId = extractedEarly.find((c) => c.feasibility === "satisfies")?.discoveredFrom;
+    const primary =
+      (eligiblePassageId ? state.passages.find((p) => p.id === eligiblePassageId) : undefined) ??
+      state.passages.find((p) => {
+        const src = state.sources.find((s) => s.id === p.sourceId);
+        return src?.accessLevel === "full-text";
+      }) ??
+      state.passages[0]!;
     const assertedPct = assertedPercentMissingFromPassages(state.brief.originalQuestion, state.passages);
     addClaim(claims, blocks, {
       id: "claim-primary",

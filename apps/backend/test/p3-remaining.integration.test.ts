@@ -235,6 +235,51 @@ describe("remaining launch-scope IDs", () => {
     expect(fields).toEqual(expect.arrayContaining(["platform"]));
   });
 
+  it("JOB-1 adding Linux as a hard requirement excludes NoteKeep and keeps NoteAll", async () => {
+    const { token, accountId } = await authed();
+    const created = await createRun(
+      token,
+      "Compare note-taking apps with offline editing, Android and iPhone support, and full export required.",
+    );
+    const parentId = created.json().runId as string;
+    await processRun(pool, config, parentId);
+    const parent = await getLatestReportForRun(pool, parentId, accountId);
+    expect(JSON.stringify(parent?.blocks)).toMatch(/Eligible:.*NoteKeep/i);
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${parentId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const corr = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${parentId}/corrections`,
+      headers: { authorization: `Bearer ${token}`, "idempotency-key": crypto.randomUUID() },
+      payload: {
+        expectedBriefRevision: snap.json().brief.revision,
+        correctionText: "Linux is also required",
+      },
+    });
+    expect(corr.statusCode).toBe(200);
+    const childId = corr.json().runId as string;
+    expect(childId).not.toBe(parentId);
+    await processRun(pool, config, childId);
+    const child = await getLatestReportForRun(pool, childId, accountId);
+    const blocks = (child!.blocks ?? []) as { id: string; text: string }[];
+    const answer = blocks.find((b) => b.id === "answer");
+    const eligibility = blocks.find((b) => b.id === "eligibility");
+    expect(answer?.text).toMatch(/NoteAll/);
+    expect(eligibility?.text).toMatch(/Eligible: NoteAll/);
+    expect(eligibility?.text).toMatch(/Ineligible: NoteKeep \(platform=linux\)/);
+    expect(eligibility?.text).not.toMatch(/Eligible: NoteKeep/);
+    expect(JSON.stringify(blocks)).toMatch(/linux/i);
+    const childSnap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${childId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(JSON.stringify(childSnap.json().brief.constraints)).toMatch(/linux/i);
+  });
+
   it("JOB-2 attached document text is stored as supplied evidence and not used as a public query", async () => {
     const { token, accountId } = await authed();
     const att = await app.inject({

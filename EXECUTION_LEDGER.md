@@ -209,6 +209,12 @@ No live paid calls were made.
 - Search queries now include confirmed geography; France employment-tax fixture is used instead of the generic Germany note.
 - Integration 100/100; research-core 29/29. Artifact `verification/r02-geo-search.json`. iOS/hosted/M11/G04 unpassed.
 
+## 2026-09-16 — JOB-1 Linux correction excludes NoteKeep
+
+- First test failed: after “Linux is also required” Eligible still included NoteKeep.
+- parseCorrection/applyCorrectionToConstraints add platform=linux. Child eligibility: NoteAll eligible, NoteKeep ineligible (linux). Answer uses the eligible NoteAll passage.
+- Integration 101/101; research-core 30/30. Artifact `verification/job1-linux-correction.json`. iOS/hosted/M11/G04 unpassed.
+
 
 
 

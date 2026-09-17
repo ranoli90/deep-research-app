@@ -1,0 +1,13 @@
+{
+  "as_of": "2026-09-16",
+  "requirement": "JOB-1 / RETURN adding Linux as a hard requirement",
+  "command": "pnpm exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t 'JOB-1 adding Linux'",
+  "first_run": "failed: after 'Linux is also required' Eligible still included NoteKeep; brief lacked platform=linux",
+  "after_fix": "passed",
+  "paid": false,
+  "integration_totals": { "files": 7, "tests": 101 },
+  "research_core": "30/30",
+  "observed": "Correction adds platform=linux. Child report: Eligible NoteAll; Ineligible NoteKeep (platform=linux); answer leads with NoteAll passage, not ineligible NoteKeep. P2 non-budget dose correction still does not add Vendor C.",
+  "not_claimed": ["iOS P0-N", "hosted auth", "M11", "G04/G05", "EVAL-01 validated"],
+  "p0_fully_verified": false
+}
