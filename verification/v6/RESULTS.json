@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Executed deterministic scope comparison feeds writer;269 full PostgreSQL,14 actual extraction,127/92/52/6 verify and Android JS export pass. W01-W09 incomplete.",
+  "workingTree": "Compact comparison projection:271 full PostgreSQL,99 final focused,14 actual extraction,128/93/52/6 verify. Legacy request representation preserved. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -4376,6 +4376,171 @@
       "scope": "Final handoff structure",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "implementationCommit": "8d99098eafd3cb2ab30d488e61d93ea9924b68c1"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-projection-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Initial128core/93backend/52mobile/6governance;60assertion size control",
+      "sha256": "65d0ea2d0a5ef36d3d32738a3acf0149c3c06d46c90581ce3e767c2cb5bed75b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm verify",
+      "artifact": "scope-projection-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "Final128/93/52/6;full1,042,010B,compact14,626B,request43,085B;1770pairs retained",
+      "sha256": "cc6d6bd694fc5428bf80ebea6285d50f11ffab9da917cd8e20481ea7ad8aaf9f"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scope-projection-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "99/99;47.38s; pinned legacy context, corruption and production compact writer",
+      "sha256": "5347d484a5836a0400afe661e30257126b7257f5ad56814c2f78df174da4a205"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "scope-projection-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "271/271;16files;122.74s; before strengthened gateway replay assertion",
+      "sha256": "e7148111f2e4190ed1b66710c208590dd75ff8bc16d7b772abf22a111e1b55f8"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "scope-projection-focused-final.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "Final99/99;67.57s; actual unknown writer outcome replays with one provider transport-double invocation and original context",
+      "sha256": "9e5054d82473a9d4de85bd868ad78f8e7691d0d9965d919fd8764a1e1c798426"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "pnpm typecheck",
+      "artifact": "scope-projection-typecheck.log",
+      "exitCode": 0,
+      "evidenceClass": "typescript",
+      "scope": "Final source/tests",
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scope-projection-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scope-projection-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "scope-projection-review-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final review structure",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W05",
+        "V6-F03"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "compact comparison projection with legacy request identity preservation; implementation revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "scope-projection-handoff-final.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Final handoff structure",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "commit": "e2726b2",
+      "workingTree": "final compact projection and pinned legacy writer context",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "scope-projection-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_extraction",
+      "scope": "14/14;32.10s; actual HTML/PDF parser and production corrected report/source flow; model/search responses fabricated",
+      "sha256": "19760f2524f41985d53d978f00c291a7ecc377c8fd7ef49a4be9740dd3466034"
     }
   ],
   "unresolved": [
@@ -4383,7 +4548,7 @@
     "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: compact comparison context and broader discovery/evidence selection, substantive calculation/counterevidence actions",
+    "W05: broader discovery/evidence selection and complete-context capacity, substantive calculation/counterevidence actions",
     "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",

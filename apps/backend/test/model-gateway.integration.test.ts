@@ -1,6 +1,7 @@
+import { modelInputManifest } from "../src/modules/model-operations.js";
 import { reserveLiveAttempt } from "../src/modules/live-spend.js";
 import { executeScopeComparison } from "../src/worker/scope-comparison.js";
-import { loadWriterSourceContext } from "../src/modules/scoped-support.js";
+import { loadSupportContext,loadWriterSourceContext } from "../src/modules/scoped-support.js";
 import { admitResearchCorrection } from "../src/modules/research-corrections.js";
 import { inheritRunEvidence } from "../src/modules/run-evidence.js";
 import { createHash } from "node:crypto";
@@ -18,7 +19,7 @@ import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
-import { passageSupportsClaim, type StoredClaim } from "@deep/research-core";
+import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, type StoredClaim } from "@deep/research-core";
 import { claimLease,getRun,cancelRun } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -872,7 +873,7 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
   if(op==="research_brief_v1")return response(focusedBrief);
   if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:c.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
   if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:c.passages.length>1?"supported":"unresolved_at_limit",assertionKeys:c.approvedClaimKeys,reason:"Nonbillable review control"}],omittedRequirements:[]});
-  if(op==="research_write_report_v1")expect(c.scopeComparison).toMatchObject({version:"scope-comparison.v1",pairs:[{status:"scope_incomplete",entailment:"not_assessed"}]});
+  if(op==="research_write_report_v1")expect(c.scopeComparison).toMatchObject({version:"scope-comparison-context.v1",groups:[{relations:Array(6).fill("unknown"),pairs:[[0,1]]}],entailment:"not_assessed"});
   return model(input,init);
  }) as typeof fetch;
  const names=[`Coral-${crypto.randomUUID()}`,`Kelp-${crypto.randomUUID()}`];
@@ -880,7 +881,7 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
  await releaseForWorker(x);const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
  await processRun(pool,config,x.runId,{pauseAt:"writing"});await processRun(pool,config,x.runId);
  const comparisonRows=await pool.query("SELECT result FROM scope_comparisons WHERE run_id=$1",[x.runId]);expect(comparisonRows.rows).toHaveLength(1);
- expect((await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest).toMatchObject({version:"model-input.v2",scopeComparisonDigest:expect.stringMatching(/^[a-f0-9]{64}$/)});
+ expect((await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest).toMatchObject({version:"model-input.v3",scopeComparisonDigest:expect.stringMatching(/^[a-f0-9]{64}$/)});
  expect(queries).toEqual([question,"kelp restoration"]);expect(sourceReader.readSource).toHaveBeenCalledTimes(2);
  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed");
  const report=(await pool.query("SELECT blocks FROM reports WHERE run_id=$1",[x.runId])).rows[0];
@@ -1008,7 +1009,7 @@ describe("W05 executed scope comparisons",()=>{
   const row=(await pool.query("SELECT * FROM scope_comparisons WHERE id=$1",[result.id])).rows[0];
   expect(row.claim_revision_ids).toEqual(c.support.checks.map(c=>c.claimRevisionId));expect(row.input_digest).toMatch(/^[a-f0-9]{64}$/);
   const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
-  expect(writer.context.scopeComparison).toEqual(result.result);expect(provider).not.toHaveBeenCalled();
+  expect(writer.context.scopeComparison).toMatchObject({version:"scope-comparison-context.v1",claimKeys:["area","area_rephrased"],groups:[{relations:["equal","unknown","unknown","unknown","equal","unknown"],pairs:[[0,1]]}],entailment:"not_assessed",quantityCompatibility:"not_assessed"});expect(provider).not.toHaveBeenCalled();
  }));
  it("rejects foreign owners, wrong revisions, unknown targets and extra authority",async()=>runCase(async x=>{
   const c=await comparisonCase(x);
@@ -1056,4 +1057,35 @@ it("W05 oversized structured context is an explicit blocked outcome before provi
  const large={...context,passages:Array.from({length:12},()=>({id:crypto.randomUUID(),sourceVersionId:crypto.randomUUID(),digest:hash,text,accessLevel:"partial-text"}))};
  expect(await performModelOperation(pool,x.config,x.session,{...x,briefRevision:1,evidenceRevision:1,operation:"brief",context:large})).toEqual({kind:"blocked",reason:"model_context_too_large"});
  expect(provider).not.toHaveBeenCalled();expect((await pool.query("SELECT id FROM provider_intents WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));
+it("W05 legacy comparison preserves its original writer representation even with an unknown attempt",async()=>runCase(async x=>{
+ const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
+ const basis=await loadSupportContext(pool,c.args,TASK_MODEL_VERSIONS);
+ // Frozen pre-migration026 identity construction: seed the exact prior format, not a new-format alias.
+ const legacyInput={action:c.args.action,taskId:c.args.taskId,briefRevision:1,evidenceRevision:basis.evidenceRevision,evidence:modelInputManifest(basis.context),
+  claims:c.support.checks.map(c=>({key:c.claimKey,claimRevisionId:c.claimRevisionId,decision:c.decision})),supportCheckerVersion:SCOPED_SUPPORT_VERSION};
+ const oldDigest=createHash("sha256").update(JSON.stringify(legacyInput)).digest("hex");
+ await pool.query("UPDATE scope_comparisons SET input_digest=$2,writer_context_version='scope-comparison.v1' WHERE id=$1",[created.id,oldDigest]);
+ const provider=vi.fn(async()=>{throw new Error("nonbillable unknown writer outcome");});globalThis.fetch=provider;
+ const writerArgs={...c.args,sourceSupportIntentId:c.support.intentId};
+ expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
+ expect(await executeScopeComparison(x.session,c.args)).toMatchObject({id:created.id,reused:true,writerContextVersion:"scope-comparison.v1"});
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ expect(writer.context.scopeComparison).toEqual(created.result);expect(modelInputManifest(writer.context).version).toBe("model-input.v2");
+ expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
+ expect(provider).toHaveBeenCalledTimes(1);
+ expect((await pool.query("SELECT i.id FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='write_report'",[x.runId])).rowCount).toBe(1);
+ expect((await pool.query("SELECT id FROM scope_comparisons WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
+}));
+it("W05 projection metadata and model-bound pair tampering fail closed",async()=>runCase(async x=>{
+ const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ if(writer.context.scopeComparison?.version!=="scope-comparison-context.v1")throw new Error("missing compact context");
+ writer.context.scopeComparison.groups[0]!.relations[0]="different";
+ const provider=vi.fn();globalThis.fetch=provider;
+ await expect(performModelOperation(pool,x.config,x.session,{...x,briefRevision:1,evidenceRevision:writer.evidenceRevision,operation:"write_report",context:writer.context})).rejects.toThrow("model_scope_comparison_mismatch");
+ expect(provider).not.toHaveBeenCalled();
+ await pool.query("UPDATE scope_comparisons SET writer_context_version='scope-comparison.v1' WHERE id=$1",[created.id]);
+ await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_context_version_mismatch");
+ await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_context_version_mismatch");
 }));

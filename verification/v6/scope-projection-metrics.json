@@ -1,0 +1,13 @@
+{
+  "scope": "Deterministic serialization control; no provider/model quality/cost benchmark",
+  "baseCommit": "e2726b2",
+  "command": "pnpm verify",
+  "source": "apps/backend/test/scope-context.unit.test.ts",
+  "assertionCount": 60,
+  "baseline": "Full comparison rejected by unchanged request capacity check",
+  "candidate": "All pairs retained; compact request passes the same local request-capacity checks",
+  "fullComparisonBytes": 1042010,
+  "compactComparisonBytes": 14626,
+  "wholeRequestBytes": 43085,
+  "pairCount": 1770
+}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
 /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
 export const ModelContextSchema = z.object({
@@ -13,7 +13,7 @@ export const ModelContextSchema = z.object({
   assertions: ResearchModelOutputs.extract_assertions.shape.assertions,
   approvedClaimKeys: z.array(z.string().min(1).max(100)).max(60),
   draft: ResearchModelOutputs.write_report.nullable(),
-  scopeComparison: ScopeComparisonResultSchema.optional(),
+  scopeComparison: z.union([ScopeComparisonResultSchema,ScopeComparisonContextSchema]).optional(),
 }).strict();
 export type ModelContext = z.infer<typeof ModelContextSchema>;
 

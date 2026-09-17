@@ -56,3 +56,5 @@ Production composition: worker/main.ts starts executor.ts through runtime.ts. ex
 The older fixture-route PDF integration case explicitly uses the diagnostic executor with actual binary extraction; structured upload/search/correction PDF cases use the production executor. Test runtime labels follow the created run route, and assertions are retained.
 
 Scope comparison: public strict schemas and the deterministic six-field comparison live in contracts/core. Backend scoped evidence owns migration025 and exact-revision result restoration; worker scheduling invokes it inside the existing fenced session. Only the owned revalidated result enters the writer context, with a versioned manifest digest. No new model role, service or client orchestration.
+
+Comparison projection separates durable full results from writer transport: core emits grouped relation vectors referencing a single claim-key dictionary; the backend pins representation through migration026 and revalidates it before model admission. Existing full-format identities remain readable/replayable. This adds no service or provider dependency.

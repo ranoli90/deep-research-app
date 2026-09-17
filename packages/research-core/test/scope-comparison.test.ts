@@ -31,3 +31,22 @@ it("rejects missing/duplicate targets and injected authority",()=>{
  expect(()=>compareAssertionScopes({type:"compare_scopes",claimKeys:["a","b"],accountId:"foreign"},[claim("a"),claim("b")])).toThrow();
  expect(run(claim("b"),claim("a"))).toEqual(run(claim("a"),claim("b")));
 });
+
+import { projectScopeComparison } from "../src/scope-comparison.js";
+it("compact projection preserves every pair, field relation and original assertion binding",()=>{
+ const assertions=Array.from({length:60},(_,i)=>claim(`claim_${i}`,{criterionKeys:i%3?["shared"]:["other"],scope:{...scope,
+  entity:`Entity-${i%7}`,time:i%5?"2026":null,version:i%2?"4.2":"5.0"}}));
+ const result=compareAssertionScopes({type:"compare_scopes",claimKeys:assertions.map(a=>a.key)},assertions);
+ const context=projectScopeComparison(result,assertions),reconstructed=new Map<string,string[]>();
+ for(const group of context.groups)for(const [a,b] of group.pairs) {
+  const key=`${context.claimKeys[a]}:${context.claimKeys[b]}`;expect(reconstructed.has(key)).toBe(false);
+  reconstructed.set(key,group.relations);
+ }
+ expect(reconstructed.size).toBe(result.pairs.length);
+ for(const pair of result.pairs)expect(reconstructed.get(`${pair.leftKey}:${pair.rightKey}`)).toEqual(pair.fields.map(f=>f.relation));
+ expect(context.excludedUnrelatedPairs).toBe(result.excludedUnrelatedPairs);
+ expect(context.scopeFields).toEqual(["entity","plan","version","geography","time","population"]);
+ expect(context.entailment).toBe("not_assessed");expect(context.quantityCompatibility).toBe("not_assessed");
+ expect(projectScopeComparison(result,[...assertions].reverse())).toEqual(context);
+ expect(()=>projectScopeComparison({...result,pairs:result.pairs.slice(1)},assertions)).toThrow("scope_projection_basis_mismatch");
+});

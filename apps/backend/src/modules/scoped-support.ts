@@ -2,7 +2,7 @@ import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
-import { draftStatements, resolveScopedSupport, SCOPED_SUPPORT_VERSION, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
+import { projectScopeComparison, draftStatements, resolveScopedSupport, SCOPED_SUPPORT_VERSION, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { loadModelOperation, modelInputManifest, validateOwnedModelContext } from "./model-operations.js";
@@ -103,7 +103,7 @@ export async function loadWriterSourceContext(db:Queryable,args:SupportArgs & {s
     const compared=await persistScopeComparison(db,{...args,supportIntentId:args.sourceSupportIntentId,
       action:{type:"compare_scopes",claimKeys:basis.context.assertions.map(a=>a.key)}},versions,true);
     if(compared.kind!=="comparison")throw new Error(compared.reason);
-    scopeComparison=compared.result;
+    scopeComparison=compared.writerContextVersion==="scope-comparison-context.v1"?projectScopeComparison(compared.result,basis.context.assertions):compared.result;
   }
   return {...basis,context:{...basis.context,approvedClaimKeys:approved.map((c)=>c.claimKey),...(scopeComparison?{scopeComparison}:{})},approved};
 }
