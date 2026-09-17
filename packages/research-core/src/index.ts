@@ -28,3 +28,4 @@ export { resolveScopedSupport, SCOPED_SUPPORT_VERSION, type ScopedSupportResult 
 
 export { draftStatements, type DraftStatement } from "./draft-assertions.js";
 export { compileCheckedDraft } from "./draft-report.js";
+export * from "./research-coverage.js";

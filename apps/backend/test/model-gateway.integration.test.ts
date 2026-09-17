@@ -1,3 +1,4 @@
+import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
 import { CreateRunRequestSchema, type CanonicalReport } from "@deep/contracts";
@@ -573,5 +574,50 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(second).toEqual({...first,reused:true});
     expect((await pool.query("SELECT checker_version FROM scoped_support_results WHERE run_id=$1 ORDER BY checker_version",[x.runId])).rows).toEqual([{checker_version:"scoped-support.v1"},{checker_version:"scoped-support.v2"}]);
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+});
+
+async function coverageCase(x:Parameters<Parameters<typeof runCase>[0]>[0],wrongUnit=false) {
+  const c=await supportCase(x,wrongUnit);globalThis.fetch=vi.fn(async()=>response(c.proposal)) as typeof fetch;
+  const support=await executeAssertionSupport(pool,x.config,x.session,c.args);
+  if(support.kind!=="support")throw new Error("missing support");
+  const proposal={questions:[{questionKey:"q1",status:"supported",assertionKeys:["area"],reason:"Fabricated coverage judgment for boundary testing"}],omittedRequirements:[]};
+  return {...c,coverageProposal:proposal,args:{...c.args,supportIntentId:support.intentId}};
+}
+describe("W05 durable criterion coverage review",()=>{
+  it("executes review once, stores exact claim revisions and revalidates replay",async()=>runCase(async(x)=>{
+    const c=await coverageCase(x);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
+    const first=await executeCoverageReview(pool,x.config,x.session,c.args);
+    expect(first.kind).toBe("coverage");if(first.kind!=="coverage")throw new Error("missing review");
+    expect(first.coverage.complete).toBe(true);
+    const second=await executeCoverageReview(pool,x.config,x.session,c.args);
+    expect(second).toMatchObject({kind:"coverage",reused:true,intentId:first.intentId});expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const row=(await pool.query("SELECT * FROM research_coverage WHERE run_id=$1",[x.runId])).rows[0];
+    expect(row.claim_revision_ids).toHaveLength(1);expect(row.result).toEqual(first.coverage);
+    await pool.query("UPDATE research_coverage SET result='{}' WHERE run_id=$1",[x.runId]);
+    await expect(executeCoverageReview(pool,x.config,x.session,c.args)).rejects.toThrow("stored_coverage_mismatch");expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("vetoes supported coverage when named assertions failed substantive checks",async()=>runCase(async(x)=>{
+    const c=await coverageCase(x,true);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
+    const result=await executeCoverageReview(pool,x.config,x.session,c.args);
+    expect(result).toMatchObject({kind:"coverage",coverage:{complete:false,unresolvedCriterionKeys:["c1"]}});
+    if(result.kind!=="coverage")throw new Error("missing review");expect(result.coverage.questions[0]!.failedChecks).toContain("assertion_not_supported");
+  }));
+  it("rejects missing question reviews without recording coverage",async()=>runCase(async(x)=>{
+    const c=await coverageCase(x);globalThis.fetch=vi.fn(async()=>response({questions:[],omittedRequirements:[]})) as typeof fetch;
+    expect(await executeCoverageReview(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"coverage_invalid_output"});
+    expect((await pool.query("SELECT * FROM research_coverage WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+  }));
+  it("rejects changed evidence before saving coverage while retaining cost",async()=>runCase(async(x)=>{
+    const c=await coverageCase(x);globalThis.fetch=vi.fn(async()=>{await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);return response(c.coverageProposal);}) as typeof fetch;
+    await expect(executeCoverageReview(pool,x.config,x.session,c.args)).rejects.toThrow("stale_model_context");
+    expect((await pool.query("SELECT * FROM research_coverage WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+    expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:review_coverage'",[x.runId])).rows[0].confirmed_micro).toBe("1");
+  }));
+  it("purges saved coverage on account deletion",async()=>runCase(async(x)=>{
+    const c=await coverageCase(x);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
+    expect((await executeCoverageReview(pool,x.config,x.session,c.args)).kind).toBe("coverage");
+    await withTx(pool,(db)=>deleteAccount(db,x.accountId));
+    expect((await pool.query("SELECT * FROM research_coverage WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
   }));
 });

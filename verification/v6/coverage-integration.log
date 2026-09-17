@@ -1,0 +1,619 @@
+
+> deep-research-mobile@0.1.0 test:integration /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/backend test:integration
+
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/p3-remaining.integration.test.ts (51 tests | 51 skipped) 148ms
+   ↓ remaining launch-scope IDs > M04 fixture comparison publishes a wide table, code listing, unicode-safe text, and many citations
+   ↓ remaining launch-scope IDs > R06 preserves event date vs publication date
+   ↓ remaining launch-scope IDs > R10 declines an unrelated celebrity branch from page content
+   ↓ remaining launch-scope IDs > R12 explains different percentage denominators instead of averaging
+   ↓ remaining launch-scope IDs > R15 states unknown without a fake probability
+   ↓ remaining launch-scope IDs > R16 comparison names the requested entities and constraints
+   ↓ remaining launch-scope IDs > E05 new source version does not rewrite the original report citation
+   ↓ remaining launch-scope IDs > V2-13 private canary is stored as evidence, omitted from public queries, and denied to another account
+   ↓ remaining launch-scope IDs > JOB-1 eligibility-aware comparison under platform and export constraints
+   ↓ remaining launch-scope IDs > JOB-1 adding Linux as a hard requirement excludes NoteKeep and keeps NoteAll
+   ↓ remaining launch-scope IDs > JOB-1 removing Linux as a requirement makes NoteKeep eligible again
+   ↓ remaining launch-scope IDs > JOB-2 attached document text is stored as supplied evidence and not used as a public query
+   ↓ remaining launch-scope IDs > E06 actual PDF with no readable evidence is disclosed as unread pages
+   ↓ remaining launch-scope IDs > E08 quoted report text is taken from the stored passage
+   ↓ remaining launch-scope IDs > E09 export citation anchors resolve to owned passages
+   ↓ remaining launch-scope IDs > J02 a second processRun after completion does not duplicate the report or settlement
+   ↓ remaining launch-scope IDs > J04 timeout after issue is outcome-unknown, not assumed free
+   ↓ remaining launch-scope IDs > J06 cancel after completion keeps the published report
+   ↓ remaining launch-scope IDs > J08 event cursor returns only later sequences
+   ↓ remaining launch-scope IDs > J13 live spend kill switch blocks new paid routes but keeps saved reports
+   ↓ remaining launch-scope IDs > S03 oversized attachments are rejected
+   ↓ remaining launch-scope IDs > S07 cross-account reports are denied
+   ↓ remaining launch-scope IDs > S10 redacts tokens and question fields from logs
+   ↓ remaining launch-scope IDs > S06 / V2-20 does not silently fall back to an unauthorized live processor
+   ↓ remaining launch-scope IDs > V2-10 a later unavailable fetch does not retract last-access evidence
+   ↓ remaining launch-scope IDs > V2-11 concise view uses the same answer citations as the body
+   ↓ remaining launch-scope IDs > V2-19 scanned tables stay unread rather than guessed
+   ↓ remaining launch-scope IDs > R17 concise request still keeps limitations
+   ↓ remaining launch-scope IDs > R18 compacted checkpoint still lists stored passage ids
+   ↓ remaining launch-scope IDs > R19 follow-up verifies one claim and keeps the parent report
+   ↓ remaining launch-scope IDs > R20 dates a retrieved price and keeps a founding year as history
+   ↓ remaining launch-scope IDs > R21 labels a German original as a translation
+   ↓ remaining launch-scope IDs > E03 preserves the adults-over-65 qualifier
+   ↓ remaining launch-scope IDs > E04 report uses the table's 24% rather than 42%
+   ↓ remaining launch-scope IDs > E10 withdraws the conclusion when the asserted 42% is unsupported by the 24% table
+   ↓ remaining launch-scope IDs > J07 expired lease is reclaimed; a live lease is not stolen
+   ↓ remaining launch-scope IDs > J10 a tight budget still publishes a written report
+   ↓ remaining launch-scope IDs > J11 reports that app counters are not provider-internal guarantees
+   ↓ remaining launch-scope IDs > J12 confirmed usage does not rewrite the historical estimate
+   ↓ remaining launch-scope IDs > J14 duplicate completion epochs share one outbox row and omit query text
+   ↓ remaining launch-scope IDs > S08 unsigned purchase payloads cannot grant entitlement
+   ↓ remaining launch-scope IDs > V2-09 deleted attachment text is not left in reports
+   ↓ remaining launch-scope IDs > V2-09 late worker cannot republish deleted private text even if it claims deleted=false
+   ↓ remaining launch-scope IDs > expired session cannot read library or reports
+   ↓ remaining launch-scope IDs > library lists report_id for a completed run so share can resolve
+   ↓ remaining launch-scope IDs > V2-14 outcome-unknown live spend is not treated as zero against the cap
+   ↓ remaining launch-scope IDs > M09 web deletion page is reachable without the app and deletes with a session token
+   ↓ remaining launch-scope IDs > R02 continue without geography is rejected and does not invent Germany
+   ↓ remaining launch-scope IDs > clarification continue records geography and resumes
+   ↓ remaining launch-scope IDs > R02 continue with France records France and does not invent Germany
+   ↓ remaining launch-scope IDs > R02 after France continue discovery uses France evidence not the Germany default note
+ ❯ test/model-gateway.integration.test.ts (56 tests | 56 skipped) 112ms
+   ↓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call
+   ↓ W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome
+   ↓ W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief
+   ↓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result
+   ↓ W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending
+   ↓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist
+   ↓ W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist
+   ↓ W05 durable model gateway on real PostgreSQL > requires the current downstream-processor consent before dispatch
+   ↓ W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race
+   ↓ W05 durable model gateway on real PostgreSQL > deletion removes a completed model result
+   ↓ W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result
+   ↓ W05 durable versioned research task > allocates stable server IDs and reuses the task after evidence arrival without model spend
+   ↓ W05 durable versioned research task > adopts already recorded valid output after a crash, including after evidence revision changes
+   ↓ W05 durable versioned research task > does not promote material ambiguity to a ready task
+   ↓ W05 durable versioned research task > does not create a task from invalid output or resend its failed logical attempt
+   ↓ W05 durable versioned research task > rejects wrong owner and stale brief revision, without another provider call
+   ↓ W05 durable versioned research task > rejects corrupted criteria and receipt bindings instead of silently regenerating them
+   ↓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call
+   ↓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts
+   ↓ W05 durable versioned research task > does not silently use a task after its original question changes
+   ↓ W05 durable versioned research task > purges criteria, questions and original question digests during account deletion
+   ↓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result
+   ↓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions
+   ↓ W05 evidence-bound arbitrary assertion extraction > rejects an invented evidence binding instead of creating assertions
+   ↓ W05 evidence-bound arbitrary assertion extraction > rejects wrong-task, missing passage and duplicate selection before dispatch
+   ↓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request
+   ↓ W05 evidence-bound arbitrary assertion extraction > does not silently prefix-truncate an oversized passage
+   ↓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests
+   ↓ W05 evidence-bound arbitrary assertion extraction > discards late extraction after evidence changes but retains actual cost
+   ↓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay
+   ↓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units
+   ↓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support
+   ↓ W05 substantive support execution and persisted revisions > rejects missing bindings without a support record
+   ↓ W05 substantive support execution and persisted revisions > denies a foreign extraction result before spending
+   ↓ W05 substantive support execution and persisted revisions > rejects changed evidence basis instead of checking old assertions as current
+   ↓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts
+   ↓ W05 substantive support execution and persisted revisions > purges scoped assertions and support results on deletion
+   ↓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen
+   ↓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial
+   ↓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision
+   ↓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose
+   ↓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object
+   ↓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag
+   ↓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage
+   ↓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation
+   ↓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request
+   ↓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report
+   ↓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt
+   ↓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch
+   ↓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion
+   ↓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again
+   ↓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay
+   ↓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks
+   ↓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage
+   ↓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost
+   ↓ W05 durable criterion coverage review > purges saved coverage on account deletion
+ ❯ test/launch-scope.integration.test.ts (19 tests | 19 skipped) 121ms
+   ↓ launch-scope fixture/postgres cases > R02 asks a jurisdiction question when it would change the answer
+   ↓ launch-scope fixture/postgres cases > R03 does not interview a clear comparison over style
+   ↓ launch-scope fixture/postgres cases > R07 keeps a paywalled page snippet-only and does not claim a full read
+   ↓ launch-scope fixture/postgres cases > R11 records a real price contradiction without averaging
+   ↓ launch-scope fixture/postgres cases > R14 budget-limited outcome is not marked comprehensive
+   ↓ launch-scope fixture/postgres cases > R22 preserves a reproducible annual cost calculation
+   ↓ launch-scope fixture/postgres cases > V2-01 uses the compatibility matrix, not summary count
+   ↓ launch-scope fixture/postgres cases > V2-02 / R08 switches source type after summary-family saturation
+   ↓ launch-scope fixture/postgres cases > V2-04 relaxed budget discovers a previously omitted candidate
+   ↓ launch-scope fixture/postgres cases > V2-05 recomputes a corrected numeric unit
+   ↓ launch-scope fixture/postgres cases > V2-06 unknown dependency completeness forces a full rerun flag
+   ↓ launch-scope fixture/postgres cases > P2 selective budget reopen is not a full rerun; unknown-dependency correction is; both 120 EUR paths find Vendor C
+   ↓ launch-scope fixture/postgres cases > P2 a non-budget correction does not reopen candidate discovery or add Vendor C
+   ↓ launch-scope fixture/postgres cases > V2-18 distinguishes no eligible inspected option from universal absence
+   ↓ launch-scope fixture/postgres cases > E07 denies another account's evidence id
+   ↓ launch-scope fixture/postgres cases > S04 does not leave raw script markup in the canonical report
+   ↓ launch-scope fixture/postgres cases > S11 revoked consent blocks new runs
+   ↓ launch-scope fixture/postgres cases > J09 concurrent reservations cannot exceed the remaining allowance
+   ↓ launch-scope fixture/postgres cases > challenge and markdown export use the same stored report
+ ❯ test/p0-smoke.integration.test.ts (16 tests | 16 skipped) 124ms
+   ↓ P0 smoke against shipped API/worker/postgres > R01 already-known constraint is stored and not re-asked
+   ↓ P0 smoke against shipped API/worker/postgres > R04 false premise is reported and not invented
+   ↓ P0 smoke against shipped API/worker/postgres > R05 source duplication clusters five reprints as one origin
+   ↓ P0 smoke against shipped API/worker/postgres > R09 justified pivot opens a population-relevant source
+   ↓ P0 smoke against shipped API/worker/postgres > R13 diminishing returns stops instead of exhausting a quota
+   ↓ P0 smoke against shipped API/worker/postgres > E01 unknown citation ID blocks publication
+   ↓ P0 smoke against shipped API/worker/postgres > E02 non-supporting citation is flagged
+   ↓ P0 smoke against shipped API/worker/postgres > J01 double tap with the same idempotency key creates one run
+   ↓ P0 smoke against shipped API/worker/postgres > J03 crash after fetch recovers evidence without double settlement
+   ↓ P0 smoke against shipped API/worker/postgres > J05 / V2-07 cancel during writing rejects late publication
+   ↓ P0 smoke against shipped API/worker/postgres > S01 prompt injection cannot authorize tools or reveal keys
+   ↓ P0 smoke against shipped API/worker/postgres > S09 deletion during run purges derived text and blocks resurrection
+   ↓ P0 smoke against shipped API/worker/postgres > V2-08 stale worker lease cannot publish
+   ↓ P0 smoke against shipped API/worker/postgres > correction reopens discovery when a hard budget constraint is relaxed
+   ↓ P0 smoke against shipped API/worker/postgres > S05 private attachment canary is not copied into a public search query
+   ↓ P0 smoke against shipped API/worker/postgres > GET events and report citations resolve to stored evidence IDs
+ ❯ test/g01-g02.integration.test.ts (9 tests | 9 skipped) 138ms
+   ↓ G01 safety policy > G01-cross-user: another account cannot read run, events, report, source, export, or mutate
+   ↓ G01 safety policy > G01-private-to-public: attachment canary is stored as evidence and omitted from search queries
+   ↓ G01 safety policy > G01-consent: missing, declined, and revoked consent cannot start or continue processing
+   ↓ G01 safety policy > G01-deletion: derived text is purged and a late worker cannot resurrect it
+   ↓ G02 engineering requirement > G02-unknown-citation: invented passage IDs cannot publish
+   ↓ G02 engineering requirement > G02-lost-run: an accepted create remains recoverable from the server after the client drops state
+   ↓ G02 engineering requirement > G02-duplicate-debit: replayed completion and idempotent create settle once
+   ↓ G02 engineering requirement > G02-stale-revision: obsolete brief, evidence, or lease cannot publish
+   ↓ G02 engineering requirement > G02-cancel-writing: cancel during writing rejects late publication
+ ❯ test/controller-admission.integration.test.ts (11 tests | 11 skipped) 118ms
+   ↓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources
+   ↓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap
+   ↓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun
+   ↓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search
+   ↓ controller admission on the fixture worker path > does not count http_failure as a completed search
+   ↓ controller admission on the fixture worker path > does not count unknown_cost as a completed search
+   ↓ controller admission on the fixture worker path > does not count timeout as a completed search
+   ↓ controller admission on the fixture worker path > does not count prior_attempt as a completed search
+   ↓ controller admission on the fixture worker path > does not count prior_confirmed_attempt as a completed search
+   ↓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call
+   ↓ controller admission on the fixture worker path > issued then failed live intents still consume the reservation
+ ❯ test/g07-output.integration.test.ts (3 tests | 3 skipped) 114ms
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > GET /v1/settings exposes privacy disclosure and output-reporting categories; purchases stay gated
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > M10 includeExcerpt stores owned answer text; omitting it stores no excerpt; other accounts are denied
+   ↓ G07 / M10 in-app output reporting and privacy disclosure > restore purchases stays gated and grants no entitlement
+ ❯ test/p4-recovery.integration.test.ts (2 tests | 2 skipped) 121ms
+   ↓ P4 recovery drill against shipped worker/Postgres > crash after fetch: evidence kept, live lease not stolen, expired lease recovered without double-settle
+   ↓ P4 recovery drill against shipped worker/Postgres > crash before publish then expired-lease failover: one report and one settlement
+ ❯ test/v6-deletion.integration.test.ts (9 tests | 9 skipped) 110ms
+   ↓ W03 deletion removes raw attachments and private text from every owned research store
+   ↓ W03 an upload blocked behind deletion rechecks the committed account state
+   ↓ W03 committed uploads are erased by a competing deletion without leaving raw bytes
+   ↓ W03 a challenges request authenticated before deletion cannot restore private content
+   ↓ W03 a corrections request authenticated before deletion cannot restore private content
+   ↓ W03 a follow-up request authenticated before deletion cannot restore private content
+   ↓ W03 a continue request authenticated before deletion cannot restore private content
+   ↓ W03 old deletion tombstones replay the complete purge after upgrade
+   ↓ W03 legacy cleanup retries real storage failure and a lost acknowledgement; unsafe pointers cannot delete another object
+ ❯ test/v6-execution.integration.test.ts (22 tests | 22 skipped) 148ms
+   ↓ W02 real PostgreSQL execution boundaries > A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent
+   ↓ W02 real PostgreSQL execution boundaries > A08 run cap blocks concurrent calls despite a larger project cap
+   ↓ W02 real PostgreSQL execution boundaries > A08 issuance requires an active account allowance reservation
+   ↓ W02 real PostgreSQL execution boundaries > A09 unknown provider outcome retains allowance until an actual receipt; repeated settlement is idempotent
+   ↓ W02 real PostgreSQL execution boundaries > A09 actual receipt overrun is recorded without clamping or stealing another account reservation
+   ↓ W02 real PostgreSQL execution boundaries > A08 the same provider key cannot bypass its cap through different project scopes or accounts
+   ↓ W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: missing key
+   ↓ W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: zero cap
+   ↓ W02 real PostgreSQL execution boundaries > A08 unattributed legacy receipts consume the key budget until reconciled
+   ↓ W02 real PostgreSQL execution boundaries > A08 different provider keys have distinct buckets while retaining a shared project cap
+   ↓ W02 real PostgreSQL execution boundaries > A09 a late confirmed receipt reconciles terminal allowance once without replaying the provider
+   ↓ W02 real PostgreSQL execution boundaries > A09 cost inspection distinguishes held provider cost from confirmed and simulated costs
+   ↓ W02 real PostgreSQL execution boundaries > A09 a receipt after deletion settles only incurred cost without restoring private data
+   ↓ W02 real PostgreSQL execution boundaries > A09 historical settlements without receipt basis stay explicitly unreconciled and are not retroactively charged
+   ↓ W02 real PostgreSQL execution boundaries > A14 a stale session cannot mutate the active run
+   ↓ W02 real PostgreSQL execution boundaries > A43 concurrent conflicting idempotency reuse accepts one full request
+   ↓ W02 real PostgreSQL execution boundaries > A43 identical concurrent admission reserves and dispatches only once
+   ↓ W02 real PostgreSQL execution boundaries > A24 wrong-owner parent is denied before admission
+   ↓ W02 real PostgreSQL execution boundaries > A13 two connections starting together cannot acquire the same live lease
+   ↓ W02 real PostgreSQL execution boundaries > A14 expired owner cannot renew after takeover
+   ↓ W02 real PostgreSQL execution boundaries > A11 admission remains dispatchable after commit without contacting queue
+   ↓ W02 real PostgreSQL execution boundaries > A12 queue failure preserves pending admission for retry
+ ❯ test/g06-cost.integration.test.ts (2 tests | 2 skipped) 121ms
+   ↓ G06 local capability probe and measured fixture cost > GET /v1/routes/capabilities pins fixture tariffs and does not enable a live paid probe
+   ↓ G06 local capability probe and measured fixture cost > GET /v1/runs/:id/cost reconciles spent_micro to fixture intents and denies other accounts
+ ❯ test/v6-publication.integration.test.ts (19 tests | 19 skipped) 98ms
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-01
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-02
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-03
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-04
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-05
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > PROBE-06
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > CONTROL-direct
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > CONTROL-paraphrase
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > wrong-owner
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > wrong-version
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > forged-text
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > unmapped-extra-sentence
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > duplicate-claim-id
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > myth
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > conditional
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > role-reversal
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > uncertain
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > derived-source-count
+   ↓ W01 V6-F01 production publication, persisted PostgreSQL evidence > forged-source-count
+ ❯ test/v6-identity.integration.test.ts (3 tests | 3 skipped) 95ms
+   ↓ W03 concurrent verified identity mapping creates one owner and no implicit spend allowance
+   ↓ W03 production rejects local sessions and never falls back when the real verifier is unavailable
+   ↓ W03 production API resolves authoritative identity and deletion remains denied even with a still-valid provider token
+ ❯ test/v6-upload.integration.test.ts (2 tests | 2 skipped) 97ms
+   ↓ W04 rejects pasted notes masquerading as PDF while preserving explicit text notes
+   ↓ W04 stores actual bounded binary bytes and digest with no fabricated extraction, under owner scope
+ ❯ test/v6-ingestion.integration.test.ts (1 test | 1 skipped) 100ms
+   ↓ W04 persists immutable byte/locator provenance, rejects error-page evidence, and deletes its raw and derived artifacts
+ ✓ test/pinned-http.integration.test.ts (3 tests) 97ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 15 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/controller-admission.integration.test.ts [ test/controller-admission.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/controller-admission.integration.test.ts:55:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/27]⎯
+
+ FAIL  test/controller-admission.integration.test.ts [ test/controller-admission.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/controller-admission.integration.test.ts:69:13
+     67| afterAll(async () => {
+     68|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     69|   await app.close();
+       |             ^
+     70|   await boss.stop({ graceful: false, timeout: 2000 });
+     71|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/27]⎯
+
+ FAIL  test/g01-g02.integration.test.ts [ test/g01-g02.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g01-g02.integration.test.ts:112:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/27]⎯
+
+ FAIL  test/g01-g02.integration.test.ts [ test/g01-g02.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/g01-g02.integration.test.ts:122:13
+    120| afterAll(async () => {
+    121|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+    122|   await app.close();
+       |             ^
+    123|   await boss.stop({ graceful: false, timeout: 2000 });
+    124|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/27]⎯
+
+ FAIL  test/g06-cost.integration.test.ts [ test/g06-cost.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g06-cost.integration.test.ts:46:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/27]⎯
+
+ FAIL  test/g06-cost.integration.test.ts [ test/g06-cost.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/g06-cost.integration.test.ts:56:13
+     54| afterAll(async () => {
+     55|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     56|   await app.close();
+       |             ^
+     57|   await boss.stop({ graceful: false, timeout: 2000 });
+     58|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/27]⎯
+
+ FAIL  test/g07-output.integration.test.ts [ test/g07-output.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/g07-output.integration.test.ts:41:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/27]⎯
+
+ FAIL  test/g07-output.integration.test.ts [ test/g07-output.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/g07-output.integration.test.ts:51:13
+     49| afterAll(async () => {
+     50|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     51|   await app.close();
+       |             ^
+     52|   await boss.stop({ graceful: false, timeout: 2000 });
+     53|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/27]⎯
+
+ FAIL  test/launch-scope.integration.test.ts [ test/launch-scope.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/launch-scope.integration.test.ts:53:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/27]⎯
+
+ FAIL  test/launch-scope.integration.test.ts [ test/launch-scope.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/launch-scope.integration.test.ts:63:13
+     61| afterAll(async () => {
+     62|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     63|   await app.close();
+       |             ^
+     64|   await boss.stop({ graceful: false, timeout: 2000 });
+     65|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/27]⎯
+
+ FAIL  test/model-gateway.integration.test.ts [ test/model-gateway.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/model-gateway.integration.test.ts:23:151
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/27]⎯
+
+ FAIL  test/p0-smoke.integration.test.ts [ test/p0-smoke.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p0-smoke.integration.test.ts:60:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/27]⎯
+
+ FAIL  test/p0-smoke.integration.test.ts [ test/p0-smoke.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/p0-smoke.integration.test.ts:72:13
+     70| afterAll(async () => {
+     71|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     72|   await app.close();
+       |             ^
+     73|   await boss.stop({ graceful: false, timeout: 2000 });
+     74|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/27]⎯
+
+ FAIL  test/p3-remaining.integration.test.ts [ test/p3-remaining.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p3-remaining.integration.test.ts:60:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/27]⎯
+
+ FAIL  test/p3-remaining.integration.test.ts [ test/p3-remaining.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/p3-remaining.integration.test.ts:70:13
+     68| afterAll(async () => {
+     69|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     70|   await app.close();
+       |             ^
+     71|   await boss.stop({ graceful: false, timeout: 2000 });
+     72|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/27]⎯
+
+ FAIL  test/p4-recovery.integration.test.ts [ test/p4-recovery.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/p4-recovery.integration.test.ts:63:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/27]⎯
+
+ FAIL  test/p4-recovery.integration.test.ts [ test/p4-recovery.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/p4-recovery.integration.test.ts:73:13
+     71| afterAll(async () => {
+     72|   await pool.query(`DELETE FROM pgboss.job WHERE name = 'research-run'…
+     73|   await app.close();
+       |             ^
+     74|   await boss.stop({ graceful: false, timeout: 2000 });
+     75|   await pool.end();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/27]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts [ test/v6-deletion.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-deletion.integration.test.ts:23:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/27]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts [ test/v6-deletion.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/v6-deletion.integration.test.ts:26:34
+     24|   boss = await createQueue(databaseUrl); app = await buildApp({ pool, …
+     25| });
+     26| afterAll(async () => { await app.close(); await boss.stop({ graceful: …
+       |                                  ^
+     27| 
+     28| it("W03 deletion removes raw attachments and private text from every o…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/27]⎯
+
+ FAIL  test/v6-execution.integration.test.ts [ test/v6-execution.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-execution.integration.test.ts:24:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/27]⎯
+
+ FAIL  test/v6-execution.integration.test.ts [ test/v6-execution.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'stop')
+ ❯ test/v6-execution.integration.test.ts:27:35
+     25|   boss = await createQueue(url);
+     26| });
+     27| afterAll(async () => { await boss.stop({ graceful: false, timeout: 200…
+       |                                   ^
+     28| 
+     29| async function runCase(test: (runId: string, accountId: string) => Pro…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/27]⎯
+
+ FAIL  test/v6-identity.integration.test.ts [ test/v6-identity.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-identity.integration.test.ts:16:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/27]⎯
+
+ FAIL  test/v6-identity.integration.test.ts [ test/v6-identity.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/v6-identity.integration.test.ts:22:34
+     20| });
+     21| afterEach(() => vi.unstubAllGlobals());
+     22| afterAll(async () => { await app.close(); await boss.stop({ graceful: …
+       |                                  ^
+     23| 
+     24| it("W03 concurrent verified identity mapping creates one owner and no …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/27]⎯
+
+ FAIL  test/v6-ingestion.integration.test.ts [ test/v6-ingestion.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-ingestion.integration.test.ts:11:151
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/27]⎯
+
+ FAIL  test/v6-publication.integration.test.ts [ test/v6-publication.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-publication.integration.test.ts:15:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/27]⎯
+
+ FAIL  test/v6-upload.integration.test.ts [ test/v6-upload.integration.test.ts ]
+error: relation "research_coverage" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/v6-upload.integration.test.ts:14:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/27]⎯
+
+ FAIL  test/v6-upload.integration.test.ts [ test/v6-upload.integration.test.ts ]
+TypeError: Cannot read properties of undefined (reading 'close')
+ ❯ test/v6-upload.integration.test.ts:17:34
+     15|   app = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "t…
+     16| });
+     17| afterAll(async () => { await app.close(); await boss.stop({ graceful: …
+       |                                  ^
+     18| async function login() { return (await app.inject({ method: "POST", ur…
+     19| it("W04 rejects pasted notes masquerading as PDF while preserving expl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/27]⎯
+
+
+ Test Files  15 failed | 1 passed (16)
+      Tests  3 passed | 225 skipped (228)
+   Start at  13:59:51
+   Duration  12.02s (transform 1.28s, setup 0ms, collect 6.03s, tests 1.86s, environment 5ms, prepare 1.53s)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts`
+Exit status 1
+ ELIFECYCLE  Command failed with exit code 1.

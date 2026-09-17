@@ -1,6 +1,8 @@
 # Builder handoff
 ## Active V6 checkpoint
 
+W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof.
+
 W05 generic writer (`fbd7fb3`): composed headings, paragraphs and limitations become distinct canonical assertions linked to checked premise revisions, then undergo exact final-wording support and publication checks. Unsupported surfaces become localized caveats; supported synthesis remains. Migration020 preserves draft lineage and checker versions; deletion purges it. Currency mismatch independently rejects. Reports conservatively remain incomplete until criterion coverage is implemented. Main processRun integration and real semantic evaluation remain open.
 
 W01/W05 scoped publication (`09a2dae`): the real report gate now reloads and rechecks owned persisted support in read-only mode, admits a supported paraphrase and preserves its canonical assertion/revision on publication and reopen. Partial/missing/stale/corrupt checks, altered prose, forged caller approvals and derivation-label fallback reject. Final generic writing, criterion completion and processRun integration remain open; this is not an end-to-end research quality claim.
