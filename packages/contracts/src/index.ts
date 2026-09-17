@@ -176,6 +176,11 @@ export const CanonicalReportSchema = z.object({
   ),
   changeSummary: z
     .object({
+      comparison:z.object({version:z.literal("report-changes.v1"),parentReportId:z.string().uuid(),
+        addedClaimRevisionIds:z.array(z.string().uuid()),removedClaimRevisionIds:z.array(z.string().uuid()),unchangedAssertions:z.number().int().nonnegative(),
+        addedCriterionIds:z.array(z.string().uuid()),removedCriterionIds:z.array(z.string().uuid()),
+        reusedCitedSourceVersionIds:z.array(z.string().uuid()),newlyCitedSourceVersionIds:z.array(z.string().uuid()),reportStateChanged:z.boolean(),
+      }).strict().optional(),
       evidenceUpdated: z.boolean(),
       conclusionChanged: z.boolean(),
       newlyFeasible: z.array(z.string()).default([]),

@@ -37,12 +37,13 @@ export type ChangeSummary = {
   newlyFeasible?: string[];
   newlyInfeasible?: string[];
   notes: string;
+  comparison?: {version:"report-changes.v1"};
 };
 
 export function formatChangeSummary(cs: ChangeSummary): string {
   const parts = [cs.notes];
   if (cs.newlyFeasible && cs.newlyFeasible.length > 0) parts.push(`Newly feasible: ${cs.newlyFeasible.join(", ")}.`);
   if (cs.newlyInfeasible && cs.newlyInfeasible.length > 0) parts.push(`Newly ineligible: ${cs.newlyInfeasible.join(", ")}.`);
-  if (!cs.conclusionChanged) parts.push("Earlier conclusion kept unless a cited passage changed.");
+  if (!cs.conclusionChanged && !cs.comparison) parts.push("Earlier conclusion kept unless a cited passage changed.");
   return parts.filter(Boolean).join(" ");
 }

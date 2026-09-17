@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Typed replacement correction with explicit source snapshot membership and full child claim recomputation.258 full PostgreSQL;117/88/47/4 verify. W01-W09 incomplete.",
+  "workingTree": "Result-derived exact assertion/criterion/cited-version comparison;260 integration and117/88/48/4 verify. W01-W09 remains incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -3622,6 +3622,111 @@
       "evidenceClass": "document_integrity",
       "scope": "final documentation structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "pnpm verify",
+      "artifact": "report-changes-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "initial117/88/47/4 before added mobile regression",
+      "sha256": "aad43dc5fdd626bcd73bbdf125036cff7578b8334a6651aa304e9cce393a663a"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "report-changes-focused.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_report_changes",
+      "scope": "86/86 initial comparison controls;38.72s",
+      "sha256": "d740e70c7d9f414788c0edbb843da0a9b70a87836b61bdb397af782c2cdc0eb5"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "pnpm verify",
+      "artifact": "report-changes-verify-final.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "117 core/88 backend/48 mobile/4 governance, types and boundaries",
+      "sha256": "8ca3cc2713a36c175505ad28c8cdad951f0811775c58a07aa8ed4e1318da77e7"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "pnpm test:integration",
+      "artifact": "report-changes-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "260/260 across16files;146.02s; forged summary, unchanged assertions/fresh citations, missing history and reuse",
+      "sha256": "6e65aa912b0c2166d06245f3f5f6b29b4d2c9ce7284d0487ab18263975d31c33"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "report-changes-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "review structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "V6-F08"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "result-derived report comparisons; revision follows",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "report-changes-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "handoff structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W06",
+        "W07"
+      ],
+      "commit": "262bb2e",
+      "workingTree": "final publication-derived comparison and actual corrected PDF trace",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "report-changes-extraction.log",
+      "exitCode": 0,
+      "evidenceClass": "local_api_worker_actual_pdf_report_changes",
+      "scope": "12/12;36.56s; changed assertion revisions with same cited version, corrected API reopen/full-rerun control/deletion; fabricated model responses",
+      "sha256": "c20e140bb6f08d3d469e2d7b557b4f0be4671e3692760e59e27f0df78aa5110b"
     }
   ],
   "unresolved": [
@@ -3630,7 +3735,7 @@
     "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
     "W04: native binary picker and broader independent document fidelity corpus",
     "W05: broader discovery/evidence selection, substantive remaining actions and production fixture reachability removal",
-    "W06: granular typed patches, selective dependency traversal, result-derived change summaries and freshness policy beyond explicit snapshot/refresh",
+    "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
     "W07: native file/correction/account flows and usable export bibliography",
     "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",
     "W10: separate release gates; no new deployment, paid model or native quality claim"

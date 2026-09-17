@@ -671,7 +671,8 @@ it("W05 publication rejects a forged complete outcome without a review while pre
  expect(await publishReport(pool,{...c.publication,report:{...c.report,outcome:"completed"}})).toEqual({accepted:false,reason:"incomplete_question_coverage"});
  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
  expect((await pool.query("SELECT accepted,reason FROM publication_attempts WHERE run_id=$1",[x.runId])).rows).toEqual([{accepted:false,reason:"incomplete_question_coverage"}]);
- expect(await publishReport(pool,c.publication)).toMatchObject({accepted:true});
+ expect(await publishReport(pool,{...c.publication,report:{...c.report,changeSummary:{evidenceUpdated:true,conclusionChanged:true,newlyFeasible:["invented"],newlyInfeasible:[],notes:"Forged comparison"}}})).toMatchObject({accepted:true});
+ expect((await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[x.runId])).rows[0].change_summary).toBeNull();
 }));
 
 async function releaseForWorker(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
@@ -914,6 +915,8 @@ describe("W06 immutable correction evidence membership",()=>{
   globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
   const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[child.runId])).rows[0];expect(report).toBeDefined();
   expect(report.blocks[1].citationIds).toEqual([p.passageId]);expect(report.claim_ids.some((id:string)=>old.claim_ids.includes(id))).toBe(false);
+  expect(report.change_summary).toMatchObject({evidenceUpdated:false,conclusionChanged:false,newlyFeasible:[],comparison:{version:"report-changes.v1",addedClaimRevisionIds:[],removedClaimRevisionIds:[],unchangedAssertions:1,reusedCitedSourceVersionIds:[p.versionId],newlyCitedSourceVersionIds:[]}});
+  expect(report.change_summary.comparison.addedCriterionIds).toHaveLength(0);
   expect((await pool.query("SELECT source_version_id FROM run_evidence_membership WHERE run_id=$1",[child.runId])).rows).toEqual([{source_version_id:p.versionId}]);
   expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[child.runId])).rowCount).toBe(0);expect(fetch).toHaveBeenCalledTimes(7);
   expect((await pool.query("SELECT dependency_completeness,reused_passages,reopen_discovery FROM research_change_sets WHERE run_id=$1",[child.runId])).rows[0]).toEqual({dependency_completeness:"unknown",reused_passages:1,reopen_discovery:true});
@@ -945,3 +948,18 @@ it("W06 a corrupt cross-account membership cannot expose foreign passages",async
   SELECT $1,$2,p.id,p.source_version_id,p.run_id,p.content_hash,v.content_hash FROM passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.id=$3`,[child.runId,x.accountId,p.passageId]);
  expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
 })));
+it("W06 fresh cited versions change evidence without claiming changed assertion wording",async()=>runCase(async(x)=>{
+ const original=await parentEvidence(x);await releaseForWorker(x);globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,x.runId);
+ const text=(await pool.query("SELECT exact_text FROM passages WHERE id=$1",[original.passageId])).rows[0].exact_text;
+ const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("What area did the study restore?","refresh"));
+ const sourceId=await insertSource(pool,{runId:child.runId,accountId:x.accountId,locator:"https://example.org/refreshed",title:"Fresh control",publisher:"Study",originCluster:"study"});
+ const fresh=await insertVersionAndPassage(pool,{runId:child.runId,accountId:x.accountId,sourceId,locator:"https://example.org/refreshed",text,accessLevel:"partial-text"});
+ await processRun(pool,x.config,child.runId);
+ const report=(await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[child.runId])).rows[0];
+ expect(report.change_summary).toMatchObject({evidenceUpdated:true,conclusionChanged:false,comparison:{addedClaimRevisionIds:[],removedClaimRevisionIds:[],unchangedAssertions:1,reusedCitedSourceVersionIds:[],newlyCitedSourceVersionIds:[fresh.versionId]}});
+}));
+it("W06 missing parent publication cannot produce an unchanged comparison",async()=>runCase(async(x)=>{
+ await parentEvidence(x);const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("Inspect the measured area"));
+ globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
+ expect((await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[child.runId])).rows[0].change_summary).toBeNull();
+}));

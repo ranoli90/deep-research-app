@@ -1,3 +1,4 @@
+import { deriveReportChanges } from "./report-changes.js";
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
 import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
 import { withTx, type Queryable } from "../platform/db.js";
@@ -90,6 +91,8 @@ export async function publishReport(
   );
   if (reason !== "ok") return { accepted: false, reason };
   const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext, scopedApprovals:scoped.approved });
+  const changes=await deriveReportChanges(db,args.accountId,checkedReport);
+  const changeSummary=changes.managed?changes.summary:args.report.changeSummary;
   const reportId = args.report.reportId;
   const nextEpoch = run.completion_epoch + 1;
   await db.query(
@@ -106,7 +109,7 @@ export async function publishReport(
       checkedReport.claimIds,
       JSON.stringify(args.report.limitations),
       JSON.stringify(args.report.sourceAccessSummary),
-      args.report.changeSummary ? JSON.stringify(args.report.changeSummary) : null,
+      changeSummary ? JSON.stringify(changeSummary) : null,
       args.report.routeMode,
     ],
   );

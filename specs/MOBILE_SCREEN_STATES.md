@@ -130,3 +130,6 @@ Use the logical completion identity and account/device-binding epoch contract in
 
 ## V6 local session boundary (W03/F17, implemented; native proof pending)
 Credentials use Expo SecureStore 15.0.8 with no plaintext fallback. Content remains app-private AsyncStorage, bound to the server account and configured backend; this is not an encrypted-content claim. Legacy unscoped caches/tokens are discarded and require sign-in. Logout, expiry and deletion clear private drafts, reports, source panels and queued persistence. Account/run/source generations discard obsolete responses even if transport cancellation is ignored. A durable denial marker prevents failed credential deletion from silently restoring the old session; failures remain visible. A fresh installation discards surviving keychain credentials. Android backup is disabled in configuration; both-platform native verification remains required. Production sign-in/refresh remains an activation gate. These rules supersede historical draft-preserving logout observations.
+
+
+W06 comparison display: report-changes.v1 summaries show the server’s measured assertion/criterion/version note. Do not append “earlier conclusion kept” to exact inventory equality: the child independently recomputed its claims. No new native execution claim; existing historical diagnostic summaries retain their previous format.

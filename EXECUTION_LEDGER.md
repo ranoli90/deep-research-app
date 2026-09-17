@@ -466,3 +466,12 @@ Final actual extraction exit0:12/12,47.91s, including explicitly observed parsin
 Final focused86/86 exit0,38.87s, reapplying migration024 with explicit view columns. All listed final checks passed; initial typecheck failure and intermediate extraction scope remain preserved. No paid/native/hosted execution.
 
 Typed correction/membership implementation and evidence committed as `088b59942babc0c42d121f4fa9bf7186c128ec63`. Final document validators pass. Next: result-derived correction changes, granular patch/freshness handling and mobile adoption; W01-W09 remains incomplete.
+
+
+## W06 result-derived report changes — 2026-09-17
+Base262bb2e; implementation revision follows after commit. W06 result-derived comparisons: structured publication now computes change summaries from owned parent/child claim revisions, criterion definitions and cited source-version identities inside the publication transaction. Exact text/scope comparison distinguishes changed assertions from new citations and records actual snapshot reuse. Missing or ambiguous parent history yields no comparison; caller flags cannot manufacture one. This is an exact inventory comparison, not semantic equivalence or candidate-eligibility adjudication.
+Initial verify passed; focused86/86 passed in38.72s with unchanged wording and exact snapshot reuse controls. Added production controls for forged root summaries, fresh versions with unchanged assertions and missing parent publication; final full verification follows. Mobile change-note control ensures recomputation is not described as carrying old conclusions forward. No provider calls, dependencies or migrations added. Rollback disables new comparison display/derivation while retaining privacy and publication gates.
+
+Final verify exit0:117core/88backend/48mobile/4governance. Full PostgreSQL integration exit0:260/260 across16files,146.02s. Production gate ignores forged structured summary flags; a fresh cited version can change evidence without changing assertion wording; missing parent publication yields no comparison. Both document validators passed. Actual PDF comparison check follows separately.
+
+Actual extraction exit0:12/12,36.56s. Corrected PDF API response records1 added/1 removed assertion revision with unchanged cited source version, agrees with the full-rerun fabricated-model control, and is deleted afterward. Exact new trace/bytes under verification/v6/report-change-journey/ preserve prior correction evidence separately. No paid/native/hosted or semantic superiority claim.

@@ -136,6 +136,9 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
   const childReopen=await app.inject({method:"GET",url:`/v1/reports/${childReport.id}`,headers:task.headers});expect(childReopen.statusCode).toBe(200);
   const revisedText=`${task.entity} supports offline recording only on firmware 4.2.`;
   expect(childReopen.json().blocks[1].text).toBe(revisedText);expect(childReopen.json().blocks[1].citationIds).toEqual([passageId]);
+  expect(childReopen.json().changeSummary).toMatchObject({evidenceUpdated:false,conclusionChanged:true,comparison:{version:"report-changes.v1",parentReportId:reports[0].id,unchangedAssertions:0,reusedCitedSourceVersionIds:[source.json().sourceVersionId]}});
+  expect(childReopen.json().changeSummary.comparison.addedClaimRevisionIds).toHaveLength(1);
+  expect(childReopen.json().changeSummary.comparison.removedClaimRevisionIds).toHaveLength(1);
   expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[childId])).rowCount).toBe(0);
   expect((await pool.query("SELECT source_version_id FROM run_evidence_membership WHERE run_id=$1 AND passage_id=$2",[childId,passageId])).rows[0].source_version_id).toBe(source.json().sourceVersionId);
   const full=await app.inject({method:"POST",url:"/v1/runs",headers:{...task.headers,"idempotency-key":crypto.randomUUID()},payload:{question:revisedQuestion,routeMode:"controlled-research",attachmentIds:[task.attachmentId]}});
@@ -143,7 +146,7 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
   const fullReport=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[full.json().runId])).rows[0];expect(fullReport.blocks[1].text).toBe(revisedText);
   expect(fullReport.blocks[1].citationIds).not.toEqual([passageId]);expect(globalThis.fetch).toHaveBeenCalledTimes(21);
   correctionTrace={question:revisedQuestion,runId:childId,reportId:childReport.id,text:revisedText,reusedPassageId:passageId,reusedSourceVersionId:source.json().sourceVersionId,
-   newSourceRows:0,claimsRecomputed:true,fullRerunReportId:fullReport.id,fullRerunTextMatches:true,comparison:"local fabricated model control, not independent semantic adjudication"};
+   newSourceRows:0,claimsRecomputed:true,changeSummary:childReopen.json().changeSummary,fullRerunReportId:fullReport.id,fullRerunTextMatches:true,comparison:"local fabricated model control, not independent semantic adjudication"};
  }
  console.info(JSON.stringify({evidenceClass:"local_api_worker_actual_pdf_fabricated_model",sourceTransport:publicSource?"saved bytes transport double":"binary upload",question:task.question,
   originalBytesSha256:createHash("sha256").update(task.bytes).digest("hex"),runId:task.runId,reportId:reports[0].id,

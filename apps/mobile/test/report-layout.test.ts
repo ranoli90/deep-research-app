@@ -56,3 +56,7 @@ describe("M04 report layout", () => {
     expect(text).toMatch(/Earlier conclusion kept/);
   });
 });
+it("structured comparison does not imply that a prior conclusion was carried forward",()=>{
+ const notes="Assertions: 0 added, 0 removed, 1 unchanged. Reused cited source versions: 1.";
+ expect(formatChangeSummary({evidenceUpdated:false,conclusionChanged:false,notes,comparison:{version:"report-changes.v1"}})).toBe(notes);
+});
