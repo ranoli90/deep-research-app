@@ -1,6 +1,6 @@
 # Builder handoff
 
-Working tree: `main` (G01/G02 recorded below). P0 is **not** fully verified: iOS P0-N is blocked.
+Working tree: `main` at `3635e446703a739e9d696938c80a45200ec2ee77`. P0 is **not** fully verified: iOS P0-N is blocked.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.
@@ -56,4 +56,4 @@ Working tree: `main` (G01/G02 recorded below). P0 is **not** fully verified: iOS
 - P1/P2/P3 fixture tests are not a competitor win. Do not spend more OpenRouter unless remaining cap and a new live need justify it.
 
 ## Next
-iOS P0-N at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS or hosted auth as passed.
+iOS P0-N at the end (Xcode). Hosted auth/storage/pooler when those credentials exist. Do not mark iOS, G03, hosted auth, purchases, or G04–G07 as passed. Unblocked P4 recovery drills or remaining non-gated acceptance IDs can continue locally.
