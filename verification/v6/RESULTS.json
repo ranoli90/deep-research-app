@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Search outcome repair; full integration182 plus focused33 with one additional replay control. W01-W09 incomplete.",
+  "workingTree": "Durable versioned criterion/question task prerequisite,193 local integration cases. General workflow and W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1905,6 +1905,111 @@
       "scope": "Document structure only",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "testedCodeCommit": "5fdb122dba528a37315df50a2065d6c03b3f06aa"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "research-tasks-initial.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "19/19; initial8 task regressions plus11 gateway controls",
+      "sha256": "65c16dd18886859a142427f91be9758ebe7bbc424f0f2ab56154849e6568e461"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "research-tasks-final.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "1 failed/20 passed: newly added test mutated legacy question column without canonical payload",
+      "sha256": "f9fd73d45f8ece54a6e6b8015567f27d047878a88ddd3ef8f69e8b2cf6fc8b58"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "research-tasks-corrected.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_worker_service",
+      "scope": "21/21 after correcting mutation setup;10 task identity/recovery/ownership/deletion cases",
+      "sha256": "a62e10c02008966a4b92152c5c04231e3063884a71f19cdf4b858c3a6b9a9f06"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "pnpm verify",
+      "artifact": "research-tasks-verify.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "core97/backend80/mobile47/governance4",
+      "sha256": "9c8f7d335e2d6b92f51dfc7018e7c5dba5d68a68546edc66b17a7aadf16eea99"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "pnpm test:integration",
+      "artifact": "research-tasks-integration.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_integration",
+      "scope": "193/193 local PostgreSQL cases; migration017 and task result/deletion behavior with fabricated model transport",
+      "sha256": "4a4e679a942144984ccbd2e1ad13cd96bb40a589d09f7f4b2e2542eaafb81802"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "research-tasks-review.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W05",
+        "V6-F04",
+        "W03"
+      ],
+      "commit": "2ba6b94",
+      "workingTree": "durable task preparation based on2ba6b94; see ledger implementation commit",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "research-tasks-handoff.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "Document structure only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [

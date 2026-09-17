@@ -27,7 +27,7 @@
       "title": "Task coverage is inferred from source presence",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; open",
-      "basis": "toState still initializes coverage from source presence. Must replace with criterion-linked outcomes."
+      "basis": "Legacy toState still initializes coverage from source presence. New durable task preparation stores versioned criterion/question identities independently of evidence arrival and never marks them answered. Integration with substantive criterion-linked outcomes remains open."
     },
     {
       "id": "V6-F05",

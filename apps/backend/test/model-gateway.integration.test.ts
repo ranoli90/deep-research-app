@@ -8,6 +8,8 @@ import { claimLease } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
+import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
+import { loadResearchTask } from "../src/modules/research-tasks.js";
 import { performModelOperation } from "../src/worker/model-gateway.js";
 import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
 const originalFetch = globalThis.fetch;
@@ -132,5 +134,96 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     await pool.query("UPDATE model_operation_results SET result=jsonb_set(result,'{receipt}','{\"actualMicro\":0}'::jsonb) WHERE run_id=$1", [x.runId]);
     expect(await performModelOperation(pool, x.config, x.session, operation(x))).toMatchObject({ kind: "blocked", reason: "invalid_stored_model_result" });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+});
+
+
+describe("W05 durable versioned research task", () => {
+  it("allocates stable server IDs and reuses the task after evidence arrival without model spend", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    const args = { ...x, briefRevision: 1 };
+    const first = await ensureResearchTask(pool,x.config,x.session,args);
+    expect(first.kind).toBe("task");
+    if (first.kind !== "task") throw new Error("task missing");
+    expect(first.task.planningStatus).toBe("ready");
+    expect(first.task.criterionIds.c1).toMatch(/^[0-9a-f-]{36}$/);
+    expect(first.task.questionIds.q1).not.toBe(first.task.criterionIds.c1);
+    expect(first.task.specification).toEqual(brief);
+    await pool.query("UPDATE runs SET evidence_revision=1 WHERE id=$1", [x.runId]);
+    const second = await ensureResearchTask(pool,x.config,x.session,args);
+    expect(second).toEqual({ kind:"task",task:first.task,reused:true });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT * FROM coverage_items WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("adopts already recorded valid output after a crash, including after evidence revision changes", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    await performModelOperation(pool,x.config,x.session,operation(x));
+    await pool.query("UPDATE runs SET evidence_revision=2 WHERE id=$1",[x.runId]);
+    expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",reused:true });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("does not promote material ambiguity to a ready task", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response({ ...brief,openAmbiguities:[{question:"Which coastline?",whyMaterial:"Restoration outcomes vary by site"}] })) as typeof fetch;
+    expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",task:{ planningStatus:"needs_clarification" } });
+  }));
+  it("does not create a task from invalid output or resend its failed logical attempt", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response({ ...brief,objectiveProvenance:{ ...span,quote:"fabricated" } })) as typeof fetch;
+    for (let n=0;n<2;n++) expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toEqual({ kind:"blocked",reason:"task_invalid_output" });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("rejects wrong owner and stale brief revision, without another provider call", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    await expect(loadResearchTask(pool,x.runId,crypto.randomUUID(),1,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task");
+    await expect(loadResearchTask(pool,x.runId,x.accountId,2,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("rejects corrupted criteria and receipt bindings instead of silently regenerating them", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    const result = await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    if (result.kind !== "task") throw new Error("task missing");
+    await pool.query("UPDATE research_tasks SET specification=jsonb_set(specification,'{objective}','\"changed\"') WHERE run_id=$1",[x.runId]);
+    await expect(ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).rejects.toThrow("invalid_research_task_proposal");
+    await pool.query("UPDATE research_tasks SET specification=$2 WHERE run_id=$1",[x.runId,JSON.stringify(brief)]);
+    await pool.query("UPDATE provider_intents SET receipt='{}' WHERE id=$1",[result.task.modelIntentId]);
+    await expect(ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).rejects.toThrow("invalid_research_task_proposal");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("concurrent preparation converges on one task and one issued provider call", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    const args = { ...x,briefRevision:1 };
+    const results = await Promise.all([ensureResearchTask(pool,x.config,x.session,args),ensureResearchTask(pool,x.config,x.session,args)]);
+    expect(results.some((r) => r.kind === "task")).toBe(true);
+    expect(results.every((r) => r.kind === "task" || r.kind === "pending")).toBe(true);
+    const final = await ensureResearchTask(pool,x.config,x.session,args);
+    expect(final.kind).toBe("task");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
+  }));
+  it("allocates distinct task identities for identical questions in separate accounts", async () => runCase(async (x) => runCase(async (other) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    const a = await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    const b = await ensureResearchTask(pool,other.config,other.session,{ ...other,briefRevision:1 });
+    if (a.kind !== "task" || b.kind !== "task") throw new Error("task missing");
+    expect(a.task.id).not.toBe(b.task.id);
+    expect(a.task.criterionIds.c1).not.toBe(b.task.criterionIds.c1);
+    expect(a.task.modelIntentId).not.toBe(b.task.modelIntentId);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    await expect(loadResearchTask(pool,x.runId,other.accountId,1,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task");
+  })));
+  it("does not silently use a task after its original question changes", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    await pool.query("UPDATE research_briefs SET original_question='Different question', payload=jsonb_set(payload,'{originalQuestion}',to_jsonb('Different question'::text)) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[x.runId]);
+    await expect(ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).rejects.toThrow("stale_research_task_version");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }));
+  it("purges criteria, questions and original question digests during account deletion", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    await deleteAccount(pool,x.accountId);
+    expect((await pool.query("SELECT * FROM research_tasks WHERE account_id=$1",[x.accountId])).rows).toHaveLength(0);
+    await expect(loadResearchTask(pool,x.runId,x.accountId,1,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task");
   }));
 });

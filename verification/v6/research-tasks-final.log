@@ -1,0 +1,126 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (21 tests | 1 failed) 1542ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call 124ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome 64ms
+   ✓ W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief 52ms
+   ✓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result 78ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending 65ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist 59ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist 43ms
+   ✓ W05 durable model gateway on real PostgreSQL > requires the current downstream-processor consent before dispatch 31ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race 58ms
+   ✓ W05 durable model gateway on real PostgreSQL > deletion removes a completed model result 60ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result 50ms
+   ✓ W05 durable versioned research task > allocates stable server IDs and reuses the task after evidence arrival without model spend 69ms
+   ✓ W05 durable versioned research task > adopts already recorded valid output after a crash, including after evidence revision changes 50ms
+   ✓ W05 durable versioned research task > does not promote material ambiguity to a ready task 58ms
+   ✓ W05 durable versioned research task > does not create a task from invalid output or resend its failed logical attempt 77ms
+   ✓ W05 durable versioned research task > rejects wrong owner and stale brief revision, without another provider call 58ms
+   ✓ W05 durable versioned research task > rejects corrupted criteria and receipt bindings instead of silently regenerating them 68ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call 132ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts 134ms
+   × W05 durable versioned research task > does not silently use a task after its original question changes 78ms
+     → promise resolved "{ kind: 'task', task: { …(9) }, …(1) }" instead of rejecting
+   ✓ W05 durable versioned research task > purges criteria, questions and original question digests during account deletion 72ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 durable versioned research task > does not silently use a task after its original question changes
+AssertionError: promise resolved "{ kind: 'task', task: { …(9) }, …(1) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "kind": "task",
++   "reused": true,
++   "task": {
++     "briefRevision": 1,
++     "criterionIds": {
++       "c1": "ba778ab8-6877-4c92-b851-1f5b32572821",
++     },
++     "id": "ee88f808-f9ab-4247-bea5-6991a7e4caa9",
++     "modelIntentId": "eb2b33d1-1d56-43cb-84ed-8801a8389f46",
++     "planningStatus": "ready",
++     "questionIds": {
++       "q1": "ed129490-5d0b-4874-9ec7-b6440041030e",
++     },
++     "runId": "8b80d8e3-37ae-4456-b49e-a8c3093a986e",
++     "specification": {
++       "assumptions": [],
++       "criteria": [
++         {
++           "description": "Compare restoration",
++           "field": "restoration",
++           "group": "g1",
++           "groupOperator": "all",
++           "importance": "hard",
++           "key": "c1",
++           "operator": "compare",
++           "provenance": {
++             "end": 35,
++             "quote": "Compare coral and kelp restoration.",
++             "start": 0,
++           },
++           "scope": {
++             "entity": null,
++             "geography": null,
++             "plan": null,
++             "population": null,
++             "time": null,
++             "version": null,
++           },
++           "unit": null,
++           "unresolvedAlternatives": [],
++           "value": null,
++         },
++       ],
++       "explicitExclusions": [],
++       "intendedOutput": "comparison",
++       "objective": "Compare coral and kelp restoration.",
++       "objectiveProvenance": {
++         "end": 35,
++         "quote": "Compare coral and kelp restoration.",
++         "start": 0,
++       },
++       "openAmbiguities": [],
++       "questions": [
++         {
++           "criterionKeys": [
++             "c1",
++           ],
++           "evidenceStandard": "documented outcomes",
++           "importance": "critical",
++           "key": "q1",
++           "text": "Compare coral and kelp restoration.",
++         },
++       ],
++     },
++     "version": "research-task.v1",
++   },
+  }
+
+ ❯ test/model-gateway.integration.test.ts:219:86
+    217|     await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevis…
+    218|     await pool.query("UPDATE research_briefs SET original_question='Di…
+    219|     await expect(ensureResearchTask(pool,x.config,x.session,{ ...x,bri…
+       |                                                                                      ^
+    220|     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    221|   }));
+ ❯ runCase test/model-gateway.integration.test.ts:37:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 passed (21)
+   Start at  12:55:05
+   Duration  2.43s (transform 458ms, setup 0ms, collect 683ms, tests 1.54s, environment 0ms, prepare 71ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts

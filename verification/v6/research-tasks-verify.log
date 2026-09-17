@@ -1,0 +1,98 @@
+
+> deep-research-mobile@0.1.0 verify /home/oranolio/Desktop/Deep
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts || true
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/admission.test.ts (21 tests) 59ms
+ ✓ test/p1-p2.test.ts (24 tests) 119ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 131ms
+ ✓ test/policy.test.ts (8 tests) 35ms
+ ✓ test/v6-publication.test.ts (22 tests) 35ms
+ ✓ test/model-bindings.test.ts (6 tests) 31ms
+ ✓ test/generic-candidates.test.ts (3 tests) 22ms
+
+ Test Files  7 passed (7)
+      Tests  97 passed (97)
+   Start at  12:54:39
+   Duration  2.14s (transform 1.10s, setup 0ms, collect 2.25s, tests 431ms, environment 3ms, prepare 1.14s)
+
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/identity.unit.test.ts (14 tests) 119ms
+ ✓ test/model-gateway.unit.test.ts (14 tests) 156ms
+ ✓ test/ssrf.unit.test.ts (11 tests) 77ms
+ ✓ test/eval-benchmark.unit.test.ts (1 test) 217ms
+ ✓ test/admission.unit.test.ts (5 tests) 25ms
+ ✓ test/usage.unit.test.ts (14 tests) 14ms
+ ✓ test/governance.test.ts (4 tests) 33ms
+ ✓ test/config.unit.test.ts (8 tests) 18ms
+ ✓ test/openrouter.unit.test.ts (4 tests) 14ms
+ ✓ test/route-capabilities.unit.test.ts (2 tests) 12ms
+ ✓ test/live-policy.unit.test.ts (3 tests) 7ms
+
+ Test Files  11 passed (11)
+      Tests  80 passed (80)
+   Start at  12:54:43
+   Duration  3.30s (transform 1.64s, setup 0ms, collect 3.43s, tests 691ms, environment 6ms, prepare 1.87s)
+
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/session-storage.test.ts (9 tests) 23ms
+ ✓ test/lifecycle.test.ts (12 tests) 33ms
+ ✓ test/request-scope.test.ts (6 tests) 72ms
+ ✓ test/journey.test.ts (15 tests) 19ms
+ ✓ test/report-layout.test.ts (5 tests) 14ms
+
+ Test Files  5 passed (5)
+      Tests  47 passed (47)
+   Start at  12:54:47
+   Duration  1.07s (transform 441ms, setup 0ms, collect 680ms, tests 162ms, environment 2ms, prepare 729ms)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/governance.test.ts (4 tests) 21ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  12:54:51
+   Duration  425ms (transform 62ms, setup 0ms, collect 54ms, tests 21ms, environment 0ms, prepare 106ms)
+

@@ -1,0 +1,33 @@
+import type pg from "pg";
+import type { AppConfig } from "../platform/config.js";
+import { adoptResearchTask, briefContext, type ResearchTask } from "../modules/research-tasks.js";
+import { getBrief, getRun } from "../modules/runs.js";
+import type { FencedSession } from "./fenced-session.js";
+import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
+import { MODEL_PROMPT_VERSION } from "../adapters/model/prompts.js";
+import { performModelOperation } from "./model-gateway.js";
+
+export const TASK_MODEL_VERSIONS = { promptVersion: MODEL_PROMPT_VERSION, policyId: STRUCTURED_MODEL_POLICY.id } as const;
+
+type TaskOutcome = { kind: "task"; task: ResearchTask; reused: boolean }
+  | { kind: "pending"; intentId: string } | { kind: "blocked"; reason: string };
+
+/** General research preparation. Evidence arrival cannot change the user's criteria. */
+export async function ensureResearchTask(pool: pg.Pool, config: AppConfig, session: FencedSession, args: {
+  runId: string; accountId: string; fence: number; briefRevision: number;
+}): Promise<TaskOutcome> {
+  const existing = await session.write((db) => adoptResearchTask(db,args.runId,args.accountId,args.briefRevision,TASK_MODEL_VERSIONS));
+  if (existing) return { kind: "task", task: existing, reused: true };
+  const basis = await session.write(async (db) => {
+    const run = await getRun(db,args.runId);
+    if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision) throw new Error("stale_research_task");
+    const brief = await getBrief(db,run.brief_id);
+    return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion) };
+  });
+  const result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
+  if (result.kind !== "result") return result;
+  if (result.result.status !== "succeeded") return { kind:"blocked", reason: `task_${result.result.status}` };
+  const task = await session.write((db) => adoptResearchTask(db,args.runId,args.accountId,args.briefRevision,TASK_MODEL_VERSIONS));
+  if (!task) return { kind:"blocked", reason:"task_result_unavailable" };
+  return { kind:"task",task,reused:result.reused };
+}
