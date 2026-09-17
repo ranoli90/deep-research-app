@@ -398,3 +398,5 @@ V6 W05/F04 final-report completion; base3178a9b. W05 report completion now consu
 Initial `pnpm verify` exit0 (113core/80backend/47mobile/4governance); focused58/58 exit0. Subsequent test-only extension exercises actual forged completion rejection and altered/corrupt/missing review controls; final full suite recorded below. No dependency, migration, schema, prompt or provider route change. Writer performs one extra budgeted structured review through existing gateway; invalid/unknown results cannot publish. Rollback disables structured writing while preserving the completion gate, private-data deletion and receipt holds. No paid/native/hosted run or deployment. W01-W09 remains incomplete.
 
 Final completion integration exit0:231/231,16 files,119.68s; final typecheck and review/handoff validators exit0. All model judgments fabricated; no live semantic claim. Exact artifacts/hashes in RESULTS.
+
+Final-report completion implementation/evidence committed as `62204b2e38828762f33ed6e83eacf72b53e73e3c`. Full231-case integration tested final code and negatives; general controller and W01-W09 remain incomplete.

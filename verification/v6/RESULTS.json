@@ -2633,7 +2633,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "113 core/80 backend/47 mobile/4 governance; before final test-only additions",
-      "sha256": "a0b2b1cf7e6316cb10d64973db55a6fcf5f82d5420cbc84647ad32ac8ce164de"
+      "sha256": "a0b2b1cf7e6316cb10d64973db55a6fcf5f82d5420cbc84647ad32ac8ce164de",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     },
     {
       "requirementIds": [
@@ -2647,7 +2648,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_publication",
       "scope": "58/58 before final forged-completion and saved-review negative assertions",
-      "sha256": "b8d6f7fc5681ca43432651547bf3593aaaff65d5008ad0135e826fffff542ac5"
+      "sha256": "b8d6f7fc5681ca43432651547bf3593aaaff65d5008ad0135e826fffff542ac5",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     },
     {
       "requirementIds": [
@@ -2661,7 +2663,8 @@
       "exitCode": 0,
       "evidenceClass": "deterministic_types",
       "scope": "Final implementation and test types",
-      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b"
+      "sha256": "273fc8c65c391e640ee2176abe8aa4fa883b324b2be3aff8ff5ffdcaa715bb0b",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     },
     {
       "requirementIds": [
@@ -2675,7 +2678,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     },
     {
       "requirementIds": [
@@ -2689,7 +2693,8 @@
       "exitCode": 0,
       "evidenceClass": "document_integrity",
       "scope": "Document structure only",
-      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     },
     {
       "requirementIds": [
@@ -2703,7 +2708,8 @@
       "exitCode": 0,
       "evidenceClass": "local_postgres_integration",
       "scope": "231/231 final code and all final test additions",
-      "sha256": "e3f0849f6aaef17977d576e05f21997b08ae050453b53e6c86b31412ce78ccb1"
+      "sha256": "e3f0849f6aaef17977d576e05f21997b08ae050453b53e6c86b31412ce78ccb1",
+      "testedCodeCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
     }
   ],
   "unresolved": [
@@ -2721,5 +2727,5 @@
     "historicalReservations": "not used as current authorization"
   },
   "checkpointCommit": "0e9fc9b",
-  "implementationCommit": "610bddcb30c027bcef9cb0e0a3a5353715d16369"
+  "implementationCommit": "62204b2e38828762f33ed6e83eacf72b53e73e3c"
 }
