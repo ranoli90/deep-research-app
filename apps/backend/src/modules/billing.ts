@@ -1,4 +1,5 @@
-import type { Queryable } from "../platform/db.js";
+import pg from "pg";
+import { withTx, type Queryable } from "../platform/db.js";
 
 export async function reserveAllowance(
   db: Queryable,
@@ -30,7 +31,8 @@ export async function reserveAllowance(
 }
 
 export async function settleRun(db: Queryable, accountId: string, runId: string, spentMicro: number): Promise<void> {
-  // Caller owns the transaction. Match admission lock ordering before touching money.
+  if (db instanceof pg.Pool) return withTx(db, (client) => settleRun(client, accountId, runId, spentMicro));
+  // Match admission lock ordering before touching money.
   await db.query("SELECT id FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
   const run = await db.query<{ account_id: string; route_mode: string }>(
     "SELECT account_id, route_mode FROM runs WHERE id = $1 FOR UPDATE", [runId]);
@@ -62,7 +64,8 @@ export async function settleRun(db: Queryable, accountId: string, runId: string,
      SET reserved_micro = reserved_micro - $2, settled_micro = settled_micro + $3
      WHERE account_id = $1 AND reserved_micro >= $2`, [accountId, reserved, settle]);
   if (account.rowCount !== 1) throw new Error("allowance_accounting_invariant");
-  await db.query(`UPDATE reservations SET state = 'settled' WHERE id = $1`, [r.id]);
+  await db.query(`UPDATE reservations SET state = 'settled', settled_micro = $2, settlement_basis = $3 WHERE id = $1`,
+    [r.id, settle, run.rows[0].route_mode === "controlled-research" ? "provider_receipts_v1" : "fixture_tariff_v1"]);
   if (run.rows[0].route_mode === "controlled-research") {
     await db.query("UPDATE runs SET spent_micro = $2 WHERE id = $1", [runId, settle]);
   }
@@ -94,15 +97,31 @@ export async function updateIntentState(
   state: string,
   confirmedMicro?: number,
 ): Promise<void> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => updateIntentState(client, intentId, state, confirmedMicro));
+  if (!["issued", "confirmed", "outcome-unknown", "failed"].includes(state)) throw new Error("invalid_provider_state");
+  if (confirmedMicro != null && state !== "confirmed") throw new Error("invalid_provider_receipt_state");
+  const identity = await db.query<{ run_id: string; route: string; account_id: string | null }>(`SELECT i.run_id, i.route, r.account_id
+    FROM provider_intents i LEFT JOIN runs r ON r.id = i.run_id WHERE i.id = $1`, [intentId]);
+  const intent = identity.rows[0];
+  if (!intent) throw new Error("conflicting_or_missing_provider_receipt");
+  let deleted = false;
+  let run: { lifecycle: string; route_mode: string } | undefined;
+  if (intent.account_id) {
+    const account = await db.query<{ deleted_at: Date | null }>("SELECT deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [intent.account_id]);
+    deleted = account.rows[0]?.deleted_at != null;
+    run = (await db.query<{ lifecycle: string; route_mode: string }>("SELECT lifecycle, route_mode FROM runs WHERE id = $1 FOR UPDATE", [intent.run_id])).rows[0];
+  }
   if (confirmedMicro != null) {
     if (!Number.isSafeInteger(confirmedMicro) || confirmedMicro < 0) throw new Error("invalid_provider_cost");
     const result = await db.query(`UPDATE provider_intents SET state = $2, confirmed_micro = $3 WHERE id = $1
-      AND (confirmed_micro IS NULL OR confirmed_micro = $3)`, [
-      intentId,
-      state,
-      confirmedMicro,
-    ]);
+      AND (confirmed_micro IS NULL OR confirmed_micro = $3)`, [intentId, state, confirmedMicro]);
     if (result.rowCount !== 1) throw new Error("conflicting_or_missing_provider_receipt");
+    if (run?.route_mode === "controlled-research" && intent.route.startsWith("openrouter:")) {
+      await db.query(`UPDATE runs SET spent_micro = (SELECT COALESCE(SUM(confirmed_micro),0)
+        FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%') WHERE id = $1`, [intent.run_id]);
+      // Recording already-incurred cost grants no permission to process private data or resend a request.
+      if (intent.account_id && (run.lifecycle === "terminal" || deleted)) await settleRun(db, intent.account_id, intent.run_id, 0);
+    }
     return;
   }
   await db.query(`UPDATE provider_intents SET state = $2 WHERE id = $1 AND confirmed_micro IS NULL`, [intentId, state]);

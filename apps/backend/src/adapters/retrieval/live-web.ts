@@ -71,7 +71,7 @@ export async function liveWebSearch(query: string, config: AppConfig, signal?: A
       sourceType: "web",
     }));
     const actualMicro = costToMicro(json.usage?.cost);
-    return { hits, receipt: { ...receipt, state: "confirmed", actualMicro,
+    return { hits, receipt: { ...receipt, state: actualMicro === undefined ? "outcome-unknown" : "confirmed", actualMicro,
       providerId: typeof json.id === "string" ? json.id : undefined,
       rawCost: actualMicro === undefined ? undefined : String(json.usage?.cost) } };
   } catch (err) {

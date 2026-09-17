@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type pg from "pg";
 import type PgBoss from "pg-boss";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
-import { createDevSession, grantConsent } from "../src/modules/access.js";
+import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { claimLease, insertBrief, insertConversation, insertRun, renewLease } from "../src/modules/runs.js";
 import { dispatchPendingRuns } from "../src/modules/run-dispatch.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
@@ -10,8 +10,9 @@ import { createQueue } from "../src/adapters/queue.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { CreateRunRequestSchema } from "@deep/contracts";
 import { liveSpendUsedMicro, reserveLiveAttempt } from "../src/modules/live-spend.js";
+import { measureRunCost } from "../src/modules/run-cost.js";
 import { loadConfig } from "../src/platform/config.js";
-import { recordIntent, reserveAllowance, settleRun, updateIntentState } from "../src/modules/billing.js";
+import { recordIntent, reconcileIntent, reserveAllowance, settleRun, updateIntentState } from "../src/modules/billing.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
 
 const budgetEnv = { OPENROUTER_API_KEY: "nonbillable-test-key", LIVE_KEY_SPEND_CAP_MICRO: "1000000000" };
@@ -49,7 +50,7 @@ async function runCase(test: (runId: string, accountId: string) => Promise<void>
       for (const table of ["provider_intents", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations"])
         await db.query(`DELETE FROM ${table} WHERE run_id IN (SELECT id FROM runs WHERE account_id = $1)`, [accountId]);
       await db.query("DELETE FROM runs WHERE account_id = $1", [accountId]);
-      for (const table of ["research_briefs", "conversations", "allowance_accounts", "sessions", "consent_records"])
+      for (const table of ["research_briefs", "conversations", "allowance_accounts", "sessions", "consent_records", "tombstones"])
         await db.query(`DELETE FROM ${table} WHERE account_id = $1`, [accountId]);
       await db.query("DELETE FROM accounts WHERE id = $1", [accountId]);
     });
@@ -183,6 +184,59 @@ describe("W02 real PostgreSQL execution boundaries", () => {
     const scopes = await pool.query("SELECT DISTINCT provider_key_scope FROM provider_intents WHERE id = ANY($1::uuid[])", [results.map((r) => r.intentId)]);
     expect(scopes.rows).toHaveLength(2);
   })));
+  it("A09 a late confirmed receipt reconciles terminal allowance once without replaying the provider", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    const fence = (await claimLease(pool, runId, "late-receipt", 30_000))!;
+    const config = loadConfig({ ...budgetEnv, DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: crypto.randomUUID() });
+    const intent = await reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "late-receipt", reserveMicro: 60_000, logicalKey: "a" });
+    await updateIntentState(pool, intent.intentId, "outcome-unknown");
+    await pool.query("UPDATE runs SET lifecycle = 'terminal', terminal_outcome = 'cancelled' WHERE id = $1", [runId]);
+    await withTx(pool, (db) => settleRun(db, accountId, runId, 0));
+    await Promise.all([reconcileIntent(pool, intent.intentId, 12_345), reconcileIntent(pool, intent.intentId, 12_345)]);
+    const allowance = await pool.query("SELECT reserved_micro, settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId]);
+    expect(allowance.rows[0]).toEqual({ reserved_micro: "0", settled_micro: "12345" });
+    expect((await pool.query("SELECT spent_micro FROM runs WHERE id = $1", [runId])).rows[0].spent_micro).toBe("12345");
+    expect(await measureRunCost(pool, runId, accountId)).toMatchObject({ allowanceReconciled: true });
+    await expect(reconcileIntent(pool, intent.intentId, 99)).rejects.toThrow("conflicting_or_missing_provider_receipt");
+    expect((await pool.query("SELECT count(*)::int AS n FROM provider_intents WHERE run_id = $1", [runId])).rows[0].n).toBe(1);
+  }));
+  it("A09 cost inspection distinguishes held provider cost from confirmed and simulated costs", async () => runCase(async (runId, accountId) => {
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research', spent_micro = 60000 WHERE id = $1", [runId]);
+    const intent = await recordIntent(pool, runId, { correlationId: crypto.randomUUID(), route: "openrouter:test:web", digest: "cost-view", reserved: 60_000, state: "outcome-unknown" });
+    await recordIntent(pool, runId, { correlationId: crypto.randomUUID(), route: "fixture:synthesize", digest: "historical-simulation", reserved: 4_000, state: "confirmed" });
+    const unknown = await measureRunCost(pool, runId, accountId);
+    expect(unknown).toMatchObject({ spentMicro: 0, confirmedProviderMicro: 0, heldProviderMicro: 60_000, unknownProviderIntents: 1, intentTotalMicro: 60_000, reconciled: false });
+    await reconcileIntent(pool, intent, 12_345);
+    const known = await measureRunCost(pool, runId, accountId);
+    expect(known).toMatchObject({ spentMicro: 12_345, confirmedProviderMicro: 12_345, heldProviderMicro: 0, unknownProviderIntents: 0, intentTotalMicro: 12_345, reconciled: true });
+    expect(await measureRunCost(pool, runId, crypto.randomUUID())).toBeNull();
+  }));
+  it("A09 a receipt after deletion settles only incurred cost without restoring private data", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    const intent = await recordIntent(pool, runId, { correlationId: crypto.randomUUID(), route: "openrouter:test", digest: "private-old-query", reserved: 60_000, state: "outcome-unknown" });
+    await deleteAccount(pool, accountId);
+    await reconcileIntent(pool, intent, 12_345);
+    const allowance = await pool.query("SELECT reserved_micro, settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId]);
+    expect(allowance.rows[0]).toEqual({ reserved_micro: "0", settled_micro: "12345" });
+    expect((await pool.query("SELECT deleted_at FROM accounts WHERE id = $1", [accountId])).rows[0].deleted_at).not.toBeNull();
+    expect((await pool.query("SELECT original_question FROM research_briefs WHERE account_id = $1", [accountId])).rows[0].original_question).toBe("[deleted]");
+    expect((await pool.query("SELECT request_digest FROM provider_intents WHERE id = $1", [intent])).rows[0].request_digest).toBe("[deleted]");
+    expect((await pool.query("SELECT id FROM sessions WHERE account_id = $1", [accountId])).rows).toHaveLength(0);
+  }));
+  it("A09 historical settlements without receipt basis stay explicitly unreconciled and are not retroactively charged", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research', lifecycle = 'terminal', terminal_outcome = 'cancelled' WHERE id = $1", [runId]);
+    const intent = await recordIntent(pool, runId, { correlationId: crypto.randomUUID(), route: "openrouter:test", digest: "historical", reserved: 60_000, state: "outcome-unknown" });
+    await withTx(pool, async (db) => {
+      await db.query("UPDATE reservations SET state = 'settled', settled_micro = NULL, settlement_basis = NULL WHERE run_id = $1", [runId]);
+      await db.query("UPDATE allowance_accounts SET reserved_micro = 0, settled_micro = 7000 WHERE account_id = $1", [accountId]);
+    });
+    await reconcileIntent(pool, intent, 12_345);
+    expect(await measureRunCost(pool, runId, accountId)).toMatchObject({ confirmedProviderMicro: 12_345, allowanceReconciled: false });
+    expect((await pool.query("SELECT settled_micro FROM allowance_accounts WHERE account_id = $1", [accountId])).rows[0].settled_micro).toBe("7000");
+  }));
   it("A14 a stale session cannot mutate the active run", async () => runCase(async (runId, accountId) => {
     const fence = (await claimLease(pool, runId, "old", 30_000))!;
     const session = fencedSession(pool, { runId, accountId, owner: "old", fence, briefRevision: 1, leaseMs: 30_000 });

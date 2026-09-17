@@ -576,6 +576,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           });
         }
         const rev = await bumpEvidence(c, runId);
+        if (run.route_mode === "fixture") {
         await addSpent(c, runId, FIXTURE_FETCH_COST_MICRO);
         await recordIntent(c, runId, {
           correlationId: decision.actionId,
@@ -584,6 +585,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           reserved: FIXTURE_FETCH_COST_MICRO,
           state: "confirmed",
         });
+        }
         await emitEvent(c, {
           runId,
           accountId: run.account_id,
@@ -806,6 +808,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
     state2.basis.cancellationEpoch = prePublish.cancellation_epoch;
     state2.basis.workerLeaseFence = fence;
 
+    if (latest.route_mode === "fixture") {
     await session.write((c) => addSpent(c, runId, FIXTURE_SYNTH_COST_MICRO));
     await session.write((c) => recordIntent(c, runId, {
       correlationId: reportId,
@@ -814,6 +817,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
       reserved: FIXTURE_SYNTH_COST_MICRO,
       state: "confirmed",
     }));
+    }
     const result = await session.write(async (c) => {
       const result = await publishReport(c, {
         report,

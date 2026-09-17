@@ -172,6 +172,7 @@ describe("controller admission on the fixture worker path", () => {
     );
     expect(intents.rows.length).toBeGreaterThan(0);
     expect(Number(intents.rows[0]?.reserved_max_micro)).toBe(LIVE_CALL_RESERVE_MICRO);
+    expect((await pool.query("SELECT id FROM provider_intents WHERE run_id = $1 AND route LIKE 'fixture:%'", [runId])).rows).toHaveLength(0);
   });
 
   it("default run allowance blocks a larger provider reserve before any network call", async () => {

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Provider-key budget checkpoint on 83ab9fe; 163 local integration cases pass; W01-W09 incomplete",
+  "workingTree": "Late-receipt/explicit cost checkpoint on 30a98db; 167 local integration cases pass; W01-W09 incomplete",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -1448,11 +1448,102 @@
       "evidenceClass": "local_postgres_api_worker",
       "scope": "163/163 including same trimmed key across accounts/project scopes; no paid/provider-native proof",
       "sha256": "ee153a2952e9befea737ab58394f0f92f6dcb8772e1dccf2f4a1c29e2c9a3aa5"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts",
+      "artifact": "receipt-accounting-before.log",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres",
+      "scope": "2 failed / 18 passed: late receipt did not settle, held cost reported as spend",
+      "sha256": "1bbbdd01b2aebe4833c94ac4db6c328ba6700989f45e934916f6774e918970c8"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "receipt-accounting-after.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "26/26 initial receipt repair",
+      "sha256": "87d6b6a856dcb1307d725237fe9279374127b07f52e35280a886b41e999aa55b"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+      "artifact": "receipt-accounting-controls.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "28/28 including deletion and historical settlement controls",
+      "sha256": "753b713e0827eb6d4485ec3d900b4347d28be659b5bd29ea8e141df4f1170e80"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "pnpm verify",
+      "artifact": "verify-receipt-accounting.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "91 core / 66 backend / 47 mobile / 4 governance",
+      "sha256": "90213f6384ceec9af4a0b003662c5f9e4f43dbe64f19cd6a095c200eb94a4894"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "pnpm test:integration",
+      "artifact": "integration-receipt-accounting.log",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_api_worker",
+      "scope": "167/167; actual PostgreSQL and provider transport doubles; no paid model/native proof",
+      "sha256": "6cdc79ac6807272d56bdcfeb4d7365fcdb52e12d5f5981247a3a332faaed5a95"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-receipt-accounting.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural review",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "V6-F09"
+      ],
+      "commit": "30a98db plus receipt accounting working tree",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "handoff-receipt-accounting.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "scope": "structural handoff",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
     }
   ],
   "unresolved": [
     "W01: general semantic checking and criterion-linked support",
-    "W02: automatic receipt reconciliation, historical settlement repair, confirmed/held cost reporting, bounded model-route estimates and substantive named action execution",
+    "W02: acquisition of missing provider receipts, historical settlement repair, enforceably bounded model-route estimates and complete typed action execution outcomes",
     "W03: hosted identity lifecycle/native login and privacy routing",
     "W04: native binary picker, broader extraction fidelity and independent corpus",
     "W05-W09: general gateway, criteria, real typed actions, immutable correction reuse, mobile essentials and held-out evaluation",
