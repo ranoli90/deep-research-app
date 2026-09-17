@@ -2,7 +2,7 @@
 
 ## Active V6 checkpoint
 
-W01–W09 is unfinished on branch `codex/v6-evidence-milestone`, based on `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Safety/extraction checkpoint `0e9fc9b`, evidence commit `500ce1e`; report/support checkpoint `8b05f70`; deletion repair follows. Current `pnpm verify` passes and local integration is **148/148**. Read STATUS, `verification/v6/RESULTS.json` and `FINDING_RECHECKS.json`; historical fixture passes below are not general quality or release evidence. The legacy review-data validator remains failed on application command statuses.
+W01–W09 is unfinished on branch `codex/v6-evidence-milestone`, based on `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Safety/extraction checkpoint `0e9fc9b`, evidence commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`. Current `pnpm verify` passes and local integration is **148/148**. Read STATUS, `verification/v6/RESULTS.json` and `FINDING_RECHECKS.json`; historical fixture passes below are not general quality or release evidence. Both document validators and their mutation suites now pass; these are structural evidence checks, not runtime or native proof.
 
 Publication now retains exact claim revisions and digest/version-bound checks. It rejects overlap-only support, hidden extra assertions, duplicate/missing bindings and factual prose disguised as headings/caveats. The compiler preserves supported sections and labels unresolved sections explicitly. Deterministic metadata, calculation and comparison renderers use owned records and stored derivation receipts. Candidate extraction recognizes unseen names but has bounded literal grammar; general model extraction and criterion coverage are not implemented.
 
@@ -14,7 +14,7 @@ The extraction runtime is temporarily at `/tmp/deep-extraction-experiment/venv`;
 
 Working tree: `codex/v6-evidence-milestone`, based on the Phase 2 adaptive-controller commit. P0 is **not** fully verified: iOS P0-N is blocked.
 
-The legacy review-package validator also fails on `implemented_application_command` registry statuses (18 errors); this is recorded separately from the passing application checks. Its schema reconciliation is still open.
+The document validators now accept verified implementation references and explicitly separate historical evidence from current P0 gates. Current P0-L/P0-N have not been revalidated.
 
 ## Working behavior
 - `sudo docker compose up -d --wait` — Postgres 16.10 on **55432**.

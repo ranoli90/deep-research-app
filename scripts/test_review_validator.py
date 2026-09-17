@@ -10,7 +10,9 @@ class ReviewValidatorTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name) / "kit"
-        shutil.copytree(Path(__file__).resolve().parents[1], self.root, ignore=shutil.ignore_patterns("__pycache__"))
+        shutil.copytree(Path(__file__).resolve().parents[1], self.root, ignore=shutil.ignore_patterns(
+            "__pycache__", ".git", "node_modules", ".env*", ".npmrc", ".codex", ".agents", ".expo", ".venv",
+            "data", "dist", "build", "*.zip", "*.log"))
 
     def tearDown(self):
         self.temp.cleanup()
@@ -62,6 +64,37 @@ class ReviewValidatorTests(unittest.TestCase):
     def test_nonexistent_implemented_command_rejected(self):
         self.alter("verification/COMMANDS.json", lambda data: data[0].update(implementation="missing.py"))
         self.assert_invalid("Implemented command has no file")
+
+    def application_command(self, **changes):
+        self.alter("verification/COMMANDS.json", lambda data: next(c for c in data if c["status"] == "implemented_application_command").update(**changes))
+
+    def test_missing_application_file_rejected(self):
+        self.application_command(implementation="apps/backend/missing.ts")
+        self.assert_invalid("no matching file or script")
+
+    def test_empty_application_glob_rejected(self):
+        self.application_command(implementation="apps/backend/test/nonexistent-*.ts")
+        self.assert_invalid("no matching file or script")
+
+    def test_missing_package_script_rejected(self):
+        self.application_command(implementation="package.json#invented-command")
+        self.assert_invalid("no matching file or script")
+
+    def test_partial_reference_list_rejected(self):
+        self.application_command(implementation="package.json#verify, missing.mjs")
+        self.assert_invalid("no matching file or script")
+
+    def test_paid_network_mislabel_rejected(self):
+        self.application_command(paid=True, network=False)
+        self.assert_invalid("must declare network")
+
+    def test_unknown_command_status_still_rejected(self):
+        self.application_command(status="looks_implemented")
+        self.assert_invalid("Unknown command status")
+
+    def test_external_reference_rejected(self):
+        self.application_command(implementation="../outside.py")
+        self.assert_invalid("no matching file or script")
 
 if __name__ == "__main__":
     unittest.main()

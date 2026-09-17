@@ -571,6 +571,90 @@
       "evidenceClass": "deterministic_unit_and_structure",
       "scope": "final backend/test TypeScript check",
       "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-validator-after.json",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity_only",
+      "scope": "review document and implemented command reference integrity",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "artifact": "review-validator-tests.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity_only",
+      "scope": "16 mutation tests",
+      "sha256": "bf808919d1b9f06354532b1e081786438aadbd8fc1c7426caf71cbd59e3b8197"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "builder-validator.json",
+      "exitCode": 1,
+      "evidenceClass": "document_integrity_only",
+      "scope": "five pre-reconciliation P0/native status conflicts",
+      "sha256": "80bcc31c7ad5f614f77326524ec2fe8ecad1c9df892c7308309e6eaaa920ed9c"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "artifact": "builder-validator-tests.log",
+      "exitCode": 1,
+      "evidenceClass": "document_integrity_only",
+      "scope": "7 pass, valid-package control fails against stale schema",
+      "sha256": "f40b65bb6cbd19eb2b133e0e23462650ce8a25a5f25b600fe5c78534cd82d0c2"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "builder-validator-after.json",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity_only",
+      "scope": "current local artifact hashes and historical/live/native scope checks",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "V6-F19"
+      ],
+      "commit": "999533b9ec4b019b53c38b86f81b766893c3f0bd",
+      "workingTree": "uncommitted registry reconciliation",
+      "command": "python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "artifact": "builder-validator-tests-after.log",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity_only",
+      "scope": "12 mutation tests; no application execution",
+      "sha256": "06fa3076810bbe03f93af1917b6d20d17526346a3238d0a2e4310ce99f803d49"
     }
   ],
   "unresolved": [

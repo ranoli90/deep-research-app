@@ -1,9 +1,9 @@
 # Execution status — application implementation
 ## V6 implementation checkpoint — 2026-09-17 16:20 UTC
 
-Branch `codex/v6-evidence-milestone`, based on exact review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Recoverable safety/extraction code checkpoint `0e9fc9b`, artifact commit `500ce1e`; report/support checkpoint `8b05f70`; deletion repair follows. **W01–W09 remains incomplete.** ZIPs are preserved untracked; staging is `/tmp/deep-v6-staging`.
+Branch `codex/v6-evidence-milestone`, based on exact review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Recoverable safety/extraction code checkpoint `0e9fc9b`, artifact commit `500ce1e`; report/support checkpoint `8b05f70`; deletion checkpoint `999533b`. **W01–W09 remains incomplete.** ZIPs are preserved untracked; staging is `/tmp/deep-v6-staging`.
 
-Current checks: `pnpm verify` passed (core 81, backend 52, mobile 32, governance 4); full local PostgreSQL integration passed **148/148**. The run includes the 19 production publication regressions and valid controls. Earlier 62/61/13-failure integration runs remain preserved in `verification/v6/RESULTS.json`; they are superseded, not hidden. The legacy review-only validator still fails on 18 application command statuses; schema reconciliation remains open.
+Current checks: `pnpm verify` passed (core 81, backend 52, mobile 32, governance 4); full local PostgreSQL integration passed **148/148**. The run includes the 19 production publication regressions and valid controls. Earlier 62/61/13-failure integration runs remain preserved in `verification/v6/RESULTS.json`; they are superseded, not hidden. Review document validation and its 16 mutation tests now pass. Handoff validation and its 12 tests pass after distinguishing current local evidence from historical live/native observations.
 
 Implemented boundaries: atomic run admission/dispatch, project reservation and logical provider attempt identity, actual usage-cost parsing, unique worker attempt leases/heartbeat/fenced writes, pinned bounded HTTP transport, stored-evidence publication checks, and persisted claim/support/derivation provenance. Word overlap no longer proves support. Unmapped material assertions and type-label bypasses reject; unsupported draft sections become localized abstentions. Deterministic report calculations/metadata are recomputed at publication. Fixture-name candidate matching was replaced with bounded literal extraction and explicit unknown eligibility. This is not general semantic research.
 
@@ -15,7 +15,7 @@ Next: W03 production identity/mobile account generations; strict executable acti
 
 As of 2026-09-16. Runnable TypeScript monorepo plus Revision 3 canonical documents.
 
-The legacy review-package validator also fails on `implemented_application_command` registry statuses (18 errors); this is recorded separately from the passing application checks. Its schema reconciliation is still open.
+The document validators now accept verified implementation references and explicitly separate historical evidence from current P0 gates. Current P0-L/P0-N have not been revalidated.
 
 ## P0 gates
 | Gate | Status | Evidence |

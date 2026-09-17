@@ -19,6 +19,28 @@ REVIEW_DATE = date(2026, 9, 16)
 def load_json(root: Path, rel: str) -> Any:
     return json.loads((root / rel).read_text(encoding="utf-8"))
 
+def implemented_targets_exist(root: Path, target: Any) -> bool:
+    """Check registry references without executing application/native/paid commands."""
+    if not isinstance(target, str) or not target.strip():
+        return False
+    for reference in target.split(","):
+        path_text, _, script = reference.strip().partition("#")
+        path = Path(path_text)
+        if not path_text or path.is_absolute() or ".." in path.parts:
+            return False
+        matches = list(root.glob(path_text))
+        if not matches or any(not match.resolve().is_relative_to(root.resolve()) for match in matches):
+            return False
+        if script:
+            if len(matches) != 1 or not matches[0].is_file():
+                return False
+            scripts = json.loads(matches[0].read_text(encoding="utf-8")).get("scripts", {})
+            if not isinstance(scripts.get(script), str) or not scripts[script].strip():
+                return False
+        elif not all(match.is_file() or (match.is_dir() and any(p.is_file() for p in match.rglob("*"))) for match in matches):
+            return False
+    return True
+
 def validate(root: Path) -> dict[str, Any]:
     errors: list[str] = []
     try:
@@ -81,6 +103,13 @@ def validate(root: Path) -> dict[str, Any]:
             elif command["status"] == "proposed_application_command":
                 if command["implementation"] is not None:
                     errors.append("Proposed application command has misleading implementation")
+            elif command["status"] == "implemented_application_command":
+                if not implemented_targets_exist(root, command.get("implementation")):
+                    errors.append("Implemented application command has no matching file or script")
+                if not isinstance(command.get("network"), bool) or not isinstance(command.get("paid"), bool):
+                    errors.append("Application command must declare network and paid booleans")
+                elif command["paid"] and not command["network"]:
+                    errors.append("Paid application command must declare network access")
             else:
                 errors.append("Unknown command status")
         for rel in ("apps/mobile/AGENTS.md", "apps/backend/AGENTS.md", "packages/research-core/AGENTS.md", "evals/AGENTS.md"):
