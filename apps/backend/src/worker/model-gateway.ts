@@ -11,7 +11,8 @@ import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelResult } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
-import { STRUCTURED_MODEL_POLICY, STRUCTURED_CALL_RESERVE_MICRO } from "../adapters/model/policy.js";
+import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
+import { reserveMicroForOperation, routeStringFor } from "../adapters/model/token-budget.js";
 import { nextAttemptDecision } from "../model-governor/index.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
 import { updateIntentState } from "../modules/billing.js";
@@ -44,7 +45,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   await session.write((db) => validateOwnedModelContext(db, { ...args, context }));
   const attempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${request.digest}`, kind: args.operation,
-    route: `openrouter:${STRUCTURED_MODEL_POLICY.model}:${args.operation}`, requestDigest: request.digest, reserveMicro: STRUCTURED_CALL_RESERVE_MICRO });
+    route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }) });
   if (!attempt.issue) {
     const cached = await session.write((db) => loadModelOperation(db, attempt.intentId, args.runId, args.accountId, request.digest, context, request));
     if (!cached) return { kind: "pending", intentId: attempt.intentId };
@@ -60,7 +61,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       outcome: "outcome_unknown",
       currentDepth: 0,
       remainingBudgetMicro: 0,
-      attemptReserveMicro: STRUCTURED_CALL_RESERVE_MICRO,
+      attemptReserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }),
       currentPolicyId: policy.id,
     });
     if (hold.retry || hold.escalate) throw new Error("governor_unknown_must_hold");

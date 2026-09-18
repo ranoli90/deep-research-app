@@ -101,7 +101,7 @@ describe("adaptive breadth and negative evidence", () => {
         nextCostMicro: 7000,
         freshnessUnmet: false,
         priorFailedQueries: 0,
-        queriesIssued: 3,
+        queriesIssued: 10,
       }).reason,
     ).toBe("hard_discovery_ceiling");
   });

@@ -36,12 +36,12 @@ export function ResearchBriefCard({
         <Text key={line} style={styles.kicker}>{line}</Text>
       ))}
       {view.materialClarification ? <Text style={styles.bodyText}>{view.materialClarification}</Text> : null}
-      {view.blocking ? (
+      {view.blocking || clarifyAnswer ? (
         <>
           <TextInput
             value={clarifyAnswer}
             onChangeText={onClarify}
-            placeholder="Jurisdiction"
+            placeholder="Answer the detail above"
             placeholderTextColor={muted}
             style={styles.input}
             allowFontScaling

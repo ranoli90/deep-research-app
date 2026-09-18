@@ -23,8 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F6F3EE"
       },
-      "allowBackup": false,
-      "usesCleartextTraffic": true
+      "allowBackup": false
     },
     "plugins": [
       "expo-secure-store",

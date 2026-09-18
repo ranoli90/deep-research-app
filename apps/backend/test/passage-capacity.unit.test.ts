@@ -8,6 +8,6 @@ it("W02 bounded capacity keeps each entire passage, pricing and serialized reque
  expect(JSON.parse(body.messages[1].content).passages).toEqual(input.passages);expect(Buffer.byteLength(request.body)).toBeLessThanOrEqual(STRUCTURED_MODEL_POLICY.contextTokens);
  expect(body.max_tokens).toBe(4096);expect(body.provider.max_price).toEqual({prompt:0.15,completion:0.6,request:0});expect(STRUCTURED_CALL_RESERVE_MICRO).toBe(21658);
  expect(ModelContextSchema.safeParse(context(129)).success).toBe(false);expect(ModelContextSchema.safeParse(context(1,24001)).success).toBe(false);
- expect(()=>prepareModelRequest("extract_assertions",context(25,7000))).toThrow("model_context_exceeds_policy");
+ expect(()=>prepareModelRequest("extract_assertions",context(25,7000))).toThrow("model_context_too_large");
  expect(()=>prepareModelRequest("extract_assertions",context(25,11000))).toThrow("model_context_too_large");
 });

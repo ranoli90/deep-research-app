@@ -1,10 +1,11 @@
-import { MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
+import { DEEP_DISCOVERY_CEILING, MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
 import { independentConfirmationCount } from "./independence.js";
 import type { StoredSource } from "./types.js";
 import type { SourceClass } from "./source-strategy.js";
 
 export const ADAPTIVE_BREADTH_VERSION = "evidence-value-breadth.v1";
-export const DISCOVERY_HARD_CEILING = MAX_DISCOVERY_QUERIES;
+export const DISCOVERY_HARD_CEILING = DEEP_DISCOVERY_CEILING;
+export const SIMPLE_DISCOVERY_CEILING = MAX_DISCOVERY_QUERIES;
 
 export type SearchCoverage = {
   version: typeof ADAPTIVE_BREADTH_VERSION;
@@ -59,7 +60,9 @@ export function evaluateDiscoveryContinuation(args: {
   queriesAttempted?: string[];
   unresolvedAbsence?: string[];
 }): BreadthDecision {
-  const ceiling = args.hardCeiling ?? DISCOVERY_HARD_CEILING;
+  const ceiling = args.hardCeiling ?? (args.unresolvedConsequential && args.distinctStrategyRemains
+    ? DISCOVERY_HARD_CEILING
+    : SIMPLE_DISCOVERY_CEILING);
   const coverage = recordSearchCoverage({
     queriesAttempted: args.queriesAttempted,
     sourceClassesAttempted: args.sourceClassesAttempted,

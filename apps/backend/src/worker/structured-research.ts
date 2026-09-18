@@ -110,7 +110,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     for(const sourceHandle of sources) {
       const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
         rationale:"Read the discovered source before assessing its assertions.",action:{type:"fetch",sourceHandle,questionKeys}}});
-      if(read.kind!=="read")return unresolved(read.kind==="blocked"?read.reason:"source_read_outcome_unknown");
+      if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
+        summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
     }
     selected=await selectPassages();
   }
@@ -191,7 +192,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         for(const sourceHandle of adopted) {
           const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
             rationale:"Read evidence for an unresolved criterion.",action:{type:"fetch",sourceHandle,questionKeys:next.proposal.action.questionKeys}}});
-          if(read.kind!=="read")return unresolved(read.kind==="blocked"?read.reason:"source_read_outcome_unknown");
+          if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
+            summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
         }
         selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
         continue;

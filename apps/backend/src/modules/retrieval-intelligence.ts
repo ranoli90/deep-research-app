@@ -17,16 +17,33 @@ import type { Queryable } from "../platform/db.js";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 
-export async function loadPrivateDocumentText(db: Queryable, accountId: string): Promise<string> {
+export async function loadPrivateDocumentText(
+  db: Queryable,
+  accountId: string,
+  scope?: { runId: string; briefRevision?: number },
+): Promise<string> {
+  if (!scope?.runId) {
+    throw new Error("private_document_scope_required");
+  }
   const res = await db.query<{ extracted_text: string | null }>(
-    `SELECT extracted_text FROM attachments WHERE account_id=$1 AND deleted_at IS NULL AND extracted_text IS NOT NULL`,
-    [accountId],
+    `SELECT a.extracted_text
+       FROM attachments a
+       JOIN runs r ON r.id=$2 AND r.account_id=$1
+       JOIN research_briefs b ON b.id=r.brief_id AND b.account_id=$1
+      WHERE a.account_id=$1 AND a.deleted_at IS NULL AND a.extracted_text IS NOT NULL
+        AND (b.payload->'attachmentIds') ? a.id::text
+        AND ($3::int IS NULL OR r.brief_revision=$3)`,
+    [accountId, scope.runId, scope.briefRevision ?? null],
   );
   return res.rows.map((r) => r.extracted_text ?? "").filter(Boolean).join("\n");
 }
 
-export async function loadPrivateCanaries(db: Queryable, accountId: string): Promise<string[]> {
-  const text = await loadPrivateDocumentText(db, accountId);
+export async function loadPrivateCanaries(
+  db: Queryable,
+  accountId: string,
+  scope?: { runId: string; briefRevision?: number },
+): Promise<string[]> {
+  const text = await loadPrivateDocumentText(db, accountId, scope);
   const out: string[] = [];
   for (const m of text.match(/CANARY:[A-Z0-9_-]+/gi) ?? []) out.push(m);
   return out;
@@ -41,12 +58,29 @@ export async function loadApprovedPrivateTerms(db: Queryable, args: { accountId:
   return Array.isArray(raw) ? raw.map((t) => String(t)) : [];
 }
 
-export async function hasPublicQueryApproval(db: Queryable, args: { accountId: string; runId: string }): Promise<boolean> {
-  const row = await db.query(
-    `SELECT 1 FROM query_authorizations WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false LIMIT 1`,
+export async function hasPublicQueryApproval(db: Queryable, args: {
+  accountId: string;
+  runId: string;
+  briefRevision?: number;
+  queryDigest?: string;
+  terms?: string[];
+}): Promise<boolean> {
+  const row = await db.query<{ terms: unknown; query_digest: string; brief_revision: number }>(
+    `SELECT terms, query_digest, brief_revision FROM query_authorizations
+      WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false
+      ORDER BY created_at DESC LIMIT 8`,
     [args.accountId, args.runId],
   );
-  return Boolean(row.rowCount);
+  for (const item of row.rows) {
+    if (args.briefRevision != null && item.brief_revision !== args.briefRevision) continue;
+    if (args.queryDigest && item.query_digest !== args.queryDigest) continue;
+    if (args.terms?.length) {
+      const approved = Array.isArray(item.terms) ? item.terms.map((t) => String(typeof t === "object" && t && "token" in t ? (t as { token: string }).token : t).toLowerCase()) : [];
+      if (!args.terms.every((t) => approved.includes(t.toLowerCase()))) continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 export async function loadRunStoredSources(db: Queryable, args: { accountId: string; runId: string }): Promise<StoredSource[]> {
@@ -208,9 +242,9 @@ export async function reconcileOwnedDocumentClaims(
   db: Queryable,
   args: { accountId: string; runId: string; question: string; claims: Array<{ key: string; text: string }> },
 ): Promise<number> {
-  const documentText = await loadPrivateDocumentText(db, args.accountId);
+  const documentText = await loadPrivateDocumentText(db, args.accountId, { runId: args.runId });
   if (!documentText.trim() || !args.claims.length) return 0;
-  const canaries = await loadPrivateCanaries(db, args.accountId);
+  const canaries = await loadPrivateCanaries(db, args.accountId, { runId: args.runId });
   const evidence = await db.query<{ id: string; access_level: string; exact_text: string }>(
     `SELECT s.id, v.access_level, p.exact_text FROM sources s
      JOIN source_versions v ON v.source_id=s.id AND v.account_id=s.account_id

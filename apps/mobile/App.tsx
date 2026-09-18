@@ -1179,7 +1179,7 @@ function AppInner() {
             </View> : null}
             {!state.run && !state.report && !state.pendingAdmission ? (
               <View style={styles.emptyHero} accessibilityLabel="Empty research">
-                <Text style={styles.welcomeDisplay}>What do you want to know?</Text>
+                <Text style={styles.welcomeDisplay}>Ask anything.</Text>
                 <View style={styles.exampleRow}>
                   {["should I move to Texas", "best laptop under 2k", "research this company"].map((example) => (
                     <Pressable
@@ -1237,10 +1237,11 @@ function AppInner() {
               muted={theme.muted}
               onClarify={setClarifyAnswer}
               onContinue={() => { void onContinueClarification(); }}
-              onEdit={() => setState((s) => ({
-                ...s,
-                error: "You can change this after the first result, or cancel and ask again.",
-              }))}
+              onEdit={() => {
+                const line = briefView.assumptions[0] ?? briefView.objective;
+                setClarifyAnswer(line);
+                setState((s) => ({ ...s, error: null }));
+              }}
               styles={styles}
             />
 
@@ -1666,8 +1667,8 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     statusRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, paddingVertical: space.sm, marginBottom: space.sm },
     statusText: { ...typeTokens.body, color: theme.muted, flexShrink: 1 },
     body: { flex: 1, paddingHorizontal: space.lg },
-    emptyHero: { paddingTop: 72, paddingBottom: space.xl },
-    welcomeDisplay: { ...typeTokens.display, color: theme.ink, marginBottom: space.md },
+    emptyHero: { paddingTop: 48, paddingBottom: space.lg },
+    welcomeDisplay: { ...typeTokens.title, color: theme.ink, marginBottom: space.md, fontSize: 22, lineHeight: 28 },
     exampleRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     exampleChip: { backgroundColor: theme.accentMuted, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
     exampleChipText: { ...typeTokens.body, color: theme.ink, fontSize: 15 },

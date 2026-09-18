@@ -86,6 +86,9 @@ function expectedOutputFor(family: ResearchIntent["taskFamily"], question: strin
   if (family === "open_ended_research") {
     return { kind: "explanation", summary: "An evidence-backed explanation of the asked phenomenon, with uncertainty preserved.", statedInQuestion: true };
   }
+  if (family === "relocation_decision") {
+    return { kind: "recommendation", summary: "A decision-useful assessment of relocating to the named place, with tradeoffs and uncertainty.", statedInQuestion: true };
+  }
   return { kind: "unknown", summary: "Answer the stated question with inspectable evidence.", statedInQuestion: true };
 }
 
@@ -277,6 +280,22 @@ export function compileResearchIntent(
       value: "Research the phenomenon as asked; do not narrow it into an unstated specialty without recording the narrowing.",
       reversibility: "reversible",
       impact: "Over-narrowing would silently change the user's question.",
+      userConfirmationState: "unconfirmed",
+    });
+  }
+
+  if (family === "relocation_decision") {
+    derived.push({
+      id: "relocation-objective",
+      text: "Investigate whether relocating to the named place is a good fit given stated constraints, with costs, law, and quality-of-life evidence.",
+      because: "The question asks whether to move.",
+      reversible: false,
+    });
+    assumptions.push({
+      id: "assume-named-destination",
+      value: "The named place is the destination under consideration; do not substitute a different jurisdiction.",
+      reversibility: "reversible",
+      impact: "A different destination would change the research universe.",
       userConfirmationState: "unconfirmed",
     });
   }

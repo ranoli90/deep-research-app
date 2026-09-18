@@ -10,10 +10,10 @@ describe("one-sentence composer copy", () => {
     expect(composer).toContain('sendAccessLabel = "Start research"');
     expect(composer).toContain('sendLabel ?? (pendingAdmission ? "Retry" : "Research")');
     expect(composer).toContain("iconSend");
-    expect(composer).toContain("↑");
+    expect(composer).toContain("ArrowUpIcon");
     expect(composer).toContain("Stop research");
     expect(composer).toContain("Add sources");
-    expect(app).toContain("What do you want to know?");
+    expect(app).toContain("Ask anything.");
     expect(app).not.toContain("Ask anything. One sentence is enough. Files are optional.");
     expect(app).toContain("<ResearchComposer");
     expect(app).toContain('placeholder="What should I research?"');

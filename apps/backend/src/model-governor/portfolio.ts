@@ -1,4 +1,5 @@
 import {
+  AZURE_ZDR_DISCOVERY_POLICY,
   AZURE_ZDR_EXACT_QUOTE_POLICY,
   AZURE_ZDR_MODEL_POLICY,
   STRUCTURED_MODEL_POLICY,
@@ -77,6 +78,20 @@ export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilit
     cacheSticky: true,
     available: true,
   },
+  [AZURE_ZDR_DISCOVERY_POLICY.id]: {
+    policyId: AZURE_ZDR_DISCOVERY_POLICY.id,
+    model: AZURE_ZDR_DISCOVERY_POLICY.model,
+    provider: AZURE_ZDR_DISCOVERY_POLICY.provider,
+    providerName: AZURE_ZDR_DISCOVERY_POLICY.providerName,
+    tier: 1,
+    structuredOutput: true,
+    zdr: true,
+    dataCollection: "deny",
+    promptMicroPerMillion: AZURE_ZDR_DISCOVERY_POLICY.promptMicroPerMillion,
+    completionMicroPerMillion: AZURE_ZDR_DISCOVERY_POLICY.completionMicroPerMillion,
+    cacheSticky: true,
+    available: true,
+  },
 };
 
 export type PortfolioCatalog = {
@@ -96,6 +111,7 @@ export const PRODUCTION_PORTFOLIO_V1: PortfolioCatalog = {
     REGISTERED_ROUTE_CAPABILITIES[STRUCTURED_MODEL_POLICY.id],
     REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_MODEL_POLICY.id],
     REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_EXACT_QUOTE_POLICY.id],
+    REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_DISCOVERY_POLICY.id],
   ],
 };
 

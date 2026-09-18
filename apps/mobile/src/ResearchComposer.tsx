@@ -1,4 +1,5 @@
 import { Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { ArrowUpIcon, CloseIcon, PlusIcon, StopIcon } from "./icons";
 
 type Styles = {
   composerDock: StyleProp<ViewStyle>;
@@ -72,7 +73,7 @@ export function ResearchComposer({
           hitSlop={12}
           style={styles.attachHit ?? { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={styles.attachMark}>{attachOpen ? "×" : "+"}</Text>
+          {attachOpen ? <CloseIcon color={muted} /> : <PlusIcon color={muted} />}
         </Pressable>
         <TextInput
           editable={editable && !stop}
@@ -96,9 +97,9 @@ export function ResearchComposer({
           hitSlop={12}
         >
           {stop ? (
-            <Text style={styles.stopGlyph ?? styles.send}>■</Text>
+            <StopIcon color={sendInk} />
           ) : iconSend ? (
-            <Text style={{ color: sendDisabled ? muted : sendInk, fontSize: 18, fontWeight: "700" }}>↑</Text>
+            <ArrowUpIcon color={sendDisabled ? muted : sendInk} />
           ) : pendingAdmission ? (
             <Text style={sendDisabled ? styles.sendOff : styles.send}>{action}</Text>
           ) : null}

@@ -9,6 +9,7 @@ export type TaskFamily =
   | "current_fact"
   | "technical_comparison"
   | "open_ended_research"
+  | "relocation_decision"
   | "other";
 
 export type MaterialChangeKind =

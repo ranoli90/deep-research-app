@@ -1,5 +1,6 @@
 import type { Assumption, Constraint, ResearchBrief } from "@deep/contracts";
 import { evaluateClarificationValue, clarificationPrompts } from "./clarification-value.js";
+import { COUNTRIES, US_STATES, extractNamedGeography } from "./geography.js";
 import { provenanceFromOrigin } from "./provenance.js";
 
 function parseBudgetNumber(raw: string): number | null {
@@ -65,45 +66,22 @@ export function parseBudgetCeiling(question: string): Constraint | null {
   };
 }
 
-const COUNTRIES = [
-  "germany",
-  "france",
-  "united states",
-  "usa",
-  "uk",
-  "united kingdom",
-  "canada",
-  "japan",
-  "india",
-  "australia",
-  "brazil",
-  "spain",
-  "italy",
-  "netherlands",
-  "sweden",
-  "norway",
-  "singapore",
-];
-
 export function extractConstraints(question: string): Constraint[] {
   const constraints: Constraint[] = [];
   const lower = question.toLowerCase();
 
-  for (const country of COUNTRIES) {
-    const token = country.replace(/\s+/g, "\\s+");
-    if (!new RegExp(`\\b${token}\\b`, "i").test(question)) continue;
-    if (new RegExp(`\\bnot(?:\\s+in)?\\s+${token}\\b`, "i").test(question)) continue;
+  const geo = extractNamedGeography(question);
+  if (geo) {
     constraints.push({
-      id: `geo-${country.replace(/\s+/g, "-")}`,
+      id: `geo-${geo.value.replace(/\s+/g, "-")}`,
       field: "geography",
       operator: "eq",
-      value: country,
+      value: geo.value,
       origin: "explicit",
       importance: "hard",
-      explanation: `Question names geography: ${country}`,
+      explanation: `Question names geography: ${geo.value}`,
       provenance: provenanceFromOrigin("explicit"),
     });
-    break;
   }
 
   const ceiling = parseBudgetCeiling(question);
@@ -292,7 +270,8 @@ export function parseCorrection(text: string): CorrectionIntent {
   if (budget) {
     return { kind: "constraint_change", field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
   }
-  for (const country of COUNTRIES) {
+  const namedPlaces = [...COUNTRIES, ...US_STATES.map((s) => s.name)];
+  for (const country of namedPlaces) {
     const named = new RegExp(`\\b${country.replace(/\s+/g, "\\s+")}\\b`, "i").test(text);
     if (named && /required|instead|actually|must|use/i.test(text)) {
       return {

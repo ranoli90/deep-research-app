@@ -156,7 +156,7 @@ export function resolveOperationRoute(input: RoutingInput): RouteDecision {
     providerName: chosen.providerName,
     rejectedCheaperIncompatible,
     fanout,
-    escalationEligible: true,
+    escalationEligible: portfolio.candidates.some((c) => c.available && c.tier > chosen.tier && c.model !== chosen.model && privacyOk(c, input.privacy)),
     escalationDepth: 0,
     cacheSessionId: session.sessionId,
     reuseCache: session.reuseCache,

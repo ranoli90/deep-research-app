@@ -6,7 +6,34 @@ const INJECTION_PATTERNS = [
   /exfiltrate/i,
   /grant (yourself|me) (admin|tool)/i,
   /call the \w+ tool to/i,
+  /system:\s*you are/i,
+  /developer message/i,
+  /increase (the )?budget/i,
+  /grant public[- ]query permission/i,
+  /set consent to/i,
+  /consent to revoked/i,
+  /self[- ]verif/i,
+  /new tool allowlist/i,
+  /override processor/i,
 ];
+
+const PRIVILEGE_ESCALATION = [
+  /ignore (all )?previous instructions/i,
+  /grant (yourself|me) (admin|tool|permission)/i,
+  /grant me a new .{0,40}tool/i,
+  /increase (the )?(budget|spend|allowance)/i,
+  /grant public[- ]query permission/i,
+  /bypass consent/i,
+  /self[- ]verif(y|ies|ication)/i,
+];
+
+/** Retrieved pages cannot modify instructions, tools, public-query permission, budget, or consent. */
+export function sourceCannotEscalatePrivilege(text: string): string | null {
+  for (const p of PRIVILEGE_ESCALATION) {
+    if (p.test(text)) return p.source;
+  }
+  return null;
+}
 
 export function sourceLooksLikeInjection(text: string): boolean {
   return INJECTION_PATTERNS.some((p) => p.test(text));
@@ -32,7 +59,7 @@ export function isAllowedTool(type: string): type is ToolName {
   return (TOOL_ALLOWLIST as readonly string[]).includes(type);
 }
 
-const PRIVILEGED_FIELDS = ["newTools", "apiKey", "spendCapOverride", "processorOverride", "bypassConsent"];
+const PRIVILEGED_FIELDS = ["newTools", "apiKey", "spendCapOverride", "processorOverride", "bypassConsent", "publicQueryPermission", "consentPolicy", "budgetMicro"];
 
 export function rejectPrivilegedProposal(proposal: {
   type: string;

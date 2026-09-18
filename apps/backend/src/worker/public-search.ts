@@ -2,7 +2,7 @@ import {runModelVersions,runModelPolicy} from "../modules/run-model-policy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { CONSENT_POLICY_VERSION,ResearchModelOutputs,CounterevidenceSearchSchema,COUNTEREVIDENCE_SUFFIX } from "@deep/contracts";
-import { MAX_DISCOVERY_QUERIES,validateModelBindings } from "@deep/research-core";
+import { DEEP_DISCOVERY_CEILING,validateModelBindings } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { withTx } from "../platform/db.js";
 import { getBrief,getRun } from "../modules/runs.js";
@@ -28,13 +28,13 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   const brief=await getBrief(db,run.brief_id),task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId));
   if(!task||task.id!==args.taskId)throw new Error("search_task_mismatch");
   if(task.planningStatus!=="ready")throw new Error("search_task_requires_clarification");
-  if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId})))throw new Error("document_search_requires_public_query_approval");
+  if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision})))throw new Error("document_search_requires_public_query_approval");
   if(transformed.success&&(!config.structuredChallengeEnabled||proposal.action.query!==`${proposal.action.publicQueryBasis.quote.trim()} ${COUNTEREVIDENCE_SUFFIX}`))throw new Error("invalid_counterevidence_query_transform");
   const validatedProposal=transformed.success?{...proposal,action:{type:"search" as const,query:proposal.action.publicQueryBasis.quote.trim(),questionKeys:proposal.action.questionKeys,publicQueryBasis:proposal.action.publicQueryBasis}}:proposal;
   const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion),task:task.specification});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
-  const canaries=await loadPrivateCanaries(db,args.accountId);
-  const documentText=await loadPrivateDocumentText(db,args.accountId);
+  const canaries=await loadPrivateCanaries(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
+  const documentText=await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId});
   const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:validatedProposal.action.query,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass});
   if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":"unapproved_public_query_terms");
@@ -49,7 +49,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:policy.id,briefRevision:args.briefRevision})).digest("hex");
  let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;
  try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
-  route:`openrouter:${policy.model}:${policy.id}`,requestDigest:digest,reserveMicro:DISCOVERY_RESERVE_MICRO,maxRunRouteAttempts:MAX_DISCOVERY_QUERIES});}
+  route:`openrouter:${policy.model}:${policy.id}`,requestDigest:digest,reserveMicro:DISCOVERY_RESERVE_MICRO,maxRunRouteAttempts:DEEP_DISCOVERY_CEILING});}
  catch(error){if(error instanceof Error&&error.message==="route_attempt_limit")return {kind:"blocked" as const,reason:"discovery_query_limit"};throw error;}
  const finish=(result:SearchResult,reused:boolean)=>result.receipt.state==="confirmed"&&result.receipt.actualMicro!==undefined
   ?{kind:"search" as const,intentId:attempt.intentId,hits:result.hits,reused}

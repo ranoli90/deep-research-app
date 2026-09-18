@@ -24,13 +24,13 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
   const domain = sourceDomain(source.locator);
   const quality = uncertaintyFromSource(source);
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-    <Text ref={heading} onLayout={() => {
-      if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
-      const tag = findNodeHandle(heading.current);
-      if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
-    }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
       <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
+      <Text ref={heading} onLayout={() => {
+        if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
+        const tag = findNodeHandle(heading.current);
+        if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
+      }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
       <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
       {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Cited in: {relatedClaim}</Text> : null}
       {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion" hitSlop={12}>

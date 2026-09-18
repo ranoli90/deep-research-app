@@ -7,6 +7,7 @@ import { ModelContextSchema, ModelDiagnosticFieldSchema, type PreparedModelReque
 import { costToMicro } from "./usage.js";
 import { MODEL_PROMPT_VERSION, modelPrompt } from "./prompts.js";
 import { modelPolicy,STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
+import { admitContextTokens, operationBudget } from "./token-budget.js";
 
 const Envelope = z.object({
   id: z.string().max(300).optional(), model: z.string().max(300), provider: z.string().max(300).optional(),
@@ -28,18 +29,19 @@ const Envelope = z.object({
  * Optional extras (session stickiness) must not be passed for historical policy replay. */
 export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string }): PreparedModelRequest<K> {
   const policy=modelPolicy(policyId);
+  const budget = operationBudget(operation, policy.id);
   const contextText = JSON.stringify(ModelContextSchema.parse(context));
-  if (!contextText || Buffer.byteLength(contextText) > 240_000) throw new Error("model_context_too_large");
+  if (!contextText) throw new Error("model_context_too_large");
   const schema = zodToJsonSchema(ResearchModelOutputs[operation], { $refStrategy: "none" });
   const body = JSON.stringify({
-    model: policy.model, [policy.provider === "azure" ? "max_completion_tokens" : "max_tokens"]: policy.outputTokens, temperature: 0, stream: false, plugins: [],
+    model: policy.model, [policy.provider === "azure" ? "max_completion_tokens" : "max_tokens"]: budget.maxOutputTokens, temperature: 0, stream: false, plugins: [],
     provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny", ...(policy.provider === "azure" ? {zdr:true} : {}),
       max_price: { prompt: policy.promptMicroPerMillion / 1_000_000, completion: policy.completionMicroPerMillion / 1_000_000, request: 0 } },
     response_format: { type: "json_schema", json_schema: { name: `research_${operation}_v1`, strict: true, schema } },
     messages: [{ role: "system", content: modelPrompt(operation) }, { role: "user", content: contextText }],
     ...(extras?.sessionId ? { session_id: extras.sessionId } : {}),
   });
-  if (Buffer.byteLength(body) > policy.contextTokens) throw new Error("model_context_exceeds_policy");
+  admitContextTokens({ contextText, bodyText: body, operation, policyId: policy.id });
   return { operation, body, digest: createHash("sha256").update(body).digest("hex"),
     schemaVersion: ["write_calculated_report","review_calculated_coverage"].includes(operation)?CALCULATED_REPORT_SCHEMA_VERSION:operation==="plan_calculations"?CALCULATION_PLANNING_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,
     promptVersion: ["write_calculated_report","review_calculated_coverage"].includes(operation)?CALCULATED_REPORT_PROMPT_VERSION:operation==="plan_calculations"?CALCULATION_PLANNING_PROMPT_VERSION:MODEL_PROMPT_VERSION, policyId: policy.id };
@@ -56,8 +58,8 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
     cacheReadTokens: null, cacheWriteTokens: null };
   const finish = <T extends ModelResult<K>>(value: T): T => { value.receipt.finishedAt = new Date().toISOString(); return value; };
   const fail = (status: Exclude<ModelResult<K>["status"], "succeeded">, reason: string): ModelResult<K> => finish({ status, reason, receipt });
-  const timeout = args.deadlineMs ?? 45_000;
-  if (!Number.isSafeInteger(timeout) || timeout < 1 || timeout > 45_000) return fail("permanent_failure", "invalid_model_deadline");
+  const timeout = args.deadlineMs ?? operationBudget(request.operation, policy.id).deadlineMs;
+  if (!Number.isSafeInteger(timeout) || timeout < 1 || timeout > 180_000) return fail("permanent_failure", "invalid_model_deadline");
   if (!args.apiKey.trim() || args.signal.aborted) return fail("refused", "credential_missing_or_cancelled");
   const signal = AbortSignal.any([args.signal, AbortSignal.timeout(timeout)]);
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;

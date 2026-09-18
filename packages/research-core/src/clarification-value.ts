@@ -7,6 +7,7 @@ import type {
   MaterialChangeKind,
   TaskFamily,
 } from "@deep/contracts";
+import { geographyIsStated } from "./geography.js";
 import { inferTaskFamily } from "./intent-taxonomy.js";
 
 const JURISDICTION_PROMPT = "Which jurisdiction should this answer apply to?";
@@ -29,7 +30,7 @@ function legalNeedsJurisdiction(question: string, constraints: Constraint[]): bo
   const legal = /\b(tax|employment law|filing|legal status|which law applies|statutes?|regulations?|jurisdiction)\b/i.test(q);
   if (!legal) return false;
   if (hasField(constraints, "geography")) return false;
-  if (/\b(germany|france|usa|united states|uk|united kingdom|canada|japan|india|australia)\b/i.test(q)) return false;
+  if (geographyIsStated(question)) return false;
   return true;
 }
 
@@ -95,6 +96,9 @@ export function evaluateClarificationValue(args: {
   if (family === "open_ended_research") {
     assumedOrBranched.push("Open-ended scope is researched as stated; no interview to narrow an unstated specialty.");
   }
+  if (family === "relocation_decision") {
+    assumedOrBranched.push("Named destination is a stated geography; do not re-ask jurisdiction.");
+  }
 
   for (const unknown of args.consequentialUnknowns ?? []) {
     if (unknown.defaultHandling === "ask") {
@@ -108,7 +112,7 @@ export function evaluateClarificationValue(args: {
   const filtered = questions.filter((q) => !COSMETIC_PATTERNS.some((re) => re.test(q.prompt)));
   return {
     ask: filtered.length > 0,
-    questions: filtered.slice(0, 4),
+    questions: filtered.slice(0, 2),
     suppressedCosmetic,
     assumedOrBranched,
   };

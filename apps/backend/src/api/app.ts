@@ -20,6 +20,7 @@ import {
   impactForCorrection,
   inferOutputPreference,
   parseCorrection,
+  routeFollowUp,
   shouldFullRerun,
 } from "@deep/research-core";
 import type PgBoss from "pg-boss";
@@ -40,6 +41,7 @@ import {
 } from "../modules/access.js";
 import { reserveAllowance } from "../modules/billing.js";
 import { pinRouteCapabilities } from "../modules/route-capabilities.js";
+import { toPublicActivity } from "../modules/public-activity.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import {
   cancelOwnedRun,
@@ -256,15 +258,24 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const after = Number((req.query as { after?: string }).after ?? 0);
     const events = await listEvents(pool, id, after);
     return {
-      events: events.map((e) => ({
-        id: e.id,
-        runId: id,
-        sequence: Number(e.sequence),
-        type: e.type,
-        publicSummary: e.public_summary,
-        phase: e.phase,
-        createdAt: e.created_at,
-      })),
+      events: events.map((e) => {
+        const activity = toPublicActivity({
+          type: e.type,
+          publicSummary: e.public_summary,
+          phase: e.phase,
+          createdAt: String(e.created_at),
+        });
+        return {
+          id: e.id,
+          runId: id,
+          sequence: Number(e.sequence),
+          type: e.type,
+          publicSummary: e.public_summary,
+          phase: e.phase,
+          createdAt: e.created_at,
+          activity,
+        };
+      }),
     };
   });
 
@@ -291,19 +302,22 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
     }
     const body = (req.body ?? {}) as { geography?: string; answers?: { field?: string; value?: string }[] };
-    const geography = String(body.geography ?? body.answers?.find((x) => x.field === "geography")?.value ?? "").trim();
-    if (!geography) {
-      return reply.code(400).send(err("invalid_input", "A jurisdiction is required to continue. The app will not assume a country.", crypto.randomUUID()));
+    const answers = [
+      ...(body.answers ?? []).map((a) => ({ field: String(a.field ?? "").trim(), value: String(a.value ?? "").trim() })),
+      ...(body.geography ? [{ field: "geography", value: body.geography.trim() }] : []),
+    ].filter((a) => a.field && a.value);
+    if (!answers.length) {
+      return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
     const brief = await getBrief(pool, run.brief_id);
-    if (geography) {
+    for (const answer of answers) {
       brief.constraints = [
-        ...brief.constraints.filter((c) => c.field !== "geography"),
+        ...brief.constraints.filter((c) => c.field !== answer.field),
         {
-          id: `geo-${geography.toLowerCase()}`,
-          field: "geography",
+          id: `${answer.field}-${answer.value.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`,
+          field: answer.field,
           operator: "eq",
-          value: geography.toLowerCase(),
+          value: answer.value.toLowerCase(),
           origin: "confirmed",
           importance: "hard",
           explanation: "Supplied after clarification",
@@ -434,6 +448,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+    }
+    const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string };
+    if (!followBody.claimId && (followBody.message || followBody.note)) {
+      const routed = routeFollowUp(followBody.message || followBody.note || "", {
+        reportReady: true,
+        runActive: run.lifecycle !== "terminal",
+      });
+      if (routed.kind === "explain" && !routed.mutatesBrief) {
+        return { kind: "explain", runId: id, reason: routed.reason, mutatesBrief: false };
+      }
     }
     if(run.route_mode==="controlled-research"){
       const parsed=RequestedVerificationRequestSchema.safeParse(req.body);

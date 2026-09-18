@@ -1,7 +1,9 @@
 import type { ResearchModelOutput } from "@deep/contracts";
 
 export const DISCOVERY_PLANNER_VERSION="criterion-discovery.v1";
+/** Simple-task / same-criterion planner ceiling. Deep adaptive breadth uses DEEP_DISCOVERY_CEILING. */
 export const MAX_DISCOVERY_QUERIES=3;
+export const DEEP_DISCOVERY_CEILING=10;
 /** Narrow discovery to unmet criteria without copying any source text into public queries. */
 export function nextCriterionSearch(args:{question:string;task:ResearchModelOutput<"brief">;unresolvedCriterionKeys:string[];queries:string[]}) {
  const normalize=(text:string)=>text.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");

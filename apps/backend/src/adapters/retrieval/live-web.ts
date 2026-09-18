@@ -18,11 +18,11 @@ export async function liveWebSearch(query: string, config: AppConfig, signal?: A
   const body = pinned ? pinnedSearchBody(query,policy.id) : {
     model: config.openRouterModel,
     max_tokens: 1024,
-    plugins: [{ id: "web", max_results: 3 }],
+    plugins: [{ id: "web", max_results: policy.maxResults }],
     messages: [
       {
         role: "user",
-        content: `Find up to 3 public web sources for this research query. Return nothing but the sources; do not invent URLs.\n\nQuery: ${query}`,
+        content: `Find up to ${policy.maxResults} public web sources for this research query. Return nothing but the sources; do not invent URLs.\n\nQuery: ${query}`,
       },
     ],
   };

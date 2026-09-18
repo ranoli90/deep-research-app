@@ -925,11 +925,12 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
 }),60_000);
 it("W02/W05 concurrent distinct searches obey the durable per-run query ceiling",async()=>runCase(async(x)=>{
  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
- const results=await Promise.all(["coral","kelp","restoration","Compare"].map((query)=>performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})));
- expect(results.filter((r)=>r.kind==="search")).toHaveLength(3);expect(results.filter((r)=>r.kind==="blocked")).toEqual([{kind:"blocked",reason:"discovery_query_limit"}]);expect(fetch).toHaveBeenCalledTimes(3);
- const query=["coral","kelp","restoration","Compare"][results.findIndex((r)=>r.kind==="search")]!;
+ const queries=Array.from({length:11},(_,i)=>`topic-${i}`);
+ const results=await Promise.all(queries.map((query)=>performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})));
+ expect(results.filter((r)=>r.kind==="search")).toHaveLength(10);expect(results.filter((r)=>r.kind==="blocked")).toEqual([{kind:"blocked",reason:"discovery_query_limit"}]);expect(fetch).toHaveBeenCalledTimes(10);
+ const query=queries[results.findIndex((r)=>r.kind==="search")]!;
  expect(await performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})).toMatchObject({kind:"search",reused:true});
- expect(fetch).toHaveBeenCalledTimes(3);
+ expect(fetch).toHaveBeenCalledTimes(10);
 }));
 
 const correctionInput=(question:string,evidencePolicy:"reuse_snapshot"|"refresh"="reuse_snapshot")=>CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Replace the research question",patch:{kind:"replace_question",question,evidencePolicy}});
@@ -1541,6 +1542,9 @@ it("W05 counterevidence race cannot double-send its search and shares the three-
  const searchArgs={...c.args,proposal:{rationale:"Boundary control",action:{type:"search" as const,query:"coral",questionKeys:["q1"],publicQueryBasis:span}}};
  expect(await performPublicSearch(pool,c.config,x.session,searchArgs)).toMatchObject({kind:"search"});
  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"kelp"}}})).toMatchObject({kind:"search"});
+ for (let i = 0; i < 8; i += 1) {
+  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:`extra-${i}`}}})).toMatchObject({kind:"search"});
+ }
  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"restoration"}}})).toEqual({kind:"blocked",reason:"discovery_query_limit"});
 }));
 it("W05 counterevidence disabled legacy run needs no proof, but an event alone cannot satisfy an admitted check",async()=>runCase(async x=>{

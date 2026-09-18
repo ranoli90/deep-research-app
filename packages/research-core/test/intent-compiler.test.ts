@@ -127,11 +127,14 @@ describe("task family classification", () => {
   });
 
   it("does not treat Indiana as India or drop an under-2k ceiling for a later USD price", () => {
-    expect(compileResearchIntent("What is the filing deadline for employment tax in Indiana?").hardConstraints.some((c) => c.field === "geography")).toBe(false);
+    const indiana = compileResearchIntent("What is the filing deadline for employment tax in Indiana?");
+    expect(indiana.hardConstraints.find((c) => c.field === "geography")?.value).toBe("indiana");
+    expect(indiana.hardConstraints.some((c) => String(c.value) === "india")).toBe(false);
+    expect(indiana.clarificationDecision.ask).toBe(false);
     expect(neededClarifications({
       originalQuestion: "What is the filing deadline for employment tax in Indiana?",
-      constraints: [],
-    }).length).toBe(1);
+      constraints: indiana.hardConstraints,
+    })).toEqual([]);
     const priced = compileResearchIntent("best laptop under 2k, street price 999 USD");
     expect(priced.hardConstraints.find((c) => c.field === "budget")).toMatchObject({ value: "2000" });
     expect(compileResearchIntent("buy a phone under $2000").hardConstraints.find((c) => c.field === "budget")).toMatchObject({ value: "2000", units: "USD" });
