@@ -20,6 +20,8 @@ New dependencies, new services, shared abstractions, migrations, public schemas,
 
 Never make checks green by deleting assertions, broadening accepted errors, weakening types, masking exceptions, silently skipping tests or replacing live paths with fixtures. Test changes that reduce protection need explicit review with evidence. A failed check remains failed until fixed or openly accepted by the authorized owner.
 
+A pure helper, table, or test that inserts the desired row is not a completed feature. The production worker must call the policy with real inputs (adopted sources, private document text, evaluated freshness, explicit approval). Parallel worktrees must not reuse the same migration filename; take the next unused number after sibling lanes. Extra fenced `session.write` calls inside the research loop deadlock with the lease renewer — persist alongside an existing emit. Isolated PostgreSQL suites use one `TEST_DATABASE_URL` per process.
+
 ## Commands and evidence
 Only `verification/COMMANDS.json` establishes which commands exist. Documentation checks:
 ```sh

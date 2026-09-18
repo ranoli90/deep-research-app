@@ -6,6 +6,22 @@ Root AGENTS.md applies; these rules cannot weaken it.
 
 API authorizes and validates; worker executes durable actions; domain modules own writes; adapters isolate SDKs. Preserve consent/cancel/revision fences and atomic budget admission. Test real Postgres/queue transactions and unknown paid outcomes. Read specs/ENGINE_CONTRACTS.md and docs/SECURITY_PRIVACY_COST.md. Do not turn upstream queue delivery into an exactly-once external-spend promise.
 
+## Retrieval worker path
+
+Public search loads owned attachment text and canary tokens into `authorizeDiscoveryQuery`. Do not classify against canaries only. Mixed-document discovery must consult `query_authorizations.kind='approved'` on the structured worker; a throw in `performPublicSearch` is not enough if the worker never reaches it. Approval is explicit user grant of listed terms, never inferred from source text.
+
+`evaluateDiscoveryContinuation` must receive adopted sources, failed-query counts, novelty vs prior source count, evaluated freshness, and attempted source classes. Passing `sources:[]`, `novelty:1`, `freshnessUnmet:false`, `priorFailedQueries:0` makes independence and class-change dead. When evidence is weak, duplicative, or stale, call `nextSourceClass` and pass that class into search expansion.
+
+Persist coverage, origin links, freshness, and reconciliation inside an existing `session.write`. An extra fenced write in the research loop deadlocks with the lease renewer (`accounts`/`runs` `FOR UPDATE`). Coverage belongs on the `discovery_exhausted` emit, not a separate transaction.
+
+Document/web reconciliation must run from `processStructuredResearch` when attachments exist. Tests that `INSERT` `kind='approved'` and then call `persistReconciliation` themselves do not prove the worker path.
+
+Account and source deletion must scrub new retrieval columns (`origin_relation`, `publication_date`) as well as the new tables. Parallel-lane migrations must take the next unused filename number after sibling worktrees (this lane is `044_retrieval_intelligence.sql` because A/C used 042/043 for portfolio). `CREATE TABLE IF NOT EXISTS` does not add uniqueness later; add `CREATE UNIQUE INDEX IF NOT EXISTS` for `ON CONFLICT`.
+
+Counterevidence search identity is the original suffix query after binding validation. Do not send an expanded/stripped string if the challenge receipt digest is the unexpanded query.
+
+Integration tests use one isolated `TEST_DATABASE_URL` at a time. Do not run two vitest integration/extraction processes against the same database. Raise a test timeout only after the case completes in isolation; a 30s default that dies under load is not a product hang, and a hang past 2–3 minutes is not fixed by a larger timeout.
+
 Use verification/COMMANDS.json to distinguish available and proposed checks. Update the owning canonical spec with behavior changes, not a duplicate local handbook.
 
 Revision 3: local PostgreSQL/queue satisfies only its executed P0-D correctness scope; hosted auth/storage/pooler behavior needs separate verification. Notification identity, binding epochs and unknown-send outcomes follow ENGINE_CONTRACTS §10. Do not promise external exactly-once effects from outbox uniqueness.

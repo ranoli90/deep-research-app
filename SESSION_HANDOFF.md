@@ -48,7 +48,8 @@ Final SHA: `bf9f95233767a95a2256c35138b7889d06461e74` (not merged to `main`).
 | `pnpm verify` | 0 | typecheck + 200 research-core + 170 backend unit + 206 mobile + boundaries=ok + 6 governance |
 | `pnpm test:integration` (full matrix, pre-review-fix) | 1 | isolated `deep_research_session_b_full_v3_20260918`: 460 passed / 1 timeout (`W05 counterevidence … contradiction=false linked=true` at 30s). Timeout allowance added; not a weakened assertion. |
 | focused retrieval-evidence after review wiring | 0 | 3/3 twice on `deep_research_session_b_20260918` |
-| `EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction` | recorded if run | preserve existing HTML/PDF controls |
+| `TEST_DATABASE_URL=...deep_research_session_b_postreview_20260918 pnpm test:integration` at `caa0f40` | 1 | 460 passed / 1 failed. Heavy files green (model-gateway 136, passage-capacity 17, retrieval-evidence 3). Remaining: `W03 deletion winning the account lock prevents a waiting append from reviving the document` resolved instead of rejecting. Isolated re-run of that file: 11/11 exit 0. Treated as lock-race flake under a 26-minute suite, not a weakened assertion. |
+| `TEST_DATABASE_URL=...deep_research_session_b_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction` | 0 | serial after integration: 55/55. Concurrent earlier run timed out the upload PDF journey at 30s; 120s allowance added; upload case then 21434ms. |
 
 Live OpenRouter semantic journeys: **unrun** (not a Session B gate).
 Native Android: **unrun**. Do not take the shared phone. If document/evidence surfaces change in mobile, Session C should verify source sheet/report caveats for independence/freshness/reconciliation metadata.
@@ -57,6 +58,7 @@ Native Android: **unrun**. Do not take the shared phone. If document/evidence su
 
 - Historical v6 ZDR/live semantic failures are unchanged and not rewritten.
 - Backend unit timeouts observed under parallel load (`eval-live`, `frozen-documents`, `generation-receipt` GC, `governance` graph walk) were re-run serially; they are not new assertion weakenings.
+- Concurrent extraction+integration run timed out the upload PDF journey at 30s; the public-search sibling of the same control passed. Serial extraction re-run is required before calling extraction green.
 
 ## Security implications
 
