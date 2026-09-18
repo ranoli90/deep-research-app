@@ -1,0 +1,29 @@
+{
+  "requirements": [
+    "W01",
+    "V6-F01"
+  ],
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "platform": "Linux6.14",
+    "database": "local synthetic PostgreSQL127.0.0.1:55432"
+  },
+  "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/evidence-selection/omitted-contradiction.probe.mts",
+  "before": {
+    "runtimeCommit": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+    "exitCode": 1,
+    "artifact": "OMITTED_CONTRADICTION.json",
+    "sha256": "76340e910fdd9c1e3c5330715737211910299e306fad8b6a2c02e6e10700ef6b",
+    "probeSourceLimitation": "Probe was uncommitted; initial exact source snapshot was not retained. Its output is retained. Current committed probe additionally records inventory checks and writes to the separate after artifact."
+  },
+  "after": {
+    "runtimeCommit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+    "exitCode": 0,
+    "artifact": "OMITTED_CONTRADICTION_AFTER.json",
+    "receipt": "inventory-probe.receipt.json"
+  },
+  "paidCostMicro": 0,
+  "scope": "Real PostgreSQL and production worker, fabricated model/extraction transports; no live semantic or independent adjudication claim"
+}

@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "ADR054 runtime643e203 plus strengthened numeric publication regression47c3c1a; final425PostgreSQL/51actualextraction and verify157/149/206/6 pass. See current-continuation/RESULTS.json for retained failures, current source hashes and scoped limitations; W01-W09 incomplete.",
+  "workingTree": "ADR055/056 runtime f0640db verified446PostgreSQL/51actualextraction/verify164/149/206/6. Bounded selection plus full-inventory literal veto; omitted contradiction before/after retained. W01-W09 incomplete: recall, real-model quality and current monetary authority unresolved.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6346,5 +6346,6 @@
   "frozenPdfIntegratedEvidence": "verification/v6/frozen-pdf-integrated/RESULTS.json",
   "frozenPdfCleanCheckoutEvidence": "verification/v6/clean-frozen-pdf/RESULTS.json",
   "physicalUnlockedEvidence": "verification/v6/physical-unlocked/RESULTS.json",
-  "currentContinuation": "current-continuation/RESULTS.json"
+  "currentContinuation": "current-continuation/RESULTS.json",
+  "evidenceSelectionContinuation": "evidence-selection/INVENTORY_RESULTS.json"
 }

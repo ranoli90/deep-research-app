@@ -1,0 +1,35 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "command": [
+    "pnpm",
+    "test:integration"
+  ],
+  "environmentOverrides": {
+    "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+    "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"
+  },
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T15:46:22.167422+00:00",
+  "finishedAt": "2026-09-18T15:59:37.171940+00:00",
+  "elapsedSeconds": 795.005,
+  "exitCode": 0,
+  "artifact": "verification/v6/evidence-selection/inventory-integration.log",
+  "artifactSha256": "eb68c20091fc6e64b4fc22b5d9d3e0e40c3cf442764c7ff26c538dabf9d150c3",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

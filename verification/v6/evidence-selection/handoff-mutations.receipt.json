@@ -1,0 +1,39 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts",
+    "-p",
+    "test_builder_handoff.py",
+    "-v"
+  ],
+  "environmentOverrides": {},
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T15:46:22.317244+00:00",
+  "finishedAt": "2026-09-18T15:46:29.274502+00:00",
+  "elapsedSeconds": 6.957,
+  "exitCode": 0,
+  "artifact": "verification/v6/evidence-selection/handoff-mutations.log",
+  "artifactSha256": "9df6e055ab897a6549488e8b71e2ded01d045d05f110f3f8d18d4a21fc71d80e",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

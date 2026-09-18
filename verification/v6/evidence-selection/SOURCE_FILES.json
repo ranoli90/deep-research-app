@@ -1,0 +1,121 @@
+{
+  "commit": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+  "files": [
+    {
+      "path": "apps/backend/migrations/038_evidence_selections.sql",
+      "sha256": "dd8892e30979f5db2c325d403a1b443f8345e816a15b99ec36950f49c3c5c869"
+    },
+    {
+      "path": "apps/backend/package.json",
+      "sha256": "67409b6b6c03c6a68443735e2cdb458382ad9b2ffbacb5d3da1a77cd9fce9ef8"
+    },
+    {
+      "path": "apps/backend/src/evaluation/production-driver.ts",
+      "sha256": "505a03ca457846f9b7a75429dbbb87f28f4fcd7f2586166fff952b121a4033ff"
+    },
+    {
+      "path": "apps/backend/src/modules/access.ts",
+      "sha256": "8f52056f736e28b6a15ac77bb6556aefa718bafc09a1819f96935d958db6462d"
+    },
+    {
+      "path": "apps/backend/src/modules/assertion-evidence.ts",
+      "sha256": "79f453efbf1e3e17b27b5d76ca930cd4eb0147c30961497579e4307832929b47"
+    },
+    {
+      "path": "apps/backend/src/modules/counterevidence.ts",
+      "sha256": "f41b3ddfb20ad8ddcada5d3887efd3c33bb041d449cb8f36bb0a28dfe3bfaa90"
+    },
+    {
+      "path": "apps/backend/src/modules/evidence-selections.ts",
+      "sha256": "2b49f5f1fd1c3b51430045c5aa549d8dd2300307e9daf8d3ba0f5d44a9d04067"
+    },
+    {
+      "path": "apps/backend/src/modules/model-operations.ts",
+      "sha256": "29de20bf817c614b811954821e6bccea4c17d307ae7f0b827c96155fc2185d1a"
+    },
+    {
+      "path": "apps/backend/src/modules/publication-coverage.ts",
+      "sha256": "89130773dd46a32ad0115ac7d8afb776effae1dc5c3cc3e5be57162c77c8ce4d"
+    },
+    {
+      "path": "apps/backend/src/modules/requested-verification.ts",
+      "sha256": "e56c7799f11443d3ca6cc2804f49077e2f420275d6739eba2c1a9a2807e45730"
+    },
+    {
+      "path": "apps/backend/src/modules/scoped-support.ts",
+      "sha256": "a6e7d4aaba148c571208b8909675cd6231dbbcf25af30a750cecb7d333d24b43"
+    },
+    {
+      "path": "apps/backend/src/modules/source-deletion.ts",
+      "sha256": "89899d3017695173b9b2214bc8560238611bd69ed9ce62ed1abbe30a017bed66"
+    },
+    {
+      "path": "apps/backend/src/ports/evidence-selection.ts",
+      "sha256": "aa471df936fc18ff34f343dd353ca5c7ea57f0c280a4f5162b908841e40badfd"
+    },
+    {
+      "path": "apps/backend/src/ports/model.ts",
+      "sha256": "e07a12fac9906cc4eb25e72e9639e5b840f0235680943627b4349a00551dba91"
+    },
+    {
+      "path": "apps/backend/src/worker/assertion-extraction.ts",
+      "sha256": "948620bc8c63b35f9b6da67f0871bb7ff25ccd250a53c77436b57fc9aaeb5541"
+    },
+    {
+      "path": "apps/backend/src/worker/executor.ts",
+      "sha256": "15a200120e08cf0cf9bb270962dda92cc37b79a7196392c4184a3739c3c723b5"
+    },
+    {
+      "path": "apps/backend/src/worker/research-writer.ts",
+      "sha256": "8d353d64f547893681292ab125d57762a5674024030d9848a434328bb82df8d3"
+    },
+    {
+      "path": "apps/backend/src/worker/structured-research.ts",
+      "sha256": "755692c112e37f69d4bc43b3ff1bb00d2a4e0481f70eebb016a6368529116f35"
+    },
+    {
+      "path": "apps/backend/test/eval-live.extraction.test.ts",
+      "sha256": "e3f1c94e20b94c9106c7b5d222a1c84782b1f6834878d01d6b285ac28fec0504"
+    },
+    {
+      "path": "apps/backend/test/evidence-selection.integration.test.ts",
+      "sha256": "3ad59478818f14d1351cd08694d41dac0d27b211e825d130d51dd5b9e9eb31a1"
+    },
+    {
+      "path": "apps/backend/test/model-gateway.integration.test.ts",
+      "sha256": "462920d7ce0966f082cd4ec860138f6f8fbcc688edf8843d209913b39cfbcfcf"
+    },
+    {
+      "path": "apps/backend/test/passage-capacity.integration.test.ts",
+      "sha256": "3e2aebd097854a517c7e0093f4acf981aa4881894debdb49a2fc093dab47a364"
+    },
+    {
+      "path": "apps/backend/test/requested-verification.integration.test.ts",
+      "sha256": "17ed740ac3a7976eeafd356a9888e42159aeb953f2c06e07342d75adcf240ee0"
+    },
+    {
+      "path": "package.json",
+      "sha256": "0058670def9941aa4e0106686bafeac112aec875994360ceaebed1e0aa562b9b"
+    },
+    {
+      "path": "packages/research-core/package.json",
+      "sha256": "a72e2c74ef451e43e9ac461a17a4bb982852952c8ae44c2bf3ecb1a2b3729303"
+    },
+    {
+      "path": "packages/research-core/src/evidence-selection.ts",
+      "sha256": "d25129f87ec5d6bec13f70adcea32a99a72ae04ec3df74d8877710fe369da6f6"
+    },
+    {
+      "path": "packages/research-core/src/index.ts",
+      "sha256": "8caa1d514ba1decfd9897412b3d0a36f653ee4a42cd6af916e8431d5d59c152e"
+    },
+    {
+      "path": "packages/research-core/test/evidence-selection.test.ts",
+      "sha256": "2c878ec9bd1ce2d521819654b00a720aa97230e426e441bb7727bf16d70bd81e"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e"
+    }
+  ]
+}

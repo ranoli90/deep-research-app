@@ -1648,5 +1648,29 @@
     "network": true,
     "paid": false,
     "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py extraction inventory-extraction",
+    "status": "implemented_application_command",
+    "scope": "ADR056 actual isolated extraction and production API/worker controls, fabricated model transports",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py probe inventory-probe",
+    "status": "implemented_application_command",
+    "scope": "ADR056 before/after omitted-contradiction worker control, real PostgreSQL, fabricated model and extraction; paid zero",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/record-inventory.py",
+    "status": "implemented_review_tool",
+    "scope": "Package ADR056 terminal receipts, exact source hashes, retained failure and synthetic correction traces; no execution or semantic scoring",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/record-inventory.py"
   }
 ]

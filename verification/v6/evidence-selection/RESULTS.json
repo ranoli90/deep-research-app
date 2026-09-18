@@ -1,0 +1,425 @@
+{
+  "task": "V6 W01/W02/W03/W05/W06/W08/W09 ADR055 continuation",
+  "baseCommit": "3f22f5b3cd96b85fc78c1843fc9feb1bcb367562",
+  "implementationCommit": "9b0f9e7c86c4c7f6ebcf0082217c44d4516ae12d",
+  "repairCommit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+  "verificationCommit": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+  "recordedAt": "2026-09-18T15:52:18.198215+00:00",
+  "milestoneComplete": false,
+  "commands": [
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "9b0f9e7c86c4c7f6ebcf0082217c44d4516ae12d",
+      "command": [
+        "pnpm",
+        "test:integration"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+        "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T14:58:47.083999+00:00",
+      "finishedAt": "2026-09-18T15:09:12.743958+00:00",
+      "elapsedSeconds": 625.66,
+      "exitCode": 1,
+      "artifact": "verification/v6/evidence-selection/integration.log",
+      "artifactSha256": "0dc30096564c0bc93c1f0d918914f77009cfae52306ddca1116dd6e3ac4ac3ac",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/integration.log.gz",
+      "compressedSha256": "9a53e34102cad9e008c9d9b030d024891e41bacf5a1baf6f8be00aaffe8da6cb",
+      "testSummary": [
+        "Tests 22 \u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        "Test Files  2 failed | 30 passed (32)",
+        "Tests  22 failed | 420 passed (442)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+      "command": [
+        "pnpm",
+        "test:integration"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+        "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:12:34.290792+00:00",
+      "finishedAt": "2026-09-18T15:24:01.548490+00:00",
+      "elapsedSeconds": 687.258,
+      "exitCode": 1,
+      "artifact": "verification/v6/evidence-selection/integration-fixed.log",
+      "artifactSha256": "9e400e56b8c75b2984d863b033d1c1de53957aacf57a04869693f1a979c5b7fa",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/integration-fixed.log.gz",
+      "compressedSha256": "afad9582f7623ef9d1272eb866bf0846e3a68454c4d10ccb34fdf48953b62d78",
+      "testSummary": [
+        "Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        "Test Files  1 failed | 31 passed (32)",
+        "Tests  1 failed | 442 passed (443)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+      "command": [
+        "pnpm",
+        "test:integration"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+        "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:27:26.562097+00:00",
+      "finishedAt": "2026-09-18T15:37:51.312571+00:00",
+      "elapsedSeconds": 624.75,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/integration-final.log",
+      "artifactSha256": "13c7e2ab4db426efbff9502cf45d8869eb752d4f8775524ecac569e6f19afd31",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/integration-final.log.gz",
+      "compressedSha256": "55c6318bfc96b93d265310664ff4b8120f5a91676fd7dedbbe1a6151674793b4",
+      "testSummary": [
+        "Test Files  32 passed (32)",
+        "Tests  443 passed (443)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@deep/backend",
+        "test:extraction"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918",
+        "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime",
+        "EVAL_RUNNER_ARTIFACT_DIR": "/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/extraction-traces"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:13:11.650043+00:00",
+      "finishedAt": "2026-09-18T15:17:14.122605+00:00",
+      "elapsedSeconds": 242.473,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/extraction.log",
+      "artifactSha256": "d6e56fb0abbd4f7f2109fd20aa95ab65e80d7e20d558c8cfe62cd8a5e0407f92",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/extraction.log.gz",
+      "compressedSha256": "f83991a5387cf5316a4abcc32e134d1e0f3971eba587e0615137c0f3ee5ce7a4",
+      "testSummary": [
+        "Test Files  8 passed (8)",
+        "Tests  51 passed (51)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+      "command": [
+        "pnpm",
+        "verify"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:19:06.585742+00:00",
+      "finishedAt": "2026-09-18T15:19:59.538369+00:00",
+      "elapsedSeconds": 52.953,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/verify.log",
+      "artifactSha256": "2dcecad2fccf099470ada0a8245c35054d0742ed49941ecbbc6379a8f9f14e5e",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/verify.log.gz",
+      "compressedSha256": "960b4b004765485a25df37493f7c5a8606181f05ad0fad6250ce001fe8f2c4a6",
+      "testSummary": [
+        "Test Files  16 passed (16)",
+        "Tests  164 passed (164)",
+        "Test Files  22 passed (22)",
+        "Tests  149 passed (149)",
+        "Test Files  22 passed (22)",
+        "Tests  206 passed (206)",
+        "Test Files  1 passed (1)",
+        "Tests  6 passed (6)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "python3",
+        "scripts/validate_review.py"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.181611+00:00",
+      "finishedAt": "2026-09-18T15:46:23.315625+00:00",
+      "elapsedSeconds": 1.134,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/review.log",
+      "artifactSha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/review.log.gz",
+      "compressedSha256": "6a207b7c656332f0a7c3c05e3a02fd49bd7075f72a0d3d6268d0ed7018b2d0e5",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "python3",
+        "scripts/validate_builder_handoff.py"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.241402+00:00",
+      "finishedAt": "2026-09-18T15:46:23.248379+00:00",
+      "elapsedSeconds": 1.007,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/handoff.log",
+      "artifactSha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/handoff.log.gz",
+      "compressedSha256": "9302b148dfbd504e9908706e97c93cd1c5ab3aa720a34457a2862b521cf1ebc6",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_review_validator.py",
+        "-v"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.280104+00:00",
+      "finishedAt": "2026-09-18T15:46:31.392632+00:00",
+      "elapsedSeconds": 9.113,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/review-mutations.log",
+      "artifactSha256": "4bd3d5764239e3cd700144d6ab072205d804799d03a4d3a93301f7e379f719b1",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/review-mutations.log.gz",
+      "compressedSha256": "52477a43a6e317fa22cda3c357637297611d4ad1fb285f6f66d7d86e231c4730",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_builder_handoff.py",
+        "-v"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.317244+00:00",
+      "finishedAt": "2026-09-18T15:46:29.274502+00:00",
+      "elapsedSeconds": 6.957,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/handoff-mutations.log",
+      "artifactSha256": "9df6e055ab897a6549488e8b71e2ded01d045d05f110f3f8d18d4a21fc71d80e",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/handoff-mutations.log.gz",
+      "compressedSha256": "7ef2fc0afa9c73489139e236e0707042c7ae2bb83e91c88dfd6019ade854b80e",
+      "testSummary": []
+    }
+  ],
+  "referenceDiagnostic": {
+    "command": "python3 verification/v6/evidence-selection/diagnose.py",
+    "commit": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+    "exitCode": 1,
+    "environment": {
+      "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+      "python": "3.12.3",
+      "node": "v20.20.2",
+      "pnpm": "9.15.9"
+    },
+    "artifact": "REFERENCE_DIAGNOSTIC.json",
+    "extractionMissingReferences": 0,
+    "selectionMissingReferences": 3,
+    "scope": "reference-span presence in actual saved-document extraction and selected inventory; fabricated model transport; not semantic support or independent human adjudication"
+  },
+  "traces": [
+    {
+      "path": "verification/v6/evidence-selection/official-before/controls.json.gz",
+      "uncompressedSha256": "6c806b0a9d27f92f68385df7510e40927ebf4f37ef8d0afe0ce4918f646e2edd",
+      "sha256": "ad3991cc6d5501e2137bebe45cbff6937e8889e23f7f43088c320bcce84604a2",
+      "bytes": 22926569
+    },
+    {
+      "path": "verification/v6/evidence-selection/extraction-traces/controls.json.gz",
+      "uncompressedSha256": "03a91ca81b51c9992ee8388e2c727c8dc05957a8ce8aa3226ea46676e1228a86",
+      "sha256": "975af5811c14967eedc2eb9bf128165633038bca723459db72f67d2411cf2386",
+      "bytes": 22269905
+    }
+  ],
+  "intermediateEvidence": "INTERMEDIATE_LOGS.json",
+  "intermediateSourceLimitation": "Uncommitted development logs identify HEAD and scope; exact intermediate source snapshots were not retained. Committed full runs and final runtime/test hashes are separate.",
+  "paidSpendMicro": 0,
+  "currentPaidAuthorization": "not established; no paid calls performed",
+  "syntheticUnknownHolds": "Retained by isolated evaluation controls; not real provider spend.",
+  "nativeBuild": null,
+  "hostedOrDeployment": null,
+  "humanAdjudication": null,
+  "semanticScore": null,
+  "unresolved": [
+    "At this baseline commit a known omitted contradiction still publishes a positive limited report; OMITTED_CONTRADICTION.json is a real production-worker failure and blocks safe publication until ADR056 repair is verified.",
+    "ESP32 reference spans are extracted but omitted by the bounded lexical selection (3/8 registered spans missing across the four attempted sources).",
+    "Official saved-document model transports are fabricated and produce no relevant assertions/no report; not a useful-answer pass.",
+    "Selection recall, cross-selection counterevidence and budget-bounded recovery when extraction finds no relevant assertion require further work before claiming the requested general research milestone.",
+    "Current paid authorization and independent adjudication, broader OCR/layout, and applicable W10 native/hosted/release gates remain separate."
+  ],
+  "nextTask": "Verify ADR056 full-inventory support repair against the reproduced omitted contradiction, then improve bounded recovery without tuning to exposed reference answers.",
+  "rollback": "Disable new selection scheduling/admissions if needed; retain admitted policy/proof/obligation readers, legacy logical request identities, publication omission vetoes, account/source deletion, fences, settlement and unknown holds. Never switch admitted policy or recreate missing proof to resend."
+}

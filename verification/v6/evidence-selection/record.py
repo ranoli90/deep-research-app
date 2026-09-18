@@ -26,13 +26,14 @@ for name in sorted(set(paths)):
 # Original raw traces stay intact until their lossless compressed copies are verified.
 trace_files=[]
 for directory in ['official-before','extraction-traces']:
-    for path in sorted((OUT/directory).glob('*.json')):
-        raw=path.read_bytes();target=pathlib.Path(str(path)+'.gz');target.write_bytes(gzip.compress(raw,mtime=0))
+    paths={pathlib.Path(str(p)[:-3]) for p in (OUT/directory).glob('*.json.gz')}|set((OUT/directory).glob('*.json'))
+    for path in sorted(paths):
+        target=pathlib.Path(str(path)+'.gz');raw=path.read_bytes() if path.exists() else gzip.decompress(target.read_bytes());target.write_bytes(gzip.compress(raw,mtime=0))
         if gzip.decompress(target.read_bytes())!=raw:raise SystemExit('Trace compression mismatch')
         trace_files.append({'path':str(target.relative_to(ROOT)),'uncompressedSha256':sha(raw),'sha256':sha(target.read_bytes()),'bytes':len(raw)})
-journey=pathlib.Path('/tmp/deep-selection-journey-final.json')
-if not journey.exists():raise SystemExit('Missing final corrected journey trace')
-raw=journey.read_bytes();(OUT/'corrected-journey.json.gz').write_bytes(gzip.compress(raw,mtime=0));j=json.loads(raw)
+journey=OUT/'corrected-journey-baseline.json.gz'
+if not journey.exists():raise SystemExit('Missing pinned baseline corrected journey trace')
+raw=gzip.decompress(journey.read_bytes());(OUT/'corrected-journey.json.gz').write_bytes(gzip.compress(raw,mtime=0));j=json.loads(raw)
 summary={'evidenceClass':j['evidenceClass'],'sourceCommit':source,'original':j['original'],'revised':j['revised'],'reusedPassages':j['reusedPassages'],'selections':[{'id':s['id'],'runId':s['run_id'],'proofDigest':s['proof_digest'],'result':s['selection']} for s in j['selections']],'paidCostMicro':0,'semanticQuality':None,'fullTrace':'corrected-journey.json.gz','fullTraceSha256':sha((OUT/'corrected-journey.json.gz').read_bytes())}
 (OUT/'JOURNEY_SUMMARY.json').write_text(json.dumps(summary,indent=2)+'\n')
 diag=json.loads((OUT/'REFERENCE_DIAGNOSTIC.json').read_text())

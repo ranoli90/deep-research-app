@@ -1,0 +1,220 @@
+{
+  "task": "W01/W03/W05/W06 ADR056 inventory support repair",
+  "sourceCommit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "recordedAt": "2026-09-18T15:59:50.116845+00:00",
+  "milestoneComplete": false,
+  "commands": [
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "pnpm",
+        "test:integration"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+        "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.167422+00:00",
+      "finishedAt": "2026-09-18T15:59:37.171940+00:00",
+      "elapsedSeconds": 795.005,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/inventory-integration.log",
+      "artifactSha256": "eb68c20091fc6e64b4fc22b5d9d3e0e40c3cf442764c7ff26c538dabf9d150c3",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/inventory-integration.log.gz",
+      "compressedSha256": "f44d60bd149337a4e960e516298da50df1849c7d843ce5896a5be951bd28317d",
+      "testSummary": [
+        "Test Files  32 passed (32)",
+        "Tests  446 passed (446)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@deep/backend",
+        "test:extraction"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918",
+        "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime",
+        "EVAL_RUNNER_ARTIFACT_DIR": "/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/inventory-extraction-traces"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:43.228767+00:00",
+      "finishedAt": "2026-09-18T15:51:27.242010+00:00",
+      "elapsedSeconds": 284.013,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/inventory-extraction.log",
+      "artifactSha256": "f732ba97a0a2d7adf22f3aaac2955913f666ff956d98b21dff8f3c258fa3236a",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/inventory-extraction.log.gz",
+      "compressedSha256": "ed7b9981cf7bcf0cbeca87b5004e7a8c68afc39116503bb8ae80ed0f73443063",
+      "testSummary": [
+        "Test Files  8 passed (8)",
+        "Tests  51 passed (51)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "pnpm",
+        "verify"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:46:22.229667+00:00",
+      "finishedAt": "2026-09-18T15:47:32.039444+00:00",
+      "elapsedSeconds": 69.81,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/inventory-verify.log",
+      "artifactSha256": "a199a3f0ea97fdae1f61cf085f7263e8c28ff26ca5926dfaaf00534ebdb7d29b",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/inventory-verify.log.gz",
+      "compressedSha256": "6e25749fc68ae351d32604af36f4f86e940087800da06e7f8c7055bccf665b02",
+      "testSummary": [
+        "Test Files  16 passed (16)",
+        "Tests  164 passed (164)",
+        "Test Files  22 passed (22)",
+        "Tests  149 passed (149)",
+        "Test Files  22 passed (22)",
+        "Tests  206 passed (206)",
+        "Test Files  1 passed (1)",
+        "Tests  6 passed (6)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@deep/backend",
+        "exec",
+        "tsx",
+        "/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/omitted-contradiction.probe.mts"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T15:51:43.190609+00:00",
+      "finishedAt": "2026-09-18T15:51:50.063202+00:00",
+      "elapsedSeconds": 6.873,
+      "exitCode": 0,
+      "artifact": "verification/v6/evidence-selection/inventory-probe.log",
+      "artifactSha256": "530ff314874634f55e31a592c63121861eb0ae4ba66daaf7dd423db39620a8e0",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/evidence-selection/inventory-probe.log.gz",
+      "compressedSha256": "de1e8126295f745d96d8cb057dddb32f114da664b5ff1752feb89fac77852543",
+      "testSummary": []
+    }
+  ],
+  "probe": {
+    "before": "OMITTED_CONTRADICTION.json",
+    "beforeExitCode": 1,
+    "after": "OMITTED_CONTRADICTION_AFTER.json",
+    "afterExitCode": 0,
+    "cases": [
+      {
+        "large": false,
+        "withheld": true,
+        "contradictionSelected": true,
+        "inventoryDecisions": [
+          "disputed"
+        ]
+      },
+      {
+        "large": true,
+        "withheld": true,
+        "contradictionSelected": false,
+        "inventoryDecisions": [
+          "disputed"
+        ]
+      }
+    ]
+  },
+  "traces": [
+    {
+      "path": "verification/v6/evidence-selection/inventory-extraction-traces/controls.json.gz",
+      "sha256": "a416fc5f39d63b86408d069e790678ed13a9468c38121546fc71ce00b9bd3e64",
+      "uncompressedSha256": "71d409840060153476d252519e62e479349bb46a8c328b6a3b5992c5a498cede"
+    }
+  ],
+  "paidSpendMicro": 0,
+  "currentPaidAuthorization": "unknown; not inferred from historical ledger or credentials",
+  "nativeBuild": null,
+  "hostedOrDeployment": null,
+  "humanAdjudication": null,
+  "semanticScore": null,
+  "unresolved": [
+    "The deterministic inventory guard detects known literal contradictions/qualifications; it is not full semantic comprehension.",
+    "Post-freeze diagnostic still misses three selected reference spans despite preserving their real extracted text.",
+    "Actual useful real-model synthesis, correction/full-rerun agreement and matched quality/cost comparison remain unproven; current monetary authorization is absent.",
+    "Broader OCR/layout and applicable native/hosted identity/release gates remain separate."
+  ],
+  "rollback": "Suspend admissions if necessary; retain the inventory guard for admitted selection-aware results, immutable selection proof/obligations, deletion, fences, provider identities and unknown holds."
+}

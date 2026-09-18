@@ -1,0 +1,32 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+  "command": [
+    "pnpm",
+    "verify"
+  ],
+  "environmentOverrides": {},
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T15:19:06.585742+00:00",
+  "finishedAt": "2026-09-18T15:19:59.538369+00:00",
+  "elapsedSeconds": 52.953,
+  "exitCode": 0,
+  "artifact": "verification/v6/evidence-selection/verify.log",
+  "artifactSha256": "2dcecad2fccf099470ada0a8245c35054d0742ed49941ecbbc6379a8f9f14e5e",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

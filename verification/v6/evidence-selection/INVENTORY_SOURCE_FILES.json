@@ -1,0 +1,45 @@
+{
+  "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "files": [
+    {
+      "path": "apps/backend/migrations/039_selection_inventory_checks.sql",
+      "sha256": "c790430b02136297d8fa794fcdb7ae74d82107352462aaf9d35bc4ab985e3881"
+    },
+    {
+      "path": "apps/backend/src/evaluation/production-driver.ts",
+      "sha256": "75a2e81269fc38851448120a258421af78cedc2b1fc3f427e7799f052b1ce548"
+    },
+    {
+      "path": "apps/backend/src/modules/access.ts",
+      "sha256": "57175dd1499b34c5720017fa3ae71a5b65250ab8868ecf8be161fee25097bae8"
+    },
+    {
+      "path": "apps/backend/src/modules/evidence-selections.ts",
+      "sha256": "fadc71c36909e5d7841f2d07949d68fb76d94ed0eade243e4db7effbc2d11e0d"
+    },
+    {
+      "path": "apps/backend/src/modules/requested-verification.ts",
+      "sha256": "5424394ffa21b93738469c1c0eccfb3c26b1e70ee8da92dd42be900dca518c62"
+    },
+    {
+      "path": "apps/backend/src/modules/scoped-support.ts",
+      "sha256": "ed6b8c8feb7071812feeb5be36ac6b3d467a51233ce8df25b348a31f07a3a49b"
+    },
+    {
+      "path": "apps/backend/src/modules/selection-inventory-support.ts",
+      "sha256": "9cc84d0fdddf0bb4a7ff47565ed39d307b50a65ae313e88d40e7f08f4a713c00"
+    },
+    {
+      "path": "apps/backend/src/modules/source-deletion.ts",
+      "sha256": "dc82232710ee44e64d2c57dc70f38505b70b2e3de777299645aaa627897560d6"
+    },
+    {
+      "path": "apps/backend/test/model-gateway.integration.test.ts",
+      "sha256": "c413e6cf33a2989922046a45f38468f1ba601173b3bd54d5c4b638bd912aacac"
+    },
+    {
+      "path": "apps/backend/test/passage-capacity.integration.test.ts",
+      "sha256": "9081a8dde04530ce7affd733638770f6ba05a7236778e87b85cad9d4c7cf9b95"
+    }
+  ]
+}

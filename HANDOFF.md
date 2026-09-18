@@ -1,8 +1,8 @@
-## ADR056 repair in progress — 2026-09-18
+## ADR055/ADR056 verified checkpoint — 2026-09-18
 
-The ADR055 final baseline at d784c274217a218c0f73f00a4609090fa1b0d5d5 passed443 PostgreSQL tests, but the separate omitted-contradiction probe FAILED publication safety. A new additive full-inventory deterministic support gate now withholds that reproduced claim (probe exit0); focused and full regression checks remain pending. It preserves selected-context receipts and provider identities, only downgrades support, and records a separate claim/proof-bound result. No live model spend, new native build, hosting or deployment. The goal remains incomplete; reference recall still misses3/8 spans and real semantic quality is unproven. ADR056 describes migration039, ownership/deletion and fail-closed rollback. Preserve both before/after probe artifacts.
+Runtime `f0640db7e12d24d96e3ad4eb3334e058c83d523b` adds bounded immutable evidence selection and a separate full-inventory deterministic support veto. Final PostgreSQL446/446 across32files, real isolated extraction51/51, verify164core/149backend/206mobile/6governance/types/boundaries, and committed contradiction probe all pass. Exact commands, elapsed times, source hashes, original failures and source/correction traces: `verification/v6/evidence-selection/INVENTORY_RESULTS.json` and `HANDOFF.md`. Earlier selector baseline443passes did not prove safety: its omitted-contradiction probe failed, and that failure remains preserved separately.
 
-# Builder handoff
+The W01–W09 milestone is still incomplete. Real saved-document reference diagnostic retains3/8 omitted spans; fabricated semantic transports produce no useful report for those official questions. No live model spend/current allowance, new native build, hosted evidence, deployment or push. Next independent implementation: bounded replay-safe recovery after an empty selected-context extraction, preserving whole evidence, immutable paid identities and the inventory veto. Real-model quality/correction/full-rerun comparison requires current project monetary authority; broader OCR/layout and W10 gates stay separate. Rollback suspends new admissions while retaining existing proof/obligation readers, inventory support, ownership/deletion/fences and unknown holds.
 
 ## Current continuation — ADR055
 

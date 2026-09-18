@@ -1,0 +1,36 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "command": [
+    "pnpm",
+    "--filter",
+    "@deep/backend",
+    "exec",
+    "tsx",
+    "/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/omitted-contradiction.probe.mts"
+  ],
+  "environmentOverrides": {},
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T15:51:43.190609+00:00",
+  "finishedAt": "2026-09-18T15:51:50.063202+00:00",
+  "elapsedSeconds": 6.873,
+  "exitCode": 0,
+  "artifact": "verification/v6/evidence-selection/inventory-probe.log",
+  "artifactSha256": "530ff314874634f55e31a592c63121861eb0ae4ba66daaf7dd423db39620a8e0",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

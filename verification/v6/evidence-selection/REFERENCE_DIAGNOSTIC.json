@@ -1,0 +1,216 @@
+{
+  "version": "post-freeze-selection-diagnostic.v1",
+  "sourceCommit": "b5973e4700271aef1ca08895fed074a4318a2d00",
+  "policyCommit": "9b0f9e7c86c4c7f6ebcf0082217c44d4516ae12d",
+  "evidenceClass": "reference-span presence in actual saved-document extraction and selected inventory; fabricated model transport; not semantic support or independent human adjudication",
+  "developerExposure": "References inspected after source policy was committed. These inspected tasks cannot be treated as fresh blind held-out tasks for subsequent selection tuning.",
+  "normalization": "Existing corpus NFKC, physical hyphen linejoin, soft-hyphen removal, Unicode dash/minus canonicalization and whitespace; raw text unchanged. PDFpage references additionally require that exact block page.",
+  "traceSha256": "03a91ca81b51c9992ee8388e2c727c8dc05957a8ce8aa3226ea46676e1228a86",
+  "tasksSha256": "d3ee317d08f54f1e8f354e22bfb2857a021ba8bfdcb48859f0ee6744dfb76d7e",
+  "records": [
+    {
+      "sourceId": "rfc9112",
+      "runId": "24426653-9bbf-4e7c-b754-de3481ee5376",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 46,
+      "selected": 17,
+      "references": [
+        {
+          "taskId": "MC-D04",
+          "split": "development",
+          "reference": {
+            "sourceId": "rfc9112",
+            "publisherLocator": "section6.2;PDFpage18",
+            "exactSpan": "A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.",
+            "interpretation": "Prior parser-development case, intentionally not held-out."
+          },
+          "allPassageMatches": [
+            "950b859d-39b0-4fd7-92da-8338fd973276"
+          ],
+          "selectedPassageMatches": [
+            "950b859d-39b0-4fd7-92da-8338fd973276"
+          ],
+          "matchingBlockPositions": [
+            "page:18/block:0"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "tmp117",
+      "runId": "6ce9fbb2-94ac-4d60-861a-aabd6ca37137",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 50,
+      "selected": 19,
+      "references": [
+        {
+          "taskId": "MC-D05",
+          "split": "development",
+          "reference": {
+            "sourceId": "tmp117",
+            "publisherLocator": "PDFpage1 features;page6 electrical-characteristics table",
+            "exactSpan": "\u00b10.1 \u00b0C (maximum) from \u201320 \u00b0C to 50 \u00b0C",
+            "interpretation": "Narrow original range."
+          },
+          "allPassageMatches": [
+            "39dee1ad-876a-40fd-94ac-677d3b85d85a"
+          ],
+          "selectedPassageMatches": [
+            "39dee1ad-876a-40fd-94ac-677d3b85d85a"
+          ],
+          "matchingBlockPositions": [
+            "page:1/block:0"
+          ]
+        },
+        {
+          "taskId": "MC-D05",
+          "split": "development",
+          "reference": {
+            "sourceId": "tmp117",
+            "publisherLocator": "PDFpage1 features",
+            "exactSpan": "\u00b10.15 \u00b0C (maximum) from \u201340 \u00b0C to 70 \u00b0C",
+            "interpretation": "Wider range exceeds stated requirement."
+          },
+          "allPassageMatches": [
+            "39dee1ad-876a-40fd-94ac-677d3b85d85a"
+          ],
+          "selectedPassageMatches": [
+            "39dee1ad-876a-40fd-94ac-677d3b85d85a"
+          ],
+          "matchingBlockPositions": [
+            "page:1/block:0"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "esp32",
+      "runId": "a67fbd54-3a11-4e2c-a4fe-1ff7148406a4",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 78,
+      "selected": 23,
+      "references": [
+        {
+          "taskId": "MC-H01",
+          "split": "heldout",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage53 table5-6",
+            "exactSpan": "2412",
+            "interpretation": "Lower bound MHz in operating-frequency row."
+          },
+          "allPassageMatches": [
+            "44861449-40d6-4cfb-936c-029b3881564b"
+          ],
+          "selectedPassageMatches": [],
+          "matchingBlockPositions": [
+            "page:53/block:0"
+          ]
+        },
+        {
+          "taskId": "MC-H01",
+          "split": "heldout",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage53 table5-6",
+            "exactSpan": "2484",
+            "interpretation": "Upper bound MHz in same row."
+          },
+          "allPassageMatches": [
+            "44861449-40d6-4cfb-936c-029b3881564b"
+          ],
+          "selectedPassageMatches": [],
+          "matchingBlockPositions": [
+            "page:53/block:0"
+          ]
+        },
+        {
+          "taskId": "MC-H01",
+          "split": "heldout",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage54 table5-6 note1",
+            "exactSpan": "frequency range allocated by regional regulatory authorities",
+            "interpretation": "Band capability does not waive operating restrictions."
+          },
+          "allPassageMatches": [
+            "7da5b9b4-0006-462e-9fe6-6cb621b0e714"
+          ],
+          "selectedPassageMatches": [],
+          "matchingBlockPositions": [
+            "page:54/block:0"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "sqlite-wal",
+      "runId": "a2bbf673-0a8b-4056-838a-180c3fd1acac",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 75,
+      "selected": 73,
+      "references": [
+        {
+          "taskId": "MC-D01",
+          "split": "development",
+          "reference": {
+            "sourceId": "sqlite-wal",
+            "publisherLocator": "#overview",
+            "exactSpan": "WAL does not work over a network filesystem.",
+            "interpretation": "Reject original network-filesystem requirement."
+          },
+          "allPassageMatches": [
+            "89163a54-8747-4858-bac6-228906d58968"
+          ],
+          "selectedPassageMatches": [
+            "89163a54-8747-4858-bac6-228906d58968"
+          ],
+          "matchingBlockPositions": [
+            "list:3"
+          ]
+        },
+        {
+          "taskId": "MC-D01",
+          "split": "development",
+          "reference": {
+            "sourceId": "sqlite-wal",
+            "publisherLocator": "#concurrency",
+            "exactSpan": "there can only be one writer at a time.",
+            "interpretation": "Read/write concurrency is not multi-writer concurrency."
+          },
+          "allPassageMatches": [
+            "3b4043b4-7e83-4a72-9938-894163247347"
+          ],
+          "selectedPassageMatches": [
+            "3b4043b4-7e83-4a72-9938-894163247347"
+          ],
+          "matchingBlockPositions": [
+            "block:10"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    }
+  ],
+  "extractionMissingReferences": 0,
+  "selectionMissingReferences": 3,
+  "humanAdjudication": null,
+  "semanticScore": null,
+  "paidCostMicro": 0,
+  "exitCode": 1
+}

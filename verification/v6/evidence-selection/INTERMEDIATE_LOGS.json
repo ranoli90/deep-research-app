@@ -1,0 +1,137 @@
+[
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-core-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-core.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-correction-diagnostic.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-correction-fixed.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-docs-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-docs.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-focused-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-handoff-check.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-handoff-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-initial.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-official-before.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-proof-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-proof.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-typecheck.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-typecheck2.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-typecheck3.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-verify-complete.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-verify-final.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-verify.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-worker.log.gz",
+    "scope": "intermediate uncommitted development check; HEAD3f22f5b plus active changes; terminal output preserved, no exact intermediate source snapshot"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-full-failure-fix.log.gz",
+    "head": "9b0f9e7c86c4c7f6ebcf0082217c44d4516ae12d",
+    "exitCode": 0,
+    "scope": "focused repair: 11 passed, 161 explicitly deselected",
+    "sourceState": "uncommitted development; exact intermediate snapshot unavailable"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-selection-manifest-fixed.log.gz",
+    "head": "b5973e4700271aef1ca08895fed074a4318a2d00",
+    "exitCode": 0,
+    "scope": "manifest-only focused repair:1pass135explicitly deselected",
+    "sourceState": "uncommitted development; exact intermediate snapshot unavailable"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-inventory-focused.log.gz",
+    "head": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+    "exitCode": 0,
+    "scope": "12 production-worker PostgreSQL regressions; before final added cache restoration test",
+    "sourceState": "uncommitted development; exact intermediate snapshot unavailable"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-inventory-types.log.gz",
+    "head": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+    "exitCode": 0,
+    "scope": "backend typecheck after digest declaration repair",
+    "sourceState": "uncommitted development; exact intermediate snapshot unavailable"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-inventory-probe-after.log.gz",
+    "head": "d784c274217a218c0f73f00a4609090fa1b0d5d5",
+    "exitCode": 0,
+    "scope": "development before/after probe",
+    "sourceState": "uncommitted development; exact intermediate snapshot unavailable"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-inventory-final-review.log.gz",
+    "command": "python3 scripts/validate_review.py",
+    "head": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+    "sourceState": "runtime clean; final evidence/doc changes uncommitted",
+    "exitCode": 0,
+    "scope": "canonical document validator",
+    "environment": "Linux6.14/Python3.12.3",
+    "sha256": "6a207b7c656332f0a7c3c05e3a02fd49bd7075f72a0d3d6268d0ed7018b2d0e5"
+  },
+  {
+    "log": "verification/v6/evidence-selection/deep-inventory-final-handoff.log.gz",
+    "command": "python3 scripts/validate_builder_handoff.py",
+    "head": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+    "sourceState": "runtime clean; final evidence/doc changes uncommitted",
+    "exitCode": 0,
+    "scope": "canonical document validator",
+    "environment": "Linux6.14/Python3.12.3",
+    "sha256": "9302b148dfbd504e9908706e97c93cd1c5ab3aa720a34457a2862b521cf1ebc6"
+  }
+]

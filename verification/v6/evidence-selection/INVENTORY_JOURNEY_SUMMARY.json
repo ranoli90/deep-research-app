@@ -1,0 +1,139 @@
+{
+  "commit": "f0640db7e12d24d96e3ad4eb3334e058c83d523b",
+  "evidenceClass": "synthetic production-worker and real PostgreSQL; fabricated model/extraction receipts",
+  "original": {
+    "id": "38809e9c-92fa-4b1b-92f0-25a0779a0acc",
+    "run_id": "ab7eb635-e588-408e-a675-50b335d38169",
+    "account_id": "bf250ecd-b140-4a95-9536-3478477379af",
+    "version": 1,
+    "outcome": "completed_with_limitations",
+    "basis": {
+      "consentEpoch": 1,
+      "briefRevision": 1,
+      "evidenceRevision": 0,
+      "workerLeaseFence": 1,
+      "cancellationEpoch": 0
+    },
+    "blocks": [
+      {
+        "id": "heading_0",
+        "kind": "heading",
+        "text": "Evidence",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "paragraph_0_0",
+        "kind": "text",
+        "text": "Ardent supports offline recording only on firmware 4.2.",
+        "claimIds": [
+          "f2ba6959-4325-4609-8be7-eebd548e44f6"
+        ],
+        "citationIds": [
+          "d5f8d00e-552f-4ba4-a967-000000000025"
+        ]
+      }
+    ],
+    "claim_ids": [
+      "f2ba6959-4325-4609-8be7-eebd548e44f6"
+    ],
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "This assessment selected 8 of 25 available passages. The 17 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "source_access_summary": [
+      {
+        "title": "Synthetic firmware note",
+        "sourceId": "fbe680b5-cc3a-42b1-a3e1-e5d698e73a65",
+        "accessLevel": "partial-text",
+        "originCluster": "synthetic"
+      }
+    ],
+    "change_summary": null,
+    "route_mode": "controlled-research",
+    "published_at": "2026-09-18T15:56:55.576Z",
+    "redacted_at": null
+  },
+  "revised": {
+    "id": "899b7d3f-94e0-439d-9a95-244bb8454a02",
+    "run_id": "a80aa0e9-5a1a-469a-96fe-d6d32b95c866",
+    "account_id": "bf250ecd-b140-4a95-9536-3478477379af",
+    "version": 1,
+    "outcome": "completed_with_limitations",
+    "basis": {
+      "consentEpoch": 1,
+      "briefRevision": 2,
+      "evidenceRevision": 1,
+      "workerLeaseFence": 1,
+      "cancellationEpoch": 0
+    },
+    "blocks": [
+      {
+        "id": "heading_0",
+        "kind": "heading",
+        "text": "Evidence",
+        "claimIds": [],
+        "citationIds": []
+      },
+      {
+        "id": "paragraph_0_0",
+        "kind": "text",
+        "text": "Ardent does not support underwater recording.",
+        "claimIds": [
+          "341eb6b7-15eb-4b02-9190-fd6127d2e422"
+        ],
+        "citationIds": [
+          "d5f8d00e-552f-4ba4-a967-000000000024"
+        ]
+      }
+    ],
+    "claim_ids": [
+      "341eb6b7-15eb-4b02-9190-fd6127d2e422"
+    ],
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "This assessment selected 8 of 25 available passages. The 17 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "source_access_summary": [
+      {
+        "title": "Synthetic firmware note",
+        "sourceId": "fbe680b5-cc3a-42b1-a3e1-e5d698e73a65",
+        "accessLevel": "partial-text",
+        "originCluster": "synthetic"
+      }
+    ],
+    "change_summary": {
+      "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+      "comparison": {
+        "version": "report-changes.v1",
+        "parentReportId": "38809e9c-92fa-4b1b-92f0-25a0779a0acc",
+        "addedCriterionIds": [],
+        "reportStateChanged": false,
+        "removedCriterionIds": [],
+        "unchangedAssertions": 0,
+        "addedClaimRevisionIds": [
+          "bafa571b-cdba-4757-9780-f2246370f4f1"
+        ],
+        "removedClaimRevisionIds": [
+          "1660aa62-ca27-46c1-b0cb-00bcd0acde83"
+        ],
+        "newlyCitedSourceVersionIds": [],
+        "reusedCitedSourceVersionIds": [
+          "106f12a0-2f42-4a7a-b90a-5c07e6a2a059"
+        ]
+      },
+      "newlyFeasible": [],
+      "evidenceUpdated": false,
+      "newlyInfeasible": [],
+      "conclusionChanged": true
+    },
+    "route_mode": "controlled-research",
+    "published_at": "2026-09-18T15:57:02.443Z",
+    "redacted_at": null
+  },
+  "reusedPassages": 25,
+  "paidCostMicro": 0,
+  "semanticQuality": null,
+  "trace": "inventory-corrected-journey.json.gz",
+  "traceSha256": "4db6dd7ad383945dc53adbfecf428de81ecd61ee0a802bd2bc065eefc1a87b7a"
+}
