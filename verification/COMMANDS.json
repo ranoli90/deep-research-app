@@ -1312,5 +1312,61 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "python3 verification/v6/physical-unlocked/ui.py inspect",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/ui.py"
+  },
+  {
+    "command": "python3 verification/v6/physical-unlocked/picker.py",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/picker.py"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/storage-probe.cjs observe",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/storage-probe.cjs"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/cleanup-prior.cjs",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/cleanup-prior.cjs"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/db-trace.mjs verification/v6/physical-unlocked/before-delete.json",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/db-trace.mjs"
+  },
+  {
+    "command": "pnpm exec tsx verification/v6/physical-unlocked/expire-second.mts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/expire-second.mts"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/auth-recovery.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]

@@ -1,0 +1,30 @@
+[
+  {
+    "text": "Delete account and research?",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[140,1051][940,1127]",
+    "clickable": "false"
+  },
+  {
+    "text": "This removes saved research and cancels active runs. Store subscriptions are managed separately.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[72,1150][1008,1317]",
+    "clickable": "false"
+  },
+  {
+    "text": "CANCEL",
+    "content-desc": "",
+    "class": "android.widget.Button",
+    "bounds": "[345,1328][556,1463]",
+    "clickable": "true"
+  },
+  {
+    "text": "DELETE ACCOUNT",
+    "content-desc": "",
+    "class": "android.widget.Button",
+    "bounds": "[556,1328][974,1463]",
+    "clickable": "true"
+  }
+]

@@ -1,0 +1,268 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,375][1080,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research report",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,420][1035,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "LIVE REPORT",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,487][313,538]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Show concise view",
+    "class": "android.widget.Button",
+    "bounds": "[825,468][987,574]",
+    "clickable": "true"
+  },
+  {
+    "text": "Concise",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[825,468][987,574]",
+    "clickable": "false"
+  },
+  {
+    "text": "Evidence",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[93,574][987,648]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ardent does not support underwater recording.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,715][987,851]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open source 105be8ef",
+    "class": "android.widget.Button",
+    "bounds": "[93,851][479,957]",
+    "clickable": "true"
+  },
+  {
+    "text": "Source 105be8ef",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,851][479,957]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Share report as Markdown",
+    "class": "android.widget.Button",
+    "bounds": "[93,1002][987,1108]",
+    "clickable": "true"
+  },
+  {
+    "text": "Share Markdown",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1002][987,1108]",
+    "clickable": "false"
+  },
+  {
+    "text": "Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1108][989,1380]",
+    "clickable": "false"
+  },
+  {
+    "text": "Optional feedback for this request",
+    "content-desc": "Optional feedback saved with verification",
+    "class": "android.widget.EditText",
+    "bounds": "[93,1380][989,1485]",
+    "clickable": "true"
+  },
+  {
+    "text": "Feedback is saved with the request. The check assesses the selected claim and evidence; it does not assess this note.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1529][989,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Change verification evidence policy",
+    "class": "android.widget.Button",
+    "bounds": "[93,1734][987,1609]",
+    "clickable": "true"
+  },
+  {
+    "text": "Use inspected evidence",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1734][987,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Recheck the answer claim",
+    "class": "android.widget.Button",
+    "bounds": "[93,1840][987,1609]",
+    "clickable": "true"
+  },
+  {
+    "text": "Recheck answer claim",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1840][987,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Flag this generated answer",
+    "class": "android.widget.Button",
+    "bounds": "[93,1946][987,1609]",
+    "clickable": "true"
+  },
+  {
+    "text": "Flag this answer",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1946][987,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Correction",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,2145][1035,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "REVISE THE QUESTION",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[92,2192][988,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "Add documents to this report using the same question and saved evidence. Research will reassess the answer. The total limit is three documents, including existing files.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,2261][989,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Show attachment fields",
+    "class": "android.widget.Button",
+    "bounds": "[0,1609][1080,1738]",
+    "clickable": "true"
+  },
+  {
+    "text": "Attach a file (0/3)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1631][1035,1737]",
+    "clickable": "false"
+  },
+  {
+    "text": "Does Ardent support underwater recording?",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[22,1763][866,1944]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[867,1838][1058,1944]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[912,1860][1013,1921]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,1970][540,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2003][354,2057]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,1970][1080,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2003][871,2057]",
+    "clickable": "false"
+  }
+]

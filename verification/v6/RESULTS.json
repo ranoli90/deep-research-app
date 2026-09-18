@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Frozen-PDF/8MiB implementation committed asd19de6bb277be24b87f7b09324698e3a058ff60e;424PG,47actual extraction/API,verify157/142/200/6 and final backend types pass. Native659c335 evidence retained; milestone incomplete.",
+  "workingTree": "Physical journey completed; ADR053 mobile fixes uncommitted overd19b62a,206mobile/types pass. Paid/independent/hosted gates remain unpassed.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6344,5 +6344,6 @@
   "frozenPdfEvidence": "verification/v6/frozen-pdf-evaluator/RESULTS.json",
   "artifactCapacityEvidence": "verification/v6/artifact-upload-limit/RESULTS.json",
   "frozenPdfIntegratedEvidence": "verification/v6/frozen-pdf-integrated/RESULTS.json",
-  "frozenPdfCleanCheckoutEvidence": "verification/v6/clean-frozen-pdf/RESULTS.json"
+  "frozenPdfCleanCheckoutEvidence": "verification/v6/clean-frozen-pdf/RESULTS.json",
+  "physicalUnlockedEvidence": "verification/v6/physical-unlocked/RESULTS.json"
 }

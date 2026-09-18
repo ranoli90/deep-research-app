@@ -1,0 +1,13 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts test/auth-recovery.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  07:15:21
+   Duration  2.02s (transform 284ms, setup 0ms, import 1.11s, tests 631ms, environment 0ms)
+

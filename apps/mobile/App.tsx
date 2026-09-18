@@ -204,10 +204,10 @@ function AppInner() {
 
   async function startSession() {
     if (token) return token;
-    if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
-    if (!storageReady) throw new Error("Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.");
     let guard: ReturnType<typeof api.capture> | undefined;
     try {
+      if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
+      if (!storageReady) throw new Error("Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.");
       const s = await api.session();
       redactingContent.current = false; api.activateSession(s.token);
       guard = api.capture();
@@ -258,9 +258,15 @@ function AppInner() {
 
   async function onAuthFailure() {
     redactingContent.current = false; stopPolling(); api.activateSession(null); clearPanels();
+    const cleanup = api.capture();
+    setStorageReady(false);
     setToken(null); setState((s) => expireLocalSession(s));
-    try { await clearAccountLocal(sessionStorage); }
-    catch { setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." })); }
+    try {
+      await clearAccountLocal(sessionStorage);
+      if (cleanup.current()) setStorageReady(true);
+    } catch {
+      if (cleanup.current()) setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." }));
+    } finally { cleanup.release(); }
   }
 
   async function refreshRun(t: string, runId: string, openingState?: UiState) {
@@ -287,7 +293,7 @@ function AppInner() {
       });
       if (!guard.current()) throw new SupersededRequest();
       if (invalidated) {
-        setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null } : s);
+        setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null, offline: false } : s);
         redactingContent.current = false; setStorageReady(true); stopPolling();
         return;
       }

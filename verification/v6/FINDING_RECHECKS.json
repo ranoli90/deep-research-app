@@ -141,5 +141,9 @@
     "artifact": "verification/v6/native-current-emulator/RESULTS.json",
     "scope": "Actual debug APK/emulator, actual synthetic PDF/API/worker, fabricated model. Source deletion header and terminal progress regressions repaired. Physical/iOS/hosted-auth/semantic gates remain.",
     "implementationCommit": "659c335cacc4762983661a7dfa52ce9a64f642a4"
+  },
+  "physicalFollowup": {
+    "artifact": "verification/v6/physical-unlocked/RESULTS.json",
+    "scope": "Authorized unlocked REDMI Expo Go synthetic complete two-report journey/deletion/cache isolation, actual parser/fabricated models. ADR053 fixes expired-session readiness and stale offline flag; final native sign-in passes, corrected offline case unit-only. No semantic/standalone/iOS/hosted acceptance."
   }
 }

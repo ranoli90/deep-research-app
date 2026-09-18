@@ -1,0 +1,128 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "Could not refresh this session. Saved content remains on this device; new research is disabled until reconnected.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,375][1080,613]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Saved reports",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,613][1080,2223]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open Untitled",
+    "class": "android.widget.Button",
+    "bounds": "[93,706][987,870]",
+    "clickable": "true"
+  },
+  {
+    "text": "Untitled",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,706][987,780]",
+    "clickable": "false"
+  },
+  {
+    "text": "CANCELLED",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,802][987,853]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open Untitled",
+    "class": "android.widget.Button",
+    "bounds": "[93,1011][987,1175]",
+    "clickable": "true"
+  },
+  {
+    "text": "Untitled",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1011][987,1085]",
+    "clickable": "false"
+  },
+  {
+    "text": "CANCELLED",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1107][987,1158]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2226][540,2347]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2259][353,2313]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2226][1080,2347]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2259][872,2313]",
+    "clickable": "false"
+  }
+]

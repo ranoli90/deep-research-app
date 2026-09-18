@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "value": {
+    "accountId": null,
+    "cleanupAttempted": false,
+    "hasAccount": false,
+    "hasCorrectionDraft": false,
+    "hasDraft": false,
+    "hasPendingAdmission": false,
+    "hasPendingContentInvalidation": false,
+    "hasPendingSourceDeletion": false,
+    "hasPendingVerification": false,
+    "hasPreviousReport": false,
+    "hasReport": false,
+    "hasRun": false,
+    "hasToken": false,
+    "mode": "observe"
+  }
+}

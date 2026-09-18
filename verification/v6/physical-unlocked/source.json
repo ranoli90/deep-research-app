@@ -1,0 +1,205 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Source sheet",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,375][1080,1922]",
+    "clickable": "false"
+  },
+  {
+    "text": "deep-v6-physical-control\u200b.pdf",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[47,422][1033,496]",
+    "clickable": "false"
+  },
+  {
+    "text": "ACCESS: PARTIAL-TEXT \u00b7 COVERAGE: SELECTED_EXTRACTED_BLOCKS",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[47,519][1033,621]",
+    "clickable": "false"
+  },
+  {
+    "text": "Document page 1 \u00b7 block 0",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,638][1032,706]",
+    "clickable": "false"
+  },
+  {
+    "text": "Publisher: uploaded. Publication, effective and retrieval dates unavailable.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,706][1032,842]",
+    "clickable": "false"
+  },
+  {
+    "text": "Field notes: Ardent sensor deployment\nArdent supports offline recording only on firmware 4.2.\nArdent does not support underwater recording.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,842][1032,1114]",
+    "clickable": "false"
+  },
+  {
+    "text": "Extraction: docling-parse-7.20.0/geometry-v1",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1114][1032,1182]",
+    "clickable": "false"
+  },
+  {
+    "text": "pdf_layout_tables_and_ocr_unverified",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1182][1032,1250]",
+    "clickable": "false"
+  },
+  {
+    "text": "This extraction may omit content or structure. The displayed passage does not establish complete document coverage.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1250][1032,1454]",
+    "clickable": "false"
+  },
+  {
+    "text": "EXTRACTED COORDINATES: PDF POINTS; BOTTOM-LEFT ORIGIN. NO PAGE IMAGE OR HIGHLIGHT IS AVAILABLE.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1454][1032,1556]",
+    "clickable": "false"
+  },
+  {
+    "text": "Field notes: Ardent sensor deployment \u2014 50, 737.516, 255.42800000000003, 748.616",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1572][1032,1708]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ardent supports offline recording only on firmware 4.2. \u2014 50, 719.516, 338.1200000000001, 730.616",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1708][1032,1768]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ardent does not support underwater recording. \u2014 50, 701.516, 298.12400000000014, 712.616",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1912][1032,1768]",
+    "clickable": "false"
+  },
+  {
+    "text": "Source version: e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,2048][1032,1768]",
+    "clickable": "false"
+  },
+  {
+    "text": "Original document is not available through a public web link.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,2184][1032,1768]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Delete this source",
+    "class": "android.widget.Button",
+    "bounds": "[48,2321][1032,1768]",
+    "clickable": "true"
+  },
+  {
+    "text": "Delete this source",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,2321][1032,1768]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Close source sheet",
+    "class": "android.widget.Button",
+    "bounds": "[48,1768][1032,1874]",
+    "clickable": "true"
+  },
+  {
+    "text": "Close",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[48,1768][1032,1874]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,1970][540,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2003][354,2057]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,1970][1080,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2003][871,2057]",
+    "clickable": "false"
+  }
+]

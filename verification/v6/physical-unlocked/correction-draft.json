@@ -1,0 +1,205 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,375][1080,1609]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Correction",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,375][1035,1190]",
+    "clickable": "false"
+  },
+  {
+    "text": "Write the complete updated question. Its conclusions will be checked again.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[92,375][988,82]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Use current question",
+    "class": "android.widget.Button",
+    "bounds": "[93,375][987,189]",
+    "clickable": "true"
+  },
+  {
+    "text": "Edit current question",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,375][987,189]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Reuse previously read source versions",
+    "class": "android.widget.RadioButton",
+    "bounds": "[93,375][987,334]",
+    "clickable": "true"
+  },
+  {
+    "text": "\u25cf Reuse previously read source versions",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,375][987,334]",
+    "clickable": "false"
+  },
+  {
+    "text": "Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[92,478][988,716]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Read sources again",
+    "class": "android.widget.RadioButton",
+    "bounds": "[93,375][987,479]",
+    "clickable": "true"
+  },
+  {
+    "text": "\u25cb Read sources again",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,375][987,479]",
+    "clickable": "false"
+  },
+  {
+    "text": "Reserves US$0.10 of research allowance. Your earlier report remains available.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[92,716][988,907]",
+    "clickable": "false"
+  },
+  {
+    "text": "Which firmware supports Ardent offline recording?",
+    "content-desc": "Revised research question",
+    "class": "android.widget.EditText",
+    "bounds": "[92,907][988,1060]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Submit correction",
+    "class": "android.widget.Button",
+    "bounds": "[93,1082][987,1143]",
+    "clickable": "true"
+  },
+  {
+    "text": "Update research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[93,1082][987,1143]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Show attachment fields",
+    "class": "android.widget.Button",
+    "bounds": "[0,1609][1080,1738]",
+    "clickable": "true"
+  },
+  {
+    "text": "Attach a file (0/3)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1631][1035,1737]",
+    "clickable": "false"
+  },
+  {
+    "text": "Does Ardent support underwater recording?",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[22,1763][866,1944]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[867,1838][1058,1944]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[912,1860][1013,1921]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,1970][540,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2003][354,2057]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,1970][1080,2092]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2003][871,2057]",
+    "clickable": "false"
+  }
+]

@@ -1,0 +1,90 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts test/auth-recovery.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ❯ test/auth-recovery.test.ts (5 tests | 5 failed) 383ms
+   × W03 expired-session cleanup blocks sign-in while pending and restores it only after durable success 173ms
+   × W03 failed expired-session cleanup keeps sign-in closed and shows recovery error 68ms
+   × W03 superseded cleanup cannot unlock or overwrite another session 41ms
+   × W07 sign-in readiness denial is visible without admitting a session (false) 50ms
+   × W07 sign-in readiness denial is visible without admitting a session (true) 49ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/auth-recovery.test.ts > W03 expired-session cleanup blocks sign-in while pending and restores it only after durable success
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/auth-recovery.test.ts:26:27
+     24|   const control = recovery(() => new Promise<void>(done => { resolve =…
+     25|   const pending = control.run();
+     26|   expect(control.ready()).toBe(false);
+       |                           ^
+     27|   expect(control.state().signedIn).toBe(false);
+     28|   expect(control.state().draft).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/auth-recovery.test.ts > W03 failed expired-session cleanup keeps sign-in closed and shows recovery error
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/auth-recovery.test.ts:35:27
+     33|   const control = recovery(async () => { throw Error("keychain unavail…
+     34|   await control.run();
+     35|   expect(control.ready()).toBe(false);
+       |                           ^
+     36|   expect(control.state().error).toContain("Device cleanup failed");
+     37| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/auth-recovery.test.ts > W03 superseded cleanup cannot unlock or overwrite another session
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/auth-recovery.test.ts:42:27
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/auth-recovery.test.ts > W07 sign-in readiness denial is visible without admitting a session (false)
+ FAIL  test/auth-recovery.test.ts > W07 sign-in readiness denial is visible without admitting a session (true)
+AssertionError: the given combination of arguments (null and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ test/auth-recovery.test.ts:49:23
+     47|   await expect(run()).rejects.toThrow(message);
+     48|   expect(session).not.toHaveBeenCalled();
+     49|   expect(state.error).toContain(message);
+       |                       ^
+     50|   expect(state.tab).toBe("settings");
+     51| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  07:14:34
+   Duration  1.28s (transform 166ms, setup 0ms, import 743ms, tests 383ms, environment 0ms)
+
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts test/auth-recovery.test.ts`
+Exit status 1

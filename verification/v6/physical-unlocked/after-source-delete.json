@@ -1,0 +1,95 @@
+{
+  "evidenceClass": "native UI / actual local API-worker-PDF-parser / fabricated model",
+  "paidCalls": 0,
+  "accountId": "b19e0195-b244-4e7c-ad43-a6d952441d7e",
+  "capturedAt": "2026-09-18T13:18:15.624Z",
+  "runs": [
+    {
+      "id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "parent_run_id": null,
+      "lifecycle": "terminal",
+      "terminal_outcome": "cancelled",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T13:14:53.113Z",
+      "updated_at": "2026-09-18T13:18:03.785Z",
+      "spent_micro": "7",
+      "original_question": "[source deleted]"
+    },
+    {
+      "id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "parent_run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "lifecycle": "terminal",
+      "terminal_outcome": "cancelled",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T13:16:54.677Z",
+      "updated_at": "2026-09-18T13:18:03.785Z",
+      "spent_micro": "7",
+      "original_question": "[source deleted]"
+    }
+  ],
+  "reports": [
+    {
+      "id": "d9b307d7-ed3b-4204-bcc3-a685f3b7045b",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "outcome": "completed",
+      "blocks": [],
+      "change_summary": null,
+      "published_at": "2026-09-18T13:14:56.665Z",
+      "redacted_at": "2026-09-18T13:18:03.785Z"
+    },
+    {
+      "id": "c5426ce0-8aed-437e-9954-f8de17c6005e",
+      "run_id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "outcome": "completed",
+      "blocks": [],
+      "change_summary": null,
+      "published_at": "2026-09-18T13:16:56.426Z",
+      "redacted_at": "2026-09-18T13:18:03.785Z"
+    }
+  ],
+  "sources": [
+    {
+      "id": "2ac3a1ee-30d3-441b-abc9-a7b373585eab",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "title": "[deleted]",
+      "version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "content_hash": null,
+      "access_level": "blocked",
+      "text_coverage": null
+    }
+  ],
+  "passages": [
+    {
+      "id": "105be8ef-2dee-458a-a5d5-d620d298fb2d",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "exact_text": "[deleted]",
+      "locator": {},
+      "extraction_method": "deleted",
+      "content_hash": "[deleted]"
+    },
+    {
+      "id": "36d116ad-b1df-4870-903d-52d3199459b5",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "exact_text": "[deleted]",
+      "locator": {},
+      "extraction_method": "deleted",
+      "content_hash": "[deleted]"
+    }
+  ],
+  "reads": [],
+  "reuse": [],
+  "intents": [
+    {
+      "state": "confirmed",
+      "count": 14
+    }
+  ],
+  "account": [
+    {
+      "id": "b19e0195-b244-4e7c-ad43-a6d952441d7e",
+      "deleted_at": null
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Demo fixture route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Demo route \u2014 labeled fixture, not live research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,375][1080,1301]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,420][1035,624]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Choose PDF, text or Markdown document",
+    "class": "android.widget.Button",
+    "bounds": "[45,1324][1035,1430]",
+    "clickable": "true"
+  },
+  {
+    "text": "Choose a document",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1324][1035,1430]",
+    "clickable": "false"
+  },
+  {
+    "text": "PDF, text or Markdown, up to 8 MiB. Selected files are sent when you submit and must be selected again if the app closes.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1429][1035,1633]",
+    "clickable": "false"
+  },
+  {
+    "text": "note.txt",
+    "content-desc": "Attachment filename",
+    "class": "android.widget.EditText",
+    "bounds": "[45,1633][1035,1739]",
+    "clickable": "true"
+  },
+  {
+    "text": "Paste a text or Markdown note",
+    "content-desc": "Attachment text",
+    "class": "android.widget.EditText",
+    "bounds": "[45,1760][1035,1866]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Attach pasted note",
+    "class": "android.widget.Button",
+    "bounds": "[45,1888][1035,1994]",
+    "clickable": "true"
+  },
+  {
+    "text": "Attach note (0/3)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1888][1035,1994]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ask with constraints, dates, and what would change the answer",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[22,2019][866,2200]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[867,2094][1058,2200]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[912,2116][1013,2177]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2226][540,2348]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2259][354,2313]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2226][1080,2348]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2259][871,2313]",
+    "clickable": "false"
+  }
+]
