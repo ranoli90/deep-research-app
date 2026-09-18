@@ -27,7 +27,8 @@
       "usesCleartextTraffic": true
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/with-cleartext.js"
     ],
     "experiments": {
       "typedRoutes": false
