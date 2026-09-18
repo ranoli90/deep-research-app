@@ -1,0 +1,46 @@
+[
+  {
+    "path": "HANDOFF.md",
+    "sha256": "e3c4fef33a0fcef1edf5c76c4c0f2310f2878e1ccf2f6c010b11dc6a81c580e0"
+  },
+  {
+    "path": "RESULTS.json",
+    "sha256": "13af7914a58c55f84dfa0998e3329e57ec2f9653a96740269c4bab2bc5ef58c3"
+  },
+  {
+    "path": "android-export.log",
+    "sha256": "1e6a3ba8f39fa5ef5bf4985c1442fb091d3dde9ffbf119748743bd625f6f7099"
+  },
+  {
+    "path": "clone.log",
+    "sha256": "801ed787457be18f4fa65c8e58899916df97098d5e0e0e76a94a9a2bdd336d00"
+  },
+  {
+    "path": "environment.json",
+    "sha256": "148ddb302663c96bc22daefe52bb9d21d20d3b3db64d2b33dfecc7bacdd97d07"
+  },
+  {
+    "path": "export-hashes.json",
+    "sha256": "090300ab8cea5ddabedb695209ef6cf14522c7986d6fe3b566b79475c7434ebe"
+  },
+  {
+    "path": "final-diff.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "final-status.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "install.log",
+    "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932"
+  },
+  {
+    "path": "mobile-types.log",
+    "sha256": "1c7c116aa21e646bdec9e1fb7a006d0122b447c2614ebaa808ff3157ccbc20f1"
+  },
+  {
+    "path": "verify.log",
+    "sha256": "1ff693931e68a495b7ac1a6e193953aaac26bf1651f7dff8cfc37706193a0608"
+  }
+]

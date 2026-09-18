@@ -1064,5 +1064,13 @@
     "scope": "Actual local Fastify authentication/settings/upload/admission + real PostgreSQL + mobile submitAdmission; session flags absent, settings flags boolean, both disabled modes zero writes/upload/admission, both enabled modes actual upload/admission, accepted recovery while flagsdisabled, unauth401, provider intents0; no worker.",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-final-0602f96-android",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Exact0602f96 detached offline Android JavaScript export only",
+    "network": false,
+    "paid": false
   }
 ]

@@ -6296,6 +6296,6 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "b15c3d85a9fe9911db2323dba5de3a369359591d",
+  "latestReviewedImplementationCommit": "0602f96efff0eaa576e7654f08b226ef20108de5",
   "latestEvidencePacket": "verification/v6/html-list-integrated/RESULTS.json"
 }

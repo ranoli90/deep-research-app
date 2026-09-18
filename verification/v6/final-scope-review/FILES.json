@@ -1,0 +1,14 @@
+{
+  "commit": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "verification/v6/final-scope-review/RESULTS.json",
+      "sha256": "54c9b28c2a3d847ed3d07acb4f9cb7299d6b0b5b77579b3f8b7d7a76261ee4f2"
+    },
+    {
+      "path": "verification/v6/final-scope-review/RUNNER_INTERFACE.md",
+      "sha256": "ede1869895e4187965f135d6a3329ede01e82bbc1c739292e3808f35e432f0ca"
+    }
+  ]
+}
