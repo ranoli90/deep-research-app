@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
+/** Whole passages only; serialized byte and model-policy ceilings remain independently enforced. */
+export const MODEL_CONTEXT_MAX_PASSAGES = 128;
+
 /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
 export const ModelContextSchema = z.object({
   question: z.string().min(1).max(20_000),
@@ -8,7 +11,7 @@ export const ModelContextSchema = z.object({
   passages: z.array(z.object({ id: z.string().uuid(), sourceVersionId: z.string().uuid(),
     digest: z.string().regex(/^[a-f0-9]{64}$/), accessLevel: z.enum(["snippet", "abstract", "partial-text", "full-text"]),
     text: z.string().min(1).max(24_000),
-  }).strict()).max(24),
+  }).strict()).max(MODEL_CONTEXT_MAX_PASSAGES),
   sources: z.array(z.object({ handle: z.string().min(1).max(100), title: z.string().max(500) }).strict()).max(40),
   assertions: ResearchModelOutputs.extract_assertions.shape.assertions,
   approvedClaimKeys: z.array(z.string().min(1).max(100)).max(60),

@@ -1,0 +1,75 @@
+{
+  "task": "W04/W05 MC-D01 development extraction-to-model-context capacity control",
+  "baseCommit": "0f0c7c006cdd95e10c0b22a9f6a6991ca1b30691",
+  "workingTreeScope": "Current root includes uncommitted reviewed structure-v3 and passage-capacity128 changes; source hashes below pin executed inputs. Not attributed as committed implementation.",
+  "recordedAt": "2026-09-18T04:51:19.712179+00:00",
+  "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/sqlite-context-capacity/probe.mts",
+  "exitCode": 0,
+  "artifact": "probe.log",
+  "receipt": "context-receipt.json",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "runtime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "evidenceClass": "Actual isolated digital HTML parser plus production prepareModelRequest schema/serialization; synthetic IDs/task only. No model/provider/DB/network or account/key.",
+  "result": {
+    "rawSha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+    "extractor": "trafilatura-2.2.0/structure-v3",
+    "status": "partial",
+    "warnings": [
+      "main_content_extraction_may_omit_regions",
+      "table_order_preserved_separately",
+      "list_order_preserved_separately",
+      "supplemental_lists_may_overlap_main_content"
+    ],
+    "passages": 75,
+    "originalRequestBytes": 54331,
+    "correctedRequestBytes": 54356,
+    "everyWholeBlockRetained": true,
+    "contextRoundtripEqual": true,
+    "unchangedReserveMicro": 21658,
+    "decisiveQuotes": [
+      {
+        "quote": "WAL does not work over a network filesystem.",
+        "locators": [
+          "list:3"
+        ]
+      },
+      {
+        "quote": "there can only be one writer at a time.",
+        "locators": [
+          "block:10"
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Original and corrected question contexts use explicitly synthetic task preparation, not model-produced criteria.",
+    "No production worker, SQL ownership, support assessment, factual answer or correction admission executed.",
+    "Serialized byte/policy fit does not prove tokenizer size, model attention, semantic competence or benchmark quality.",
+    "Frozen corpus and gold unchanged; no heldout inspection or external fetch."
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/backend/extraction/extract.py",
+      "sha256": "5353af33c4a8060780201462d1ec7e2ba7a817b0be8aaadef53fcc95de9a844f"
+    },
+    {
+      "path": "apps/backend/src/adapters/extraction/offline.ts",
+      "sha256": "fcbd210f6bdbc9b47131c1ec43b5b88deee02ff5442f83f70f7c22636cc5dff3"
+    },
+    {
+      "path": "apps/backend/src/adapters/model/openrouter.ts",
+      "sha256": "73759c4f9f9e9faf7108eeea62ee6a010d3c1dced9947ec195ecad42372626f3"
+    },
+    {
+      "path": "apps/backend/src/ports/model.ts",
+      "sha256": "1caed3df75a81d27d6777cee120d149a2c166a4c63b1b91c12657e9d5d82a37c"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+
+ ❯ test/passage-capacity.integration.test.ts (4 tests | 4 failed) 967ms
+   × W05 sends all 25 whole passages including the late firmware limitation, replays, and restores requested verification 314ms
+   × W05 accepts 128 complete small passages at the bounded capacity 202ms
+   × W02 rejects 129 passages / 100 characters before extraction issuance 221ms
+   × W02 rejects 25 passages / 7000 characters before extraction issuance 120ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/passage-capacity.integration.test.ts > W05 sends all 25 whole passages including the late firmware limitation, replays, and restores requested verification
+AssertionError: [{"payload":{}},{"payload":{"taskId":"d637d08b-17ad-43f6-aa08-9d973b158cb9","strategy":"criterion-adaptive.v1","briefRevision":1}},{"payload":{"reason":"invalid_extraction_selection"}}]: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ test/passage-capacity.integration.test.ts:38:192
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/passage-capacity.integration.test.ts > W05 accepts 128 complete small passages at the bounded capacity
+error: duplicate key value violates unique constraint "passages_pkey"
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ setup test/passage-capacity.integration.test.ts:30:73
+     28|  // Stable UUID order makes the limiting statement demonstrably later …
+     29|  const rows=(await pool.query("SELECT id,locator FROM passages WHERE r…
+     30|  for(const row of rows){const i=Number(row.locator.block.split(":")[1]…
+       |                                                                         ^
+     31|  const basis=(await pool.query("SELECT id,content_hash AS digest,exact…
+     32|  const model=matchedDocumentModel(),contexts:Array<{operation:string;c…
+ ❯ test/passage-capacity.integration.test.ts:52:88
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/passage-capacity.integration.test.ts > W02 rejects 129 passages / 100 characters before extraction issuance
+ FAIL  test/passage-capacity.integration.test.ts > W02 rejects 25 passages / 7000 characters before extraction issuance
+error: duplicate key value violates unique constraint "passages_pkey"
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ setup test/passage-capacity.integration.test.ts:30:73
+     28|  // Stable UUID order makes the limiting statement demonstrably later …
+     29|  const rows=(await pool.query("SELECT id,locator FROM passages WHERE r…
+     30|  for(const row of rows){const i=Number(row.locator.block.split(":")[1]…
+       |                                                                         ^
+     31|  const basis=(await pool.query("SELECT id,content_hash AS digest,exact…
+     32|  const model=matchedDocumentModel(),contexts:Array<{operation:string;c…
+ ❯ test/passage-capacity.integration.test.ts:54:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  22:40:39
+   Duration  2.20s (transform 832ms, setup 0ms, import 1.08s, tests 967ms, environment 0ms)
+
+/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts`
+Exit status 1

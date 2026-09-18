@@ -1,0 +1,4 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-html-formatting-0f0c7c0/apps/backend
+> tsc -p tsconfig.json --noEmit
+

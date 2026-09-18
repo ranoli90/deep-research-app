@@ -1,0 +1,12 @@
+{
+  "database-setup.log": "e47909302ff98e688ef074149d2da7ebc7adbd4501b4db3b0ab6a3841c46490f",
+  "verify.log": "a3c116b47ce0f901e5705b9efda52528a0db53353954184338dcc888e7b68de6",
+  "verify-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "checkpoint-assembly-failure.json": "fe247a0d8d537aec9d6b2bbeb0b2b72b174d60ee6fce0444a31345074cceb2c8",
+  "document-controls.json": "d752cd6faa9a04d7bd5bb76b823f579a0f63dcc68d4a5255e088c36166260838",
+  "integration-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "integration.log": "b245439eabfb9e2a84e7c77d9b5dceadc5d6656812700c56f8332e6f3ff668c7",
+  "extraction.log": "7cf1be84066f7859f4d1cdd9980125889f51b6a4e2eb3a3a1ad886e08c39ccef",
+  "RESULTS.json": "c8542de704e4bd086f36d8a251eb16d64fc608ad88465fd071c6966541fc622f",
+  "extraction-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+}

@@ -19,7 +19,15 @@ MAX_BYTES = 8 * 1024 * 1024
 
 
 def normalized(element):
-    return " ".join(" ".join(element.itertext()).split())
+    # itertext() discards source deletion and Trafilatura's <del rend="overstrike">.
+    # Retain the text with an explicit qualification in every main/table copy.
+    parts = [element.text or ""]
+    for child in element:
+        parts.extend((normalized(child) if isinstance(child.tag, str) else "", child.tail or ""))
+    text = " ".join(" ".join(parts).split())
+    if element.tag in ("s", "del", "strike") or "overstrike" in element.get("rend", "").split():
+        return "[struck-through: " + text + "]"
+    return text
 
 
 
@@ -62,6 +70,9 @@ def supplemental_lists(document, main_blocks):
     def inline(node, depth):
         parts = [node.text or ""]
         for child in node:
+            if not isinstance(child.tag, str):
+                parts.append(child.tail or "")
+                continue
             if child.tag in ("ol", "ul"):
                 text = "\n" + render_list(child, depth + 1) + "\n"
             else:
@@ -177,7 +188,7 @@ def extract(request):
     if mime not in ("text/html", "application/xhtml+xml"):
         result.update(status="unavailable", warnings=["unsupported_mime"])
         return result
-    result["version"] = "trafilatura-2.2.0/structure-v2"
+    result["version"] = "trafilatura-2.2.0/structure-v3"
     document = html.fromstring(raw)
     # Scripts, challenge fallbacks and form fields are not documentary content.
     for element in document.xpath("//script|//style|//noscript|//form|//nav|//header|//footer"):

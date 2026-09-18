@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts test/requested-verification.integration.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+
+
+ Test Files  2 passed (2)
+      Tests  40 passed (40)
+   Start at  22:45:21
+   Duration  214.48s (transform 921ms, setup 0ms, import 1.51s, tests 212.66s, environment 0ms)
+

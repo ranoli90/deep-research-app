@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CALCULATED_REPORT_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
 import { projectScopeComparison, draftStatements, resolveScopedSupport, SCOPED_SUPPORT_VERSION, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
+import { MODEL_CONTEXT_MAX_PASSAGES, ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { loadModelOperation, modelInputManifest, validateOwnedModelContext } from "./model-operations.js";
 import { loadAssertionEvidence } from "./assertion-evidence.js";
 import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
@@ -14,7 +14,7 @@ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 export type CheckedAssertion=ScopedSupportResult & {claimId:string;claimRevisionId:string};
 export type SupportContext={context:ModelContext;evidenceRevision:number;premiseRevisionIds?:Record<string,string[]>;claimType?:"inference"};
 export type SupportArgs={runId:string;accountId:string;briefRevision:number;taskId:string;extractionIntentId:string};
-const Manifest = z.object({version:z.literal("model-input.v1"),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(24)});
+const Manifest = z.object({version:z.literal("model-input.v1"),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
 const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
 

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { Queryable } from "../platform/db.js";
-import { ModelContextSchema } from "../ports/model.js";
+import { MODEL_CONTEXT_MAX_PASSAGES, ModelContextSchema } from "../ports/model.js";
 import { briefContext, loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 import { getBrief, getRun } from "./runs.js";
-const Selection = z.array(z.string().uuid()).min(1).max(24).refine((ids) => new Set(ids).size === ids.length);
+const Selection = z.array(z.string().uuid()).min(1).max(MODEL_CONTEXT_MAX_PASSAGES).refine((ids) => new Set(ids).size === ids.length);
 export async function loadAssertionEvidence(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;taskId:string;passageIds:string[]},versions:TaskModelVersions) {
   const selected = Selection.safeParse(args.passageIds);
   if (!selected.success) return { kind:"blocked" as const,blocked:"invalid_extraction_selection" as const };

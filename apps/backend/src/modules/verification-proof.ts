@@ -4,7 +4,7 @@ import { resolveScopedSupport,requestedVerificationOutcome,UNRESOLVED_SECTION,ty
 import type { Queryable } from "../platform/db.js";
 import { getRun,getBrief } from "./runs.js";
 import { loadVerification,verificationDigest } from "./requested-verification.js";
-import { ModelContextSchema,ModelReceiptSchema } from "../ports/model.js";
+import { MODEL_CONTEXT_MAX_PASSAGES,ModelContextSchema,ModelReceiptSchema } from "../ports/model.js";
 import { modelInputManifest,loadModelOperation,validateOwnedModelContext } from "./model-operations.js";
 import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
 import { RESEARCH_MODEL_SCHEMA_VERSION } from "@deep/contracts";
@@ -34,7 +34,7 @@ export async function verificationContext(db:Queryable,args:{runId:string;accoun
   v.access_level AS access,s.id AS source,s.title FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
   JOIN sources s ON s.id=v.source_id WHERE p.run_id=$1 AND p.account_id=$2 AND v.account_id=$2 AND s.account_id=$2
   AND (($3='reuse_snapshot' AND p.id=ANY($4::uuid[])) OR ($3='refresh_sources' AND s.id=ANY($5::uuid[]))) ORDER BY p.id`,[args.runId,args.accountId,saved.evidence_policy,ids,refreshedSourceIds])).rows;
- if(!rows.length||rows.length>24||(saved.evidence_policy==="reuse_snapshot"&&(rows.length!==ids.length||rows.some(p=>saved.target.passages.find(x=>x.id===p.id)?.digest!==p.digest))))throw new Error("verification_evidence_unavailable");
+ if(!rows.length||rows.length>MODEL_CONTEXT_MAX_PASSAGES||(saved.evidence_policy==="reuse_snapshot"&&(rows.length!==ids.length||rows.some(p=>saved.target.passages.find(x=>x.id===p.id)?.digest!==p.digest))))throw new Error("verification_evidence_unavailable");
  const context=ModelContextSchema.parse({question:brief.originalQuestion,task:saved.target.task,
   passages:rows.map(p=>({id:p.id,sourceVersionId:p.version,digest:p.digest,text:p.text,accessLevel:p.access})),
   sources:[...new Map(rows.map(p=>[p.source,{handle:p.source,title:p.title}])).values()],assertions:[saved.target.assertion],approvedClaimKeys:[],draft:null});

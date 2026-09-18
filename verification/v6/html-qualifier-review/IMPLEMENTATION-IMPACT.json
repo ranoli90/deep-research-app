@@ -1,0 +1,7 @@
+{
+  "requirement": "W04 preserve source qualification in every emitted passage/cell",
+  "base": "0f0c7c0 detached isolated clone",
+  "changes": "Marker-aware normalization for source HTML and Trafilatura XML; structure-v3 provenance with v1/v2 readers retained. No new dependency/schema/service/model/prompt. Exact passage digests change only for newly extracted qualified text; old receipts not rewritten.",
+  "risk": "Literal marker becomes extracted source text, remains untrusted; no entailment guarantee. Current table/list/prose order and bounds must remain. Formatting test exact-version expectation updated only to reflect new provenance; older readers explicitly tested.",
+  "rollback": "Disable future v3 scheduling or restore prior writer while retaining v3/v2/v1 readers and existing evidence/provenance. Never reinterpret old receipts as new extraction or erase qualification from already-admitted proof."
+}

@@ -1,0 +1,6 @@
+{
+  "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo",
+  "base": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "prerequisite": "verification/v6/html-list-fidelity/source.patch",
+  "db": "deep_research_lease_clock_v6"
+}

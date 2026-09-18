@@ -1,0 +1,190 @@
+diff --git a/apps/backend/src/modules/assertion-evidence.ts b/apps/backend/src/modules/assertion-evidence.ts
+index c831c41..7691d91 100644
+--- a/apps/backend/src/modules/assertion-evidence.ts
++++ b/apps/backend/src/modules/assertion-evidence.ts
+@@ -1,9 +1,9 @@
+ import { z } from "zod";
+ import type { Queryable } from "../platform/db.js";
+-import { ModelContextSchema } from "../ports/model.js";
++import { MODEL_CONTEXT_MAX_PASSAGES, ModelContextSchema } from "../ports/model.js";
+ import { briefContext, loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
+ import { getBrief, getRun } from "./runs.js";
+-const Selection = z.array(z.string().uuid()).min(1).max(24).refine((ids) => new Set(ids).size === ids.length);
++const Selection = z.array(z.string().uuid()).min(1).max(MODEL_CONTEXT_MAX_PASSAGES).refine((ids) => new Set(ids).size === ids.length);
+ export async function loadAssertionEvidence(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;taskId:string;passageIds:string[]},versions:TaskModelVersions) {
+   const selected = Selection.safeParse(args.passageIds);
+   if (!selected.success) return { kind:"blocked" as const,blocked:"invalid_extraction_selection" as const };
+diff --git a/apps/backend/src/modules/requested-verification.ts b/apps/backend/src/modules/requested-verification.ts
+index b38dd97..a4b8c14 100644
+--- a/apps/backend/src/modules/requested-verification.ts
++++ b/apps/backend/src/modules/requested-verification.ts
+@@ -1,3 +1,4 @@
++import { MODEL_CONTEXT_MAX_PASSAGES } from "../ports/model.js";
+ import { createHash } from "node:crypto";
+ import type pg from "pg";
+ import { z } from "zod";
+@@ -28,7 +29,7 @@ const Source=z.object({id:z.string().uuid(),locator:z.string(),title:z.string(),
+ export const VerificationTargetSchema=z.object({
+  assertion:ResearchModelOutputs.extract_assertions.shape.assertions.element,task:ResearchModelOutputs.brief,
+  parentTaskId:z.string().uuid(),extractionIntentId:z.string().uuid(),supportIntentId:z.string().uuid(),parentBriefRevision:z.number().int(),
+- claimRevisionId:z.string().uuid(),passages:z.array(z.object({id:z.string().uuid(),digest:z.string()}).strict()).min(1).max(24),sources:z.array(Source).min(1).max(24),
++ claimRevisionId:z.string().uuid(),passages:z.array(z.object({id:z.string().uuid(),digest:z.string()}).strict()).min(1).max(MODEL_CONTEXT_MAX_PASSAGES),sources:z.array(Source).min(1).max(24),
+ }).strict();
+ function parseVerificationTarget(raw:unknown){
+  const parsed=VerificationTargetSchema.safeParse(raw);
+diff --git a/apps/backend/src/modules/scoped-support.ts b/apps/backend/src/modules/scoped-support.ts
+index d51412c..cc73240 100644
+--- a/apps/backend/src/modules/scoped-support.ts
++++ b/apps/backend/src/modules/scoped-support.ts
+@@ -6,7 +6,7 @@ import { z } from "zod";
+ import { CALCULATED_REPORT_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
+ import { projectScopeComparison, draftStatements, resolveScopedSupport, SCOPED_SUPPORT_VERSION, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
+ import type { Queryable } from "../platform/db.js";
+-import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
++import { MODEL_CONTEXT_MAX_PASSAGES, ModelReceiptSchema, type ModelContext } from "../ports/model.js";
+ import { loadModelOperation, modelInputManifest, validateOwnedModelContext } from "./model-operations.js";
+ import { loadAssertionEvidence } from "./assertion-evidence.js";
+ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
+@@ -14,7 +14,7 @@ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
+ export type CheckedAssertion=ScopedSupportResult & {claimId:string;claimRevisionId:string};
+ export type SupportContext={context:ModelContext;evidenceRevision:number;premiseRevisionIds?:Record<string,string[]>;claimType?:"inference"};
+ export type SupportArgs={runId:string;accountId:string;briefRevision:number;taskId:string;extractionIntentId:string};
+-const Manifest = z.object({version:z.literal("model-input.v1"),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(24)});
++const Manifest = z.object({version:z.literal("model-input.v1"),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
+ const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
+ const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
+ 
+diff --git a/apps/backend/src/modules/verification-proof.ts b/apps/backend/src/modules/verification-proof.ts
+index 8a79bdb..7988145 100644
+--- a/apps/backend/src/modules/verification-proof.ts
++++ b/apps/backend/src/modules/verification-proof.ts
+@@ -4,7 +4,7 @@ import { resolveScopedSupport,requestedVerificationOutcome,UNRESOLVED_SECTION,ty
+ import type { Queryable } from "../platform/db.js";
+ import { getRun,getBrief } from "./runs.js";
+ import { loadVerification,verificationDigest } from "./requested-verification.js";
+-import { ModelContextSchema,ModelReceiptSchema } from "../ports/model.js";
++import { MODEL_CONTEXT_MAX_PASSAGES,ModelContextSchema,ModelReceiptSchema } from "../ports/model.js";
+ import { modelInputManifest,loadModelOperation,validateOwnedModelContext } from "./model-operations.js";
+ import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+ import { RESEARCH_MODEL_SCHEMA_VERSION } from "@deep/contracts";
+@@ -34,7 +34,7 @@ export async function verificationContext(db:Queryable,args:{runId:string;accoun
+   v.access_level AS access,s.id AS source,s.title FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+   JOIN sources s ON s.id=v.source_id WHERE p.run_id=$1 AND p.account_id=$2 AND v.account_id=$2 AND s.account_id=$2
+   AND (($3='reuse_snapshot' AND p.id=ANY($4::uuid[])) OR ($3='refresh_sources' AND s.id=ANY($5::uuid[]))) ORDER BY p.id`,[args.runId,args.accountId,saved.evidence_policy,ids,refreshedSourceIds])).rows;
+- if(!rows.length||rows.length>24||(saved.evidence_policy==="reuse_snapshot"&&(rows.length!==ids.length||rows.some(p=>saved.target.passages.find(x=>x.id===p.id)?.digest!==p.digest))))throw new Error("verification_evidence_unavailable");
++ if(!rows.length||rows.length>MODEL_CONTEXT_MAX_PASSAGES||(saved.evidence_policy==="reuse_snapshot"&&(rows.length!==ids.length||rows.some(p=>saved.target.passages.find(x=>x.id===p.id)?.digest!==p.digest))))throw new Error("verification_evidence_unavailable");
+  const context=ModelContextSchema.parse({question:brief.originalQuestion,task:saved.target.task,
+   passages:rows.map(p=>({id:p.id,sourceVersionId:p.version,digest:p.digest,text:p.text,accessLevel:p.access})),
+   sources:[...new Map(rows.map(p=>[p.source,{handle:p.source,title:p.title}])).values()],assertions:[saved.target.assertion],approvedClaimKeys:[],draft:null});
+diff --git a/apps/backend/src/ports/model.ts b/apps/backend/src/ports/model.ts
+index 08e916d..93831eb 100644
+--- a/apps/backend/src/ports/model.ts
++++ b/apps/backend/src/ports/model.ts
+@@ -1,6 +1,9 @@
+ import { z } from "zod";
+ import { EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+ 
++/** Whole passages only; serialized byte and model-policy ceilings remain independently enforced. */
++export const MODEL_CONTEXT_MAX_PASSAGES = 128;
++
+ /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
+ export const ModelContextSchema = z.object({
+   question: z.string().min(1).max(20_000),
+@@ -8,7 +11,7 @@ export const ModelContextSchema = z.object({
+   passages: z.array(z.object({ id: z.string().uuid(), sourceVersionId: z.string().uuid(),
+     digest: z.string().regex(/^[a-f0-9]{64}$/), accessLevel: z.enum(["snippet", "abstract", "partial-text", "full-text"]),
+     text: z.string().min(1).max(24_000),
+-  }).strict()).max(24),
++  }).strict()).max(MODEL_CONTEXT_MAX_PASSAGES),
+   sources: z.array(z.object({ handle: z.string().min(1).max(100), title: z.string().max(500) }).strict()).max(40),
+   assertions: ResearchModelOutputs.extract_assertions.shape.assertions,
+   approvedClaimKeys: z.array(z.string().min(1).max(100)).max(60),
+diff --git a/apps/backend/test/passage-capacity.integration.test.ts b/apps/backend/test/passage-capacity.integration.test.ts
+new file mode 100644
+index 0000000..2a2c813
+--- /dev/null
++++ b/apps/backend/test/passage-capacity.integration.test.ts
+@@ -0,0 +1,64 @@
++/** Real PostgreSQL/production worker; fabricated model and extraction receipts, no live semantic claim. */
++import { createHash } from "node:crypto";
++import { afterAll,afterEach,beforeAll,expect,it } from "vitest";
++import type pg from "pg";
++import { CreateRunRequestSchema,CorrectionRequestSchema,RequestedVerificationRequestSchema } from "@deep/contracts";
++import { createPool,migrate,withTx } from "../src/platform/db.js";
++import { loadConfig } from "../src/platform/config.js";
++import { createDevSession,grantConsent,deleteAccount } from "../src/modules/access.js";
++import { admitRun } from "../src/modules/run-admission.js";
++import { admitResearchCorrection } from "../src/modules/research-corrections.js";
++import { admitRequestedVerification,loadVerification } from "../src/modules/requested-verification.js";
++import { insertSource,insertExtractedVersion } from "../src/modules/evidence.js";
++import { getLatestReportForRun } from "../src/modules/reports.js";
++import { processRun } from "../src/worker/executor.js";
++import { matchedDocumentModel } from "./helpers/matched-model.js";
++const url=process.env.TEST_DATABASE_URL!;let pool:pg.Pool;const accounts:string[]=[],originalFetch=globalThis.fetch;
++const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-capacity",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
++const fact="Ardent supports offline recording only on firmware 4.2.";
++beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
++afterEach(async()=>{globalThis.fetch=originalFetch;for(const id of accounts.splice(0))await deleteAccount(pool,id);});
++afterAll(async()=>{await pool.end();});
++async function setup(count:number,size=100,contradiction=false){
++ const accountId=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s.accountId;});accounts.push(accountId);
++ const run=await admitRun(pool,accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research"}));
++ const locator="https://example.org/synthetic-capacity.txt",sourceId=await insertSource(pool,{accountId,runId:run.runId,locator,title:"Synthetic firmware note",publisher:"Synthetic",originCluster:"synthetic",sourceType:"web"});
++ const texts=Array.from({length:count},(_,i)=>i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
++ await insertExtractedVersion(pool,{accountId,runId:run.runId,sourceId,bytes,receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:texts.map((text,i)=>({kind:"text",locator:`paragraph:${i}`,text,rows:[]}))}});
++ // Stable UUID order makes the limiting statement demonstrably later than the former 24-passages boundary.
++ const prefix=crypto.randomUUID().slice(0,24);
++ const rows=(await pool.query("SELECT id,locator FROM passages WHERE run_id=$1",[run.runId])).rows;
++ for(const row of rows){const i=Number(row.locator.block.split(":")[1]);await pool.query("UPDATE passages SET id=$2 WHERE id=$1",[row.id,`${prefix}${String(i+1).padStart(12,"0")}`]);}
++ const basis=(await pool.query("SELECT id,content_hash AS digest,exact_text AS text,source_version_id AS version FROM passages WHERE run_id=$1 ORDER BY id",[run.runId])).rows;
++ const model=matchedDocumentModel(),contexts:Array<{operation:string;context:any}>=[];
++ globalThis.fetch=async(input,init)=>{const body=JSON.parse(String(init?.body));if(body.plugins?.length)return new Response(JSON.stringify({id:"nonbillable-empty-search",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[]}}]}));contexts.push({operation:body.response_format.json_schema.name,context:JSON.parse(body.messages[1].content)});return model.transport(input,init);};
++ return{accountId,run,basis,contexts,model};
++}
++it("W05 sends all 25 whole passages including the late firmware limitation, replays, and restores requested verification",async()=>{
++ const x=await setup(25);await processRun(pool,config,x.run.runId);
++ const report=await getLatestReportForRun(pool,x.run.runId,x.accountId);expect(report,JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1",[x.run.runId])).rows)).toBeTruthy();
++ const extraction=x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context;
++ expect(extraction.passages.map((p:any)=>({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId}))).toEqual(x.basis);
++ expect(extraction.passages[24].text).toBe(fact);
++ for(const operation of ["research_assess_support_v1","research_write_report_v1"]){const c=x.contexts.find(c=>c.operation===operation)!.context;expect(c.passages).toEqual(extraction.passages);expect(c.passages[24].text).toBe(fact);}
++expect(report!.blocks.map((b:any)=>b.text).join("\n")).toContain(fact);
++ const calls=x.contexts.length;await processRun(pool,config,x.run.runId);expect(x.contexts).toHaveLength(calls);
++ const check=await admitRequestedVerification(pool,config,x.accountId,x.run.runId,RequestedVerificationRequestSchema.parse({version:"requested-verification.v1",reportId:report!.id,reportVersion:report!.version,claimId:report!.claim_ids[0],evidencePolicy:"reuse_snapshot",idempotencyKey:crypto.randomUUID(),note:""}));
++ await processRun(pool,config,check.runId);expect(await getLatestReportForRun(pool,check.runId,x.accountId)).toBeTruthy();
++ expect((await loadVerification(pool,{runId:check.runId,accountId:x.accountId,briefRevision:check.briefRevision})).target.passages).toEqual(x.basis.map(p=>({id:p.id,digest:p.digest})));
++ const checked=x.contexts.at(-1)!.context;expect(checked.passages.map((p:any)=>p.id)).toEqual(x.basis.map(p=>p.id));expect(checked.passages[24].text).toBe(fact);
++ const correction=await admitResearchCorrection(pool,x.accountId,x.run.runId,CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Clarify exact firmware",patch:{kind:"replace_question",question:"What exact firmware supports Ardent offline recording?",evidencePolicy:"reuse_snapshot"}}));
++ await processRun(pool,{...config,structuredDiscoveryEnabled:true},correction.runId);expect(await getLatestReportForRun(pool,correction.runId,x.accountId)).toBeTruthy();
++ const corrected=x.contexts.filter(c=>c.operation==="research_extract_assertions_v1").at(-1)!.context;
++ expect(corrected.passages).toEqual(extraction.passages);
++});
++it("W05 accepts 128 complete small passages at the bounded capacity",async()=>{const x=await setup(128);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();expect(x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context.passages).toHaveLength(128);},120_000);
++it.each([{count:129,size:100,reason:"invalid_extraction_selection"},{count:25,size:7000,reason:"model_context_exceeds_policy"}])("W02 rejects $count passages / $size characters before extraction issuance",async({count,size,reason})=>{
++ const x=await setup(count,size);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
++ expect(x.contexts.map(c=>c.operation)).toEqual(["research_brief_v1"]);
++ const operations=(await pool.query("SELECT operation FROM model_operation_results WHERE run_id=$1",[x.run.runId])).rows;expect(operations).toEqual([{operation:"brief"}]);
++ expect((await pool.query("SELECT count(*)::int AS n FROM provider_intents WHERE run_id=$1",[x.run.runId])).rows[0].n).toBe(1);
++ expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1",[x.run.runId])).rows)).toContain(reason);
++});
++
++it("W01 observes a contradiction at passage25 and cannot publish the positive claim",async()=>{const x=await setup(25,100,true);await processRun(pool,config,x.run.runId);const support=x.contexts.find(c=>c.operation==="research_assess_support_v1");expect(support,JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1",[x.run.runId])).rows)).toBeTruthy();const assessment=support!.context;expect(assessment.passages).toHaveLength(25);expect(assessment.passages[24].text).toBe("Ardent does not support offline recording on firmware 4.2.");expect((await pool.query("SELECT decision FROM scoped_support_results WHERE run_id=$1",[x.run.runId])).rows).toEqual([{decision:"disputed"}]);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();});
+diff --git a/apps/backend/test/passage-capacity.unit.test.ts b/apps/backend/test/passage-capacity.unit.test.ts
+new file mode 100644
+index 0000000..d10c7ec
+--- /dev/null
++++ b/apps/backend/test/passage-capacity.unit.test.ts
+@@ -0,0 +1,13 @@
++import { expect,it } from "vitest";
++import { ModelContextSchema,MODEL_CONTEXT_MAX_PASSAGES } from "../src/ports/model.js";
++import { prepareModelRequest } from "../src/adapters/model/openrouter.js";
++import { STRUCTURED_MODEL_POLICY,STRUCTURED_CALL_RESERVE_MICRO } from "../src/ports/model-policy.js";
++const context=(count:number,length=50)=>({question:"Explain documented restrictions.",task:null,passages:Array.from({length:count},()=>({id:crypto.randomUUID(),sourceVersionId:crypto.randomUUID(),digest:"a".repeat(64),accessLevel:"partial-text",text:"x".repeat(length)})),sources:[],assertions:[],approvedClaimKeys:[],draft:null});
++it("W02 bounded capacity keeps each entire passage, pricing and serialized request limits",()=>{
++ expect(MODEL_CONTEXT_MAX_PASSAGES).toBe(128);const input=context(128),request=prepareModelRequest("extract_assertions",input),body=JSON.parse(request.body);
++ expect(JSON.parse(body.messages[1].content).passages).toEqual(input.passages);expect(Buffer.byteLength(request.body)).toBeLessThanOrEqual(STRUCTURED_MODEL_POLICY.contextTokens);
++ expect(body.max_tokens).toBe(4096);expect(body.provider.max_price).toEqual({prompt:0.15,completion:0.6,request:0});expect(STRUCTURED_CALL_RESERVE_MICRO).toBe(21658);
++ expect(ModelContextSchema.safeParse(context(129)).success).toBe(false);expect(ModelContextSchema.safeParse(context(1,24001)).success).toBe(false);
++ expect(()=>prepareModelRequest("extract_assertions",context(25,7000))).toThrow("model_context_exceeds_policy");
++ expect(()=>prepareModelRequest("extract_assertions",context(25,11000))).toThrow("model_context_too_large");
++});

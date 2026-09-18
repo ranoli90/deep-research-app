@@ -1,3 +1,4 @@
+import { MODEL_CONTEXT_MAX_PASSAGES } from "../ports/model.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
@@ -28,7 +29,7 @@ const Source=z.object({id:z.string().uuid(),locator:z.string(),title:z.string(),
 export const VerificationTargetSchema=z.object({
  assertion:ResearchModelOutputs.extract_assertions.shape.assertions.element,task:ResearchModelOutputs.brief,
  parentTaskId:z.string().uuid(),extractionIntentId:z.string().uuid(),supportIntentId:z.string().uuid(),parentBriefRevision:z.number().int(),
- claimRevisionId:z.string().uuid(),passages:z.array(z.object({id:z.string().uuid(),digest:z.string()}).strict()).min(1).max(24),sources:z.array(Source).min(1).max(24),
+ claimRevisionId:z.string().uuid(),passages:z.array(z.object({id:z.string().uuid(),digest:z.string()}).strict()).min(1).max(MODEL_CONTEXT_MAX_PASSAGES),sources:z.array(Source).min(1).max(24),
 }).strict();
 function parseVerificationTarget(raw:unknown){
  const parsed=VerificationTargetSchema.safeParse(raw);

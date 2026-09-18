@@ -1,0 +1,133 @@
+{
+  "algorithm": "sha256",
+  "sourceCommit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "artifacts": [
+    {
+      "path": "verification/v6/passage-capacity/HANDOFF.md",
+      "sha256": "2f7077b37bd6e4af0e34bbc8a01ff8bbf2de22250f4c40cecce8eac2b41f024b",
+      "bytes": 3603
+    },
+    {
+      "path": "verification/v6/passage-capacity/IMPACT.md",
+      "sha256": "9f5db0812dc4fc1ea854b8d4383535bb680027bec0188c7dbf2b45f558a2da26",
+      "bytes": 840
+    },
+    {
+      "path": "verification/v6/passage-capacity/RESULTS.json",
+      "sha256": "fbf4af038bc07fd96da4b1e1778b1f857b368e84075a15afb2805fe8034039fb",
+      "bytes": 5342
+    },
+    {
+      "path": "verification/v6/passage-capacity/SETUP.json",
+      "sha256": "70b92f4cbcb212e7a8ca1b43cab69f6e0f7ba4cd28e6f2f2c05f77d1d0764d1e",
+      "bytes": 221
+    },
+    {
+      "path": "verification/v6/passage-capacity/after-first.log",
+      "sha256": "05c4a461933b9066cd27051e0e2be3df8a5dead2d50ded87f6b91b4678459fdc",
+      "bytes": 3440
+    },
+    {
+      "path": "verification/v6/passage-capacity/after-second.log",
+      "sha256": "e738a3d81931038896288b40756ba84c8615f27c30f9ce801425bd992e7b9e81",
+      "bytes": 1419
+    },
+    {
+      "path": "verification/v6/passage-capacity/before-corrected-fixture.log",
+      "sha256": "71c2dccbd01fbed088c5b65e3ec51e36b44f71297d5a175fee60eac4073a418d",
+      "bytes": 2998
+    },
+    {
+      "path": "verification/v6/passage-capacity/before-late-contradiction-explicit.log",
+      "sha256": "bf74c8e606feaf6799490701dc59ab124ee7a6f12706f9b2d700b9cc7da253cf",
+      "bytes": 1523
+    },
+    {
+      "path": "verification/v6/passage-capacity/before-late-contradiction.log",
+      "sha256": "c302e9ada9a89eca4cc6aaeb7fb1874b76fef90741c161f4568266479e3341a6",
+      "bytes": 1313
+    },
+    {
+      "path": "verification/v6/passage-capacity/before.log",
+      "sha256": "10dcbfe7dd2b16bebca349e22cd6c58e92ad70c00daf67fd60baac0c6b497bc5",
+      "bytes": 3716
+    },
+    {
+      "path": "verification/v6/passage-capacity/boundaries.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2",
+      "bytes": 14
+    },
+    {
+      "path": "verification/v6/passage-capacity/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/v6/passage-capacity/final-integration.log",
+      "sha256": "1a596194c80b20238e95c067b7455d70b6b83b53aa73c145ef85916c87d5536a",
+      "bytes": 480
+    },
+    {
+      "path": "verification/v6/passage-capacity/install.log",
+      "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932",
+      "bytes": 330
+    },
+    {
+      "path": "verification/v6/passage-capacity/source.patch",
+      "sha256": "7b6c3b26fb7ddebddafa24f5eecab8e4ce737017440098290101f09fe2095161",
+      "bytes": 19465
+    },
+    {
+      "path": "verification/v6/passage-capacity/typecheck-final.log",
+      "sha256": "e0e493dc453ace1dd07fe5f0c03b9402458b7d97d475e0232cadca05dc871928",
+      "bytes": 120
+    },
+    {
+      "path": "verification/v6/passage-capacity/typecheck.log",
+      "sha256": "e0e493dc453ace1dd07fe5f0c03b9402458b7d97d475e0232cadca05dc871928",
+      "bytes": 120
+    },
+    {
+      "path": "verification/v6/passage-capacity/unit.log",
+      "sha256": "777072ec0fd5aa28b0fd78c8e0eaf52a0a3f6b0c8531cb263db5c025b7f35b5c",
+      "bytes": 404
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/backend/src/ports/model.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/src/ports/model.ts",
+      "sha256": "1caed3df75a81d27d6777cee120d149a2c166a4c63b1b91c12657e9d5d82a37c"
+    },
+    {
+      "path": "apps/backend/src/modules/assertion-evidence.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/src/modules/assertion-evidence.ts",
+      "sha256": "50d737e965a4fd0ed640ca131e4ae6d67e125d6d519d9129dc6445b8e97725fd"
+    },
+    {
+      "path": "apps/backend/src/modules/scoped-support.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/src/modules/scoped-support.ts",
+      "sha256": "902f749653047e76291a8d37dc44206062fa92a5e373fdb76cf31d7a425aa592"
+    },
+    {
+      "path": "apps/backend/src/modules/requested-verification.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/src/modules/requested-verification.ts",
+      "sha256": "0665f0a7ed65e6467acda200348bc872861957b9806d26c76d9ff9a5179dc51f"
+    },
+    {
+      "path": "apps/backend/src/modules/verification-proof.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/src/modules/verification-proof.ts",
+      "sha256": "9adc18549081cdc0a7cc80505990f04123db3986eaf12f38ec44792e1c24787d"
+    },
+    {
+      "path": "apps/backend/test/passage-capacity.integration.test.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/test/passage-capacity.integration.test.ts",
+      "sha256": "176c9ed3f35fde811eb43b08f710a3a7de0ae88586ccb402d1d910463861a61e"
+    },
+    {
+      "path": "apps/backend/test/passage-capacity.unit.test.ts",
+      "clone": "/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend/test/passage-capacity.unit.test.ts",
+      "sha256": "4820f7d89014cbe00cfa832679866062de052fd9b46a0913ce8b5c43030b366b"
+    }
+  ]
+}

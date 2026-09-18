@@ -5,7 +5,7 @@ function guide(list:string,extra=""){return Buffer.from(`<html><body><h1>Operati
 for(const tag of ["ol","ul"])it(`W04 preserves generic ${tag} restrictions omitted by main-content heuristics`,async()=>{
  const result=await extractOffline(guide(`<${tag}><li>All nodes must share the same host; remote storage is unsupported.</li><li>Atomic changes apply within each database, not across databases.</li></${tag}>`),"text/html");
  const text=result.blocks.map(b=>b.text).join("\n");expect(text).toContain("remote storage is unsupported");expect(text).toContain("not across databases");
- expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v2");
+ expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v3");
  const list=result.blocks.find(b=>b.locator.startsWith("list:"));expect(list?.text).toContain("Deployment restrictions apply");
  expect(list!.text.indexOf("remote storage")).toBeLessThan(list!.text.indexOf("Atomic changes"));
 });
@@ -23,5 +23,5 @@ it("W04 bounded list supplementation labels omissions and keeps old extractor ve
  const result=await extractOffline(guide(`<ol><li><s>Deprecated restriction.</s> Current replacement follows.</li>${Array.from({length:1100},(_,i)=>`<li>Distinct restriction ${i} must remain a scoped limitation.</li>`).join("")}</ol>`),"text/html");
  expect(result.status).toBe("partial");expect(result.warnings).toContain("supplemental_list_limit_reached");
  expect(result.blocks.filter(b=>b.locator.startsWith("list:")).map(b=>b.text).join("\n").length).toBeLessThanOrEqual(250000);
- expect(ExtractedDocument.safeParse({...result,version:"trafilatura-2.2.0/structure-v1"}).success).toBe(true);
+ for(const version of ["trafilatura-2.2.0/structure-v1","trafilatura-2.2.0/structure-v2"])expect(ExtractedDocument.safeParse({...result,version}).success).toBe(true);
 });

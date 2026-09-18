@@ -1,0 +1,86 @@
+{
+  "task": "W04 consistent struck-through qualification repair",
+  "baseCommit": "0f0c7c006cdd95e10c0b22a9f6a6991ca1b30691",
+  "clone": "/tmp/deep-html-formatting-0f0c7c0",
+  "recordedAt": "2026-09-18T04:45:51.813177+00:00",
+  "sourceFiles": [
+    "apps/backend/extraction/extract.py",
+    "apps/backend/src/adapters/extraction/offline.ts",
+    "apps/backend/test/html-lists.extraction.test.ts",
+    "apps/backend/test/html-formatting.extraction.test.ts"
+  ],
+  "patch": "source.patch",
+  "rootSourceMutation": false,
+  "receipts": [
+    {
+      "command": "pnpm install --offline --ignore-scripts --frozen-lockfile",
+      "exitCode": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts",
+      "exitCode": 1,
+      "artifact": "formatting-before.log",
+      "scope": "Nine failures reproduce lost strike qualification across s/del/strike in prose/list/table, before fix."
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts test/pdf.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "formatting-after.log",
+      "scope": "21/21 initial fixed controls."
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts test/pdf.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "formatting-final.log",
+      "scope": "22/22 in25.05s after preserving HTML comment exclusion and adding control."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck.log",
+      "scope": "Initial isolated fixed source typecheck; final added test/source comment handling also emitted no errors in typecheck-final.log."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck followed by node scripts/check-boundaries.mjs and git diff --check",
+      "exitCode": 0,
+      "artifact": "diff-check.log",
+      "scope": "Combined shell final exit0; final typecheck log has no errors and boundary log says boundaries=ok."
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts",
+      "exitCode": 1,
+      "artifact": "list-comment-before.log",
+      "scope": "Primary review additional same-scope defect reproduced:1failure/10passes; v2 supplemental list promoted HTML comment content."
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts test/pdf.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "formatting-comment-final.log",
+      "scope": "Final23/23 controls; non-element comment content skipped and following tail retained in supplemental list too."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck-comment-final.log"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "runtime": "/tmp/deep-v6-extraction-runtime",
+    "vitest": "4.1.11"
+  },
+  "change": "Recursive source/XML normalization marks s/del/strike and Trafilatura overstrike rend, retaining current text/order and excluding comments. Main/table/cell/footnote/caption copies use the same rule; existing supplemental list markers remain. New outputs structure-v3; v1/v2 accepted. Supplemental inline rendering also excludes non-element/comment text while retaining child tail, with explicit failing-before/passing-after list regression.",
+  "impact": "See IMPLEMENTATION-IMPACT.json. No dependency/model/prompt/schema/network authority change. Existing list current-version assertion updates to v3, old-version compatibility strengthened; no semantic assertion removed.",
+  "limitations": [
+    "Actual extraction only; no real-model answer/support quality claim.",
+    "Existing passage-count context cap is unrelated and remains for primary capacity task.",
+    "No DB, heldout, gold, live provider, native, commit or root source edit."
+  ],
+  "rollback": "Disable new extraction scheduling if necessary while retaining readers for immutable v3/v2/v1 evidence and deletion/publication safeguards. Old receipts remain unchanged."
+}

@@ -1,0 +1,5 @@
+{
+  "scope": "checkpoint assembly only",
+  "failure": "Initial explicit git add used nonexistent passage-capacity.test.ts instead of passage-capacity.unit.test.ts; exited128. Subsequent calls mistakenly committed evidence only. Primary corrected staging and amended that unpublished own checkpoint before recording implementation SHA.",
+  "validation": "All-staged diff check also reported raw log EOF blanks and unified-patch context whitespace; raw evidence retained byte-for-byte. Source/document diff check is recorded separately. No application/test result changed."
+}
