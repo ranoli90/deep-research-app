@@ -1872,5 +1872,13 @@
     "network": true,
     "paid": true,
     "scope": "Fresh MC-D01 comparison on disclosed Azure ZDR route, same $0.40 aggregate cap, preserved prior failures, no retry of old actions"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/zdr-route/check-cost.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/zdr-route/check-cost.mts",
+    "network": true,
+    "paid": false,
+    "scope": "Read-only generation receipt and current key quota; does not settle or retry the timed-out request"
   }
 ]

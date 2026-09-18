@@ -368,3 +368,5 @@ ADR057 / W05 empty extraction recovery: new runs carry empty-selection-recovery.
 ## ZDR route continuation — 2026-09-18
 
 Structured runs persist immutable model_policy_id (ADR059/migration041). New configured Azure-ZDR runs use Azure at the same model/tariff, require ZDR, disable fallback and carry the policy through task/support/publication/financial bindings. Children inherit policy; historical OpenAI request identities are unchanged. Public discovery keeps its separate policy.
+
+ADR060: explicit Azure exact-quote-v2 policy resolves only unique unchanged quotations within their original question/passage, records original/resolved coordinates in an intent-bound event, then runs unchanged schema/binding/support/publication validation. Legacy policies remain strict without coordinate resolution.

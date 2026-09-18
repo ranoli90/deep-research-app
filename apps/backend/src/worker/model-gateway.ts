@@ -3,8 +3,10 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation } from "@deep/contracts";
-import { validateModelBindings } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
+import { AZURE_ZDR_EXACT_QUOTE_POLICY } from "../ports/model-policy.js";
+import { emitEvent } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, type ModelResult } from "../ports/model.js";
@@ -57,13 +59,21 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     await updateIntentState(db, attempt.intentId, result.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", result.receipt.actualMicro ?? undefined);
     await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [attempt.intentId, JSON.stringify(result.receipt)]);
   });
+  let resolvedSpans: SpanResolution[] = [];
   if (result.status === "succeeded") {
+    if (policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id) {
+      const resolved = resolveModelSpans(args.operation, result.output, context);
+      result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    }
     const errors = validateModelBindings(args.operation, result.output, context);
     if (errors.length) result = { status: "invalid_output", reason: errors.join(","), receipt: result.receipt };
   }
   await session.write(async (db) => {
     await validateOwnedModelContext(db, { ...args, context });
     await saveModelOperation(db, { ...args, intentId: attempt.intentId, request, result, context });
+    if (resolvedSpans.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"model_span_resolution",phase:"verifying",
+      summary:"Exact quoted text was located within its original question or passage.",
+      payload:{version:"unique-exact-quote-offsets.v1",intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,resolutions:resolvedSpans}});
   });
   return { kind: "result", intentId: attempt.intentId, reused: false, result };
 }

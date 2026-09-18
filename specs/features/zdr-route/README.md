@@ -9,3 +9,5 @@ Impact checklist: one additive PostgreSQL migration; internal model policy regis
 Tests: old bytes/replay, new Azure request pin and mismatched-provider rejection, admission/correction inheritance, unsupported policy before cost, both policies through actual PostgreSQL writer/support/publication controls, receipt reconciliation routed by immutable policy. Live comparison must retain earlier404 failures and use the same route in both arms. Do not reissue old unknown attempts.
 
 Rollback: disable new Azure admission; retain both immutable policy readers, consent and financial records. Never reinterpret an admitted run's policy or remove privacy gates.
+
+Live follow-on (ADR060): first Azure response had invalid exact offsets; new opt-in v2 policy adds deterministic unique-exact coordinate resolution with an audit event and unchanged post-transform validation. No source text or authority is changed. The second live request timed out and retains its reserve.

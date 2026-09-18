@@ -77,14 +77,14 @@ it("records a new opaque provider failure and retains its real reservation witho
  try{const r=await runMatched(plan,x.driver,async e=>{events.push(e)});expect(r.halted).toBe("unknown_or_incomplete_run");expect(provider).toHaveBeenCalledOnce();const result=events.find(e=>e.event==="result").receipt;expect(result.reportId).toBeNull();expect(result.cost.heldMicro).toBeGreaterThan(0);expect(result.cost.unknownIntents).toBe(1);expect(result.trace.attempts).toHaveLength(1);expect(events.filter(e=>e.event==="unrun")).toHaveLength(3);}finally{await x.driver.close();}
 },30000);
 
-it.each([["pdf","openrouter-openai-mini-text-v1"],["html","openrouter-openai-mini-text-v1"],["pdf","openrouter-azure-mini-zdr-text-v1"],["html","openrouter-azure-mini-zdr-text-v1"]] as const)("frozen %s %s pairs use exact owned uploads, actual parser, inherited correction and replay without discovery",async(kind,policyId)=>{
+it.each([["pdf","openrouter-openai-mini-text-v1"],["html","openrouter-openai-mini-text-v1"],["pdf","openrouter-azure-mini-zdr-text-v1"],["html","openrouter-azure-mini-zdr-text-v1"],["pdf","openrouter-azure-mini-zdr-exact-quote-v2"],["html","openrouter-azure-mini-zdr-exact-quote-v2"]] as const)("frozen %s %s pairs use exact owned uploads, actual parser, inherited correction and replay without discovery",async(kind,policyId)=>{
  const entity=kind==="pdf"?"Ardent":`Device${crypto.randomUUID().replaceAll("-","")}`;
  const bytes=kind==="pdf"?await readFile(new URL("./fixtures/documents/digital-scoped.pdf",import.meta.url)):Buffer.from(`<!doctype html><html><head><meta charset="utf-8"></head><body><h1>Saved field note</h1><p>${entity} does not support underwater recording.</p><p>${entity} supports offline recording only on firmware 4.2.</p><script src="https://example.invalid/tracker">FABRICATED_SCRIPT_ASSERTION</script><p>This synthetic document tests exact byte ingestion and scoped evidence handling. Its statements are fabricated, not actual product capabilities.</p></body></html>`);
  const source={id:`synthetic-${kind}`,file:`document.${kind}`,mime:kind==="pdf"?"application/pdf":"text/html",sha256:createHash("sha256").update(bytes).digest("hex")};
  const x=await setup({source,bytes},[],policyId);const model=matchedDocumentModel();globalThis.fetch=async(input,init)=>{
   const response=await model.transport(input,init);
   const request=JSON.parse(String(init?.body));
-  if(policyId==="openrouter-azure-mini-zdr-text-v1"){
+  if(policyId.startsWith("openrouter-azure-")){
    expect(request.provider.only).toEqual(["azure"]);expect(request.provider.zdr).toBe(true);expect(request.max_completion_tokens).toBe(4096);
    const value=await response.json();if(value===null||typeof value!=="object"||Array.isArray(value))throw Error("invalid_control_envelope");return new Response(JSON.stringify({...value,provider:"Azure"}),{status:response.status});
   }

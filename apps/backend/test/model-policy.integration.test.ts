@@ -40,3 +40,24 @@ it.each([STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY])("replays unknown $prov
   expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1",[r.runId])).rows).toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
  }finally{session.stop();await cancelRun(pool,r.runId);}
 });
+it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-quote-v2"] as const)("preserves strict legacy spans and audits exact quote coordinate resolution: %s",async policyId=>{
+ const a=await account(),question="Explain coral bleaching.";
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policyId});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const span={start:1,end:2,quote:question},scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+ const output={objective:question,objectiveProvenance:span,intendedOutput:"Explanation",criteria:[{key:"explain",description:question,field:"mechanism",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance:span,group:"all",groupOperator:"all",unresolvedAlternatives:[]}],questions:[{key:"q",text:question,criterionKeys:["explain"],importance:"critical",evidenceStandard:"Primary evidence"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+ const send=vi.fn(async()=>new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Azure",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]})));globalThis.fetch=send;
+ const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
+ try{
+  const resolved=policyId.endsWith("v2"),first=await performModelOperation(pool,config,session,args);
+  expect(first).toMatchObject({kind:"result",reused:false,result:{status:resolved?"succeeded":"invalid_output"}});
+  if(first.kind==="result"&&first.result.status==="succeeded")expect(first.result.output.objectiveProvenance).toEqual({quote:question,start:0,end:question.length});
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",reused:true,result:{status:resolved?"succeeded":"invalid_output"}});
+  expect(send).toHaveBeenCalledTimes(1);
+  const events=(await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='model_span_resolution'",[r.runId])).rows;
+  expect(events).toHaveLength(resolved?1:0);
+  if(resolved)expect(events[0].payload.resolutions).toHaveLength(2);
+ }finally{session.stop();await cancelRun(pool,r.runId);}
+});
