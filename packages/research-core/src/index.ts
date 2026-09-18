@@ -40,3 +40,11 @@ export { requestedVerificationOutcome } from "./requested-verification.js";
 export { applyQuestionPatch } from "./question-patch.js";
 export { nextUninspectedSelection, EMPTY_SELECTION_RECOVERY_VERSION, selectWholePassages, EVIDENCE_SELECTION_VERSION, EVIDENCE_SELECTION_LIMITS, type SelectionPassage, type EvidenceSelection } from "./evidence-selection.js";
 export { resolveModelSpans, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "./model-span-resolution.js";
+export {
+  compileResearchIntent,
+  evaluateClarificationValue,
+  clarificationPrompts,
+  isCosmeticClarification,
+  inferTaskFamily,
+  RESEARCH_INTENT_COMPILER_VERSION,
+} from "./intent-compiler.js";

@@ -91,3 +91,42 @@ it("preserves the exact legacy request digest and pins an explicit Azure ZDR req
  expect(await executeModelRequest(azure,{apiKey:"nonbillable",signal:new AbortController().signal})).toMatchObject({status:"permanent_failure",reason:"provider_route_mismatch"});
  expect(()=>prepareModelRequest("brief",context,"unregistered-policy")).toThrow("unsupported_model_policy");
 });
+
+it("attributes actual cost, tokens and cache-read/write fields to the selected model/provider", async () => {
+  const result = await call(response(undefined, {
+    usage: {
+      cost: "0.0000011",
+      prompt_tokens: 20,
+      completion_tokens: 10,
+      cache_read_tokens: 4,
+      cache_write_tokens: 3,
+    },
+  }));
+  expect(result).toMatchObject({
+    status: "succeeded",
+    receipt: {
+      requestedModel: "openai/gpt-4o-mini",
+      reportedModel: "openai/gpt-4o-mini",
+      reportedProvider: "OpenAI",
+      actualMicro: 2,
+      promptTokens: 20,
+      completionTokens: 10,
+      cacheReadTokens: 4,
+      cacheWriteTokens: 3,
+    },
+  });
+});
+
+it("reads cache tokens from prompt_tokens_details when top-level fields are absent", async () => {
+  const result = await call(response(undefined, {
+    usage: { cost: "0.0000011", prompt_tokens: 20, completion_tokens: 10, prompt_tokens_details: { cached_tokens: 7, cache_write_tokens: 1 } },
+  }));
+  expect(result).toMatchObject({ status: "succeeded", receipt: { cacheReadTokens: 7, cacheWriteTokens: 1, actualMicro: 2 } });
+});
+
+it("keeps missing cost unconfirmed rather than relabeling the reserve", async () => {
+  const result = await call(response(undefined, { usage: { prompt_tokens: 20, completion_tokens: 10 } }));
+  expect(result).toMatchObject({ status: "succeeded", receipt: { actualMicro: null, rawCost: null, cacheReadTokens: null, cacheWriteTokens: null } });
+  expect(result.receipt.actualMicro).not.toBe(STRUCTURED_CALL_RESERVE_MICRO);
+});
+

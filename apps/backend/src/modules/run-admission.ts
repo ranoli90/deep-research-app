@@ -1,13 +1,15 @@
-import type {ModelPolicyId} from "../ports/model-policy.js";
+import { STRUCTURED_CALL_RESERVE_MICRO, modelPolicy, type ModelPolicyId } from "../ports/model-policy.js";
 import type { ResearchStrategy } from "../ports/research-strategy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, type CreateRunRequest } from "@deep/contracts";
-import { extractConstraints, inferOutputPreference } from "@deep/research-core";
+import { compileResearchIntent, inferOutputPreference } from "@deep/research-core";
 import { withTx } from "../platform/db.js";
 import { currentConsent } from "./access.js";
 import { reserveAllowance } from "./billing.js";
 import { admissionKeyHash } from "./admission-recovery.js";
+import { recordPortfolioResolution } from "./model-portfolio.js";
+import { PRODUCTION_PORTFOLIO_V1, resolveOperationRoute } from "../model-governor/index.js";
 import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertConversation, insertRun } from "./runs.js";
 
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
@@ -43,10 +45,16 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     const revisions = await db.query<{ revision: number }>("SELECT COALESCE(MAX(revision), 0)::int AS revision FROM research_briefs WHERE conversation_id = $1", [conversationId]);
     const currentRevision = revisions.rows[0]!.revision;
     if (input.expectedBriefRevision !== undefined && input.expectedBriefRevision !== currentRevision) reject("stale_revision");
+    const intent = compileResearchIntent(input.question);
     const brief = {
       id: crypto.randomUUID(), conversationId, originalQuestion: input.question, language: "en",
-      attachmentIds: input.attachmentIds, sourceRestrictions: [], nonGoals: [], constraints: extractConstraints(input.question),
-      assumptions: [], budgetPolicyId: "default", consentPolicyVersion: CONSENT_POLICY_VERSION, revision: currentRevision + 1,
+      attachmentIds: input.attachmentIds, sourceRestrictions: [],
+      nonGoals: intent.exclusions.map((e) => e.text),
+      constraints: [...intent.hardConstraints, ...intent.softPreferences].map(({ statedInQuestion: _stated, ...constraint }) => constraint),
+      assumptions: intent.assumptions,
+      freshnessRequirements: intent.freshnessRequirements.summary,
+      desiredOutcome: intent.expectedOutput.summary,
+      budgetPolicyId: "default", consentPolicyVersion: CONSENT_POLICY_VERSION, revision: currentRevision + 1,
       outputPreferences: input.outputPreferences ?? inferOutputPreference(input.question),
     };
     await insertBrief(db, brief, accountId);
@@ -55,6 +63,30 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
       routeMode: input.routeMode, briefRevision: brief.revision, consentEpoch: consent.epoch, idempotencyKey: key,
       budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy, modelPolicyId: options.modelPolicyId });
     await db.query("UPDATE runs SET request_digest = $2 WHERE id = $1", [runId, digest]);
+    const stamped = String((await db.query("SELECT model_policy_id FROM runs WHERE id=$1", [runId])).rows[0].model_policy_id);
+    const policy = modelPolicy(stamped);
+    const route = resolveOperationRoute({
+      operation: "run",
+      operationClass: "structured",
+      privacy: { zdrRequired: policy.provider === "azure", dataCollection: "deny" },
+      structuredOutputRequired: true,
+      remainingBudgetMicro: DEFAULT_RUN_BUDGET_MICRO,
+      attemptReserveMicro: STRUCTURED_CALL_RESERVE_MICRO,
+      runId,
+    });
+    await recordPortfolioResolution(db, {
+      id: crypto.randomUUID(),
+      runId,
+      accountId,
+      portfolioId: PRODUCTION_PORTFOLIO_V1.id,
+      operation: "run",
+      resolvedPolicyId: policy.id,
+      admission: route.admitted ? "pinned_run_policy" : "governor_unavailable_run_policy_pinned",
+      escalationDepth: 0,
+      escalationTrigger: null,
+      cacheSessionId: route.cacheSessionId,
+      reason: `${route.reason};pinned=${policy.id}`,
+    });
     await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",
       summary: "Research accepted. Closing the app will not stop the server job." });

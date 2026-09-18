@@ -12,6 +12,7 @@ import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, type ModelResult } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
 import { STRUCTURED_MODEL_POLICY, STRUCTURED_CALL_RESERVE_MICRO } from "../adapters/model/policy.js";
+import { nextAttemptDecision } from "../model-governor/index.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
 import { updateIntentState } from "../modules/billing.js";
 import { loadModelOperation, saveModelOperation, validateOwnedModelContext } from "../modules/model-operations.js";
@@ -54,6 +55,16 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     return { kind: "result", intentId: attempt.intentId, reused: true, result: cached as ModelResult<K> };
   }
   let result = await executeModelRequest(request, { apiKey: config.openRouterApiKey!, signal: session.signal });
+  if (result.status === "outcome_unknown") {
+    const hold = nextAttemptDecision({
+      outcome: "outcome_unknown",
+      currentDepth: 0,
+      remainingBudgetMicro: 0,
+      attemptReserveMicro: STRUCTURED_CALL_RESERVE_MICRO,
+      currentPolicyId: policy.id,
+    });
+    if (hold.retry || hold.escalate) throw new Error("governor_unknown_must_hold");
+  }
   // Financial receipts survive a lost lease/deletion; private model output does not.
   await withTx(pool, async (db) => {
     await updateIntentState(db, attempt.intentId, result.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", result.receipt.actualMicro ?? undefined);

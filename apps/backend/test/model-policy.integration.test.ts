@@ -9,7 +9,9 @@ import {runModelVersions} from "../src/modules/run-model-policy.js";
 import {performModelOperation} from "../src/worker/model-gateway.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
 import {loadConfig} from "../src/platform/config.js";
-import {AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POLICY} from "../src/ports/model-policy.js";
+import {AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POLICY,modelPolicy} from "../src/ports/model-policy.js";
+import {recordPortfolioResolution} from "../src/modules/model-portfolio.js";
+import {PRODUCTION_PORTFOLIO_V1,replayPolicyIdentity} from "../src/model-governor/index.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
 beforeAll(async()=>{if(!process.env.TEST_DATABASE_URL)throw Error("Explicit isolated test DB required");pool=createPool(process.env.TEST_DATABASE_URL);await migrate(pool);});
 afterEach(()=>{globalThis.fetch=originalFetch;});afterAll(async()=>pool.end());
@@ -60,4 +62,21 @@ it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-qu
   expect(events).toHaveLength(resolved?1:0);
   if(resolved)expect(events[0].payload.resolutions).toHaveLength(2);
  }finally{session.stop();await cancelRun(pool,r.runId);}
+});
+it("records immutable portfolio resolutions and still replays historical policy identity",async()=>{
+ const a=await account();
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Policy replay after portfolio",routeMode:"controlled-research"}),{modelPolicyId:STRUCTURED_MODEL_POLICY.id});
+ const id=crypto.randomUUID();
+ await withTx(pool,db=>recordPortfolioResolution(db,{
+  id,runId:r.runId,accountId:a.accountId,portfolioId:PRODUCTION_PORTFOLIO_V1.id,operation:"brief",
+  resolvedPolicyId:STRUCTURED_MODEL_POLICY.id,admission:"cheap_first_admitted",escalationDepth:0,
+  escalationTrigger:null,cacheSessionId:`run:${r.runId}:policy:${STRUCTURED_MODEL_POLICY.id}`,reason:"cheap_first_admitted",
+ }));
+ await expect(pool.query("UPDATE model_portfolio_resolutions SET reason='mutated' WHERE id=$1",[id])).rejects.toThrow("model_portfolio_resolution_immutable");
+ expect(replayPolicyIdentity(STRUCTURED_MODEL_POLICY.id)).toEqual({
+  id:STRUCTURED_MODEL_POLICY.id,model:"openai/gpt-4o-mini",provider:"openai",providerName:"OpenAI",
+ });
+ expect(modelPolicy(AZURE_ZDR_MODEL_POLICY.id).id).toBe(AZURE_ZDR_MODEL_POLICY.id);
+ expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
+ await cancelRun(pool,r.runId);
 });

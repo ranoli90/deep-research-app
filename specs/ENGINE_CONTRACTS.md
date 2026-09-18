@@ -370,3 +370,10 @@ ADR057 / W05 empty extraction recovery: new runs carry empty-selection-recovery.
 Structured runs persist immutable model_policy_id (ADR059/migration041). New configured Azure-ZDR runs use Azure at the same model/tariff, require ZDR, disable fallback and carry the policy through task/support/publication/financial bindings. Children inherit policy; historical OpenAI request identities are unchanged. Public discovery keeps its separate policy.
 
 ADR060: explicit Azure exact-quote-v2 policy resolves only unique unchanged quotations within their original question/passage, records original/resolved coordinates in an intent-bound event, then runs unchanged schema/binding/support/publication validation. Legacy policies remain strict without coordinate resolution.
+
+### Research intent compiler and model portfolio (ADR061)
+
+`compileResearchIntent` is a pure research-core function. The original question string is copied and never rewritten. Hard constraints and soft preferences stay distinct; non-blocking unknowns become explicit assumptions or branches. `neededClarifications` asks only consequential questions (jurisdiction/safety), not cosmetic ranking or tone. Session B/C should consume this contract rather than re-extract meaning from model prose.
+
+`research-portfolio.v1` admits registered model policies by privacy/ZDR and structured-output capability, cheap-first, fanout 1. Escalation is a new admitted attempt with a recorded trigger and a depth/budget bound, never a second dispatch of an unknown intent. Migration042 stores an immutable routing audit; `runs.model_policy_id` remains the replay identity. Optional receipt `cacheReadTokens`/`cacheWriteTokens` are attributed when the provider envelope includes them; missing `actualMicro` stays null. Portfolio eval records are dated and must not claim dynamic routing is better until measured. Live semantic task classes exist behind the existing explicit-authorization runner.
+

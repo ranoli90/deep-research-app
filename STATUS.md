@@ -1,3 +1,15 @@
+## Session A intelligence governor — isolated branch checkpoint — 2026-09-18
+
+Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing with ZDR/structured-output admission; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing reserves; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `042_model_portfolio.sql`.
+
+**Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
+
+**Verified live provider:** none in this lane. **Product-quality verified:** no. **Blocked external:** live semantic protocol on the six task classes (no current explicit grant executed here). **Unverified:** native/mobile Research Beta journey (Session C).
+
+Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
+
 ## User-authorized GitHub main checkpoint — 2026-09-18
 
 The user explicitly requested merging all outstanding code into GitHub main and continuing work. All20 commits ahead of origin/main4d818fe belong to this continuation; the older evidence branch is already an ancestor. No deployment workflow is triggered by push (verification is manual-only). This checkpoint includes the actual provider failures and local successes; it is not a release approval or a claim of passing all checks.
