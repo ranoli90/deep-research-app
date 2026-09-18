@@ -29,6 +29,12 @@ export function readSourceDetail(value: unknown): SourceDetail {
   }
   return value as SourceDetail;
 }
+export function sourceDomain(value: string | undefined): string | null {
+  const url = publicSourceUrl(value);
+  if (!url) return null;
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return null; }
+}
+
 export function publicSourceUrl(value: string | undefined): string | null {
   if (!value) return null;
   try {

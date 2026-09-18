@@ -1,0 +1,92 @@
+/** Compact “Researching this…” surface from persisted brief flags. Never invent a plan. */
+
+export type BriefConstraint = { field: string; value: string; origin?: string; importance?: string };
+export type BriefAssumption = {
+  value: string;
+  reversibility?: string;
+  userConfirmationState?: string;
+  impact?: string;
+};
+
+export type ResearchBriefInput = {
+  originalQuestion: string;
+  revision: number;
+  desiredOutcome?: string;
+  geography?: string;
+  constraints: BriefConstraint[];
+  assumptions?: BriefAssumption[];
+  /** Backend-owned: only show a blocking clarification when this is true or lifecycle is awaiting_input. */
+  materialClarification?: boolean;
+};
+
+export type ResearchBriefView = {
+  show: boolean;
+  blocking: boolean;
+  objective: string;
+  assumptions: string[];
+  materialClarification: string | null;
+};
+
+function assumptionLines(brief: ResearchBriefInput): string[] {
+  const fromAssumptions = (brief.assumptions ?? [])
+    .filter((a) => a.value.trim())
+    .map((a) => a.value.trim());
+  if (fromAssumptions.length > 0) return fromAssumptions;
+  return brief.constraints
+    .filter((c) => c.origin === "assumed" || c.origin === "system")
+    .map((c) => `${c.field}: ${c.value}`);
+}
+
+function consequentialUnconfirmed(brief: ResearchBriefInput): boolean {
+  return (brief.assumptions ?? []).some(
+    (a) => a.reversibility === "consequential" && a.userConfirmationState === "unconfirmed",
+  );
+}
+
+export function researchBriefView(args: {
+  lifecycle?: string;
+  status?: string;
+  brief?: ResearchBriefInput | null;
+  clarificationSummary?: string | null;
+  hasReport?: boolean;
+}): ResearchBriefView {
+  const hidden: ResearchBriefView = {
+    show: false,
+    blocking: false,
+    objective: "",
+    assumptions: [],
+    materialClarification: null,
+  };
+  const awaiting = args.lifecycle === "awaiting_input" || args.status === "awaiting_input";
+  if (args.hasReport && !awaiting) return hidden;
+  const brief = args.brief;
+  if (!brief) {
+    if (!awaiting) return hidden;
+    return {
+      show: true,
+      blocking: true,
+      objective: "Need one detail before research can continue.",
+      assumptions: [],
+      materialClarification: args.clarificationSummary?.trim() || "Which jurisdiction should this answer apply to?",
+    };
+  }
+  const material = brief.materialClarification === true || awaiting;
+  const assumptions = assumptionLines(brief);
+  const needsConfirm = consequentialUnconfirmed(brief);
+  const early = !args.lifecycle || ["queued", "preparing", "awaiting_input"].includes(args.lifecycle);
+  const show = material || (early && (needsConfirm || assumptions.length > 0));
+  if (!show) return hidden;
+
+  const objective =
+    brief.desiredOutcome?.trim() ||
+    `I'll research ${brief.originalQuestion.trim().replace(/\?+$/, "")}.`;
+  return {
+    show: true,
+    blocking: material,
+    objective,
+    assumptions,
+    materialClarification: material
+      ? args.clarificationSummary?.trim() || "This detail would change what gets researched."
+      : null,
+  };
+}

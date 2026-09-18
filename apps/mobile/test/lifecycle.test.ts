@@ -77,7 +77,14 @@ describe("P0-N native state mapping", () => {
   });
 
   it("App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem", () => {
-    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    const src = [
+      readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
+    ].join("\n");
     expect(src).toMatch(/hydrateOnLaunch\(sessionStorage\)/);
     expect(src).toMatch(/persistSession\(sessionStorage/);
     expect(src).toMatch(/openLibraryItem\(s, id\)/);
@@ -115,7 +122,13 @@ describe("P0-N native state mapping", () => {
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
     const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
     expect(profile).toContain('accessibilityLabel="Settings"');
-    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8") + readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8");
+    const src = [
+      readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
+    ].join("\n");
     for (const label of [
       'accessibilityLabel="Research question"',
       'accessibilityLabel="Start research"',

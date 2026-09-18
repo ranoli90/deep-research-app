@@ -20,7 +20,7 @@ Email sign-in/deep-link flows must validate redirects and avoid displaying raw a
 
 ## 2. Composer
 
-Normal content: a short welcoming prompt, a multiline field, attach action, mode selector, and send. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
+Normal content: a short welcoming prompt (“Ask anything. One sentence is enough.”), a multiline field with placeholder “What should I research?”, an optional attach action, and a Research/send control (`accessibilityLabel="Start research"`). Files are optional. Do not require advanced configuration on first use. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
 
 Handle empty/whitespace input, long pasted text, emoji and Unicode, multiline text, pasted URLs, hardware keyboard, autocorrect, selection, dictation supplied by the operating system, and right-to-left text within a primarily English interface. Enter behavior must not surprise mobile keyboard users; explicit send remains available.
 
@@ -30,7 +30,7 @@ Attach controls show permissible formats, remaining count, and size limits befor
 
 ## 3. Clarification and assumptions
 
-Present at most a compact group of material questions. Each question should be answerable without knowing research jargon. Keep the user's original question visible or recoverable. Suggested options must not silently choose a consequential personal fact.
+When the backend brief has assumed constraints or unconfirmed consequential assumptions during queued/preparing, show a compact “Researching this…” card with the objective and explicit assumptions. The user may continue without editing. Do not force this card when the run is already researching without material flags. Present at most a compact group of material questions. Clarification is blocking only when lifecycle is `awaiting_input` or the brief marks `materialClarification`. Each question should be answerable without knowing research jargon. Keep the user's original question visible or recoverable. Suggested options must not silently choose a consequential personal fact.
 
 Provide an “Use these assumptions” or equivalent start path when safe, showing the assumptions briefly. When missing information truly prevents safe execution, explain the specific missing input. Do not create an infinite clarify loop; record previous answers as hard context.
 
@@ -38,7 +38,7 @@ Editing the question before starting invalidates stale clarification suggestions
 
 ## 4. Active research
 
-Primary content: question, short current stage, safe activity summary, elapsed time measured from server state, cancel, and an optional details expansion. Use indeterminate progress unless genuine bounded progress exists. Distinguish queued from actively researching.
+Primary content: question, short current stage, safe activity summary derived only from persisted events, elapsed time measured from event timestamps when present, cancel, and an optional details expansion. After completion the trail collapses to a truthful summary such as source count and elapsed time. Use indeterminate progress only when no semantic event exists yet. Distinguish queued from actively researching. Never map private chain-of-thought or raw prompts to progress.
 
 Detailed activity is an ordered set of real events: searched a topic, opened a source, found conflicting figures, checked an assumption, drafted a report. Do not fabricate animated team dialogue. Explain a pivot in one sentence anchored to findings, not a stream of private reasoning.
 

@@ -12,11 +12,17 @@ import { SourceSheet } from "./src/SourceSheet";
 import { readSourceDetail } from "./src/source-view";
 import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from "./src/correction-draft";
 import { AttachmentPanel } from "./src/AttachmentPanel";
+import { ResearchActivity } from "./src/ResearchActivity";
+import { ResearchBriefCard } from "./src/ResearchBriefCard";
+import { ResearchComposer } from "./src/ResearchComposer";
+import { ReportSections } from "./src/ReportView";
+import { LibraryList } from "./src/LibraryList";
+import { researchBriefView } from "./src/research-brief";
+import { humanChangeSummary, versionComparisonCopy } from "./src/correction-copy";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
-  ActivityIndicator,
   AppState,
   BackHandler,
   Keyboard,
@@ -40,7 +46,6 @@ import { SupersededRequest } from "./src/request-scope";
 import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
 import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
 import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
-import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
   androidBack,
   applySnapshot,
@@ -106,6 +111,8 @@ function AppInner() {
   const signingIn = useRef<Promise<string> | null>(null);
   const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
+  const [activityExpanded, setActivityExpanded] = useState(true);
+  const [sourceClaim, setSourceClaim] = useState<string | null>(null);
   const savedCorrection = activeCorrectionDraft(state);
   const correction = savedCorrection?.question ?? "";
   const evidencePolicy = savedCorrection?.evidencePolicy ?? "reuse_snapshot";
@@ -151,6 +158,19 @@ function AppInner() {
   const readerIdentity = useRef("");
   const readerGeneration = useRef(0);
   const activity = researchActivity(state);
+  useEffect(() => {
+    if (activity.inProgress) setActivityExpanded(true);
+    else if (state.status === "completed" || state.status === "partial" || state.status === "cancelled" || state.status === "failed") {
+      setActivityExpanded(false);
+    }
+  }, [activity.inProgress, state.status]);
+  const briefView = researchBriefView({
+    lifecycle: state.run?.lifecycle,
+    status: state.status,
+    brief: state.run?.brief,
+    clarificationSummary: state.events.find((e) => e.type === "clarify")?.publicSummary ?? "Which jurisdiction should this answer apply to?",
+    hasReport: Boolean(state.report),
+  });
   const blocks: ReportBlock[] = state.report
     ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
@@ -931,50 +951,39 @@ function AppInner() {
             </View> : null}
             {!state.run && !state.report && !state.pendingAdmission ? (
               <Text style={styles.welcome}>
-                Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.
+                Ask anything. One sentence is enough. Files are optional.
               </Text>
             ) : null}
 
-            {activity.inProgress ? (
-              <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
-                <Text style={styles.kicker}>{state.run?.phase ?? "queued"}</Text>
-                <Text style={styles.bodyText}>
-                  {state.events.at(-1)?.publicSummary ?? "Waiting for the server. Closing this app will not stop the job."}
-                </Text>
-                {state.reducedMotion ? null : <ActivityIndicator accessibilityLabel="In progress" />}
-                <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel research">
-                  <Text style={styles.link}>Cancel</Text>
-                </Pressable>
-              </View>
+            {activity.inProgress || state.events.length > 0 ? (
+              <ResearchActivity
+                events={state.events}
+                lifecycle={state.run?.lifecycle}
+                outcome={state.run?.outcome}
+                inProgress={activity.inProgress}
+                reducedMotion={state.reducedMotion}
+                expanded={activityExpanded}
+                onToggle={() => setActivityExpanded((value) => !value)}
+                onCancel={() => void onCancel()}
+                styles={styles}
+              />
             ) : null}
 
             {activity.terminalNotice ? (
               <Text style={styles.bodyText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
             ) : null}
-            {state.status === "awaiting_input" ? (
-              <View style={styles.card} accessibilityLabel="Clarification needed">
-                <Text style={styles.kicker}>Need one detail</Text>
-                <Text style={styles.bodyText}>{state.events.find((e) => e.type === "clarify")?.publicSummary ?? "Which jurisdiction should this answer apply to?"}</Text>
-                <TextInput
-                  value={clarifyAnswer}
-                  onChangeText={setClarifyAnswer}
-                  placeholder="Jurisdiction"
-                  placeholderTextColor={theme.muted}
-                  style={styles.input}
-                  allowFontScaling
-                  maxFontSizeMultiplier={2}
-                  accessibilityLabel="Clarification answer"
-                />
-                <Pressable
-                  onPress={() => void onContinueClarification()}
-                  accessibilityRole="button"
-                  accessibilityLabel="Submit clarification and continue"
-                  disabled={!clarifyAnswer.trim()}
-                >
-                  <Text style={styles.send}>Continue research</Text>
-                </Pressable>
-              </View>
-            ) : null}
+            <ResearchBriefCard
+              view={briefView}
+              clarifyAnswer={clarifyAnswer}
+              muted={theme.muted}
+              onClarify={setClarifyAnswer}
+              onContinue={() => void onContinueClarification()}
+              onEdit={() => setState((s) => ({
+                ...s,
+                error: "You can change this after the first result, or cancel and ask again.",
+              }))}
+              styles={styles}
+            />
             {state.offline ? (
               <Text style={styles.caveat} accessibilityLiveRegion="polite">
                 Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.
@@ -992,31 +1001,23 @@ function AppInner() {
                     <Text style={styles.link}>{detailed ? "Concise" : "Detailed"}</Text>
                   </Pressable>
                 </View>
-                {detailed && blocks.length > 4 ? (
-                  <View style={styles.outline} accessibilityLabel="Report outline">
-                    <Text style={styles.kicker}>Outline</Text>
-                    {blocks.map((b) => (
-                      <Text key={`outline-${b.id}`} style={styles.outlineItem}>
-                        {b.kind} · {b.id}
-                      </Text>
-                    ))}
-                  </View>
-                ) : null}
-                {blocks.map((b) => (
-                  <ReportBlockView
-                    key={b.id}
-                    block={b}
-                    styles={styles}
-                    onOpenSource={(id) => void onOpenSource(id, b.id)}
-                    onLayoutY={(y) => {
-                      reading.current.measureBlock(readerView, b.id, y);
-                      restoreReadingPosition();
-                    }}
-                  />
-                ))}
+                <ReportSections
+                  blocks={blocks}
+                  detailed={detailed}
+                  styles={styles}
+                  onOpenSource={(id, blockId) => {
+                    const block = blocks.find((item) => item.id === blockId);
+                    setSourceClaim(block?.text.slice(0, 180) ?? null);
+                    void onOpenSource(id, blockId);
+                  }}
+                  onLayoutY={(blockId, y) => {
+                    reading.current.measureBlock(readerView, blockId, y);
+                    restoreReadingPosition();
+                  }}
+                />
                 {state.report.changeSummary ? (
                   <Text style={styles.caveat} accessibilityLabel="Change summary">
-                    {formatChangeSummary(state.report.changeSummary)}
+                    {humanChangeSummary(state.report.changeSummary)}
                   </Text>
                 ) : null}
                 {state.report.limitations.map((l) => (
@@ -1112,7 +1113,22 @@ function AppInner() {
             {state.previousReport ? (
               <View style={styles.card} accessibilityLabel="Previous report version">
                 <Text style={styles.kicker}>Previous version</Text>
-                <Text style={styles.bodyText}>{state.previousReport.blocks.find((b) => b.id === "answer")?.text ?? "Earlier result kept."}</Text>
+                {(() => {
+                  const compared = versionComparisonCopy({
+                    previousAnswer: state.previousReport.blocks.find((b) => b.id === "answer")?.text,
+                    currentAnswer: state.report?.blocks.find((b) => b.id === "answer")?.text,
+                    changeSummary: state.report?.changeSummary ?? null,
+                  });
+                  return (
+                    <>
+                      <Text style={styles.kicker}>Previous conclusion</Text>
+                      <Text style={styles.bodyText}>{compared.previous}</Text>
+                      <Text style={styles.kicker}>Current conclusion</Text>
+                      <Text style={styles.bodyText}>{compared.current}</Text>
+                      <Text style={styles.caveat} accessibilityLabel="Why it changed">{compared.why}</Text>
+                    </>
+                  );
+                })()}
                 <Pressable
                   onPress={() => void onShare(state.previousReport?.reportId)}
                   accessibilityRole="button"
@@ -1177,6 +1193,9 @@ function AppInner() {
           <SourceSheet source={state.source} styles={styles}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
+            relatedClaim={sourceClaim}
+            onChallenge={() => { api.closeSource(); setState(s => ({ ...s, source: null })); setFlagOpen(true); }}
+            onVerify={() => { api.closeSource(); setState(s => ({ ...s, source: null })); void onFollowUp(); }}
             onOpenOriginal={(url) => {
               const guard = api.captureView();
               void Linking.openURL(url).catch(() => {
@@ -1185,12 +1204,13 @@ function AppInner() {
             }}
             onClose={() => {
               api.closeSource();
+              setSourceClaim(null);
               setState(s => ({ ...s, source: null }));
             }} />
         ) : null}
 
         {state.tab === "library" && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
-          <Library
+          <LibraryList
             token={token}
             styles={styles}
             onOpen={async (id) => {
@@ -1291,37 +1311,17 @@ function AppInner() {
         ) : null}
 
         {state.tab === "research" && !state.source ? (
-        <View style={styles.composerWrap}>
-          <TextInput
-            editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
-            value={state.draft}
-            onChangeText={(draft) => {
-              setState((s) => {
-                const next = { ...s, draft };
-
-                return next;
-              });
-            }}
-            placeholder="Ask with constraints, dates, and what would change the answer"
-            placeholderTextColor={theme.muted}
-            style={styles.composer}
-            multiline
-            allowFontScaling
-            maxFontSizeMultiplier={2}
-            accessibilityLabel="Research question"
-          />
-          <Pressable
-            disabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion}
-            accessibilityState={{ disabled: !hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion }}
-            onPress={onSend}
-            style={styles.sendBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Start research"
-            hitSlop={12}
-          >
-            <Text style={styles.send}>{state.pendingAdmission ? "Retry" : "Send"}</Text>
-          </Pressable>
-        </View>
+        <ResearchComposer
+          draft={state.draft}
+          muted={theme.muted}
+          editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
+          sendDisabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion}
+          pendingAdmission={!!state.pendingAdmission}
+          onChange={(draft) => setState((s) => ({ ...s, draft }))}
+          onSend={() => void onSend()}
+          onAttach={() => setShowAttach(true)}
+          styles={styles}
+        />
         ) : null}
 
         <View style={styles.tabs} accessibilityRole="tablist">
@@ -1340,136 +1340,6 @@ function AppInner() {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-}
-
-function Library({
-  token,
-  styles,
-  onOpen,
-  onShare,
-}: {
-  token: string | null;
-  styles: ReturnType<typeof makeStyles>;
-  onOpen: (id: string) => void;
-  onShare: (reportId: string) => void;
-}) {
-  type LibraryItem = { id: string; title: string; status: string; report_id?: string | null };
-  const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryItem[]; error: string | null }>({ token: null, items: [], error: null });
-  const items = loaded.token === token ? loaded.items : [];
-  useEffect(() => {
-    if (!token) return;
-    let current = true;
-    void api.library(token).then((r) => { if (current) setLoaded((previous) => current ? { token, items: r.items ?? [], error: null } : previous); })
-      .catch((error) => { if (current && !isSupersededRequest(error)) setLoaded({ token, items: [], error: "Could not load saved reports. Reopen Library to retry." }); });
-    return () => { current = false; };
-  }, [token]);
-  if (!token) {
-    return (
-      <Text style={styles.bodyText} accessibilityLabel="Saved reports">
-        Sign in from Profile to see saved reports.
-      </Text>
-    );
-  }
-  if (items.length === 0) {
-    return (
-      <Text style={styles.bodyText} accessibilityLabel="Saved reports">
-        {loaded.token !== token ? "Loading saved reports…" : loaded.error ?? "No reports yet."}
-      </Text>
-    );
-  }
-  return (
-    <ScrollView style={styles.body} accessibilityLabel="Saved reports">
-      {items.map((it) => (
-        <View key={it.id} style={styles.card}>
-          <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
-            <Text style={styles.title}>{breakLongTokens(it.title)}</Text>
-            <Text style={styles.kicker}>{it.status}</Text>
-          </Pressable>
-          {it.report_id ? (
-            <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${it.title}`}>
-              <Text style={styles.link}>Share Markdown</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ))}
-    </ScrollView>
-  );
-}
-
-
-function ReportBlockView({
-  block,
-  styles,
-  onOpenSource,
-  onLayoutY,
-}: {
-  block: ReportBlock;
-  styles: ReturnType<typeof makeStyles>;
-  onOpenSource: (id: string) => void;
-  onLayoutY?: (y: number) => void;
-}) {
-  const text = breakLongTokens(block.text);
-  let body: ReactNode;
-  if (block.kind === "table") {
-    const rows = parseTable(block.text);
-    body = (
-      <View style={styles.bounded}>
-        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Table ${block.id}`}>
-          <View>
-            {rows.map((row, i) => (
-              <View key={`${block.id}-r${i}`} style={styles.tableRow}>
-                {row.map((cell, j) => (
-                  <Text
-                    key={`${block.id}-c${i}-${j}`}
-                    selectable
-                    style={i === 0 ? styles.tableHead : styles.tableCell}
-                  >
-                    {cell}
-                  </Text>
-                ))}
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    );
-  } else if (block.kind === "code") {
-    body = (
-      <View style={styles.bounded}>
-        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Code ${block.id}`}>
-          <Text selectable style={styles.code}>{block.text}</Text>
-        </ScrollView>
-      </View>
-    );
-  } else if (block.kind === "heading") {
-    body = <Text selectable accessibilityRole="header" style={styles.title}>{text}</Text>;
-  } else if (block.kind === "quote") {
-    body = <Text selectable style={styles.quote}>{text}</Text>;
-  } else {
-    body = <Text selectable style={block.kind === "caveat" ? styles.caveat : styles.bodyText}>{text}</Text>;
-  }
-  return (
-    <View
-      nativeID={`block-${block.id}`}
-      style={{ marginBottom: space.md }}
-      onLayout={(e) => onLayoutY?.(e.nativeEvent.layout.y)}
-    >
-      {body}
-      <View style={styles.citeRow}>
-        {block.citationIds.map((id) => (
-          <Pressable
-            key={id}
-            onPress={() => onOpenSource(id)}
-            accessibilityRole="button"
-            accessibilityLabel={`Open source ${id.slice(0, 8)}`}
-            hitSlop={8}
-          >
-            <Text style={[styles.link, styles.citeLink]}>Source {id.slice(0, 8)}</Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
   );
 }
 

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { readSourceDetail, publicSourceUrl, sourceLocation, sourceCellLabel } from "../src/source-view";
+import { readSourceDetail, publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel } from "../src/source-view";
 import { readingOffset, readingScrollY, visibleReadingBlock } from "../src/report-layout";
 import { restoreAnchor } from "../src/state";
 const source = { passageId: "p", title: "Document", exactText: "Exact – clause\nsecond line", accessLevel: "partial-text", coverage: "partial", warnings: ["columns_unassessed"], passageLocator: { block: "page:12/block:0", rows: [], geometry: [{ text: "Exact – clause", box: [1, 2, 3, 4] }] } };
@@ -14,6 +14,7 @@ it("rejects malformed source metadata instead of dropping material extraction li
 });
 it("only offers explicit HTTP(S) originals without credentials", () => {
   expect(publicSourceUrl("https://example.org/paper?q=1")).toBe("https://example.org/paper?q=1");
+  expect(sourceDomain("https://www.example.org/paper?q=1")).toBe("example.org");
   for (const url of [undefined, "attachment://private", "javascript:alert(1)", "file:///private", "https://user:secret@example.org/", "invalid"]) expect(publicSourceUrl(url)).toBeNull();
 });
 it("restores a deep citation at the same scroll offset using card-relative block coordinates", () => {

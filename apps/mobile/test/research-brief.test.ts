@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+import { canSubmit, emptyState } from "../src/state";
+import { researchBriefView } from "../src/research-brief";
+
+describe("one-sentence composer and researching-this brief", () => {
+  it("lets a natural sentence submit with no attachments", () => {
+    const state = { ...emptyState(), signedIn: true, consentGranted: true, draft: "should I move to Texas" };
+    expect(state.attachments).toEqual([]);
+    expect(canSubmit(state)).toEqual({ ok: true });
+  });
+
+  it("skips the brief card when the task can proceed without material flags", () => {
+    const view = researchBriefView({
+      lifecycle: "running",
+      brief: { originalQuestion: "best laptop under 2k", revision: 1, constraints: [] },
+    });
+    expect(view.show).toBe(false);
+    expect(view.blocking).toBe(false);
+  });
+
+  it("shows a compact researching-this card from assumed constraints during early phases", () => {
+    const view = researchBriefView({
+      lifecycle: "queued",
+      brief: {
+        originalQuestion: "best laptop under 2k for local AI",
+        desiredOutcome: "I'll research current laptops under $2,000 for local AI development.",
+        revision: 1,
+        constraints: [{ field: "geography", value: "US", origin: "assumed" }],
+        assumptions: [{ value: "Assuming U.S. pricing and new devices.", reversibility: "reversible", userConfirmationState: "unconfirmed" }],
+      },
+    });
+    expect(view.show).toBe(true);
+    expect(view.blocking).toBe(false);
+    expect(view.objective).toContain("laptops under $2,000");
+    expect(view.assumptions).toContain("Assuming U.S. pricing and new devices.");
+  });
+
+  it("still shows a blocking clarification when the run is awaiting input without a stored brief", () => {
+    const view = researchBriefView({
+      lifecycle: "awaiting_input",
+      clarificationSummary: "Which jurisdiction should this answer apply to?",
+    });
+    expect(view.show).toBe(true);
+    expect(view.blocking).toBe(true);
+    expect(view.materialClarification).toMatch(/jurisdiction/i);
+  });
+
+  it("only blocks on a material clarification when the backend says so", () => {
+    const skipped = researchBriefView({
+      lifecycle: "queued",
+      brief: { originalQuestion: "research this company", revision: 1, constraints: [], materialClarification: false },
+    });
+    expect(skipped.show).toBe(false);
+    const blocked = researchBriefView({
+      lifecycle: "awaiting_input",
+      clarificationSummary: "Which jurisdiction should this answer apply to?",
+      brief: { originalQuestion: "research this company", revision: 1, constraints: [], materialClarification: true },
+    });
+    expect(blocked.show).toBe(true);
+    expect(blocked.blocking).toBe(true);
+    expect(blocked.materialClarification).toMatch(/jurisdiction/i);
+  });
+
+  it("does not keep the brief once a report exists", () => {
+    expect(researchBriefView({
+      hasReport: true,
+      lifecycle: "queued",
+      brief: { originalQuestion: "q", revision: 1, constraints: [{ field: "budget", value: "2000", origin: "assumed" }] },
+    }).show).toBe(false);
+  });
+});

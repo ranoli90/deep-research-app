@@ -34,7 +34,10 @@ describe("M04 report layout", () => {
   });
 
   it("App.tsx renders table and code inside nested horizontal ScrollViews", () => {
-    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    const src = [
+      readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8"),
+    ].join("\n");
     expect(src).toMatch(/nestedScrollEnabled/);
     expect(src).toMatch(/block\.kind === "table"/);
     expect(src).toMatch(/block\.kind === "code"/);

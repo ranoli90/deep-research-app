@@ -1,24 +1,29 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import { publicSourceUrl, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
+import { publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
 import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
 import { breakLongTokens } from "./report-layout";
+import { uncertaintyFromSource, uncertaintyLabel } from "./uncertainty";
 
 type Props = { source: SourceDetail; onClose(): void; onOpenOriginal(url: string): void;
   onDelete?(target: SourceDeletionTarget): void; deletionPending?: boolean; deletionError?: string | null;
   offline?: boolean; admissionPending?: boolean;
+  relatedClaim?: string | null;
+  onChallenge?(): void; onVerify?(): void;
   styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
     kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
 export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
-  deletionError, offline = false, admissionPending = false }: Props) {
+  deletionError, offline = false, admissionPending = false, relatedClaim, onChallenge, onVerify }: Props) {
   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
   const target = sourceDeletionTarget(source);
   const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
   const confirming = sameSourceDeletionTarget(confirmation, target);
   const url = publicSourceUrl(source.locator);
+  const domain = sourceDomain(source.locator);
+  const quality = uncertaintyFromSource(source);
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
     <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
-    <Text style={styles.kicker}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+    <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
       <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
       <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
@@ -35,9 +40,16 @@ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete,
         {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
       </View> : null}
       <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
+      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Supports: {relatedClaim}</Text> : null}
       {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser">
         <Text style={styles.link}>Open original source</Text>
       </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
+      {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion">
+        <Text style={styles.link}>Challenge this conclusion</Text>
+      </Pressable> : null}
+      {onVerify ? <Pressable onPress={onVerify} accessibilityRole="button" accessibilityLabel="Request targeted verification">
+        <Text style={styles.link}>Verify this conclusion</Text>
+      </Pressable> : null}
       {onDelete ? <View>
         {deletionError ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{deletionError}</Text> : null}
         {unavailable ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{unavailable}</Text> : null}

@@ -17,7 +17,15 @@ export type RunSnapshot = {
   outcome: string | null;
   reportId: string | null;
   labeledDemo: boolean;
-  brief?: { originalQuestion: string; constraints: { field: string; value: string }[]; revision: number };
+  brief?: {
+    originalQuestion: string;
+    constraints: { field: string; value: string; origin?: string; importance?: string }[];
+    revision: number;
+    desiredOutcome?: string;
+    geography?: string;
+    materialClarification?: boolean;
+    assumptions?: { value: string; reversibility?: string; userConfirmationState?: string; impact?: string }[];
+  };
 };
 
 export type ReportBlock = {
@@ -53,7 +61,7 @@ export type UiState = {
     changeSummary?: { evidenceUpdated: boolean; conclusionChanged: boolean; newlyFeasible?: string[]; newlyInfeasible?: string[]; notes: string } | null;
   } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
-  events: { sequence: number; type: string; publicSummary: string }[];
+  events: { sequence: number; type: string; publicSummary: string; phase?: string; createdAt?: string }[];
   source: SourceDetail | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
   attachments: AttachmentDraft[];

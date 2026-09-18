@@ -37,3 +37,5 @@ export const type = {
 
 export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
 export const radius = { sm: 8, md: 14, lg: 20 } as const;
+/** Durations in ms. Skip decorative motion when reduced-motion is on. */
+export const motion = { fast: 160, base: 240, slow: 400 } as const;
