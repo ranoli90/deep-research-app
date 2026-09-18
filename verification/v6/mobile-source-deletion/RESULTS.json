@@ -54,5 +54,6 @@
     "cleanup": "API graceful stop deleted its one created synthetic account; attachment content0. Metro stopped, reverse8081/8787 and temporaryXMLs removed. Protected synthetic device cache/session NOT cleared while locked; clear after unlock before further native acceptance."
   },
   "impact": "ADR036; strict source/version confirmation, acknowledged protected cache redaction before remoteDELETE, pending handle through unknown outcomes, account guards, blocked cache repopulation/picker, original user file untouched. No new dependency/schema/service/paid allowance.",
-  "rollback": "Keep pending privacy handle hydration/redaction/retry and account cleanup even if new source deletion UI disabled."
+  "rollback": "Keep pending privacy handle hydration/redaction/retry and account cleanup even if new source deletion UI disabled.",
+  "implementationCommit": "9d95ad50bfdd267a3d6b3b8d19246b9909927455"
 }

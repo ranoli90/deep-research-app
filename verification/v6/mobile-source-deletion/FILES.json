@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "RESULTS.json",
-      "sha256": "ccced0ff58f4c75ca66cde7db9c1e3664950021256868325a55f5db43b6206a5",
-      "bytes": 3002
+      "sha256": "4e9c1554d0f7f5d2f5850e838b302bf55bb2f42a461c2d7e6639c36f37d5860a",
+      "bytes": 3072
     },
     {
       "path": "android-export.log",

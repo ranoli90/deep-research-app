@@ -34,5 +34,6 @@
   "impact": "No new schema/dependency. Existing035 withdrawal marker stores exact admission-key hash before source invalidation scrubs key. Account/run locks and atomic deletion transaction unchanged.",
   "rollback": "Keep opaque replay veto and source tombstones; disable affected admission rather than recreate deleted research.",
   "limits": "Forward protection for keys still available at deletion. Historical scrubbed keys cannot be reconstructed; no fabricated historical repair. No model/native/hosted claim.",
-  "paidCalls": 0
+  "paidCalls": 0,
+  "implementationCommit": "a86faf8a50b85652b80438287e2c5d1d7ab498d7"
 }

@@ -1,0 +1,43 @@
+{
+  "requirements": [
+    "W09",
+    "W03",
+    "W07"
+  ],
+  "implementationCommit": "9d95ad50bfdd267a3d6b3b8d19246b9909927455",
+  "checkout": "/tmp/deep-v6-clean-9d95ad5",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "local Linux"
+  },
+  "checks": [
+    {
+      "command": "CI=1 pnpm install --offline --frozen-lockfile",
+      "artifact": "install.log",
+      "exitCode": 0,
+      "scope": "Offline frozen install,0downloads"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "mobile.log",
+      "exitCode": 0,
+      "scope": "123/123 source-deletion mobile tests from exact committed checkout"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "types.log",
+      "exitCode": 0,
+      "scope": "Exact committed mobile types"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-source-deletion-bundle",
+      "artifact": "android-export.log",
+      "exitCode": 0,
+      "scope": "645modules/2.16MB Android JS, not native build"
+    }
+  ],
+  "cleanAfterChecks": true,
+  "paidCalls": 0,
+  "limits": "Mobile/type/JS build only; no new native/database/hosted proof. Requestedverification working tree excluded."
+}
