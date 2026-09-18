@@ -1,0 +1,16 @@
+
+> @deep/mobile@0.1.0 bundle:android /tmp/deep-clean-ce2f889/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-clean-ce2f889-export
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓░░░░░░░░░░░░░░ 17.0% ( 62/192)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.6% (569/570)
+Android Bundled 7539ms apps/mobile/index.ts (651 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-916345722e8b4c4bfdf954a478ae3410.hbc (2.21 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-clean-ce2f889-export

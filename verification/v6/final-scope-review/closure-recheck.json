@@ -1,0 +1,59 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W07",
+    "W08",
+    "W09"
+  ],
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "method": "Primary bounded source review and actual local terminal receipts, not independent human validation",
+  "priorAudit": "RESULTS.json (0602f96 historical; not rewritten)",
+  "closures": [
+    {
+      "requirement": "W06/W04/W07 new owned document correction",
+      "source": [
+        "packages/contracts/src/index.ts",
+        "apps/backend/src/modules/research-corrections.ts",
+        "apps/backend/src/worker/structured-research.ts",
+        "apps/mobile/src/correction-documents-flow.ts"
+      ],
+      "evidence": "../document-evaluation-integrated/RESULTS.json; ../append-document/RESULTS.json",
+      "result": "Implemented API/native control wiring, exact durable recovery, new-input readability obligation, actual PDF/PG and synthetic model controls. Current native and real-model agreement unpassed."
+    },
+    {
+      "requirement": "W08 executable paired runner",
+      "source": [
+        "apps/backend/src/eval-live.ts",
+        "apps/backend/src/evaluation/runner.ts",
+        "apps/backend/src/evaluation/production-driver.ts"
+      ],
+      "evidence": "../document-evaluation-integrated/RESULTS.json; ../eval-approval-expiry/RESULTS.json",
+      "result": "Implemented default-deny live-discovery runner, exact attempt/trace/cost/replay and unrun recording. Frozen supplied-document mode unavailable. No paid semantic execution/adjudication."
+    },
+    {
+      "requirement": "W03/W07 remote source invalidation",
+      "source": [
+        "apps/backend/src/api/app.ts",
+        "apps/mobile/src/remote-invalidation.ts",
+        "apps/mobile/src/persist.ts"
+      ],
+      "evidence": "../remote-source-invalidation/RESULTS.json; ../document-evaluation-integrated/RESULTS.json",
+      "result": "Fixed owned API signal, deleted-account denial and mobile protected cache/restart/stale-write controls. Native erasure remains unproved."
+    }
+  ],
+  "remaining": [
+    "Real-model held-out/applicability/candidate/contradiction/corrected-full quality and useful unfamiliar real-source answer trace need current paid scope/budget and independent adjudication",
+    "Complete current native report/source/correction/share, account/reconnect/accessibility and guarded old synthetic-device cleanup need available unlocked device; no standalone/iOS proof",
+    "Provider-side cost enforcement and actual invoice/retention reconciliation unproved; credentials/historical balance are not authority",
+    "Complex layout/OCR and broad source fidelity remain partial/unavailable as labeled",
+    "Hosted identity/backup/network/CI and W10 signed/release gates require distinct authorization/environment"
+  ],
+  "milestoneStatus": "incomplete; no perfection, production readiness, human or competitor superiority claim",
+  "paidCalls": 0,
+  "paidAllowance": "unknown"
+}

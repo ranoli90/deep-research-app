@@ -1,6 +1,6 @@
 # Current execution status
 
-The authorized V6 W01–W09 internal milestone remains **incomplete**. Branch `codex/v6-evidence-milestone`; reviewed implementation working tree over `0ddedb466bc08d63690b3ffbb14fb6c23929e50c`, adding recoverable document corrections, a gated evaluator and remote source invalidation (ADR048–050). Checkpoint commit pending; prior implementation0602f96 remains historical. Preserve the application and both untracked user ZIPs. No push/deployment/paid calls are authorized. Current paid allowance is unknown.
+The authorized V6 W01–W09 internal milestone remains **incomplete**. Branch `codex/v6-evidence-milestone`; reviewed implementation `ce2f889253185455ec1cef5dc85920e10ce3b816`, adding recoverable document corrections, a gated evaluator and remote source invalidation (ADR048–050). Prior implementation0602f96 remains historical. Preserve the application and both untracked user ZIPs. No push/deployment/paid calls are authorized. Current paid allowance is unknown.
 
 ## Implemented and remaining scope
 
@@ -18,7 +18,7 @@ The authorized V6 W01–W09 internal milestone remains **incomplete**. Branch `c
 
 ## Current evidence
 
-- `verification/v6/document-evaluation-integrated/`: reviewed working tree passes **422/422 PostgreSQL tests** (29files,439.79s), **39/39 actual extraction/API tests** (8files,114.57s), verify157core/132backend/186mobile/6governance, configured types/boundaries and651module2.21MB Android JS export. A subsequent one-line account-panel reset is reserved for exact-commit clean proof. Initial extraction36passed/3failed is retained: an earlier synthetic unattributed hold correctly blocked evaluator execution. Evaluator controls now create and retain a fresh synthetic database; accounting and assertions are unchanged. Default evaluator invocation exits2 before any paid effect. Exact new-commit clean proof remains next.
+- `verification/v6/document-evaluation-integrated/`: reviewed working tree passes **422/422 PostgreSQL tests** (29files,439.79s), **39/39 actual extraction/API tests** (8files,114.57s), verify157core/132backend/186mobile/6governance, configured types/boundaries and651module2.21MB Android JS export. Exact-ce2f889 clean proof below covers the final account-panel reset. Initial extraction36passed/3failed is retained: an earlier synthetic unattributed hold correctly blocked evaluator execution. Evaluator controls now create and retain a fresh synthetic database; accounting and assertions are unchanged. Default evaluator invocation exits2 before any paid effect. Exact-ce2f889 clean proof passes.
 
 - `verification/v6/capacity-formatting-integrated/`: backend source committed in b15c3d8. Full **407/407 PostgreSQL integration tests** (27 files,457.80s), **33/33 actual extraction/API tests** (6 files,87.54s), verify155 core/117 backend/136 mobile/6 governance, configured types/boundaries all exit0. Real local PostgreSQL and isolated parsers; synthetic data and fabricated provider responses.
 - `verification/v6/admission-preflight-integrated/`: later mobile-only source committed in0602f96. **148/148 mobile tests**, types and **648-module2.18MB Android JavaScript export** all exit0. `admission-preflight/api-contract.log` separately proves actual authenticated settings/upload/admission/recovery on local PostgreSQL with zero provider intents. Initial mocked wrong-endpoint implementation was rejected before integration; failure and old patch retained.
@@ -27,6 +27,8 @@ The authorized V6 W01–W09 internal milestone remains **incomplete**. Branch `c
 - Scoped PostCSS, Vitest4 and xcode UUID dependency repairs are committed. Audit remains **exit1: zero moderate/two high image-size findings**. Metro0.83.3 remains; isolated0.83.8 experiment is unadopted pending native compatibility. Candidate iOS prebuild is not a native build.
 
 Every failed attempt remains in its packet and EXECUTION_LEDGER. Do not sum overlapping suites. Current design typecheck is unsuppressed. Evidence manifests pin commands, revisions, environments and artifacts. Document validators prove metadata integrity only. Same-model reviews are not independent human validation.
+
+Exact implementationce2f889 clean checkout (`clean-document-evaluation/`) passes frozen offline ignore-scripts install, verify157/132/186/6, mobiletypes and651module2.21MB JS export, ending clean. Hosted CI and native build are unrun.
 
 ## Useful-question and correction traces
 
@@ -44,6 +46,6 @@ W10 remains separate: hosted identity/network/storage/pooler, backups/restore/re
 
 ## Next work and rollback
 
-The prior0602 clean proof is historical. Commit the reviewed ADR048–050 working tree, then verify that exact commit from a clean checkout and reconcile metadata. The registered runner currently supports live discovery only; frozen supplied-document execution remains unavailable. After unlock, clean the bound synthetic device session and execute current native acceptance. Real paid model evaluation requires a current explicit allowance; hosted/release work requires separate authority.
+The prior0602 clean proof is historical. ADR048–050 implementation is committed as ce2f889253185455ec1cef5dc85920e10ce3b816; exact clean-checkout proof passed and metadata is reconciled. The registered runner currently supports live discovery only; frozen supplied-document execution remains unavailable. After unlock, clean the bound synthetic device session and execute current native acceptance. Real paid model evaluation requires a current explicit allowance; hosted/release work requires separate authority.
 
 Rollback disables new scheduling/acceptance while preserving128-capable immutable proof readers, extractionv1/v2/v3 receipts, ownership/tombstones, required challenge/verification/discovery obligations, publication vetoes, deletion, receipt settlement and unknown holds. Never restore fixture fallback or erase pending request identities. No background continuation is promised after execution stops.

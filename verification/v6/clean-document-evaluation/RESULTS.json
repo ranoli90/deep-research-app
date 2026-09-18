@@ -1,0 +1,51 @@
+{
+  "requirementIds": [
+    "W09"
+  ],
+  "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "checkout": "/tmp/deep-clean-ce2f889",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "platform": "Linux"
+  },
+  "results": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "scope": "offline frozen dependencies; lifecycle scripts explicitly disabled",
+      "artifact": "install.log",
+      "sha256": "cc2cf51190f03594b3c04e425bd31e090e62352c00b88276cb997099e4f1e939"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "scope": "157core/132backend/186mobile/6governance, configured types/boundaries",
+      "artifact": "verify.log",
+      "sha256": "6079c2b7f8de82a4b13edc163fda1dc54f22c6b2f36702552555f1b8e7602777"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "mobile types",
+      "artifact": "mobile-typecheck.log",
+      "sha256": "3f1ceaa7dcf0886cec8056ced674d53bb869fa8928d7ec969ea823353429be86"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-clean-ce2f889-export",
+      "exitCode": 0,
+      "scope": "651modules2.21MB7539ms; JavaScript export, not native build",
+      "artifact": "android-export.log",
+      "sha256": "8bb60358e9d6d05df3f61245f852b954079b2c690f6aed91cb8aa5c02a2974c7"
+    }
+  ],
+  "finalGitStatus": "clean",
+  "paidCalls": 0,
+  "databaseChecks": "not repeated; prior422PG/39actual packet source matches production implementation",
+  "limits": [
+    "No hosted CI/native build/real-model semantic execution",
+    "Offline ignore-scripts install scope explicit"
+  ],
+  "lockSha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e"
+}

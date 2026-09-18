@@ -1104,5 +1104,13 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-clean-ce2f889-export",
+    "status": "implemented_application_command",
+    "scope": "W09 exact clean ce2f889 JavaScript export only",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "scope": "Cumulative bounded recheck through working tree over 0ddedb466bc08d63690b3ffbb14fb6c23929e50c; ADR048-050 integration active. Original review pin and all19 findings retained; local synthetic evidence is distinct from live semantic/native/hosted gates. Milestone incomplete.",
+  "scope": "Cumulative bounded recheck through implementation ce2f889253185455ec1cef5dc85920e10ce3b816. Original review pin and all19 findings retained. 422 local PostgreSQL/39actual extraction/186mobile and157core/132backend controls are distinct from unpassed live semantic/native/hosted gates; milestone incomplete.",
   "findings": [
     {
       "id": "V6-F01",

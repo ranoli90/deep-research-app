@@ -6256,6 +6256,17 @@
       "evidenceClass": "integrated_local_synthetic_and_actual_extraction",
       "scope": "422PG/39actual/157core/132backend/186mobile/6governance; retained initial3actual failures and default-deny exit2; no live/native/hosted proof",
       "sha256": "73ac058cb3afc639ccb3037423ed571fcfa9e4df972aadd13cf4677fe98312da"
+    },
+    {
+      "requirementIds": [
+        "W09"
+      ],
+      "command": "See clean-document-evaluation/RESULTS.json",
+      "artifact": "clean-document-evaluation/RESULTS.json",
+      "exitCode": 0,
+      "evidenceClass": "exact_commit_clean_checkout",
+      "scope": "Exactce2f889253185455ec1cef5dc85920e10ce3b816 offline install/verify/mobiletypes/651module2.21MB JS export; clean status, no DB/native/provider repeat",
+      "sha256": "f1805484ce98436d13d41258c65d04f5f140b9fd5933a7e6abf6a49724c19352"
     }
   ],
   "unresolved": [
@@ -6313,6 +6324,6 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "latestReviewedImplementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
   "latestEvidencePacket": "verification/v6/html-list-integrated/RESULTS.json"
 }
