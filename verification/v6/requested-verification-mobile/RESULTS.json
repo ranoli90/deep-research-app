@@ -59,5 +59,6 @@
       "path": "apps/mobile/test/verification-request.test.ts",
       "sha256": "d84fcd74d28e0b08cf3b941701058484e5d289bd96523352e00a3a8911596a33"
     }
-  ]
+  ],
+  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289"
 }

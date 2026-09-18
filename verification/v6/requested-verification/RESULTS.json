@@ -172,5 +172,6 @@
   "finalObservedHead": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
   "rollback": "Disable new scheduling, retain exact-key bound recovery/withdrawal, target/required-proof readers, publication veto, deletion, financial settlement and unknown holds.",
   "cost": "No live provider calls or paid spend. Fabricated provider receipts use synthetic microamounts. Current live budget unknown, not authorized.",
-  "remaining": "Real model semantics/independent evaluation and full native verification journey not established. Some malformed-proof corruption fails closed through retry rather than terminal blocked. Private notes are saved feedback, not assessed."
+  "remaining": "Real model semantics/independent evaluation and full native verification journey not established. Some malformed-proof corruption fails closed through retry rather than terminal blocked. Private notes are saved feedback, not assessed.",
+  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289"
 }

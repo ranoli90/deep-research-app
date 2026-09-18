@@ -4,7 +4,7 @@ The authorized V6 W01–W09 goal remains active and incomplete. Continue the exi
 
 ## Current checkpoint
 
-Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Committed source `9d95ad50bfdd267a3d6b3b8d19246b9909927455`, metadata HEAD `7ccfe802e9695a48fe01b15cf676c3d07cc60a41`; requested-verification changes are working-tree source pending reviewed commit. Actual git state takes precedence. Original review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`; V6 staged in `/tmp/deep-v6-staging`. STATUS, canonical specs and ledger carry scope/history; agent handoffs are evidence, not alternative specifications.
+Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Committed source `9d95ad50bfdd267a3d6b3b8d19246b9909927455`, metadata HEAD `7ccfe802e9695a48fe01b15cf676c3d07cc60a41`; requested-verification implementation is committed as `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Actual git state takes precedence. Original review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`; V6 staged in `/tmp/deep-v6-staging`. STATUS, canonical specs and ledger carry scope/history; agent handoffs are evidence, not alternative specifications.
 
 Recent committed behavior includes protected snapshots, correction-draft recovery, exact upload/admission retry and withdrawal, native SHA256, current-clock lease fences, atomic cancellation/events, layout-aware reading restoration, source-deletion replay veto and durable mobile source-deletion redaction. Preserve all privacy, authorization, spend and publication gates. ADR029–036 and linked evidence record regressions and rollback.
 
@@ -34,4 +34,6 @@ Earlier ExpoGo proof includes picker/consent/binary SHA256/deletion, correction 
 
 Rollback disables new scheduling but retains immutable readers, required verification/challenge markers, publication vetoes, ownership/deletion, receipt settlement and unknown holds. Never restore fixture fallback or erase admitted proof obligations. No background continuation is promised after execution stops.
 
-Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116backend/132mobile/6governance), configured types/boundaries; actual extraction17/17 in87.78s; Android JS647modules/2.17MB and mobile types exit0. First combined failure retained: obsolete diagnostic M08 assertion expected invented verification prose; replacement rejects that false narrative and retains positive report checks. Evidence `verification/v6/requested-verification-integrated/RESULTS.json`. Source pending commit; no paid/native/semantic claim.
+Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116backend/132mobile/6governance), configured types/boundaries; actual extraction17/17 in87.78s; Android JS647modules/2.17MB and mobile types exit0. First combined failure retained: obsolete diagnostic M08 assertion expected invented verification prose; replacement rejects that false narrative and retains positive report checks. Evidence `verification/v6/requested-verification-integrated/RESULTS.json`. Implementation commit `f88091ac83fd57ba5ed6e28405ba7bfcca796289`; no paid/native/semantic claim.
+
+Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Exact fresh-checkout verification is being recorded separately; prior tests ran against the reviewed working tree.

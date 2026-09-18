@@ -2,7 +2,7 @@
 
 The authorized V6 W01–W09 internal milestone remains **incomplete**. The application is real; green local controls do not prove general live research quality or release readiness. Production uses the structured pipeline and does not import fixture catalogs. Historical controller/fixture results remain diagnostics.
 
-Current committed implementation: `9d95ad50bfdd267a3d6b3b8d19246b9909927455` (mobile source deletion), with metadata HEAD `7ccfe802e9695a48fe01b15cf676c3d07cc60a41`. Requested scoped verification is a reviewed working-tree checkpoint pending commit. It adds real queued assessment, immutable target proof, bounded recovery and protected mobile retry; no native or real-model semantic pass is implied. Earlier checkpoint receipts below retain their own revisions.
+Current committed implementation: `9d95ad50bfdd267a3d6b3b8d19246b9909927455` (mobile source deletion), with metadata HEAD `7ccfe802e9695a48fe01b15cf676c3d07cc60a41`. Requested scoped verification is committed as `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. It adds real queued assessment, immutable target proof, bounded recovery and protected mobile retry; no native or real-model semantic pass is implied. Earlier checkpoint receipts below retain their own revisions.
 
 ## Current verified components and remaining work
 
@@ -72,4 +72,6 @@ W03/W07 mobile source deletion: protected redaction-before-DELETE, source/versio
 
 Source-deletion UI implementation committed as `9d95ad50bfdd267a3d6b3b8d19246b9909927455`; source replay veto as `a86faf8`. Exact detached9d95ad5 checkout passed offline frozen install,123mobile tests,types and645module2.16MB AndroidJS export; clean afterward. Evidence verification/v6/clean-source-deletion/RESULTS.json. Native deletion remains unverified while device locked, with protected synthetic cache cleanup pending unlock. Requested-verification work is separate/uncommitted.
 
-Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116backend/132mobile/6governance), configured types/boundaries; actual extraction17/17 in87.78s; Android JS647modules/2.17MB and mobile types exit0. First combined failure retained: obsolete diagnostic M08 assertion expected invented verification prose; replacement rejects that false narrative and retains positive report checks. Evidence `verification/v6/requested-verification-integrated/RESULTS.json`. Source pending commit; no paid/native/semantic claim.
+Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116backend/132mobile/6governance), configured types/boundaries; actual extraction17/17 in87.78s; Android JS647modules/2.17MB and mobile types exit0. First combined failure retained: obsolete diagnostic M08 assertion expected invented verification prose; replacement rejects that false narrative and retains positive report checks. Evidence `verification/v6/requested-verification-integrated/RESULTS.json`. Implementation commit `f88091ac83fd57ba5ed6e28405ba7bfcca796289`; no paid/native/semantic claim.
+
+Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Exact fresh-checkout verification is being recorded separately; prior tests ran against the reviewed working tree.
