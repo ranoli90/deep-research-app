@@ -58,7 +58,7 @@ Native Android: **unrun**. Do not take the shared phone. If document/evidence su
 
 - Historical v6 ZDR/live semantic failures are unchanged and not rewritten.
 - Backend unit timeouts observed under parallel load (`eval-live`, `frozen-documents`, `generation-receipt` GC, `governance` graph walk) were re-run serially; they are not new assertion weakenings.
-- Concurrent extraction+integration run timed out the upload PDF journey at 30s; the public-search sibling of the same control passed. Serial extraction re-run is required before calling extraction green.
+- Concurrent extraction+integration run timed out the upload PDF journey at 30s; serial re-run after that timeout allowance was 55/55.
 
 ## Security implications
 
