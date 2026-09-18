@@ -1,0 +1,282 @@
+{
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "evidenceClass": "synthetic real PostgreSQL and production worker; fabricated model/extraction receipts",
+  "recovery": {
+    "report": {
+      "id": "1da1584f-6d54-430a-b79b-30496182c6ff",
+      "run_id": "43add82f-0873-4ad3-833c-43aa9944a37b",
+      "account_id": "f385b797-ca1c-4b84-9dbc-df5e9fde5e0d",
+      "version": 1,
+      "outcome": "completed_with_limitations",
+      "basis": {
+        "consentEpoch": 1,
+        "briefRevision": 1,
+        "evidenceRevision": 0,
+        "workerLeaseFence": 2,
+        "cancellationEpoch": 0
+      },
+      "blocks": [
+        {
+          "id": "heading_0",
+          "kind": "heading",
+          "text": "Evidence",
+          "claimIds": [],
+          "citationIds": []
+        },
+        {
+          "id": "paragraph_0_0",
+          "kind": "text",
+          "text": "Ardent supports offline recording only on firmware 4.2.",
+          "claimIds": [
+            "eb0f53f1-eb57-45d2-a3ce-e605f4d2030d"
+          ],
+          "citationIds": [
+            "9a598249-3059-483f-8553-000000000012"
+          ]
+        }
+      ],
+      "claim_ids": [
+        "eb0f53f1-eb57-45d2-a3ce-e605f4d2030d"
+      ],
+      "limitations": [
+        "Some requested questions remain unresolved.",
+        "This assessment selected 6 of 12 available passages. The 6 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain.",
+        "This assessment selected 7 of 12 available passages. The 5 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+      ],
+      "source_access_summary": [
+        {
+          "title": "Synthetic firmware note",
+          "sourceId": "9fd1745d-6ad4-4814-b26d-a8ff12ef9c01",
+          "accessLevel": "partial-text",
+          "originCluster": "synthetic"
+        }
+      ],
+      "change_summary": null,
+      "route_mode": "controlled-research",
+      "published_at": "2026-09-18T16:24:19.986Z",
+      "redacted_at": null
+    },
+    "contexts": [
+      {
+        "operation": "research_brief_v1",
+        "selection": null
+      },
+      {
+        "operation": "research_extract_assertions_v1",
+        "selection": {
+          "id": "f92fe9d2-ac48-42ba-ac1a-f1077cc0dc30",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "aebf3947a34336e1c71a8af34738a716b69146a159524f919868873209eae3a2",
+          "available": 12,
+          "selected": 6,
+          "omitted": 6
+        }
+      },
+      {
+        "operation": "research_extract_assertions_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      },
+      {
+        "operation": "research_assess_support_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      },
+      {
+        "operation": "research_review_coverage_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      },
+      {
+        "operation": "research_write_report_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      },
+      {
+        "operation": "research_assess_support_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      },
+      {
+        "operation": "research_review_coverage_v1",
+        "selection": {
+          "id": "09454c46-b9d1-4fcc-b8ae-f7c265bf48a0",
+          "version": "whole-passage-selection.v1",
+          "proofDigest": "bdd8b076607e69611f842edeb7cbb345513b78bae2836f224594e1e403922db7",
+          "available": 12,
+          "selected": 7,
+          "omitted": 5
+        }
+      }
+    ],
+    "supportDecisions": [
+      "supported",
+      "supported"
+    ]
+  },
+  "correction": {
+    "original": {
+      "id": "3cb8df31-be0e-43f0-97b4-21fdf28eda39",
+      "run_id": "569792f4-2459-4e25-a8ed-02f5d1f81a67",
+      "account_id": "fb1ba2e1-3a9e-44ae-8a33-ba89d58f4cbd",
+      "version": 1,
+      "outcome": "completed_with_limitations",
+      "basis": {
+        "consentEpoch": 1,
+        "briefRevision": 1,
+        "evidenceRevision": 0,
+        "workerLeaseFence": 1,
+        "cancellationEpoch": 0
+      },
+      "blocks": [
+        {
+          "id": "heading_0",
+          "kind": "heading",
+          "text": "Evidence",
+          "claimIds": [],
+          "citationIds": []
+        },
+        {
+          "id": "paragraph_0_0",
+          "kind": "text",
+          "text": "Ardent supports offline recording only on firmware 4.2.",
+          "claimIds": [
+            "525e7b7f-a211-4668-9a5d-c59713f6acf0"
+          ],
+          "citationIds": [
+            "bd442e5b-8d72-4f27-a646-000000000025"
+          ]
+        }
+      ],
+      "claim_ids": [
+        "525e7b7f-a211-4668-9a5d-c59713f6acf0"
+      ],
+      "limitations": [
+        "Some requested questions remain unresolved.",
+        "This assessment selected 8 of 25 available passages. The 17 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+      ],
+      "source_access_summary": [
+        {
+          "title": "Synthetic firmware note",
+          "sourceId": "344a6f37-bbca-404f-920f-f251f5c3d331",
+          "accessLevel": "partial-text",
+          "originCluster": "synthetic"
+        }
+      ],
+      "change_summary": null,
+      "route_mode": "controlled-research",
+      "published_at": "2026-09-18T16:23:55.070Z",
+      "redacted_at": null
+    },
+    "revised": {
+      "id": "84d79074-142b-4f7f-8cbb-019556f246cf",
+      "run_id": "0b2ec8d1-5af0-40c2-99cb-6976d9986ae4",
+      "account_id": "fb1ba2e1-3a9e-44ae-8a33-ba89d58f4cbd",
+      "version": 1,
+      "outcome": "completed_with_limitations",
+      "basis": {
+        "consentEpoch": 1,
+        "briefRevision": 2,
+        "evidenceRevision": 1,
+        "workerLeaseFence": 1,
+        "cancellationEpoch": 0
+      },
+      "blocks": [
+        {
+          "id": "heading_0",
+          "kind": "heading",
+          "text": "Evidence",
+          "claimIds": [],
+          "citationIds": []
+        },
+        {
+          "id": "paragraph_0_0",
+          "kind": "text",
+          "text": "Ardent does not support underwater recording.",
+          "claimIds": [
+            "9895242b-cb1f-4d38-8819-54fad2d72188"
+          ],
+          "citationIds": [
+            "bd442e5b-8d72-4f27-a646-000000000024"
+          ]
+        }
+      ],
+      "claim_ids": [
+        "9895242b-cb1f-4d38-8819-54fad2d72188"
+      ],
+      "limitations": [
+        "Some requested questions remain unresolved.",
+        "This assessment selected 8 of 25 available passages. The 17 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+      ],
+      "source_access_summary": [
+        {
+          "title": "Synthetic firmware note",
+          "sourceId": "344a6f37-bbca-404f-920f-f251f5c3d331",
+          "accessLevel": "partial-text",
+          "originCluster": "synthetic"
+        }
+      ],
+      "change_summary": {
+        "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+        "comparison": {
+          "version": "report-changes.v1",
+          "parentReportId": "3cb8df31-be0e-43f0-97b4-21fdf28eda39",
+          "addedCriterionIds": [],
+          "reportStateChanged": false,
+          "removedCriterionIds": [],
+          "unchangedAssertions": 0,
+          "addedClaimRevisionIds": [
+            "14483866-6163-4bf7-8404-b64740b46f89"
+          ],
+          "removedClaimRevisionIds": [
+            "8455bbe2-5ab9-4ec7-906c-4afe92640432"
+          ],
+          "newlyCitedSourceVersionIds": [],
+          "reusedCitedSourceVersionIds": [
+            "f952d6ef-6e6a-4bf5-a0dd-59a866478b2a"
+          ]
+        },
+        "newlyFeasible": [],
+        "evidenceUpdated": false,
+        "newlyInfeasible": [],
+        "conclusionChanged": true
+      },
+      "route_mode": "controlled-research",
+      "published_at": "2026-09-18T16:24:01.191Z",
+      "redacted_at": null
+    },
+    "reusedPassages": 25
+  },
+  "semanticQuality": null,
+  "paidCostMicro": 0
+}

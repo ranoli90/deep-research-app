@@ -1,0 +1,32 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": [
+    "python3",
+    "scripts/validate_builder_handoff.py"
+  ],
+  "environmentOverrides": {},
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T16:12:10.722888+00:00",
+  "finishedAt": "2026-09-18T16:12:11.953660+00:00",
+  "elapsedSeconds": 1.231,
+  "exitCode": 0,
+  "artifact": "verification/v6/bounded-recovery/handoff.log",
+  "artifactSha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

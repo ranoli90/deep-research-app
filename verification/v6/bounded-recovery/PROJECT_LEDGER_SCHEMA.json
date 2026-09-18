@@ -1,0 +1,21 @@
+{
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/read-project-exposure.mts",
+  "checkedAt": "2026-09-18T16:17:55.653Z",
+  "scope": "read-only configured local project database, current-key and unattributed financial metadata only; no authorization inferred",
+  "paidCostMicro": 0,
+  "status": "metadata_unavailable",
+  "reason": "42703",
+  "exitCode": 1,
+  "availableLedgerColumns": [
+    "id",
+    "run_id",
+    "correlation_id",
+    "route",
+    "request_digest",
+    "reserved_max_micro",
+    "state",
+    "created_at",
+    "confirmed_micro"
+  ]
+}

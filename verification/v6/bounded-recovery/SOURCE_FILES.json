@@ -1,0 +1,41 @@
+{
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "files": [
+    {
+      "path": "apps/backend/migrations/040_empty_selection_recovery.sql",
+      "sha256": "c0cee57d884e3feab6f8bee99005ab20b0f7b1630db3d4f2e0838be39fe20259"
+    },
+    {
+      "path": "apps/backend/src/worker/structured-research.ts",
+      "sha256": "6e79d48bfea63f9a636ac2d79bff3cd13f54b63a2d769100fdd4ad406f0e506f"
+    },
+    {
+      "path": "apps/backend/test/eval-live.extraction.test.ts",
+      "sha256": "5bf4571f21e5560fc475029d13868d3f1851c0dd80b44675e69c3d7a79b61de8"
+    },
+    {
+      "path": "apps/backend/test/evidence-selection.integration.test.ts",
+      "sha256": "a73d42b6da327ec35af805d9fbdfcb1ae80aecc7b72528d3224f06ad21e369cd"
+    },
+    {
+      "path": "apps/backend/test/passage-capacity.integration.test.ts",
+      "sha256": "e789dc48536d0a14d0661a80ab7c0995eab8ad7fdb0ce3a9ad765c4e71ba6cb5"
+    },
+    {
+      "path": "packages/research-core/src/evidence-selection.ts",
+      "sha256": "729d0c7f9fa71b2815716b2f05c915baabc623ff21a7c531c8d898d770e3a1fe"
+    },
+    {
+      "path": "packages/research-core/src/index.ts",
+      "sha256": "910c57b1b8e12606e016f28cfd84b5353684780c9413487ab25fb4326a103c59"
+    },
+    {
+      "path": "packages/research-core/test/evidence-selection.test.ts",
+      "sha256": "69b232f7a3411bec5862ef277c30d6b6237808583cf649d8f7e15d8284d234ac"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e"
+    }
+  ]
+}

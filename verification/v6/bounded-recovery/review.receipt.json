@@ -1,0 +1,32 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": [
+    "python3",
+    "scripts/validate_review.py"
+  ],
+  "environmentOverrides": {},
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T16:12:10.742483+00:00",
+  "finishedAt": "2026-09-18T16:12:12.040226+00:00",
+  "elapsedSeconds": 1.298,
+  "exitCode": 0,
+  "artifact": "verification/v6/bounded-recovery/review.log",
+  "artifactSha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

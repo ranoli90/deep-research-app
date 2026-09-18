@@ -1760,5 +1760,37 @@
     "network": false,
     "paid": false,
     "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/read-project-key.py",
+    "status": "implemented_review_tool",
+    "scope": "Nonbillable GET of this project credential quota; no generation, purchase, key mutation or authorization inferred; no secret output",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/read-project-key.py"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/read-project-exposure.mts",
+    "status": "implemented_review_tool",
+    "scope": "Read-only financial metadata on configured local project database, no account/source content or secrets; no generation",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/read-project-exposure.mts"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/diagnose.py",
+    "status": "implemented_review_tool",
+    "scope": "Post-freeze reference span presence across actual extraction/model inspection windows; no live semantic or blind benchmark score",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/diagnose.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/record.py",
+    "status": "implemented_review_tool",
+    "scope": "Package terminal receipts, exact source hashes, original failures and source/correction traces; no semantic scoring or execution",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/record.py"
   }
 ]

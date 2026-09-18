@@ -1,0 +1,192 @@
+{
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": "python3 verification/v6/bounded-recovery/diagnose.py",
+  "evidenceClass": "actual saved extraction and executed model-context presence under fabricated transport; not claim support, semantic success or independent adjudication",
+  "developerExposure": "The earlier reference spans were already exposed. The recovery policy uses no reference/gold data; these tasks are not fresh blind heldout evidence.",
+  "traceSha256": "6b64b107d94a841f27768166f12638c04c71789b0696df5cea8ed69046a27cc9",
+  "tasksSha256": "d3ee317d08f54f1e8f354e22bfb2857a021ba8bfdcb48859f0ee6744dfb76d7e",
+  "records": [
+    {
+      "sourceId": "rfc9112",
+      "runId": "d55635e4-e925-4fcb-9f34-6af3a87173fe",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 46,
+      "executedContexts": 3,
+      "inspected": 46,
+      "references": [
+        {
+          "taskId": "MC-D04",
+          "reference": {
+            "sourceId": "rfc9112",
+            "publisherLocator": "section6.2;PDFpage18",
+            "exactSpan": "A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.",
+            "interpretation": "Prior parser-development case, intentionally not held-out."
+          },
+          "allPassageMatches": [
+            "b634bef8-3fca-47a2-bdb0-c8cd4d8d6c8d"
+          ],
+          "executedContextMatches": [
+            "b634bef8-3fca-47a2-bdb0-c8cd4d8d6c8d"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "tmp117",
+      "runId": "65f79235-f589-4fb1-badd-a60474630725",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 50,
+      "executedContexts": 3,
+      "inspected": 50,
+      "references": [
+        {
+          "taskId": "MC-D05",
+          "reference": {
+            "sourceId": "tmp117",
+            "publisherLocator": "PDFpage1 features;page6 electrical-characteristics table",
+            "exactSpan": "\u00b10.1 \u00b0C (maximum) from \u201320 \u00b0C to 50 \u00b0C",
+            "interpretation": "Narrow original range."
+          },
+          "allPassageMatches": [
+            "5a1601ed-7bd8-4c52-bbf0-ca3b76fbde42"
+          ],
+          "executedContextMatches": [
+            "5a1601ed-7bd8-4c52-bbf0-ca3b76fbde42"
+          ]
+        },
+        {
+          "taskId": "MC-D05",
+          "reference": {
+            "sourceId": "tmp117",
+            "publisherLocator": "PDFpage1 features",
+            "exactSpan": "\u00b10.15 \u00b0C (maximum) from \u201340 \u00b0C to 70 \u00b0C",
+            "interpretation": "Wider range exceeds stated requirement."
+          },
+          "allPassageMatches": [
+            "5a1601ed-7bd8-4c52-bbf0-ca3b76fbde42"
+          ],
+          "executedContextMatches": [
+            "5a1601ed-7bd8-4c52-bbf0-ca3b76fbde42"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "esp32",
+      "runId": "744592e5-4f56-4435-a365-7cf00b0bcc7d",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 78,
+      "executedContexts": 4,
+      "inspected": 78,
+      "references": [
+        {
+          "taskId": "MC-H01",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage53 table5-6",
+            "exactSpan": "2412",
+            "interpretation": "Lower bound MHz in operating-frequency row."
+          },
+          "allPassageMatches": [
+            "06b96d54-19af-4eed-9494-ab8bf7460417"
+          ],
+          "executedContextMatches": [
+            "06b96d54-19af-4eed-9494-ab8bf7460417"
+          ]
+        },
+        {
+          "taskId": "MC-H01",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage53 table5-6",
+            "exactSpan": "2484",
+            "interpretation": "Upper bound MHz in same row."
+          },
+          "allPassageMatches": [
+            "06b96d54-19af-4eed-9494-ab8bf7460417"
+          ],
+          "executedContextMatches": [
+            "06b96d54-19af-4eed-9494-ab8bf7460417"
+          ]
+        },
+        {
+          "taskId": "MC-H01",
+          "reference": {
+            "sourceId": "esp32",
+            "publisherLocator": "PDFpage54 table5-6 note1",
+            "exactSpan": "frequency range allocated by regional regulatory authorities",
+            "interpretation": "Band capability does not waive operating restrictions."
+          },
+          "allPassageMatches": [
+            "c32ca084-046b-452e-aa22-ac8ce9c58fab"
+          ],
+          "executedContextMatches": [
+            "c32ca084-046b-452e-aa22-ac8ce9c58fab"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    },
+    {
+      "sourceId": "sqlite-wal",
+      "runId": "0872171b-429e-498a-8bfa-2f15efb0d170",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 75,
+      "executedContexts": 2,
+      "inspected": 75,
+      "references": [
+        {
+          "taskId": "MC-D01",
+          "reference": {
+            "sourceId": "sqlite-wal",
+            "publisherLocator": "#overview",
+            "exactSpan": "WAL does not work over a network filesystem.",
+            "interpretation": "Reject original network-filesystem requirement."
+          },
+          "allPassageMatches": [
+            "dfd194ef-3a3d-4496-aa72-71b2a6e4e6a2"
+          ],
+          "executedContextMatches": [
+            "dfd194ef-3a3d-4496-aa72-71b2a6e4e6a2"
+          ]
+        },
+        {
+          "taskId": "MC-D01",
+          "reference": {
+            "sourceId": "sqlite-wal",
+            "publisherLocator": "#concurrency",
+            "exactSpan": "there can only be one writer at a time.",
+            "interpretation": "Read/write concurrency is not multi-writer concurrency."
+          },
+          "allPassageMatches": [
+            "1a590581-d341-427e-aaed-e6cdb532794d"
+          ],
+          "executedContextMatches": [
+            "1a590581-d341-427e-aaed-e6cdb532794d"
+          ]
+        }
+      ],
+      "unresolvedReasons": [
+        "no_relevant_assertions"
+      ]
+    }
+  ],
+  "extractionMissingReferences": 0,
+  "inspectionMissingReferences": 0,
+  "semanticScore": null,
+  "humanAdjudication": null,
+  "paidCostMicro": 0,
+  "exitCode": 0
+}

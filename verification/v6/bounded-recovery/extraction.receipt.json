@@ -1,0 +1,38 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": [
+    "pnpm",
+    "--filter",
+    "@deep/backend",
+    "test:extraction"
+  ],
+  "environmentOverrides": {
+    "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918",
+    "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime",
+    "EVAL_RUNNER_ARTIFACT_DIR": "/home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/extraction-traces"
+  },
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T16:12:10.646128+00:00",
+  "finishedAt": "2026-09-18T16:17:11.429422+00:00",
+  "elapsedSeconds": 300.783,
+  "exitCode": 0,
+  "artifact": "verification/v6/bounded-recovery/extraction.log",
+  "artifactSha256": "29820099a3863f4618308bee65400bf969324151068e713104e4953222d4d090",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

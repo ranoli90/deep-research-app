@@ -1,0 +1,22 @@
+[
+  {
+    "command": "python3 scripts/validate_review.py",
+    "exitCode": 0,
+    "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+    "sourceState": "runtime clean; final evidence/docs uncommitted",
+    "environment": "Linux6.14/Python3.12.3",
+    "artifact": "verification/v6/bounded-recovery/final-review.log.gz",
+    "sha256": "b4a52b42b9387a618920af2859301da9b755d6f72fdf10139f811cb4c0983380",
+    "scope": "document validator only"
+  },
+  {
+    "command": "python3 scripts/validate_builder_handoff.py",
+    "exitCode": 0,
+    "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+    "sourceState": "runtime clean; final evidence/docs uncommitted",
+    "environment": "Linux6.14/Python3.12.3",
+    "artifact": "verification/v6/bounded-recovery/final-handoff.log.gz",
+    "sha256": "5c4ac0b4bb861690f1f2bacaa50d6a9005c0f3cbb0c3de4dfad46ef284cd3f31",
+    "scope": "document validator only"
+  }
+]

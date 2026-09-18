@@ -1,0 +1,36 @@
+{
+  "requirementIds": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09"
+  ],
+  "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "command": [
+    "pnpm",
+    "test:integration"
+  ],
+  "environmentOverrides": {
+    "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+    "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-recovery-correction-final.json",
+    "EMPTY_RECOVERY_TRACE_PATH": "/tmp/deep-recovery-journey-final.json"
+  },
+  "environment": {
+    "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "startedAt": "2026-09-18T16:12:10.663270+00:00",
+  "finishedAt": "2026-09-18T16:25:07.815731+00:00",
+  "elapsedSeconds": 777.152,
+  "exitCode": 0,
+  "artifact": "verification/v6/bounded-recovery/integration.log",
+  "artifactSha256": "10c07f6f3c427362f67a144e0b10540000b5c19be7085159353ce8be135bb4bc",
+  "paidCostMicro": 0,
+  "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded"
+}

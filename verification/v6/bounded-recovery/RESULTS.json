@@ -1,0 +1,366 @@
+{
+  "task": "W02/W05/W06/W08/W09 ADR057 empty selection recovery",
+  "baseCommit": "d1fc334",
+  "sourceCommit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "recordedAt": "2026-09-18T16:25:39.347552+00:00",
+  "milestoneComplete": false,
+  "commands": [
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "pnpm",
+        "test:integration"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918",
+        "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-recovery-correction-final.json",
+        "EMPTY_RECOVERY_TRACE_PATH": "/tmp/deep-recovery-journey-final.json"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.663270+00:00",
+      "finishedAt": "2026-09-18T16:25:07.815731+00:00",
+      "elapsedSeconds": 777.152,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/integration.log",
+      "artifactSha256": "10c07f6f3c427362f67a144e0b10540000b5c19be7085159353ce8be135bb4bc",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/integration.terminal.log.gz",
+      "compressedSha256": "bfd3929ca2326e8f21f5df387b11bb33c9aa54f85991cd7ad59ca16c3178c82e",
+      "testSummary": [
+        "Test Files  32 passed (32)",
+        "Tests  451 passed (451)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@deep/backend",
+        "test:extraction"
+      ],
+      "environmentOverrides": {
+        "TEST_DATABASE_URL": "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918",
+        "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime",
+        "EVAL_RUNNER_ARTIFACT_DIR": "/home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/extraction-traces"
+      },
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.646128+00:00",
+      "finishedAt": "2026-09-18T16:17:11.429422+00:00",
+      "elapsedSeconds": 300.783,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/extraction.log",
+      "artifactSha256": "29820099a3863f4618308bee65400bf969324151068e713104e4953222d4d090",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/extraction.terminal.log.gz",
+      "compressedSha256": "24a75efc861265f78da9d9e0751efe97d3b522fa4db22b7aa7229b7bd813a5a6",
+      "testSummary": [
+        "Test Files  8 passed (8)",
+        "Tests  51 passed (51)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "pnpm",
+        "verify"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.711025+00:00",
+      "finishedAt": "2026-09-18T16:13:23.196879+00:00",
+      "elapsedSeconds": 72.486,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/verify.log",
+      "artifactSha256": "f3381d5553e82ef25069c5cdba608415d822df68f104529cbf54c1c2c676b5a1",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/verify.terminal.log.gz",
+      "compressedSha256": "436320db3a1b35f1cac8fc8762b194c12edb15a16446f6d2b46fbe68bcc7fa24",
+      "testSummary": [
+        "Test Files  16 passed (16)",
+        "Tests  166 passed (166)",
+        "Test Files  22 passed (22)",
+        "Tests  149 passed (149)",
+        "Test Files  22 passed (22)",
+        "Tests  206 passed (206)",
+        "Test Files  1 passed (1)",
+        "Tests  6 passed (6)"
+      ]
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "python3",
+        "scripts/validate_review.py"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.742483+00:00",
+      "finishedAt": "2026-09-18T16:12:12.040226+00:00",
+      "elapsedSeconds": 1.298,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/review.log",
+      "artifactSha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/review.terminal.log.gz",
+      "compressedSha256": "6a207b7c656332f0a7c3c05e3a02fd49bd7075f72a0d3d6268d0ed7018b2d0e5",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "python3",
+        "scripts/validate_builder_handoff.py"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.722888+00:00",
+      "finishedAt": "2026-09-18T16:12:11.953660+00:00",
+      "elapsedSeconds": 1.231,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/handoff.log",
+      "artifactSha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/handoff.terminal.log.gz",
+      "compressedSha256": "9302b148dfbd504e9908706e97c93cd1c5ab3aa720a34457a2862b521cf1ebc6",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_review_validator.py",
+        "-v"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.863373+00:00",
+      "finishedAt": "2026-09-18T16:12:21.294905+00:00",
+      "elapsedSeconds": 10.432,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/review-mutations.log",
+      "artifactSha256": "2bd6243c61c1e525fc46a35f9cfb3029897555815075a706e78da9d50dba5b7b",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/review-mutations.terminal.log.gz",
+      "compressedSha256": "28bc696bbe7e30437bb6eb6edcaaabab30bcac2c19fd37ab669ac2f1d3082185",
+      "testSummary": []
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06",
+        "W08",
+        "W09"
+      ],
+      "commit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_builder_handoff.py",
+        "-v"
+      ],
+      "environmentOverrides": {},
+      "environment": {
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "node": "v20.20.2",
+        "pnpm": "9.15.9"
+      },
+      "startedAt": "2026-09-18T16:12:10.894651+00:00",
+      "finishedAt": "2026-09-18T16:12:20.506896+00:00",
+      "elapsedSeconds": 9.612,
+      "exitCode": 0,
+      "artifact": "verification/v6/bounded-recovery/handoff-mutations.log",
+      "artifactSha256": "3204a6153f8b45068b7aaaef8da6cf0830c535c706e875726601da6e4661b9f2",
+      "paidCostMicro": 0,
+      "scope": "nonbillable local execution; model transports fabricated where used; native/hosted/live semantic evidence excluded",
+      "compressedArtifact": "verification/v6/bounded-recovery/handoff-mutations.terminal.log.gz",
+      "compressedSha256": "01b80cff77066608687134fd8008e0622682b99e8d82894ae8a6c4adc27bfc86",
+      "testSummary": []
+    }
+  ],
+  "traces": [
+    {
+      "path": "verification/v6/bounded-recovery/recovery-journey.json.gz",
+      "sha256": "4930a0c45e6f75ef9947a16ab66543751532a5d3a30b69419fcd35dd94193985",
+      "uncompressedSha256": "441fad6cdd32d4e94aaac7cffeb860b09b7ea82502a9c75b9d90ad2b2612e2c4"
+    },
+    {
+      "path": "verification/v6/bounded-recovery/corrected-journey.json.gz",
+      "sha256": "34a0ffcb315deb1c3bf2068a220444d2d70e677e4215986d9dc4521607ae0027",
+      "uncompressedSha256": "d0e65876b872b53ec1e1b8e62773281d7b533289a490e903184bb68c2105d500"
+    },
+    {
+      "path": "verification/v6/bounded-recovery/extraction-controls.json.gz",
+      "sha256": "2c5175ff7eb73531b5de0f6c025ac859d316edf0276cd84138ec86ba781f75e4",
+      "uncompressedSha256": "6b64b107d94a841f27768166f12638c04c71789b0696df5cea8ed69046a27cc9"
+    }
+  ],
+  "developmentEvidence": "DEVELOPMENT_LOGS.json",
+  "referenceDiagnostic": {
+    "command": "python3 verification/v6/bounded-recovery/diagnose.py",
+    "artifact": "REFERENCE_DIAGNOSTIC.json",
+    "exitCode": 0,
+    "extractionMissingReferences": 0,
+    "inspectionMissingReferences": 0,
+    "scope": "actual saved extraction and executed model-context presence under fabricated transport; not claim support, semantic success or independent adjudication"
+  },
+  "paidSpendMicro": 0,
+  "readOnlyProviderQuota": {
+    "artifact": "PROJECT_KEY_READINESS.json",
+    "checkedAt": "2026-09-18T16:14:01.329725+00:00",
+    "keyQuotaUSD": {
+      "limit": 5,
+      "limit_remaining": 4.7859228,
+      "usage": 0.2140772,
+      "usage_daily": 0,
+      "usage_monthly": 0.2140772
+    },
+    "authorizationGranted": false
+  },
+  "legacyLedger": {
+    "artifact": "PROJECT_LEGACY_EXPOSURE.json",
+    "status": "metadata_unavailable",
+    "reason": "42703",
+    "exposure": [
+      {
+        "route_class": "other_route",
+        "intents": 303,
+        "confirmed_micro": "0",
+        "unconfirmed_intents": 303,
+        "held_micro": "1066000"
+      },
+      {
+        "route_class": "openrouter",
+        "intents": 70,
+        "confirmed_micro": "2800000",
+        "unconfirmed_intents": 56,
+        "held_micro": "5545000"
+      }
+    ],
+    "scope": "Legacy labels/estimates, not verified actual provider spend. Missing key/receipt provenance; no mutation or hold release."
+  },
+  "currentUserApprovedAllowance": null,
+  "nativeBuild": null,
+  "hostedOrDeployment": null,
+  "semanticScore": null,
+  "humanAdjudication": null,
+  "unresolved": [
+    "Useful real-model synthesis, correction/full-rerun factual agreement and paired quality/cost evidence are unproven.",
+    "Current monetary authority and legacy financial provenance are missing; a new database must not bypass existing unknown liabilities.",
+    "The reference spans are already exposed; complete context presence is not semantic understanding or fresh heldout success.",
+    "Broader OCR/layout and applicable physical/iOS/hosted identity/W10 release gates remain distinct."
+  ],
+  "rollback": "Default new admissions to none.v1 if necessary; preserve admitted recovery policies/readers, selection proof/obligations, inventory support veto, ownership/deletion/fences, provider action identities and unknown holds."
+}
