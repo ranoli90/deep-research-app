@@ -6,7 +6,7 @@
     "V6-F17"
   ],
   "baseCommit": "5f10a8471b67b8a3ddd95245f2736fc794fba210",
-  "revisionScope": "Uncommitted protected-cache working tree; clean-checkout proof belongs to prior commit",
+  "revisionScope": "Verified working-tree source committed as96ee11b; prior clean-checkout proof applies to5f10a84.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -107,5 +107,6 @@
     ]
   },
   "paidCalls": 0,
-  "rollback": "Disable new persistence if necessary; retain protected readers/cleanup and denial markers; never restore plaintext writes."
+  "rollback": "Disable new persistence if necessary; retain protected readers/cleanup and denial markers; never restore plaintext writes.",
+  "implementationCommit": "96ee11b727a4ed519c647cd24cfdb2892d72795d"
 }

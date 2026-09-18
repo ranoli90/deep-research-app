@@ -4,7 +4,7 @@ Active user goal: complete unblocked V6 W01–W09, preserve the application and 
 
 ## Authoritative starting point
 
-Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Latest reviewed implementation `5f10a8471b67b8a3ddd95245f2736fc794fba210`; prior checkpoint002e2d6; original base `1448c7ded0d5302231aea9966f9104b0c2dfef3e`. Preserve the two user ZIPs, which are untracked. V6 staged under `/tmp/deep-v6-staging`; review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Actual current worktree and process state take precedence over this checkpoint.
+Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Latest reviewed implementation `96ee11b727a4ed519c647cd24cfdb2892d72795d`; prior checkpoint002e2d6; original base `1448c7ded0d5302231aea9966f9104b0c2dfef3e`. Preserve the two user ZIPs, which are untracked. V6 staged under `/tmp/deep-v6-staging`; review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Actual current worktree and process state take precedence over this checkpoint.
 
 Read STATUS for packet-level finished/remaining scope; ARCHITECTURE and ENGINE_CONTRACTS for current behavior. Original V3 build prompts and historical fixture/adaptive benchmark notes are not a new authorization or proof of production research quality.
 
@@ -38,7 +38,7 @@ Rollback keeps required challenge proof markers and all financial/privacy/public
 
 ## Current follow-on handoff
 
-Current implementation commit is `5f10a8471b67b8a3ddd95245f2736fc794fba210`; follow-on source and evidence are committed. Preserve it and both ZIPs. Earlier no-commit/pending-review bullets describe the inherited checkpoint and are superseded by committed implementation002e2d6. See STATUS current follow-on section and per-directory manifests.
+Current implementation commit is `96ee11b727a4ed519c647cd24cfdb2892d72795d`; follow-on source and evidence are committed. Preserve it and both ZIPs. Earlier no-commit/pending-review bullets describe the inherited checkpoint and are superseded by committed implementation002e2d6. See STATUS current follow-on section and per-directory manifests.
 
 Agents stopped on usage-limit errors. No agent budget-race edit was made; primary implemented shared/exclusive legacy budget lock plus key→project locks, and actual PostgreSQL race barriers pass across key/project/unbound scopes.13receipt integration tests pass; metadata adapter10unit controls pass; no live metadata request or production historical repair executed. Historical repair blocks undersized original holds without releasing liability.
 
@@ -46,6 +46,6 @@ Primary full verify passed148core/114backend/67mobile/6governance and PostgreSQL
 
 Continue all unblocked W01–W09 scope: encrypted/protected native content cache, upload/admission retry identity and correction-draft recovery; granular typed patches/freshness and feedback-requested verification; mutation-basis audit; clean-checkout/CI and full requirement audit. Keep paid semantic/adjudication, hosted identity/retention and signed native/iOS gates separate. Receipt rollback keeps locks/holds; source-deletion rollback keeps tombstones/fences/read denial; challenge rollback keeps required markers/publication proof.
 
-Clean-checkout checkpoint5f10a84: offline frozen install, verify148/114/67/6, fresh PostgreSQL328/328, actual extraction17/17 and Android JS633modules/2.1MB pass. Only intended matched trace artifact changed in clone. Hosted CI unrun. Subsequent protected native cache implementation is uncommitted and separately verified; do not attribute it to this clean-checkout commit.
+Clean-checkout checkpoint5f10a84: offline frozen install, verify148/114/67/6, fresh PostgreSQL328/328, actual extraction17/17 and Android JS633modules/2.1MB pass. Only intended matched trace artifact changed in clone. Hosted CI unrun. Subsequent protected native cache implementation is committed as96ee11b and separately verified; do not attribute it to this clean-checkout commit.
 
-Protected native cache follow-on (uncommitted):78mobile tests/types and634module2.11MB JS export pass. Actual Expo Go migrated2report chunks, removed plaintext, cleared on logout, and preserved an exactly2640-character paced guest draft through restart. Unpaced ADB stress input remains failed/unexplained (783/796/923of2640); no broad typing-performance acceptance. Profile opens Settings; bottom tabs are Research/Library only. Final native cleanup left no credential/report/plaintext and empty guest draft; Metro/reverse stopped. Wider account-switch/abrupt-clear races and pending correction-draft recovery still need work.
+Protected native cache follow-on (commit96ee11b):78mobile tests/types and634module2.11MB JS export pass. Actual Expo Go migrated2report chunks, removed plaintext, cleared on logout, and preserved an exactly2640-character paced guest draft through restart. Unpaced ADB stress input remains failed/unexplained (783/796/923of2640); no broad typing-performance acceptance. Profile opens Settings; bottom tabs are Research/Library only. Final native cleanup left no credential/report/plaintext and empty guest draft; Metro/reverse stopped. Wider account-switch/abrupt-clear races and pending correction-draft recovery still need work.
