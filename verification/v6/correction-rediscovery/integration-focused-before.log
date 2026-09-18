@@ -1,0 +1,50 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/correction-rediscovery.integration.test.ts (2 tests | 2 failed) 345ms
+   × W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading 152ms
+     → expected null to be truthy
+   × W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence 88ms
+     → expected null to be truthy
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading
+AssertionError: expected null to be truthy
+
+- Expected: 
+true
+
++ Received: 
+null
+
+ ❯ setup test/correction-rediscovery.integration.test.ts:44:148
+
+ ❯ test/correction-rediscovery.integration.test.ts:48:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence
+AssertionError: expected null to be truthy
+
+- Expected: 
+true
+
++ Received: 
+null
+
+ ❯ setup test/correction-rediscovery.integration.test.ts:44:148
+
+ ❯ test/correction-rediscovery.integration.test.ts:61:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  21:51:45
+   Duration  1.53s (transform 657ms, setup 0ms, collect 985ms, tests 345ms, environment 0ms, prepare 67ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts

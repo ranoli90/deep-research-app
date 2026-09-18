@@ -1,0 +1,107 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2400]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[42,149][402,218]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[918,149][1038,248]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[918,149][1038,248]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[42,269][1038,358]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[63,290][1017,337]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Pending source deletion",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,358][1080,735]",
+    "clickable": "false"
+  },
+  {
+    "text": "Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[44,402][1036,591]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Retry source deletion",
+    "class": "android.widget.Button",
+    "bounds": "[45,592][1035,691]",
+    "clickable": "true"
+  },
+  {
+    "text": "Retry deletion",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,592][1035,691]",
+    "clickable": "false"
+  },
+  {
+    "text": "Body cannot be empty when content-type is set to 'application/json'",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,777][1080,955]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,958][540,1072]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[193,989][347,1040]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,958][1080,1072]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[752,989][867,1040]",
+    "clickable": "false"
+  }
+]

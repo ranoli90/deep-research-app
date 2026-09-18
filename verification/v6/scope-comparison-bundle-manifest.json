@@ -1,0 +1,15 @@
+{
+  "scope": "Android JavaScript/Hermes export only; no native execution",
+  "files": [
+    {
+      "path": "_expo/static/js/android/index-e27fe495187f7611158d2640da7ac89b.hbc",
+      "bytes": 2038747,
+      "sha256": "93d3d0045fe7b09437b7d708992f89cd8f57e65a47506b4ea6833df743507f2a"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 150,
+      "sha256": "d919fe0282e07475bc2177655ac8c7642872257985f79d9f75f6b39cb0c4d5aa"
+    }
+  ]
+}

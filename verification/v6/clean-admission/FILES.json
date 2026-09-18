@@ -1,0 +1,30 @@
+{
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d",
+  "files": [
+    {
+      "path": "RESULTS.json",
+      "sha256": "25fa8607855ec15616ff83a00a1ed4bf111430a64b7e6bb896f7ae83e72d4519",
+      "bytes": 1307
+    },
+    {
+      "path": "android-export.log",
+      "sha256": "a2a732f18a7c28a225eefa3b71c37c4f48e4e39cb5d91974ac60820df10729a9",
+      "bytes": 522
+    },
+    {
+      "path": "clone.log",
+      "sha256": "d4bbb4ab800cad336a7cb3d59f141d78173c41d6ce8b5c11e5dbc72c14aeaa38",
+      "bytes": 135
+    },
+    {
+      "path": "install.log",
+      "sha256": "e380f47ca13bbd5728f350f5ecfb4833b8200b0a85a5f473aba92931520a199d",
+      "bytes": 330
+    },
+    {
+      "path": "verify.log",
+      "sha256": "422747d3475370778d94e99a8e5b20fc9281cdb911a0af031309add09761406d",
+      "bytes": 5285
+    }
+  ]
+}

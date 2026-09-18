@@ -1,0 +1,42 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "21963803d2ebc653c0b46ad0247537448258a5f804360c02d4d848e3af41933b"
+  },
+  {
+    "path": "audit.json",
+    "sha256": "acc1bbf0c79eab4c7a21b8c7e29808cddfa927f2720cdee6ac8094051b42fe09"
+  },
+  {
+    "path": "audit.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "install.log",
+    "sha256": "d3d4320946714512ca3bc6e6b29a57d039be8b0f8c22004d6c4912dc3cbf5b83"
+  },
+  {
+    "path": "mobile-types.log",
+    "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  },
+  {
+    "path": "resolved-graph.json",
+    "sha256": "3bd8e55cee0cda02381b160d8c508478604a6791be77c0f31063f5fb01c68338"
+  },
+  {
+    "path": "roundtrip.cjs",
+    "sha256": "900e3632f7dab106c4a5e8c6a10bf45df9dc4af3d14f16089083f9e75601c2bf"
+  },
+  {
+    "path": "roundtrip.json",
+    "sha256": "afe860f1d7d35d450972f91cff859700ad225632447221f39fed88bc71625cde"
+  },
+  {
+    "path": "roundtrip.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "synthetic-roundtrip.pbxproj",
+    "sha256": "a8d56bb71accbdef82bccb2dd8cd8c8402ab71a40fe2b25590c28dcb44ac9af5"
+  }
+]

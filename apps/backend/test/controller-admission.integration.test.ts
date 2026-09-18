@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
 import pg from "pg";
@@ -6,9 +6,10 @@ import { DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contrac
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
-import { createPool, migrate } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { createPool, migrate, withTx } from "../src/platform/db.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 import { listEvents } from "../src/modules/runs.js";
+import * as liveSpend from "../src/modules/live-spend.js";
 import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";
 import { recordIntent, updateIntentState } from "../src/modules/billing.js";
 
@@ -60,6 +61,7 @@ beforeEach(async () => {
   await pool.query("TRUNCATE accounts CASCADE");
 });
 afterEach(() => {
+  vi.restoreAllMocks();
   globalThis.fetch = origFetch;
 });
 afterAll(async () => {
@@ -116,10 +118,12 @@ describe("controller admission on the fixture worker path", () => {
     const created = await createRun(token, "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
     expect(created.statusCode).toBe(200);
     const runId = created.json().runId as string;
-    await pool.query(`UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1`, [
-      runId,
-      DEFAULT_RUN_BUDGET_MICRO,
-    ]);
+    // Explicit test-only allowance, backed by the account reserve. No runtime default is raised.
+    await withTx(pool, async (db) => {
+      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, LIVE_CALL_RESERVE_MICRO - DEFAULT_RUN_BUDGET_MICRO]);
+      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+    });
 
     const usedBefore = await liveSpendUsedMicro(pool);
     const liveConfig: AppConfig = {
@@ -127,6 +131,7 @@ describe("controller admission on the fixture worker path", () => {
       liveRouteEnabled: true,
       liveRetrievalEnabled: false,
       openRouterApiKey: "test-not-billed",
+      liveKeySpendCapMicro: LIVE_CALL_RESERVE_MICRO,
       liveSpendCapMicro: usedBefore + LIVE_CALL_RESERVE_MICRO + 1_000_000,
     };
     expect(
@@ -148,7 +153,7 @@ describe("controller admission on the fixture worker path", () => {
           [runId],
         );
         issuedBeforeFetch = Number(issued.rows[0]?.n ?? 0);
-        return new Response(JSON.stringify({ choices: [{ message: { content: "{}", annotations: [] } }] }), {
+        return new Response(JSON.stringify({ usage: { cost: 0 }, choices: [{ message: { content: "{}", annotations: [] } }] }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -169,6 +174,67 @@ describe("controller admission on the fixture worker path", () => {
     );
     expect(intents.rows.length).toBeGreaterThan(0);
     expect(Number(intents.rows[0]?.reserved_max_micro)).toBe(LIVE_CALL_RESERVE_MICRO);
+    expect((await pool.query("SELECT id FROM provider_intents WHERE run_id = $1 AND route LIKE 'fixture:%'", [runId])).rows).toHaveLength(0);
+  });
+
+  it.each(["http_failure", "unknown_cost", "timeout", "prior_attempt", "prior_confirmed_attempt"])("does not count %s as a completed search", async (outcome) => {
+    const { token } = await authed();
+    const created = await createRun(token, "Compare unfamiliar document tools");
+    const runId = created.json().runId as string;
+    await withTx(pool, async (db) => {
+      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, LIVE_CALL_RESERVE_MICRO - DEFAULT_RUN_BUDGET_MICRO]);
+      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+    });
+    if (outcome.startsWith("prior_")) {
+      const reserve = liveSpend.reserveLiveAttempt;
+      vi.spyOn(liveSpend, "reserveLiveAttempt").mockImplementation(async (...args) => {
+        const issued = await reserve(...args);
+        if (outcome === "prior_confirmed_attempt") await updateIntentState(pool, issued.intentId, "confirmed", 500);
+        // Simulate resumption after issuance without a persisted output.
+        return { ...issued, issue: false };
+      });
+    }
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls += 1;
+      if (outcome === "timeout") throw new DOMException("timed out", "TimeoutError");
+      return new Response(JSON.stringify({ choices: [{ message: { annotations: [] } }] }), { status: outcome === "http_failure" ? 503 : 200 });
+    }) as typeof fetch;
+    await processRun(pool, { ...config, liveRouteEnabled: true, liveRetrievalEnabled: false,
+      openRouterApiKey: "test-not-billed", liveKeySpendCapMicro: LIVE_CALL_RESERVE_MICRO,
+      liveBudgetScope: crypto.randomUUID(), liveSpendCapMicro: 1_000_000 }, runId);
+    vi.restoreAllMocks();
+    expect(calls).toBe(outcome.startsWith("prior_") ? 0 : 1);
+    const events = await listEvents(pool, runId, 0);
+    expect(events.some((event) => event.type === "searched" || event.type === "published")).toBe(false);
+    expect(events.some((event) => event.type === "search_unresolved")).toBe(true);
+    const run = (await pool.query("SELECT terminal_outcome, evidence_revision FROM runs WHERE id = $1", [runId])).rows[0];
+    expect(run.terminal_outcome).toBe("failed");
+    expect(run.evidence_revision).toBe(0);
+    const intent = (await pool.query("SELECT state, confirmed_micro, receipt FROM provider_intents WHERE run_id = $1", [runId])).rows[0];
+    expect(intent.confirmed_micro).toBe(outcome === "prior_confirmed_attempt" ? "500" : null);
+    expect(intent.state).toBe(outcome === "prior_confirmed_attempt" ? "confirmed" : outcome === "prior_attempt" ? "issued" : outcome === "http_failure" ? "failed" : "outcome-unknown");
+    if (!outcome.startsWith("prior_")) expect(intent.receipt.state).toBe(intent.state);
+    expect((await pool.query("SELECT state FROM reservations WHERE run_id = $1", [runId])).rows[0].state).toBe(outcome === "prior_confirmed_attempt" ? "settled" : "reserved");
+  });
+
+  it("default run allowance blocks a larger provider reserve before any network call", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "Compare unfamiliar document tools");
+    const runId = created.json().runId as string;
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    let calls = 0;
+    globalThis.fetch = (async () => { calls += 1; throw new Error("unexpected network call"); }) as typeof fetch;
+    await processRun(pool, { ...config, liveRouteEnabled: true, liveRetrievalEnabled: false,
+      openRouterApiKey: "test-not-billed",
+      liveKeySpendCapMicro: LIVE_CALL_RESERVE_MICRO, liveBudgetScope: crypto.randomUUID(), liveSpendCapMicro: 1_000_000 }, runId);
+    expect(calls).toBe(0);
+    const intents = await pool.query("SELECT id FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'", [runId]);
+    expect(intents.rows).toHaveLength(0);
+    const events = await listEvents(pool, runId, 0);
+    expect(JSON.stringify(events)).toContain("run_spend_cap_exhausted");
+    expect(events.some((event) => event.type === "searched" || event.type === "published")).toBe(false);
   });
 
   it("issued then failed live intents still consume the reservation", async () => {

@@ -1,0 +1,6 @@
+
+> deep-research-mobile@0.1.0 test:e2e:android /home/oranolio/Desktop/Deep
+> node scripts/e2e-android.mjs
+
+P0-N Android launcher unavailable: Android SDK is present but no emulator/device is online. Structural native source + unit lifecycle tests remain.
+ ELIFECYCLE  Command failed with exit code 2.

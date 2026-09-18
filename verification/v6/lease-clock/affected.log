@@ -1,0 +1,79 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/lease-clock.integration.test.ts (9 tests) 9354ms
+   ✓ W02 rejects expired semantic mutation after account lock wait  1195ms
+   ✓ W02 rejects expired terminal mutation after account lock wait  1141ms
+   ✓ W02 rejects provider issuance when lease expires waiting for account lock  1153ms
+   ✓ W02 rejects provider issuance when lease expires waiting for legacy lock  1151ms
+   ✓ W02 rejects provider issuance when lease expires waiting for key lock  1151ms
+   ✓ W02 rejects provider issuance when lease expires waiting for project lock  1147ms
+   ✓ W02 rolls back semantic mutation whose transaction callback outlives its lease  1137ms
+   ✓ W02 rolls back terminal mutation whose transaction callback outlives its lease  1134ms
+ ❯ test/provider-reconciliation.integration.test.ts (13 tests | 13 failed) 319ms
+   × W02 reconciles an actual lookup receipt after terminal cancellation without network locks or duplicate settlement 36ms
+     → provider_key_cap_exhausted
+   × W02 absent metadata and unavailable credential provenance retain unknown holds without a lookup 16ms
+     → provider_key_cap_exhausted
+   × W02 deletion during lookup permits only minimal financial settlement 15ms
+     → provider_key_cap_exhausted
+   × W02 mismatched generation, route and cost cannot settle a different intent 18ms
+     → provider_key_cap_exhausted
+   × W02 confirmed overruns remain visible and block new issuance even with spare caps 17ms
+     → provider_key_cap_exhausted
+   × W02 a generation receipt cannot be charged to two intents 15ms
+     → provider_key_cap_exhausted
+   × W02 historical estimated settlement is atomically restored to unknown hold then reconciled by receipt 13ms
+     → provider_key_cap_exhausted
+   × W02 missing historical settlement basis and owner mismatch cannot invent a refund 14ms
+     → provider_key_cap_exhausted
+   × W02 historical overruns cannot release unresolved liability through a smaller original hold 15ms
+     → provider_key_cap_exhausted
+   × W02 an unsettled historical reservation must cover all remaining intent liability 16ms
+     → provider_key_cap_exhausted
+   × W02 shared-key receipt settlement and admission serialize across accounts 15ms
+     → provider_key_cap_exhausted
+   × W02 shared-project receipt settlement and admission serialize across accounts 16ms
+     → provider_key_cap_exhausted
+   × W02 legacy-key receipt settlement and admission serialize across accounts 12ms
+     → provider_key_cap_exhausted
+ ✓ test/v6-execution.integration.test.ts (22 tests) 1048ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 reconciles an actual lookup receipt after terminal cancellation without network locks or duplicate settlement
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 absent metadata and unavailable credential provenance retain unknown holds without a lookup
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 deletion during lookup permits only minimal financial settlement
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 mismatched generation, route and cost cannot settle a different intent
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 confirmed overruns remain visible and block new issuance even with spare caps
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 a generation receipt cannot be charged to two intents
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 historical estimated settlement is atomically restored to unknown hold then reconciled by receipt
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 missing historical settlement basis and owner mismatch cannot invent a refund
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 historical overruns cannot release unresolved liability through a smaller original hold
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 an unsettled historical reservation must cover all remaining intent liability
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 shared-key receipt settlement and admission serialize across accounts
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 shared-project receipt settlement and admission serialize across accounts
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 legacy-key receipt settlement and admission serialize across accounts
+Error: provider_key_cap_exhausted
+ ❯ src/modules/live-spend.ts:108:13
+    106|       FROM provider_intents WHERE route LIKE 'openrouter:%' AND (provi…
+    107|     if (!canIssueLiveCall({ capMicro: config.liveKeySpendCapMicro ?? 0…
+    108|       throw new Error("provider_key_cap_exhausted");
+       |             ^
+    109|     }
+    110|     const scope = config.liveBudgetScope ?? "project";
+ ❯ withTx src/platform/db.ts:33:20
+ ❯ setup test/provider-reconciliation.integration.test.ts:41:21
+ ❯ caseWithRun test/provider-reconciliation.integration.test.ts:21:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  13 failed | 31 passed (44)
+   Start at  20:40:43
+   Duration  12.24s (transform 460ms, setup 0ms, collect 956ms, tests 10.72s, environment 1ms, prepare 206ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts test/v6-execution.integration.test.ts test/provider-reconciliation.integration.test.ts

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /tmp/deep-html-formatting-0f0c7c0/apps/backend
+
+
+ Test Files  4 passed (4)
+      Tests  21 passed (21)
+   Start at  22:43:47
+   Duration  28.66s (transform 219ms, setup 0ms, import 449ms, tests 27.53s, environment 1ms)
+

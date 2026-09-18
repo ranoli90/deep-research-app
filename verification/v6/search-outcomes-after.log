@@ -1,0 +1,76 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"60894b1e-bd18-4e3f-9763-3def216184ae","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:07.384Z"}
+{"level":"info","event":"action","runId":"60894b1e-bd18-4e3f-9763-3def216184ae","type":"stop","rationale":"action type reveal_keys is not a permitted research action","step":1,"t":"2026-09-17T18:46:07.408Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:07.876Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"search","rationale":"Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.","step":1,"t":"2026-09-17T18:46:07.901Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"fetch","rationale":"Inspect the preferred source type (vendor-matrix) before more weak sources","step":2,"t":"2026-09-17T18:46:07.919Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:46:07.936Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T18:46:07.954Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T18:46:07.969Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"verify","rationale":"Scope-check contradiction on compatibility before treating newest as correct","step":6,"t":"2026-09-17T18:46:07.984Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"challenge","rationale":"Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.","step":7,"t":"2026-09-17T18:46:08.001Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":8,"t":"2026-09-17T18:46:08.026Z"}
+{"level":"info","event":"action","runId":"0f184ff8-033d-4a2d-9778-b21d614d50f9","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":9,"t":"2026-09-17T18:46:08.040Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:08.523Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T18:46:08.550Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T18:46:08.565Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:46:08.580Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T18:46:08.600Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T18:46:08.616Z"}
+{"level":"info","event":"action","runId":"9bb4a904-0302-441d-b7eb-2f947d3df82f","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T18:46:08.630Z"}
+{"level":"info","event":"action","runId":"47ecf124-33eb-4739-9037-587ce54ab9aa","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:09.119Z"}
+{"level":"info","event":"action","runId":"47ecf124-33eb-4739-9037-587ce54ab9aa","type":"search","rationale":"Investigate an uncovered required question","step":1,"t":"2026-09-17T18:46:09.152Z"}
+{"level":"info","event":"action","runId":"fb621694-193c-4d8a-a387-e62afe4c19ab","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:09.389Z"}
+{"level":"info","event":"action","runId":"79c3deb4-baba-4581-812c-082e811dfc6e","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:09.646Z"}
+{"level":"info","event":"action","runId":"1dc998e6-d3f7-493b-8f7d-e371068ff80f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:09.928Z"}
+{"level":"info","event":"action","runId":"dd806c2f-8c90-4f30-be65-23d9e9447e12","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:10.239Z"}
+{"level":"info","event":"action","runId":"c6603f28-4b81-4072-bd0b-e48b154bb048","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:46:10.472Z"}
+ ❯ test/controller-admission.integration.test.ts (10 tests | 4 failed) 3733ms
+   ✓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources  552ms
+   ✓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap  649ms
+   ✓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun  593ms
+   ✓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search 275ms
+   × controller admission on the fixture worker path > does not count http_failure as a completed search 256ms
+     → expected 'reserved' to be 'active' // Object.is equality
+   × controller admission on the fixture worker path > does not count unknown_cost as a completed search 246ms
+     → expected 'reserved' to be 'active' // Object.is equality
+   × controller admission on the fixture worker path > does not count timeout as a completed search 290ms
+     → expected 'reserved' to be 'active' // Object.is equality
+   × controller admission on the fixture worker path > does not count prior_attempt as a completed search 297ms
+     → expected 'reserved' to be 'active' // Object.is equality
+   ✓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call 229ms
+   ✓ controller admission on the fixture worker path > issued then failed live intents still consume the reservation 186ms
+ ✓ test/v6-execution.integration.test.ts (22 tests) 1004ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/controller-admission.integration.test.ts > controller admission on the fixture worker path > does not count http_failure as a completed search
+ FAIL  test/controller-admission.integration.test.ts > controller admission on the fixture worker path > does not count unknown_cost as a completed search
+ FAIL  test/controller-admission.integration.test.ts > controller admission on the fixture worker path > does not count timeout as a completed search
+ FAIL  test/controller-admission.integration.test.ts > controller admission on the fixture worker path > does not count prior_attempt as a completed search
+AssertionError: expected 'reserved' to be 'active' // Object.is equality
+
+Expected: "active"
+Received: "reserved"
+
+ ❯ test/controller-admission.integration.test.ts:217:107
+    215|     expect(intent.state).toBe(outcome === "prior_attempt" ? "issued" :…
+    216|     if (outcome !== "prior_attempt") expect(intent.receipt.state).toBe…
+    217|     expect((await pool.query("SELECT state FROM reservations WHERE run…
+       |                                                                                                           ^
+    218|   });
+    219| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  4 failed | 28 passed (32)
+   Start at  12:46:05
+   Duration  6.17s (transform 557ms, setup 0ms, collect 1.03s, tests 4.74s, environment 0ms, prepare 140ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts

@@ -1,0 +1,150 @@
+{
+  "evidenceClass": "local_api_worker_actual_pdf_fabricated_model",
+  "question": "What does the supplied AKSURL field note say about underwater recording?",
+  "originalBytesSha256": "2e013c307af0568112e393c8c291aa86406f4bab2d8a4aaf786c0f9703a2b3a4",
+  "runId": "1dc5568e-e729-4079-84b0-10c0b81bdedd",
+  "reportId": "38647d45-720d-41a0-bd67-625a9d31efcf",
+  "reportText": "AKSURL does not support underwater recording.",
+  "source": {
+    "passageId": "3030e19b-c5b2-4cb5-a194-c16e76f6d61f",
+    "sourceVersionId": "0ea3292e-2122-4d6d-a88a-957913841e59",
+    "locator": {
+      "kind": "text",
+      "rows": [],
+      "block": "page:1/block:0",
+      "geometry": [
+        {
+          "box": [
+            50,
+            737.516,
+            268.088,
+            748.616
+          ],
+          "text": "Field notes: AKSURL sensor deployment"
+        },
+        {
+          "box": [
+            50,
+            719.516,
+            350.7800000000002,
+            730.616
+          ],
+          "text": "AKSURL supports offline recording only on firmware 4.2."
+        },
+        {
+          "box": [
+            50,
+            701.516,
+            310.78400000000016,
+            712.616
+          ],
+          "text": "AKSURL does not support underwater recording."
+        }
+      ],
+      "coordinates": "PDF points; bottom-left origin",
+      "normalization": "extractor-output-v1"
+    },
+    "access": "partial-text",
+    "method": "docling-parse-7.20.0/geometry-v1",
+    "warnings": [
+      "pdf_layout_tables_and_ocr_unverified"
+    ]
+  },
+  "support": [
+    {
+      "claimRevisionId": "e0b77811-d62b-4500-876d-63ec46fd6005",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "claimRevisionId": "e221fc03-2bbb-43c2-afff-9c26536338d0",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "paidProviderCalls": 0,
+  "modelResponses": "fabricated",
+  "correctionJourney": "not tested"
+}

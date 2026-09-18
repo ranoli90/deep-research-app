@@ -1,0 +1,12 @@
+{
+  "scope": "revision_3_handoff_document_integrity_only",
+  "ok": false,
+  "application_tests_run": 0,
+  "errors": [
+    "P0 evidence overstated",
+    "P0 evidence overstated",
+    "P0 evidence overstated",
+    "P0 evidence overstated",
+    "Native evidence overstated"
+  ]
+}

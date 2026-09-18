@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "RESULTS.json",
+      "sha256": "ce1dd7c3075107faa59edc55d8ec0e0457b34ff26a8d63577e68dac3b966bb27",
+      "bytes": 2056
+    },
+    {
+      "path": "final.log",
+      "sha256": "e3ad27489c7969b2ec81a7c308ff5daac718101ad52ffb81ac5d4aa35eec09d1",
+      "bytes": 484
+    },
+    {
+      "path": "handoff-validator.log",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "bytes": 120
+    },
+    {
+      "path": "pre-fix.log",
+      "sha256": "13d7875615047f0bf02fe454fc92de163b006423a9b893cc3890e1c494054449",
+      "bytes": 2834
+    },
+    {
+      "path": "review-validator.log",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "bytes": 259
+    },
+    {
+      "path": "typecheck.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "bytes": 107
+    }
+  ]
+}

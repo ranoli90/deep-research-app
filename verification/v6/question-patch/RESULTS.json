@@ -1,0 +1,82 @@
+{
+  "task": "W06 typed exact-span question correction",
+  "implementation": "uncommitted working tree; primary review/checkpoint required",
+  "observedHead": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "requirements": [
+    "owned locked parent/revision and actual server-computed SHA256",
+    "strict exact quote/UTF-16 span and safe Unicode/result",
+    "whole accepted patch idempotency and original correctionText retention",
+    "immutable evidence policy with conservative full recomputation/rediscovery",
+    "whole-question compatibility"
+  ],
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "database": "deep_research_lease_clock_v6",
+    "host": "127.0.0.1:55432"
+  },
+  "checks": [
+    {
+      "artifact": "core-initial.log",
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "scope": "155/155;7new deterministic span/Unicode/strict-schema/whole-question controls",
+      "sha256": "abcd51820e4c1b783515a9ab378f4b42536237bad2bed029d121063c651e4cf8"
+    },
+    {
+      "artifact": "typecheck-initial.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend with imported shared contracts/core",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "integration-initial.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/question-patch.integration.test.ts",
+      "exitCode": 0,
+      "scope": "5/5initial admission controls",
+      "sha256": "9673f78e2ede8a27723984512397ea0cf5198071c04456196cf3072e40791308"
+    },
+    {
+      "artifact": "integration-final.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/question-patch.integration.test.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 0,
+      "scope": "8/8:6new span admission controls +2existing conservative rediscovery worker controls;22.64s",
+      "sha256": "e2457342e0f2197c2fcbe32ffc715e9d2a988ee9ae868e16bd3eeaac302101ad"
+    },
+    {
+      "artifact": "core-typecheck.log",
+      "command": "pnpm --filter @deep/research-core typecheck",
+      "exitCode": 0,
+      "scope": "Pure core and imported contracts TypeScript",
+      "sha256": "92fa2eb4e8ca1367214abb8e4ddc24506524be0bed9366c4fadafd6820be65d2"
+    },
+    {
+      "artifact": "boundaries.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Import boundaries",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "artifact": "diff-check.log",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "scope": "Whitespace diff check",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "evidenceClass": "Pure code controls and real local PostgreSQL admission/worker. New span controls make no provider calls. Existing paired rediscovery controls use fabricated model/search/read transports, not live semantics.",
+  "failures": "None in this packet; feature implemented with new regressions, no pre-fix defect reproduction claimed.",
+  "impactChecklist": "HANDOFF.md (written before public schema change)",
+  "rollback": "Disable new span acceptance while retaining accepted patch/change-set readers, existing whole-question correction, conservative recomputation, owner/revision/evidence/deletion/publication/financial gates.",
+  "limits": "No mobile semantic-criterion editor or selective dependency savings implemented. No real-model quality, native, hosted or paid evidence.",
+  "files": [
+    "packages/contracts/src/index.ts",
+    "packages/research-core/src/question-patch.ts",
+    "packages/research-core/src/index.ts",
+    "packages/research-core/test/question-patch.test.ts",
+    "apps/backend/src/modules/research-corrections.ts",
+    "apps/backend/test/question-patch.integration.test.ts"
+  ]
+}

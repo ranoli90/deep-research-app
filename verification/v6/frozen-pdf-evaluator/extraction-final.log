@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 /tmp/deep-frozen-eval-0fc/apps/backend
+
+evaluation control database (retained): deep_eval_control_40a24edefb4a47d0a5ebaf26ce913000
+ ❯ test/eval-live.extraction.test.ts (6 tests | 1 failed) 47730ms
+   × registered official frozen PDFs traverse owned admission and real extraction without a semantic success claim 10031ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/eval-live.extraction.test.ts > registered official frozen PDFs traverse owned admission and real extraction without a semantic success claim
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ test/eval-live.extraction.test.ts:117:62
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  05:52:08
+   Duration  49.68s (transform 1.24s, setup 0ms, import 1.69s, tests 47.73s, environment 0ms)
+
+undefined
+/tmp/deep-frozen-eval-0fc/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts

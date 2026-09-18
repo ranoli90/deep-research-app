@@ -1,0 +1,308 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-deletion.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T16:11:59.360Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T16:11:59.397Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T16:11:59.416Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T16:11:59.433Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T16:11:59.455Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":5,"t":"2026-09-17T16:11:59.471Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T16:11:59.490Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T16:11:59.507Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T16:11:59.523Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":9,"t":"2026-09-17T16:11:59.538Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":10,"t":"2026-09-17T16:11:59.555Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":11,"t":"2026-09-17T16:11:59.571Z"}
+{"level":"info","event":"action","runId":"463f128a-c95c-48ae-95f7-336b99291ee5","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":12,"t":"2026-09-17T16:11:59.587Z"}
+ ❯ test/v6-deletion.integration.test.ts (1 test | 1 failed) 678ms
+   × W03 deletion removes raw attachments and private text from every owned research store 525ms
+     → accounts: expected '{"id":"259a9167-2854-481e-9beb-bd9f54…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → attachments: expected '{"id":"f7ffa718-9c17-4e2f-b5c6-874b00…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → research_briefs: expected '{"id":"da92771d-b699-409f-bead-b34e1a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → runs: expected '{"id":"463f128a-c95c-48ae-95f7-336b99…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → run_events: expected '{"id":"694f5f25-f3c5-494e-bbbe-aab3c2…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → sources: expected '{"id":"2d8dac0c-25cb-46f6-8830-e898c5…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → reports: expected '{"id":"b08568ee-fd51-4b81-bf74-e5dc3a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → challenges: expected '{"id":"4a97cb6d-111f-4578-a8dd-ef2184…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → checkpoints: expected '{"id":"e05c23e3-9e88-4181-9a4a-c35a2e…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → research_disconfirmations: expected '{"id":"a0a48f3e-b75e-4984-ac83-fa31de…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → provider_intents: expected '{"id":"f6b4229d-b6c9-4c26-93d1-5f2f1a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+     → promise resolved "Buffer[ 80, 82, 73, 86, 65, 84, …(-15) ]" instead of rejecting
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: accounts: expected '{"id":"259a9167-2854-481e-9beb-bd9f54…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"259a9167-2854-481e-9beb-bd9f54753f0b","email":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7@localhost","created_at":"2026-09-17T16:11:59.275442+00:00","deleted_at":"2026-09-17T16:11:59.696641+00:00","deletion_epoch":1}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: attachments: expected '{"id":"f7ffa718-9c17-4e2f-b5c6-874b00…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"f7ffa718-9c17-4e2f-b5c6-874b00626ac3","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","filename":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7.txt","mime":"text/plain","size_bytes":53,"storage_ptr":"/tmp/deep-deletion-5gkmpf/259a9167-2854-481e-9beb-bd9f54753f0b-f7ffa718-9c17-4e2f-b5c6-874b00626ac3","sha256":"92527b99900b456db0bdd5a2d029becf22d4058e9524a70e7774f3fcb71642cb","processing_state":"deleted","extracted_text":null,"deleted_at":"2026-09-17T16:11:59.696641+00:00","created_at":"2026-09-17T16:11:59.295195+00:00"}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: research_briefs: expected '{"id":"da92771d-b699-409f-bead-b34e1a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"da92771d-b699-409f-bead-b34e1a1af29a","conversation_id":"76811113-19b2-4b7f-a9cb-673345f39f6d","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","original_question":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7","payload":{"id": "da92771d-b699-409f-bead-b34e1a1af29a", "language": "en", "nonGoals": [], "revision": 1, "assumptions": [], "constraints": [{"id": "geo-germany", "field": "geography", "value": "germany", "origin": "explicit", "operator": "eq", "importance": "hard", "provenance": "user_provided", "explanation": "Question names geography: germany"}, {"id": "budget", "field": "budget", "units": "EUR", "value": "50", "origin": "explicit", "operator": "lte", "importance": "hard", "provenance": "user_provided", "explanation": "Question names budget 50 EUR"}, {"id": "as-of-date", "field": "date", "value": "2026-03-01", "origin": "explicit", "operator": "eq", "importance": "hard", "provenance": "user_provided", "explanation": "Question names date 2026-03-01"}], "attachmentIds": ["f7ffa718-9c17-4e2f-b5c6-874b00626ac3"], "budgetPolicyId": "default", "conversationId": "76811113-19b2-4b7f-a9cb-673345f39f6d", "originalQuestion": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7", "sourceRestrictions": [], "consentPolicyVersion": "2026-09-16"},"revision":1,"created_at":"2026-09-17T16:11:59.302556+00:00"}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: runs: expected '{"id":"463f128a-c95c-48ae-95f7-336b99…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","conversation_id":"76811113-19b2-4b7f-a9cb-673345f39f6d","brief_id":"da92771d-b699-409f-bead-b34e1a1af29a","parent_run_id":null,"route_mode":"fixture","lifecycle":"terminal","phase":"writing","terminal_outcome":"completed_with_limitations","brief_revision":1,"evidence_revision":12,"consent_epoch":1,"cancellation_epoch":0,"worker_lease_fence":1,"completion_epoch":1,"idempotency_key":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7","budget_micro":100000,"spent_micro":57000,"created_at":"2026-09-17T16:11:59.302556+00:00","updated_at":"2026-09-17T16:11:59.653036+00:00","controller_kind":"adaptive","controller_artifacts":{"note": "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"},"request_digest":"6ddbd73ff60d477543520f1a3aa2ba4c23c280f32ffeb6f9ec458f2488c1c31b"}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: run_events: expected '{"id":"694f5f25-f3c5-494e-bbbe-aab3c2…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+- Expected
++ Received
+
+- PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7
++ {"id":"694f5f25-f3c5-494e-bbbe-aab3c20fbec7","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":1,"type":"accepted","public_summary":"Research accepted. Closing the app will not stop the server job.","phase":"preparing","payload":{},"created_at":"2026-09-17T16:11:59.302556+00:00"}
++ {"id":"72af5b29-cffb-41eb-9aac-4b51bc40cd6e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":2,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-0"},"created_at":"2026-09-17T16:11:59.361539+00:00"}
++ {"id":"5b7eb9de-0934-4a2e-9108-0f9abf8c1547","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":3,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "public evidence only", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.361539+00:00"}
++ {"id":"6cbd2c9c-6f07-4232-bb5c-d9b50070a93e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":4,"type":"action_rejected","public_summary":"Declined an out-of-coverage branch suggested by page content","phase":"researching","payload":{"reason": "off_coverage"},"created_at":"2026-09-17T16:11:59.389685+00:00"}
++ {"id":"708e5b65-df6a-4bb6-8bef-f0924f579aed","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":5,"type":"opened_source","public_summary":"Opened Vendor A managed Postgres pricing (Germany)","phase":"researching","payload":{},"created_at":"2026-09-17T16:11:59.398257+00:00"}
++ {"id":"fa89bb17-9670-4201-87e6-4124b514b537","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":6,"type":"opened_source","public_summary":"Opened Vendor B regional availability","phase":"researching","payload":{},"created_at":"2026-09-17T16:11:59.416689+00:00"}
++ {"id":"3d0cb919-0426-4cba-9b1b-2c6adef8cae8","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":7,"type":"opened_source","public_summary":"Opened Postgres pricing page that also plugs a tour","phase":"researching","payload":{},"created_at":"2026-09-17T16:11:59.433861+00:00"}
++ {"id":"35c4e909-3504-4acb-a93d-ad18edc757ca","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":8,"type":"action_rejected","public_summary":"Declined an out-of-coverage branch suggested by page content","phase":"researching","payload":{"reason": "off_coverage"},"created_at":"2026-09-17T16:11:59.450414+00:00"}
++ {"id":"b7125507-e79b-4e3d-b513-abec10c503be","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":9,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-5"},"created_at":"2026-09-17T16:11:59.456111+00:00"}
++ {"id":"d21d8b20-f4ed-422b-96d7-a18e053a3af1","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":21,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-11"},"created_at":"2026-09-17T16:11:59.555851+00:00"}
++ {"id":"788a945c-5b66-4f93-a7c4-b0deb41f9436","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":10,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.456111+00:00"}
++ {"id":"e08530fc-2b0c-4bcb-88f7-ab95ad18e689","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":11,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-6"},"created_at":"2026-09-17T16:11:59.472269+00:00"}
++ {"id":"0a44015e-d3ea-45b2-ad78-533c56716998","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":12,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.472269+00:00"}
++ {"id":"c2df544e-7f4d-4c11-a975-b94ee0006cb6","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":13,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-7"},"created_at":"2026-09-17T16:11:59.490516+00:00"}
++ {"id":"ee96c2a1-1461-462d-a1c7-072164e002c7","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":14,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.490516+00:00"}
++ {"id":"d6e128d8-9fd4-4c28-9808-1b0c1e93c554","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":15,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-8"},"created_at":"2026-09-17T16:11:59.507498+00:00"}
++ {"id":"87f18b3c-db37-40cd-a766-817c8d57e613","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":16,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.507498+00:00"}
++ {"id":"f3a4a493-5855-4265-ad9d-e9adbe0af960","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":17,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-9"},"created_at":"2026-09-17T16:11:59.524025+00:00"}
++ {"id":"6f543d0a-9f37-4f52-bc9a-0a5cdcaa55b2","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":18,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.524025+00:00"}
++ {"id":"84302465-1887-42ae-ba18-7ed32a44ad9a","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":19,"type":"searched","public_summary":"Searched: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"pivot": false, "locators": ["fixture://vendor-a/pricing-de", "fixture://vendor-b/pricing-de", "fixture://gossip/swift"], "dedupeKey": "challenge:disconfirm-10"},"created_at":"2026-09-17T16:11:59.539152+00:00"}
++ {"id":"1674daad-3d02-4093-a4ca-ae318808c35e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":20,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.539152+00:00"}
++ {"id":"d7b95c6a-bceb-4628-a47e-6a2aeef54267","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":22,"type":"disconfirm_search","public_summary":"Disconfirm search: Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexa","phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "result": "untried", "selectionReason": "material_conclusion_disconfirm", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.555851+00:00"}
++ {"id":"d439eb2a-330c-44a7-b1c1-ae24b9936793","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":23,"type":"challenge","public_summary":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","phase":"researching","payload":{"id": "disconfirm-12", "impact": "No counterexample found in accessed primary sources. This is not proof that the conclusion is true.", "result": "no_counterexample_found", "dedupeKey": "challenge-record:disconfirm-12", "recordOnly": true, "searchStrategy": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "selectionReason": "record_disconfirmation_result", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "counterevidenceFound": false, "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.571719+00:00"}
++ {"id":"bc44dede-4454-4bfe-9cea-bc487388dc19","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":24,"type":"stop_policy","public_summary":"Repeated searches returned no novel source family or coverage progress","phase":"researching","payload":{"reason": "diminishing_returns", "stopPolicy": "low_decision_value"},"created_at":"2026-09-17T16:11:59.587454+00:00"}
++ {"id":"d4056830-a678-4642-a050-f398256d060c","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":25,"type":"writing","public_summary":"Drafting a bounded cited report from stored evidence.","phase":"writing","payload":{},"created_at":"2026-09-17T16:11:59.594334+00:00"}
++ {"id":"b1361686-04c1-4c70-8266-e4c31e6d3450","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","sequence":26,"type":"published","public_summary":"Report published from stored evidence IDs.","phase":"writing","payload":{"reason": "ok", "reportId": "b08568ee-fd51-4b81-bf74-e5dc3ae4eea4"},"created_at":"2026-09-17T16:11:59.653036+00:00"}
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: sources: expected '{"id":"2d8dac0c-25cb-46f6-8830-e898c5…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+- Expected
++ Received
+
+- PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7
++ {"id":"2d8dac0c-25cb-46f6-8830-e898c5c74aac","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","canonical_locator":"attachment://f7ffa718-9c17-4e2f-b5c6-874b00626ac3","original_locator":"attachment://f7ffa718-9c17-4e2f-b5c6-874b00626ac3","publisher":"uploaded","title":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7.txt","source_type":"supplied-document","language":null,"origin_cluster":"attachment://f7ffa718-9c17-4e2f-b5c6-874b00626ac3","population":null,"rights_class":null,"created_at":"2026-09-17T16:11:59.342167+00:00"}
++ {"id":"51193320-25e8-40b9-aae0-484634b4b3d7","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","canonical_locator":"fixture://vendor-a/pricing-de","original_locator":"fixture://vendor-a/pricing-de","publisher":"Vendor A","title":"Vendor A managed Postgres pricing (Germany)","source_type":"vendor-docs","language":null,"origin_cluster":"vendor-a-pricing","population":null,"rights_class":null,"created_at":"2026-09-17T16:11:59.361539+00:00"}
++ {"id":"f308363d-c192-4aa0-9f0e-0dd374d29ed9","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","canonical_locator":"fixture://vendor-b/pricing-de","original_locator":"fixture://vendor-b/pricing-de","publisher":"Vendor B","title":"Vendor B regional availability","source_type":"vendor-docs","language":null,"origin_cluster":"vendor-b-pricing","population":null,"rights_class":null,"created_at":"2026-09-17T16:11:59.361539+00:00"}
++ {"id":"24482f89-99fd-4738-a996-251c023eb653","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","canonical_locator":"fixture://gossip/swift","original_locator":"fixture://gossip/swift","publisher":"Clickfarm","title":"Postgres pricing page that also plugs a tour","source_type":"review-summary","language":null,"origin_cluster":"gossip-mix","population":null,"rights_class":null,"created_at":"2026-09-17T16:11:59.361539+00:00"}
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: reports: expected '{"id":"b08568ee-fd51-4b81-bf74-e5dc3a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"b08568ee-fd51-4b81-bf74-e5dc3ae4eea4","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","version":1,"outcome":"completed_with_limitations","basis":{"consentEpoch": 1, "briefRevision": 1, "evidenceRevision": 12, "workerLeaseFence": 1, "cancellationEpoch": 0},"blocks":[],"claim_ids":["ac76d98f-a03a-4382-86df-04dbbaa32ebc","f59d9522-6291-46cf-a726-65085a666fbc","0623b44e-f6f0-4346-bbdd-2d55a00ab2bd","5f35632d-c048-46e5-9004-029922a57496","b0ae32c6-b5b3-4d23-8030-63c5c446cce8","c2f9e11b-df8c-4a5d-9eba-523285bb3441","5b2dfbe4-4624-4035-a5fe-3101710b1343"],"limitations":["Later searches added no new source families.", "Uploaded files were processed as text-only. Unread pages or scanned tables are not treated as fully read.", "App-level spend counters are not a guarantee of opaque provider-internal cost.", "Fixture or bounded live route; not an exhaustive literature review.", "private content deleted"],"source_access_summary":{"note": "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"},"change_summary":{"note": "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"},"route_mode":"fixture","published_at":"2026-09-17T16:11:59.653036+00:00","redacted_at":"2026-09-17T16:11:59.696641+00:00"}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: challenges: expected '{"id":"4a97cb6d-111f-4578-a8dd-ef2184…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"4a97cb6d-111f-4578-a8dd-ef2184a5adb6","account_id":"259a9167-2854-481e-9beb-bd9f54753f0b","report_id":"b08568ee-fd51-4b81-bf74-e5dc3ae4eea4","claim_id":null,"category":"other","note":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7","created_at":"2026-09-17T16:11:59.691335+00:00","include_excerpt":true,"excerpt_text":"PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"}"
+
+ ❯ test/v6-deletion.integration.test.ts:52:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: checkpoints: expected '{"id":"e05c23e3-9e88-4181-9a4a-c35a2e…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+- Expected
++ Received
+
+- PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7
++ {"id":"e05c23e3-9e88-4181-9a4a-c35a2e984ccc","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":2,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.374175+00:00"}
++ {"id":"425ab2d3-f3bc-4992-a624-4dffeee46390","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":3,"phase":"researching","payload":{"action": "fetch", "locator": "fixture://vendor-a/pricing-de"},"created_at":"2026-09-17T16:11:59.405224+00:00"}
++ {"id":"6827b8d7-87c4-4c2c-bd72-559d678fac64","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":4,"phase":"researching","payload":{"action": "fetch", "locator": "fixture://vendor-b/pricing-de"},"created_at":"2026-09-17T16:11:59.423949+00:00"}
++ {"id":"0c809a0e-f598-47db-9195-462a8b2d309e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":5,"phase":"researching","payload":{"action": "fetch", "locator": "fixture://gossip/swift"},"created_at":"2026-09-17T16:11:59.440243+00:00"}
++ {"id":"7cefed0d-e821-45fc-b3af-3e38b489ba80","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":6,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.462605+00:00"}
++ {"id":"6bb72dbd-6c6c-41ab-9e72-8d5bbe0bcf8e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":7,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.480511+00:00"}
++ {"id":"60b12402-ccb3-4b4b-a9ca-5da82e40c959","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":8,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.49727+00:00"}
++ {"id":"3ee33864-bf0e-48fa-92c8-290dec24441f","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":9,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.514103+00:00"}
++ {"id":"2db52dd7-2b4d-49e2-b7ba-da67fe0bfba1","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":10,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.529877+00:00"}
++ {"id":"0554c04d-0239-4233-a75b-797b0231e542","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":11,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.545942+00:00"}
++ {"id":"9d5f898f-e6d6-466f-8e89-4b15eb41ae57","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":12,"phase":"researching","payload":{"query": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "action": "search"},"created_at":"2026-09-17T16:11:59.562724+00:00"}
++ {"id":"6b13c1df-0c26-47a1-9a1c-4076f25fc036","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":12,"phase":"researching","payload":{"action": "challenge"},"created_at":"2026-09-17T16:11:59.575986+00:00"}
++ {"id":"2f333cef-969b-40fc-b81e-f7271e680187","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":12,"phase":"writing","payload":{"action": "enter-writing"},"created_at":"2026-09-17T16:11:59.598209+00:00"}
++ {"id":"d8fef7fc-5400-43cf-9cd1-c14c3ff38b0e","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","evidence_revision":12,"phase":"writing","payload":{"compact": {"passageIds": ["17c202cf-9f7e-44de-9800-a655ac5a0204", "5f50cae4-e0a9-4e0c-8685-16f3b54db9b8", "c333a6bb-928e-4b35-8293-65582264805b", "8bf5c8d1-911b-41a8-a2cc-1fa8c569bad3"], "projection": {"gaps": [{"id": "geo-unverified", "attempts": 0, "importance": "material", "missingFact": "hard geographic constraint (germany) has not been verified", "latestOutcome": "resolved", "sourceTypeNeeded": "primary-docs", "remainingUncertainty": "Geography germany is attested in an opened source."}], "phase": "writing", "runId": "463f128a-c95c-48ae-95f7-336b99291ee5", "budget": {"spentMicro": 49000, "budgetMicro": 100000}, "claims": [], "sources": [{"id": "2d8dac0c-25cb-46f6-8830-e898c5c74aac", "title": "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7.txt", "sourceType": "supplied-document", "accessLevel": "full-text", "independence": "independent", "originCluster": "attachment://f7ffa718-9c17-4e2f-b5c6-874b00626ac3"}, {"id": "51193320-25e8-40b9-aae0-484634b4b3d7", "title": "Vendor A managed Postgres pricing (Germany)", "sourceType": "vendor-docs", "accessLevel": "full-text", "independence": "first-party", "originCluster": "vendor-a-pricing"}, {"id": "f308363d-c192-4aa0-9f0e-0dd374d29ed9", "title": "Vendor B regional availability", "sourceType": "vendor-docs", "accessLevel": "full-text", "independence": "first-party", "originCluster": "vendor-b-pricing"}, {"id": "24482f89-99fd-4738-a996-251c023eb653", "title": "Postgres pricing page that also plugs a tour", "sourceType": "review-summary", "accessLevel": "full-text", "independence": "secondary", "originCluster": "gossip-mix"}], "runState": {"phase": "writing", "deleted": false, "cancellationEpoch": 0}, "objective": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7", "questions": [{"id": "q-eligibility", "text": "Which inspected candidates satisfy the hard constraints in germany within 50 EUR?", "status": "answered", "blocking": true, "importance": "blocking", "answerShape": "eligibility", "completionCondition": "Each inspected candidate is marked satisfies, violates, or unknown with cited evidence.", "evidenceRequirement": "First-party pricing or availability for each named candidate under the stated geography and budget."}], "stopReason": "Repeated searches returned no novel source family or coverage progress", "assumptions": [], "constraints": [{"id": "geo-germany", "field": "geography", "value": "germany", "origin": "explicit", "operator": "eq", "importance": "hard", "provenance": "user_provided"}, {"id": "budget", "field": "budget", "units": "EUR", "value": "50", "origin": "explicit", "operator": "lte", "importance": "hard", "provenance": "user_provided"}, {"id": "as-of-date", "field": "date", "value": "2026-03-01", "origin": "explicit", "operator": "eq", "importance": "hard", "provenance": "user_provided"}], "calculations": [], "passageCount": 4, "briefRevision": 1, "contradictions": [], "previousActions": [], "disconfirmations": [{"id": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "result": "no_counterexample_found", "counterevidenceFound": false}], "evidenceRevision": 12, "controllerVersion": "research-controller.v1", "verificationTasks": [], "independentClusters": 4, "unresolvedUncertainty": []}, "provenance": [{"sourceId": "2d8dac0c-25cb-46f6-8830-e898c5c74aac", "passageId": "17c202cf-9f7e-44de-9800-a655ac5a0204"}, {"sourceId": "51193320-25e8-40b9-aae0-484634b4b3d7", "passageId": "5f50cae4-e0a9-4e0c-8685-16f3b54db9b8"}, {"sourceId": "f308363d-c192-4aa0-9f0e-0dd374d29ed9", "passageId": "c333a6bb-928e-4b35-8293-65582264805b"}, {"sourceId": "24482f89-99fd-4738-a996-251c023eb653", "passageId": "8bf5c8d1-911b-41a8-a2cc-1fa8c569bad3"}], "constraints": [{"field": "geography", "value": "germany", "importance": "hard"}, {"field": "budget", "units": "EUR", "value": "50", "importance": "hard"}, {"field": "date", "value": "2026-03-01", "importance": "hard"}], "droppedSearchCount": 6}},"created_at":"2026-09-17T16:11:59.608555+00:00"}
+
+ ❯ test/v6-deletion.integration.test.ts:56:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: research_disconfirmations: expected '{"id":"a0a48f3e-b75e-4984-ac83-fa31de…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+Expected: "PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7"
+Received: "{"id":"a0a48f3e-b75e-4984-ac83-fa31de2a5516","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","payload":{"id": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "impact": "No counterexample found in accessed primary sources. This is not proof that the conclusion is true.", "result": "no_counterexample_found", "searchStrategy": "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample", "targetConclusion": "Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.", "counterevidenceFound": false, "falsificationHypothesis": "A primary source that directly contradicts this conclusion."},"created_at":"2026-09-17T16:11:59.640129+00:00"}"
+
+ ❯ test/v6-deletion.integration.test.ts:56:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: provider_intents: expected '{"id":"f6b4229d-b6c9-4c26-93d1-5f2f1a…' not to contain 'PRIVATE-DELETION-af4549e3-e28d-411e-a…'
+
+- Expected
++ Received
+
+- PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7
++ {"id":"f6b4229d-b6c9-4c26-93d1-5f2f1aa18091","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-1","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.361539+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"93820e98-39a4-42eb-a2de-096a0fbda0c6","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-3","route":"fixture:fetch","request_digest":"fixture://vendor-a/pricing-de","reserved_max_micro":3000,"state":"confirmed","created_at":"2026-09-17T16:11:59.398257+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"f791a9a6-e9ce-4c25-b3c2-a11722514238","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-4","route":"fixture:fetch","request_digest":"fixture://vendor-b/pricing-de","reserved_max_micro":3000,"state":"confirmed","created_at":"2026-09-17T16:11:59.416689+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"a43b054d-3084-4606-b9a4-a1376fbc72dc","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-5","route":"fixture:fetch","request_digest":"fixture://gossip/swift","reserved_max_micro":3000,"state":"confirmed","created_at":"2026-09-17T16:11:59.433861+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"1ecc32a4-d861-4b32-8581-4ef9b99df792","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-6","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.456111+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"2fd729e0-c879-48b4-8512-83de34405a0a","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-7","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.472269+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"ad0d51e0-643e-436a-b9c6-3236e39fa170","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-8","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.490516+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"42d8d8f5-161e-4958-8c99-5ea8c58b8f68","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-9","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.507498+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"77f9312e-cecb-43ac-8e6b-33980547d8a1","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-10","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.524025+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"de5c9317-7486-4a8a-9167-e2c68f9ddb5f","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-11","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.539152+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"1f1aeae7-9258-4c13-878c-16f860752915","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"act-12","route":"fixture:search","request_digest":"Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01. PRIVATE-DELETION-af4549e3-e28d-411e-a33f-d391729f4ff7 official documentation counterexample","reserved_max_micro":5000,"state":"confirmed","created_at":"2026-09-17T16:11:59.555851+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
++ {"id":"8114754d-1f17-44cf-9477-ae70a07104dd","run_id":"463f128a-c95c-48ae-95f7-336b99291ee5","correlation_id":"b08568ee-fd51-4b81-bf74-e5dc3ae4eea4","route":"fixture:synthesize","request_digest":"compose-report","reserved_max_micro":8000,"state":"confirmed","created_at":"2026-09-17T16:11:59.650271+00:00","confirmed_micro":null,"action_id":null,"scope_key":"project","receipt":null}
+
+ ❯ test/v6-deletion.integration.test.ts:56:72
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  test/v6-deletion.integration.test.ts > W03 deletion removes raw attachments and private text from every owned research store
+AssertionError: promise resolved "Buffer[ 80, 82, 73, 86, 65, 84, …(-15) ]" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "data": [
++     80,
++     82,
++     73,
++     86,
++     65,
++     84,
++     69,
++     45,
++     68,
++     69,
++     76,
++     69,
++     84,
++     73,
++     79,
++     78,
++     45,
++     97,
++     102,
++     52,
++     53,
++     52,
++     57,
++     101,
++     51,
++     45,
++     101,
++     50,
++     56,
++     100,
++     45,
++     52,
++     49,
++     49,
++     101,
++     45,
++     97,
++     51,
++     51,
++     102,
++     45,
++     100,
++     51,
++     57,
++     49,
++     55,
++     50,
++     57,
++     102,
++     52,
++     102,
++     102,
++     55,
++   ],
++   "type": "Buffer",
+  }
+
+ ❯ test/v6-deletion.integration.test.ts:58:62
+     56|     expect.soft(rows.rows.map((r) => r.content).join("\n"), table).not…
+     57|   }
+     58|   if (!ptr.startsWith("db:")) await expect.soft(readFile(ptr)).rejects…
+       |                                                              ^
+     59|   expect((await app.inject({ method: "GET", url: "/v1/library", header…
+     60| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  10:11:58
+   Duration  1.66s (transform 486ms, setup 0ms, collect 755ms, tests 678ms, environment 0ms, prepare 78ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/v6-deletion.integration.test.ts`
+Exit status 1

@@ -1,0 +1,13 @@
+{
+  "head": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "code": "uncommitted source-reader + isolated native test harness",
+  "runtime": "Expo Go; installed app.deepresearch.mobile unchanged",
+  "sha256": {
+    "apps/mobile/App.tsx": "82129b63de7c6c2fa620647f3114f4235493aa00cd35d69de996ccf26697edaf",
+    "apps/mobile/src/SourceSheet.tsx": "fd26bbf7301b0fdaa6e079d96f16bb2de8ce72bcba90597e82b7e704c23d92e1",
+    "apps/mobile/src/source-view.ts": "e95d3b24fc48f0564ae26f6bdc1c68d08766dfde539e2793f8b312602b9a00bb",
+    "apps/mobile/src/state.ts": "3aa0ceb1df9170ce9735c136a7e458b4a2d2229b26b8e522f6cd45b9f9989557",
+    "apps/mobile/src/report-layout.ts": "c81031667a78741b3dc35e63a2b70786c01956ff493e482f9007bf696b0cd979",
+    "apps/backend/test/native-source-reader.ts": "92587b6cf95a954b9a14e85bb89760f1af3a0bb7bfb09de65a9f596a0d8de64c"
+  }
+}

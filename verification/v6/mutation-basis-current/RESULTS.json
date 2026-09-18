@@ -1,0 +1,46 @@
+{
+  "task": "W02 scoped mutation-basis review",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "reviewer": "primary agent; not independent human validation",
+  "scope": "Read-only current source inspection; no new runtime pass",
+  "paths": [
+    {
+      "path": "apps/backend/src/worker/model-gateway.ts",
+      "basis": "Owned context checked before reserve and before save; provider network outside transaction; financial receipt may persist after lease/deletion, private output requires session fence; existing intent without saved result returns pending, no resend"
+    },
+    {
+      "path": "apps/backend/src/worker/fenced-session.ts",
+      "basis": "Active account/run/consent/revision/fence checks and current-clock lease before/after content callback; abort throws LostWorkerLease"
+    },
+    {
+      "path": "apps/backend/src/worker/source-reading.ts",
+      "basis": "Owned admitted URL/task; durable unique operation; issued replay pending, finished replay uses exact saved owned receipt; network outside session transaction; content save fenced"
+    },
+    {
+      "path": "apps/backend/src/modules/live-spend.ts",
+      "basis": "Locked account/run/reservation and project/key ceilings; same logical intent returns issue:false; clock_timestamp checks after locks and intent insertion"
+    },
+    {
+      "path": "apps/backend/src/modules/provider-reconciliation.ts",
+      "basis": "Receipt lookup outside transaction; credential/route/provider/cost binding rechecked under account/run locks; settlement only, no content regeneration; historical repair needs known amount and sufficient hold"
+    }
+  ],
+  "newConfirmedDefects": [],
+  "existingRuntimeEvidence": [
+    "verification/v6/dependency-vitest-integrated/RESULTS.json",
+    "verification/v6/verification-corruption-integrated/RESULTS.json"
+  ],
+  "limits": [
+    "Not exhaustive all mutation paths",
+    "No real provider receipt retrieval, invoice/cap enforcement, external exactly-once or hosted failover proof",
+    "Source read interrupted after issuance remains pending; does not infer safe resend",
+    "Local admission cannot establish external provider guarantees"
+  ],
+  "sourceHashes": {
+    "apps/backend/src/worker/model-gateway.ts": "c3cc7f299e2b0a0d7eb05e4e73c2bfd5db8deb89574a65ba9ddeb4576c23bbc2",
+    "apps/backend/src/worker/fenced-session.ts": "affd147d4de8db1e0f2f1b42fda99558642fab06a7a8058f80dbf50952a27410",
+    "apps/backend/src/worker/source-reading.ts": "3a8f4b40bc91874670f5ca89183c2a28866b50e048373b461e540ba1d9a3daa7",
+    "apps/backend/src/modules/live-spend.ts": "07cc1fa60f8deda88bda4c7331e5aad2c9ac0c3f53f4755baa82cb98de253ff0",
+    "apps/backend/src/modules/provider-reconciliation.ts": "d8e4414cfd680c3a740be2bf781cd78671e18ea267d5427b9ac57f62fe55f60a"
+  }
+}

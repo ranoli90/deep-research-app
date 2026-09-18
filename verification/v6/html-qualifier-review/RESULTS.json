@@ -1,0 +1,42 @@
+{
+  "task": "W04 struck-through qualification preservation probe",
+  "commit": "0f0c7c006cdd95e10c0b22a9f6a6991ca1b30691",
+  "recordedAt": "2026-09-18T04:42:16.369740+00:00",
+  "evidenceClass": "Actual offline OS-isolated production extractOffline parser on three generic synthetic HTML documents, plus direct local Trafilatura XML diagnostic. No model/DB/network/heldout/gold/device.",
+  "sourceHash": "5c448832bd228d7012e4196f7b664227b8fc524f2132cecf259250d88fa8c649",
+  "environment": {
+    "runtime": "/tmp/deep-v6-extraction-runtime",
+    "trafilatura": "2.2.0",
+    "extractor": "trafilatura-2.2.0/structure-v2"
+  },
+  "receipts": [
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/html-qualifier-review/probe.mts",
+      "exitCode": 0,
+      "artifact": "probe.log",
+      "scope": "Three actual parser invocations completed; exit0 is probe completion, not qualifier-correctness pass."
+    },
+    {
+      "command": "/tmp/deep-v6-extraction-runtime/bin/python verification/v6/html-qualifier-review/xml-probe.py",
+      "exitCode": 0,
+      "artifact": "trafilatura-xml.json",
+      "scope": "Direct local vendor XML diagnostic on same synthetic inputs; not an OS-isolation test."
+    }
+  ],
+  "finding": {
+    "status": "reproduced",
+    "list": "block:6 contains unqualified struck sentence plus current replacement; list:0 separately includes correct [struck-through: ...] marker. Qualified supplement does not eliminate unqualified main duplicate.",
+    "prose": "block:6 has unqualified old and current sentences; no qualified supplement exists.",
+    "table": "table:0 text and structured cell text both lose strike qualifier.",
+    "rootCause": "normalized(element) at extract.py:23 uses itertext() and strips semantic markup. Main XML keeps <del rend=\"overstrike\"> but normalized loses it. Table cells call same normalizer on original HTML. Supplemental list uses its own marker-aware traversal, so only that copy preserves qualification.",
+    "securityQualityBoundary": "No publication/model-support bypass or incorrect model answer established. Extracted text is demonstrably lossy; downstream contradictory evidence checks may reject or qualify, but cannot reconstruct reliable removed strike semantics from unmarked text alone."
+  },
+  "inputs": [
+    "list.html",
+    "prose.html",
+    "table.html"
+  ],
+  "outputs": "outputs.json retains exact blocks, locators, warnings, rows and digest for each input. trafilatura-xml.json localizes marker loss after vendor extraction.",
+  "nextRegression": "For generic main paragraph/list and table/cell outputs, require removed text to remain explicitly struck-through in every emitted copy while preserving current replacement and text order; include s/del/strike coverage. Preserve existing list/table locators, bounds and partial labeling. No implementation authorized/performed by this packet.",
+  "rootMutation": "Evidence directory only; no source/test changes, commits or paid actions."
+}

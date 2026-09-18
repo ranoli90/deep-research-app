@@ -1,0 +1,13 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+
+ Test Files  21 passed (21)
+      Tests  198 passed (198)
+   Start at  05:39:29
+   Duration  12.48s (transform 5.35s, setup 0ms, import 13.32s, tests 3.99s, environment 6ms)
+

@@ -1,0 +1,31 @@
+
+/tmp/deep-v6-metro-6490546/node_modules/xcode/lib/parser/pbxproj.js:1891
+    throw peg$buildStructuredError(
+    ^
+peg$SyntaxError: Expected [\n\r] but end of input found.
+    at peg$buildStructuredError (/tmp/deep-v6-metro-6490546/node_modules/xcode/lib/parser/pbxproj.js:429:12)
+    at Object.peg$parse [as parse] (/tmp/deep-v6-metro-6490546/node_modules/xcode/lib/parser/pbxproj.js:1891:11)
+    at pbxProject.parseSync (/tmp/deep-v6-metro-6490546/node_modules/xcode/lib/pbxProject.js:63:24)
+    at Object.<anonymous> (/home/oranolio/Desktop/Deep/verification/v6/dependency-uuid-experiment/roundtrip.cjs:14:37)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+    at node:internal/main/run_main_module:28:49 {
+  expected: [
+    {
+      type: 'class',
+      parts: [ '\n', '\r' ],
+      inverted: false,
+      ignoreCase: false
+    }
+  ],
+  found: null,
+  location: {
+    start: { offset: 566, line: 13, column: 44 },
+    end: { offset: 566, line: 13, column: 44 }
+  }
+}
+
+Node.js v20.20.2

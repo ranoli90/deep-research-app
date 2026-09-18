@@ -1,0 +1,3718 @@
+{
+  "evidenceClass": "production_api_worker_actual_html_extraction_fabricated_transports",
+  "actualProviderSpendMicro": 0,
+  "semanticScores": null,
+  "traces": [
+    {
+      "kind": "four_run_and_replay",
+      "events": [
+        {
+          "event": "plan",
+          "authorization": {
+            "version": "matched-evaluation-authorization.v1",
+            "approvalId": "ecab132c-b40d-4704-824b-1ebd12cf00a4",
+            "approvalReference": "synthetic-control-not-paid-approval",
+            "issuedAt": "2026-09-18T10:26:34.504Z",
+            "expiresAt": "2026-09-18T10:36:35.505Z",
+            "protocolSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "freezeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "taskIds": [
+              "MC-D01"
+            ],
+            "budgetMicro": 1000000,
+            "accountId": "0f7bbe1f-d9db-42fc-8a0f-ed8ec3c3cf72",
+            "budgetScope": "evaluation:bb060d02-8925-4cad-b805-df2a3bed1db1",
+            "sourceMode": "live_discovery",
+            "exclusiveDatabaseAcknowledged": true
+          },
+          "protocolHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "freezeHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "tasksHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "sourcesHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "unselectedTaskIds": [],
+          "steps": [
+            {
+              "id": "MC-D01:1:A1:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "c5f5afbe-b65f-8369-a4fe-b13ec4a94715"
+            },
+            {
+              "id": "MC-D01:1:B:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "34772428-8666-8d21-a122-10c276eaa963"
+            },
+            {
+              "id": "MC-D01:1:B:correction",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "correction",
+              "question": "What firmware does Ardent require for offline recording?",
+              "parentStepId": "MC-D01:1:B:original",
+              "idempotencyKey": "9c9f0ba2-bd23-8d2e-a401-280ef5046629"
+            },
+            {
+              "id": "MC-D01:1:A1:full_rerun",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "full_rerun",
+              "question": "What firmware does Ardent require for offline recording?",
+              "idempotencyKey": "d359d3f8-b4c8-875a-a2bc-010662b88302"
+            }
+          ],
+          "semanticScores": null,
+          "adjudication": null
+        },
+        {
+          "event": "attempt",
+          "step": {
+            "id": "MC-D01:1:A1:original",
+            "taskId": "MC-D01",
+            "repeat": 1,
+            "arm": "A1",
+            "kind": "original",
+            "question": "What does Ardent say about underwater recording?",
+            "idempotencyKey": "c5f5afbe-b65f-8369-a4fe-b13ec4a94715"
+          },
+          "startedAt": "2026-09-18T10:26:35.644Z",
+          "exposure": {
+            "confirmedMicro": 0,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          }
+        },
+        {
+          "event": "admitted",
+          "stepId": "MC-D01:1:A1:original",
+          "runId": "24e3db4b-e258-41dc-a098-459c7aa09127"
+        },
+        {
+          "event": "result",
+          "stepId": "MC-D01:1:A1:original",
+          "startedAt": "2026-09-18T10:26:35.644Z",
+          "finishedAt": "2026-09-18T10:26:40.455Z",
+          "wallMs": 4810.780387,
+          "receipt": {
+            "runId": "24e3db4b-e258-41dc-a098-459c7aa09127",
+            "briefRevision": 1,
+            "lifecycle": "terminal",
+            "outcome": "completed",
+            "reportId": "1fb227d0-247f-4317-b27a-a5a680e4d802",
+            "cost": {
+              "confirmedMicro": 10,
+              "heldMicro": 0,
+              "unknownIntents": 0
+            },
+            "trace": {
+              "strategy": "iterative-baseline.v1",
+              "snapshot": {
+                "runId": "24e3db4b-e258-41dc-a098-459c7aa09127",
+                "contentInvalidated": false,
+                "lifecycle": "terminal",
+                "phase": "writing",
+                "outcome": "completed",
+                "routeMode": "controlled-research",
+                "correctionMode": "replace_question",
+                "correctionReserveMicro": 100000,
+                "brief": {
+                  "id": "af14bf1c-34da-4f26-9388-5c56758573f2",
+                  "language": "en",
+                  "nonGoals": [],
+                  "revision": 1,
+                  "assumptions": [],
+                  "constraints": [],
+                  "attachmentIds": [],
+                  "budgetPolicyId": "default",
+                  "conversationId": "f6b63b20-fce5-45f9-a0ac-c01a63fc8cc0",
+                  "originalQuestion": "What does Ardent say about underwater recording?",
+                  "sourceRestrictions": [],
+                  "consentPolicyVersion": "2026-09-17.1"
+                },
+                "revision": {
+                  "briefRevision": 1,
+                  "evidenceRevision": 2,
+                  "consentEpoch": 1,
+                  "cancellationEpoch": 0
+                },
+                "reportId": "1fb227d0-247f-4317-b27a-a5a680e4d802",
+                "labeledDemo": false
+              },
+              "report": {
+                "reportId": "1fb227d0-247f-4317-b27a-a5a680e4d802",
+                "runId": "24e3db4b-e258-41dc-a098-459c7aa09127",
+                "version": 1,
+                "outcome": "completed",
+                "blocks": [
+                  {
+                    "id": "heading_0",
+                    "kind": "heading",
+                    "text": "Evidence",
+                    "claimIds": [],
+                    "citationIds": []
+                  },
+                  {
+                    "id": "paragraph_0_0",
+                    "kind": "text",
+                    "text": "Ardent does not support underwater recording.",
+                    "claimIds": [
+                      "840ba1e7-d3c0-4949-86d9-a921b0b03080"
+                    ],
+                    "citationIds": [
+                      "bc04cce1-56a7-4da0-9bd3-7fe985b81482"
+                    ]
+                  }
+                ],
+                "limitations": [],
+                "sourceAccessSummary": [
+                  {
+                    "title": "Technical note",
+                    "sourceId": "c8a54288-2ae7-46d8-86f9-7e4bcdc59023",
+                    "accessLevel": "partial-text",
+                    "originCluster": "https://example.org"
+                  }
+                ],
+                "changeSummary": null,
+                "routeMode": "controlled-research",
+                "labeledDemo": false
+              },
+              "passages": [
+                {
+                  "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                  "source_version_id": "84690369-6e49-4c3f-b637-082f30930773",
+                  "content_hash": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                  "exact_text": "Ardent supports offline recording only on firmware 4.2.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:1",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                  "source_version_id": "84690369-6e49-4c3f-b637-082f30930773",
+                  "content_hash": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                  "exact_text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:2",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                  "source_version_id": "84690369-6e49-4c3f-b637-082f30930773",
+                  "content_hash": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                  "exact_text": "Ardent does not support underwater recording.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:0",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                }
+              ],
+              "operations": [
+                {
+                  "intent_id": "119140fe-600f-4733-b99c-e5b75d108ca8",
+                  "operation": "brief",
+                  "brief_revision": 1,
+                  "evidence_revision": 0,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [],
+                    "taskDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "140a9b24-01f2-483a-afd7-d07cccc0b757",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "9a55404c75a0a41406309bd4e34f775c628a0f9522d9f90b6049313933de6c9a",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "323920a5-7192-467e-81c7-22db9bd0f21f",
+                  "operation": "write_report",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "9a55404c75a0a41406309bd4e34f775c628a0f9522d9f90b6049313933de6c9a",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "71b81dad-1bfe-4849-ab84-2c709920ce5a",
+                  "operation": "extract_assertions",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "866fbf82-4700-4f12-b591-def3ece090e6",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "f0b617e1428009cf296ad27635daf5d82bb73e90d5cb3cd2840332f4048a5ad6",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "a8dc91b4c75f3713227767c8d1a2b5306f309c85bca9da790f1c16427067467b",
+                    "approvedClaimKeys": [
+                      "paragraph_0_0"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "f5c9272d-e94c-4a2b-902a-e540daf694c0",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "f0b617e1428009cf296ad27635daf5d82bb73e90d5cb3cd2840332f4048a5ad6",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "a8dc91b4c75f3713227767c8d1a2b5306f309c85bca9da790f1c16427067467b",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "f9774039-0c2c-4f8b-abab-11424ab90333",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "16bd25a5-cdc5-4604-af57-6996161520c5",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "63ff8417-6713-4032-bfcd-342a91ea55d5",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      },
+                      {
+                        "id": "bc04cce1-56a7-4da0-9bd3-7fe985b81482",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "84690369-6e49-4c3f-b637-082f30930773"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "c8a54288-2ae7-46d8-86f9-7e4bcdc59023"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "9a55404c75a0a41406309bd4e34f775c628a0f9522d9f90b6049313933de6c9a",
+                    "approvedClaimKeys": []
+                  }
+                }
+              ],
+              "attempts": [
+                {
+                  "id": "119140fe-600f-4733-b99c-e5b75d108ca8",
+                  "action_id": "96c42260-cbe4-40a9-8ea2-0bfdd9174b3a",
+                  "route": "openrouter:openai/gpt-4o-mini:brief",
+                  "request_digest": "9b91888bc7bf5fcaf27cd404c1b265b3ff9cca56f63f059cc899b156ba522ddf",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:35.811Z",
+                    "finishedAt": "2026-09-18T10:26:35.824Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "d2ed790803985578e700973dfebba335cc498919f10ac14fa35be36da30ced92",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "140a9b24-01f2-483a-afd7-d07cccc0b757",
+                  "action_id": "7c79eadb-b333-46fa-9293-6c3804a77fd2",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "c51219d5c8f447d02a52cdc95b974db242ac564136dda511d4673c8240842881",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:37.569Z",
+                    "finishedAt": "2026-09-18T10:26:37.571Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a709e71f870d84b46ebd7503c33580523d83592f0cd2fabdbde5512866259990",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "323920a5-7192-467e-81c7-22db9bd0f21f",
+                  "action_id": "df1df70c-c1e0-4ded-9ded-3f7a2978376d",
+                  "route": "openrouter:openai/gpt-4o-mini:write_report",
+                  "request_digest": "f30e9a9f8ab98aa55fc091de60a3f786b08c311e3994158bc61dd262305c6d4c",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:37.935Z",
+                    "finishedAt": "2026-09-18T10:26:37.936Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "eb749ad75ce3de674b83c00324e3fbe4971ee29faab287cfa2bf2d9c0a6574b8",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "71b81dad-1bfe-4849-ab84-2c709920ce5a",
+                  "action_id": "0e48943f-d871-46ac-aa63-dfd15b46b8d4",
+                  "route": "openrouter:openai/gpt-4o-mini:extract_assertions",
+                  "request_digest": "8de7f6f9a6c5bd3e8304c9fb2ab39dd8fdfa19c0c987684c97d1a7b554a7d435",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:36.998Z",
+                    "finishedAt": "2026-09-18T10:26:36.999Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "94ad712c0f31923921fa5bbb84fb15f5defaea49cdd38870da867f12fe1ffda8",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "866fbf82-4700-4f12-b591-def3ece090e6",
+                  "action_id": "02075e39-73a7-47d1-947b-ca96f996c251",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "39a8b055af33cd13d049f2968e11a5d5e0bd8d7fc1353d9af4da1d719323db97",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:38.814Z",
+                    "finishedAt": "2026-09-18T10:26:38.815Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a56eba086d15ebf9013e2df2ac7b439464e8127b9b33f09b35c604d60d418b0c",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "f5c9272d-e94c-4a2b-902a-e540daf694c0",
+                  "action_id": "214faa50-17ec-4be5-a180-c8f91356ab83",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "91e89e4875e22dec61f9b21f2b6edc72897eef83e52f34c745855804364aed4c",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:38.383Z",
+                    "finishedAt": "2026-09-18T10:26:38.384Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "d8ce4344718b472e9463042f4c48ba25859c53354cb2092beed2efbabc8952dc",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "f8f7b949-be27-47bd-ae30-f93489cdf70d",
+                  "action_id": "ae5384aa-6e8b-4f64-ab9a-26e2f2d4c9de",
+                  "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                  "request_digest": "38ba492aa34970777fc99c04880906357a2cf4e7d434b174172efcbf6f768612",
+                  "reserved_max_micro": "28658",
+                  "confirmed_micro": "3",
+                  "state": "confirmed",
+                  "receipt": {
+                    "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                    "state": "confirmed",
+                    "rawCost": "0.000003",
+                    "providerId": "nonbillable-matched-search",
+                    "actualMicro": 3,
+                    "correlationId": "a9857518-3c69-4589-8ee6-21fcab858757",
+                    "requestDigest": "13ae9d5db5c5db5f789bb70b6ba482e0f2ffcca2fc727db97fa81c1f1ae4f8c8",
+                    "responseDigest": "af071da392a97dad247494d3974d6114d57cb0e77749f5413532f6da1a9c6db4"
+                  }
+                },
+                {
+                  "id": "f9774039-0c2c-4f8b-abab-11424ab90333",
+                  "action_id": "9471eb0b-b4f7-4e2b-a059-ec50b17e932b",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "1492fa8e5a07049d12b6ca77f0ca0a9ec5118b240d9fb2cc580bdaac447c3399",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:37.165Z",
+                    "finishedAt": "2026-09-18T10:26:37.166Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "1d4629b5dbfb270cd3084a85ff6c65ebd4b3da3762f7cb338e0b4e1115d3ba8e",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                }
+              ],
+              "support": [
+                {
+                  "model_intent_id": "f9774039-0c2c-4f8b-abab-11424ab90333",
+                  "claim_revision_id": "979e4e98-1681-4145-90bc-37be9fe465e7",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "requested",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 45,
+                        "quote": "Ardent does not support underwater recording.",
+                        "start": 0,
+                        "passageId": "bc04cce1-56a7-4da0-9bd3-7fe985b81482"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                },
+                {
+                  "model_intent_id": "f5c9272d-e94c-4a2b-902a-e540daf694c0",
+                  "claim_revision_id": "2a083188-583c-4a1e-a5d3-dca4b263cb9d",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "paragraph_0_0",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 45,
+                        "quote": "Ardent does not support underwater recording.",
+                        "start": 0,
+                        "passageId": "bc04cce1-56a7-4da0-9bd3-7fe985b81482"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                }
+              ],
+              "extraction": [
+                {
+                  "source_version_id": "84690369-6e49-4c3f-b637-082f30930773",
+                  "artifact_id": "d413189c-6402-4726-8aed-97e9e3074f6c",
+                  "transport": {
+                    "mime": "text/html",
+                    "bytes": 371,
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": 200,
+                    "outcome": "successful_body",
+                    "finalUrl": "https://example.org/export.html",
+                    "retrievedAt": "2026-09-18T10:26:36.097Z",
+                    "requestedUrl": "https://example.org/export.html",
+                    "redirectChain": []
+                  },
+                  "extraction": {
+                    "blocks": [
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent does not support underwater recording.",
+                        "locator": "block:0"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent supports offline recording only on firmware 4.2.",
+                        "locator": "block:1"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                        "locator": "block:2"
+                      }
+                    ],
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": "partial",
+                    "version": "trafilatura-2.2.0/structure-v3",
+                    "warnings": [
+                      "main_content_extraction_may_omit_regions",
+                      "table_order_preserved_separately"
+                    ]
+                  }
+                }
+              ],
+              "artifacts": [
+                {
+                  "id": "d413189c-6402-4726-8aed-97e9e3074f6c",
+                  "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                  "bytes_base64": "PGh0bWw+PGJvZHk+PGgxPkZpZWxkIG5vdGU8L2gxPjxwPkFyZGVudCBkb2VzIG5vdCBzdXBwb3J0\nIHVuZGVyd2F0ZXIgcmVjb3JkaW5nLjwvcD48cD5BcmRlbnQgc3VwcG9ydHMgb2ZmbGluZSByZWNv\ncmRpbmcgb25seSBvbiBmaXJtd2FyZSA0LjIuPC9wPjxwPlRoaXMgb3JpZ2luYWwgc3ludGhldGlj\nIGRvY3VtZW50IHByb3ZpZGVzIGRlbGliZXJhdGVseSBmYWJyaWNhdGVkIGNvbnRyb2wgc3RhdGVt\nZW50cyBhYm91dCB0aGUgbmFtZWQgZGV2aWNlLiBJdCB0ZXN0cyB0aGUgY29tbW9uIHByb2R1Y3Rp\nb24gZXZpZGVuY2UgcGF0aCBhbmQgZG9lcyBub3QgZXN0YWJsaXNoIGFjdHVhbCBwcm9kdWN0IGNh\ncGFiaWxpdGllcy48L3A+PC9ib2R5PjwvaHRtbD4="
+                }
+              ],
+              "reuse": [],
+              "cost": {
+                "runId": "24e3db4b-e258-41dc-a098-459c7aa09127",
+                "accountId": "0f7bbe1f-d9db-42fc-8a0f-ed8ec3c3cf72",
+                "routeMode": "controlled-research",
+                "spentMicro": 10,
+                "confirmedProviderMicro": 10,
+                "heldProviderMicro": 0,
+                "unknownProviderIntents": 0,
+                "simulatedFixtureMicro": 0,
+                "allowanceReconciled": true,
+                "costScope": "provider_receipts_only",
+                "reservationAmountMicro": 100000,
+                "reservationState": "settled",
+                "breakdown": {
+                  "search": 0,
+                  "fetch": 0,
+                  "synthesize": 0,
+                  "other": 10
+                },
+                "intentTotalMicro": 10,
+                "reconciled": true,
+                "tariffVersion": null,
+                "effectiveProcessor": "openrouter"
+              }
+            }
+          }
+        },
+        {
+          "event": "attempt",
+          "step": {
+            "id": "MC-D01:1:B:original",
+            "taskId": "MC-D01",
+            "repeat": 1,
+            "arm": "B",
+            "kind": "original",
+            "question": "What does Ardent say about underwater recording?",
+            "idempotencyKey": "34772428-8666-8d21-a122-10c276eaa963"
+          },
+          "startedAt": "2026-09-18T10:26:40.456Z",
+          "exposure": {
+            "confirmedMicro": 10,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          }
+        },
+        {
+          "event": "admitted",
+          "stepId": "MC-D01:1:B:original",
+          "runId": "b7490a44-c613-44d4-af67-0ef037429c26"
+        },
+        {
+          "event": "result",
+          "stepId": "MC-D01:1:B:original",
+          "startedAt": "2026-09-18T10:26:40.456Z",
+          "finishedAt": "2026-09-18T10:26:44.542Z",
+          "wallMs": 4085.805339999999,
+          "receipt": {
+            "runId": "b7490a44-c613-44d4-af67-0ef037429c26",
+            "briefRevision": 1,
+            "lifecycle": "terminal",
+            "outcome": "completed",
+            "reportId": "b77ebadb-620f-4373-9198-a0443cb677ed",
+            "cost": {
+              "confirmedMicro": 10,
+              "heldMicro": 0,
+              "unknownIntents": 0
+            },
+            "trace": {
+              "strategy": "criterion-adaptive.v1",
+              "snapshot": {
+                "runId": "b7490a44-c613-44d4-af67-0ef037429c26",
+                "contentInvalidated": false,
+                "lifecycle": "terminal",
+                "phase": "writing",
+                "outcome": "completed",
+                "routeMode": "controlled-research",
+                "correctionMode": "replace_question",
+                "correctionReserveMicro": 100000,
+                "brief": {
+                  "id": "cbeae951-8667-4c23-a6bc-b951c723464f",
+                  "language": "en",
+                  "nonGoals": [],
+                  "revision": 1,
+                  "assumptions": [],
+                  "constraints": [],
+                  "attachmentIds": [],
+                  "budgetPolicyId": "default",
+                  "conversationId": "ac424954-be1f-4444-b9d9-475cecb4966a",
+                  "originalQuestion": "What does Ardent say about underwater recording?",
+                  "sourceRestrictions": [],
+                  "consentPolicyVersion": "2026-09-17.1"
+                },
+                "revision": {
+                  "briefRevision": 1,
+                  "evidenceRevision": 2,
+                  "consentEpoch": 1,
+                  "cancellationEpoch": 0
+                },
+                "reportId": "b77ebadb-620f-4373-9198-a0443cb677ed",
+                "labeledDemo": false
+              },
+              "report": {
+                "reportId": "b77ebadb-620f-4373-9198-a0443cb677ed",
+                "runId": "b7490a44-c613-44d4-af67-0ef037429c26",
+                "version": 1,
+                "outcome": "completed",
+                "blocks": [
+                  {
+                    "id": "heading_0",
+                    "kind": "heading",
+                    "text": "Evidence",
+                    "claimIds": [],
+                    "citationIds": []
+                  },
+                  {
+                    "id": "paragraph_0_0",
+                    "kind": "text",
+                    "text": "Ardent does not support underwater recording.",
+                    "claimIds": [
+                      "086eff50-35ba-44ff-a255-c8330277b1b7"
+                    ],
+                    "citationIds": [
+                      "2d37ab53-d828-4311-bab1-113056ee0d1d"
+                    ]
+                  }
+                ],
+                "limitations": [],
+                "sourceAccessSummary": [
+                  {
+                    "title": "Technical note",
+                    "sourceId": "7dc2b644-df68-4cee-abec-5dfda356b1e8",
+                    "accessLevel": "partial-text",
+                    "originCluster": "https://example.org"
+                  }
+                ],
+                "changeSummary": null,
+                "routeMode": "controlled-research",
+                "labeledDemo": false
+              },
+              "passages": [
+                {
+                  "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                  "exact_text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:2",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                  "exact_text": "Ardent does not support underwater recording.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:0",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                  "exact_text": "Ardent supports offline recording only on firmware 4.2.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:1",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                }
+              ],
+              "operations": [
+                {
+                  "intent_id": "685ce5c9-5331-4275-be00-583fdee0cea9",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "e4483155f5cf809724a01df52116850848552b968bccf9d0f00c6a4b0efe1063",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "69ab3e96-8fd5-45a8-9552-03df56bdc101",
+                  "operation": "extract_assertions",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "8b9cfcd8-913c-4b60-a8aa-56f49cbe95ce",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "f0b617e1428009cf296ad27635daf5d82bb73e90d5cb3cd2840332f4048a5ad6",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "f8f3154ac7122a710216833693435764717fd06e6c49f6f9522f5dc5b4e87473",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "993d3ba9-7cc1-48ae-aaaa-28dfa7776592",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "e4483155f5cf809724a01df52116850848552b968bccf9d0f00c6a4b0efe1063",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "9aaab65c-68c7-44f3-80bf-896d012dc763",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "f0b617e1428009cf296ad27635daf5d82bb73e90d5cb3cd2840332f4048a5ad6",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "f8f3154ac7122a710216833693435764717fd06e6c49f6f9522f5dc5b4e87473",
+                    "approvedClaimKeys": [
+                      "paragraph_0_0"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "9f833664-c2c9-4e6b-b9a0-882da6040d25",
+                  "operation": "write_report",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "4a19104fca92c9263bb730dfc14e538cbd809fdccb33b8f0a8dc4e03ee216333",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "e4483155f5cf809724a01df52116850848552b968bccf9d0f00c6a4b0efe1063",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "c1370ba1-ae1e-43f6-a118-383e525bd288",
+                  "operation": "brief",
+                  "brief_revision": 1,
+                  "evidence_revision": 0,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [],
+                    "taskDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                }
+              ],
+              "attempts": [
+                {
+                  "id": "685ce5c9-5331-4275-be00-583fdee0cea9",
+                  "action_id": "fd5f98b2-132a-4d4f-9748-77505d5652e2",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "1cc8f11d97fe5523410df61485b98ae61723575f69d6a324c09e5fc2defc26e6",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:41.684Z",
+                    "finishedAt": "2026-09-18T10:26:41.685Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "3af1144efbcc2f2c8ef4b3d2dfeb032d18834707905d982aa6cd967506de6606",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "69ab3e96-8fd5-45a8-9552-03df56bdc101",
+                  "action_id": "3668971e-a41d-463d-bc73-0a6f33c311da",
+                  "route": "openrouter:openai/gpt-4o-mini:extract_assertions",
+                  "request_digest": "6c5360612a47a38d95f616f0388fe47258d6e7a33ef91de020b6ceb14e2aaf3e",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:41.553Z",
+                    "finishedAt": "2026-09-18T10:26:41.555Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "c3daa45e09b520d19b2e27f76f8221437f7e260f8fb47cc9a6b591a3476d6b75",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "8b9cfcd8-913c-4b60-a8aa-56f49cbe95ce",
+                  "action_id": "966ce06d-4b8c-4ac0-9055-b2a3bb70f29d",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "52814167c006ede8c283317741bfa8d7b5c8858c76bcc67d9777267ae6f16e41",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:42.797Z",
+                    "finishedAt": "2026-09-18T10:26:42.798Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "c740cae4051e5f6c7efbda16acdc24716c12ac5acc2192811a7b1551306b5311",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "993d3ba9-7cc1-48ae-aaaa-28dfa7776592",
+                  "action_id": "ea842065-b97f-4835-a2ad-0f56a7dd4ca1",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "7c07fe57db81874ebfdce868f87ce3b2ec836b47a26434d438b0ee31471390df",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:42.095Z",
+                    "finishedAt": "2026-09-18T10:26:42.096Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a709e71f870d84b46ebd7503c33580523d83592f0cd2fabdbde5512866259990",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "9aaab65c-68c7-44f3-80bf-896d012dc763",
+                  "action_id": "8f14c68d-5e40-4d15-b8e6-2d5637fc1e3d",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "84a7da4b5dcd62ef9ee4fbdec50626b82cf9ade8355d78150d16efe20071c89a",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:43.188Z",
+                    "finishedAt": "2026-09-18T10:26:43.188Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a56eba086d15ebf9013e2df2ac7b439464e8127b9b33f09b35c604d60d418b0c",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "9f833664-c2c9-4e6b-b9a0-882da6040d25",
+                  "action_id": "e54c26ba-da96-4b2b-9f9a-03ab90e062e5",
+                  "route": "openrouter:openai/gpt-4o-mini:write_report",
+                  "request_digest": "c7f73b21c695eed86aaaa393962f75d887db7d3a340ab0d835dbea60cae433c5",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:42.396Z",
+                    "finishedAt": "2026-09-18T10:26:42.398Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "eb749ad75ce3de674b83c00324e3fbe4971ee29faab287cfa2bf2d9c0a6574b8",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "c1370ba1-ae1e-43f6-a118-383e525bd288",
+                  "action_id": "61b8ec61-ac1f-42fe-9d34-89ddbf9535ec",
+                  "route": "openrouter:openai/gpt-4o-mini:brief",
+                  "request_digest": "9b91888bc7bf5fcaf27cd404c1b265b3ff9cca56f63f059cc899b156ba522ddf",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:40.551Z",
+                    "finishedAt": "2026-09-18T10:26:40.552Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "d2ed790803985578e700973dfebba335cc498919f10ac14fa35be36da30ced92",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "d0a94e47-185c-4f4a-a786-4aa426477d12",
+                  "action_id": "ebcc7034-7473-4509-9f97-bd04586b7226",
+                  "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                  "request_digest": "38ba492aa34970777fc99c04880906357a2cf4e7d434b174172efcbf6f768612",
+                  "reserved_max_micro": "28658",
+                  "confirmed_micro": "3",
+                  "state": "confirmed",
+                  "receipt": {
+                    "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                    "state": "confirmed",
+                    "rawCost": "0.000003",
+                    "providerId": "nonbillable-matched-search",
+                    "actualMicro": 3,
+                    "correlationId": "8d80b6ed-a50c-41f5-8f71-9818b65548c2",
+                    "requestDigest": "13ae9d5db5c5db5f789bb70b6ba482e0f2ffcca2fc727db97fa81c1f1ae4f8c8",
+                    "responseDigest": "af071da392a97dad247494d3974d6114d57cb0e77749f5413532f6da1a9c6db4"
+                  }
+                }
+              ],
+              "support": [
+                {
+                  "model_intent_id": "685ce5c9-5331-4275-be00-583fdee0cea9",
+                  "claim_revision_id": "970359f8-b68f-4b3f-8110-4988a404948b",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "requested",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 45,
+                        "quote": "Ardent does not support underwater recording.",
+                        "start": 0,
+                        "passageId": "2d37ab53-d828-4311-bab1-113056ee0d1d"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                },
+                {
+                  "model_intent_id": "8b9cfcd8-913c-4b60-a8aa-56f49cbe95ce",
+                  "claim_revision_id": "8b3bcb04-67aa-4203-ae74-65dbabb8a654",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "paragraph_0_0",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 45,
+                        "quote": "Ardent does not support underwater recording.",
+                        "start": 0,
+                        "passageId": "2d37ab53-d828-4311-bab1-113056ee0d1d"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                }
+              ],
+              "extraction": [
+                {
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "artifact_id": "da729a6f-0f65-44e0-84c8-ebe942006c57",
+                  "transport": {
+                    "mime": "text/html",
+                    "bytes": 371,
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": 200,
+                    "outcome": "successful_body",
+                    "finalUrl": "https://example.org/export.html",
+                    "retrievedAt": "2026-09-18T10:26:40.703Z",
+                    "requestedUrl": "https://example.org/export.html",
+                    "redirectChain": []
+                  },
+                  "extraction": {
+                    "blocks": [
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent does not support underwater recording.",
+                        "locator": "block:0"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent supports offline recording only on firmware 4.2.",
+                        "locator": "block:1"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                        "locator": "block:2"
+                      }
+                    ],
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": "partial",
+                    "version": "trafilatura-2.2.0/structure-v3",
+                    "warnings": [
+                      "main_content_extraction_may_omit_regions",
+                      "table_order_preserved_separately"
+                    ]
+                  }
+                }
+              ],
+              "artifacts": [
+                {
+                  "id": "da729a6f-0f65-44e0-84c8-ebe942006c57",
+                  "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                  "bytes_base64": "PGh0bWw+PGJvZHk+PGgxPkZpZWxkIG5vdGU8L2gxPjxwPkFyZGVudCBkb2VzIG5vdCBzdXBwb3J0\nIHVuZGVyd2F0ZXIgcmVjb3JkaW5nLjwvcD48cD5BcmRlbnQgc3VwcG9ydHMgb2ZmbGluZSByZWNv\ncmRpbmcgb25seSBvbiBmaXJtd2FyZSA0LjIuPC9wPjxwPlRoaXMgb3JpZ2luYWwgc3ludGhldGlj\nIGRvY3VtZW50IHByb3ZpZGVzIGRlbGliZXJhdGVseSBmYWJyaWNhdGVkIGNvbnRyb2wgc3RhdGVt\nZW50cyBhYm91dCB0aGUgbmFtZWQgZGV2aWNlLiBJdCB0ZXN0cyB0aGUgY29tbW9uIHByb2R1Y3Rp\nb24gZXZpZGVuY2UgcGF0aCBhbmQgZG9lcyBub3QgZXN0YWJsaXNoIGFjdHVhbCBwcm9kdWN0IGNh\ncGFiaWxpdGllcy48L3A+PC9ib2R5PjwvaHRtbD4="
+                }
+              ],
+              "reuse": [],
+              "cost": {
+                "runId": "b7490a44-c613-44d4-af67-0ef037429c26",
+                "accountId": "0f7bbe1f-d9db-42fc-8a0f-ed8ec3c3cf72",
+                "routeMode": "controlled-research",
+                "spentMicro": 10,
+                "confirmedProviderMicro": 10,
+                "heldProviderMicro": 0,
+                "unknownProviderIntents": 0,
+                "simulatedFixtureMicro": 0,
+                "allowanceReconciled": true,
+                "costScope": "provider_receipts_only",
+                "reservationAmountMicro": 100000,
+                "reservationState": "settled",
+                "breakdown": {
+                  "search": 0,
+                  "fetch": 0,
+                  "synthesize": 0,
+                  "other": 10
+                },
+                "intentTotalMicro": 10,
+                "reconciled": true,
+                "tariffVersion": null,
+                "effectiveProcessor": "openrouter"
+              }
+            }
+          }
+        },
+        {
+          "event": "attempt",
+          "step": {
+            "id": "MC-D01:1:B:correction",
+            "taskId": "MC-D01",
+            "repeat": 1,
+            "arm": "B",
+            "kind": "correction",
+            "question": "What firmware does Ardent require for offline recording?",
+            "parentStepId": "MC-D01:1:B:original",
+            "idempotencyKey": "9c9f0ba2-bd23-8d2e-a401-280ef5046629"
+          },
+          "startedAt": "2026-09-18T10:26:44.543Z",
+          "exposure": {
+            "confirmedMicro": 20,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          }
+        },
+        {
+          "event": "admitted",
+          "stepId": "MC-D01:1:B:correction",
+          "runId": "65bfb323-5d55-4814-9ca5-1d556f182b67"
+        },
+        {
+          "event": "result",
+          "stepId": "MC-D01:1:B:correction",
+          "startedAt": "2026-09-18T10:26:44.543Z",
+          "finishedAt": "2026-09-18T10:26:47.007Z",
+          "wallMs": 2464.6836600000006,
+          "receipt": {
+            "runId": "65bfb323-5d55-4814-9ca5-1d556f182b67",
+            "briefRevision": 2,
+            "lifecycle": "terminal",
+            "outcome": "completed",
+            "reportId": "073e5c0a-5aae-43cf-a43d-266b599fc456",
+            "cost": {
+              "confirmedMicro": 10,
+              "heldMicro": 0,
+              "unknownIntents": 0
+            },
+            "trace": {
+              "strategy": "criterion-adaptive.v1",
+              "snapshot": {
+                "runId": "65bfb323-5d55-4814-9ca5-1d556f182b67",
+                "contentInvalidated": false,
+                "lifecycle": "terminal",
+                "phase": "writing",
+                "outcome": "completed",
+                "routeMode": "controlled-research",
+                "correctionMode": "replace_question",
+                "correctionReserveMicro": 100000,
+                "brief": {
+                  "id": "7172c9e5-fad0-4080-8a1e-84bd3f8387b4",
+                  "language": "en",
+                  "nonGoals": [],
+                  "revision": 2,
+                  "assumptions": [],
+                  "constraints": [],
+                  "attachmentIds": [],
+                  "budgetPolicyId": "default",
+                  "conversationId": "ac424954-be1f-4444-b9d9-475cecb4966a",
+                  "originalQuestion": "What firmware does Ardent require for offline recording?",
+                  "sourceRestrictions": [],
+                  "consentPolicyVersion": "2026-09-17.1"
+                },
+                "revision": {
+                  "briefRevision": 2,
+                  "evidenceRevision": 1,
+                  "consentEpoch": 1,
+                  "cancellationEpoch": 0
+                },
+                "reportId": "073e5c0a-5aae-43cf-a43d-266b599fc456",
+                "labeledDemo": false
+              },
+              "report": {
+                "reportId": "073e5c0a-5aae-43cf-a43d-266b599fc456",
+                "runId": "65bfb323-5d55-4814-9ca5-1d556f182b67",
+                "version": 1,
+                "outcome": "completed",
+                "blocks": [
+                  {
+                    "id": "heading_0",
+                    "kind": "heading",
+                    "text": "Evidence",
+                    "claimIds": [],
+                    "citationIds": []
+                  },
+                  {
+                    "id": "paragraph_0_0",
+                    "kind": "text",
+                    "text": "Ardent supports offline recording only on firmware 4.2.",
+                    "claimIds": [
+                      "0b4661ea-b1fd-4a8e-8cf5-0b716f685955"
+                    ],
+                    "citationIds": [
+                      "f8cdf410-f025-4a15-8560-c5370619f103"
+                    ]
+                  }
+                ],
+                "limitations": [],
+                "sourceAccessSummary": [
+                  {
+                    "title": "Technical note",
+                    "sourceId": "7dc2b644-df68-4cee-abec-5dfda356b1e8",
+                    "accessLevel": "partial-text",
+                    "originCluster": "https://example.org"
+                  }
+                ],
+                "changeSummary": {
+                  "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+                  "comparison": {
+                    "version": "report-changes.v1",
+                    "parentReportId": "b77ebadb-620f-4373-9198-a0443cb677ed",
+                    "addedCriterionIds": [],
+                    "reportStateChanged": false,
+                    "removedCriterionIds": [],
+                    "unchangedAssertions": 0,
+                    "addedClaimRevisionIds": [
+                      "ff8726e3-36dc-4986-abdb-108d7166dbd1"
+                    ],
+                    "removedClaimRevisionIds": [
+                      "8b3bcb04-67aa-4203-ae74-65dbabb8a654"
+                    ],
+                    "newlyCitedSourceVersionIds": [],
+                    "reusedCitedSourceVersionIds": [
+                      "190637a4-100c-4ce8-86c6-80626ced3188"
+                    ]
+                  },
+                  "newlyFeasible": [],
+                  "evidenceUpdated": false,
+                  "newlyInfeasible": [],
+                  "conclusionChanged": true
+                },
+                "routeMode": "controlled-research",
+                "labeledDemo": false
+              },
+              "passages": [
+                {
+                  "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                  "exact_text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:2",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                  "exact_text": "Ardent does not support underwater recording.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:0",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "content_hash": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                  "exact_text": "Ardent supports offline recording only on firmware 4.2.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:1",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                }
+              ],
+              "operations": [
+                {
+                  "intent_id": "4ec847ac-efd4-43bf-9f45-3ea8836e57cc",
+                  "operation": "review_coverage",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "62cd3088a55d158dc6b5f844900fc97da27910f426c8bdbe721edfc96e87b4d3",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "f77d02daeee1cbced047297fcab4bc228c38ada7432a4174b218d12e137d426a",
+                    "approvedClaimKeys": [
+                      "paragraph_0_0"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "51bf0e5f-fc07-4150-ae9e-fa8f43454903",
+                  "operation": "brief",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [],
+                    "taskDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "91c56c78-aaff-4a4f-866a-5ac3098b2cd2",
+                  "operation": "assess_support",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "9934d9c3bfeb870d7ce2af08f88ca4156c9e3474ed192af26626fe849cf858ac",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "9c899653-40e8-45e4-8dd5-d5723cf4fd99",
+                  "operation": "assess_support",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "62cd3088a55d158dc6b5f844900fc97da27910f426c8bdbe721edfc96e87b4d3",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "f77d02daeee1cbced047297fcab4bc228c38ada7432a4174b218d12e137d426a",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "dfd14ec1-3162-4056-a314-abde4863d129",
+                  "operation": "extract_assertions",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "e2a3453f-e0ea-48f0-9461-9ecf7603066c",
+                  "operation": "review_coverage",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "9934d9c3bfeb870d7ce2af08f88ca4156c9e3474ed192af26626fe849cf858ac",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "fe58f5c6-0c7f-4b14-b3a9-71ed1da28a5e",
+                  "operation": "write_report",
+                  "brief_revision": 2,
+                  "evidence_revision": 1,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      },
+                      {
+                        "id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "190637a4-100c-4ce8-86c6-80626ced3188"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "7dc2b644-df68-4cee-abec-5dfda356b1e8"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "9934d9c3bfeb870d7ce2af08f88ca4156c9e3474ed192af26626fe849cf858ac",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                }
+              ],
+              "attempts": [
+                {
+                  "id": "4ec847ac-efd4-43bf-9f45-3ea8836e57cc",
+                  "action_id": "bd7196c2-ddb3-4a8d-8c07-6345f1551485",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "205d5d8af9ca4e077972651c2d5f97a259bbc6c52bf9c96c21ea20aaa88a33ca",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:45.875Z",
+                    "finishedAt": "2026-09-18T10:26:45.876Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a56eba086d15ebf9013e2df2ac7b439464e8127b9b33f09b35c604d60d418b0c",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "51bf0e5f-fc07-4150-ae9e-fa8f43454903",
+                  "action_id": "8d89b005-e49d-4e24-92a7-0f00fb36b9b0",
+                  "route": "openrouter:openai/gpt-4o-mini:brief",
+                  "request_digest": "a8367d61aa6c41b1074ebce48b20ce31ca2a96c15938268ace4ca18ac80b775c",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:44.603Z",
+                    "finishedAt": "2026-09-18T10:26:44.604Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "6e4b2cd6b2a8afceda7aa94377ceca364c419063d6a425f430053c58a8dd0574",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "77c17eb3-484d-46cb-9a2d-8885c48e27d7",
+                  "action_id": "f21d9f32-b6b8-41da-a1e0-f01de978b913",
+                  "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                  "request_digest": "b79e53eb722712bce5e4b9afa32ef387490ab426d74a0c334079bd3d4764a58b",
+                  "reserved_max_micro": "28658",
+                  "confirmed_micro": "3",
+                  "state": "confirmed",
+                  "receipt": {
+                    "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                    "state": "confirmed",
+                    "rawCost": "0.000003",
+                    "providerId": "nonbillable-matched-search",
+                    "actualMicro": 3,
+                    "correlationId": "a81c57e3-81c1-41ee-869b-19606a498f2c",
+                    "requestDigest": "b6a22677104ed1d5c1f328e75f1c52a05831627473a04b9c2cbdfc9f0a7d0a66",
+                    "responseDigest": "af071da392a97dad247494d3974d6114d57cb0e77749f5413532f6da1a9c6db4"
+                  }
+                },
+                {
+                  "id": "91c56c78-aaff-4a4f-866a-5ac3098b2cd2",
+                  "action_id": "b598d071-56a6-4d67-b115-80f4c4fd078c",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "2ef9f991490a50e652775e1ae12deef55071f2f93240ca62df3a33a62c45c2cf",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:44.832Z",
+                    "finishedAt": "2026-09-18T10:26:44.832Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "e32662cc31bfec643c75e950fd4d3ded0620d8a30f9c7568f7ea530e23d3a4bb",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "9c899653-40e8-45e4-8dd5-d5723cf4fd99",
+                  "action_id": "08654b19-7947-4cc1-82a6-7224bccf977a",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "e14badf2f254bc3af54504fa5047b1c1682c1a0afdaaf58beccf05a33d59ec49",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:45.582Z",
+                    "finishedAt": "2026-09-18T10:26:45.582Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "d700495ec694dca6c8e54223b3676213e28416d0355a2e79a7a8d7185c70f47b",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "dfd14ec1-3162-4056-a314-abde4863d129",
+                  "action_id": "d1dbb569-5245-4ace-b5a1-0553a0d6ed0a",
+                  "route": "openrouter:openai/gpt-4o-mini:extract_assertions",
+                  "request_digest": "33f483dfff000a9626eb1ae94d8995ae79f428748c47168695d001a6b7eb2384",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:44.736Z",
+                    "finishedAt": "2026-09-18T10:26:44.737Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "4ad6953f129c9ddbb43044270342360888b9df25dea3ec6e203e316819da4aac",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "e2a3453f-e0ea-48f0-9461-9ecf7603066c",
+                  "action_id": "cf23ed10-de11-4d4d-912e-b7a54e1ccad6",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "4acedb26384b1d81fba1e7952316b3f34c7bc3cab532f8c32d580b439053038b",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:45.085Z",
+                    "finishedAt": "2026-09-18T10:26:45.086Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a709e71f870d84b46ebd7503c33580523d83592f0cd2fabdbde5512866259990",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "fe58f5c6-0c7f-4b14-b3a9-71ed1da28a5e",
+                  "action_id": "3c892653-1720-49eb-aa69-194a164eb48f",
+                  "route": "openrouter:openai/gpt-4o-mini:write_report",
+                  "request_digest": "a3c12b0293a49bc253f85171988b3d5fe8c8e1ce97375d7e466e6fa58623b99c",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:45.299Z",
+                    "finishedAt": "2026-09-18T10:26:45.299Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "7e87312ceac53a0d8ef1b63e127a8092f52f8ff92fecb60a4bce8209f7a9822b",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                }
+              ],
+              "support": [
+                {
+                  "model_intent_id": "91c56c78-aaff-4a4f-866a-5ac3098b2cd2",
+                  "claim_revision_id": "fe39b816-d0b5-44ad-8e46-72293f7c1d93",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "requested",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 55,
+                        "quote": "Ardent supports offline recording only on firmware 4.2.",
+                        "start": 0,
+                        "passageId": "f8cdf410-f025-4a15-8560-c5370619f103"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                },
+                {
+                  "model_intent_id": "9c899653-40e8-45e4-8dd5-d5723cf4fd99",
+                  "claim_revision_id": "ff8726e3-36dc-4986-abdb-108d7166dbd1",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "paragraph_0_0",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 55,
+                        "quote": "Ardent supports offline recording only on firmware 4.2.",
+                        "start": 0,
+                        "passageId": "f8cdf410-f025-4a15-8560-c5370619f103"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                }
+              ],
+              "extraction": [
+                {
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188",
+                  "artifact_id": "da729a6f-0f65-44e0-84c8-ebe942006c57",
+                  "transport": {
+                    "mime": "text/html",
+                    "bytes": 371,
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": 200,
+                    "outcome": "successful_body",
+                    "finalUrl": "https://example.org/export.html",
+                    "retrievedAt": "2026-09-18T10:26:40.703Z",
+                    "requestedUrl": "https://example.org/export.html",
+                    "redirectChain": []
+                  },
+                  "extraction": {
+                    "blocks": [
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent does not support underwater recording.",
+                        "locator": "block:0"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent supports offline recording only on firmware 4.2.",
+                        "locator": "block:1"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                        "locator": "block:2"
+                      }
+                    ],
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": "partial",
+                    "version": "trafilatura-2.2.0/structure-v3",
+                    "warnings": [
+                      "main_content_extraction_may_omit_regions",
+                      "table_order_preserved_separately"
+                    ]
+                  }
+                }
+              ],
+              "artifacts": [
+                {
+                  "id": "da729a6f-0f65-44e0-84c8-ebe942006c57",
+                  "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                  "bytes_base64": "PGh0bWw+PGJvZHk+PGgxPkZpZWxkIG5vdGU8L2gxPjxwPkFyZGVudCBkb2VzIG5vdCBzdXBwb3J0\nIHVuZGVyd2F0ZXIgcmVjb3JkaW5nLjwvcD48cD5BcmRlbnQgc3VwcG9ydHMgb2ZmbGluZSByZWNv\ncmRpbmcgb25seSBvbiBmaXJtd2FyZSA0LjIuPC9wPjxwPlRoaXMgb3JpZ2luYWwgc3ludGhldGlj\nIGRvY3VtZW50IHByb3ZpZGVzIGRlbGliZXJhdGVseSBmYWJyaWNhdGVkIGNvbnRyb2wgc3RhdGVt\nZW50cyBhYm91dCB0aGUgbmFtZWQgZGV2aWNlLiBJdCB0ZXN0cyB0aGUgY29tbW9uIHByb2R1Y3Rp\nb24gZXZpZGVuY2UgcGF0aCBhbmQgZG9lcyBub3QgZXN0YWJsaXNoIGFjdHVhbCBwcm9kdWN0IGNh\ncGFiaWxpdGllcy48L3A+PC9ib2R5PjwvaHRtbD4="
+                }
+              ],
+              "reuse": [
+                {
+                  "passage_id": "2d37ab53-d828-4311-bab1-113056ee0d1d",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188"
+                },
+                {
+                  "passage_id": "f8cdf410-f025-4a15-8560-c5370619f103",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188"
+                },
+                {
+                  "passage_id": "28059e4b-83dd-4314-a4c3-052af199f4b2",
+                  "source_version_id": "190637a4-100c-4ce8-86c6-80626ced3188"
+                }
+              ],
+              "cost": {
+                "runId": "65bfb323-5d55-4814-9ca5-1d556f182b67",
+                "accountId": "0f7bbe1f-d9db-42fc-8a0f-ed8ec3c3cf72",
+                "routeMode": "controlled-research",
+                "spentMicro": 10,
+                "confirmedProviderMicro": 10,
+                "heldProviderMicro": 0,
+                "unknownProviderIntents": 0,
+                "simulatedFixtureMicro": 0,
+                "allowanceReconciled": true,
+                "costScope": "provider_receipts_only",
+                "reservationAmountMicro": 100000,
+                "reservationState": "settled",
+                "breakdown": {
+                  "search": 0,
+                  "fetch": 0,
+                  "synthesize": 0,
+                  "other": 10
+                },
+                "intentTotalMicro": 10,
+                "reconciled": true,
+                "tariffVersion": null,
+                "effectiveProcessor": "openrouter"
+              }
+            }
+          }
+        },
+        {
+          "event": "attempt",
+          "step": {
+            "id": "MC-D01:1:A1:full_rerun",
+            "taskId": "MC-D01",
+            "repeat": 1,
+            "arm": "A1",
+            "kind": "full_rerun",
+            "question": "What firmware does Ardent require for offline recording?",
+            "idempotencyKey": "d359d3f8-b4c8-875a-a2bc-010662b88302"
+          },
+          "startedAt": "2026-09-18T10:26:47.008Z",
+          "exposure": {
+            "confirmedMicro": 30,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          }
+        },
+        {
+          "event": "admitted",
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "runId": "b2c7b8cd-32a4-4bd6-8c11-7e16d2c7b830"
+        },
+        {
+          "event": "result",
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "startedAt": "2026-09-18T10:26:47.008Z",
+          "finishedAt": "2026-09-18T10:26:49.998Z",
+          "wallMs": 2989.717932999998,
+          "receipt": {
+            "runId": "b2c7b8cd-32a4-4bd6-8c11-7e16d2c7b830",
+            "briefRevision": 1,
+            "lifecycle": "terminal",
+            "outcome": "completed",
+            "reportId": "25060861-84cb-4ffa-8b63-4d2e63a54bb8",
+            "cost": {
+              "confirmedMicro": 10,
+              "heldMicro": 0,
+              "unknownIntents": 0
+            },
+            "trace": {
+              "strategy": "iterative-baseline.v1",
+              "snapshot": {
+                "runId": "b2c7b8cd-32a4-4bd6-8c11-7e16d2c7b830",
+                "contentInvalidated": false,
+                "lifecycle": "terminal",
+                "phase": "writing",
+                "outcome": "completed",
+                "routeMode": "controlled-research",
+                "correctionMode": "replace_question",
+                "correctionReserveMicro": 100000,
+                "brief": {
+                  "id": "5b82ce6d-85be-4921-bf89-a3ada9dcb4a8",
+                  "language": "en",
+                  "nonGoals": [],
+                  "revision": 1,
+                  "assumptions": [],
+                  "constraints": [],
+                  "attachmentIds": [],
+                  "budgetPolicyId": "default",
+                  "conversationId": "f474c7ea-0030-487c-ab0d-d16bb7d258db",
+                  "originalQuestion": "What firmware does Ardent require for offline recording?",
+                  "sourceRestrictions": [],
+                  "consentPolicyVersion": "2026-09-17.1"
+                },
+                "revision": {
+                  "briefRevision": 1,
+                  "evidenceRevision": 2,
+                  "consentEpoch": 1,
+                  "cancellationEpoch": 0
+                },
+                "reportId": "25060861-84cb-4ffa-8b63-4d2e63a54bb8",
+                "labeledDemo": false
+              },
+              "report": {
+                "reportId": "25060861-84cb-4ffa-8b63-4d2e63a54bb8",
+                "runId": "b2c7b8cd-32a4-4bd6-8c11-7e16d2c7b830",
+                "version": 1,
+                "outcome": "completed",
+                "blocks": [
+                  {
+                    "id": "heading_0",
+                    "kind": "heading",
+                    "text": "Evidence",
+                    "claimIds": [],
+                    "citationIds": []
+                  },
+                  {
+                    "id": "paragraph_0_0",
+                    "kind": "text",
+                    "text": "Ardent supports offline recording only on firmware 4.2.",
+                    "claimIds": [
+                      "79dbb97a-3ce2-4909-b1a6-ccc1a7acc835"
+                    ],
+                    "citationIds": [
+                      "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b"
+                    ]
+                  }
+                ],
+                "limitations": [],
+                "sourceAccessSummary": [
+                  {
+                    "title": "Technical note",
+                    "sourceId": "32aedbee-3257-43b4-a4fa-c116c92bab9b",
+                    "accessLevel": "partial-text",
+                    "originCluster": "https://example.org"
+                  }
+                ],
+                "changeSummary": null,
+                "routeMode": "controlled-research",
+                "labeledDemo": false
+              },
+              "passages": [
+                {
+                  "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                  "source_version_id": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6",
+                  "content_hash": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                  "exact_text": "Ardent does not support underwater recording.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:0",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                  "source_version_id": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6",
+                  "content_hash": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                  "exact_text": "Ardent supports offline recording only on firmware 4.2.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:1",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                },
+                {
+                  "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                  "source_version_id": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6",
+                  "content_hash": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                  "exact_text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                  "locator": {
+                    "kind": "text",
+                    "rows": [],
+                    "block": "block:2",
+                    "normalization": "extractor-output-v1"
+                  },
+                  "extraction_method": "trafilatura-2.2.0/structure-v3",
+                  "access_level": "partial-text",
+                  "source_digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd"
+                }
+              ],
+              "operations": [
+                {
+                  "intent_id": "323921fe-e626-41e5-8b91-3414bb7e062e",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "62cd3088a55d158dc6b5f844900fc97da27910f426c8bdbe721edfc96e87b4d3",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "e934c5bc0cf941f617278977975bafc820438fda3a6538efd236606d308137fc",
+                    "approvedClaimKeys": [
+                      "paragraph_0_0"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "49822ec6-2512-4d93-896e-f2cbd8fdb20b",
+                  "operation": "review_coverage",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "90a926eac93585418fe48f0b475f9fdd1d751147eb4b59f31e1d4c4bad2ae974",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "59c27ad9-cd29-45bb-b067-dc59ac8cf919",
+                  "operation": "brief",
+                  "brief_revision": 1,
+                  "evidence_revision": 0,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [],
+                    "taskDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "5d86faaf-a09e-41cb-88d9-1a225e52f5d8",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "90a926eac93585418fe48f0b475f9fdd1d751147eb4b59f31e1d4c4bad2ae974",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "694063c5-3974-4481-b190-2e2230a0f9ee",
+                  "operation": "write_report",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "90a926eac93585418fe48f0b475f9fdd1d751147eb4b59f31e1d4c4bad2ae974",
+                    "approvedClaimKeys": [
+                      "requested"
+                    ]
+                  }
+                },
+                {
+                  "intent_id": "9f93d98e-5957-4776-8752-93ff8b835f8b",
+                  "operation": "extract_assertions",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                },
+                {
+                  "intent_id": "eaf5ecf1-cb09-4bc0-9497-3a608cbf3a0a",
+                  "operation": "assess_support",
+                  "brief_revision": 1,
+                  "evidence_revision": 2,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [
+                      {
+                        "id": "37835158-ac08-40fc-aae7-3fa7b4f1e2e9",
+                        "digest": "e89b0c271c5c63308c76742dd4e9507eee0400da6e79e76a277e19d258919153",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b",
+                        "digest": "915b7575e6ed6e44feb1ceb272f80bb5d6f936220b46d7f3cb067e9984340ca8",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      },
+                      {
+                        "id": "d732a50b-eb87-42c5-8182-1b2c5609b3dd",
+                        "digest": "95e9dce17f09f08f136a45dcbfe04136d7cd2d22d8f9baaa9ce0623becd390ee",
+                        "accessLevel": "partial-text",
+                        "sourceVersionId": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6"
+                      }
+                    ],
+                    "taskDigest": "5ddc6a7a9cbf1692a4c39cd804dbc7abd3e4be2a3a9a30c35542edd92d5286f3",
+                    "draftDigest": "62cd3088a55d158dc6b5f844900fc97da27910f426c8bdbe721edfc96e87b4d3",
+                    "sourceHandles": [
+                      "32aedbee-3257-43b4-a4fa-c116c92bab9b"
+                    ],
+                    "questionDigest": "9035c953ac42262d4cd87c870be5f3caa9f6e2e31b41511b1a89c27cabb68e05",
+                    "assertionsDigest": "e934c5bc0cf941f617278977975bafc820438fda3a6538efd236606d308137fc",
+                    "approvedClaimKeys": []
+                  }
+                }
+              ],
+              "attempts": [
+                {
+                  "id": "323921fe-e626-41e5-8b91-3414bb7e062e",
+                  "action_id": "ecf584b0-a601-426f-b585-b69e49ea5ed4",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "6b082e6919c66b0f0b42003e90db1580ac3e9f95087c57686ca9cd8711572e1f",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:48.907Z",
+                    "finishedAt": "2026-09-18T10:26:48.907Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a56eba086d15ebf9013e2df2ac7b439464e8127b9b33f09b35c604d60d418b0c",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "49822ec6-2512-4d93-896e-f2cbd8fdb20b",
+                  "action_id": "0f17701e-1e8d-42f8-8c27-f0b85a4806ae",
+                  "route": "openrouter:openai/gpt-4o-mini:review_coverage",
+                  "request_digest": "a8d3c04abe623a08b243bf26eadbc4588b0c21a0cd92ded75bee07c769e634c6",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:48.124Z",
+                    "finishedAt": "2026-09-18T10:26:48.124Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "a709e71f870d84b46ebd7503c33580523d83592f0cd2fabdbde5512866259990",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "59c27ad9-cd29-45bb-b067-dc59ac8cf919",
+                  "action_id": "908d15ee-858d-4d59-8292-65104f585e47",
+                  "route": "openrouter:openai/gpt-4o-mini:brief",
+                  "request_digest": "adae05dee518c3cf688f2e77c81c81bb29bb76807b671a8a12f30a8fbe578e94",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:47.050Z",
+                    "finishedAt": "2026-09-18T10:26:47.051Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "6e4b2cd6b2a8afceda7aa94377ceca364c419063d6a425f430053c58a8dd0574",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "5d86faaf-a09e-41cb-88d9-1a225e52f5d8",
+                  "action_id": "f8ab564e-e9ce-454c-b1c2-8a3039a55128",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "302e0b1edb394d1dec66222c9e060cb677346b3da661f3b5c2d0dda0f7e81702",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:47.880Z",
+                    "finishedAt": "2026-09-18T10:26:47.881Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "e996ce238e6259c39c3c47ea7729de5075e81721c401975dfd3badfda1faf2ba",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "694063c5-3974-4481-b190-2e2230a0f9ee",
+                  "action_id": "f3045889-4282-4e7d-8338-cfbc7c7fbb84",
+                  "route": "openrouter:openai/gpt-4o-mini:write_report",
+                  "request_digest": "57918f8fabb3736b369c4297c938267a52e60d92e9f1e683c49777a0c5c2a588",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:48.336Z",
+                    "finishedAt": "2026-09-18T10:26:48.337Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "7e87312ceac53a0d8ef1b63e127a8092f52f8ff92fecb60a4bce8209f7a9822b",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "9f93d98e-5957-4776-8752-93ff8b835f8b",
+                  "action_id": "afb7e0a6-46b3-4d4b-a9d8-fca89d5e2238",
+                  "route": "openrouter:openai/gpt-4o-mini:extract_assertions",
+                  "request_digest": "5c96c1f14a6af82f7daa70737c9ae91f86039beec3222a15f32744e5a24945ea",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:47.788Z",
+                    "finishedAt": "2026-09-18T10:26:47.789Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "461926018abade4ffea6ba61d97b20ff8321653566064e97d40ff036d8404bd8",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                },
+                {
+                  "id": "d7150923-73cc-47b0-864b-cd4565b0c2bf",
+                  "action_id": "841b8926-ec10-49bd-8a28-45f19231f11b",
+                  "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                  "request_digest": "f23bb872e026346fcf4ada66a4fffe4e977ac148ca9b360c9f205e3e09c6fe14",
+                  "reserved_max_micro": "28658",
+                  "confirmed_micro": "3",
+                  "state": "confirmed",
+                  "receipt": {
+                    "route": "openrouter:openai/gpt-4o-mini:public-discovery.v1",
+                    "state": "confirmed",
+                    "rawCost": "0.000003",
+                    "providerId": "nonbillable-matched-search",
+                    "actualMicro": 3,
+                    "correlationId": "e18987dd-6157-4846-b8dd-700cc714700a",
+                    "requestDigest": "b6a22677104ed1d5c1f328e75f1c52a05831627473a04b9c2cbdfc9f0a7d0a66",
+                    "responseDigest": "af071da392a97dad247494d3974d6114d57cb0e77749f5413532f6da1a9c6db4"
+                  }
+                },
+                {
+                  "id": "eaf5ecf1-cb09-4bc0-9497-3a608cbf3a0a",
+                  "action_id": "e555d7f6-6e1e-49e5-a03a-bd450130b540",
+                  "route": "openrouter:openai/gpt-4o-mini:assess_support",
+                  "request_digest": "b3cd50b95af0f27d1434f08a4906132ae5175cdeab52c5658f26272099f57274",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": "1",
+                  "state": "confirmed",
+                  "receipt": {
+                    "rawCost": "0.000001",
+                    "startedAt": "2026-09-18T10:26:48.621Z",
+                    "finishedAt": "2026-09-18T10:26:48.621Z",
+                    "httpStatus": 200,
+                    "providerId": "nonbillable-matched-control",
+                    "actualMicro": 1,
+                    "promptTokens": null,
+                    "reportedModel": "openai/gpt-4o-mini",
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": "5073d09c05b6d025b40c875f4a7635d9bfa3a1835373b18c07cec695294dfd26",
+                    "completionTokens": null,
+                    "reportedProvider": "OpenAI"
+                  }
+                }
+              ],
+              "support": [
+                {
+                  "model_intent_id": "5d86faaf-a09e-41cb-88d9-1a225e52f5d8",
+                  "claim_revision_id": "b8ba37b7-8c7a-4229-8f02-026b1489a0ba",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "requested",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 55,
+                        "quote": "Ardent supports offline recording only on firmware 4.2.",
+                        "start": 0,
+                        "passageId": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                },
+                {
+                  "model_intent_id": "eaf5ecf1-cb09-4bc0-9497-3a608cbf3a0a",
+                  "claim_revision_id": "fcb2ccf9-e618-4a54-a2da-152cf8883baa",
+                  "decision": "supported",
+                  "result": {
+                    "scope": {
+                      "plan": null,
+                      "time": null,
+                      "entity": null,
+                      "version": null,
+                      "geography": null,
+                      "population": null
+                    },
+                    "checks": [
+                      {
+                        "rule": "exact_evidence_bindings",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_matches_claim",
+                        "passed": true
+                      },
+                      {
+                        "rule": "readable_evidence",
+                        "passed": true
+                      },
+                      {
+                        "rule": "scope_grounded_in_quotes",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numbers_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "quantities_grounded",
+                        "passed": true
+                      },
+                      {
+                        "rule": "numeric_context_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "currency_preserved",
+                        "passed": true
+                      },
+                      {
+                        "rule": "no_detected_contradiction",
+                        "passed": true
+                      },
+                      {
+                        "rule": "qualification_preserved",
+                        "passed": true
+                      }
+                    ],
+                    "claimKey": "paragraph_0_0",
+                    "decision": "supported",
+                    "evidence": [
+                      {
+                        "end": 55,
+                        "quote": "Ardent supports offline recording only on firmware 4.2.",
+                        "start": 0,
+                        "passageId": "6ddf2137-3d1a-48ce-a8f1-b7ff27b8e05b"
+                      }
+                    ],
+                    "rationale": "Fabricated exact-span control",
+                    "modelStatus": "supported",
+                    "counterEvidence": [],
+                    "missingEvidence": []
+                  }
+                }
+              ],
+              "extraction": [
+                {
+                  "source_version_id": "ea353bb4-7f6f-4bfa-b3bc-2aad0dab09f6",
+                  "artifact_id": "feab6152-47f9-4ad1-9a27-dc601940f3a7",
+                  "transport": {
+                    "mime": "text/html",
+                    "bytes": 371,
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": 200,
+                    "outcome": "successful_body",
+                    "finalUrl": "https://example.org/export.html",
+                    "retrievedAt": "2026-09-18T10:26:47.138Z",
+                    "requestedUrl": "https://example.org/export.html",
+                    "redirectChain": []
+                  },
+                  "extraction": {
+                    "blocks": [
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent does not support underwater recording.",
+                        "locator": "block:0"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "Ardent supports offline recording only on firmware 4.2.",
+                        "locator": "block:1"
+                      },
+                      {
+                        "kind": "text",
+                        "rows": [],
+                        "text": "This original synthetic document provides deliberately fabricated control statements about the named device. It tests the common production evidence path and does not establish actual product capabilities.",
+                        "locator": "block:2"
+                      }
+                    ],
+                    "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                    "status": "partial",
+                    "version": "trafilatura-2.2.0/structure-v3",
+                    "warnings": [
+                      "main_content_extraction_may_omit_regions",
+                      "table_order_preserved_separately"
+                    ]
+                  }
+                }
+              ],
+              "artifacts": [
+                {
+                  "id": "feab6152-47f9-4ad1-9a27-dc601940f3a7",
+                  "digest": "d10c14fb4449992f1c6630756d1c1fcaa1dd0779b6c4796738c5b4849bdb6abd",
+                  "bytes_base64": "PGh0bWw+PGJvZHk+PGgxPkZpZWxkIG5vdGU8L2gxPjxwPkFyZGVudCBkb2VzIG5vdCBzdXBwb3J0\nIHVuZGVyd2F0ZXIgcmVjb3JkaW5nLjwvcD48cD5BcmRlbnQgc3VwcG9ydHMgb2ZmbGluZSByZWNv\ncmRpbmcgb25seSBvbiBmaXJtd2FyZSA0LjIuPC9wPjxwPlRoaXMgb3JpZ2luYWwgc3ludGhldGlj\nIGRvY3VtZW50IHByb3ZpZGVzIGRlbGliZXJhdGVseSBmYWJyaWNhdGVkIGNvbnRyb2wgc3RhdGVt\nZW50cyBhYm91dCB0aGUgbmFtZWQgZGV2aWNlLiBJdCB0ZXN0cyB0aGUgY29tbW9uIHByb2R1Y3Rp\nb24gZXZpZGVuY2UgcGF0aCBhbmQgZG9lcyBub3QgZXN0YWJsaXNoIGFjdHVhbCBwcm9kdWN0IGNh\ncGFiaWxpdGllcy48L3A+PC9ib2R5PjwvaHRtbD4="
+                }
+              ],
+              "reuse": [],
+              "cost": {
+                "runId": "b2c7b8cd-32a4-4bd6-8c11-7e16d2c7b830",
+                "accountId": "0f7bbe1f-d9db-42fc-8a0f-ed8ec3c3cf72",
+                "routeMode": "controlled-research",
+                "spentMicro": 10,
+                "confirmedProviderMicro": 10,
+                "heldProviderMicro": 0,
+                "unknownProviderIntents": 0,
+                "simulatedFixtureMicro": 0,
+                "allowanceReconciled": true,
+                "costScope": "provider_receipts_only",
+                "reservationAmountMicro": 100000,
+                "reservationState": "settled",
+                "breakdown": {
+                  "search": 0,
+                  "fetch": 0,
+                  "synthesize": 0,
+                  "other": 10
+                },
+                "intentTotalMicro": 10,
+                "reconciled": true,
+                "tariffVersion": null,
+                "effectiveProcessor": "openrouter"
+              }
+            }
+          }
+        },
+        {
+          "event": "finished",
+          "expectedSteps": 4,
+          "recordedResults": 4,
+          "halted": null,
+          "semanticScores": null,
+          "adjudication": null
+        }
+      ]
+    },
+    {
+      "kind": "tampered_stored_artifact",
+      "runId": "24e3db4b-e258-41dc-a098-459c7aa09127",
+      "receiptRejected": true,
+      "extraProviderCalls": 0,
+      "extraReads": 0
+    },
+    {
+      "kind": "different_account_same_key_prior_liability",
+      "held": {
+        "confirmedMicro": 0,
+        "heldMicro": 5000,
+        "unknownIntents": 1
+      }
+    },
+    {
+      "kind": "opaque_provider_failure",
+      "events": [
+        {
+          "event": "plan",
+          "authorization": {
+            "version": "matched-evaluation-authorization.v1",
+            "approvalId": "f6993923-3c80-4cee-a7be-f7503788f811",
+            "approvalReference": "synthetic-control-not-paid-approval",
+            "issuedAt": "2026-09-18T10:26:49.226Z",
+            "expiresAt": "2026-09-18T10:36:50.226Z",
+            "protocolSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "freezeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "taskIds": [
+              "MC-D01"
+            ],
+            "budgetMicro": 1000000,
+            "accountId": "a7edfb1c-3c06-4471-ab04-ed5fb638cda9",
+            "budgetScope": "evaluation:6b76ef16-0b31-4522-a5b4-5eae9d2f5448",
+            "sourceMode": "live_discovery",
+            "exclusiveDatabaseAcknowledged": true
+          },
+          "protocolHash": "",
+          "freezeHash": "",
+          "tasksHash": "",
+          "sourcesHash": "",
+          "unselectedTaskIds": [],
+          "steps": [
+            {
+              "id": "MC-D01:1:A1:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "3cbc8a73-fbd9-8608-a627-2b7dd300a817"
+            },
+            {
+              "id": "MC-D01:1:B:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "f797a0ed-5ebd-82d9-ab49-b074938adc07"
+            },
+            {
+              "id": "MC-D01:1:B:correction",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "correction",
+              "question": "What firmware does Ardent require?",
+              "parentStepId": "MC-D01:1:B:original",
+              "idempotencyKey": "10af18d9-5871-88a8-ae17-fe44f37f47fb"
+            },
+            {
+              "id": "MC-D01:1:A1:full_rerun",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "full_rerun",
+              "question": "What firmware does Ardent require?",
+              "idempotencyKey": "0c7ffe77-6882-8f0f-aa6a-e9a79fcde045"
+            }
+          ],
+          "semanticScores": null,
+          "adjudication": null
+        },
+        {
+          "event": "attempt",
+          "step": {
+            "id": "MC-D01:1:A1:original",
+            "taskId": "MC-D01",
+            "repeat": 1,
+            "arm": "A1",
+            "kind": "original",
+            "question": "What does Ardent say about underwater recording?",
+            "idempotencyKey": "3cbc8a73-fbd9-8608-a627-2b7dd300a817"
+          },
+          "startedAt": "2026-09-18T10:26:50.244Z",
+          "exposure": {
+            "confirmedMicro": 0,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          }
+        },
+        {
+          "event": "admitted",
+          "stepId": "MC-D01:1:A1:original",
+          "runId": "dedfca20-80cc-42f1-bae7-a8832485d459"
+        },
+        {
+          "event": "result",
+          "stepId": "MC-D01:1:A1:original",
+          "startedAt": "2026-09-18T10:26:50.244Z",
+          "finishedAt": "2026-09-18T10:26:50.339Z",
+          "wallMs": 95.35317899999791,
+          "receipt": {
+            "runId": "dedfca20-80cc-42f1-bae7-a8832485d459",
+            "briefRevision": 1,
+            "lifecycle": "terminal",
+            "outcome": "failed",
+            "reportId": null,
+            "cost": {
+              "confirmedMicro": 0,
+              "heldMicro": 21658,
+              "unknownIntents": 1
+            },
+            "trace": {
+              "strategy": "iterative-baseline.v1",
+              "snapshot": {
+                "runId": "dedfca20-80cc-42f1-bae7-a8832485d459",
+                "contentInvalidated": false,
+                "lifecycle": "terminal",
+                "phase": "preparing",
+                "outcome": "failed",
+                "routeMode": "controlled-research",
+                "correctionMode": "replace_question",
+                "correctionReserveMicro": 100000,
+                "brief": {
+                  "id": "53017ca3-bee9-4387-b7be-982e09de0978",
+                  "language": "en",
+                  "nonGoals": [],
+                  "revision": 1,
+                  "assumptions": [],
+                  "constraints": [],
+                  "attachmentIds": [],
+                  "budgetPolicyId": "default",
+                  "conversationId": "76c272d8-126c-43ac-8fda-9fca3cadca6e",
+                  "originalQuestion": "What does Ardent say about underwater recording?",
+                  "sourceRestrictions": [],
+                  "consentPolicyVersion": "2026-09-17.1"
+                },
+                "revision": {
+                  "briefRevision": 1,
+                  "evidenceRevision": 0,
+                  "consentEpoch": 1,
+                  "cancellationEpoch": 0
+                },
+                "reportId": null,
+                "labeledDemo": false
+              },
+              "report": null,
+              "passages": [],
+              "operations": [
+                {
+                  "intent_id": "2e4aa85a-eb4a-4b2f-99f5-2c32ea0a312f",
+                  "operation": "brief",
+                  "brief_revision": 1,
+                  "evidence_revision": 0,
+                  "schema_version": "research-model.v1",
+                  "prompt_version": "research-operations.v1",
+                  "policy_id": "openrouter-openai-mini-text-v1",
+                  "input_manifest": {
+                    "version": "model-input.v1",
+                    "passages": [],
+                    "taskDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "draftDigest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+                    "sourceHandles": [],
+                    "questionDigest": "fa02f13be566c22d01891e19505351eade824e2068544c8c129541659a6522d8",
+                    "assertionsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "approvedClaimKeys": []
+                  }
+                }
+              ],
+              "attempts": [
+                {
+                  "id": "2e4aa85a-eb4a-4b2f-99f5-2c32ea0a312f",
+                  "action_id": "3bc696ba-d1ee-45f8-a400-dee62e5d17d0",
+                  "route": "openrouter:openai/gpt-4o-mini:brief",
+                  "request_digest": "9b91888bc7bf5fcaf27cd404c1b265b3ff9cca56f63f059cc899b156ba522ddf",
+                  "reserved_max_micro": "21658",
+                  "confirmed_micro": null,
+                  "state": "outcome-unknown",
+                  "receipt": {
+                    "rawCost": null,
+                    "startedAt": "2026-09-18T10:26:50.296Z",
+                    "finishedAt": "2026-09-18T10:26:50.297Z",
+                    "httpStatus": null,
+                    "providerId": null,
+                    "actualMicro": null,
+                    "promptTokens": null,
+                    "reportedModel": null,
+                    "requestedModel": "openai/gpt-4o-mini",
+                    "responseDigest": null,
+                    "completionTokens": null,
+                    "reportedProvider": null
+                  }
+                }
+              ],
+              "support": [],
+              "extraction": [],
+              "artifacts": [],
+              "reuse": [],
+              "cost": {
+                "runId": "dedfca20-80cc-42f1-bae7-a8832485d459",
+                "accountId": "a7edfb1c-3c06-4471-ab04-ed5fb638cda9",
+                "routeMode": "controlled-research",
+                "spentMicro": 0,
+                "confirmedProviderMicro": 0,
+                "heldProviderMicro": 21658,
+                "unknownProviderIntents": 1,
+                "simulatedFixtureMicro": 0,
+                "allowanceReconciled": false,
+                "costScope": "provider_receipts_only",
+                "reservationAmountMicro": 100000,
+                "reservationState": "reserved",
+                "breakdown": {
+                  "search": 0,
+                  "fetch": 0,
+                  "synthesize": 0,
+                  "other": 21658
+                },
+                "intentTotalMicro": 21658,
+                "reconciled": false,
+                "tariffVersion": null,
+                "effectiveProcessor": "openrouter"
+              }
+            }
+          }
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:original",
+          "reason": "unknown_or_incomplete_run"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:correction",
+          "reason": "unknown_or_incomplete_run"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "reason": "unknown_or_incomplete_run"
+        },
+        {
+          "event": "finished",
+          "expectedSteps": 4,
+          "recordedResults": 1,
+          "halted": "unknown_or_incomplete_run",
+          "semanticScores": null,
+          "adjudication": null
+        }
+      ]
+    }
+  ]
+}

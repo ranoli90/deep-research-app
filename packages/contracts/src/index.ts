@@ -1,4 +1,5 @@
 import { z } from "zod";
+export const CONSENT_POLICY_VERSION = "2026-09-17.1";
 
 export const SCHEMA_VERSION = "1";
 /** Versioned research-controller state projection. Additive to SCHEMA_VERSION. */
@@ -111,19 +112,19 @@ export type ActionType = z.infer<typeof ActionTypeSchema>;
 export const PrivilegedActionTypes = ["reveal_keys", "grant_tool", "change_policy", "purchase"] as const;
 
 export const ActionProposalSchema = z.object({
-  actionId: z.string(),
+  actionId: z.string().min(1).max(200),
   runId: IdSchema,
-  briefRevision: z.number().int(),
-  type: z.string(),
-  coverageIds: z.array(z.string()).default([]),
-  gapId: z.string().optional(),
+  briefRevision: z.number().int().positive().safe(),
+  type: z.string().min(1).max(100),
+  coverageIds: z.array(z.string().min(1).max(200)).max(50).default([]),
+  gapId: z.string().min(1).max(200).optional(),
   arguments: z.record(z.unknown()).default({}),
-  rationale: z.string(),
-  estimatedMaxCostMicro: z.number().int().nonnegative().default(0),
-  sourceAccessConstraints: z.array(z.string()).default([]),
-  dedupeKey: z.string(),
+  rationale: z.string().max(4000),
+  estimatedMaxCostMicro: z.number().int().nonnegative().safe().default(0),
+  sourceAccessConstraints: z.array(z.string().max(200)).max(20).default([]),
+  dedupeKey: z.string().min(1).max(4000),
   privileged: z.boolean().default(false),
-});
+}).strict();
 export type ActionProposal = z.infer<typeof ActionProposalSchema>;
 
 export const RevisionBasisSchema = z.object({
@@ -175,6 +176,11 @@ export const CanonicalReportSchema = z.object({
   ),
   changeSummary: z
     .object({
+      comparison:z.object({version:z.literal("report-changes.v1"),parentReportId:z.string().uuid(),
+        addedClaimRevisionIds:z.array(z.string().uuid()),removedClaimRevisionIds:z.array(z.string().uuid()),unchangedAssertions:z.number().int().nonnegative(),
+        addedCriterionIds:z.array(z.string().uuid()),removedCriterionIds:z.array(z.string().uuid()),
+        reusedCitedSourceVersionIds:z.array(z.string().uuid()),newlyCitedSourceVersionIds:z.array(z.string().uuid()),reportStateChanged:z.boolean(),
+      }).strict().optional(),
       evidenceUpdated: z.boolean(),
       conclusionChanged: z.boolean(),
       newlyFeasible: z.array(z.string()).default([]),
@@ -208,11 +214,30 @@ export const CreateRunRequestSchema = z.object({
   parentRunId: IdSchema.optional(),
   expectedBriefRevision: z.number().int().optional(),
   outputPreferences: z.string().optional(),
-  consentPolicyVersion: z.string().default("2026-09-16"),
+  consentPolicyVersion: z.string().default(CONSENT_POLICY_VERSION),
 });
 export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
 
+export const ResearchCorrectionPatchSchema=z.discriminatedUnion("kind",[
+ z.object({
+  kind:z.literal("append_attachments"),
+  attachmentIds:z.array(IdSchema).min(1).max(3).refine(ids=>new Set(ids.map(id=>id.toLowerCase())).size===ids.length),
+  evidencePolicy:z.literal("reuse_snapshot"),
+ }).strict(),
+ z.object({
+  kind:z.literal("replace_question"),question:z.string().min(1).max(20_000),
+  evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
+ }).strict(),
+ z.object({
+  kind:z.literal("replace_question_span"),originalQuestionSha256:z.string().regex(/^[a-f0-9]{64}$/u),
+  start:z.number().int().min(0).max(20_000),end:z.number().int().min(0).max(20_000),
+  quote:z.string().max(20_000),replacement:z.string().max(20_000),
+  evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
+ }).strict(),
+]);
+export type ResearchCorrectionPatch=z.infer<typeof ResearchCorrectionPatchSchema>;
 export const CorrectionRequestSchema = z.object({
+  patch:ResearchCorrectionPatchSchema.optional(),
   expectedBriefRevision: z.number().int().positive(),
   correctionText: z.string().min(1).max(20_000),
   claimId: z.string().optional(),
@@ -264,16 +289,25 @@ export const FIXTURE_TARIFF_VERSION = "fixture-2026-09-16";
 export const MICRO_PER_USD = 1_000_000;
 /** Conservative reservation for one live OpenRouter call including web plugin. $0.20. */
 export const LIVE_CALL_RESERVE_MICRO = 200_000;
-export const CONSENT_POLICY_VERSION = "2026-09-16";
 export const PROCESSOR_DISCLOSURE = [
   "App-owned research worker (this service)",
   "Optional OpenRouter model gateway when live route is enabled",
+  "OpenAI via OpenRouter for structured text operations when enabled",
+  "Exa via OpenRouter for public search queries when structured discovery is enabled",
   "Optional retrieval/fetch of public URLs when live retrieval is enabled",
 ];
 export const OUTPUT_REPORT_CATEGORIES = ["harmful", "inaccurate", "legal", "privacy", "other"] as const;
 export type OutputReportCategory = (typeof OUTPUT_REPORT_CATEGORIES)[number];
 export const PRIVACY_DATA_FLOWS =
-  "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter. Private attachment text is not copied into public search queries.";
+  "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter; structured text operations use OpenAI through OpenRouter. Structured discovery sends approved public queries to Exa via OpenRouter. Private attachment text is not copied into public search queries.";
 export const DELETION_VS_SUBSCRIPTION =
   "Deleting the app account cancels in-flight research and removes derived text. Cancelling a store subscription is a separate store action and does not by itself delete the account.";
 
+
+export { ExecutableArguments, type ExecutableAction, type ExecutableActionKind } from "./action-arguments.js";
+
+export * from "./research-model.js";
+export * from "./scope-comparison.js";
+export * from "./evidence-calculation.js";
+export * from "./counterevidence.js";
+export * from "./requested-verification.js";

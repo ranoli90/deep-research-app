@@ -1,0 +1,70 @@
+{
+  "task": "W05/W02 deterministic captured-verification target corruption",
+  "baseCommit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "implementation": "uncommitted isolated clone only; root source untouched; primary applies reviewed source.patch",
+  "clone": "/tmp/deep-verification-corruption-hwb5yv23/repo",
+  "setup": "SETUP.json",
+  "devRunner": "Reviewed verification/v6/dependency-vitest-experiment/vitest-only.patch applied in clone; source.patch explicitly excludes package/lock changes. Offline frozen ignore-scripts install passed.",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "database": "deep_research_lease_clock_v6",
+    "host": "127.0.0.1:55432"
+  },
+  "checks": [
+    {
+      "artifact": "typecheck-tests-before.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "New regressions compile before repair.",
+      "sha256": "0ba23a91bf1fa9a3ffd95e4c651005a6c13c461e8f9d4c6178d8e1bed1656f31"
+    },
+    {
+      "artifact": "integration-before.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'verification.*corruption'",
+      "exitCode": 1,
+      "scope": "6fail3pass26deselected: deterministic target failures lack terminal outcomes; exception classification controls retain existing behavior.",
+      "sha256": "81442eca77a85e9f5faeab83b2815de8a1e678b3315e5177b32293180265f8c6"
+    },
+    {
+      "artifact": "integration-final.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+      "exitCode": 0,
+      "scope": "35/35:26existing requested verification +9new corruption/financial/exception controls; real local PostgreSQL/fabricated transports.",
+      "sha256": "fb3fcc2c7ac00e33f4ff6f87824ce6560c5ba42848b92d5fa785b51485088863"
+    },
+    {
+      "artifact": "typecheck-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Repaired clone backend and imported contracts/core.",
+      "sha256": "0ba23a91bf1fa9a3ffd95e4c651005a6c13c461e8f9d4c6178d8e1bed1656f31"
+    },
+    {
+      "artifact": "diff-check.log",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "scope": "Clone source and already-reviewed dependency patch whitespace check.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "boundaries.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Clone import boundary check.",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    }
+  ],
+  "patch": "source.patch",
+  "sourceFiles": [
+    "apps/backend/src/modules/requested-verification.ts",
+    "apps/backend/src/worker/requested-verification.ts",
+    "apps/backend/test/requested-verification.integration.test.ts"
+  ],
+  "evidenceClass": "Real local PostgreSQL and actual worker with synthetic documents/fabricated model transport; deterministic stored corruption. Injected transient/lease/untyped-lookalike exceptions are boundary controls, not actual network outages. Synthetic prior financial rows have unique non-NULL key/project scopes; no historical global NULL liability is introduced.",
+  "cost": "Zero paid calls. Existing confirmed synthetic cost7 remains settled, unknown+confirmed retains original provider rows and reserved allowance. No external liability reconciliation claim.",
+  "impact": "Explicit closed VerificationTargetError at local target/schema/record/digest/capture preconditions; worker catches instanceof only before new issuance. No migration/public input schema/dependency/prompt/route change in source patch. Bounded reasons omit private text/schema details.",
+  "rollback": "Retain required marker, owned proof readers, no-publication guard, deletion and financial receipt/unknown hold behavior. Disable new scheduling on regression; do not reenable generic fallback.",
+  "limits": "Not every arbitrary support/result/DB/provider error is classified; those remain existing fail-closed propagation. No native/live semantics claim. Full35 timing includes possible concurrent Metro compilation and is not latency benchmark."
+}

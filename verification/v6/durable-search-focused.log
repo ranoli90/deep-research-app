@@ -1,0 +1,54 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (70 tests) 38094ms
+   ✓ W05 durable versioned research task > concurrent preparation converges on one task and one issued provider call  451ms
+   ✓ W05 durable versioned research task > allocates distinct task identities for identical questions in separate accounts  582ms
+   ✓ W05 durable versioned research task > purges criteria, questions and original question digests during account deletion  340ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result  675ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  529ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects an invented evidence binding instead of creating assertions  318ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects wrong-task, missing passage and duplicate selection before dispatch  304ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects another account's actual passage before any extraction request  741ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > does not silently prefix-truncate an oversized passage  407ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests  686ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > discards late extraction after evidence changes but retains actual cost  473ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  631ms
+   ✓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units  387ms
+   ✓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support  557ms
+   ✓ W05 substantive support execution and persisted revisions > rejects missing bindings without a support record  573ms
+   ✓ W05 substantive support execution and persisted revisions > denies a foreign extraction result before spending  335ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  588ms
+   ✓ W05 substantive support execution and persisted revisions > purges scoped assertions and support results on deletion  352ms
+   ✓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen  369ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  508ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision  301ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  443ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  476ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  516ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1771ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1583ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  838ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  477ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  689ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  558ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  2055ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  544ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  936ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  466ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  325ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  454ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  659ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  3455ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  1199ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  527ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  2097ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  676ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  2339ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  620ms
+
+ Test Files  1 passed (1)
+      Tests  70 passed (70)
+   Start at  14:29:27
+   Duration  39.51s (transform 790ms, setup 0ms, collect 1.15s, tests 38.09s, environment 0ms, prepare 74ms)
+

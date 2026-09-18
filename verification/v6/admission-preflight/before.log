@@ -1,0 +1,103 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+> vitest run --config vitest.config.ts test/admission-preflight.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+
+ ❯ test/admission-preflight.test.ts (12 tests | 10 failed) 163ms
+   × W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {"liveRouteEnabled":false,"fixtureRouteAllowed":true} 30ms
+   × W03 blocks upload/admission for unavailable or unconfirmed fixture flag {"liveRouteEnabled":true,"fixtureRouteAllowed":false} 10ms
+   × W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {} 10ms
+   × W03 blocks upload/admission for unavailable or unconfirmed fixture flag {"fixtureRouteAllowed":"true"} 9ms
+   × W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {"liveRouteEnabled":1} 8ms
+   × W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag null 9ms
+   × W07 fresh fixture preflight precedes journal and upload without changing retry keys 10ms
+   × W07 fresh controlled-research preflight precedes journal and upload without changing retry keys 10ms
+   × W02 preflight network failure preserves cold-recoverable pending identity and confirmed uploads 9ms
+   × W02 Check/Withdraw still resolves an accepted unknown request while scheduling is disabled 6ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {"liveRouteEnabled":false,"fixtureRouteAllowed":true}
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed fixture flag {"liveRouteEnabled":true,"fixtureRouteAllowed":false}
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {}
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed fixture flag {"fixtureRouteAllowed":"true"}
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag {"liveRouteEnabled":1}
+ FAIL  test/admission-preflight.test.ts > W03 blocks upload/admission for unavailable or unconfirmed controlled-research flag null
+AssertionError: promise resolved "{ …(4) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "labeledDemo": false,
++   "lifecycle": "queued",
++   "phase": "planning",
++   "runId": "00000000-0000-4000-8000-000000000050",
+  }
+
+ ❯ test/admission-preflight.test.ts:15:196
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  test/admission-preflight.test.ts > W07 fresh fixture preflight precedes journal and upload without changing retry keys
+ FAIL  test/admission-preflight.test.ts > W07 fresh controlled-research preflight precedes journal and upload without changing retry keys
+TypeError: actual value must be number or bigint, received "undefined"
+ ❯ test/admission-preflight.test.ts:17:348
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  test/admission-preflight.test.ts > W02 preflight network failure preserves cold-recoverable pending identity and confirmed uploads
+AssertionError: promise resolved "{ …(4) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "labeledDemo": false,
++   "lifecycle": "queued",
++   "phase": "planning",
++   "runId": "00000000-0000-4000-8000-000000000050",
+  }
+
+ ❯ test/admission-preflight.test.ts:18:491
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  test/admission-preflight.test.ts > W02 Check/Withdraw still resolves an accepted unknown request while scheduling is disabled
+AssertionError: promise resolved "{ …(4) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "labeledDemo": false,
++   "lifecycle": "queued",
++   "phase": "planning",
++   "runId": "00000000-0000-4000-8000-000000000050",
+  }
+
+ ❯ test/admission-preflight.test.ts:20:698
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed | 2 passed (12)
+   Start at  22:53:22
+   Duration  950ms (transform 427ms, setup 0ms, import 537ms, tests 163ms, environment 0ms)
+
+/tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts test/admission-preflight.test.ts`
+Exit status 1

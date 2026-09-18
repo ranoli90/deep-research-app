@@ -1,0 +1,41 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (56 tests) 23105ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call  433ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist  344ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > executes general extraction, records selected version/digest/access and reuses the exact result  369ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > retains all selected passages even when output has no assertions  337ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > rejects stale source digests and corrupted input manifests  416ms
+   ✓ W05 evidence-bound arbitrary assertion extraction > discards late extraction after evidence changes but retains actual cost  303ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  574ms
+   ✓ W05 substantive support execution and persisted revisions > persists a deterministic veto when the model approves changed units  360ms
+   ✓ W05 substantive support execution and persisted revisions > records uncertainty instead of turning missing evidence into full support  458ms
+   ✓ W05 substantive support execution and persisted revisions > rejects missing bindings without a support record  402ms
+   ✓ W05 substantive support execution and persisted revisions > denies a foreign extraction result before spending  341ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  592ms
+   ✓ W01/W05 scoped support at the real publication gate > publishes a checked paraphrase and preserves canonical assertion identity on reopen  528ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  580ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects stale support even if the caller updates the report's revision  414ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  529ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects a missing stored check despite a caller-supplied approval object  413ms
+   ✓ W01/W05 scoped support at the real publication gate > refuses corrupted persisted checks instead of trusting an approval flag  374ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1320ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1251ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  951ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  572ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  526ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  637ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  1228ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  476ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  883ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  560ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  545ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  515ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  649ms
+
+ Test Files  1 passed (1)
+      Tests  56 passed (56)
+   Start at  13:58:58
+   Duration  26.73s (transform 1.89s, setup 0ms, collect 3.10s, tests 23.11s, environment 0ms, prepare 229ms)
+

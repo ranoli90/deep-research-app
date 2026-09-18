@@ -1,0 +1,481 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:07.345Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:07.419Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:07.465Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:07.502Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:07.527Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:07.573Z"}
+{"level":"info","event":"action","runId":"84f9ca1d-8c59-4984-8923-226bc387727d","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:07.602Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:08.392Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:08.420Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:08.446Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:08.478Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:08.506Z"}
+{"level":"info","event":"action","runId":"adc83553-1aa9-4a47-9925-1ba0a2fa6d8d","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:08.529Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:09.216Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:09.252Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:09.281Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:09.313Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:09.342Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:09.367Z"}
+{"level":"info","event":"action","runId":"e47697a6-3b9b-4d4e-96d9-62079155d5c7","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:09.388Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:10.092Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:10.120Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:10.145Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:10.169Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:10.197Z"}
+{"level":"info","event":"action","runId":"534e3efb-a9f2-42b4-ac7d-1dffaa5e1704","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:10.216Z"}
+{"level":"info","event":"action","runId":"b39b46d8-5fc4-4015-be40-538dc46c9278","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:10.896Z"}
+{"level":"info","event":"action","runId":"b39b46d8-5fc4-4015-be40-538dc46c9278","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:10.921Z"}
+{"level":"info","event":"action","runId":"b39b46d8-5fc4-4015-be40-538dc46c9278","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:10.945Z"}
+{"level":"info","event":"action","runId":"b39b46d8-5fc4-4015-be40-538dc46c9278","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:10.966Z"}
+{"level":"info","event":"action","runId":"b39b46d8-5fc4-4015-be40-538dc46c9278","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:10.981Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:11.682Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:11.734Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:11.762Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:11.790Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:11.825Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:11.846Z"}
+{"level":"info","event":"action","runId":"6d2f3af9-b0bc-4c80-84e8-218165ffd177","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:11.864Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:12.638Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:12.688Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:12.714Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:12.740Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:12.776Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:12.800Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:12.829Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:12.854Z"}
+{"level":"info","event":"action","runId":"67577691-97d6-4a00-8f65-2dd86fe991db","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:12.870Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T23:48:13.622Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:13.656Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:13.680Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:13.705Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:13.751Z"}
+{"level":"info","event":"action","runId":"45a3310c-ea7f-4d54-8548-f34828d28980","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:13.780Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:14.553Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:14.597Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:14.618Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:14.637Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":4,"t":"2026-09-17T23:48:14.654Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:14.676Z"}
+{"level":"info","event":"action","runId":"9218a2c4-928b-4ab6-8e00-674ff025db54","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:14.697Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:15.475Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:15.497Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:15.515Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:15.531Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":4,"t":"2026-09-17T23:48:15.551Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:15.566Z"}
+{"level":"info","event":"action","runId":"11362608-7982-4d02-8f26-e7d357aac201","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:15.579Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:15.891Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:15.910Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:15.923Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:15.938Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":4,"t":"2026-09-17T23:48:15.953Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":5,"t":"2026-09-17T23:48:15.972Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":6,"t":"2026-09-17T23:48:15.988Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":7,"t":"2026-09-17T23:48:16.004Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":8,"t":"2026-09-17T23:48:16.020Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":9,"t":"2026-09-17T23:48:16.038Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":10,"t":"2026-09-17T23:48:16.058Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":11,"t":"2026-09-17T23:48:16.073Z"}
+{"level":"info","event":"action","runId":"22fd4c57-7657-4005-a11d-cfd9964d6d98","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":12,"t":"2026-09-17T23:48:16.085Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:16.708Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:16.732Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:16.757Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:16.778Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":4,"t":"2026-09-17T23:48:16.797Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:16.818Z"}
+{"level":"info","event":"action","runId":"db504623-effd-4e2b-a807-07a26c95304f","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:16.837Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:17.140Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:17.160Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:17.178Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:17.191Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":4,"t":"2026-09-17T23:48:17.212Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":5,"t":"2026-09-17T23:48:17.234Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":6,"t":"2026-09-17T23:48:17.259Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":7,"t":"2026-09-17T23:48:17.278Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":8,"t":"2026-09-17T23:48:17.292Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":9,"t":"2026-09-17T23:48:17.309Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"Disconfirm material conclusion: A hard-constraint violation for a candidate currently marked eligible.","step":10,"t":"2026-09-17T23:48:17.324Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":11,"t":"2026-09-17T23:48:17.341Z"}
+{"level":"info","event":"action","runId":"cf7bbed7-1f83-4e10-be81-de489bc6d93f","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":12,"t":"2026-09-17T23:48:17.353Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T23:48:18.029Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:18.057Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:18.074Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:18.090Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:18.107Z"}
+{"level":"info","event":"action","runId":"d778e63b-eced-4bca-bc3a-fa191e1d5d92","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:18.119Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:18.696Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:18.720Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:18.732Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:18.747Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:18.765Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:18.782Z"}
+{"level":"info","event":"action","runId":"ddc5d09b-2d7a-47ee-95fb-0b1c51d51393","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:18.793Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:19.364Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:19.391Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:19.406Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:19.423Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:19.438Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:19.453Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:19.468Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:19.483Z"}
+{"level":"info","event":"action","runId":"eed3c6cc-1a59-4eed-a483-cf1b9232f433","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:19.496Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:20.050Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:20.073Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:20.089Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:20.105Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:20.125Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:20.140Z"}
+{"level":"info","event":"action","runId":"295c5db7-e164-4cd9-967e-c269639d1b0f","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:20.153Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:20.771Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:20.798Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:20.812Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:20.827Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:20.842Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:20.860Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:20.879Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:20.898Z"}
+{"level":"info","event":"action","runId":"ed400373-e5d5-4f28-9050-dbe17e734354","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:20.915Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:21.734Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:21.759Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:21.772Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:21.788Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:21.803Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:21.819Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:21.833Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:21.848Z"}
+{"level":"info","event":"action","runId":"69bad7eb-c1fc-4a76-b204-ae4996328ab8","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:21.859Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:22.418Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:22.441Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:22.457Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:22.471Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:22.489Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:22.503Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:22.517Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:22.532Z"}
+{"level":"info","event":"action","runId":"158bb95f-f401-40ba-ab0b-6c5b01a0112f","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:22.543Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:23.109Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:23.131Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:23.145Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:23.159Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:23.172Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:23.187Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:23.200Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:23.214Z"}
+{"level":"info","event":"action","runId":"0be76567-4bf4-4bb6-907f-bfdf64a08fcc","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:23.226Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:24.075Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:24.098Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:24.112Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:24.126Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:24.142Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:24.157Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:24.172Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:24.190Z"}
+{"level":"info","event":"action","runId":"7a729479-3dba-4dd4-af9d-63eef22c7523","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:24.203Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:25.343Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:25.366Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:25.380Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:25.394Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:25.411Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:25.426Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:25.439Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:25.453Z"}
+{"level":"info","event":"action","runId":"9112181b-cf97-43b6-9944-bece4fcf5318","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:25.465Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:26.017Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:26.039Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:26.053Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:26.067Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:26.080Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:26.094Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:26.108Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:26.121Z"}
+{"level":"info","event":"action","runId":"33bdf30d-392f-4eed-8649-5963fb3cb650","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:26.132Z"}
+{"level":"info","event":"action","runId":"eb1168d7-abb0-4dc5-b469-45d54fe74246","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:26.667Z"}
+{"level":"info","event":"action","runId":"eb1168d7-abb0-4dc5-b469-45d54fe74246","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:26.684Z"}
+{"level":"info","event":"action","runId":"eb1168d7-abb0-4dc5-b469-45d54fe74246","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:26.699Z"}
+{"level":"info","event":"action","runId":"eb1168d7-abb0-4dc5-b469-45d54fe74246","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:26.714Z"}
+{"level":"info","event":"action","runId":"eb1168d7-abb0-4dc5-b469-45d54fe74246","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:26.725Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:27.264Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:27.289Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:27.303Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:27.317Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:27.334Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:27.349Z"}
+{"level":"info","event":"action","runId":"8bba2ee2-9f80-450e-8dff-8b70ed9f555d","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:27.361Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:27.915Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:27.939Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:27.955Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:27.969Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:27.986Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T23:48:28.006Z"}
+{"level":"info","event":"action","runId":"d85b20c0-3a7f-407a-9b36-785bdb436458","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T23:48:28.018Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:28.577Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:28.600Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:28.614Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:28.628Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:28.642Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:28.658Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:28.673Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:28.690Z"}
+{"level":"info","event":"action","runId":"50ce3891-3cb0-4de9-b1e9-9562ccea4fd6","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:28.701Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:28.971Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:28.991Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:29.005Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:29.019Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:29.033Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:29.049Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:29.063Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T23:48:29.079Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T23:48:29.094Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":9,"t":"2026-09-17T23:48:29.110Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":10,"t":"2026-09-17T23:48:29.125Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":11,"t":"2026-09-17T23:48:29.138Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":12,"t":"2026-09-17T23:48:29.155Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":13,"t":"2026-09-17T23:48:29.170Z"}
+{"level":"info","event":"action","runId":"b1a9b834-ec3c-451c-aac9-6cbd2bd89780","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":14,"t":"2026-09-17T23:48:29.190Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:29.760Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:29.781Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:29.797Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:29.811Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:29.826Z"}
+{"level":"info","event":"action","runId":"4bb25b18-90fa-4a66-b6eb-9b069eaacee1","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:29.837Z"}
+{"level":"info","event":"action","runId":"23ae19d7-ae33-4d6a-baab-1dd0c32700a3","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:30.438Z"}
+{"level":"info","event":"action","runId":"23ae19d7-ae33-4d6a-baab-1dd0c32700a3","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:30.457Z"}
+{"level":"info","event":"action","runId":"23ae19d7-ae33-4d6a-baab-1dd0c32700a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:30.471Z"}
+{"level":"info","event":"action","runId":"23ae19d7-ae33-4d6a-baab-1dd0c32700a3","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:30.487Z"}
+{"level":"info","event":"action","runId":"23ae19d7-ae33-4d6a-baab-1dd0c32700a3","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:30.498Z"}
+{"level":"info","event":"action","runId":"2039d321-9c81-4177-90e7-95b76ac8d769","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:31.050Z"}
+{"level":"info","event":"action","runId":"2039d321-9c81-4177-90e7-95b76ac8d769","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:31.070Z"}
+{"level":"info","event":"action","runId":"2039d321-9c81-4177-90e7-95b76ac8d769","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:31.086Z"}
+{"level":"info","event":"action","runId":"2039d321-9c81-4177-90e7-95b76ac8d769","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:31.104Z"}
+{"level":"info","event":"action","runId":"2039d321-9c81-4177-90e7-95b76ac8d769","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:31.116Z"}
+{"level":"info","event":"action","runId":"ad6431f6-9765-4d41-b992-0c25b8dc8766","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:31.663Z"}
+{"level":"info","event":"action","runId":"ad6431f6-9765-4d41-b992-0c25b8dc8766","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:31.682Z"}
+{"level":"info","event":"action","runId":"ad6431f6-9765-4d41-b992-0c25b8dc8766","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:31.697Z"}
+{"level":"info","event":"action","runId":"ad6431f6-9765-4d41-b992-0c25b8dc8766","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:31.712Z"}
+{"level":"info","event":"action","runId":"ad6431f6-9765-4d41-b992-0c25b8dc8766","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:31.723Z"}
+{"level":"info","event":"action","runId":"e4cf8c3d-482b-46cd-ad85-e8f9052d30cb","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:32.259Z"}
+{"level":"info","event":"action","runId":"e4cf8c3d-482b-46cd-ad85-e8f9052d30cb","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:32.277Z"}
+{"level":"info","event":"action","runId":"e4cf8c3d-482b-46cd-ad85-e8f9052d30cb","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:32.293Z"}
+{"level":"info","event":"action","runId":"e4cf8c3d-482b-46cd-ad85-e8f9052d30cb","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":3,"t":"2026-09-17T23:48:32.308Z"}
+{"level":"info","event":"action","runId":"e4cf8c3d-482b-46cd-ad85-e8f9052d30cb","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":4,"t":"2026-09-17T23:48:32.318Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:32.853Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:32.877Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:32.890Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:32.906Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:32.921Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:32.936Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:32.949Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:32.965Z"}
+{"level":"info","event":"action","runId":"add2ee9d-eeb1-40ad-bae6-5f145a9a0d72","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:32.976Z"}
+{"level":"info","event":"action","runId":"2ac0e19d-79f7-4591-96db-a6abf760b7c7","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:33.487Z"}
+{"level":"info","event":"action","runId":"2ac0e19d-79f7-4591-96db-a6abf760b7c7","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:33.510Z"}
+{"level":"info","event":"action","runId":"2ac0e19d-79f7-4591-96db-a6abf760b7c7","type":"synthesize","rationale":"budget requires finishing with available evidence","step":2,"t":"2026-09-17T23:48:33.524Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:34.097Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:34.144Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:34.162Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:34.186Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:34.203Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:34.218Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:34.235Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:34.250Z"}
+{"level":"info","event":"action","runId":"972f4d18-168d-4ae8-adeb-ac703453b6ca","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:34.264Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:35.119Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:35.142Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:35.157Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:35.172Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:35.186Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:35.201Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:35.215Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:35.232Z"}
+{"level":"info","event":"action","runId":"bde2a215-f5a8-4e44-a219-0d8dda27e7c2","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:35.243Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T23:48:36.102Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:36.126Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:36.145Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:36.164Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:36.188Z"}
+{"level":"info","event":"action","runId":"ba384daa-98a8-41f2-b71e-7dac9c6c47f9","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:36.206Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T23:48:36.843Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:36.870Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:36.885Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:36.902Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":4,"t":"2026-09-17T23:48:36.922Z"}
+{"level":"info","event":"action","runId":"2d57b0f0-66a4-4144-9cd6-41552ebe2398","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":5,"t":"2026-09-17T23:48:36.937Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:37.338Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:37.364Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:37.380Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:37.396Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:37.412Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:37.429Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:37.444Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:37.459Z"}
+{"level":"info","event":"action","runId":"7a99d5df-7391-403c-b795-2fc896d556a0","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:37.472Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:38.031Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:38.055Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T23:48:38.068Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T23:48:38.083Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T23:48:38.098Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T23:48:38.113Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:38.126Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":7,"t":"2026-09-17T23:48:38.141Z"}
+{"level":"info","event":"action","runId":"1718ffb6-ad42-4f49-86c8-3345bcc8af54","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":8,"t":"2026-09-17T23:48:38.152Z"}
+{"level":"info","event":"action","runId":"dedb40e1-b4e8-4b32-b48a-f4eb80516467","type":"clarify","rationale":"A blocking field is unspecified and would change the answer","step":0,"t":"2026-09-17T23:48:39.321Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"clarify","rationale":"A blocking field is unspecified and would change the answer","step":0,"t":"2026-09-17T23:48:39.662Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:39.688Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:39.706Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:39.721Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:39.736Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:39.750Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":5,"t":"2026-09-17T23:48:39.765Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:39.780Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T23:48:39.796Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T23:48:39.811Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":9,"t":"2026-09-17T23:48:39.827Z"}
+{"level":"info","event":"action","runId":"800f7801-510b-496b-b06c-0c941360a207","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":10,"t":"2026-09-17T23:48:39.838Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"clarify","rationale":"A blocking field is unspecified and would change the answer","step":0,"t":"2026-09-17T23:48:40.420Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:40.449Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:40.468Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:40.484Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:40.500Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:40.516Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":5,"t":"2026-09-17T23:48:40.532Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:40.549Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T23:48:40.565Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T23:48:40.581Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":9,"t":"2026-09-17T23:48:40.597Z"}
+{"level":"info","event":"action","runId":"0fd9225c-8279-477e-944d-566dc0e1b508","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":10,"t":"2026-09-17T23:48:40.609Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"clarify","rationale":"A blocking field is unspecified and would change the answer","step":0,"t":"2026-09-17T23:48:41.183Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T23:48:41.209Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T23:48:41.226Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":2,"t":"2026-09-17T23:48:41.240Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":3,"t":"2026-09-17T23:48:41.255Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T23:48:41.269Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":5,"t":"2026-09-17T23:48:41.285Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T23:48:41.299Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T23:48:41.314Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T23:48:41.328Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":9,"t":"2026-09-17T23:48:41.343Z"}
+{"level":"info","event":"action","runId":"93210c7d-fcf9-4ca9-84de-7b5f971b9b18","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":10,"t":"2026-09-17T23:48:41.355Z"}
+ ❯ test/p3-remaining.integration.test.ts (51 tests | 1 failed) 35094ms
+   ✓ remaining launch-scope IDs > M04 fixture comparison publishes a wide table, code listing, unicode-safe text, and many citations  1101ms
+   ✓ remaining launch-scope IDs > R06 preserves event date vs publication date  845ms
+   ✓ remaining launch-scope IDs > R10 declines an unrelated celebrity branch from page content  870ms
+   ✓ remaining launch-scope IDs > R12 explains different percentage denominators instead of averaging  810ms
+   ✓ remaining launch-scope IDs > R15 states unknown without a fake probability  745ms
+   ✓ remaining launch-scope IDs > R16 comparison names the requested entities and constraints  977ms
+   ✓ remaining launch-scope IDs > E05 new source version does not rewrite the original report citation  954ms
+   ✓ remaining launch-scope IDs > V2-13 private canary is stored as evidence, omitted from public queries, and denied to another account  961ms
+   ✓ remaining launch-scope IDs > JOB-1 eligibility-aware comparison under platform and export constraints  922ms
+   ✓ remaining launch-scope IDs > JOB-1 adding Linux as a hard requirement excludes NoteKeep and keeps NoteAll  1283ms
+   ✓ remaining launch-scope IDs > JOB-1 removing Linux as a requirement makes NoteKeep eligible again  1283ms
+   ✓ remaining launch-scope IDs > JOB-2 attached document text is stored as supplied evidence and not used as a public query  747ms
+   ✓ remaining launch-scope IDs > E06 actual PDF with no readable evidence is disclosed as unread pages  675ms
+   ✓ remaining launch-scope IDs > E08 quoted report text is taken from the stored passage  689ms
+   × remaining launch-scope IDs > E09 export citation anchors resolve to owned passages 707ms
+     → expected 'Vendor A managed Postgres is availabl…' to contain '[Open source](<https://'
+   ✓ remaining launch-scope IDs > J02 a second processRun after completion does not duplicate the report or settlement  713ms
+   ✓ remaining launch-scope IDs > J04 timeout after issue is outcome-unknown, not assumed free 257ms
+   ✓ remaining launch-scope IDs > J06 cancel after completion keeps the published report  688ms
+   ✓ remaining launch-scope IDs > J08 event cursor returns only later sequences  677ms
+   ✓ remaining launch-scope IDs > J13 live spend kill switch blocks new paid routes but keeps saved reports  682ms
+   ✓ remaining launch-scope IDs > S03 oversized attachments are rejected 285ms
+   ✓ remaining launch-scope IDs > S07 cross-account reports are denied  703ms
+   ✓ remaining launch-scope IDs > S10 redacts tokens and question fields from logs 288ms
+   ✓ remaining launch-scope IDs > S06 / V2-20 does not silently fall back to an unauthorized live processor  302ms
+   ✓ remaining launch-scope IDs > V2-10 a later unavailable fetch does not retract last-access evidence  660ms
+   ✓ remaining launch-scope IDs > V2-11 concise view uses the same answer citations as the body  660ms
+   ✓ remaining launch-scope IDs > V2-19 scanned tables stay unread rather than guessed  595ms
+   ✓ remaining launch-scope IDs > R17 concise request still keeps limitations  656ms
+   ✓ remaining launch-scope IDs > R18 compacted checkpoint still lists stored passage ids  662ms
+   ✓ remaining launch-scope IDs > R19 follow-up verifies one claim and keeps the parent report  1152ms
+   ✓ remaining launch-scope IDs > R20 dates a retrieved price and keeps a founding year as history  683ms
+   ✓ remaining launch-scope IDs > R21 labels a German original as a translation  626ms
+   ✓ remaining launch-scope IDs > E03 preserves the adults-over-65 qualifier  614ms
+   ✓ remaining launch-scope IDs > E04 report uses the table's 24% rather than 42%  610ms
+   ✓ remaining launch-scope IDs > E10 withdraws the conclusion when the asserted 42% is unsupported by the 24% table  591ms
+   ✓ remaining launch-scope IDs > J07 expired lease is reclaimed; a live lease is not stolen  621ms
+   ✓ remaining launch-scope IDs > J10 a tight budget still publishes a written report  588ms
+   ✓ remaining launch-scope IDs > J11 reports that app counters are not provider-internal guarantees  742ms
+   ✓ remaining launch-scope IDs > J12 confirmed usage does not rewrite the historical estimate  302ms
+   ✓ remaining launch-scope IDs > J14 duplicate completion epochs share one outbox row and omit query text  671ms
+   ✓ remaining launch-scope IDs > S08 unsigned purchase payloads cannot grant entitlement 283ms
+   ✓ remaining launch-scope IDs > V2-09 deleted attachment text is not left in reports  750ms
+   ✓ remaining launch-scope IDs > V2-09 late worker cannot republish deleted private text even if it claims deleted=false  512ms
+   ✓ remaining launch-scope IDs > expired session cannot read library or reports  692ms
+   ✓ remaining launch-scope IDs > library lists report_id for a completed run so share can resolve  683ms
+   ✓ remaining launch-scope IDs > V2-14 outcome-unknown live spend is not treated as zero against the cap 274ms
+   ✓ remaining launch-scope IDs > M09 web deletion page is reachable without the app and deletes with a session token  334ms
+   ✓ remaining launch-scope IDs > R02 continue without geography is rejected and does not invent Germany  331ms
+   ✓ remaining launch-scope IDs > clarification continue records geography and resumes  761ms
+   ✓ remaining launch-scope IDs > R02 continue with France records France and does not invent Germany  766ms
+   ✓ remaining launch-scope IDs > R02 after France continue discovery uses France evidence not the Germany default note  740ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/p3-remaining.integration.test.ts > remaining launch-scope IDs > E09 export citation anchors resolve to owned passages
+AssertionError: expected 'Vendor A managed Postgres is availabl…' to contain '[Open source](<https://'
+
+- Expected
++ Received
+
+- [Open source](<https://
++ Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.
++
++ [^source-1]
++
++ Recorded criteria for this run: geography=germany; budget=50 EUR; date=2026-03-01.
++
++ Eligible: none verified. Ineligible: Vendor B (budget>50), A 35 EUR SKU (geography=germany). Unknown: Vendor A. Discovery remains open beyond the inspected set.
++
++ [^source-1] [^source-2] [^source-2]
++
++ | Vendor | Region | Price | Currency | Status | Evidence |
++ | --- | --- | --- | --- | --- | --- |
++ | Vendor A | — | — | EUR | unknown | 1c3f3069 |
++ | Vendor B | germany | 90 | EUR | ineligible (budget>50) | 237bc7d1 |
++ | A 35 EUR SKU | — | 35 | EUR | ineligible (geography=germany) | 237bc7d1 |
++
++ [^source-1] [^source-2] [^source-2]
++
++ ```
++ Vendor A       —            unknown    fixture://vendor-a/pricing-de
++ Vendor B       90 EUR       violates   fixture://vendor-b/pricing-de
++ A 35 EUR SKU   35 EUR       violates   fixture://vendor-b/pricing-de
++ ```
++
++ [^source-1] [^source-2] [^source-2]
++
++ Disconfirmation remains unresolved. Absence of a recorded counterexample is not proof.
++
++ Recorded 3 source(s) in 3 origin cluster(s). Repeated syndication is not counted as independent confirmation.
++
++ FACT: Vendor A managed Postgres is available in Germany (eu-central-1 Frankfurt) at 40 EUR per month for the startup plan as of 2026-03-01. The plan includes daily backups. It does not include a dedicated vector engine.. CALCULATION: see calculation blocks. INFERENCE: none presented as fact. UNCERTAINTY: see listed limitations.
++
++ ## Sources
++
++ [^source-1]: Vendor A managed Postgres pricing \(Germany\) — Vendor A. Non-public document locator. Retrieved: 2026-09-17T23:48:20.074Z. Access: full\-text; coverage: complete. Passage locator: \{"kind":"document"\}. Extraction: fixture\-text. Source version: cb4778a0-71d3-4cb5-9c97-1e590c68f620; passage: 1c3f3069-91e7-4f3e-b309-57c0e83a400e.
++
++ [^source-2]: Vendor B regional availability — Vendor B. Non-public document locator. Retrieved: 2026-09-17T23:48:20.089Z. Access: full\-text; coverage: complete. Passage locator: \{"kind":"document"\}. Extraction: fixture\-text. Source version: 65d750c0-cb11-4aab-84ce-f63280217432; passage: 237bc7d1-24a6-4359-aa2c-a7934b7bc7e8.
+
+ ❯ test/p3-remaining.integration.test.ts:401:16
+    399|     expect(md).toMatch(/Café|Vendor|EUR/);
+    400|     expect(md).toContain("## Sources");
+    401|     expect(md).toContain("[Open source](<https://");
+       |                ^
+    402|     expect(md).toContain("Passage locator:");
+    403|     const ids = [...md.matchAll(/passage: ([0-9a-f-]{36})/gi)]
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 50 passed (51)
+   Start at  17:48:04
+   Duration  36.73s (transform 899ms, setup 0ms, collect 1.41s, tests 35.09s, environment 0ms, prepare 73ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts

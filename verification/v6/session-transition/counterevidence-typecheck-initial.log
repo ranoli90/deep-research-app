@@ -1,0 +1,10 @@
+
+> @deep/backend@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+src/modules/counterevidence.ts(64,10): error TS2783: 'kind' is specified more than once, so this usage will be overwritten.
+src/worker/counterevidence.ts(38,9): error TS7034: Variable 'reads' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/worker/counterevidence.ts(44,141): error TS7005: Variable 'reads' implicitly has an 'any[]' type.
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

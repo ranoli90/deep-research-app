@@ -1,0 +1,11 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-eval-runner-0602f96/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+src/eval-live.ts(36,39): error TS2322: Type 'PoolClient' is not assignable to type 'void'.
+src/eval-live.ts(37,14): error TS18048: 'lock' is possibly 'undefined'.
+src/eval-live.ts(43,100): error TS2339: Property 'query' does not exist on type 'never'.
+src/eval-live.ts(43,189): error TS2339: Property 'release' does not exist on type 'never'.
+/tmp/deep-eval-runner-0602f96/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

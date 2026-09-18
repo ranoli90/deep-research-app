@@ -1,0 +1,92 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/v6-execution.integration.test.ts (20 tests | 2 failed) 812ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent 95ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 run cap blocks concurrent calls despite a larger project cap 49ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 issuance requires an active account allowance reservation 22ms
+   ✓ W02 real PostgreSQL execution boundaries > A09 unknown provider outcome retains allowance until an actual receipt; repeated settlement is idempotent 45ms
+   ✓ W02 real PostgreSQL execution boundaries > A09 actual receipt overrun is recorded without clamping or stealing another account reservation 57ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 the same provider key cannot bypass its cap through different project scopes or accounts 51ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: missing key 25ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 provider-key gate fails closed: zero cap 25ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 unattributed legacy receipts consume the key budget until reconciled 35ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 different provider keys have distinct buckets while retaining a shared project cap 49ms
+   × W02 real PostgreSQL execution boundaries > A09 a late confirmed receipt reconciles terminal allowance once without replaying the provider 42ms
+     → expected { reserved_micro: '100000', …(1) } to deeply equal { reserved_micro: '0', …(1) }
+   × W02 real PostgreSQL execution boundaries > A09 cost inspection distinguishes held provider cost from confirmed and simulated costs 22ms
+     → expected { …(11) } to match object { spentMicro: +0, …(5) }
+(12 matching properties omitted from actual)
+   ✓ W02 real PostgreSQL execution boundaries > A14 a stale session cannot mutate the active run 24ms
+   ✓ W02 real PostgreSQL execution boundaries > A43 concurrent conflicting idempotency reuse accepts one full request 30ms
+   ✓ W02 real PostgreSQL execution boundaries > A43 identical concurrent admission reserves and dispatches only once 24ms
+   ✓ W02 real PostgreSQL execution boundaries > A24 wrong-owner parent is denied before admission 28ms
+   ✓ W02 real PostgreSQL execution boundaries > A13 two connections starting together cannot acquire the same live lease 18ms
+   ✓ W02 real PostgreSQL execution boundaries > A14 expired owner cannot renew after takeover 21ms
+   ✓ W02 real PostgreSQL execution boundaries > A11 admission remains dispatchable after commit without contacting queue 26ms
+   ✓ W02 real PostgreSQL execution boundaries > A12 queue failure preserves pending admission for retry 18ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-execution.integration.test.ts > W02 real PostgreSQL execution boundaries > A09 a late confirmed receipt reconciles terminal allowance once without replaying the provider
+AssertionError: expected { reserved_micro: '100000', …(1) } to deeply equal { reserved_micro: '0', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reserved_micro": "0",
+-   "settled_micro": "12345",
++   "reserved_micro": "100000",
++   "settled_micro": "0",
+  }
+
+ ❯ test/v6-execution.integration.test.ts:198:31
+    196|     await Promise.all([reconcileIntent(pool, intent.intentId, 12_345),…
+    197|     const allowance = await pool.query("SELECT reserved_micro, settled…
+    198|     expect(allowance.rows[0]).toEqual({ reserved_micro: "0", settled_m…
+       |                               ^
+    199|     expect((await pool.query("SELECT spent_micro FROM runs WHERE id = …
+    200|     await expect(reconcileIntent(pool, intent.intentId, 99)).rejects.t…
+ ❯ runCase test/v6-execution.integration.test.ts:46:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/v6-execution.integration.test.ts > W02 real PostgreSQL execution boundaries > A09 cost inspection distinguishes held provider cost from confirmed and simulated costs
+AssertionError: expected { …(11) } to match object { spentMicro: +0, …(5) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "confirmedProviderMicro": 0,
+-   "heldProviderMicro": 60000,
+-   "intentTotalMicro": 60000,
++   "intentTotalMicro": 64000,
+    "reconciled": false,
+-   "spentMicro": 0,
+-   "unknownProviderIntents": 1,
++   "spentMicro": 60000,
+  }
+
+ ❯ test/v6-execution.integration.test.ts:208:21
+    206|     await recordIntent(pool, runId, { correlationId: crypto.randomUUID…
+    207|     const unknown = await measureRunCost(pool, runId, accountId);
+    208|     expect(unknown).toMatchObject({ spentMicro: 0, confirmedProviderMi…
+       |                     ^
+    209|     await reconcileIntent(pool, intent, 12_345);
+    210|     const known = await measureRunCost(pool, runId, accountId);
+ ❯ runCase test/v6-execution.integration.test.ts:46:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 18 passed (20)
+   Start at  12:03:08
+   Duration  1.58s (transform 372ms, setup 0ms, collect 560ms, tests 812ms, environment 0ms, prepare 71ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/v6-execution.integration.test.ts

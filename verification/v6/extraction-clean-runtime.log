@@ -1,0 +1,30 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/html.extraction.test.ts (3 tests) 9169ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  5801ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  2313ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  1053ms
+ ✓ test/pdf.extraction.test.ts (4 tests) 8607ms
+   ✓ W04 parses original digital PDF bytes into page-bound text with honest layout limitations  2026ms
+   ✓ W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support  3861ms
+   ✓ W04 encrypted PDF remains explicitly unavailable without password guessing  937ms
+   ✓ W04 binds a late-drawn bold negation to its physical sentence, with recoverable cell geometry  1780ms
+{"level":"info","event":"action","runId":"9c68f172-e69a-4409-ac82-9e91212e86ff","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T17:27:45.542Z"}
+{"level":"info","event":"action","runId":"9c68f172-e69a-4409-ac82-9e91212e86ff","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T17:27:45.568Z"}
+{"level":"info","event":"action","runId":"9c68f172-e69a-4409-ac82-9e91212e86ff","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-17T17:27:45.595Z"}
+{"level":"info","event":"action","runId":"9c68f172-e69a-4409-ac82-9e91212e86ff","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-17T17:27:45.614Z"}
+ ✓ test/document-flow.extraction.test.ts (3 tests) 6071ms
+   ✓ W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records  2171ms
+   ✓ W04 cancel after actual parsing prevents late result persistence  1867ms
+   ✓ W04 delete after actual parsing prevents late result persistence  1800ms
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  11:27:23
+   Duration  25.75s (transform 657ms, setup 0ms, collect 1.16s, tests 23.85s, environment 1ms, prepare 260ms)
+

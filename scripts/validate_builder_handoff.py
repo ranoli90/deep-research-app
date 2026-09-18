@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Revision-3 handoff checks only; never runs the application or calls a provider.
 
-This validates a frozen planning deliverable. Do not treat its not_run/draft
-assertions as runtime application gates after implementation begins.
+This validates document/evidence references, not runtime behavior. Historical
+native/live observations cannot establish current implementation gates.
 """
 from __future__ import annotations
 import argparse
@@ -42,14 +42,24 @@ def validate(root: Path) -> dict[str, Any]:
         gate = load(root, 'verification/P0_ACCEPTANCE.json')
         if gate['smoke_case_ids'] != SMOKE_IDS:
             errors.append('P0 smoke suite drift')
-        if gate['status'] != 'specified_not_executed':
+        if gate['schema_version'] != 2 or gate['status'] != 'partial_p0_checkpoint' or gate['p0_fully_verified'] is not False:
             errors.append('P0 evidence overstated')
         gids = {g['id'] for g in gate['gates']}
         if gids != {'P0-D','P0-L','P0-N'}:
             errors.append('P0 evidence gates not separated')
         for item in gate['gates']:
-            if item['status'] != 'not_run': errors.append('P0 evidence overstated')
-            if item['id'] == 'P0-N' and item['platform_status'] != {'ios':'not_run','android':'not_run'}:
+            expected_status = 'local_checks_passed' if item['id'] == 'P0-D' else 'not_revalidated'
+            if item['status'] != expected_status: errors.append('P0 evidence overstated')
+            if item['id'] == 'P0-D':
+                artifacts = item.get('current_evidence', [])
+                if not artifacts: errors.append('P0 local evidence missing')
+                for artifact in artifacts:
+                    path = root / artifact['path']
+                    if not path.resolve().is_relative_to((root/'verification').resolve()) or not path.is_file() or digest(path) != artifact['sha256']:
+                        errors.append('P0 local evidence artifact mismatch')
+                    if artifact['exit_code'] != 0 or not re.fullmatch(r'[a-f0-9]{40}', artifact['run_commit']) or not artifact['command'] or not artifact['scope']:
+                        errors.append('P0 local evidence provenance missing')
+            if item['id'] == 'P0-N' and item['platform_status'] != {'ios':'blocked','android':'historical_only'}:
                 errors.append('Native evidence overstated')
         if gate['minimum_governance_security_accessibility_start_in_p0'] is not True:
             errors.append('Foundational P0 controls deferred')

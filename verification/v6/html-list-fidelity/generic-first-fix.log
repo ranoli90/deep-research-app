@@ -1,0 +1,29 @@
+
+ RUN  v4.1.11 /tmp/deep-html-list-zy4akjz3/repo/apps/backend
+
+ ❯ test/html-lists.extraction.test.ts (5 tests | 1 failed) 3153ms
+   × W04 bounded list supplementation labels omissions and keeps old extractor versions readable 652ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/html-lists.extraction.test.ts > W04 bounded list supplementation labels omissions and keeps old extractor versions readable
+AssertionError: expected [ …(2) ] to include 'supplemental_list_limit_reached'
+ ❯ test/html-lists.extraction.test.ts:24:64
+     22| it("W04 bounded list supplementation labels omissions and keeps old ex…
+     23|  const result=await extractOffline(guide(`<ol>${Array.from({length:110…
+     24|  expect(result.status).toBe("partial");expect(result.warnings).toConta…
+       |                                                                ^
+     25|  expect(result.blocks.filter(b=>b.locator.startsWith("list:")).map(b=>…
+     26|  expect(ExtractedDocument.safeParse({...result,version:"trafilatura-2.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 7 passed (8)
+   Start at  22:30:52
+   Duration  10.59s (transform 132ms, setup 0ms, import 224ms, tests 10.08s, environment 0ms)
+
+undefined
+/tmp/deep-html-list-zy4akjz3/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts

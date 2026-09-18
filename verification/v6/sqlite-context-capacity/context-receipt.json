@@ -1,0 +1,109 @@
+{
+  "rawSha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+  "extractor": "trafilatura-2.2.0/structure-v3",
+  "status": "partial",
+  "warnings": [
+    "main_content_extraction_may_omit_regions",
+    "table_order_preserved_separately",
+    "list_order_preserved_separately",
+    "supplemental_lists_may_overlap_main_content"
+  ],
+  "blockCount": 75,
+  "decisiveQuotes": [
+    {
+      "quote": "WAL does not work over a network filesystem.",
+      "locators": [
+        "list:3"
+      ]
+    },
+    {
+      "quote": "there can only be one writer at a time.",
+      "locators": [
+        "block:10"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "question": "Can SQLite WAL coordinate concurrent writes across machines on a network filesystem?",
+      "syntheticTask": true,
+      "contextBytes": 48303,
+      "requestBytes": 54331,
+      "requestDigest": "4fed98bad11ebfeede3dd1ce424a5aa852f81c6b698ba92843fa1bf6e61da091",
+      "schemaVersion": "research-model.v1",
+      "promptVersion": "research-operations.v1",
+      "policyId": "openrouter-openai-mini-text-v1",
+      "passageCount": 75,
+      "everyWholeBlockRetained": true,
+      "contextRoundtripEqual": true,
+      "policy": {
+        "id": "openrouter-openai-mini-text-v1",
+        "model": "openai/gpt-4o-mini",
+        "provider": "openai",
+        "providerName": "OpenAI",
+        "contextTokens": 128000,
+        "outputTokens": 4096,
+        "promptMicroPerMillion": 150000,
+        "completionMicroPerMillion": 600000,
+        "observedAt": "2026-09-17"
+      },
+      "reserveMicro": 21658,
+      "plugins": [],
+      "provider": {
+        "only": [
+          "openai"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "data_collection": "deny",
+        "max_price": {
+          "prompt": 0.15,
+          "completion": 0.6,
+          "request": 0
+        }
+      },
+      "outputTokens": 4096
+    },
+    {
+      "question": "How do SQLite WAL constraints change if all processes run on one host with local storage?",
+      "syntheticTask": true,
+      "contextBytes": 48328,
+      "requestBytes": 54356,
+      "requestDigest": "42895274e958f2e961842feee8531612bdfb8d3967c29aa191b10c5da281e31b",
+      "schemaVersion": "research-model.v1",
+      "promptVersion": "research-operations.v1",
+      "policyId": "openrouter-openai-mini-text-v1",
+      "passageCount": 75,
+      "everyWholeBlockRetained": true,
+      "contextRoundtripEqual": true,
+      "policy": {
+        "id": "openrouter-openai-mini-text-v1",
+        "model": "openai/gpt-4o-mini",
+        "provider": "openai",
+        "providerName": "OpenAI",
+        "contextTokens": 128000,
+        "outputTokens": 4096,
+        "promptMicroPerMillion": 150000,
+        "completionMicroPerMillion": 600000,
+        "observedAt": "2026-09-17"
+      },
+      "reserveMicro": 21658,
+      "plugins": [],
+      "provider": {
+        "only": [
+          "openai"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "data_collection": "deny",
+        "max_price": {
+          "prompt": 0.15,
+          "completion": 0.6,
+          "request": 0
+        }
+      },
+      "outputTokens": 4096
+    }
+  ],
+  "scope": "Actual parser and request serialization only. Synthetic task/IDs, no DB/provider/model execution, no answer or support result."
+}

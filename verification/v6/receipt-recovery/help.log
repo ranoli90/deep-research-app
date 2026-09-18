@@ -1,0 +1,2 @@
+Usage: reconcile-provider --intent UUID [--apply] | --repair-run UUID --account UUID [--apply]
+Default inspects financial metadata only. --intent --apply performs one bounded provider metadata GET and settles only a validated receipt. --repair-run --apply restores demonstrable unbacked historical estimates to unknown holds; it never guesses missing settlement amounts. No completion/search is sent.

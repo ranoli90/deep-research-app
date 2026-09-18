@@ -1,0 +1,13 @@
+{
+  "evidenceClass": "local_native_test_database_cleanup",
+  "runIds": [
+    "0017697d-355f-4610-9a0d-8c5f23215d32",
+    "4a9caa90-6159-4e4f-8b29-1459e7c0dcb2"
+  ],
+  "counts": {
+    "active_accounts": "0",
+    "remaining_attachment_content": "0",
+    "unredacted_control_reports": "0",
+    "remaining_control_model_results": "0"
+  }
+}

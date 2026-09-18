@@ -1,0 +1,13 @@
+{
+  "apps/mobile/App.tsx": "5f71dc90a3b73b670913c6878ef8328b0e8d918567df554ac7289d68b24a61c6",
+  "apps/mobile/src/api.ts": "a3da438ac5160540c44a62e29366e7f0060a2c6229350fa0d8a78fecf3df42ea",
+  "apps/mobile/src/state.ts": "ce5291b489ea3f29e98a9e8906cf549510ee7ec2480699b5a1e6fdbae2aaca8e",
+  "apps/mobile/src/remote-invalidation.ts": "06f62abaa1d0b7383d3b7221ed3f2da2f9c7fa5710836de38e3aa3dc140168f4",
+  "apps/mobile/test/api-request.test.ts": "41c39613872f1ff8b96dd27ab07410c1252c30198d9d289cc432cac36f6757bd",
+  "apps/mobile/test/invalidated-progress.test.ts": "064cc8133c9509c40d2f52f49191bd7a77e433cc861527a0c22be1475d672986",
+  "apps/backend/test/native-source-reader.ts": "b5b5479496914f6fce39da7fafab1162a8ce95217606ff68963b9df071f39196",
+  "apps/backend/test/native-document-control.ts": "a73eed423265a718a797584bbc4458122376cecf3a21dd455e43b6505076819f",
+  "apps/backend/test/native-document-control.unit.test.ts": "8522099ff25eaa93c77b5f39484d87d54ec4606a70ed2ab4ab7e45fa593d8534",
+  "pnpm-lock.yaml": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e",
+  "apps/mobile/package.json": "f6c203fd96dbbf613ceaa0b78848323737a66b659e749aeb0356f9a9756da561"
+}

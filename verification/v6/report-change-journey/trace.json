@@ -1,0 +1,188 @@
+{
+  "evidenceClass": "local_api_worker_actual_pdf_fabricated_model",
+  "sourceTransport": "binary upload",
+  "question": "What does the NHNSOU field note say about underwater recording?",
+  "originalBytesSha256": "9b91a893dacb3b742cee9999e5342f5a3555ec4ef3c558bee4a586d2af97d922",
+  "runId": "c13aa268-236d-4d9c-a987-1fc1d69b305f",
+  "reportId": "43d75a34-8372-42ae-bdd2-ded7921ff900",
+  "reportText": "NHNSOU does not support underwater recording.",
+  "source": {
+    "passageId": "928d0eb5-f7ce-40a5-8e04-b5b9ce4bb632",
+    "sourceVersionId": "41feeffb-6902-4b1a-be7e-d6d951ca7677",
+    "locator": {
+      "kind": "text",
+      "rows": [],
+      "block": "page:1/block:0",
+      "geometry": [
+        {
+          "box": [
+            50,
+            737.516,
+            272.072,
+            748.616
+          ],
+          "text": "Field notes: NHNSOU sensor deployment"
+        },
+        {
+          "box": [
+            50,
+            719.516,
+            354.7640000000002,
+            730.616
+          ],
+          "text": "NHNSOU supports offline recording only on firmware 4.2."
+        },
+        {
+          "box": [
+            50,
+            701.516,
+            314.76800000000014,
+            712.616
+          ],
+          "text": "NHNSOU does not support underwater recording."
+        }
+      ],
+      "coordinates": "PDF points; bottom-left origin",
+      "normalization": "extractor-output-v1"
+    },
+    "access": "partial-text",
+    "method": "docling-parse-7.20.0/geometry-v1",
+    "warnings": [
+      "pdf_layout_tables_and_ocr_unverified"
+    ]
+  },
+  "support": [
+    {
+      "claimRevisionId": "ac16f6b2-564a-46d9-ae73-2d351576d224",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "claimRevisionId": "91d6f2ba-d47c-446c-b9dc-286ad3ea476a",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "paidProviderCalls": 0,
+  "modelResponses": "fabricated",
+  "correctionJourney": {
+    "question": "What firmware does NHNSOU require for offline recording?",
+    "runId": "eeee7a47-cd49-4adc-997e-542f9f10b88e",
+    "reportId": "4ae98de8-24f2-42c5-84b1-76b769996356",
+    "text": "NHNSOU supports offline recording only on firmware 4.2.",
+    "reusedPassageId": "928d0eb5-f7ce-40a5-8e04-b5b9ce4bb632",
+    "reusedSourceVersionId": "41feeffb-6902-4b1a-be7e-d6d951ca7677",
+    "newSourceRows": 0,
+    "claimsRecomputed": true,
+    "changeSummary": {
+      "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+      "comparison": {
+        "version": "report-changes.v1",
+        "parentReportId": "43d75a34-8372-42ae-bdd2-ded7921ff900",
+        "addedCriterionIds": [],
+        "reportStateChanged": false,
+        "removedCriterionIds": [],
+        "unchangedAssertions": 0,
+        "addedClaimRevisionIds": [
+          "a36e11e3-41dd-4f58-9216-2a30692a9dd1"
+        ],
+        "removedClaimRevisionIds": [
+          "91d6f2ba-d47c-446c-b9dc-286ad3ea476a"
+        ],
+        "newlyCitedSourceVersionIds": [],
+        "reusedCitedSourceVersionIds": [
+          "41feeffb-6902-4b1a-be7e-d6d951ca7677"
+        ]
+      },
+      "newlyFeasible": [],
+      "evidenceUpdated": false,
+      "newlyInfeasible": [],
+      "conclusionChanged": true
+    },
+    "fullRerunReportId": "1cd6551a-3f37-4436-81a2-f121f771c2eb",
+    "fullRerunTextMatches": true,
+    "comparison": "local fabricated model control, not independent semantic adjudication"
+  }
+}

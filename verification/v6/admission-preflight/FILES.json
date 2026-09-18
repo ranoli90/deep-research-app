@@ -1,0 +1,148 @@
+{
+  "algorithm": "sha256",
+  "commit": "0f0c7c006cdd95e10c0b22a9f6a6991ca1b30691",
+  "artifacts": [
+    {
+      "path": "verification/v6/admission-preflight/CONTRACT_REVIEW_FAILURE.md",
+      "sha256": "20d86a6089287551114db14b158638f492387ea0cf71bb6f581d53e1ef2a2753",
+      "bytes": 844
+    },
+    {
+      "path": "verification/v6/admission-preflight/HANDOFF.md",
+      "sha256": "8a98a79a661dc2fc3510f74b8373ba22c57109f245b9b90b2264f170d065aed3",
+      "bytes": 3636
+    },
+    {
+      "path": "verification/v6/admission-preflight/IMPACT.md",
+      "sha256": "5a10f0b96c465c3ad390492ea3fdd0ffdfbc9072182d3ed62ee1176552b3c884",
+      "bytes": 1789
+    },
+    {
+      "path": "verification/v6/admission-preflight/RESULTS.json",
+      "sha256": "b538dd9825fcc2c3b8c5816d263fa6c610e9d453a1bad9fc4d2a684ea7147843",
+      "bytes": 4954
+    },
+    {
+      "path": "verification/v6/admission-preflight/SETUP.json",
+      "sha256": "3cc42d4eda03e734b7a4dd53d5589623ef005a22f1b6e1ee27c15311e05c8b76",
+      "bytes": 117
+    },
+    {
+      "path": "verification/v6/admission-preflight/android-export-corrected.log",
+      "sha256": "755f0e06951d77ade296b63683de7baf6f652bcd3ac1968ca0e4ead2a5d96c9c",
+      "bytes": 659
+    },
+    {
+      "path": "verification/v6/admission-preflight/android-export-mock-only.log",
+      "sha256": "1cd6e863163b7039e8d6301c52a6c39a6000244a1483598e99d80cc0f3073c3e",
+      "bytes": 641
+    },
+    {
+      "path": "verification/v6/admission-preflight/android-export.log",
+      "sha256": "1cd6e863163b7039e8d6301c52a6c39a6000244a1483598e99d80cc0f3073c3e",
+      "bytes": 641
+    },
+    {
+      "path": "verification/v6/admission-preflight/api-contract-probe.mts",
+      "sha256": "ac062c795321cdb69e86681429bb0e96767114cd259df4e93335285b525f7226",
+      "bytes": 4863
+    },
+    {
+      "path": "verification/v6/admission-preflight/api-contract.log",
+      "sha256": "53c78ed107b516fdd77419fc0b9ffe02d429a90153db81fd2cf4aba772ac6a92",
+      "bytes": 915
+    },
+    {
+      "path": "verification/v6/admission-preflight/before.log",
+      "sha256": "17e79173e236895a5f92fe0017303a205dbae7b6d1bb5003bd19e1255977fa2c",
+      "bytes": 4709
+    },
+    {
+      "path": "verification/v6/admission-preflight/boundaries-corrected.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2",
+      "bytes": 14
+    },
+    {
+      "path": "verification/v6/admission-preflight/boundaries.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2",
+      "bytes": 14
+    },
+    {
+      "path": "verification/v6/admission-preflight/diff-check-corrected.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/v6/admission-preflight/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/v6/admission-preflight/install.log",
+      "sha256": "d5d3ba8baa99c9584b9150c995352606b8aae1df1c9faa66f8bdb130ea851f57",
+      "bytes": 445
+    },
+    {
+      "path": "verification/v6/admission-preflight/mobile-corrected.log",
+      "sha256": "6283e46b5c43dfc2d9eefa3d700bf5a1732832eacdf287912f2c741e0adda59e",
+      "bytes": 369
+    },
+    {
+      "path": "verification/v6/admission-preflight/mobile-final.log",
+      "sha256": "6f2b7027cb83ca157f15c2750f7766dbc231b123af8e3eb5ec49b0ec0af82b4c",
+      "bytes": 369
+    },
+    {
+      "path": "verification/v6/admission-preflight/mobile-mock-only.log",
+      "sha256": "6f2b7027cb83ca157f15c2750f7766dbc231b123af8e3eb5ec49b0ec0af82b4c",
+      "bytes": 369
+    },
+    {
+      "path": "verification/v6/admission-preflight/source-incorrect-session.patch",
+      "sha256": "8e6c9b38c36292df4a54ee9d3e9dd0eda15268ecf408a6580986d320cb9c74f7",
+      "bytes": 20438
+    },
+    {
+      "path": "verification/v6/admission-preflight/source.patch",
+      "sha256": "edb2360b72eaa0951cc485df49a58374a238870b67951987abf4739970a82846",
+      "bytes": 19479
+    },
+    {
+      "path": "verification/v6/admission-preflight/typecheck-corrected.log",
+      "sha256": "e79d45c0e753b378502a6351335e311b8cf4cdb2e962b4c4b7be9cdc686a0fc5",
+      "bytes": 121
+    },
+    {
+      "path": "verification/v6/admission-preflight/typecheck-mock-only.log",
+      "sha256": "e79d45c0e753b378502a6351335e311b8cf4cdb2e962b4c4b7be9cdc686a0fc5",
+      "bytes": 121
+    },
+    {
+      "path": "verification/v6/admission-preflight/typecheck.log",
+      "sha256": "e79d45c0e753b378502a6351335e311b8cf4cdb2e962b4c4b7be9cdc686a0fc5",
+      "bytes": 121
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "apps/mobile/App.tsx",
+      "clone": "/tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile/App.tsx",
+      "sha256": "7ea83b36c3cf66e28504879c50ded16c6fc34c9b396db19a3f57906751e78d0e"
+    },
+    {
+      "path": "apps/mobile/src/admission-retry.ts",
+      "clone": "/tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile/src/admission-retry.ts",
+      "sha256": "8560a9544d3306f4759d3af08fdb7b9afadcc83aa58c14661fe475a615c99b27"
+    },
+    {
+      "path": "apps/mobile/test/admission-retry.test.ts",
+      "clone": "/tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile/test/admission-retry.test.ts",
+      "sha256": "79f22345d8517e70ed42f6bcec5d77e787cee383e95f7d6d67630332d019fa3f"
+    },
+    {
+      "path": "apps/mobile/test/admission-preflight.test.ts",
+      "clone": "/tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile/test/admission-preflight.test.ts",
+      "sha256": "91c508e549f8efb27c21b3fd1342b782226aa2c55aae98a3a4a1f60ef96352c6"
+    }
+  ]
+}

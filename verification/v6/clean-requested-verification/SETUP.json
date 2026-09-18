@@ -1,0 +1,59 @@
+{
+  "commit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289",
+  "checkout": "/tmp/deep-clean-requested-verification-52ge46jz/repo",
+  "createdUtc": "2026-09-18T03:51:54.457577+00:00",
+  "checks": [
+    {
+      "command": [
+        "git",
+        "clone",
+        "--no-hardlinks",
+        "--no-checkout",
+        "/home/oranolio/Desktop/Deep",
+        "/tmp/deep-clean-requested-verification-52ge46jz/repo"
+      ],
+      "exitCode": 0,
+      "artifact": "checkout-0.log"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/deep-clean-requested-verification-52ge46jz/repo",
+        "checkout",
+        "--detach",
+        "f88091ac83fd57ba5ed6e28405ba7bfcca796289"
+      ],
+      "exitCode": 0,
+      "artifact": "checkout-1.log"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/deep-clean-requested-verification-52ge46jz/repo",
+        "status",
+        "--porcelain=v1"
+      ],
+      "exitCode": 0,
+      "artifact": "checkout-2.log"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/deep-clean-requested-verification-52ge46jz/repo",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "artifact": "checkout-3.log"
+    }
+  ],
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "python": "Python 3.12.3",
+    "kernel": "Linux 6.14.0-37-generic x86_64 GNU/Linux"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "evidenceClass": "native_android_expo_go_local_binary_api",
+  "baseCommit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+  "codeState": "uncommitted native-documents working tree; upload progress refinements subsequently unit/typechecked",
+  "device": "Android16, REDMI Note15 5G; Expo Go54.0.8",
+  "installedApk": "unchanged older app.deepresearch.mobile; current source runs in host.exp.exponent via Metro",
+  "input": "verification/v6/document-journey/renamed-input.pdf copied as DeepResearchControl.pdf (synthetic test document,1211bytes)",
+  "localBackend": {
+    "database": "deep_research_native_v6",
+    "identity": "development-only isolated test account",
+    "fixtureRoute": false,
+    "liveRoute": false,
+    "structuredModel": false,
+    "structuredDiscovery": false,
+    "providerKey": "absent",
+    "capsMicro": 0
+  },
+  "observations": [
+    "Current bundle loaded via Expo Go Reload",
+    "Native system picker returned test PDF and displayed selected-file state",
+    "Send without consent admitted no upload",
+    "After consent, POST binary upload stored1211bytes matching the original SHA-256 exactly",
+    "Run admission rejected disabled fixture route; no research run/provider intent created",
+    "Initial rejected-admission UI incorrectly displayed a failed-run message; removed forced failed status afterward",
+    "Explicit native account deletion confirmation cleared local draft/selection and revoked account",
+    "Server raw bytes, extracted text, filename and digest purged; redacted attachment tombstone remains"
+  ],
+  "limits": [
+    "Not a full native research/extraction/report/source/correction/share journey",
+    "New upload-progress presentation has unit/type coverage, not a separately repeated device journey",
+    "No signed APK rebuild, iOS, hosted identity, live model/provider spend, private user document or independent human adjudication",
+    "Standalone native dependency graph and existing JS advisories remain open"
+  ],
+  "cleanup": [
+    "Removed the synthetic PDF from Downloads",
+    "Stopped own local API and Metro servers",
+    "Isolated DB retains only redacted local test tombstones"
+  ],
+  "artifacts": {
+    "mobile-document-install.log": "9082e2abe471c282ca45248052543ede5118b8af007b981dae64a2634def0f9b",
+    "mobile-document-audit.json": "37a338812529449493c3136c18d29ef36ebac1e8bc669aa0a513fa340b8b661c",
+    "mobile-document-unit-progress.log": "d373b8dee53b7d40b3635fd9df4ea9b533f87c2b0565cf731e81c7882df262d6",
+    "mobile-document-typecheck-progress.log": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+    "mobile-document-before-consent.json": "19d334c496e910597cd9babc679c6c1f3d2a8a6bd05035164e4da3567b7aa378",
+    "mobile-document-upload-digest.json": "faa9bd6b6609b3b5ae17ad01bd61835c6bbaf098abf2a6595c116b0159cbd8e9",
+    "mobile-document-native-deletion-confirmed.json": "0f52884d1f9b60c828bd93f4b94ed0c6010e556737bd769f421ca5c5d1858486",
+    "mobile-document-native-deletion-content.json": "eace10a4886d0cdd6a5959850b873a29ea767c28b3c5fa1c9c91af34066034d7",
+    "mobile-document-native-final-state.json": "106137a99af1fc8ff3e3c44665cab250b2a425331b5a3ceedbe7af4e55f24dad",
+    "mobile-document-selected.xml": "8ba2cc50ec72c9d4aebff2d3f4a33db75317cec2429f77985093b5bad182a248",
+    "mobile-document-send.xml": "e377ca29fb15f5604e9712e9b0a67b48b59dbfa1b5ac25026fb53213ffae7a62",
+    "mobile-document-after-send.xml": "165d63d8f86534d157c409fc9d69e6657b290b3796b8e7a561c97083d8af413c",
+    "mobile-document-deleted-confirmed.xml": "712e5474076773ea05a961c319ef4e6a294a2a5f39a9e5859990aec06681cd1f",
+    "mobile-document-deleted-confirmed.png": "d789ac15cc4d86c1ac12124e4badeee822423afb95781ac6936bb01568d9b84e",
+    "mobile-document-native-api.log": "36201fc4f6811f12a8d2a1b01c1386be9c9bd09b532900b647091b0961a51e5b",
+    "mobile-document-native-metro.log": "75643071096198fc1bed66316899c7874a80200531faeac2308104ea31511363",
+    "tap-native.py": "f4871e45ccbde7ae5261ed1fbcf9d06bba354b5aa9e45dd67f1bdc93b2fc9072"
+  }
+}

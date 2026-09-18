@@ -1,0 +1,15 @@
+
+> @deep/mobile@0.1.0 start /home/oranolio/Desktop/Deep/apps/mobile
+> expo start --localhost --port 8081
+
+Starting project at /home/oranolio/Desktop/Deep/apps/mobile
+Starting Metro Bundler
+Skipping dependency validation in offline mode
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 78.6% (454/512)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (711/714)
+Android Bundled 10001ms apps/mobile/index.ts (729 modules)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 49ms apps/mobile/index.ts (1 module)

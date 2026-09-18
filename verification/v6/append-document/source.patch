@@ -1,0 +1,349 @@
+diff --git a/apps/backend/src/api/app.ts b/apps/backend/src/api/app.ts
+index 692c529..aeb5289 100644
+--- a/apps/backend/src/api/app.ts
++++ b/apps/backend/src/api/app.ts
+@@ -1,6 +1,6 @@
+ import { RequestedVerificationRequestSchema } from "@deep/contracts";
+ import { admitRequestedVerification } from "../modules/requested-verification.js";
+-import { admitResearchCorrection } from "../modules/research-corrections.js";
++import { admitResearchCorrection,resolveResearchCorrection } from "../modules/research-corrections.js";
+ import { deleteSourceForAccount } from "../modules/source-deletion.js";
+ import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
+ import {
+@@ -321,6 +321,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
+     return { runId: id, lifecycle: "queued" };
+   });
+ 
++  app.post("/v1/runs/:id/corrections/resolve", async (req,reply) => {
++    const a=await auth(req as never);
++    if(!a||a.deleted)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
++    const id=z.string().uuid().safeParse((req.params as {id:string}).id);
++    const input=CorrectionRequestSchema.strict().safeParse(req.body);
++    if(!id.success||!input.success||!input.data.patch)return reply.code(400).send(err("invalid_input","Exact saved typed correction required.",crypto.randomUUID()));
++    const result=await resolveResearchCorrection(pool,a.accountId,id.data,input.data);
++    if(!result)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
++    return result;
++  });
++
+   app.post("/v1/runs/:id/corrections", async (req, reply) => {
+     const a = await auth(req as never);
+     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+@@ -735,6 +746,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
+       outputReporting: { available: true, categories: [...OUTPUT_REPORT_CATEGORIES] },
+       allowance: allow.rows[0] ?? null,
+       liveRouteEnabled: config.liveRouteEnabled,
++      appendDocumentsAllowed: typedCorrectionsEnabled,
+       fixtureRouteAllowed: config.fixtureRouteAllowed,
+       capabilities: pinRouteCapabilities(config),
+       purchases: { available: false, reason: "Store purchases are gated until sandbox credentials exist." },
+diff --git a/apps/backend/src/modules/research-corrections.ts b/apps/backend/src/modules/research-corrections.ts
+index 271d763..3d31eae 100644
+--- a/apps/backend/src/modules/research-corrections.ts
++++ b/apps/backend/src/modules/research-corrections.ts
+@@ -6,20 +6,28 @@ import { withTx } from "../platform/db.js";
+ import { currentConsent,lockActiveAccount } from "./access.js";
+ import { reserveAllowance } from "./billing.js";
+ import { findRunByIdempotency,getRun,getBrief,insertBrief,insertRun,emitEvent } from "./runs.js";
++import { admissionKeyHash } from "./admission-recovery.js";
+ import { inheritRunEvidence } from "./run-evidence.js";
+ function reject(message:string,statusCode:number):never {throw Object.assign(new Error(message),{statusCode});}
+ 
+-/** Atomic patch, child, allowance, immutable evidence membership and dispatch outbox. */
+-export async function admitResearchCorrection(pool:pg.Pool,accountId:string,parentRunId:string,input:CorrectionRequest) {
++/** Shared exact accepted correction identity; no caller-supplied run/account fields. */
++export function researchCorrectionIdentity(parentRunId:string,input:CorrectionRequest) {
+  const patch=ResearchCorrectionPatchSchema.parse(input.patch);
+  if(input.claimId||input.blockId)reject("replacement_patch_cannot_target_claim_or_block",400);
+  const accepted={version:"research-correction.v1",patch,acceptedText:input.correctionText,expectedBriefRevision:input.expectedBriefRevision};
+  const key=`correction-v2:${parentRunId}:${createHash("sha256").update(JSON.stringify(accepted)).digest("hex")}`;
++ return {patch,accepted,key};
++}
++
++/** Atomic patch, child, allowance, immutable evidence membership and dispatch outbox. */
++export async function admitResearchCorrection(pool:pg.Pool,accountId:string,parentRunId:string,input:CorrectionRequest) {
++ const {patch,accepted,key}=researchCorrectionIdentity(parentRunId,input);
+  return withTx(pool,async(db)=>{
+   await lockActiveAccount(db,accountId);
+   const parent=await getRun(db,parentRunId,{forUpdate:true});
+   if(!parent||parent.account_id!==accountId||parent.route_mode!=="controlled-research")reject("correction_parent_unavailable",404);
+   if((await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,parentRunId])).rowCount)reject("correction_parent_unavailable",409);
++  if((await db.query("SELECT 1 FROM admission_withdrawals WHERE account_id=$1 AND key_hash=$2",[accountId,admissionKeyHash(key)])).rowCount)reject("idempotency_withdrawn",409);
+   const consent=await currentConsent(db,accountId);
+   if(!consent||consent.revoked||consent.policyVersion!==CONSENT_POLICY_VERSION)reject("consent_required",403);
+   if(parent.brief_revision!==input.expectedBriefRevision)reject("stale_revision",409);
+@@ -30,17 +38,44 @@ export async function admitResearchCorrection(pool:pg.Pool,accountId:string,pare
+   let question:string;
+   try{question=applyQuestionPatch(old.originalQuestion,createHash("sha256").update(old.originalQuestion).digest("hex"),patch);}
+   catch(error){if(error instanceof Error&&error.message.startsWith("question_patch_"))reject(error.message,409);throw error;}
+-  for(const id of old.attachmentIds)if(!(await db.query("SELECT 1 FROM attachments WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL",[id,accountId])).rowCount)reject("attachment_unavailable",409);
++  const append=patch.kind==="append_attachments";
++  const attachmentIds=append?[...old.attachmentIds,...patch.attachmentIds.map(id=>id.toLowerCase())]:old.attachmentIds;
++  if(append&&(attachmentIds.length>3||patch.attachmentIds.some(id=>old.attachmentIds.some(prior=>prior.toLowerCase()===id.toLowerCase()))))reject("attachment_append_invalid",409);
++  for(const id of attachmentIds)if(!(await db.query("SELECT 1 FROM attachments WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL",[id,accountId])).rowCount)reject("attachment_unavailable",409);
+   const revision=(await db.query("SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",[parent.conversation_id])).rows[0].revision as number;
+-  const brief={...old,id:crypto.randomUUID(),revision,originalQuestion:question,constraints:extractConstraints(question),
+-    assumptions:[],outputPreferences:inferOutputPreference(question),consentPolicyVersion:CONSENT_POLICY_VERSION};
++  const brief={...old,id:crypto.randomUUID(),revision,attachmentIds,
++    ...(append?{}:{originalQuestion:question,constraints:extractConstraints(question),assumptions:[],outputPreferences:inferOutputPreference(question)}),
++    consentPolicyVersion:CONSENT_POLICY_VERSION};
+   await insertBrief(db,brief,accountId);
+   const runId=crypto.randomUUID();
+   await insertRun(db,{id:runId,accountId,conversationId:parent.conversation_id,briefId:brief.id,parentRunId,routeMode:parent.route_mode,briefRevision:revision,consentEpoch:consent.epoch,idempotencyKey:key,budgetMicro:DEFAULT_RUN_BUDGET_MICRO});
+   await reserveAllowance(db,accountId,runId,DEFAULT_RUN_BUDGET_MICRO);
+   const reusedPassages=patch.evidencePolicy==="reuse_snapshot"?await inheritRunEvidence(db,{runId,parentRunId,accountId}):0;
+-  await db.query("INSERT INTO research_change_sets(run_id,account_id,parent_run_id,patch,dependency_completeness,reused_passages,reopen_discovery) VALUES($1,$2,$3,$4,'unknown',$5,true)",[runId,accountId,parentRunId,JSON.stringify(accepted),reusedPassages]);
+-  await emitEvent(db,{runId,accountId,type:"correction_accepted",phase:"preparing",summary:"The revised question will be researched again; prior conclusions are not carried forward.",payload:{patchKind:patch.kind,evidencePolicy:patch.evidencePolicy,reusedPassages,dependencyCompleteness:"unknown",fullRerun:true,reopenDiscovery:true}});
++  await db.query("INSERT INTO research_change_sets(run_id,account_id,parent_run_id,patch,dependency_completeness,reused_passages,reopen_discovery) VALUES($1,$2,$3,$4,'unknown',$5,$6)",[runId,accountId,parentRunId,JSON.stringify(accepted),reusedPassages,!append]);
++  await emitEvent(db,{runId,accountId,type:"correction_accepted",phase:"preparing",summary:append?"New documents will be checked with earlier evidence; prior conclusions are not carried forward.":"The revised question will be researched again; prior conclusions are not carried forward.",payload:{patchKind:patch.kind,evidencePolicy:patch.evidencePolicy,reusedPassages,dependencyCompleteness:"unknown",fullRerun:true,reopenDiscovery:!append}});
+   return {runId,parentRunId,briefRevision:revision,fullRerun:true,reused:false};
+  });
+ }
++
++/** Read an exact child or withdraw its identity; never schedule, spend, or require renewed processing consent. */
++export async function resolveResearchCorrection(pool:pg.Pool,accountId:string,parentRunId:string,input:CorrectionRequest){
++ const {accepted,key}=researchCorrectionIdentity(parentRunId,input),hash=admissionKeyHash(key);
++ return withTx(pool,async db=>{
++  const account=await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE",[accountId]);
++  if(!account.rowCount)return null;
++  const parent=await getRun(db,parentRunId,{forUpdate:true});
++  if(!parent||parent.account_id!==accountId||parent.route_mode!=="controlled-research")reject("correction_parent_unavailable",404);
++  const withdrawn=await db.query("SELECT 1 FROM admission_withdrawals WHERE account_id=$1 AND key_hash=$2",[accountId,hash]);
++  if(withdrawn.rowCount)return {status:"withdrawn" as const};
++  const deleted=await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,parentRunId]);
++  const run=deleted.rowCount?null:await findRunByIdempotency(db,accountId,key);
++  if(run){
++   const proof=await db.query("SELECT 1 FROM research_change_sets WHERE run_id=$1 AND account_id=$2 AND parent_run_id=$3 AND patch=$4::jsonb",[run.id,accountId,parentRunId,JSON.stringify(accepted)]);
++   const removed=await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,run.id]);
++   if(run.parent_run_id!==parentRunId||run.route_mode!=="controlled-research"||!proof.rowCount||removed.rowCount)reject("correction_recovery_basis_unavailable",409);
++   return {status:"accepted" as const,run:{runId:run.id,lifecycle:run.lifecycle,phase:run.phase,labeledDemo:false}};
++  }
++  await db.query("INSERT INTO admission_withdrawals(account_id,key_hash) VALUES($1,$2) ON CONFLICT DO NOTHING",[accountId,hash]);
++  return {status:"withdrawn" as const};
++ });
++}
+diff --git a/apps/backend/src/worker/structured-research.ts b/apps/backend/src/worker/structured-research.ts
+index 0c6a703..eb38b19 100644
+--- a/apps/backend/src/worker/structured-research.ts
++++ b/apps/backend/src/worker/structured-research.ts
+@@ -1,3 +1,4 @@
++import { ResearchBriefSchema } from "@deep/contracts";
+ import { executeCounterevidence } from "./counterevidence.js";
+ import { getCounterevidence } from "../modules/counterevidence.js";
+ import { publicSearchDigest } from "../ports/search.js";
+@@ -34,6 +35,16 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
+   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+   const run=(await getRun(pool,args.runId))!;
+   const brief=await getBrief(pool,run.brief_id);
++  // A document-add obligation is derived from immutable owned brief membership,
++  // so deleting a change-set cannot turn unread new input into old-answer success.
++  let appendedAttachmentIds:string[]=[];
++  if(run.parent_run_id){
++    const previous=await session.write(db=>db.query(`SELECT b.payload FROM runs r JOIN research_briefs b ON b.id=r.brief_id
++      WHERE r.id=$1 AND r.account_id=$2 AND b.account_id=$2`,[run.parent_run_id,args.accountId]));
++    const parentBrief=ResearchBriefSchema.safeParse(previous.rows[0]?.payload);
++    if(!parentBrief.success)return unresolved("correction_parent_basis_unavailable");
++    appendedAttachmentIds=brief.attachmentIds.filter(id=>!parentBrief.data.attachmentIds.includes(id));
++  }
+   const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
+   // A known unavailable required capability must fail before any model preparation cost.
+   if(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length&&!config.structuredDiscoveryEnabled)return unresolved("correction_rediscovery_disabled");
+@@ -44,7 +55,16 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
+     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
+   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
+   const queries:string[]=[];
+-  await ingestAttachments(pool,run,await getBrief(pool,run.brief_id),session);
++  await ingestAttachments(pool,run,brief,session);
++  for(const id of appendedAttachmentIds){
++    const readable=await session.write(db=>db.query(`SELECT 1 FROM attachments a
++      JOIN sources s ON s.canonical_locator='attachment://'||a.id::text AND s.account_id=a.account_id
++      JOIN source_versions v ON v.source_id=s.id AND v.account_id=a.account_id AND v.content_hash=a.sha256
++      JOIN authorized_run_passages p ON p.source_version_id=v.id AND p.account_id=a.account_id
++      WHERE a.id=$1 AND a.account_id=$2 AND a.deleted_at IS NULL AND a.raw_bytes IS NOT NULL
++        AND p.run_id=$3 AND v.access_level IN ('partial-text','full-text') LIMIT 1`,[id,args.accountId,args.runId]));
++    if(!readable.rowCount)return unresolved("appended_document_unavailable");
++  }
+   await session.write(async(db)=>{
+     await setPhase(db,args.runId,"researching");
+     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"criteria_prepared",phase:"researching",
+diff --git a/packages/contracts/src/index.ts b/packages/contracts/src/index.ts
+index fd0ef41..d6c3352 100644
+--- a/packages/contracts/src/index.ts
++++ b/packages/contracts/src/index.ts
+@@ -219,6 +219,11 @@ export const CreateRunRequestSchema = z.object({
+ export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
+ 
+ export const ResearchCorrectionPatchSchema=z.discriminatedUnion("kind",[
++ z.object({
++  kind:z.literal("append_attachments"),
++  attachmentIds:z.array(IdSchema).min(1).max(3).refine(ids=>new Set(ids.map(id=>id.toLowerCase())).size===ids.length),
++  evidencePolicy:z.literal("reuse_snapshot"),
++ }).strict(),
+  z.object({
+   kind:z.literal("replace_question"),question:z.string().min(1).max(20_000),
+   evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
+diff --git a/packages/research-core/src/question-patch.ts b/packages/research-core/src/question-patch.ts
+index 71c3ca1..08fe090 100644
+--- a/packages/research-core/src/question-patch.ts
++++ b/packages/research-core/src/question-patch.ts
+@@ -16,6 +16,7 @@ const splitsPair=(text:string,index:number)=>index>0&&index<text.length&&high(te
+ export function applyQuestionPatch(originalQuestion:string,originalSha256:string,raw:ResearchCorrectionPatch):string{
+  const patch=ResearchCorrectionPatchSchema.parse(raw);
+  if(patch.kind==="replace_question")return patch.question;
++ if(patch.kind==="append_attachments")return originalQuestion;
+  if(patch.originalQuestionSha256!==originalSha256)throw new Error("question_patch_digest_mismatch");
+  if(patch.start>patch.end||patch.end>originalQuestion.length)throw new Error("question_patch_invalid_span");
+  if(!wellFormed(originalQuestion)||!wellFormed(patch.replacement)||splitsPair(originalQuestion,patch.start)||splitsPair(originalQuestion,patch.end))throw new Error("question_patch_invalid_unicode");
+diff --git a/packages/research-core/test/append-document.test.ts b/packages/research-core/test/append-document.test.ts
+new file mode 100644
+index 0000000..ef400f5
+--- /dev/null
++++ b/packages/research-core/test/append-document.test.ts
+@@ -0,0 +1,12 @@
++import { expect,it } from "vitest";
++import { ResearchCorrectionPatchSchema,type ResearchCorrectionPatch } from "@deep/contracts";
++import { applyQuestionPatch } from "../src/question-patch.js";
++const id="aaaaaaaa-0000-4000-8000-000000000001";
++const input={kind:"append_attachments",attachmentIds:[id],evidencePolicy:"reuse_snapshot"};
++it("W06 accepts an explicit document append while preserving the exact original question",()=>{
++ const patch=ResearchCorrectionPatchSchema.parse(input);expect(patch).toEqual(input);
++ expect(applyQuestionPatch(" Exact original 🧭 question ","a".repeat(64),patch)).toBe(" Exact original 🧭 question ");
++});
++it("W03 document append rejects empty/duplicate/oversized/foreign authority/implicit rewrite/refresh inputs",()=>{
++ for(const change of [{attachmentIds:[]},{attachmentIds:[id,id]},{attachmentIds:[id,id.toUpperCase()]},{attachmentIds:[id,id,id,id]},{attachmentIds:["bad"]},{question:"Replacement"},{removeAttachmentIds:[id]},{accountId:id},{evidencePolicy:"refresh"}])expect(ResearchCorrectionPatchSchema.safeParse({...input,...change}).success).toBe(false);
++});
+diff --git a/apps/backend/test/append-document.integration.test.ts b/apps/backend/test/append-document.integration.test.ts
+new file mode 100644
+index 0000000..5a5ec0a
+--- /dev/null
++++ b/apps/backend/test/append-document.integration.test.ts
+@@ -0,0 +1,78 @@
++import { storeAttachment } from "../src/modules/attachments.js";
++import { afterAll,afterEach,beforeAll,expect,it } from "vitest";
++import type pg from "pg";
++import type PgBoss from "pg-boss";
++import type { FastifyInstance } from "fastify";
++import { CreateRunRequestSchema,CorrectionRequestSchema } from "@deep/contracts";
++import { createPool,migrate,withTx } from "../src/platform/db.js";
++import { createDevSession,grantConsent,revokeConsent,deleteAccount } from "../src/modules/access.js";
++import { admitRun } from "../src/modules/run-admission.js";
++import { admitResearchCorrection,resolveResearchCorrection } from "../src/modules/research-corrections.js";
++import { getBrief,getRun } from "../src/modules/runs.js";
++import { insertSource,insertVersionAndPassage } from "../src/modules/evidence.js";
++import { deleteSourceForAccount } from "../src/modules/source-deletion.js";
++import { buildApp } from "../src/api/app.js";
++import { createQueue } from "../src/adapters/queue.js";
++import { loadConfig } from "../src/platform/config.js";
++const url=process.env.TEST_DATABASE_URL!;let pool:pg.Pool,boss:PgBoss,app:FastifyInstance;const accounts:string[]=[];
++const question="Which firmware supports this sensor?";
++beforeAll(async()=>{pool=createPool(url);await migrate(pool);boss=await createQueue(url);app=await buildApp({pool,boss,config:loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",DEV_ALLOW_FIXTURE_ROUTE:"false",LIVE_ROUTE_ENABLED:"false"})});});
++afterEach(async()=>{for(const id of accounts.splice(0))await deleteAccount(pool,id);});
++afterAll(async()=>{await app.close();await boss.stop({graceful:false,timeout:2000});await pool.end();});
++async function owner(){const a=await withTx(pool,async db=>{const a=await createDevSession(db);await grantConsent(db,a.accountId);return a;});accounts.push(a.accountId);return a;}
++async function attachment(accountId:string){return (await storeAttachment(pool,{accountId,filename:"synthetic.txt",mime:"text/plain",bytes:Buffer.from("Synthetic evidence"),extractedText:"Synthetic evidence"}))!;}
++async function setup(count=1){const a=await owner(),old:string[]=[];for(let i=0;i<count;i++)old.push(await attachment(a.accountId));const added=await attachment(a.accountId),parent=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research",attachmentIds:old}));const input=CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Add this document without changing the question.",patch:{kind:"append_attachments",attachmentIds:[added],evidencePolicy:"reuse_snapshot"}});return{...a,parent,input,old,added};}
++it("W06 appends owned documents, preserves question and exact old evidence, and records no public rediscovery",async()=>{
++ const x=await setup(),sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.parent.runId,locator:"https://example.org/prior",title:"Public prior evidence",publisher:"Synthetic",originCluster:"synthetic"});const evidence=await insertVersionAndPassage(pool,{accountId:x.accountId,runId:x.parent.runId,sourceId,locator:"https://example.org/prior",text:"Prior exact evidence",accessLevel:"full-text"});
++ const child=await admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input),brief=await getBrief(pool,(await getRun(pool,child.runId))!.brief_id);expect(brief.originalQuestion).toBe(question);expect(brief.attachmentIds).toEqual([...x.old,x.added]);expect((await getBrief(pool,(await getRun(pool,x.parent.runId))!.brief_id)).attachmentIds).toEqual(x.old);
++ expect((await pool.query("SELECT passage_id,source_version_id FROM run_evidence_membership WHERE run_id=$1",[child.runId])).rows).toEqual([{passage_id:evidence.passageId,source_version_id:evidence.versionId}]);
++ expect((await pool.query("SELECT patch,reopen_discovery,dependency_completeness FROM research_change_sets WHERE run_id=$1",[child.runId])).rows[0]).toMatchObject({patch:{patch:x.input.patch,acceptedText:x.input.correctionText},reopen_discovery:false,dependency_completeness:"unknown"});
++ expect((await pool.query("SELECT 1 FROM claims WHERE run_id=$1",[child.runId])).rowCount).toBe(0);expect((await pool.query("SELECT 1 FROM run_dispatch_outbox WHERE run_id=$1",[child.runId])).rowCount).toBe(1);
++});
++it("W02 concurrent whole-patch replay admits and reserves one child only",async()=>{const x=await setup(),children=await Promise.all(Array.from({length:3},()=>admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input)));expect(new Set(children.map(c=>c.runId)).size).toBe(1);expect(children.filter(c=>!c.reused)).toHaveLength(1);expect((await pool.query("SELECT 1 FROM reservations WHERE run_id=$1",[children[0]!.runId])).rowCount).toBe(1);});
++it("W03 rejects foreign/deleted/already-present/too-many attachments, stale parent and revoked consent before child creation",async()=>{
++ const x=await setup(3),other=await owner(),foreign=await attachment(other.accountId),removed=await attachment(x.accountId);await pool.query("UPDATE attachments SET deleted_at=now() WHERE id=$1",[removed]);
++ const patch=(id:string)=>CorrectionRequestSchema.parse({...x.input,patch:{...x.input.patch,attachmentIds:[id]}});
++ await expect(admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input)).rejects.toThrow("attachment_append_invalid");
++ const fewer=await setup(),ownRemoved=await attachment(fewer.accountId);await pool.query("UPDATE attachments SET deleted_at=now() WHERE id=$1",[ownRemoved]);for(const id of [foreign,ownRemoved])await expect(admitResearchCorrection(pool,fewer.accountId,fewer.parent.runId,patch(id))).rejects.toThrow("attachment_unavailable");
++ await expect(admitResearchCorrection(pool,fewer.accountId,fewer.parent.runId,patch(fewer.old[0]!.toUpperCase()))).rejects.toThrow("attachment_append_invalid");
++ await expect(admitResearchCorrection(pool,fewer.accountId,fewer.parent.runId,{...fewer.input,expectedBriefRevision:2})).rejects.toThrow("stale_revision");
++ await revokeConsent(pool,fewer.accountId);await expect(admitResearchCorrection(pool,fewer.accountId,fewer.parent.runId,fewer.input)).rejects.toThrow("consent_required");
++ expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=ANY($1::uuid[])",[[x.parent.runId,fewer.parent.runId]])).rowCount).toBe(0);
++});
++it.each(["append","whole"])("W02 exact %s correction withdrawal blocks every delayed admission",async kind=>{const x=await setup();const input=kind==="append"?x.input:CorrectionRequestSchema.parse({...x.input,patch:{kind:"replace_question",question:"New question",evidencePolicy:"reuse_snapshot"}});expect(await resolveResearchCorrection(pool,x.accountId,x.parent.runId,input)).toEqual({status:"withdrawn"});await expect(admitResearchCorrection(pool,x.accountId,x.parent.runId,input)).rejects.toThrow("idempotency_withdrawn");expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[x.parent.runId])).rowCount).toBe(0);});
++it("W07 actual API resolves exact accepted correction with route and consent disabled; wrong owner and tampered binding cannot adopt",async()=>{
++ const x=await setup(),child=await admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await revokeConsent(pool,x.accountId);const headers={authorization:`Bearer ${x.token}`},path=`/v1/runs/${x.parent.runId}/corrections/resolve`;
++ const recovered=await app.inject({method:"POST",url:path,headers,payload:x.input});expect(recovered.statusCode).toBe(200);expect(recovered.json()).toMatchObject({status:"accepted",run:{runId:child.runId,labeledDemo:false}});
++ expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
++ const other=await owner();expect((await app.inject({method:"POST",url:path,headers:{authorization:`Bearer ${other.token}`},payload:x.input})).statusCode).toBe(404);
++ expect((await app.inject({method:"POST",url:path,headers,payload:{...x.input,authority:"extra"}})).statusCode).toBe(400);
++ await pool.query("UPDATE research_change_sets SET patch='{}' WHERE run_id=$1",[child.runId]);expect((await app.inject({method:"POST",url:path,headers,payload:x.input})).statusCode).toBe(409);
++});
++it("W03 source deletion withdraws accepted child identity and prevents replay/adoption",async()=>{
++ const x=await setup(),sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.parent.runId,locator:`attachment://${x.old[0]}`,title:"Original",publisher:"Synthetic",originCluster:"synthetic"});await insertVersionAndPassage(pool,{accountId:x.accountId,runId:x.parent.runId,sourceId,locator:`attachment://${x.old[0]}`,text:"Original",accessLevel:"full-text"});
++ await admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await deleteSourceForAccount(pool,x.accountId,sourceId);expect(await resolveResearchCorrection(pool,x.accountId,x.parent.runId,x.input)).toEqual({status:"withdrawn"});await expect(admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input)).rejects.toThrow("correction_parent_unavailable");
++});
++it("W07 actual settings advertises append only when configured, and enabled API accepts the typed patch",async()=>{
++ const x=await setup(),headers={authorization:`Bearer ${x.token}`};expect((await app.inject({method:"GET",url:"/v1/settings",headers})).json().appendDocumentsAllowed).toBe(false);
++ const enabled=await buildApp({pool,boss,config:loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-append-api",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000"})});
++ try{expect((await enabled.inject({method:"GET",url:"/v1/settings",headers})).json().appendDocumentsAllowed).toBe(true);const response=await enabled.inject({method:"POST",url:`/v1/runs/${x.parent.runId}/corrections`,headers,payload:x.input});expect(response.statusCode).toBe(200);expect(response.json()).toMatchObject({parentRunId:x.parent.runId,fullRerun:true});expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[response.json().runId])).rowCount).toBe(0);}finally{await enabled.close();}
++});
++async function waitForBlockedAccount(){for(let i=0;i<100;i++){const blocked=await pool.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%accounts%FOR UPDATE%'");if(blocked.rowCount)return;await new Promise(r=>setTimeout(r,10));}throw Error("account_lock_barrier_timeout");}
++it("W02 real account-lock barrier lets withdrawal win before delayed append admission",async()=>{
++ const x=await setup(),lock=await pool.connect();await lock.query("BEGIN");await lock.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[x.accountId]);
++ let resolved:ReturnType<typeof resolveResearchCorrection>,admitted:ReturnType<typeof admitResearchCorrection>;
++ try{resolved=resolveResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await waitForBlockedAccount();admitted=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admitted).rejects.toThrow("idempotency_withdrawn");await lock.query("COMMIT");expect(await resolved).toEqual({status:"withdrawn"});await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
++ expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[x.parent.runId])).rowCount).toBe(0);
++});
++it("W03 deletion winning the account lock prevents a waiting append from reviving the document",async()=>{
++ const x=await setup(),sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.parent.runId,locator:`attachment://${x.old[0]}`,title:"Prior",publisher:"Synthetic",originCluster:"synthetic"}),lock=await pool.connect();await lock.query("BEGIN");await lock.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[x.accountId]);
++ try{const deletion=deleteSourceForAccount(pool,x.accountId,sourceId);await waitForBlockedAccount();const admission=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admission).rejects.toThrow("correction_parent_unavailable");await lock.query("COMMIT");await deletion;await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
++ expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[x.parent.runId])).rowCount).toBe(0);
++});
++it("W06 missing immutable parent basis fails before parsing or fresh model spending even without a change-set",async()=>{
++ const x=await setup(),child=await admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await pool.query("DELETE FROM research_change_sets WHERE run_id=$1",[child.runId]);await pool.query("UPDATE research_briefs SET payload='{}' WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[x.parent.runId]);
++ const original=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;throw Error("unexpected_provider_call");};
++ try{const {processRun}=await import("../src/worker/executor.js");await processRun(pool,loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-parent-basis",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000"}),child.runId);}finally{globalThis.fetch=original;}
++ expect(calls).toBe(0);expect((await getRun(pool,child.runId))?.terminal_outcome).toBe("failed");expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[child.runId])).rows[0].payload.reason).toBe("correction_parent_basis_unavailable");expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
++});
+diff --git a/apps/backend/test/append-document.extraction.test.ts b/apps/backend/test/append-document.extraction.test.ts
+new file mode 100644
+index 0000000..db72cb5
+--- /dev/null
++++ b/apps/backend/test/append-document.extraction.test.ts
+@@ -0,0 +1,46 @@
++import { storeAttachment } from "../src/modules/attachments.js";
++/** Actual isolated PDF parser + real PostgreSQL/production worker; deliberately fabricated model replies. */
++import { createHash } from "node:crypto";
++import { afterAll,afterEach,beforeAll,expect,it,vi } from "vitest";
++import type pg from "pg";
++import { CreateRunRequestSchema,CorrectionRequestSchema } from "@deep/contracts";
++import { createPool,migrate,withTx } from "../src/platform/db.js";
++import { loadConfig } from "../src/platform/config.js";
++import { createDevSession,grantConsent,deleteAccount } from "../src/modules/access.js";
++import { admitRun } from "../src/modules/run-admission.js";
++import { admitResearchCorrection } from "../src/modules/research-corrections.js";
++import { insertSource,insertVersionAndPassage } from "../src/modules/evidence.js";
++import { getLatestReportForRun } from "../src/modules/reports.js";
++import { getBrief,getRun } from "../src/modules/runs.js";
++import { processRun } from "../src/worker/executor.js";
++import * as extraction from "../src/adapters/extraction/offline.js";
++import { matchedDocumentModel } from "./helpers/matched-model.js";
++const url=process.env.TEST_DATABASE_URL!;let pool:pg.Pool;const accounts:string[]=[],originalFetch=globalThis.fetch;
++const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",STRUCTURED_DISCOVERY_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-append",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
++function pdf(text:string){const stream=`BT /F1 12 Tf 40 740 Td (${text}) Tj ET`;const objects=["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [3 0 R] /Count 1 >>","<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>","<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`];let body="%PDF-1.4\n",offsets:number[]=[];for(let i=0;i<objects.length;i++){offsets.push(Buffer.byteLength(body));body+=`${i+1} 0 obj\n${objects[i]}\nendobj\n`;}const xref=Buffer.byteLength(body);body+=`xref\n0 6\n0000000000 65535 f \n${offsets.map(o=>`${String(o).padStart(10,"0")} 00000 n \n`).join("")}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;return Buffer.from(body);}
++beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
++afterEach(async()=>{globalThis.fetch=originalFetch;vi.restoreAllMocks();for(const id of accounts.splice(0))await deleteAccount(pool,id);});
++afterAll(async()=>{await pool.end();});
++it("W04/W06 new private PDF is parsed once, old public/document evidence remains exact, and contradiction vetoes stale positive answer without public search",async()=>{
++ const owner=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s;});accounts.push(owner.accountId);
++ const oldText="Ardent supports offline recording only on firmware 4.2.",newText="Ardent does not support offline recording on firmware 4.2.";
++ const oldBytes=pdf(oldText),newBytes=pdf(newText),oldId=(await storeAttachment(pool,{accountId:owner.accountId,filename:"old.pdf",mime:"application/pdf",bytes:oldBytes}))!,newId=(await storeAttachment(pool,{accountId:owner.accountId,filename:"PRIVATE_APPEND_CANARY.pdf",mime:"application/pdf",bytes:newBytes}))!;
++ const parent=await admitRun(pool,owner.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research",attachmentIds:[oldId]}));
++ const source=await insertSource(pool,{accountId:owner.accountId,runId:parent.runId,locator:"https://example.org/prior-public",title:"Public handling note",publisher:"Synthetic",originCluster:"synthetic"});await insertVersionAndPassage(pool,{accountId:owner.accountId,runId:parent.runId,sourceId:source,locator:"https://example.org/prior-public",text:"General handling guidance only.",accessLevel:"partial-text"});
++ const model=matchedDocumentModel();let searchCalls=0;globalThis.fetch=async(input,init)=>{const body=JSON.parse(String(init?.body));if(body.plugins?.length)searchCalls++;expect(body.plugins).toEqual([]);return model.transport(input,init);};const parser=vi.spyOn(extraction,"extractOffline");
++ await processRun(pool,config,parent.runId);const report=await getLatestReportForRun(pool,parent.runId,owner.accountId);expect(report).toBeTruthy();expect(parser).toHaveBeenCalledTimes(1);
++ const basis=(await pool.query("SELECT id,source_version_id,content_hash FROM authorized_run_passages WHERE run_id=$1 ORDER BY id",[parent.runId])).rows;
++ const input=CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Add document; PRIVATE_NOTE_NOT_A_SEARCH",patch:{kind:"append_attachments",attachmentIds:[newId],evidencePolicy:"reuse_snapshot"}}),child=await admitResearchCorrection(pool,owner.accountId,parent.runId,input);
++ await processRun(pool,config,child.runId);expect(parser).toHaveBeenCalledTimes(2);expect(createHash("sha256").update(parser.mock.calls[1]![0]).digest("hex")).toBe(createHash("sha256").update(newBytes).digest("hex"));
++ expect((await getBrief(pool,(await getRun(pool,child.runId))!.brief_id)).originalQuestion).toBe("Which firmware supports Ardent offline recording?");
++ const inherited=(await pool.query("SELECT id,source_version_id,content_hash FROM authorized_run_passages WHERE run_id=$1 AND id=ANY($2::uuid[]) ORDER BY id",[child.runId,basis.map(p=>p.id)])).rows;expect(inherited).toEqual(basis);
++ const fresh=(await pool.query("SELECT exact_text,locator,extraction_method FROM passages WHERE run_id=$1",[child.runId])).rows;expect(fresh).toHaveLength(1);expect(fresh[0].exact_text).toBe(newText);expect(fresh[0].locator.block).toBe("page:1/block:0");expect(fresh[0].extraction_method).toBe("docling-parse-7.20.0/geometry-v1");
++ expect((await pool.query("SELECT decision FROM scoped_support_results WHERE run_id=$1",[child.runId])).rows).toEqual([{decision:"disputed"}]);expect(await getLatestReportForRun(pool,child.runId,owner.accountId)).toBeNull();expect((await getLatestReportForRun(pool,parent.runId,owner.accountId))?.id).toBe(report!.id);expect(searchCalls).toBe(0);
++});
++it.each([false,true])("W06 unreadable appended PDF cannot silently republish old answer (missing change-set=%s)",async missing=>{
++ const owner=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s;});accounts.push(owner.accountId);
++ const oldId=(await storeAttachment(pool,{accountId:owner.accountId,filename:"readable.pdf",mime:"application/pdf",bytes:pdf("Ardent supports offline recording only on firmware 4.2.")}))!,newId=(await storeAttachment(pool,{accountId:owner.accountId,filename:"empty.pdf",mime:"application/pdf",bytes:pdf("")}))!;
++ const parent=await admitRun(pool,owner.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research",attachmentIds:[oldId]}));const model=matchedDocumentModel();globalThis.fetch=model.transport;await processRun(pool,config,parent.runId);expect(await getLatestReportForRun(pool,parent.runId,owner.accountId)).toBeTruthy();
++ const child=await admitResearchCorrection(pool,owner.accountId,parent.runId,CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Check empty new document",patch:{kind:"append_attachments",attachmentIds:[newId],evidencePolicy:"reuse_snapshot"}}));if(missing)await pool.query("DELETE FROM research_change_sets WHERE run_id=$1",[child.runId]);
++ await processRun(pool,config,child.runId);expect(await getLatestReportForRun(pool,child.runId,owner.accountId)).toBeNull();expect((await getRun(pool,child.runId))?.terminal_outcome).toBe("failed");expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[child.runId])).rows[0].payload.reason).toBe("appended_document_unavailable");expect((await pool.query("SELECT operation FROM model_operation_results WHERE run_id=$1",[child.runId])).rows).toEqual([{operation:"brief"}]);
++});

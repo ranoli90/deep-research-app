@@ -2,7 +2,7 @@
 
 Root AGENTS.md applies; these rules cannot weaken it.
 
-**Current status:** API (`src/api/server.ts`) and worker (`src/worker/main.ts`) share this codebase. Fixture route is implemented. Live OpenRouter `controlled-research` is gated on env and uses `selectAdaptiveAction` by default (`LIVE_CONTROLLER_KIND=baseline` keeps the bounded chooser).
+**Current status:** API (`src/api/server.ts`) and worker (`src/worker/main.ts`) share this codebase. Production worker executes only gated structured research. Fixtures and the former bounded baseline/adaptive chooser are isolated in `worker/diagnostic-main.ts` for explicit non-production diagnostics; these are not the production evaluation baseline.
 
 API authorizes and validates; worker executes durable actions; domain modules own writes; adapters isolate SDKs. Preserve consent/cancel/revision fences and atomic budget admission. Test real Postgres/queue transactions and unknown paid outcomes. Read specs/ENGINE_CONTRACTS.md and docs/SECURITY_PRIVACY_COST.md. Do not turn upstream queue delivery into an exactly-once external-spend promise.
 

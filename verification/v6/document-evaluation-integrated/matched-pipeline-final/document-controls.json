@@ -1,0 +1,2507 @@
+{
+  "commit": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "workingTree": "working_tree_changes_present",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "versions": [
+    {
+      "path": "apps/backend/src/adapters/model/prompts.ts",
+      "sha256": "795c678c63074542241a45c38926d24ace51c9816833ae1697f3594395111470"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    },
+    {
+      "path": "packages/contracts/src/research-model.ts",
+      "sha256": "7317c13bc286b87635be2862c1bdabaf9e6e087842e076502d9b6905b28af3ab"
+    },
+    {
+      "path": "evals/matched-pipeline/protocol.json",
+      "sha256": "163f04c5e6937f9ee58f03f83ad4550b081ba1a77c412f003b7119e281c4e002"
+    },
+    {
+      "path": "apps/backend/src/worker/structured-research.ts",
+      "sha256": "c69f49dc426e14654326dd8ebfdfc922875e1b4b8015751d69ae5672048b109c"
+    },
+    {
+      "path": "apps/backend/src/worker/attachment-ingestion.ts",
+      "sha256": "0181fcc87f2c1aed9d0d4370640e083974f9d0c87d3a13d4a895d451ac1fcaf2"
+    },
+    {
+      "path": "apps/backend/test/matched-pipeline.extraction.test.ts",
+      "sha256": "0c3a27d1ff97756eb96fb3ea48205d081bf1a0099d421b545e58ad42dcc3acfc"
+    }
+  ],
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the AJGBFX field note say about underwater recording?",
+      "sourceSha256": "4032397758971577d4d70e2e579ff14c322ad89fccaef48757edc9287c8a3663",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    },
+    {
+      "label": "A1-original",
+      "runId": "f873d4af-7d0d-42bf-9253-20b79b3b049c",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4028.5803940000005,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "4bdc935f-3f6b-4407-b942-e9db02a8a2f3",
+        "runId": "f873d4af-7d0d-42bf-9253-20b79b3b049c",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "AJGBFX does not support underwater recording.",
+            "claimIds": [
+              "08fe1ccb-4b86-42d7-9d2f-b4326dd874d0"
+            ],
+            "citationIds": [
+              "b569f630-42a7-4884-bade-a7d7a25ed962"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "42ef9917-3904-4750-bf28-036ccd22dcca",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://e1903ce8-bb75-422c-8060-19c80df7ce5b"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "b08cea7a-09e7-4e3a-9e68-ed28f69bb88a",
+          "source_version_id": "e27624e1-52e0-4ec7-89e2-3a96e57d9a81",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "b569f630-42a7-4884-bade-a7d7a25ed962",
+          "source_version_id": "e27624e1-52e0-4ec7-89e2-3a96e57d9a81",
+          "exact_text": "Field notes: AJGBFX sensor deployment\nAJGBFX supports offline recording only on firmware 4.2.\nAJGBFX does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  266.75600000000003,
+                  748.616
+                ],
+                "text": "Field notes: AJGBFX sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  349.4480000000002,
+                  730.616
+                ],
+                "text": "AJGBFX supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  309.4520000000001,
+                  712.616
+                ],
+                "text": "AJGBFX does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "1fdd9514-e734-4c80-9b10-3148c8b1aef8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "AJGBFX does not support underwater recording.",
+                "start": 94,
+                "passageId": "b569f630-42a7-4884-bade-a7d7a25ed962"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "0d68bee6-ca56-4cbd-8e05-73e31827a9ff",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "AJGBFX does not support underwater recording.",
+                "start": 94,
+                "passageId": "b569f630-42a7-4884-bade-a7d7a25ed962"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "f873d4af-7d0d-42bf-9253-20b79b3b049c",
+          "accountId": "d5800d4c-8f35-41c7-a4c6-40411eedb3b8",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-original",
+      "runId": "c6192839-20df-44c0-9a2f-87b47023a4e9",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 3795.1754089999995,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "394760ea-fa52-48cd-b611-dc7cd5dc1fcb",
+        "runId": "c6192839-20df-44c0-9a2f-87b47023a4e9",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "AJGBFX does not support underwater recording.",
+            "claimIds": [
+              "fe5c1a01-0efb-484c-8b2e-087c506638e5"
+            ],
+            "citationIds": [
+              "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "f19db018-79cf-4061-9223-3ca37649a399",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://0dc4a362-d1c8-41dd-bf4d-10dc5674cefb"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17",
+          "source_version_id": "d76f03b5-f008-4d8c-a055-252a1f57a730",
+          "exact_text": "Field notes: AJGBFX sensor deployment\nAJGBFX supports offline recording only on firmware 4.2.\nAJGBFX does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  266.75600000000003,
+                  748.616
+                ],
+                "text": "Field notes: AJGBFX sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  349.4480000000002,
+                  730.616
+                ],
+                "text": "AJGBFX supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  309.4520000000001,
+                  712.616
+                ],
+                "text": "AJGBFX does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "ed104db9-9a6f-4bea-aa79-b30e4c99fa4e",
+          "source_version_id": "d76f03b5-f008-4d8c-a055-252a1f57a730",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "0852de86-f595-45f2-bacd-c84e18227e31",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "AJGBFX does not support underwater recording.",
+                "start": 94,
+                "passageId": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "9a726a63-a8a3-43b6-bec8-ebac83f7e122",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "AJGBFX does not support underwater recording.",
+                "start": 94,
+                "passageId": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "c6192839-20df-44c0-9a2f-87b47023a4e9",
+          "accountId": "d5800d4c-8f35-41c7-a4c6-40411eedb3b8",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-correction",
+      "runId": "122c26d9-0ed9-460c-8d4f-e58ec8834cf6",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 2333.544237,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 0,
+      "report": {
+        "reportId": "23ce5087-f5f9-4bd8-a09e-422ab9919ddb",
+        "runId": "122c26d9-0ed9-460c-8d4f-e58ec8834cf6",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "AJGBFX supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "123003c4-8acb-4730-bd18-3a0207b18dc5"
+            ],
+            "citationIds": [
+              "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "f19db018-79cf-4061-9223-3ca37649a399",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://0dc4a362-d1c8-41dd-bf4d-10dc5674cefb"
+          }
+        ],
+        "changeSummary": {
+          "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+          "comparison": {
+            "version": "report-changes.v1",
+            "parentReportId": "394760ea-fa52-48cd-b611-dc7cd5dc1fcb",
+            "addedCriterionIds": [],
+            "reportStateChanged": false,
+            "removedCriterionIds": [],
+            "unchangedAssertions": 0,
+            "addedClaimRevisionIds": [
+              "add2fefc-b913-45dd-bd13-ce1b3203f199"
+            ],
+            "removedClaimRevisionIds": [
+              "9a726a63-a8a3-43b6-bec8-ebac83f7e122"
+            ],
+            "newlyCitedSourceVersionIds": [],
+            "reusedCitedSourceVersionIds": [
+              "d76f03b5-f008-4d8c-a055-252a1f57a730"
+            ]
+          },
+          "newlyFeasible": [],
+          "evidenceUpdated": false,
+          "newlyInfeasible": [],
+          "conclusionChanged": true
+        },
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17",
+          "source_version_id": "d76f03b5-f008-4d8c-a055-252a1f57a730",
+          "exact_text": "Field notes: AJGBFX sensor deployment\nAJGBFX supports offline recording only on firmware 4.2.\nAJGBFX does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  266.75600000000003,
+                  748.616
+                ],
+                "text": "Field notes: AJGBFX sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  349.4480000000002,
+                  730.616
+                ],
+                "text": "AJGBFX supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  309.4520000000001,
+                  712.616
+                ],
+                "text": "AJGBFX does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "ed104db9-9a6f-4bea-aa79-b30e4c99fa4e",
+          "source_version_id": "d76f03b5-f008-4d8c-a055-252a1f57a730",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "e8e94eb9-0c4f-45cf-957f-d556c004ceba",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "AJGBFX supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "add2fefc-b913-45dd-bd13-ce1b3203f199",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "AJGBFX supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "0d6fb04a-e94d-4d5f-9399-b90e1cdcda17"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "122c26d9-0ed9-460c-8d4f-e58ec8834cf6",
+          "accountId": "d5800d4c-8f35-41c7-a4c6-40411eedb3b8",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-corrected-full-rerun",
+      "runId": "5e4d058d-c72e-4571-ad6a-dfcb6e83eed0",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 3644.3130810000002,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "9a177dd8-7e7f-4345-84bc-04d83c03c187",
+        "runId": "5e4d058d-c72e-4571-ad6a-dfcb6e83eed0",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "AJGBFX supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "6e7294b4-dc84-4267-8cd7-76f406c8b9dd"
+            ],
+            "citationIds": [
+              "a414b88d-e87a-400d-8d94-35edb676424f"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "3ce3da40-bdff-4ce5-8d36-8c32c471de96",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://eb7a6c1d-9fce-4042-8bdb-4631e9a4f894"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "139f56ac-5823-4186-a486-6310379fd1d7",
+          "source_version_id": "e342e983-d820-4375-8117-024fbb4ee111",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "a414b88d-e87a-400d-8d94-35edb676424f",
+          "source_version_id": "e342e983-d820-4375-8117-024fbb4ee111",
+          "exact_text": "Field notes: AJGBFX sensor deployment\nAJGBFX supports offline recording only on firmware 4.2.\nAJGBFX does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  266.75600000000003,
+                  748.616
+                ],
+                "text": "Field notes: AJGBFX sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  349.4480000000002,
+                  730.616
+                ],
+                "text": "AJGBFX supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  309.4520000000001,
+                  712.616
+                ],
+                "text": "AJGBFX does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "81ab89e4-0d6b-4ecf-9308-aa16ac57c4f8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "AJGBFX supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "a414b88d-e87a-400d-8d94-35edb676424f"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "f5712033-7cc3-4ec6-b8b4-91bbba36a898",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "AJGBFX supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "a414b88d-e87a-400d-8d94-35edb676424f"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "5e4d058d-c72e-4571-ad6a-dfcb6e83eed0",
+          "accountId": "d5800d4c-8f35-41c7-a4c6-40411eedb3b8",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-unavailable",
+      "runId": "28a88e5a-5b05-4bd2-8659-8cb84cf5c3d4",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1576.2104949999994,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "28a88e5a-5b05-4bd2-8659-8cb84cf5c3d4",
+          "accountId": "93bf5081-bf58-48df-bcca-264deea6f1ac",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-unavailable",
+      "runId": "5fc400f2-ec58-4dd9-b74e-683c4b83388c",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1547.698085,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "5fc400f2-ec58-4dd9-b74e-683c4b83388c",
+          "accountId": "93bf5081-bf58-48df-bcca-264deea6f1ac",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-iterative-public",
+      "runId": "bb5f3cc1-f597-4df9-a2b1-e944bed07d3d",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 8884.658569,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does VOLRQUI support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:export",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "1ac403ca-520d-4c73-b28e-c018619bca02",
+        "runId": "bb5f3cc1-f597-4df9-a2b1-e944bed07d3d",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VOLRQUI supports full export.",
+            "claimIds": [
+              "dc375737-7c1d-4f80-8c5c-d0274520fa5b"
+            ],
+            "citationIds": [
+              "c2bd874c-ee96-40c6-b41c-8f9a4979271a"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "VOLRQUI supports offline editing.",
+            "claimIds": [
+              "7f56852e-2c68-469a-b80e-c5e00737db3b"
+            ],
+            "citationIds": [
+              "cc694bd8-7d7c-4ff3-863e-7273a543a172"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "2f0901a4-481f-47b6-bca8-967f4a4efa5c",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "3e5b5bbf-a29e-4ea3-b7ed-1f0e59bda0e0",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "006351c0-77d5-450f-b3a1-dd34a1beefb4",
+          "source_version_id": "aca17485-df74-41e3-bb6e-ec3540992bb5",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "2b43473a-3264-4df8-ae4a-f9f881d26a09",
+          "source_version_id": "f34c99ea-3277-4d5c-9c48-e27464d53b37",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "aaa9c002-c12c-4aab-8bc5-55bddad27053",
+          "source_version_id": "f34c99ea-3277-4d5c-9c48-e27464d53b37",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "c2bd874c-ee96-40c6-b41c-8f9a4979271a",
+          "source_version_id": "aca17485-df74-41e3-bb6e-ec3540992bb5",
+          "exact_text": "VOLRQUI supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "cc694bd8-7d7c-4ff3-863e-7273a543a172",
+          "source_version_id": "f34c99ea-3277-4d5c-9c48-e27464d53b37",
+          "exact_text": "VOLRQUI supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "e4534e2e-41cc-436e-8a7c-0795c64356b8",
+          "source_version_id": "aca17485-df74-41e3-bb6e-ec3540992bb5",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "394cb53e-fcf1-4932-b347-d13b4b6670fe",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "c2bd874c-ee96-40c6-b41c-8f9a4979271a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "0ecf1189-a314-4697-90bf-15329fa7581f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "c2bd874c-ee96-40c6-b41c-8f9a4979271a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "3bb96aca-f4f7-4c66-ac87-05c0f274805c",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "VOLRQUI supports offline editing.",
+                "start": 0,
+                "passageId": "cc694bd8-7d7c-4ff3-863e-7273a543a172"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "3b156741-9e78-44fb-9b94-ec9f69fb002a",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "c2bd874c-ee96-40c6-b41c-8f9a4979271a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "a9797fd2-a296-4250-b38f-1c45d4a90b3d",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "VOLRQUI supports offline editing.",
+                "start": 0,
+                "passageId": "cc694bd8-7d7c-4ff3-863e-7273a543a172"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "bb5f3cc1-f597-4df9-a2b1-e944bed07d3d",
+          "accountId": "1a9c155d-c16b-40d4-9e05-8f21c0d6c1d2",
+          "routeMode": "controlled-research",
+          "spentMicro": 19,
+          "confirmedProviderMicro": 19,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 19
+          },
+          "intentTotalMicro": 19,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-iterative-public",
+      "runId": "3c30310f-ea27-4011-8d25-feb84483036c",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 8755.455071,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does VOLRQUI support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "5fee15d3-9a9d-4738-9030-91ccef364854",
+        "runId": "3c30310f-ea27-4011-8d25-feb84483036c",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VOLRQUI supports full export.",
+            "claimIds": [
+              "86112b4a-736e-4e9f-a57d-a7ec6f3ede11"
+            ],
+            "citationIds": [
+              "8858a6e2-f179-4825-a018-7052bc85177f"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "VOLRQUI supports offline editing.",
+            "claimIds": [
+              "d3dc81a7-8258-4d25-8f1b-39cadd774885"
+            ],
+            "citationIds": [
+              "2b51d345-a6b3-409f-be73-7281c65bf8ef"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "79ce7a44-ab9a-4bad-95fb-7d792833f1cc",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "7ca0d3a5-b35a-4395-a7c6-66ab471c13b2",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0d786bf3-c4d2-49dd-9b1e-c42bc43a6f41",
+          "source_version_id": "e35869b2-0960-42e6-be1e-31dd666aaf7a",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "2b51d345-a6b3-409f-be73-7281c65bf8ef",
+          "source_version_id": "bab88167-b3f0-4ca7-af6f-e74fcdaaf897",
+          "exact_text": "VOLRQUI supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "4afb33ab-adfe-453f-9a28-5cd58e983f9a",
+          "source_version_id": "e35869b2-0960-42e6-be1e-31dd666aaf7a",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "87329325-6837-47e8-8c2f-5a3282228b50",
+          "source_version_id": "bab88167-b3f0-4ca7-af6f-e74fcdaaf897",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "8858a6e2-f179-4825-a018-7052bc85177f",
+          "source_version_id": "e35869b2-0960-42e6-be1e-31dd666aaf7a",
+          "exact_text": "VOLRQUI supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        },
+        {
+          "id": "cca6dbd3-9d7e-4e8e-996b-92d428c6ada2",
+          "source_version_id": "bab88167-b3f0-4ca7-af6f-e74fcdaaf897",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v3"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "6fa3c993-62e4-405b-8e1b-6d310336a8f4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "8858a6e2-f179-4825-a018-7052bc85177f"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "21a64c89-e2fc-4ead-977c-4e425990e7c8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "8858a6e2-f179-4825-a018-7052bc85177f"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "095aae60-d74f-4a81-8278-72fd8cfe9fc4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "VOLRQUI supports offline editing.",
+                "start": 0,
+                "passageId": "2b51d345-a6b3-409f-be73-7281c65bf8ef"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c92df0ec-7daa-4bae-bdaf-2757db4dcfa6",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "VOLRQUI supports full export.",
+                "start": 0,
+                "passageId": "8858a6e2-f179-4825-a018-7052bc85177f"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c91f0e0b-f9a8-4a64-a00b-539aa45dcdaa",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "VOLRQUI supports offline editing.",
+                "start": 0,
+                "passageId": "2b51d345-a6b3-409f-be73-7281c65bf8ef"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "3c30310f-ea27-4011-8d25-feb84483036c",
+          "accountId": "1a9c155d-c16b-40d4-9e05-8f21c0d6c1d2",
+          "routeMode": "controlled-research",
+          "spentMicro": 16,
+          "confirmedProviderMicro": 16,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 16
+          },
+          "intentTotalMicro": 16,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    }
+  ]
+}

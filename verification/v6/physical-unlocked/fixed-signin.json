@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "value": {
+    "accountId": "17558675-328f-46d3-8394-6654bc15e1f4",
+    "cleanupAttempted": false,
+    "hasAccount": true,
+    "hasCorrectionDraft": false,
+    "hasDraft": false,
+    "hasPendingAdmission": false,
+    "hasPendingContentInvalidation": false,
+    "hasPendingSourceDeletion": false,
+    "hasPendingVerification": false,
+    "hasPreviousReport": false,
+    "hasReport": false,
+    "hasRun": false,
+    "hasToken": true,
+    "mode": "observe"
+  }
+}

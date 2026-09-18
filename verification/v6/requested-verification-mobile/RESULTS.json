@@ -1,0 +1,64 @@
+{
+  "requirements": [
+    "W05",
+    "W07",
+    "W03"
+  ],
+  "baseCommit": "a86faf8a50b85652b80438287e2c5d1d7ab498d7",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T03:28:07.002088+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7"
+  },
+  "scope": "Pure helper controls with fabricated POST responses and in-memory journal serialization. No actual model, API/worker, native UI, protected storage, or paid provider execution.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile test -- verification-request",
+      "exitCode": 0,
+      "artifact": "unit.log",
+      "sha256": "0d8f7884545713c76e3b8c36a9f08d1b76158f91b81d04b09e52ba4cd46d807d",
+      "scope": "6/6: stale target, strict shared-schema parsing, response loss/restart same identity, private note no query expansion, account changes around awaits, storage failure, bad acknowledgement, mutation snapshot"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "types.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "scope": "Configured mobile typecheck"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- verification-request",
+      "artifact": "unit-adoption.log",
+      "scope": "9/9: includes actual child snapshot validation, protected journal restart/account-switch/corrupt handle fail-closed",
+      "exitCode": 0,
+      "sha256": "5938063130bf047b9d779718a137963a08d56ea3902c789637107a6feb24b369"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "types-adoption.log",
+      "scope": "Configured mobile typecheck after adoption validator",
+      "exitCode": 0,
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    }
+  ],
+  "impact": {
+    "contract": "Uses existing RequestedVerificationRequestSchema without extension; strict outer protected parentRunId/request shape and exact existing accepted response fields. report.version must be preserved by primary integration. Note is private account-protected data; helper never constructs search queries.",
+    "persistence": "Durable saved identity precedes POST; all awaits guarded. Response loss and rejected acknowledgements keep same pending identity. Accepted response does not clear journal: caller must GET actual child snapshot and durably adopt it before clearing.",
+    "boundaries": "Primary must gate authenticated ownership, pending verification duplicates, pending admission/source deletion, and account/view changes. Helper receives explicit current guard and validates selected claim/version against caller current owned report.",
+    "rollback": "Disable new request scheduling while preserving protected pending identities, parsing and explicit retries; never drop unknown admission identity or server required proof obligations. No dependencies/providers/migrations added.",
+    "adoption": "readVerificationRun validates expected UUID, controlled-research route, labeledDemo false, shared lifecycle/phase/outcome, report UUID, optional brief and correction fields. GET response has no parent/verification identity, so server admission-key resolution remains authoritative linkage; caller rejects parent run and retains pending until durable adoption."
+  },
+  "files": [
+    {
+      "path": "apps/mobile/src/verification-request.ts",
+      "sha256": "e0a9598a7feca06e168060eece6a26a718d90c71425e30b0ca379c1d675dc2bb"
+    },
+    {
+      "path": "apps/mobile/test/verification-request.test.ts",
+      "sha256": "d84fcd74d28e0b08cf3b941701058484e5d289bd96523352e00a3a8911596a33"
+    }
+  ],
+  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289"
+}

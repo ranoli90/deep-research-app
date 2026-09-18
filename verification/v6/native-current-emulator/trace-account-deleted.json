@@ -1,0 +1,133 @@
+{
+  "evidenceClass": "native UI / actual local API-worker-PDF-parser / fabricated model",
+  "paidCalls": 0,
+  "accountId": "60888c19-ca97-44fb-8d65-4975921a50f6",
+  "capturedAt": "2026-09-18T11:43:23.307Z",
+  "runs": [
+    {
+      "id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "parent_run_id": null,
+      "lifecycle": "terminal",
+      "terminal_outcome": "completed",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T11:27:32.087Z",
+      "updated_at": "2026-09-18T11:27:41.604Z",
+      "spent_micro": "7",
+      "original_question": "[deleted]"
+    },
+    {
+      "id": "098f0560-13cd-4dee-8d09-55a539c13999",
+      "parent_run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "lifecycle": "terminal",
+      "terminal_outcome": "completed",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T11:29:36.218Z",
+      "updated_at": "2026-09-18T11:29:39.181Z",
+      "spent_micro": "7",
+      "original_question": "[deleted]"
+    },
+    {
+      "id": "592be93e-5060-4410-a802-af2ff6dfebfd",
+      "parent_run_id": "098f0560-13cd-4dee-8d09-55a539c13999",
+      "lifecycle": "terminal",
+      "terminal_outcome": "cancelled",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T11:30:26.509Z",
+      "updated_at": "2026-09-18T11:35:54.907Z",
+      "spent_micro": "7",
+      "original_question": "[deleted]"
+    }
+  ],
+  "reports": [
+    {
+      "id": "7a2bd706-400d-4d60-b34d-55a73227324f",
+      "run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "outcome": "completed",
+      "blocks": [],
+      "change_summary": null,
+      "published_at": "2026-09-18T11:27:41.604Z",
+      "redacted_at": "2026-09-18T11:43:20.269Z"
+    },
+    {
+      "id": "7006cbc3-3d39-4fdb-bbb1-effd4dc01e34",
+      "run_id": "098f0560-13cd-4dee-8d09-55a539c13999",
+      "outcome": "completed",
+      "blocks": [],
+      "change_summary": null,
+      "published_at": "2026-09-18T11:29:39.181Z",
+      "redacted_at": "2026-09-18T11:43:20.269Z"
+    },
+    {
+      "id": "2f22a2fc-7bcd-4681-9412-e2751a9eb111",
+      "run_id": "592be93e-5060-4410-a802-af2ff6dfebfd",
+      "outcome": "completed",
+      "blocks": [],
+      "change_summary": null,
+      "published_at": "2026-09-18T11:30:38.025Z",
+      "redacted_at": "2026-09-18T11:43:20.269Z"
+    }
+  ],
+  "sources": [
+    {
+      "id": "0c62a3a6-23b3-47e9-8879-1df3bfaa900e",
+      "run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "title": "[deleted]",
+      "version_id": "1f8251cd-09c8-47c6-950f-18ba3e7d540a",
+      "content_hash": null,
+      "access_level": "partial-text",
+      "text_coverage": null
+    },
+    {
+      "id": "7820c27e-7fea-42fe-a8ca-59890e563295",
+      "run_id": "592be93e-5060-4410-a802-af2ff6dfebfd",
+      "title": "[deleted]",
+      "version_id": "4b428d06-5ec4-448d-8409-32eebaa5f58b",
+      "content_hash": null,
+      "access_level": "blocked",
+      "text_coverage": null
+    }
+  ],
+  "passages": [
+    {
+      "id": "6088c801-28b7-4e2c-a296-481aab9fbfa3",
+      "run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "source_version_id": "1f8251cd-09c8-47c6-950f-18ba3e7d540a",
+      "exact_text": "[deleted]",
+      "locator": {},
+      "extraction_method": "docling-parse-7.20.0/geometry-v1",
+      "content_hash": "[deleted]"
+    },
+    {
+      "id": "aed61297-77bf-4952-a8d4-39ead3c140f2",
+      "run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "source_version_id": "1f8251cd-09c8-47c6-950f-18ba3e7d540a",
+      "exact_text": "[deleted]",
+      "locator": {},
+      "extraction_method": "docling-parse-7.20.0/geometry-v1",
+      "content_hash": "[deleted]"
+    },
+    {
+      "id": "20c01aa1-4d79-4305-be83-55c1c0c82a1f",
+      "run_id": "592be93e-5060-4410-a802-af2ff6dfebfd",
+      "source_version_id": "4b428d06-5ec4-448d-8409-32eebaa5f58b",
+      "exact_text": "[deleted]",
+      "locator": {},
+      "extraction_method": "deleted",
+      "content_hash": "[deleted]"
+    }
+  ],
+  "reads": [],
+  "reuse": [],
+  "intents": [
+    {
+      "state": "confirmed",
+      "count": 21
+    }
+  ],
+  "account": [
+    {
+      "id": "60888c19-ca97-44fb-8d65-4975921a50f6",
+      "deleted_at": "2026-09-18T11:43:20.269Z"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/protected-content.test.ts (11 tests) 33ms
+ ✓ test/lifecycle.test.ts (12 tests) 18ms
+ ✓ test/request-scope.test.ts (11 tests) 74ms
+ ✓ test/journey.test.ts (15 tests) 14ms
+ ✓ test/document-input.test.ts (7 tests) 24ms
+ ✓ test/session-storage.test.ts (10 tests) 26ms
+ ✓ test/correction-draft.test.ts (6 tests) 30ms
+ ✓ test/source-view.test.ts (6 tests) 37ms
+ ✓ test/report-layout.test.ts (6 tests) 26ms
+
+ Test Files  9 passed (9)
+      Tests  84 passed (84)
+   Start at  20:12:30
+   Duration  2.03s (transform 677ms, setup 0ms, collect 1.39s, tests 282ms, environment 4ms, prepare 1.51s)
+

@@ -1,0 +1,17 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"12e46082-6a2f-4873-8cde-fcb606e64a7e","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-18T04:17:53.546Z"}
+{"level":"info","event":"action","runId":"12e46082-6a2f-4873-8cde-fcb606e64a7e","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T04:17:53.569Z"}
+{"level":"info","event":"action","runId":"12e46082-6a2f-4873-8cde-fcb606e64a7e","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-18T04:17:53.589Z"}
+{"level":"info","event":"action","runId":"12e46082-6a2f-4873-8cde-fcb606e64a7e","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-18T04:17:53.605Z"}
+
+ Test Files  4 passed (4)
+      Tests  17 passed (17)
+   Start at  22:17:07
+   Duration  79.03s (transform 987ms, setup 0ms, import 1.80s, tests 76.59s, environment 1ms)
+

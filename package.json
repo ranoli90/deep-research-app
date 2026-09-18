@@ -29,5 +29,11 @@
     "build": "pnpm -r --filter \"./packages/*\" --filter @deep/backend build",
     "compose:up": "sudo docker compose up -d --wait",
     "compose:down": "sudo docker compose down"
+  },
+  "pnpm": {
+    "overrides": {
+      "@expo/metro-config>postcss": "8.5.28",
+      "xcode>uuid": "11.1.1"
+    }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "baseCommit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "baseChanges": "Reviewed exact Vitest4.1.11 pins/lock from current root; committed scoped PostCSS8.5.28. NO experimental Metro overrides.",
+  "proposal": "xcode>uuid exact11.1.1",
+  "why": "xcode3.0.1 uses only CJS uuid.v4() without buffer, supported by11.1.1; advisory concerns v3/v5/v6 external buffers. Explicit major compatibility override, not vendor endorsement.",
+  "impact": "Node build tooling only. Preserve app source/tests/API/native dependency declarations. No DB/provider/native build.",
+  "checks": [
+    "Actual CJS resolution and xcode parse/edit/write roundtrip",
+    "Expo iOS prebuild --no-install",
+    "Offline frozen install",
+    "Mobile typecheck",
+    "Dependency audit"
+  ],
+  "rollback": "Remove only scoped xcode>uuid and its lock changes, retaining reviewed PostCSS/Vitest fixes.",
+  "sources": [
+    "https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq",
+    "https://registry.npmjs.org/uuid/11.1.1"
+  ],
+  "recordedAt": "2026-09-18T04:22:08.301861+00:00"
+}

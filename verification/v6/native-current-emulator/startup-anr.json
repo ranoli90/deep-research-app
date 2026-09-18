@@ -1,0 +1,6 @@
+{
+  "scope": "fresh synthetic Android14 emulator first boot/current debug APK launch",
+  "observation": "System UI is not responding dialog while Metro first bundle was still being generated",
+  "action": "Wait chosen once on emulator-5556 only",
+  "claim": "No completed app journey or app-specific fault established by this dialog"
+}

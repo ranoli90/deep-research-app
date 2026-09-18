@@ -1,0 +1,14 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts admission-retry
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/admission-retry.test.ts (13 tests) 247ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  20:48:02
+   Duration  963ms (transform 285ms, setup 0ms, collect 303ms, tests 247ms, environment 0ms, prepare 174ms)
+

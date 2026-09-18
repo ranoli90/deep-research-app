@@ -12,7 +12,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 
 const TEST_URL =
   process.env.TEST_DATABASE_URL ??
@@ -110,10 +110,18 @@ describe("G06 local capability probe and measured fixture cost", () => {
       breakdown: { search: number; fetch: number; synthesize: number; other: number };
       tariffVersion: string;
       effectiveProcessor: string;
+      confirmedProviderMicro: number;
+      heldProviderMicro: number;
+      simulatedFixtureMicro: number;
+      allowanceReconciled: boolean;
     };
     expect(body.tariffVersion).toBe(FIXTURE_TARIFF_VERSION);
     expect(body.effectiveProcessor).toBe("app-owned-fixture-catalog");
     expect(body.reconciled).toBe(true);
+    expect(body.allowanceReconciled).toBe(true);
+    expect(body.confirmedProviderMicro).toBe(0);
+    expect(body.heldProviderMicro).toBe(0);
+    expect(body.simulatedFixtureMicro).toBe(body.spentMicro);
     expect(body.spentMicro).toBe(body.intentTotalMicro);
     expect(body.spentMicro).toBe(body.breakdown.search + body.breakdown.fetch + body.breakdown.synthesize + body.breakdown.other);
     expect(body.breakdown.search % FIXTURE_SEARCH_COST_MICRO).toBe(0);

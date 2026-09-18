@@ -1,0 +1,4 @@
+
+> @deep/research-core@0.1.0 typecheck /home/oranolio/Desktop/Deep/packages/research-core
+> tsc -p tsconfig.json --noEmit
+

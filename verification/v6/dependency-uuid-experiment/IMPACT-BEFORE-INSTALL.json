@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-09-18T04:12:16.219893+00:00",
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "cwd": "/tmp/deep-v6-metro-6490546",
+  "explicitBase": "PostCSS8.5.28 override, Vitest4.1.11 pins, fourteenExpoMetro0.83.8overrides; basepackage/base-lock retained",
+  "proposal": "Scoped xcode>uuid=11.1.1 only",
+  "justification": "Installedxcode3.0.1 has exactlyoneuuid APIcall: require(uuid).v4() in generateUuid, no options/buffer. Registry11.1.1metadata publishes NodeCommonJS require export dist/cjs/index.js andMITlicense. Advisory affects v3/v5/v6 external-bufferbounds; no reachability through thisv4caller found. Major override replaces unsupporteduuid7 and clears dependencyfinding without globaluuidforcing.",
+  "risk": "Outside xcode^7.0.3declaration; validate parser/edit/writer+generatedUUID invariant andExpoiOSconfigpluginpath. No claim nativeABI,iOSbuild orstorecompatibility.",
+  "validation": [
+    "synthetic project parse/edit/write/reparse",
+    "xcode24uppercasehex UUID generation uniquenesssample",
+    "advisory malformedbufferbounds rejected",
+    "offline frozeninstall andresolvepath",
+    "pnpm audit --json",
+    "mobiletypecheck"
+  ],
+  "privacySpend": "Development buildtoolonly,no model/provider/DB/nativeexecution; registrydownloads authorized; scriptsdisabled",
+  "rollback": "Remove onlyxcode>uuid override andmatchinglock changes; preserve earlier3dependencyfixes. Retain oldmoderatefinding andexperimentreceipts.",
+  "sources": [
+    "https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq",
+    "https://registry.npmjs.org/uuid/11.1.1"
+  ]
+}

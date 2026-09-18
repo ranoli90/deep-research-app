@@ -401,7 +401,7 @@ describe("V2-03 gold-evidence diagnostic", () => {
 });
 
 describe("E09 markdown export", () => {
-  it("emits tables, fenced code, unicode, and 8-char citation prefixes", () => {
+  it("emits tables, fenced code, unicode, and explicit unavailable labels when citation metadata is absent", () => {
     const md = blocksToMarkdown([
       {
         id: "answer",
@@ -429,14 +429,23 @@ describe("E09 markdown export", () => {
     expect(md).toMatch(/\| Vendor \| Price \|/);
     expect(md).toMatch(/\| Vendor C \| 70 EUR \|/);
     expect(md).toMatch(/```\nVendor C  70 EUR\n```/);
-    expect(md).toMatch(/\[aaaaaaaa\]/);
-    expect(md).toMatch(/\[bbbbbbbb\]/);
+    expect(md).toContain("Source unavailable (passage: aaaaaaaa-1111-4000-8000-000000000001).");
+    expect(md).toContain("Source unavailable (passage: bbbbbbbb-1111-4000-8000-000000000002).");
+    expect(md).not.toMatch(/\[[0-9a-f]{8}\]/);
     expect(md).not.toMatch(/pdf/i);
+  });
+  it("escapes an unavailable citation identity instead of interpreting it as markup", () => {
+    const md = blocksToMarkdown([{ id: "answer", kind: "text", text: "Saved finding", claimIds: [],
+      citationIds: ["<img src=x> [fake](javascript:evil)"] }]);
+    expect(md).toContain("Source unavailable (passage:");
+    expect(md).not.toContain("<img");
+    expect(md).not.toContain("[fake]");
+    expect(md).toContain("&#60;img");
   });
 });
 
 describe("M08 follow-up change summary", () => {
-  it("emits a follow-up change summary without reopening discovery", () => {
+  it("does not manufacture verification from a diagnostic question prefix", () => {
     const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nFollow-up: verify only claim-primary. Verify the answer claim only");
     s.passages = [
       {
@@ -449,8 +458,10 @@ describe("M08 follow-up change summary", () => {
     ];
     s.sources = [{ id: "sa", title: "A", locator: "fixture://vendor-a/pricing-de", accessLevel: "full-text", sourceType: "vendor-docs" }];
     const report = composeReport(s, "00000000-0000-4000-8000-000000000080");
-    expect(report.changeSummary?.conclusionChanged).toBe(false);
-    expect(report.changeSummary?.notes).toMatch(/without reopening candidate discovery/);
+    expect(report.reportId).toBe("00000000-0000-4000-8000-000000000080");
+    expect(report.blocks.length).toBeGreaterThan(0);
+    expect(report.changeSummary).toBeUndefined();
+    expect(JSON.stringify(report)).not.toMatch(/Targeted follow-up verified|without reopening candidate discovery/);
   });
 });
 

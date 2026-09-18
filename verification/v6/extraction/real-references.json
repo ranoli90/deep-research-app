@@ -1,0 +1,68 @@
+[
+  {
+    "id": "postgres-connect",
+    "mustPreserve": [
+      "connect_timeout connection parameter is ignored when using PQconnectPoll"
+    ]
+  },
+  {
+    "id": "postgres-numeric",
+    "mustPreserve": [
+      "up to 131072 digits before the decimal point; up to 16383 digits after the decimal point"
+    ]
+  },
+  {
+    "id": "postgres-isolation",
+    "mustPreserve": [
+      "PostgreSQL's Read Uncommitted mode behaves like Read Committed"
+    ]
+  },
+  {
+    "id": "python-decimal",
+    "mustPreserve": [
+      "0.1 + 0.1 + 0.1 - 0.3 is exactly equal to zero"
+    ]
+  },
+  {
+    "id": "python-csv",
+    "mustPreserve": [
+      "unquoted fields are transformed into floats"
+    ]
+  },
+  {
+    "id": "python-sqlite",
+    "mustPreserve": [
+      "If True (default), ProgrammingError will be raised if the database connection is used by a thread other than the one that created it"
+    ]
+  },
+  {
+    "id": "node-http",
+    "mustPreserve": [
+      "Setting the timeout option or using the setTimeout() function will not abort the request"
+    ]
+  },
+  {
+    "id": "node-fs",
+    "mustPreserve": [
+      "Aborting an ongoing request does not abort individual operating system requests"
+    ]
+  },
+  {
+    "id": "mdn-table-de",
+    "mustPreserve": [
+      "colspan und rowspan Attribute"
+    ]
+  },
+  {
+    "id": "mdn-table-en",
+    "mustPreserve": [
+      "breaking it apart into a collection of smaller, related tables"
+    ]
+  },
+  {
+    "id": "sqlite-support",
+    "mustPreserve": [
+      "$1500/year"
+    ]
+  }
+]

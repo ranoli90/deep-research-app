@@ -19,6 +19,22 @@ export * from "./projection.js";
 export * from "./provenance.js";
 export * from "./questions.js";
 export * from "./report.js";
+export * from "./report-derivations.js";
 export * from "./stop.js";
 export * from "./support.js";
 export * from "./types.js";
+export { validateModelBindings } from "./model-bindings.js";
+export { resolveScopedSupport, SCOPED_SUPPORT_VERSION, type ScopedSupportResult } from "./scoped-support.js";
+
+export { draftStatements, type DraftStatement } from "./draft-assertions.js";
+export { compileCheckedDraft } from "./draft-report.js";
+export * from "./research-coverage.js";
+export * from "./discovery-planning.js";
+export { compareAssertionScopes, projectScopeComparison } from "./scope-comparison.js";
+export { calculateEvidence } from "./evidence-calculation.js";
+export * from "./calculation-report.js";
+
+export * from "./counterevidence.js";
+export { requestedVerificationOutcome } from "./requested-verification.js";
+
+export { applyQuestionPatch } from "./question-patch.js";

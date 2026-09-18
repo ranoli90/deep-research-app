@@ -1,0 +1,77 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+matched-pipeline artifact: /home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/matched-pipeline/document-controls.json
+{"level":"info","event":"action","runId":"a3969e24-9f1a-4f49-ba0a-82907fb71719","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-18T10:23:58.354Z"}
+{"level":"info","event":"action","runId":"a3969e24-9f1a-4f49-ba0a-82907fb71719","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T10:23:58.502Z"}
+{"level":"info","event":"action","runId":"a3969e24-9f1a-4f49-ba0a-82907fb71719","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-18T10:23:58.641Z"}
+{"level":"info","event":"action","runId":"a3969e24-9f1a-4f49-ba0a-82907fb71719","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-18T10:23:58.742Z"}
+ ❯ test/eval-live.extraction.test.ts (3 tests | 3 failed) 645ms
+   × executes the same API/worker/parser/writer/checker for paired originals, correction and full rerun with durable trace 209ms
+   × prior different-account same-key held and confirmed liabilities count before any new provider work 82ms
+   × records a new opaque provider failure and retains its real reservation without issuing later steps 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/eval-live.extraction.test.ts > executes the same API/worker/parser/writer/checker for paired originals, correction and full rerun with durable trace
+AssertionError: expected { expectedSteps: 4, …(2) } to deeply equal { expectedSteps: 4, …(2) }
+
+- Expected
++ Received
+
+  {
+    "expectedSteps": 4,
+-   "halted": null,
+-   "recordedResults": 4,
++   "halted": "prior_unknown_exposure",
++   "recordedResults": 0,
+  }
+
+ ❯ test/eval-live.extraction.test.ts:34:89
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/eval-live.extraction.test.ts > prior different-account same-key held and confirmed liabilities count before any new provider work
+AssertionError: expected { confirmedMicro: +0, …(2) } to deeply equal { confirmedMicro: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+    "confirmedMicro": 0,
+-   "heldMicro": 5000,
+-   "unknownIntents": 1,
++   "heldMicro": 25000,
++   "unknownIntents": 2,
+  }
+
+ ❯ test/eval-live.extraction.test.ts:54:123
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/eval-live.extraction.test.ts > records a new opaque provider failure and retains its real reservation without issuing later steps
+AssertionError: expected 'prior_unknown_exposure' to be 'unknown_or_incomplete_run' // Object.is equality
+
+Expected: "unknown_or_incomplete_run"
+Received: "prior_unknown_exposure"
+
+ ❯ test/eval-live.extraction.test.ts:64:89
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  3 failed | 36 passed (39)
+   Start at  04:23:15
+   Duration  131.97s (transform 1.64s, setup 0ms, import 4.47s, tests 125.82s, environment 1ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts`
+Exit status 1

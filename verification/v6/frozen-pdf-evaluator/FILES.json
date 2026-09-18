@@ -1,0 +1,544 @@
+{
+  "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "implementationCommit": null,
+  "files": [
+    {
+      "path": "apps/backend/migrations/037_evidence_artifact_upload_limit.sql",
+      "bytes": 552,
+      "sha256": "8a57b4d04cfa2823c11f6b1f5e5e4e2f89e6575aa2f5e05b408b62aa7f23193c"
+    },
+    {
+      "path": "apps/backend/src/eval-live.ts",
+      "bytes": 8428,
+      "sha256": "2664a72541ab24846d1f1ebb2cfe4a16c635935e378ca75f0a333bddff963e43"
+    },
+    {
+      "path": "apps/backend/src/evaluation/authorization.ts",
+      "bytes": 4479,
+      "sha256": "6c94fae33047e0e99e22315a4b096ee013074e13e58ab4feb4865148ce30ea6a"
+    },
+    {
+      "path": "apps/backend/src/evaluation/frozen-documents.ts",
+      "bytes": 1452,
+      "sha256": "9da974f003bd29126df518f7d922132b753746300e1e095eba1ed11f27c09c08"
+    },
+    {
+      "path": "apps/backend/src/evaluation/production-driver.ts",
+      "bytes": 10688,
+      "sha256": "4dc87460b60918dd6198716ecb739ce9a1f5a95198b9564a6917165ea9193337"
+    },
+    {
+      "path": "apps/backend/src/evaluation/runner.ts",
+      "bytes": 5387,
+      "sha256": "cd8a76c6839d3ba86a22bd987c56cae485300746538788aad9dad019ed2f75ec"
+    },
+    {
+      "path": "apps/backend/test/eval-live.extraction.test.ts",
+      "bytes": 19548,
+      "sha256": "466a10deb6304e6fed36c3f31adabf4d1adc9495effdfa6d43387e5da5693c5b"
+    },
+    {
+      "path": "apps/backend/test/eval-live.unit.test.ts",
+      "bytes": 9058,
+      "sha256": "a26c7bf11a528546c624e9c1f4195238530ffedf025005ae694ab9ab8e46aa0a"
+    },
+    {
+      "path": "apps/backend/test/frozen-documents.unit.test.ts",
+      "bytes": 5648,
+      "sha256": "9fcae285765c37bfb07a24edc34fe20d89c2fe8c648f2aaf5bc81f2f846abde4"
+    },
+    {
+      "path": "verification/COMMANDS.json",
+      "bytes": 61199,
+      "sha256": "e7e97794a818bc01395171f4955dcba7e73748afb0c243d5d239c6828259080a"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/RESULTS.json",
+      "bytes": 13375,
+      "sha256": "4bc28f02b505d2217e6fc46e0d4c3729709bc38658da4739d558c97019439dbc"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/boundaries.log",
+      "bytes": 14,
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-SAbQ2X.json.gz",
+      "bytes": 825275,
+      "sha256": "6fa14b15a6b9ecb804702c4ec1527d4879bff0bd9e236f439306e6df5da50e5f"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-SWNCpF.json.gz",
+      "bytes": 826111,
+      "sha256": "6ec88e1efd50a199464178a0b707133668a2663a9905f08dc61461b65116b6f8"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-fYLgW8.json.gz",
+      "bytes": 4518934,
+      "sha256": "0a21be85b14702ea23e02ec538117a1f40de4118a00f908a8d2816fc12c51772"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-iwxwA1.json.gz",
+      "bytes": 45705,
+      "sha256": "cdb700070821b4d30ddd75ed8bfa91632267daba87849611486377b6476a41e8"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-yZlQql.json.gz",
+      "bytes": 4565341,
+      "sha256": "20bd6caf5dcba9265baf6b8d5d1a1885ea97f8979351d79e3245a0f8ea110166"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-capacity-fixed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-capacity-fixed.log",
+      "bytes": 316,
+      "sha256": "b720dbe0427402c1cf50cd141935bd98dcb9f9c780b39e9ed1ac9a1cc7a86624"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-final.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-final.log",
+      "bytes": 1163,
+      "sha256": "15e31c9732a833afad239650eee5d9c173294546633ff935602fbd4c43eea7ef"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-first.log",
+      "bytes": 316,
+      "sha256": "973a566060c4b9673f9365577e8b772df3d44fbf891b4be1ef17deb4e3ae353b"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-review.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-review.log",
+      "bytes": 3054,
+      "sha256": "1bd64d4ed9f003ae5ec335709568b6164dd816abae4eebe4a00c423162b40d13"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/install.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/install.log",
+      "bytes": 388,
+      "sha256": "95fb40378e0f9143714c770f19dad0a3ee6b6fedc452074e0406d39ea1f29bf2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-event-trace.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-event-trace.log",
+      "bytes": 328,
+      "sha256": "b1a8c01de54abd82699dc21e12d909aa29fe8a86560226d21c8e6efcfda7a09d"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-failure-events.json",
+      "bytes": 8103,
+      "sha256": "7c969b0922faf5be204046c5826c4cbe65ef7fd109b910433e24828aa2fdb02f"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-boundaries.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-event-trace.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-event-trace.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-final.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-reviewed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-reviewed.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-upload-journal.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-upload-journal.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-boundaries.log",
+      "bytes": 225,
+      "sha256": "63700dbf68a7258991c7cd4de97365b8b9e4390cb89c95658ae86090bc9569f6"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-complete.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-complete.log",
+      "bytes": 225,
+      "sha256": "f737da8282851134a5b21eb7378590324508d47f0fa35c2fb3f0e6b44efb645e"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-final.log",
+      "bytes": 225,
+      "sha256": "51728d0214b7fab023a2e9305b00999ed4b0c9699a8aa4f812023eb332ee9dea"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-reviewed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-reviewed.log",
+      "bytes": 225,
+      "sha256": "e1332ea39e1fe0b8d54ec389236889966aa932a1214f01b93e8543d663f65224"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units.log",
+      "bytes": 225,
+      "sha256": "f86e22a86f391a4835acbd781bc9c5dcc6bf875401fa853d13c93c27fe96a58a"
+    }
+  ],
+  "rootReviewFollowupFiles": [
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/RESULTS.json",
+      "bytes": 13375,
+      "sha256": "4bc28f02b505d2217e6fc46e0d4c3729709bc38658da4739d558c97019439dbc"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/boundaries.log",
+      "bytes": 14,
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-KmIJfj.json.gz",
+      "bytes": 3472,
+      "sha256": "b0666fa880a26ba714f3e6f943cf9b3970e568b9d0bbede045c33948f12624c2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-MOwyKF.json.gz",
+      "bytes": 4167,
+      "sha256": "d31f0d09df7224f81dcaf1a19eaf2c15bf24cc87723b7fc2890f1b8aeeb5efa6"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-SAbQ2X.json.gz",
+      "bytes": 825275,
+      "sha256": "6fa14b15a6b9ecb804702c4ec1527d4879bff0bd9e236f439306e6df5da50e5f"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-SWNCpF.json.gz",
+      "bytes": 826111,
+      "sha256": "6ec88e1efd50a199464178a0b707133668a2663a9905f08dc61461b65116b6f8"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-fYLgW8.json.gz",
+      "bytes": 4518934,
+      "sha256": "0a21be85b14702ea23e02ec538117a1f40de4118a00f908a8d2816fc12c51772"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-gQ7sn5.json.gz",
+      "bytes": 146,
+      "sha256": "41986e0f1bf3f793add522b30062c0f9d46dd8e65b866cbe0b168ea205b85a8b"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-iwxwA1.json.gz",
+      "bytes": 45705,
+      "sha256": "cdb700070821b4d30ddd75ed8bfa91632267daba87849611486377b6476a41e8"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/eval-runner-yZlQql.json.gz",
+      "bytes": 4565341,
+      "sha256": "20bd6caf5dcba9265baf6b8d5d1a1885ea97f8979351d79e3245a0f8ea110166"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-capacity-fixed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-capacity-fixed.log",
+      "bytes": 316,
+      "sha256": "b720dbe0427402c1cf50cd141935bd98dcb9f9c780b39e9ed1ac9a1cc7a86624"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-final.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-final.log",
+      "bytes": 1163,
+      "sha256": "15e31c9732a833afad239650eee5d9c173294546633ff935602fbd4c43eea7ef"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-first.log",
+      "bytes": 316,
+      "sha256": "973a566060c4b9673f9365577e8b772df3d44fbf891b4be1ef17deb4e3ae353b"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-review.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/extraction-review.log",
+      "bytes": 3054,
+      "sha256": "1bd64d4ed9f003ae5ec335709568b6164dd816abae4eebe4a00c423162b40d13"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/install.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/install.log",
+      "bytes": 388,
+      "sha256": "95fb40378e0f9143714c770f19dad0a3ee6b6fedc452074e0406d39ea1f29bf2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-event-trace.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-event-trace.log",
+      "bytes": 328,
+      "sha256": "b1a8c01de54abd82699dc21e12d909aa29fe8a86560226d21c8e6efcfda7a09d"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/official-failure-events.json",
+      "bytes": 8103,
+      "sha256": "7c969b0922faf5be204046c5826c4cbe65ef7fd109b910433e24828aa2fdb02f"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-boundaries.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-event-trace.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-event-trace.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-final.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-reviewed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-reviewed.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-unavailable-read.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-unavailable-read.log",
+      "bytes": 107,
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-upload-journal.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck-upload-journal.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/typecheck.log",
+      "bytes": 105,
+      "sha256": "115df31214e86e14af2825e9ae6d7a235a6303b102a2b2b703cb1e4133b07462"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-after.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-after.log",
+      "bytes": 329,
+      "sha256": "e7aa6118f461b8c0e6f8dfd5408fdc931ed810374d29a382f9ccc2d8042a7bd1"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-before.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-before.log",
+      "bytes": 1512,
+      "sha256": "e29487bddd055794a192d96ca509df2aaed5a5cf83a1951d527cf003b6032bc2"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-parser-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/unavailable-read-parser-final.log",
+      "bytes": 329,
+      "sha256": "c4f7564878df61dd375a3204785ac649f07f7c8be058e4594feb4beaf32302c0"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-boundaries.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-boundaries.log",
+      "bytes": 225,
+      "sha256": "63700dbf68a7258991c7cd4de97365b8b9e4390cb89c95658ae86090bc9569f6"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-complete.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-complete.log",
+      "bytes": 225,
+      "sha256": "f737da8282851134a5b21eb7378590324508d47f0fa35c2fb3f0e6b44efb645e"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-final.log",
+      "bytes": 225,
+      "sha256": "51728d0214b7fab023a2e9305b00999ed4b0c9699a8aa4f812023eb332ee9dea"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-reviewed.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units-reviewed.log",
+      "bytes": 225,
+      "sha256": "e1332ea39e1fe0b8d54ec389236889966aa932a1214f01b93e8543d663f65224"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/frozen-pdf-evaluator/units.log",
+      "bytes": 225,
+      "sha256": "f86e22a86f391a4835acbd781bc9c5dcc6bf875401fa853d13c93c27fe96a58a"
+    }
+  ],
+  "originalSourceHashesScope": "Original isolated implementation retained; final root source hashes are in frozen-pdf-integrated/FILES.json."
+}

@@ -1,0 +1,54 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-upload.integration.test.ts test/controller-admission.integration.test.ts test/attachment-retry.integration.test.ts test/admission-recovery.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"296dbd7a-b72e-4a79-8db9-2b385c7d006b","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:30.985Z"}
+{"level":"info","event":"action","runId":"296dbd7a-b72e-4a79-8db9-2b385c7d006b","type":"stop","rationale":"action type reveal_keys is not a permitted research action","step":1,"t":"2026-09-18T02:27:31.008Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:31.574Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"search","rationale":"Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.","step":1,"t":"2026-09-18T02:27:31.596Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"fetch","rationale":"Inspect the preferred source type (vendor-matrix) before more weak sources","step":2,"t":"2026-09-18T02:27:31.614Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-18T02:27:31.629Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-18T02:27:31.646Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-18T02:27:31.662Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"verify","rationale":"Scope-check contradiction on compatibility before treating newest as correct","step":6,"t":"2026-09-18T02:27:31.679Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"challenge","rationale":"Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.","step":7,"t":"2026-09-18T02:27:31.692Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":8,"t":"2026-09-18T02:27:31.709Z"}
+{"level":"info","event":"action","runId":"35b5c3f6-9d4c-40a9-a0d8-3a09cd4db861","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":9,"t":"2026-09-18T02:27:31.721Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:32.295Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T02:27:32.321Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-18T02:27:32.337Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-18T02:27:32.356Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-18T02:27:32.376Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-18T02:27:32.390Z"}
+{"level":"info","event":"action","runId":"d045e809-3b6f-402b-b28a-ad690b3b1212","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-18T02:27:32.401Z"}
+{"level":"info","event":"action","runId":"634d734e-e63e-40a1-9320-128c2bf5e531","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:32.965Z"}
+{"level":"info","event":"action","runId":"634d734e-e63e-40a1-9320-128c2bf5e531","type":"search","rationale":"Investigate an uncovered required question","step":1,"t":"2026-09-18T02:27:32.999Z"}
+{"level":"info","event":"action","runId":"21bd391e-11f2-4607-a789-d694dfe96e12","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:33.321Z"}
+{"level":"info","event":"action","runId":"e6907aca-80e2-4cc7-9ae9-19f9a16bfb5d","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:33.654Z"}
+{"level":"info","event":"action","runId":"cc38b465-5398-401c-a3a9-4855b1349bbc","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:33.976Z"}
+{"level":"info","event":"action","runId":"6b5a4f2f-be98-4d53-bb2a-db0b1a9555e1","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:34.299Z"}
+{"level":"info","event":"action","runId":"fb70666b-046a-481d-a2f7-1bf231346561","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:34.623Z"}
+{"level":"info","event":"action","runId":"5fcdacb4-8bdb-4c85-baf6-4576050234a0","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T02:27:34.945Z"}
+ ✓ test/controller-admission.integration.test.ts (11 tests) 4810ms
+   ✓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources  655ms
+   ✓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap  717ms
+   ✓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun  688ms
+   ✓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search  344ms
+   ✓ controller admission on the fixture worker path > does not count http_failure as a completed search  336ms
+   ✓ controller admission on the fixture worker path > does not count unknown_cost as a completed search  327ms
+   ✓ controller admission on the fixture worker path > does not count timeout as a completed search  322ms
+   ✓ controller admission on the fixture worker path > does not count prior_attempt as a completed search  318ms
+   ✓ controller admission on the fixture worker path > does not count prior_confirmed_attempt as a completed search  327ms
+   ✓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call  314ms
+ ✓ test/attachment-retry.integration.test.ts (7 tests) 643ms
+ ✓ test/admission-recovery.integration.test.ts (4 tests) 694ms
+ ✓ test/v6-upload.integration.test.ts (2 tests) 276ms
+
+ Test Files  4 passed (4)
+      Tests  24 passed (24)
+   Start at  20:27:29
+   Duration  9.00s (transform 706ms, setup 0ms, collect 1.80s, tests 6.42s, environment 1ms, prepare 276ms)
+

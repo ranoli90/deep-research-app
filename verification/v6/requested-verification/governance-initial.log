@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/governance.test.ts (6 tests) 1150ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  870ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  21:27:57
+   Duration  2.29s (transform 72ms, setup 0ms, collect 853ms, tests 1.15s, environment 0ms, prepare 92ms)
+

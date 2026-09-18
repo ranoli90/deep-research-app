@@ -1,0 +1,32 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/source-deletion.integration.test.ts (6 tests | 1 failed) 2136ms
+   × W03/W06 deletes owned source and reused descendants, preserving unrelated raw evidence and accounts 488ms
+     → inconsistent types deduced for parameter $1
+   ✓ W03 DELETE source is authenticated, owner-bound and idempotent; source reader returns its deletion handle  441ms
+   ✓ W03 deletes all extraction copies of one attachment and rejects a late parser result  302ms
+   ✓ W03 source deletion prevents late model output but preserves actual financial receipts 246ms
+   ✓ W03 source deletion drains only the selected legacy attachment file 166ms
+   ✓ W02/W03 source deletion keeps unknown provider and account holds until actual reconciliation 160ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/source-deletion.integration.test.ts > W03/W06 deletes owned source and reused descendants, preserving unrelated raw evidence and accounts
+error: inconsistent types deduced for parameter $1
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ derived test/source-deletion.integration.test.ts:74:2
+
+ ❯ test/source-deletion.integration.test.ts:88:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  18:43:14
+   Duration  4.03s (transform 961ms, setup 0ms, collect 1.59s, tests 2.14s, environment 0ms, prepare 102ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts

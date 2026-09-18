@@ -10,7 +10,14 @@ class BuilderHandoffTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.root=Path(self.tmp.name)/'kit'
-        shutil.copytree(Path(__file__).resolve().parents[1], self.root, ignore=shutil.ignore_patterns('__pycache__'))
+        shutil.copytree(Path(__file__).resolve().parents[1], self.root, ignore=shutil.ignore_patterns(
+            '__pycache__', '.git', 'node_modules', '.env*', '.npmrc', '.codex', '.agents', '.expo', '.venv',
+            'data', 'dist', 'build', '*.zip', '*.log'))
+        # Copy only explicitly registered immutable evidence logs, never arbitrary runtime logs.
+        source = Path(__file__).resolve().parents[1]
+        for gate in json.loads((source/'verification/P0_ACCEPTANCE.json').read_text())['gates']:
+            for artifact in gate.get('current_evidence', []):
+                shutil.copyfile(source/artifact['path'], self.root/artifact['path'])
     def tearDown(self): self.tmp.cleanup()
     def alter(self,path,fn):
         p=self.root/path; data=json.loads(p.read_text()); fn(data); p.write_text(json.dumps(data))
@@ -30,6 +37,18 @@ class BuilderHandoffTests(unittest.TestCase):
         self.invalid('Submitted review bytes changed')
     def test_claimed_live_gate_pass(self):
         self.alter('verification/P0_ACCEPTANCE.json',lambda d:d['gates'][1].update(status='passed'))
+        self.invalid('P0 evidence overstated')
+    def test_missing_local_evidence(self):
+        self.alter('verification/P0_ACCEPTANCE.json',lambda d:d['gates'][0].update(current_evidence=[]))
+        self.invalid('P0 local evidence missing')
+    def test_tampered_local_evidence(self):
+        self.alter('verification/P0_ACCEPTANCE.json',lambda d:d['gates'][0]['current_evidence'][0].update(sha256='0'*64))
+        self.invalid('artifact mismatch')
+    def test_fake_native_pass(self):
+        self.alter('verification/P0_ACCEPTANCE.json',lambda d:d['gates'][2]['platform_status'].update(ios='passed'))
+        self.invalid('Native evidence overstated')
+    def test_partial_checkpoint_cannot_claim_complete(self):
+        self.alter('verification/P0_ACCEPTANCE.json',lambda d:d.update(p0_fully_verified=True))
         self.invalid('P0 evidence overstated')
     def test_deferred_safety(self):
         self.alter('verification/P0_ACCEPTANCE.json',lambda d:d.update(minimum_governance_security_accessibility_start_in_p0=False))

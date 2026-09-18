@@ -1,0 +1,14 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-identity.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/v6-identity.integration.test.ts (3 tests) 531ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  10:27:49
+   Duration  1.61s (transform 504ms, setup 0ms, collect 824ms, tests 531ms, environment 0ms, prepare 77ms)
+

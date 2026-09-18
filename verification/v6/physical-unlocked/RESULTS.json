@@ -1,0 +1,109 @@
+{
+  "requirementIds": [
+    "W03",
+    "W06",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "d19b62a",
+  "implementationCommit": null,
+  "sourceState": "Physical initial journey d19b62a; final Metro restarted with reviewed ADR053 App/test fixes; final source hashes in FILES.json",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "device": "REDMI Note15 5G,25098RA98G,Android16,10.0.0.167:43417",
+    "runtime": "Expo Go54.0.8/current workspace; old standalone APK untouched",
+    "database": "local deep_research_native_v6",
+    "parser": "isolated /tmp/deep-v6-extraction-runtime"
+  },
+  "paidCalls": 0,
+  "fabricatedProviderCalls": 14,
+  "syntheticConfirmedMicro": 14,
+  "unknownIntents": 0,
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "mobile-tests-final.log",
+      "exitCode": 0,
+      "scope": "206/206,22files,3.30s final source"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "deep-auth-offline-types.log",
+      "exitCode": 0,
+      "scope": "Final mobile types"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/auth-recovery.test.ts",
+      "artifact": "deep-auth-offline-final.log",
+      "exitCode": 0,
+      "scope": "6/6 actual App-closure controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/auth-recovery.test.ts",
+      "artifact": "deep-auth-recovery-regression.log",
+      "exitCode": 1,
+      "scope": "Prefixed5regression failures"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/auth-recovery.test.ts",
+      "artifact": "deep-auth-offline-regression.log",
+      "exitCode": 1,
+      "scope": "Prefixed offline1fail/5pass"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "validate-review.log",
+      "exitCode": 0,
+      "scope": "Canonical metadata integrity only"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "validate-handoff.log",
+      "exitCode": 0,
+      "scope": "Canonical metadata integrity only"
+    }
+  ],
+  "journey": {
+    "priorCleanup": "Automatic expired-session cleanup cleared old1617411b session/content; storage booleans false. No global Expo data wipe.",
+    "originalQuestion": "Does Ardent support underwater recording?",
+    "originalAnswer": "Ardent does not support underwater recording.",
+    "correction": "Which firmware supports Ardent offline recording?",
+    "correctedAnswer": "Ardent supports offline recording only on firmware 4.2.",
+    "source": "Actual selected1211bytePDF,sha2562e013c307af0568112e393c8c291aa86406f4bab2d8a4aaf786c0f9703a2b3a4,page1/block0/geometry,docling-parse-7.20.0/geometry-v1,partial-text warning. Same version reused in correction;2membership rows.",
+    "consent": "Native Send before consent redirected to consent; selected file admitted after grant. No separate pre-consent DB query captured in this turn.",
+    "reopen": "Cold reopen retained report after initial unavailable UI inspection; cause of initial launch landing home unverified.",
+    "share": "Android share preview contains synthetic Ardent answer; cancelled, no recipient selected; complete bibliography not re-captured in native preview this turn.",
+    "deletion": "Native source deletion invalidated both reports; native account deletion cleared cache/credentials/content. Offline cold reopening retained independent draft but no deleted report.",
+    "isolation": "Second synthetic account empty Library. Third account direct sign-in after server-deleted second account verifies ADR053 recovery without logout workaround. Synthetic draft then logout/cold restart clears all private state."
+  },
+  "failures": [
+    "Initial guarded inspector used async syntax unsupported by Hermes;2failed attempts retained, replaced with Promise-chain helper.",
+    "Initial baseline SQL used nonexistent content_bytes column42703; corrected to raw_bytes, no mutation.",
+    "Initial picker file not visible until OS search; no unrelated inventory captured.",
+    "Offscreen source Delete refused; scrolled before control activation.",
+    "Removing API reverse did not kill an existing connection; deletion succeeded online, so no pending-offline-deletion pass claimed. Later force-stop/offline startup confirmed unavailable API.",
+    "Expired-session cleanup left storageReady false and early sign-in errors swallowed;5regressions fail before fix, pass after; final actual phone sign-in passes.",
+    "Successful invalidated refresh left offline flag true;1regression fails before fix, final repair unit/typechecked; post-fix invalidated physical retry NOT repeated."
+  ],
+  "cleanup": {
+    "createdAccounts": 3,
+    "activeAccounts": 0,
+    "remainingAttachmentContent": 0,
+    "unconfirmedIntents": 0,
+    "retainedHistoricalRedactedRuns": 12,
+    "apiExitCode": 0,
+    "metroStopped": true,
+    "reverseMappingsRemoved": true,
+    "syntheticDownloadsRemoved": true,
+    "finalStorage": "logout-cold-storage.json"
+  },
+  "limits": [
+    "Fabricated models prove UI/API/parser controls, not semantic accuracy or independent quality.",
+    "Expo Go is not a current standalone arm64 build, signed release or iOS proof.",
+    "Screen-reader/rotation/broad accessibility not exercised; no phone settings changed.",
+    "Paid budget unknown; hosted identity/retention/provider bounds and independent adjudication still gated."
+  ],
+  "rollback": "Keep cleanup fail-closed while pending/failed; preserve request generation guards, privacy redaction, deletion and financial obligations; do not restore stale cache or reopen failed cleanup."
+}

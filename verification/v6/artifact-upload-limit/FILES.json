@@ -1,0 +1,46 @@
+{
+  "sources": [
+    {
+      "path": "apps/backend/migrations/037_evidence_artifact_upload_limit.sql",
+      "sha256": "8a57b4d04cfa2823c11f6b1f5e5e4e2f89e6575aa2f5e05b408b62aa7f23193c"
+    },
+    {
+      "path": "apps/backend/test/artifact-size.integration.test.ts",
+      "sha256": "cddb38bc981d1efc2af12bb9e356033a8e16d0e92ebcf7ec21bf72f06b0b39d4"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/v6/artifact-upload-limit/RESULTS.json",
+      "sha256": "1523bff06aaf06dbbe36d1649f32db22429c90497fd993afb4fcd356964d3793"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/before.log",
+      "sha256": "f79dd8522dfd07ddc75263aba80194e4e6798e9b34a920b74e376ad2b2fd7e86"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/crash-account-cleanup.log",
+      "sha256": "5bec2fd8a0c6061a40368f72a16067c104673dafcf12bfd6d698b84f9c8eb4b9"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/database-setup.log",
+      "sha256": "bce52426ad5d0a1e34bb598e8b6c3d905da70c75a5fa0deb5c8a3a03ece2c310"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/final-buffer-equality.log",
+      "sha256": "f28314c12e130f31d7ed6e45fe07e55170f5f015718bb33cd9abbe4ce8bc2d6c"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/final.log",
+      "sha256": "db772f5544216df69181d38bc9c70948541f249f61c433f04f0d37fc158a24f1"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/setup-python-failure.log",
+      "sha256": "ed481ebbd0248435290330117333e85bdba045a9080bcc5c681ac5ffbccbe763"
+    },
+    {
+      "path": "verification/v6/artifact-upload-limit/typecheck.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ]
+}

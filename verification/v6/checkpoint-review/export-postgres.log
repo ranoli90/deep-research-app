@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T00:31:03.708Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T00:31:03.857Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-18T00:31:03.938Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-18T00:31:03.998Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-18T00:31:04.075Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-18T00:31:04.170Z"}
+{"level":"info","event":"action","runId":"659cf8cf-6273-4e24-afbc-9f8d31041eca","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-18T00:31:04.232Z"}
+ ✓ test/p3-remaining.integration.test.ts (51 tests | 50 skipped) 3206ms
+   ✓ remaining launch-scope IDs > E09 export citation anchors resolve to owned passages  2514ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 50 skipped (51)
+   Start at  18:30:57
+   Duration  8.15s (transform 2.49s, setup 0ms, collect 4.41s, tests 3.21s, environment 0ms, prepare 137ms)
+

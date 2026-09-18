@@ -1,0 +1,30 @@
+{
+  "task": "W05/W02",
+  "baseCommit": "ece80f4d7be60843963e383b3707083547f61042",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "postgres": "127.0.0.1:55432/deep_research_vitest4_v6_20260917"
+  },
+  "paidCalls": 0,
+  "results": [
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 pnpm --filter @deep/backend test:integration test/requested-verification.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "integration.log",
+      "scope": "35/35;107.82seconds; real PostgreSQL/fabricated transports"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck.log",
+      "scope": "backend configured types"
+    }
+  ],
+  "limits": [
+    "Not live semantic or native proof",
+    "UUID-only Node build tooling installed concurrently after test worker loaded; no test/backend source changes during execution"
+  ]
+}

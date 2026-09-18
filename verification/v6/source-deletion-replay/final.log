@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/source-deletion.integration.test.ts (7 tests) 1215ms
+   ✓ W03/W06 deletes owned source and reused descendants, preserving unrelated raw evidence and accounts  362ms
+ ✓ test/admission-recovery.integration.test.ts (4 tests) 623ms
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  21:16:40
+   Duration  3.47s (transform 635ms, setup 0ms, collect 1.25s, tests 1.84s, environment 0ms, prepare 135ms)
+

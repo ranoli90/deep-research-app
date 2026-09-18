@@ -1,0 +1,194 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Live research route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Live research route",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,375][1080,1301]",
+      "class": "android.widget.ScrollView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research progress",
+      "bounds": "[45,420][1035,882]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "WRITING",
+      "label": "",
+      "bounds": "[92,467][988,518]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Writing an answer from checked source evidence.",
+      "label": "",
+      "bounds": "[92,535][988,671]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Cancel research",
+      "bounds": "[93,728][987,834]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Cancel",
+      "label": "",
+      "bounds": "[93,728][987,834]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "In progress",
+      "bounds": "[512,672][570,729]",
+      "class": "android.widget.FrameLayout",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Choose PDF, text or Markdown document",
+      "bounds": "[45,1324][1035,1430]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Choose a document",
+      "label": "",
+      "bounds": "[45,1324][1035,1430]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "PDF, text or Markdown, up to 8 MiB. Selected files are sent when you submit and must be selected again if the app closes.",
+      "label": "",
+      "bounds": "[45,1429][1035,1633]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "note.txt",
+      "label": "Attachment filename",
+      "bounds": "[45,1633][1035,1739]",
+      "class": "android.widget.EditText",
+      "checked": "false"
+    },
+    {
+      "text": "Paste a text or Markdown note",
+      "label": "Attachment text",
+      "bounds": "[45,1760][1035,1866]",
+      "class": "android.widget.EditText",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Attach pasted note",
+      "bounds": "[45,1888][1035,1994]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Attach note (0/3)",
+      "label": "",
+      "bounds": "[45,1888][1035,1994]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "What does the Ardent field note say about underwater recording?",
+      "label": "Research question",
+      "bounds": "[22,2019][866,2200]",
+      "class": "android.widget.EditText",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[867,2094][1058,2200]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Send",
+      "label": "",
+      "bounds": "[912,2116][1013,2177]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2348]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][354,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2348]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    }
+  ]
+}

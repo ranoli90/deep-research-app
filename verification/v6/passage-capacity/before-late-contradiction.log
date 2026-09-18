@@ -1,0 +1,28 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts -t 'observes a contradiction'
+
+
+ RUN  v4.1.11 /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+
+ ❯ test/passage-capacity.integration.test.ts (5 tests | 1 failed | 4 skipped) 433ms
+   × W01 observes a contradiction at passage25 and cannot publish the positive claim 309ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/passage-capacity.integration.test.ts > W01 observes a contradiction at passage25 and cannot publish the positive claim
+TypeError: Cannot read properties of undefined (reading 'context')
+ ❯ test/passage-capacity.integration.test.ts:64:249
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 skipped (5)
+   Start at  22:44:43
+   Duration  1.73s (transform 880ms, setup 0ms, import 1.14s, tests 433ms, environment 0ms)
+
+/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts -t 'observes a contradiction'`
+Exit status 1

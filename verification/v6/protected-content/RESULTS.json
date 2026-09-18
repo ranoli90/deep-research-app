@@ -1,0 +1,112 @@
+{
+  "requirementIds": [
+    "W03",
+    "W07",
+    "W09",
+    "V6-F17"
+  ],
+  "baseCommit": "5f10a8471b67b8a3ddd95245f2736fc794fba210",
+  "revisionScope": "Verified working-tree source committed as96ee11b; prior clean-checkout proof applies to5f10a84.",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "native": "REDMI Note15 5G Android16; current Expo Go54.0.8; standalone APK unchanged"
+  },
+  "results": [
+    {
+      "artifact": "tests-initial.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "scope": "75/75 before quiet-period/flush additions",
+      "sha256": "195b14e54bcc83452d6acb254875ba064936070b546c9e0687911367a34f438d"
+    },
+    {
+      "artifact": "tests-final.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "scope": "76/76 coalescing control",
+      "sha256": "91e2b2d6ea8e26d6f9a2ed8cf87c16ee99c97441802b1d2ed991e88194a2711d"
+    },
+    {
+      "artifact": "tests-quiet-period.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "scope": "76/77; old static ternary assertion did not match required two-tab navigation",
+      "sha256": "bdb5291bb188c0722cd40fd84bcb54b77adf5c26ca9be0dc64fedfa5591cb966"
+    },
+    {
+      "artifact": "tests-quiet-final.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "scope": "77/78; same static assertion, retained",
+      "sha256": "13298c67ca3cdc845564b5054b9cb35e6ef25bbf352457931d891bd89de17de5"
+    },
+    {
+      "artifact": "tests-nav-final.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "scope": "78/78; Library and Profile label guards preserved/strengthened",
+      "sha256": "3cd2d5368bfab671f686f8772cb18d444399bab5dff6e4a77afa0c1ff1cdb939"
+    },
+    {
+      "artifact": "types-quiet-final.log",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "Current mobile types after cache/flush/navigation changes",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "artifact": "android-export.log",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-protected-bundle",
+      "exitCode": 0,
+      "scope": "634modules,2.11MB; JavaScript only",
+      "sha256": "883a1390d37965933b515fae4845a577ab90c6237e7b294167939511eb7573e1"
+    },
+    {
+      "artifact": "verify.log",
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "scope": "148core/114backend/78mobile/6governance; unsuppressed configured typechecks/boundaries",
+      "sha256": "3e7163d138b45a5570bbde2dab6f68d5ac4209625a17eb04a384c2e30790e15b"
+    },
+    {
+      "artifact": "review-validator.log",
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "scope": "Review document integrity only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "artifact": "handoff-validator.log",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "scope": "Canonical handoff integrity only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    }
+  ],
+  "native": {
+    "commands": [
+      "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+      "python3 verification/v6/protected-content/native-inspect.py",
+      "node verification/v6/protected-content/native-probe.cjs <own-project storage-presence expressions>",
+      "adb authorized reverse/deep-link/input/force-stop commands"
+    ],
+    "passed": [
+      "Native report migrated to2SecureStore chunks, ordinary snapshot absent",
+      "UI logout removed owned manifest/chunks",
+      "Paced2640-character synthetic draft matched UI and2protected chunks with ordinary draft absent",
+      "Cold process restart restored all2640characters exactly",
+      "Only Research/Library bottom tabs; Profile opens Settings",
+      "Final cleanup: credential/report/plaintext absent; guest length0; Metro/reverse stopped"
+    ],
+    "failedOrLimited": [
+      "Unpaced2640-character ADB injection yielded783,796,923characters; cause unverified, not a passing bulk typing test",
+      "Initial inspector async syntax unsupported; next Promise inspection returned no awaited measurement; retained before callback-based measurements",
+      "Initial cold reopen observations were Expo home, retained before successful current app relaunch",
+      "No signed standalone/iOS/backup or broad lifecycle acceptance"
+    ]
+  },
+  "paidCalls": 0,
+  "rollback": "Disable new persistence if necessary; retain protected readers/cleanup and denial markers; never restore plaintext writes.",
+  "implementationCommit": "96ee11b727a4ed519c647cd24cfdb2892d72795d"
+}

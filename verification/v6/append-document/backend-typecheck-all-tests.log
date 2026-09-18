@@ -1,0 +1,9 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+test/append-document.extraction.test.ts(8,54): error TS2305: Module '"../src/modules/access.js"' has no exported member 'storeAttachment'.
+test/append-document.integration.test.ts(7,68): error TS2305: Module '"../src/modules/access.js"' has no exported member 'storeAttachment'.
+/tmp/deep-append-document-4c3seb7g/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

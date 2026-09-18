@@ -1,9 +1,16 @@
+import { calculationPublicationClaims } from "./calculation-publication.js";
+import { deriveReportChanges } from "./report-changes.js";
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
-import { canPublish, checkReportCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
-import type { Queryable } from "../platform/db.js";
-import { currentConsent } from "./access.js";
-import { getRun, markTerminal } from "./runs.js";
+import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
+import { withTx, type Queryable } from "../platform/db.js";
+import pg from "pg";
+import { currentConsent, lockActiveAccount } from "./access.js";
+import { getBrief, getRun, markTerminal } from "./runs.js";
 import { settleRun } from "./billing.js";
+import { reportCompletionCovered } from "./publication-coverage.js";
+import { scopedPublicationClaims } from "./scoped-publication.js";
+import { persistCheckedClaims } from "./claim-support.js";
+import { loadEvidence } from "./evidence.js";
 
 export async function publishReport(
   db: Queryable,
@@ -16,8 +23,14 @@ export async function publishReport(
     deleted: boolean;
   },
 ): Promise<{ accepted: boolean; reason: string; reportId?: string }> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => publishReport(client, args));
+  const acc = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1 FOR UPDATE`, [args.accountId]);
   const run = await getRun(db, args.report.runId, { forUpdate: true });
   if (!run) return { accepted: false, reason: "missing_run" };
+  if (run.account_id !== args.accountId) return { accepted: false, reason: "wrong_owner" };
+  if (Object.keys(args.loaded).some((key) => args.report.basis[key as keyof RevisionBasis] !== args.loaded[key as keyof RevisionBasis])) {
+    return { accepted: false, reason: "stale_report_basis" };
+  }
   const current: RevisionBasis = {
     briefRevision: run.brief_revision,
     evidenceRevision: run.evidence_revision,
@@ -25,31 +38,64 @@ export async function publishReport(
     cancellationEpoch: run.cancellation_epoch,
     workerLeaseFence: run.worker_lease_fence,
   };
-  const problems = checkReportCitations(args.report.blocks, args.claims, args.passages);
-  const acc = await db.query<{ deleted_at: Date | null }>(`SELECT deleted_at FROM accounts WHERE id = $1`, [args.accountId]);
-  const deletedNow = args.deleted || Boolean(acc.rows[0]?.deleted_at);
+  const consent = await currentConsent(db, args.accountId);
+  // Reload evidence from storage: caller-supplied text/ownership/version is not authority.
+  const stored = await db.query<{
+    id: string; source_id: string; source_version_id: string; exact_text: string;
+  }>(`SELECT p.id, v.source_id, p.source_version_id, p.exact_text
+      FROM authorized_run_passages p JOIN source_versions v ON v.id = p.source_version_id
+      JOIN sources s ON s.id = v.source_id
+      WHERE p.run_id = $1
+        AND p.account_id = $2 AND v.account_id = $2 AND s.account_id = $2`,
+    [run.id, args.accountId]);
+  const passages = stored.rows.map((p) => ({ id: p.id, sourceId: p.source_id,
+    sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" }));
+  const brief = await getBrief(db, run.brief_id);
+  const evidence = await loadEvidence(db, run.id);
+  const derivationContext = { constraints: brief.constraints, claims: args.claims,
+    passages: evidence.passages.map((p) => ({ id: p.id, sourceId: p.source_id, sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" })),
+    sources: evidence.sources.map((s) => ({ id: s.id, title: s.title, locator: s.canonical_locator,
+      accessLevel: s.access_level, originCluster: s.origin_cluster ?? undefined, language: s.language ?? undefined })) };
+  const scoped=await scopedPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
+  const calculations=await calculationPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
+  const rejected=new Set([...scoped.rejected,...calculations.rejected]);
+  const problems = validateMaterialCitations({
+    blocks: args.report.blocks, claims: args.claims, passages,
+    runPassageIds: new Set(passages.map((p) => p.id)),
+    derivationContext,scopedApprovals:scoped.approved,calculationApprovals:calculations.approved,rejectedScopedClaims:rejected,
+  });
+  const storedById = new Map(passages.map((p) => [p.id, p]));
+  const alteredEvidence = args.passages.some((p) => {
+    const persisted = storedById.get(p.id);
+    return !persisted || persisted.sourceVersionId !== p.sourceVersionId ||
+      persisted.sourceId !== p.sourceId || persisted.exactText !== p.exactText;
+  });
+  const deletedNow = args.deleted || !acc.rows[0] || Boolean(acc.rows[0].deleted_at);
   let reason = canPublish({
     loaded: args.loaded,
     current,
     deleted: deletedNow,
     unknownCitationIds: problems.unknownIds,
-    unsupportedCitationCount: problems.unsupported.length,
+    unsupportedCitationCount: citationValidationFails(problems) || alteredEvidence ? 1 : 0,
   });
   if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
     reason = "cancelled";
   }
-  if (reason === "ok") {
-    const consent = await currentConsent(db, args.accountId);
-    if (!consent || consent.revoked) reason = "consent_revoked";
+  if (!deletedNow && (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch)) reason = "consent_revoked";
+  if (reason === "ok" && run.lifecycle === "terminal") return { accepted: false, reason: "already_published" };
+  if(reason === "ok" && !(await reportCompletionCovered(db,args.accountId,args.report))) {
+    await db.query("INSERT INTO publication_attempts(run_id,fence,accepted,reason) VALUES($1,$2,false,'incomplete_question_coverage')",
+      [run.id,JSON.stringify({loaded:args.loaded,current})]);
+    return {accepted:false,reason:"incomplete_question_coverage"};
   }
   await db.query(
     `INSERT INTO publication_attempts (run_id, fence, accepted, reason) VALUES ($1,$2,$3,$4)`,
     [args.report.runId, JSON.stringify({ loaded: args.loaded, current }), reason === "ok", reason],
   );
   if (reason !== "ok") return { accepted: false, reason };
-  if (run.lifecycle === "terminal" && run.terminal_outcome && run.terminal_outcome !== "cancelled") {
-    return { accepted: false, reason: "already_published" };
-  }
+  const checkedReport = await persistCheckedClaims(db, { report: args.report, accountId: args.accountId, claims: args.claims, passages, derivationContext, scopedApprovals:scoped.approved,calculationApprovals:calculations.approved });
+  const changes=await deriveReportChanges(db,args.accountId,checkedReport);
+  const changeSummary=changes.managed?changes.summary:args.report.changeSummary;
   const reportId = args.report.reportId;
   const nextEpoch = run.completion_epoch + 1;
   await db.query(
@@ -62,11 +108,11 @@ export async function publishReport(
       args.report.version,
       args.report.outcome,
       JSON.stringify(args.report.basis),
-      JSON.stringify(args.report.blocks),
-      args.report.claimIds,
+      JSON.stringify(checkedReport.blocks),
+      checkedReport.claimIds,
       JSON.stringify(args.report.limitations),
       JSON.stringify(args.report.sourceAccessSummary),
-      args.report.changeSummary ? JSON.stringify(args.report.changeSummary) : null,
+      changeSummary ? JSON.stringify(changeSummary) : null,
       args.report.routeMode,
     ],
   );
@@ -144,6 +190,13 @@ export async function insertChallenge(
     excerptText?: string | null;
   },
 ): Promise<string> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => insertChallenge(client, args));
+  await lockActiveAccount(db, args.accountId);
+  const report = await db.query("SELECT id FROM reports WHERE id=$1 AND account_id=$2 AND redacted_at IS NULL", [args.reportId, args.accountId]);
+  if (!report.rows[0]) throw new Error("report_unavailable");
+  if (args.claimId && !await reportOwnsClaim(db, args.reportId, args.accountId, args.claimId)) {
+    throw Object.assign(new Error("Claim not found in this report."), { statusCode: 404 });
+  }
   const id = crypto.randomUUID();
   await db.query(
     `INSERT INTO challenges (id, account_id, report_id, claim_id, category, note, include_excerpt, excerpt_text)
@@ -160,6 +213,13 @@ export async function insertChallenge(
     ],
   );
   return id;
+}
+
+export async function reportOwnsClaim(db: Queryable, reportId: string, accountId: string, claimId: string): Promise<boolean> {
+  const row = await db.query(`SELECT c.id FROM claims c JOIN reports r ON r.run_id=c.run_id AND r.account_id=c.account_id
+    WHERE r.id=$1 AND r.account_id=$2 AND r.redacted_at IS NULL AND c.id::text=$3 AND c.id::text=ANY(r.claim_ids)`,
+  [reportId, accountId, claimId]);
+  return row.rowCount === 1;
 }
 
 export function excerptFromReport(report: { blocks?: unknown }, limit = 800): string {

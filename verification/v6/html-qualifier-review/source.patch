@@ -1,0 +1,95 @@
+--- a/apps/backend/extraction/extract.py
++++ b/apps/backend/extraction/extract.py
+@@ -19,7 +19,15 @@
+ 
+ 
+ def normalized(element):
+-    return " ".join(" ".join(element.itertext()).split())
++    # itertext() discards source deletion and Trafilatura's <del rend="overstrike">.
++    # Retain the text with an explicit qualification in every main/table copy.
++    parts = [element.text or ""]
++    for child in element:
++        parts.extend((normalized(child) if isinstance(child.tag, str) else "", child.tail or ""))
++    text = " ".join(" ".join(parts).split())
++    if element.tag in ("s", "del", "strike") or "overstrike" in element.get("rend", "").split():
++        return "[struck-through: " + text + "]"
++    return text
+ 
+ 
+ 
+@@ -62,6 +70,9 @@
+     def inline(node, depth):
+         parts = [node.text or ""]
+         for child in node:
++            if not isinstance(child.tag, str):
++                parts.append(child.tail or "")
++                continue
+             if child.tag in ("ol", "ul"):
+                 text = "\n" + render_list(child, depth + 1) + "\n"
+             else:
+@@ -177,7 +188,7 @@
+     if mime not in ("text/html", "application/xhtml+xml"):
+         result.update(status="unavailable", warnings=["unsupported_mime"])
+         return result
+-    result["version"] = "trafilatura-2.2.0/structure-v2"
++    result["version"] = "trafilatura-2.2.0/structure-v3"
+     document = html.fromstring(raw)
+     # Scripts, challenge fallbacks and form fields are not documentary content.
+     for element in document.xpath("//script|//style|//noscript|//form|//nav|//header|//footer"):
+--- a/apps/backend/src/adapters/extraction/offline.ts
++++ b/apps/backend/src/adapters/extraction/offline.ts
+@@ -7,7 +7,7 @@
+ const Cell = z.object({ text: z.string().max(1_000_000), header: z.boolean(),
+   colspan: z.number().int().min(1).max(1000), rowspan: z.number().int().min(1).max(1000), scope: z.string().max(100) }).strict();
+ export const ExtractedDocument = z.object({
+-  version: z.enum(["trafilatura-2.2.0/structure-v2", "trafilatura-2.2.0/structure-v1", "pypdf-6.19.0/digital-v1", "docling-parse-7.20.0/geometry-v1", "utf8-notes-v1", "unavailable-v1"]), digest: z.string().regex(/^[a-f0-9]{64}$/),
++  version: z.enum(["trafilatura-2.2.0/structure-v3", "trafilatura-2.2.0/structure-v2", "trafilatura-2.2.0/structure-v1", "pypdf-6.19.0/digital-v1", "docling-parse-7.20.0/geometry-v1", "utf8-notes-v1", "unavailable-v1"]), digest: z.string().regex(/^[a-f0-9]{64}$/),
+   status: z.enum(["extracted", "partial", "unavailable"]), warnings: z.array(z.string().max(200)).max(100),
+   blocks: z.array(z.object({ kind: z.enum(["text", "heading", "code", "table"]),
+     locator: z.string().max(200), text: z.string().max(1_000_000), rows: z.array(z.array(Cell).max(1000)).max(10000),
+--- a/apps/backend/test/html-lists.extraction.test.ts
++++ b/apps/backend/test/html-lists.extraction.test.ts
+@@ -5,7 +5,7 @@
+ for(const tag of ["ol","ul"])it(`W04 preserves generic ${tag} restrictions omitted by main-content heuristics`,async()=>{
+  const result=await extractOffline(guide(`<${tag}><li>All nodes must share the same host; remote storage is unsupported.</li><li>Atomic changes apply within each database, not across databases.</li></${tag}>`),"text/html");
+  const text=result.blocks.map(b=>b.text).join("\n");expect(text).toContain("remote storage is unsupported");expect(text).toContain("not across databases");
+- expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v2");
++ expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v3");
+  const list=result.blocks.find(b=>b.locator.startsWith("list:"));expect(list?.text).toContain("Deployment restrictions apply");
+  expect(list!.text.indexOf("remote storage")).toBeLessThan(list!.text.indexOf("Atomic changes"));
+ });
+@@ -23,5 +23,5 @@
+  const result=await extractOffline(guide(`<ol><li><s>Deprecated restriction.</s> Current replacement follows.</li>${Array.from({length:1100},(_,i)=>`<li>Distinct restriction ${i} must remain a scoped limitation.</li>`).join("")}</ol>`),"text/html");
+  expect(result.status).toBe("partial");expect(result.warnings).toContain("supplemental_list_limit_reached");
+  expect(result.blocks.filter(b=>b.locator.startsWith("list:")).map(b=>b.text).join("\n").length).toBeLessThanOrEqual(250000);
+- expect(ExtractedDocument.safeParse({...result,version:"trafilatura-2.2.0/structure-v1"}).success).toBe(true);
++ for(const version of ["trafilatura-2.2.0/structure-v1","trafilatura-2.2.0/structure-v2"])expect(ExtractedDocument.safeParse({...result,version}).success).toBe(true);
+ });
+--- /dev/null
++++ b/apps/backend/test/html-formatting.extraction.test.ts
+@@ -0,0 +1,25 @@
++import {expect,it} from "vitest";
++import {extractOffline,ExtractedDocument} from "../src/adapters/extraction/offline.js";
++const background='<p>This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.</p>'.repeat(3);
++for(const tag of ["s","del","strike"])for(const location of ["prose","list","table"])it(`W04 preserves ${tag} qualification in every emitted ${location} copy`,async()=>{
++ const old="Distributed writes are supported.",current="Distributed writes are unavailable.";
++ const inline=`<${tag}>${old}</${tag}> ${current}`;
++ const content=location==="prose"?`<p>${inline}</p>`:location==="list"?`<ul><li>${inline}</li></ul>`:`<table><tr><th>Capability</th><th>Status</th></tr><tr><td>Distributed writes</td><td>${inline}</td></tr></table>`;
++ const html=`<html><body><h1>Storage deployment</h1>${background}<h2>Current restrictions</h2><p>The following status replaces the previous claim.</p>${content}${background}</body></html>`;
++ const result=await extractOffline(Buffer.from(html),"text/html");
++ const matches=result.blocks.filter(b=>b.text.includes(old));expect(matches.length).toBeGreaterThan(0);
++ for(const block of matches){expect(block.text).toContain(`[struck-through: ${old}]`);expect(block.text).toContain(current);expect(block.text.indexOf(old)).toBeLessThan(block.text.indexOf(current));}
++ if(location==="table"){const table=matches.find(b=>b.kind==="table");expect(table).toBeDefined();expect(table!.rows.flat().find(c=>c.text.includes(old))!.text).toContain(`[struck-through: ${old}]`);}
++ else expect(matches.some(b=>b.locator.startsWith("block:"))).toBe(true);
++ expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v3");
++ for(const version of ["trafilatura-2.2.0/structure-v1","trafilatura-2.2.0/structure-v2"])expect(ExtractedDocument.safeParse({...result,version}).success).toBe(true);
++});
++
++it("W04 marker-aware table normalization does not promote source comments",async()=>{
++ const result=await extractOffline(Buffer.from(`<html><body>${background}<table><tr><td>Before<!-- Internal non-documentary sentinel --><s>Old value</s>After</td></tr></table></body></html>`),"text/html");
++ const table=result.blocks.find(b=>b.kind==="table")!;expect(table).toBeDefined();expect(table.text).toContain("Before [struck-through: Old value] After");expect(table.text).not.toContain("Internal non-documentary sentinel");
++});
++it("W04 supplemental list omits comment content while retaining its following text",async()=>{
++ const result=await extractOffline(Buffer.from(`<html><body>${background}<p>Current restrictions:</p><ul><li>Before<!-- Internal list-only sentinel -->After <s>Old rule</s> Current rule.</li></ul></body></html>`),"text/html");
++ const list=result.blocks.find(b=>b.locator.startsWith("list:"))!;expect(list).toBeDefined();expect(list.text).not.toContain("Internal list-only sentinel");expect(list.text).toContain("BeforeAfter");expect(list.text).toContain("[struck-through: Old rule]");expect(list.text).toContain("Current rule.");
++});

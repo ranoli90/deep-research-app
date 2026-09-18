@@ -1,0 +1,63 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (11 tests | 11 failed) 409ms
+   × W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call 68ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome 21ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief 17ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result 16ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending 17ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist 25ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist 21ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > requires the current downstream-processor consent before dispatch 17ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race 17ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > deletion removes a completed model result 15ms
+     → consent_required
+   × W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result 15ms
+     → consent_required
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > does not resend an unknown external outcome
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > invalid question provenance is persisted as invalid_output, never as a usable brief
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > incurred cost survives takeover but a late model result cannot persist
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > requires the current downstream-processor consent before dispatch
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > deletion removes a completed model result
+ FAIL  test/model-gateway.integration.test.ts > W05 durable model gateway on real PostgreSQL > rejects a corrupted cached receipt instead of inventing a validated result
+Error: consent_required
+ ❯ reject src/modules/run-admission.ts:10:60
+      8| import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrie…
+      9| 
+     10| function reject(code: string): never { throw Object.assign(new Error(c…
+       |                                                            ^
+     11| 
+     12| /** Account -> conversation -> run -> allowance is the admission lock …
+ ❯ src/modules/run-admission.ts:19:194
+ ❯ withTx src/platform/db.ts:33:20
+ ❯ runCase test/model-gateway.integration.test.ts:30:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed (11)
+   Start at  12:31:53
+   Duration  2.97s (transform 1.35s, setup 0ms, collect 2.02s, tests 409ms, environment 0ms, prepare 211ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts

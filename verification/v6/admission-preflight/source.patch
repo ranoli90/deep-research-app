@@ -1,0 +1,189 @@
+diff --git a/apps/mobile/App.tsx b/apps/mobile/App.tsx
+index 8f2c2c0..e066a96 100644
+--- a/apps/mobile/App.tsx
++++ b/apps/mobile/App.tsx
+@@ -424,13 +424,18 @@ function AppInner() {
+       api.selectRun(null);
+       stopPolling();
+       const t = token ?? (await ensureSession());
+-      if (state.pendingAdmission) { await api.sessionInfo(t); setState(s => ({ ...s, offline: false })); }
+       const guard = api.captureView();
+       let created;
+       try {
+         const pending = state.pendingAdmission ?? await prepareAdmission(state.draft, state.routeMode, state.attachments, newId, nativeDocumentDigest, guard.current);
+         created = await submitAdmission(pending, state.attachments, {
+           digest: nativeDocumentDigest,
++          preflight: async () => {
++            const settings = await api.settings(t);
++            if (!guard.current()) throw new SupersededRequest();
++            setState(s => guard.current() ? { ...s, offline: false } : s);
++            return settings;
++          },
+           current: guard.current,
+           progress: setUploadStatus,
+           save: async draft => {
+diff --git a/apps/mobile/src/admission-retry.ts b/apps/mobile/src/admission-retry.ts
+index 43c7e88..7016643 100644
+--- a/apps/mobile/src/admission-retry.ts
++++ b/apps/mobile/src/admission-retry.ts
+@@ -84,9 +84,10 @@ export function readAdmittedRun(value: unknown): AdmittedRun {
+     throw new Error("Research admission could not be confirmed. Retry the saved request.");
+   return v;
+ }
+-/** The journal is acknowledged before any network effect. It contains no document bytes. */
++/** Fresh authenticated route preflight precedes the journal; the journal precedes uploads/admission. It contains no document bytes. */
+ export async function submitAdmission(draft: AdmissionDraft, files: AttachmentDraft[], io: {
+   digest: DocumentDigester;
++  preflight(): Promise<unknown>;
+   save(draft: AdmissionDraft): Promise<void>;
+   upload(file: AttachmentDraft, key: string): Promise<unknown>;
+   admit(draft: AdmissionDraft, attachmentIds: string[]): Promise<unknown>;
+@@ -95,6 +96,13 @@ export async function submitAdmission(draft: AdmissionDraft, files: AttachmentDr
+   let saved = readAdmissionDraft(draft);
+   const check = () => { if (!io.current()) throw new SupersededRequest(); };
+   check();
++  io.progress("Checking research availability…");
++  const settings = await io.preflight(); check();
++  const flag = settings && typeof settings === "object" && !Array.isArray(settings)
++    ? (settings as Record<string, unknown>)[saved.routeMode === "fixture" ? "fixtureRouteAllowed" : "liveRouteEnabled"] : undefined;
++  if (flag !== true) throw new Error(flag === false
++    ? "This research mode is disabled on the server. No new upload or research request was sent. Use Check or withdraw for a saved request."
++    : "Could not confirm availability for this research mode. No new upload or research request was sent. Retry, or use Check or withdraw for a saved request.");
+   const used = new Set<number>();
+   const candidates = new Map<number, { file: AttachmentDraft; digest: string }>();
+   const selected = new Map<number, AttachmentDraft>();
+diff --git a/apps/mobile/test/admission-retry.test.ts b/apps/mobile/test/admission-retry.test.ts
+index ff3c04d..a2942ad 100644
+--- a/apps/mobile/test/admission-retry.test.ts
++++ b/apps/mobile/test/admission-retry.test.ts
+@@ -10,6 +10,7 @@ vi.mock("expo-crypto", () => ({ CryptoDigestAlgorithm: { SHA256: "SHA-256" }, di
+ import { nativeDocumentDigest } from "../src/native-document-digest";
+ const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
+ const file: AttachmentDraft = { filename: "note.txt", mime: "text/plain", text: "Exact private note" };
++const preflight = async () => ({ fixtureRouteAllowed: true, liveRouteEnabled: true });
+ const accepted = { runId: id(99), lifecycle: "queued", phase: "planning", labeledDemo: false };
+ function pending(files = [file]) { let n=0; return prepareAdmission("Compare the evidence", "controlled-research", files, () => id(++n), nodeDigest); }
+ async function storage() {
+@@ -27,7 +28,7 @@ describe("W02/W07 durable admission retry", () => {
+     expect(cryptoMock.digest.mock.calls[0]?.[0]).toBe("SHA-256");
+     expect([...cryptoMock.digest.mock.calls[0]?.[1]]).toEqual([1,2,3]);
+     const draft=await pending();let saves=0,calls=0;
+-    const io={digest:nativeDocumentDigest,current:()=>true,progress:()=>{},save:async()=>{saves++;},upload:async()=>{calls++;return {};},admit:async()=>{calls++;return accepted;}};
++    const io={preflight,digest:nativeDocumentDigest,current:()=>true,progress:()=>{},save:async()=>{saves++;},upload:async()=>{calls++;return {};},admit:async()=>{calls++;return accepted;}};
+     cryptoMock.digest.mockRejectedValue(new Error("Native module unavailable"));
+     await expect(submitAdmission(draft,[file],io)).rejects.toThrow("Native module unavailable");
+     cryptoMock.digest.mockResolvedValue(new ArrayBuffer(31));
+@@ -50,7 +51,7 @@ describe("W02/W07 durable admission retry", () => {
+     let saves=0,calls=0;current=true;ticks=0;
+     const cancel = setInterval(() => { if (++ticks === 3) current=false; }, 0);
+     try {
+-      await expect(submitAdmission(draft,[large],{digest:slowDigest,current:()=>current,progress:()=>{},save:async()=>{saves++;},upload:async()=>{calls++;return{};},admit:async()=>{calls++;return accepted;}})).rejects.toThrow("superseded");
++      await expect(submitAdmission(draft,[large],{preflight,digest:slowDigest,current:()=>current,progress:()=>{},save:async()=>{saves++;},upload:async()=>{calls++;return{};},admit:async()=>{calls++;return accepted;}})).rejects.toThrow("superseded");
+       expect(saves).toBe(0);expect(calls).toBe(0);
+     } finally { clearInterval(cancel); }
+   });
+@@ -58,7 +59,7 @@ describe("W02/W07 durable admission retry", () => {
+     const bytes = new TextEncoder().encode("Original bytes");
+     const source: AttachmentDraft = {filename:"mutable.txt",mime:"text/plain",bytes};
+     const draft = await pending([source]);
+-    await submitAdmission(draft,[source],{digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{bytes.fill(88);},upload:async f=>{
++    await submitAdmission(draft,[source],{preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{bytes.fill(88);},upload:async f=>{
+       expect(new TextDecoder().decode(f.bytes)).toBe("Original bytes");return {attachmentId:id(50)};
+     },admit:async()=>accepted});
+   });
+@@ -68,7 +69,7 @@ describe("W02/W07 durable admission retry", () => {
+     state=attachFile(state,{...second,id:"stale-selection-id"});state=attachFile(state,file);
+     expect(state.attachments.map(f=>f.id)).toEqual([undefined,undefined]);
+     const sent:string[]=[];
+-    await submitAdmission(draft,state.attachments,{digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async f=>{sent.push(f.text!);return{attachmentId:id(50+sent.length)};},admit:async()=>accepted});
++    await submitAdmission(draft,state.attachments,{preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async f=>{sent.push(f.text!);return{attachmentId:id(50+sent.length)};},admit:async()=>accepted});
+     expect(sent).toEqual([file.text,second.text]);
+     const boundary="a".repeat(2047)+"🪸"+"café";
+     expect(await documentFingerprint({...file,text:boundary}, nodeDigest)).toBe(createHash("sha256").update(boundary).digest("hex"));
+@@ -76,7 +77,7 @@ describe("W02/W07 durable admission retry", () => {
+ 
+   it("replays the identical run key and uploaded IDs after a lost response and process restart", async () => {
+     const s=await storage(); let uploadCount=0; const attempts: unknown[]=[];
+-    const io={digest:nodeDigest,current:()=>true,progress:()=>{},save:(d:AdmissionDraft)=>s.store.saveAdmission("token",d),
++    const io={preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:(d:AdmissionDraft)=>s.store.saveAdmission("token",d),
+       upload:async()=>{uploadCount++;return {attachmentId:id(50)};},
+       admit:async(d:AdmissionDraft,ids:string[])=>{attempts.push({key:d.key,question:d.question,ids});throw new Error("response lost after admission");}};
+     await expect(submitAdmission(await pending(),[file],io)).rejects.toThrow("response lost");
+@@ -92,7 +93,7 @@ describe("W02/W07 durable admission retry", () => {
+   });
+   it("persists the upload key before sending and reuses it after a lost upload reply", async () => {
+     let journal: AdmissionDraft | null=null; const keys:string[]=[];
+-    const io={digest:nodeDigest,current:()=>true,progress:()=>{},save:async(d:AdmissionDraft)=>{journal=structuredClone(d);},
++    const io={preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async(d:AdmissionDraft)=>{journal=structuredClone(d);},
+       upload:async(_f:AttachmentDraft,key:string)=>{expect(journal?.uploads[0]?.key).toBe(key);keys.push(key);throw new Error("lost upload response");},admit:async()=>accepted};
+     await expect(submitAdmission(await pending(),[file],io)).rejects.toThrow("lost upload");
+     await expect(submitAdmission(journal!,[],io)).rejects.toThrow("Select note.txt again");
+@@ -103,20 +104,20 @@ describe("W02/W07 durable admission retry", () => {
+   it("reselects only the unresolved duplicate-named file after restart", async () => {
+     const d=await pending([file,{...file,text:"second"}]);d.uploads[0]!.attachmentId=id(50);
+     const sent:string[]=[];
+-    await submitAdmission(d,[{...file,text:"second"}],{digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async f=>{sent.push(f.text!);return {attachmentId:id(51)};},admit:async()=>accepted});
++    await submitAdmission(d,[{...file,text:"second"}],{preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async f=>{sent.push(f.text!);return {attachmentId:id(51)};},admit:async()=>accepted});
+     expect(sent).toEqual(["second"]);
+   });
+   it("rejects same-named replacement bytes even if the first upload never reached the server", async () => {
+     let calls=0;
+-    await expect(submitAdmission(await pending(),[{...file,text:"silently changed"}],{digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async()=>{calls++;return {attachmentId:id(50)};},admit:async()=>accepted})).rejects.toThrow("Select note.txt again");
++    await expect(submitAdmission(await pending(),[{...file,text:"silently changed"}],{preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{},upload:async()=>{calls++;return {attachmentId:id(50)};},admit:async()=>accepted})).rejects.toThrow("Select note.txt again");
+     expect(calls).toBe(0);
+     const text="Unicode 🪸 café";
+     expect(await documentFingerprint({...file,text}, nodeDigest)).toBe(createHash("sha256").update(text).digest("hex"));
+     const bytes=new Uint8Array(8*1024*1024).fill(83);
+     expect(await documentFingerprint({filename:"max.pdf",mime:"application/pdf",bytes}, nodeDigest)).toBe(createHash("sha256").update(bytes).digest("hex"));
+   });
+-  it("does not send any request if protected persistence fails, and preserves unknown admission on malformed success", async () => {
+-    let calls=0; const io={digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{throw new Error("storage failed");},upload:async()=>{calls++;return {};},admit:async()=>{calls++;return {};}};
++  it("does not upload or admit if protected persistence fails, and preserves unknown admission on malformed success", async () => {
++    let calls=0; const io={preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async()=>{throw new Error("storage failed");},upload:async()=>{calls++;return {};},admit:async()=>{calls++;return {};}};
+     await expect(submitAdmission(await pending(),[file],io)).rejects.toThrow("storage failed");expect(calls).toBe(0);
+     let saved:AdmissionDraft|null=null;
+     await expect(submitAdmission(await pending([]),[],{...io,save:async d=>{saved=d;}})).rejects.toThrow("could not be confirmed");
+@@ -124,7 +125,7 @@ describe("W02/W07 durable admission retry", () => {
+   });
+   it("does not admit after account/view change and prevents late journal writes across accounts", async () => {
+     const s=await storage();let current=true,admissions=0;
+-    await expect(submitAdmission(await pending(),[file],{digest:nodeDigest,current:()=>current,progress:()=>{},save:d=>s.store.saveAdmission("token",d),upload:async()=>{current=false;return {attachmentId:id(50)};},admit:async()=>{admissions++;return accepted;}})).rejects.toThrow("superseded");
++    await expect(submitAdmission(await pending(),[file],{preflight,digest:nodeDigest,current:()=>current,progress:()=>{},save:d=>s.store.saveAdmission("token",d),upload:async()=>{current=false;return {attachmentId:id(50)};},admit:async()=>{admissions++;return accepted;}})).rejects.toThrow("superseded");
+     expect(admissions).toBe(0);
+     await s.store.activate({accountId:"other",token:"other"});
+     await expect(s.store.saveAdmission("token",await pending())).rejects.toThrow("Session changed");
+@@ -149,7 +150,7 @@ describe("W02/W07 durable admission retry", () => {
+   });
+   it("keeps duplicate-named uploads distinct and never puts their bytes in the journal", async () => {
+     const files=[file,{...file,text:"Second distinct content"}]; const seen:string[]=[];let journal=await pending(files);
+-    await submitAdmission(journal,files,{digest:nodeDigest,current:()=>true,progress:()=>{},save:async d=>{journal=d;},upload:async(f)=>{seen.push(f.text!);return {attachmentId:id(50+seen.length)};},admit:async()=>accepted});
++    await submitAdmission(journal,files,{preflight,digest:nodeDigest,current:()=>true,progress:()=>{},save:async d=>{journal=d;},upload:async(f)=>{seen.push(f.text!);return {attachmentId:id(50+seen.length)};},admit:async()=>accepted});
+     expect(seen).toEqual([file.text,"Second distinct content"]);expect(JSON.stringify(journal)).not.toContain("Exact private note");
+     expect(journal.uploads[0]?.key).not.toBe(journal.uploads[1]?.key);
+   });
+diff --git a/apps/mobile/test/admission-preflight.test.ts b/apps/mobile/test/admission-preflight.test.ts
+new file mode 100644
+index 0000000..2d6084d
+--- /dev/null
++++ b/apps/mobile/test/admission-preflight.test.ts
+@@ -0,0 +1,20 @@
++import { createHash } from "node:crypto";
++import { afterEach,expect,it,vi } from "vitest";
++import { prepareAdmission,submitAdmission,type AdmissionDraft } from "../src/admission-retry";
++import { api } from "../src/api";
++import { createSessionStorage,memoryStore } from "../src/persist";
++import { createProtectedContentStore } from "../src/protected-content";
++const digest=async(bytes:Uint8Array)=>new Uint8Array(createHash("sha256").update(bytes).digest());
++const id=(n:number)=>`00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
++const file={filename:"private.txt",mime:"text/plain",text:"Private document bytes"};
++const accepted={runId:id(50),lifecycle:"queued",phase:"planning",labeledDemo:false};
++async function draft(mode:"fixture"|"controlled-research"="controlled-research"){let n=0;return prepareAdmission("Research document",mode,[file],()=>id(++n),digest);}
++function io(value:unknown){return{digest,preflight:vi.fn(async()=>value),current:()=>true,progress:vi.fn(),save:vi.fn(async(_d:AdmissionDraft)=>{}),upload:vi.fn(async()=>({attachmentId:id(40)})),admit:vi.fn(async()=>accepted)};}
++afterEach(()=>{api.activateSession(null);vi.unstubAllGlobals();});
++for(const [mode,value] of [["controlled-research",{liveRouteEnabled:false,fixtureRouteAllowed:true}],["fixture",{liveRouteEnabled:true,fixtureRouteAllowed:false}],["controlled-research",{}],["fixture",{fixtureRouteAllowed:"true"}],["controlled-research",{liveRouteEnabled:1}],["controlled-research",null]] as const){
++ it(`W03 blocks upload/admission for unavailable or unconfirmed ${mode} flag ${JSON.stringify(value)}`,async()=>{const ports=io(value);await expect(submitAdmission(await draft(mode),[file],ports)).rejects.toThrow(/mode|availability/i);expect(ports.preflight).toHaveBeenCalledTimes(1);expect(ports.save).not.toHaveBeenCalled();expect(ports.upload).not.toHaveBeenCalled();expect(ports.admit).not.toHaveBeenCalled();});
++}
++it.each(["fixture","controlled-research"] as const)("W07 fresh %s preflight precedes journal and upload without changing retry keys",async mode=>{const d=await draft(mode),ports=io({liveRouteEnabled:true,fixtureRouteAllowed:true});expect(await submitAdmission(d,[file],ports)).toEqual(accepted);expect(ports.preflight.mock.invocationCallOrder[0]).toBeLessThan(ports.save.mock.invocationCallOrder[0]!);expect(ports.save.mock.invocationCallOrder[0]).toBeLessThan(ports.upload.mock.invocationCallOrder[0]!);expect(ports.upload).toHaveBeenCalledWith(expect.objectContaining({text:file.text}),d.uploads[0]!.key);expect(ports.admit).toHaveBeenCalledWith(expect.objectContaining({key:d.key}),[id(40)]);});
++it("W02 preflight network failure preserves cold-recoverable pending identity and confirmed uploads",async()=>{const store=createSessionStorage(createProtectedContentStore(memoryStore(),memoryStore()),memoryStore());await store.activate({accountId:"owner",token:"token"});const d=await draft();d.uploads[0]!.attachmentId=id(40);await store.saveAdmission("token",d);const ports=io({});ports.preflight.mockRejectedValue(new Error("preflight offline"));await expect(submitAdmission(d,[],ports)).rejects.toThrow("preflight offline");expect((await store.hydrate()).state.pendingAdmission).toEqual(d);expect(ports.save).not.toHaveBeenCalled();expect(ports.admit).not.toHaveBeenCalled();});
++it.each(["account","view"])("W03 ignores late preflight after %s generation changes",async kind=>{const d=await draft();api.activateSession("owner");api.selectRun("old");const guard=api.captureView();let resolve!:(value:Response)=>void;const response=new Promise<Response>(r=>{resolve=r;});vi.stubGlobal("fetch",vi.fn(()=>response));const ports={...io({}),current:guard.current,preflight:()=>api.settings("owner")};const pending=submitAdmission(d,[file],ports);const rejected=expect(pending).rejects.toThrow("superseded");if(kind==="account")api.activateSession("other");else api.selectRun("other");resolve(Response.json({accountId:"owner",authMode:"development",liveRouteEnabled:true,fixtureRouteAllowed:true}));await rejected;expect(ports.save).not.toHaveBeenCalled();expect(ports.upload).not.toHaveBeenCalled();expect(ports.admit).not.toHaveBeenCalled();guard.release();});
++it("W02 Check/Withdraw still resolves an accepted unknown request while scheduling is disabled",async()=>{api.activateSession("owner");const calls:string[]=[];vi.stubGlobal("fetch",vi.fn(async(input:RequestInfo|URL)=>{const url=String(input);calls.push(url);if(url.endsWith("/v1/settings"))return Response.json({accountId:"owner",authMode:"development",liveRouteEnabled:false,fixtureRouteAllowed:false});if(url.endsWith("/v1/run-requests/resolve"))return Response.json({status:"accepted",run:accepted});throw Error("unexpected route");}));const ports={...io({}),preflight:()=>api.settings("owner")};const d=await draft();d.uploads[0]!.attachmentId=id(40);await expect(submitAdmission(d,[],ports)).rejects.toThrow(/mode/i);expect(await api.resolveRunRequest("owner",d.key)).toEqual({status:"accepted",run:accepted});expect(calls.map(c=>new URL(c).pathname)).toEqual(["/v1/settings","/v1/run-requests/resolve"]);expect(ports.admit).not.toHaveBeenCalled();});

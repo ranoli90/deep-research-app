@@ -1,6 +1,6 @@
 [
   {
-    "command": "python scripts/validate_review.py",
+    "command": "python3 scripts/validate_review.py",
     "status": "implemented_review_tool",
     "scope": "review document and data structure only",
     "network": false,
@@ -8,7 +8,7 @@
     "implementation": "scripts/validate_review.py"
   },
   {
-    "command": "python -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+    "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
     "status": "implemented_review_tool",
     "scope": "unit tests of the review validator only",
     "network": false,
@@ -16,7 +16,7 @@
     "implementation": "scripts/test_review_validator.py"
   },
   {
-    "command": "python scripts/validate_builder_handoff.py",
+    "command": "python3 scripts/validate_builder_handoff.py",
     "status": "implemented_review_tool",
     "scope": "revision-3 document consistency only",
     "network": false,
@@ -24,7 +24,7 @@
     "implementation": "scripts/validate_builder_handoff.py"
   },
   {
-    "command": "python -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+    "command": "python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
     "status": "implemented_review_tool",
     "scope": "mutation tests of revision-3 document checker only",
     "network": false,
@@ -42,7 +42,7 @@
   {
     "command": "pnpm dev:demo",
     "status": "implemented_application_command",
-    "scope": "API + worker with labeled fixture route",
+    "scope": "Development API and explicit diagnostic worker with labeled fixtures; not production research",
     "network": false,
     "paid": false,
     "implementation": "apps/backend/src/dev-demo.ts"
@@ -50,7 +50,7 @@
   {
     "command": "pnpm dev:live",
     "status": "implemented_application_command",
-    "scope": "refuses to start without OPENROUTER_API_KEY",
+    "scope": "Structured production-path API/worker with fixtures disabled; requires provider key and positive project/key caps; separate current monetary authorization required",
     "network": true,
     "paid": true,
     "implementation": "apps/backend/src/dev-live.ts"
@@ -82,7 +82,7 @@
   {
     "command": "pnpm typecheck",
     "status": "implemented_application_command",
-    "scope": "workspace TypeScript check",
+    "scope": "Configured workspace TypeScript checks; design retains pre-existing || true, so this is not exhaustive design typecheck proof",
     "network": false,
     "paid": false,
     "implementation": "package.json#typecheck"
@@ -93,15 +93,15 @@
     "scope": "research-core policy tests and backend unit/governance tests; no paid calls",
     "network": false,
     "paid": false,
-    "implementation": "packages/research-core/test, apps/backend/test/*.unit.test.ts"
+    "implementation": "packages/research-core/test, apps/backend/vitest.unit.config.ts, apps/backend/test/*.unit.test.ts, apps/mobile/test"
   },
   {
     "command": "pnpm test:integration",
     "status": "implemented_application_command",
-    "scope": "P0 smoke + launch-scope + remaining fixture/postgres IDs against real local PostgreSQL and pg-boss; fixture route only",
+    "scope": "Local PostgreSQL/pg-boss safety and accounting; historical bounded-controller diagnostics plus production structured API/worker services using fabricated provider responses. No paid calls or semantic benchmark.",
     "network": false,
     "paid": false,
-    "implementation": "apps/backend/test/p0-smoke.integration.test.ts, apps/backend/test/launch-scope.integration.test.ts, apps/backend/test/p3-remaining.integration.test.ts, apps/backend/test/g01-g02.integration.test.ts, apps/backend/test/p4-recovery.integration.test.ts, apps/backend/test/g06-cost.integration.test.ts, apps/backend/test/g07-output.integration.test.ts, apps/backend/test/controller-admission.integration.test.ts"
+    "implementation": "apps/backend/vitest.integration.config.ts, apps/backend/test/*.integration.test.ts"
   },
   {
     "command": "pnpm test:e2e:ios",
@@ -114,7 +114,7 @@
   {
     "command": "pnpm test:e2e:android",
     "status": "implemented_application_command",
-    "scope": "exits 2 when no emulator/device is online; prior Xiaomi a3fa7852 recapture is native-Android-only and was not re-run this session",
+    "scope": "device-presence launcher probe only, not native app assertions; exits2 when no online emulator/device is detected; prior native observations are separate",
     "network": false,
     "paid": false,
     "implementation": "scripts/e2e-android.mjs"
@@ -130,10 +130,10 @@
   {
     "command": "pnpm eval:live",
     "status": "implemented_application_command",
-    "scope": "not a scored benchmark; P0-L live trace is scripts/p0-live-check.ts under LIVE_SPEND_CAP_MICRO",
+    "scope": "W08 registered production-pipeline runner; default-deny exit2 without current explicit approval/hash/scope/budget arguments. Execution needs separately authorized paid authority; local fabricated controls are not semantic scoring.",
     "network": true,
     "paid": true,
-    "implementation": "apps/backend/src/eval-live.ts, scripts/p0-live-check.ts"
+    "implementation": "apps/backend/src/eval-live.ts, apps/backend/src/evaluation/"
   },
   {
     "command": "pnpm verify",
@@ -166,5 +166,1207 @@
     "network": true,
     "paid": true,
     "implementation": "scripts/p0-live-check.ts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "Actual offline HTML/digital-PDF parser in Linux bubblewrap plus real API/worker/PostgreSQL upload/source/deletion checks; run serially against other integration suites sharing the database; no network or paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.extraction.config.ts, apps/backend/test/html.extraction.test.ts, apps/backend/test/pdf.extraction.test.ts, apps/backend/test/document-flow.extraction.test.ts"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle",
+    "status": "implemented_application_command",
+    "scope": "local Android JavaScript/asset bundle only; not native build or device execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#bundle:android"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/absolute/path/to/venv pnpm exec tsx scripts/v6-document-probe.mts",
+    "status": "implemented_application_command",
+    "scope": "one fixed public RFC PDF via production safe fetch and offline parser; writes temporary raw document and limited provenance; no model or paid API",
+    "network": true,
+    "paid": false,
+    "implementation": "scripts/v6-document-probe.mts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/controller-admission.integration.test.ts test/v6-execution.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused local PostgreSQL budget, unknown receipt, queue and fencing controls; provider transport doubles, never paid calls; run serially against shared database suites",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.integration.config.ts, apps/backend/test/controller-admission.integration.test.ts, apps/backend/test/v6-execution.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Real local PostgreSQL structured worker, model/public-search admission/replay/consent/deletion, extraction/support/coverage, calculation planning/execution/proof-aware publication; fabricated provider transport, no paid calls; bounded counterevidence target/replay/privacy/required-proof controls. Run serially against shared test database.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/model-gateway.integration.test.ts"
+  },
+  {
+    "command": "curl --fail --silent --show-error --max-time 20 https://openrouter.ai/api/v1/models/openai/gpt-4o-mini/endpoints -o /tmp/deep-v6-gateway/model-endpoints.json",
+    "status": "implemented_application_command",
+    "scope": "Unauthenticated public endpoint metadata only; not a completion, paid probe or authorization; create output directory first",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/src/adapters/model/policy.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/research-core test",
+    "status": "implemented_application_command",
+    "scope": "Pure core policy/support/citation regressions; no network or paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "packages/research-core/package.json#test"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile typecheck",
+    "status": "implemented_application_command",
+    "scope": "mobile TypeScript source only; no native execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#typecheck"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+    "status": "implemented_application_command",
+    "scope": "local Metro development server; wireless ADB/Expo Go observations are separately recorded, not signed release evidence",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#start"
+  },
+  {
+    "command": "pnpm --filter @deep/backend typecheck",
+    "status": "implemented_application_command",
+    "scope": "Backend static TypeScript checks",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json#typecheck"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test",
+    "status": "implemented_application_command",
+    "scope": "Mobile deterministic unit controls, no native execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#test"
+  },
+  {
+    "command": "pnpm --filter @deep/research-core exec vitest run test/p1-p2.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused pure report/citation/export controls",
+    "network": false,
+    "paid": false,
+    "implementation": "packages/research-core/test/p1-p2.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused pure Markdown bibliography controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/report-export.unit.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local PostgreSQL report/export controls; run serially against shared database",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/p3-remaining.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+    "status": "implemented_application_command",
+    "scope": "Selected local PostgreSQL counterevidence controls; deselected tests are not passes; shared database requires serial execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/model-gateway.integration.test.ts"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-document-bundle",
+    "status": "implemented_application_command",
+    "scope": "Integrated Android JavaScript export only, not native build or device acceptance",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#bundle:android"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t E09",
+    "status": "implemented_application_command",
+    "scope": "Focused owned Markdown bibliography and limitation retention; real local PostgreSQL, no paid providers",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/p3-remaining.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/research-strategy.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Pure strategy choice controls; no network",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/research-strategy.unit.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/research-strategy.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Real local PostgreSQL persisted strategy/admission controls; serialize DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/research-strategy.integration.test.ts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/matched-pipeline.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Matched production workflow with actual parser and fabricated provider transports; serialize DB; not semantic quality",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/matched-pipeline.extraction.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local owned source deletion and dependent invalidation; serialize shared PostgreSQL",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/source-deletion.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local PostgreSQL financial reconciliation with fabricated metadata lookup; serialize DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/provider-reconciliation.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Nonbillable controlled generation receipt transport",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/generation-receipt.unit.test.ts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --help",
+    "status": "implemented_application_command",
+    "scope": "Operator help only; no database or network call",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --intent <intent-uuid>",
+    "status": "implemented_application_command",
+    "scope": "Read-only configured local financial metadata; no provider request",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --intent <intent-uuid> --apply",
+    "status": "implemented_application_command",
+    "scope": "Explicit operator financial lookup via fixed read-only provider generation endpoint; no paid completion/search; current project key must match recorded scope; not run live",
+    "network": true,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --repair-run <run-uuid> --account <account-uuid> --apply",
+    "status": "implemented_application_command",
+    "scope": "Explicit transactional repair of provably estimated historical accounting; known settlement basis required; never guesses/refunds unknown amounts",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+    "status": "implemented_application_command",
+    "scope": "Explicit test-only local API/production worker plus actual parser and fabricated provider responses; native-source-reader separate DB preserves tombstones; API loopback only; unexpected external fetch denied; no live quality or standalone build claim",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/native-source-reader.ts"
+  },
+  {
+    "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts acquire",
+    "status": "implemented_application_command",
+    "scope": "Bounded official public document fetch8MiB per file; no model or paid service; saved byte hashes",
+    "network": true,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm exec tsx evals/matched-pipeline/corpus.mts extract",
+    "status": "implemented_application_command",
+    "scope": "Existing isolated actual parser over frozen corpus; no database/provider; fidelity measured with retained failures",
+    "network": false,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts validate",
+    "status": "implemented_application_command",
+    "scope": "Frozen task/source/reference hashes and split integrity only; no quality claim",
+    "network": false,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "pnpm install --frozen-lockfile",
+    "status": "implemented_application_command",
+    "scope": "Install JavaScript lockfile; dependency registry network only, no provider calls",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "pnpm install --offline --frozen-lockfile",
+    "status": "implemented_application_command",
+    "scope": "Clean checkout installation from existing local package store; fail if unavailable",
+    "network": false,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "npm install --global pnpm@9.15.9",
+    "status": "implemented_application_command",
+    "scope": "Explicit CI package-manager installation; network, no model calls",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "python3 -m venv /tmp/deep-v6-extraction-runtime",
+    "status": "implemented_application_command",
+    "scope": "Create isolated empty Python runtime; local only",
+    "network": false,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "/tmp/deep-v6-extraction-runtime/bin/python -m pip install --require-hashes --only-binary=:all: -r apps/backend/extraction/requirements.lock",
+    "status": "implemented_application_command",
+    "scope": "Install hash-locked actual parser dependencies; package registry network only",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-protected-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json#bundle:android",
+    "scope": "Protected-cache current JS export only; not native build",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "python3 verification/v6/protected-content/native-inspect.py",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/protected-content/native-inspect.py",
+    "scope": "Authorized Android app-only UI inspection; unrelated picker/app contents are not emitted",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/protected-content/native-probe.cjs '<own-project inspection expression>'",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/protected-content/native-probe.cjs",
+    "scope": "Explicit authorized own-project Metro/Hermes inspection; only synthetic contents and storage-presence metadata; no credential reads",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/correction-draft/native-seed.cjs",
+    "status": "implemented_application_command",
+    "scope": "Own local synthetic API parent setup and protected Expo session seed for correction-draft UI test; credentials never printed; sign-in/upload not repeated through UI; no actual provider transport",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/correction-draft/native-seed.cjs"
+  },
+  {
+    "command": "python3 verification/v6/correction-draft/native-inspect.py",
+    "status": "implemented_application_command",
+    "scope": "Read only current Deep Expo UI; filtered synthetic native evidence",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/correction-draft/native-inspect.py"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-correction-draft-bundle",
+    "status": "implemented_application_command",
+    "scope": "Offline Android JavaScript export only",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:integration test/attachment-retry.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 real local PostgreSQL attachment upload retry identity, content conflict, owner isolation, deletion serialization and tombstone controls; no live providers; serial DB execution",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/attachment-retry.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:integration test/admission-recovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W02/W03/W07 real local PostgreSQL authenticated resolve-or-withdraw, delayed admission veto and account-lock races; no provider calls",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/admission-recovery.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile add --save-exact @noble/hashes@2.4.0 --ignore-scripts",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Pinned pure JavaScript SHA256 for immutable retry document fingerprints; no native module/provider",
+    "network": true,
+    "paid": false
+  },
+  {
+    "command": "NATIVE_LOSE_ADMISSION_REPLY=1 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/native-source-reader.ts",
+    "scope": "Loopback synthetic native control; actual API/worker/parser with one deliberately lost accepted admission response, fabricated model only",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/admission-retry/native-seed.cjs",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/admission-retry/native-seed.cjs",
+    "scope": "Own synthetic account/upload/protected pending journal; token retained in RAM only",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:integration test/v6-upload.integration.test.ts test/controller-admission.integration.test.ts test/attachment-retry.integration.test.ts test/admission-recovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Serial local PostgreSQL actual binary upload/retry/recovery plus historical controller admission diagnostics; synthetic transports; no live providers",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/vitest.integration.config.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:unit test/generation-receipt.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Bounded financial receipt transport unit controls including isolated forced-GC subprocess; fabricated fetch only, no external network",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/generation-receipt.unit.test.ts"
+  },
+  {
+    "command": "NATIVE_LOSE_ADMISSION_REPLY=until-resume EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/native-source-reader.ts",
+    "scope": "Loopback fabricated native harness; suppress accepted admission replies until explicit SIGUSR1 to test unknown outcome cold restart",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-admission-retry-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Offline Android JavaScript export only",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/lease-clock.integration.test.ts",
+    "scope": "Real local PostgreSQL delayed-lock lease expiry regressions; no paid calls",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --config.ignore-scripts=true --filter @deep/mobile remove @noble/hashes",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Replace slow measured pure-JS fingerprint package with SDK54 pinned ExpoCrypto native adapter; package registry only, install scripts disabled",
+    "network": true,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile add expo-crypto@15.0.9 --save-exact --ignore-scripts",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Replace slow measured pure-JS fingerprint package with SDK54 pinned ExpoCrypto native adapter; package registry only, install scripts disabled",
+    "network": true,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/attachment-retry.integration.test.ts test/v6-upload.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/vitest.integration.config.ts",
+    "scope": "Isolated local PostgreSQL owned upload replay state/coverage and existing binary input controls; persisted synthetic parser result shapes, not actual extraction proof",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts test/v6-execution.integration.test.ts test/provider-reconciliation.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/lease-clock/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/lease-clock/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts test/v6-execution.integration.test.ts test/provider-reconciliation.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/lease-clock/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/lease-clock/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile remove @noble/hashes --ignore-scripts",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/admission-retry/native-hash-upload-receipt-results.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test -- admission-retry",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Exact locally executed verification command; evidence scope in verification/v6/admission-retry/native-hash-upload-receipt-results.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-admission-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Detached eb133e8 Android JS export, offline; see clean-admission RESULTS.",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts test/p0-smoke.integration.test.ts test/g01-g02.integration.test.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node scripts/check-boundaries.mjs",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec node --input-type=module -e 'import pg from \"pg\";const p=new pg.Pool({connectionString:\"postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6\"});try{const triggers=await p.query(\"SELECT count(*)::int AS count FROM pg_trigger WHERE tgname LIKE $1\",[\"cancel_test_%\"]);const functions=await p.query(\"SELECT count(*)::int AS count FROM pg_proc WHERE proname LIKE $1\",[\"cancel_test_%\"]);console.log(JSON.stringify({testTriggers:triggers.rows[0].count,testFunctions:functions.rows[0].count}));if(triggers.rows[0].count||functions.rows[0].count)process.exitCode=1;}finally{await p.end()}'",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test -- reading-position",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-reading-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs seed",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs observe",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs cleanup",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local source-deletion replay protection; exact receipts in source-deletion-replay/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts test/admission-recovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local source-deletion replay protection; exact receipts in source-deletion-replay/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/mobile-source-deletion/native-seed.cjs",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/mobile-source-deletion/native-seed.cjs",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "python3 verification/v6/mobile-source-deletion/native-tap.py \"Delete this source\"",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/mobile-source-deletion/native-tap.py",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-source-deletion-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test -- source-deletion source-view",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-source-deletion-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Exact clean-source-deletion committed Android JS proof",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "17/17 actual isolated extraction/API/worker;4 files;87.78s; synthetic documents/fabricated model transport",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-requested-verification-bundle",
+    "status": "implemented_application_command",
+    "scope": "647 modules;2.17MB Android JavaScript; not native build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "1 initial targeted worker control",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "73/73 = 22 requested verification + 51 existing P3",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/admission-recovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "28/28 = 24 requested verification + 4 existing admission recovery",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t R19",
+    "status": "implemented_application_command",
+    "scope": "Historical diagnostic expected no reopened discovery; actual diagnostic behavior now truthfully disclosed. One failed, 50 deselected; corrected controls in 73/73 receipt.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:governance",
+    "status": "implemented_application_command",
+    "scope": "Production boundary/governance control; no model quality claim.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/model-gateway.integration.test.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "169/169:26 requested verification +136 model gateway +7 source deletion;274.58s. Before negative citation review fix.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL produces localized contradicted'",
+    "status": "implemented_application_command",
+    "scope": "Attempted contradictory model status without evidence correctly blocked by existing binding validator; test input corrected to insufficient, not production guard weakened.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL|explicitly requested verification'",
+    "status": "implemented_application_command",
+    "scope": "4/4 selected controls,22 deselected intentionally:positive scoped publication + contradiction/qualification/unresolved; negative counterEvidence citation union fixed, positive support bindings unchanged.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "git diff --check",
+    "status": "implemented_application_command",
+    "scope": "Source whitespace diff check.",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-profile-panel-bundle",
+    "status": "implemented_application_command",
+    "scope": "648modules/2.18MB Android JS export, not native build or device acceptance.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration -- test/correction-rediscovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Incorrect extra -- did not restrict suite as intended; interrupted own Vitest. No completion claim; isolated DB only. No data drop to erase failure.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "2failed: synthetic task operator supports is outside canonical schema; parent publication unavailable",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t W06",
+    "status": "implemented_application_command",
+    "scope": "8passed128intentionally excluded by name filter;39.82s",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "136/136;161.40s; all affected gateway controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/question-patch.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "5/5initial admission controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/question-patch.integration.test.ts test/correction-rediscovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "8/8:6new span admission controls +2existing conservative rediscovery worker controls;22.64s",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/research-core typecheck",
+    "status": "implemented_application_command",
+    "scope": "Pure core and imported contracts TypeScript",
+    "network": false,
+    "paid": false,
+    "implementation": "packages/research-core/package.json"
+  },
+  {
+    "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+    "status": "implemented_application_command",
+    "scope": "Scoped locked PostCSS override;0downloads",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-postcss-integrated",
+    "status": "implemented_application_command",
+    "scope": "648modules/2.18MB JavaScript export; not native build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm audit --json",
+    "status": "implemented_application_command",
+    "scope": "Remaining3moderate/2high; no suppression or clean-security claim",
+    "network": true,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts -t 'disabled required rediscovery'",
+    "status": "implemented_application_command",
+    "scope": "Primary reproduced unnecessary brief operation before known capability rejection;1failed1filtered",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts test/question-patch.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "8/8;16.61s; disabled correction creates zero provider intents, enabled corrected/full agreement and span controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "393/393 in26 files,397.62seconds; real local PostgreSQL, fabricated provider transports",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json",
+    "artifact": "verification/v6/dependency-vitest-integrated/integration.log"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "17/17 actual isolated extraction/API controls,79.03seconds; fabricated models",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json",
+    "artifact": "verification/v6/dependency-vitest-integrated/extraction.log"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 pnpm --filter @deep/backend test:integration test/requested-verification.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "35 requested-verification controls including typed corruption and retained liabilities; local PostgreSQL/fabricated transports",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Actual isolated HTML list structural preservation; no live research",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/html-lists.extraction.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_capacity_v6_20260917 pnpm test:integration",
+    "status": "implemented_application_command",
+    "implementation": "package.json",
+    "scope": "Full local PostgreSQL integration on separate synthetic database",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_capacity_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Actual isolated extraction/API controls after integration",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/sqlite-context-capacity/probe.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/sqlite-context-capacity/probe.mts",
+    "scope": "Development SQLite actual parser and model-request serialization only; no provider/DB",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-preflight-root-export",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "648modules,2.18MB JavaScript export; no native build",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "PREFLIGHT_REPO=/tmp/deep-admission-preflight-1ph35qo7/repo TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm exec tsx /home/oranolio/Desktop/Deep/verification/v6/admission-preflight/api-contract-probe.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/admission-preflight/api-contract-probe.mts",
+    "scope": "Actual local Fastify authentication/settings/upload/admission + real PostgreSQL + mobile submitAdmission; session flags absent, settings flags boolean, both disabled modes zero writes/upload/admission, both enabled modes actual upload/admission, accepted recovery while flagsdisabled, unauth401, provider intents0; no worker.",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-final-0602f96-android",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Exact0602f96 detached offline Android JavaScript export only",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "W01-W09 combined append/evaluation/remote invalidation, local synthetic PG only",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.integration.config.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/matched-pipeline EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/eval-runner pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W08 actual local extraction, fabricated provider transport, immutable historical receipts",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.extraction.config.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/matched-pipeline-final EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/eval-runner-final pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W08 actual local extraction, fabricated provider transport, immutable historical receipts; evaluator controls create and retain a fresh synthetic database, requiring local test CREATEDB permission",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/vitest.extraction.config.ts"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-remote-invalidation-integrated",
+    "status": "implemented_application_command",
+    "scope": "651modules2.21MB7163ms; JS export, before final account-panel ref reset, not native build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-clean-ce2f889-export",
+    "status": "implemented_application_command",
+    "scope": "W09 exact clean ce2f889 JavaScript export only",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile exec expo prebuild --platform android --no-install",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 isolated ce2f889 native project generation only, not compilation or installed build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon --console=plain",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 generated isolated Android project dependency resolution; public artifact downloads only, no compilation/deployment/device install",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "/home/oranolio/android-sdk/cmdline-tools/latest/bin/sdkmanager \"platforms;android-36\" \"build-tools;36.0.0\" \"system-images;android-34;google_apis;x86_64\"",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 local native-test SDK provisioning; existing SDK licenses, public artifacts, no build service or deployment",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "NODE_ENV=development EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CMAKE_BUILD_PARALLEL_LEVEL=2 GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.parallel=false --max-workers=2 --no-daemon --console=plain",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 isolated local x86_64 debug APK compilation, default test key only; no private/store release, build service or physical-device install",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "sudo -n apt-get install --no-install-recommends --yes openjdk-17-jdk-headless",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Local Android compilation toolchain setup; missing javac repair only",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "printf 'no\\n' | /home/oranolio/android-sdk/cmdline-tools/latest/bin/avdmanager create avd --name deep_v6_ce2f889 --package 'system-images;android-34;google_apis;x86_64' --path /tmp/deep-v6-emulator-avd --device pixel_6",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Create separate synthetic local emulator; no existing device changes",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "python3 verification/v6/native-current-emulator/ui.py inspect",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Bounded synthetic emulator UI inspection; refuses physical serials",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "/home/oranolio/android-sdk/emulator/emulator -avd deep_v6_ce2f889 -port 5556 -no-window -no-audio -no-snapshot -no-boot-anim -no-metrics -gpu swiftshader -memory 2048 -cores 2",
+    "status": "implemented_application_command",
+    "scope": "W07 isolated synthetic Android14 emulator only; no physical device or installed user app changes",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "python3 verification/v6/native-current-emulator/ui.py <inspect|tap|text|key|swipe> [arguments]",
+    "status": "implemented_application_command",
+    "scope": "W07 bounded synthetic emulator only; refuses physical device; exact arguments retained in evidence",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "node verification/v6/native-current-emulator/db-trace.mjs verification/v6/native-current-emulator/<trace-name>.json",
+    "status": "implemented_application_command",
+    "scope": "W03/W04/W06/W07 read-only owned synthetic native PostgreSQL trace; no truncation",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/db-trace.mjs"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test test/api-request.test.ts test/request-scope.test.ts test/source-deletion.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 bodyless source deletion request, authentication and binary preservation controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test test/invalidated-progress.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 terminal invalidation presentation and protected-restart controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:unit test/native-document-control.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W07 test-only fabricated native controller passage binding",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-native-fixes-export",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 native deletion and terminal-state fixes Android JavaScript export; not native compilation",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm exec tsx verification/v6/native-current-emulator/cleanup.mts",
+    "status": "implemented_application_command",
+    "scope": "Exact owned syntheticaccount teardown only, ID/time/zero-run guarded, production deleteAccount; no truncation",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/cleanup.mts"
+  },
+  {
+    "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+    "status": "implemented_application_command",
+    "scope": "W09 exact native-fix clean checkout; offline local verification only, no buildservice",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-native-fixes-export",
+    "status": "implemented_application_command",
+    "scope": "W09 exact native-fix clean checkout; offline local verification only, no buildservice",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_artifact_cap_v6 pnpm --filter @deep/backend test:integration test/artifact-size.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 isolated retained local PostgreSQL evidence artifact8MiB boundary/replay/ownership regression; no truncation of standard/native/history databases",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts test/frozen-documents.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W08 frozen PDF evaluator local controls; fabricated model transports, actual parser; extraction creates and retains dedicated random database, no semantic score",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W08 frozen PDF evaluator local controls; fabricated model transports, actual parser; extraction creates and retains dedicated random database, no semantic score",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"registered official frozen PDFs\"",
+    "status": "implemented_application_command",
+    "scope": "W08 evaluator owned event trace and exact observed official PDF failure reasons; actual local PG/parser, fabricated nonbillable models; dedicated retained random DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "node verification/v6/frozen-pdf-integrated/setup.mjs",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/frozen-pdf-integrated/setup.mjs"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"retains legitimate unavailable public read receipt\"",
+    "status": "implemented_application_command",
+    "scope": "W08 evaluator strict failed-read receipt regression; creates fresh retained random DB; actual parser and fabricated transport, serial DB slot",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "python3 verification/v6/physical-unlocked/ui.py inspect",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/ui.py"
+  },
+  {
+    "command": "python3 verification/v6/physical-unlocked/picker.py",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/picker.py"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/storage-probe.cjs observe",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/storage-probe.cjs"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/cleanup-prior.cjs",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/cleanup-prior.cjs"
+  },
+  {
+    "command": "node verification/v6/physical-unlocked/db-trace.mjs verification/v6/physical-unlocked/before-delete.json",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/db-trace.mjs"
+  },
+  {
+    "command": "pnpm exec tsx verification/v6/physical-unlocked/expire-second.mts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/physical-unlocked/expire-second.mts"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/auth-recovery.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 authorized physical synthetic controls or targeted regression; fixed own account/device, no real credentials/output or paid requests; initial async inspector helper fails on Hermes and is retained as failure",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]

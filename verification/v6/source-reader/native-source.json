@@ -1,0 +1,147 @@
+[
+  {
+    "text": "",
+    "label": "Deep Research",
+    "bounds": "[0,0][1080,2392]"
+  },
+  {
+    "text": "Deep Research",
+    "label": "",
+    "bounds": "[45,150][431,224]"
+  },
+  {
+    "text": "",
+    "label": "Open profile and settings",
+    "bounds": "[906,151][1035,257]"
+  },
+  {
+    "text": "Profile",
+    "label": "",
+    "bounds": "[906,151][1035,257]"
+  },
+  {
+    "text": "",
+    "label": "Demo fixture route",
+    "bounds": "[45,279][1035,375]"
+  },
+  {
+    "text": "Live research route",
+    "label": "",
+    "bounds": "[67,301][1012,352]"
+  },
+  {
+    "text": "",
+    "label": "Source sheet",
+    "bounds": "[0,375][1080,1922]"
+  },
+  {
+    "text": "DeepSourceReaderControl.​pdf",
+    "label": "",
+    "bounds": "[47,422][1033,496]"
+  },
+  {
+    "text": "ACCESS: PARTIAL-TEXT · COVERAGE: SELECTED_EXTRACTED_BLOCKS",
+    "label": "",
+    "bounds": "[47,519][1033,621]"
+  },
+  {
+    "text": "Document page 1 · block 0",
+    "label": "",
+    "bounds": "[48,638][1032,706]"
+  },
+  {
+    "text": "Publisher: uploaded. Publication, effective and retrieval dates unavailable.",
+    "label": "",
+    "bounds": "[48,706][1032,842]"
+  },
+  {
+    "text": "Field notes: Ardent sensor deployment\nArdent supports offline recording only on firmware 4.2.\nArdent does not support underwater recording.",
+    "label": "",
+    "bounds": "[48,842][1032,1114]"
+  },
+  {
+    "text": "Extraction: docling-parse-7.20.0/geometry-v1",
+    "label": "",
+    "bounds": "[48,1114][1032,1182]"
+  },
+  {
+    "text": "pdf_layout_tables_and_ocr_unverified",
+    "label": "",
+    "bounds": "[48,1182][1032,1250]"
+  },
+  {
+    "text": "This extraction may omit content or structure. The displayed passage does not establish complete document coverage.",
+    "label": "",
+    "bounds": "[48,1250][1032,1454]"
+  },
+  {
+    "text": "EXTRACTED COORDINATES: PDF POINTS; BOTTOM-LEFT ORIGIN. NO PAGE IMAGE OR HIGHLIGHT IS AVAILABLE.",
+    "label": "",
+    "bounds": "[48,1454][1032,1556]"
+  },
+  {
+    "text": "Field notes: Ardent sensor deployment — 50, 737.516, 255.42800000000003, 748.616",
+    "label": "",
+    "bounds": "[48,1572][1032,1708]"
+  },
+  {
+    "text": "Ardent supports offline recording only on firmware 4.2. — 50, 719.516, 338.1200000000001, 730.616",
+    "label": "",
+    "bounds": "[48,1708][1032,1768]"
+  },
+  {
+    "text": "Ardent does not support underwater recording. — 50, 701.516, 298.12400000000014, 712.616",
+    "label": "",
+    "bounds": "[48,1912][1032,1768]"
+  },
+  {
+    "text": "Source version: 396862d9-91a2-475f-b73e-64854b6c6837",
+    "label": "",
+    "bounds": "[48,2048][1032,1768]"
+  },
+  {
+    "text": "Original document is not available through a public web link.",
+    "label": "",
+    "bounds": "[48,2184][1032,1768]"
+  },
+  {
+    "text": "",
+    "label": "Close source sheet",
+    "bounds": "[48,1768][1032,1874]"
+  },
+  {
+    "text": "Close",
+    "label": "",
+    "bounds": "[48,1768][1032,1874]"
+  },
+  {
+    "text": "",
+    "label": "Research",
+    "bounds": "[0,1970][360,2092]"
+  },
+  {
+    "text": "Research",
+    "label": "",
+    "bounds": "[96,2003][264,2057]"
+  },
+  {
+    "text": "",
+    "label": "Library",
+    "bounds": "[360,1970][720,2092]"
+  },
+  {
+    "text": "Library",
+    "label": "",
+    "bounds": "[478,2003][601,2057]"
+  },
+  {
+    "text": "",
+    "label": "Settings",
+    "bounds": "[720,1970][1080,2092]"
+  },
+  {
+    "text": "Settings",
+    "label": "",
+    "bounds": "[827,2003][973,2057]"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "requirementIds": [
+    "W03",
+    "W07"
+  ],
+  "revision": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7 plus test-harness changes",
+  "environment": "local PostgreSQL deep_research_native_v6",
+  "command": "read-only native inventory SELECT; incorrectly used attachments.bytes and text_content",
+  "exitCode": 1,
+  "sqlstate": "42703",
+  "error": "column bytes does not exist",
+  "repair": "Inspected migrations001/011; use raw_bytes and extracted_text. No mutations; corrected query receipt db-before.log."
+}

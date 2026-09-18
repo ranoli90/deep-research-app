@@ -1,0 +1,30 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/html.extraction.test.ts (3 tests) 9604ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  6706ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  1895ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  1000ms
+{"level":"info","event":"action","runId":"30fa3ee8-15cb-454f-955d-a5d02323c78a","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T17:24:19.261Z"}
+{"level":"info","event":"action","runId":"30fa3ee8-15cb-454f-955d-a5d02323c78a","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T17:24:19.295Z"}
+{"level":"info","event":"action","runId":"30fa3ee8-15cb-454f-955d-a5d02323c78a","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-17T17:24:19.320Z"}
+{"level":"info","event":"action","runId":"30fa3ee8-15cb-454f-955d-a5d02323c78a","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-17T17:24:19.341Z"}
+ ✓ test/document-flow.extraction.test.ts (3 tests) 6209ms
+   ✓ W04 real API/worker persists PDF bytes, page locators and limitations; source inspection and deletion use the same records  2280ms
+   ✓ W04 cancel after actual parsing prevents late result persistence  1866ms
+   ✓ W04 delete after actual parsing prevents late result persistence  1832ms
+ ✓ test/pdf.extraction.test.ts (4 tests) 9294ms
+   ✓ W04 parses original digital PDF bytes into page-bound text with honest layout limitations  1788ms
+   ✓ W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support  4005ms
+   ✓ W04 encrypted PDF remains explicitly unavailable without password guessing  1176ms
+   ✓ W04 binds a late-drawn bold negation to its physical sentence, with recoverable cell geometry  2322ms
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  11:24:05
+   Duration  26.99s (transform 683ms, setup 0ms, collect 1.19s, tests 25.11s, environment 1ms, prepare 253ms)
+

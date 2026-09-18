@@ -1,0 +1,14 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts reading-position
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/reading-position.test.ts (11 tests) 11ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  21:09:11
+   Duration  359ms (transform 117ms, setup 0ms, collect 130ms, tests 11ms, environment 0ms, prepare 71ms)
+

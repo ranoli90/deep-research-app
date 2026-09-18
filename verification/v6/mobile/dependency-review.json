@@ -1,0 +1,82 @@
+{
+  "package": "expo-secure-store",
+  "version": "15.0.8",
+  "license": "MIT",
+  "gitHead": "172a69f5f70c1d0e043e1532f924de97210cabc3",
+  "licenseUrl": "https://raw.githubusercontent.com/expo/expo/172a69f5f70c1d0e043e1532f924de97210cabc3/LICENSE",
+  "licenseSha256": "fb3ca4a837f5779e83cef89b78253a8949cfb9429c340309f62d0465ec6610b4",
+  "runtimeDependencies": {},
+  "peerDependencies": {
+    "expo": "*"
+  },
+  "tarballIntegrity": "sha512-lHnzvRajBu4u+P99+0GEMijQMFCOYpWRO4dWsXSuMt77+THPIGjzNvVKrGSl6mMrLsfVaKL8BpwYZLGlgA+zAw==",
+  "modelAssets": [],
+  "runtimeImpact": "Native OS keychain/keystore calls; no network/spend; device latency and keychain availability not measured. Errors fail closed without plaintext fallback.",
+  "auditBefore": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 4,
+    "critical": 0
+  },
+  "auditAfter": {
+    "info": 0,
+    "low": 0,
+    "moderate": 3,
+    "high": 4,
+    "critical": 0
+  },
+  "sameAdvisoryIds": true,
+  "unresolvedAdvisories": [
+    {
+      "id": "1117015",
+      "module": "postcss",
+      "severity": "moderate",
+      "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+      "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
+    },
+    {
+      "id": "1119441",
+      "module": "uuid",
+      "severity": "moderate",
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+    },
+    {
+      "id": "1124252",
+      "module": "postcss",
+      "severity": "high",
+      "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+      "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q"
+    },
+    {
+      "id": "1130709",
+      "module": "postcss",
+      "severity": "moderate",
+      "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+      "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+    },
+    {
+      "id": "1138808",
+      "module": "image-size",
+      "severity": "high",
+      "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr"
+    },
+    {
+      "id": "1138809",
+      "module": "image-size",
+      "severity": "high",
+      "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
+    },
+    {
+      "id": "1139510",
+      "module": "postcss",
+      "severity": "high",
+      "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+      "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+    }
+  ],
+  "scope": "Dependency review only; not native execution or an independent security audit."
+}

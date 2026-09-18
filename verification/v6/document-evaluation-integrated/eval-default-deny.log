@@ -1,0 +1,13 @@
+
+> deep-research-mobile@0.1.0 eval:live /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/backend eval:live
+
+
+> @deep/backend@0.1.0 eval:live /home/oranolio/Desktop/Deep/apps/backend
+> tsx src/eval-live.ts
+
+eval:live blocked or stopped: explicit current approval, registered scope, existing dedicated account/database and verified budget are required. No implicit authorization or automatic retry.
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 eval:live: `tsx src/eval-live.ts`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

@@ -1,0 +1,122 @@
+{
+  "requirements": [
+    "W03",
+    "W04",
+    "W07"
+  ],
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T02:49:23.085746+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "expo": "54.0.37",
+    "expoCrypto": "15.0.9",
+    "database": "deep_research_lease_clock_v6 local PostgreSQL127.0.0.1:55432"
+  },
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile remove @noble/hashes --ignore-scripts",
+      "exitCode": 1,
+      "scope": "Rejected unsupported remove option; no dependency mutation",
+      "artifact": "remove-noble.log",
+      "sha256": "12461d15313908cdf8c055ae7fa1e0138cd4c0e9c99b7473e25ad45684728bd2"
+    },
+    {
+      "command": "pnpm --config.ignore-scripts=true --filter @deep/mobile remove @noble/hashes",
+      "exitCode": 0,
+      "scope": "Removed pure-JS package with install scripts disabled",
+      "artifact": "remove-noble-final.log",
+      "sha256": "fa889a27cc5779c78626c006b0f66641eb0d4ac0cc523fcaae84a164650c7068"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile add expo-crypto@15.0.9 --save-exact --ignore-scripts",
+      "exitCode": 0,
+      "scope": "SDK54 exact native dependency, package-registry download only",
+      "artifact": "install-expo-crypto.log",
+      "sha256": "4a47878e483d16ab3ee1d6da6118c470cc1e68ee50282e1b36382aa90153f02e"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- admission-retry",
+      "exitCode": 0,
+      "scope": "13/13 before explicit SDK BufferSource copy",
+      "artifact": "native-hash-unit.log",
+      "sha256": "476061a814c0f1c5487c2581dcae976a338766c03798a719cf1ba2b877b3bdc0"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 2,
+      "scope": "Initial ArrayBufferLike/BufferSource incompatibility; fixed by owned Uint8Array copy, no unsafe cast",
+      "artifact": "native-hash-types.log",
+      "sha256": "7e1a31158f2cf4ef0416ca5bbb89270b9e67858769c46365e95cd8bb760a18cc"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "Final configured TypeScript",
+      "artifact": "native-hash-types-final.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- admission-retry",
+      "exitCode": 0,
+      "scope": "13/13,963ms; injected Nodecrypto and mocked Expo transport, not native measurement",
+      "artifact": "native-hash-unit-final.log",
+      "sha256": "82d64b80ff022e6297448e542603675517dbb4443449c32a8f0335e8983353c3"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/attachment-retry.integration.test.ts test/v6-upload.integration.test.ts",
+      "exitCode": 0,
+      "scope": "11/11,2files,2.50s; isolated real PostgreSQL, synthetic stored extraction shapes",
+      "artifact": "upload-receipts-integration.log",
+      "sha256": "302a16e058ee8b611a8f58f797763e6850642bcbe54412250b8c5d5f92141bc8"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Configured backend TypeScript",
+      "artifact": "upload-receipts-types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "impact": {
+    "dependency": "Exact expo-crypto15.0.9 replaces removed uncommitted @noble/hashes2.4.0. SDK54 bundled version~15.0.9 matches installedExpo54.0.37. Existing base64-js dependency reused. New standalone native build/autolinking validation remains required; ExpoGo measurements are separate primary artifacts. No network, storage, permission or provider action added to hashing.",
+    "digest": "Native adapter dynamically imports SDK only when requested; missing capability blocks document submission without preventing saved-report loading. Pure helper requires explicit digester; no runtime JS hash fallback. Snapshot bytes verified and uploaded unchanged; text UTF8 preserves split surrogate pairs and8MiB bound. Guarded task yields before/after native Promise permit account/view cancellation before journal/network. Native hashing itself is not claimed interruptible.",
+    "uploadReceipts": "Upload acknowledgements now query current owned undeleted stored state. Coverage uses schema-valid digest-matching extraction status; partialPDF remains partial, unavailable/malformed/digest-mismatched extraction cannot claim complete. Cross-route same-key retries do not fabricate extraction or rewrite content. Original200JSON/201binary status preserved.",
+    "rollback": "Disable new document scheduling if native hashing unavailable; preserve known journals, exactdigest checks, upload/withdrawal idempotency vetoes and truthful extraction coverage. Do not restore falsecomplete upload replies or slow hash fallback implicitly."
+  },
+  "files": [
+    {
+      "path": "apps/mobile/src/admission-retry.ts",
+      "sha256": "cf01aeb5d8cbbea78c113d279eaca53f63182a23729fef2a71fd46996191798a"
+    },
+    {
+      "path": "apps/mobile/src/native-document-digest.ts",
+      "sha256": "baa996d98d6cbfcaf6b699e6959dc2aeb9c8416dbdd11d66a8ecc3eb472bf34b"
+    },
+    {
+      "path": "apps/mobile/test/admission-retry.test.ts",
+      "sha256": "00ef75f8bf7292bc0f2932d5743ab36ad49e38a7238c9eb488e20dfc764ef96d"
+    },
+    {
+      "path": "apps/mobile/package.json",
+      "sha256": "a7061d886364d3ff89587da7459be0ab4e9a07e364d6ac57627093f65fba0370"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "2c85c353e36eee53aff5487c5452643e2aba5e3d79d4a13d77f379d931f7cd3f"
+    },
+    {
+      "path": "apps/backend/src/modules/attachments.ts",
+      "sha256": "e37800ccc3aed6e5d7b5818ba7f3133a4edf21735a28bae76f993129649c1c61"
+    },
+    {
+      "path": "apps/backend/src/api/app.ts",
+      "sha256": "0ddbfc50b85b03e07afed359739f09ad995c550307f53b91dff309154169b986"
+    },
+    {
+      "path": "apps/backend/test/attachment-retry.integration.test.ts",
+      "sha256": "0f5dfd220652f580236113f18061d17265834a631e7025c679949a49b5031725"
+    }
+  ]
+}

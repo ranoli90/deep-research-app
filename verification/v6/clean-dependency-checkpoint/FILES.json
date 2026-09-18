@@ -1,0 +1,42 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "d00d8a0a38b72776bfbded03543b42bef2b9923d5ead0e6a72908d6a3cd20077"
+  },
+  {
+    "path": "android-export.log",
+    "sha256": "e6f2873a4d761167d03d612c68de34fb3534deb861464ed13b694236ecd4828c"
+  },
+  {
+    "path": "clone.log",
+    "sha256": "277efc3b5fba444151157a15d8eec55a1d321e35ccc87972b618d0750cd2365b"
+  },
+  {
+    "path": "environment.json",
+    "sha256": "9c471748247e18e0870d77789d5e051e625e7fc2cd7c8de096bec7af856bf00f"
+  },
+  {
+    "path": "export-hashes.json",
+    "sha256": "6c58dc11f3235c96e117104b713883546017d88e25021f40cbac09b2c895b330"
+  },
+  {
+    "path": "final-diff.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "final-status.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "install.log",
+    "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932"
+  },
+  {
+    "path": "mobile-types.log",
+    "sha256": "a6791a0cfe2f5a12cd813d2d1f3ce27b6f12735a6bcdab764bb61acb0da590d8"
+  },
+  {
+    "path": "verify.log",
+    "sha256": "740a9ce9933c86b69807489384fa61706e230dda5902eb904b80181ee56bb00f"
+  }
+]

@@ -1,0 +1,4 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+> tsc -p tsconfig.json --noEmit
+

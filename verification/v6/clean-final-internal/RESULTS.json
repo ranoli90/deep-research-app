@@ -1,0 +1,83 @@
+{
+  "task": "W09 exact final internal source-freeze clean-checkout proof",
+  "commit": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "recordedAt": "2026-09-18T05:07:41.630169+00:00",
+  "cwd": "/tmp/deep-v6-clean-final-0602f96",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "platform": "linux",
+    "arch": "x64",
+    "commit": "0602f96efff0eaa576e7654f08b226ef20108de5"
+  },
+  "receipts": [
+    {
+      "command": "git clone --no-hardlinks --no-checkout /home/oranolio/Desktop/Deep /tmp/deep-v6-clean-final-0602f96",
+      "exitCode": 0,
+      "artifact": "clone.log"
+    },
+    {
+      "command": "git checkout --detach 0602f96",
+      "exitCode": 0,
+      "artifact": "clone.log"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-final-0602f96-android",
+      "exitCode": 0,
+      "artifact": "android-export.log"
+    },
+    {
+      "command": "git status --porcelain=v1",
+      "exitCode": 0,
+      "artifact": "final-status.log"
+    },
+    {
+      "command": "git diff --exit-code",
+      "exitCode": 0,
+      "artifact": "final-diff.log"
+    }
+  ],
+  "counts": {
+    "researchCore": 155,
+    "backend": 117,
+    "mobile": 148,
+    "governance": 6
+  },
+  "configuredTypesAndBoundaries": "pnpm verify passed configured workspace typechecks and boundaries; mobile typecheck passed separately. No assertion skipping or source changes.",
+  "build": {
+    "kind": "Android JavaScript/Hermes export only",
+    "modules": 648,
+    "displaySize": "2.18 MB",
+    "bundlingMs": 3002,
+    "output": "/tmp/deep-v6-clean-final-0602f96-android",
+    "identity": "export-hashes.json contains exact emitted bundle/metadata bytes and SHA256"
+  },
+  "cleanStatus": true,
+  "failures": [],
+  "install": "Frozen committed lock; offline cached packages, lifecycle scripts disabled.",
+  "lockSha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e",
+  "scope": "Exact committed source freeze0602f96 only. Canonical metadata edits occurring concurrently in root are excluded. No DB or extraction suites were rerun in this checkout.",
+  "limits": [
+    "No native build, device acceptance, model/provider/network request, hosted CI execution, deployment/push or commit.",
+    "These checks do not establish semantic quality, production readiness or external release gates.",
+    "Dependency advisory posture is separately recorded; this offline task did not run audit or claim a clean security scan."
+  ],
+  "rootMutation": "Only verification/v6/clean-final-internal evidence; app and canonical docs untouched."
+}

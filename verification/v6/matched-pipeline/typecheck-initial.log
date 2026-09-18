@@ -1,0 +1,8 @@
+
+> @deep/backend@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+src/worker/structured-research.ts(114,18): error TS2304: Cannot find name 'nextStrategySearch'.
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

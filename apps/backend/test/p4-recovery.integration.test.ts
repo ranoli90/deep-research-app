@@ -6,7 +6,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { InjectedCrash, processRun } from "../src/worker/executor.js";
+import { InjectedCrash, processRun } from "../src/worker/diagnostic-executor.js";
 import { claimLease, getRun } from "../src/modules/runs.js";
 import { loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun } from "../src/modules/reports.js";
@@ -103,6 +103,12 @@ describe("P4 recovery drill against shipped worker/Postgres", () => {
     const reclaimed = await claimLease(pool, runId, "worker-b", 30_000);
     expect(reclaimed).toBeGreaterThan(crashed!.worker_lease_fence);
 
+    // A logical worker name is not the acquired attempt identity. Simulate another crash
+    // between acquisition and execution, then let processRun acquire its own fenced attempt.
+    await processRun(pool, config, runId, { workerId: "worker-b" });
+    expect((await getRun(pool, runId))?.worker_lease_fence).toBe(reclaimed);
+    expect((await getRun(pool, runId))?.lifecycle).not.toBe("terminal");
+    await pool.query(`UPDATE run_leases SET expires_at = now() - interval '1 second' WHERE run_id = $1`, [runId]);
     await processRun(pool, config, runId, { workerId: "worker-b" });
     const done = await getRun(pool, runId);
     expect(done?.lifecycle).toBe("terminal");

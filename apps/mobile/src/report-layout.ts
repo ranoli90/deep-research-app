@@ -37,12 +37,25 @@ export type ChangeSummary = {
   newlyFeasible?: string[];
   newlyInfeasible?: string[];
   notes: string;
+  comparison?: {version:"report-changes.v1"};
 };
 
 export function formatChangeSummary(cs: ChangeSummary): string {
   const parts = [cs.notes];
   if (cs.newlyFeasible && cs.newlyFeasible.length > 0) parts.push(`Newly feasible: ${cs.newlyFeasible.join(", ")}.`);
   if (cs.newlyInfeasible && cs.newlyInfeasible.length > 0) parts.push(`Newly ineligible: ${cs.newlyInfeasible.join(", ")}.`);
-  if (!cs.conclusionChanged) parts.push("Earlier conclusion kept unless a cited passage changed.");
+  if (!cs.conclusionChanged && !cs.comparison) parts.push("Earlier conclusion kept unless a cited passage changed.");
   return parts.filter(Boolean).join(" ");
+}
+
+/** Report blocks are measured inside their card, while ScrollView offsets include the card. */
+export function readingOffset(scrollY: number, cardY: number, blockY: number): number {
+  return scrollY - cardY - blockY;
+}
+export function readingScrollY(cardY: number, blockY: number, offset: number): number {
+  return Math.max(0, cardY + blockY + offset);
+}
+export function visibleReadingBlock(positions: Record<string, number>, cardY: number, scrollY: number): string | null {
+  const ordered = Object.entries(positions).sort((a, b) => a[1] - b[1]);
+  return ordered.filter(([, y]) => cardY + y <= scrollY).at(-1)?.[0] ?? ordered[0]?.[0] ?? null;
 }

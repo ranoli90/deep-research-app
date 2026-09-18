@@ -1,0 +1,63 @@
+{
+  "tasksSha256": "d3ee317d08f54f1e8f354e22bfb2857a021ba8bfdcb48859f0ee6744dfb76d7e",
+  "sourcesSha256": "a6254b9c9d3b72f0828b0f5406aecf19725d55673057fcd60ebf5befbf5cbe8d",
+  "documents": [
+    {
+      "id": "sqlite-wal",
+      "sha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e"
+    },
+    {
+      "id": "postgres17-isolation",
+      "sha256": "41eedd5ade136eda2e8fe6f211bff5e55b1165134211e1ddd52ca204f8c67587"
+    },
+    {
+      "id": "python313-tomllib",
+      "sha256": "f12de52845acd79cd62a6d7c545cc3da0c47ead7adeade514a8c3ebfc6b53686"
+    },
+    {
+      "id": "rfc9112",
+      "sha256": "b260bba790c2da55a7e0795f356fcd9b70743686c55250f0ef1cc993c4d1abac"
+    },
+    {
+      "id": "tmp117",
+      "sha256": "b33614678dd46e7997f813ccefb118796dcbcc97c9ba264806703ee453a3d555"
+    },
+    {
+      "id": "rfc8259",
+      "sha256": "5302d6ccb6cf221817bdd1f8cd7221661d4519372e0ac0b4cf641e11e8037de7"
+    },
+    {
+      "id": "esp32",
+      "sha256": "a7917e6b47528c9dcab06837a49d452e582751335797db879f1cf2d17cd29adf"
+    },
+    {
+      "id": "duckdb-concurrency",
+      "sha256": "b42eab31c3fcb781ab35eb4815c7b6bfa7c132336bc5e783803f698289a92342"
+    },
+    {
+      "id": "parquet-nulls",
+      "sha256": "a89f191a2d3e19bcf98d558184adc143c7f0b6ae1c2a4f9168a8ac1f4d07173e"
+    },
+    {
+      "id": "openapi310",
+      "sha256": "156788f23f0e3be376b9635f70451535e4280c3227747dbdd1dd6a0e50f61f1b"
+    },
+    {
+      "id": "openapi303",
+      "sha256": "aa44ce99fca57ea67e9943ab70305565dcf0ce97a516a56ff5bf758a19e7b4de"
+    },
+    {
+      "id": "rfc9111",
+      "sha256": "ce91ee9848d2b9ac46386b0f0cbd4bfd9c0cd1948ebc363834cadc7e0997f3d7"
+    },
+    {
+      "id": "png3",
+      "sha256": "a3ac82bb9eb8664b93961a2a9ff6def3d70e3a9f63d92721143c1f391d04edec"
+    }
+  ],
+  "split": {
+    "development": 6,
+    "heldout": 6
+  },
+  "modelExecutions": 0
+}

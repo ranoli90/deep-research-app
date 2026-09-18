@@ -1,0 +1,59 @@
+{
+  "requirements": [
+    "W09",
+    "W03",
+    "W07"
+  ],
+  "recordedAt": "2026-09-18T04:20:33.213311+00:00",
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "cwd": "/tmp/deep-v6-metro-6490546",
+  "dependencyGraph": "PostCSS8.5.28 scoped override; Vitest4.1.11 exact pins; fourteen Expo Metro edges0.83.8; xcode>uuid11.1.1",
+  "packageSha256": "09df35a3c37a78b9fc11ec28478b4c85ed92303f79faafe898bdb6fbdb4a2b1b",
+  "lockSha256": "87b63dbf49e8cd8476241d88c951f21f18c08191fd59c7b29e92f548f17430d7",
+  "scope": "Attempted own-project Expo Go Hermes runtime access while device remained locked; not native build/UI acceptance.",
+  "status": "blocked_runtime_inaccessible",
+  "runtimeLoaded": false,
+  "accountRead": false,
+  "accountMatchEstablished": false,
+  "cleanupAttempted": false,
+  "cleanupConfirmed": false,
+  "observations": "Deep link accepted but no bundle request and zero CDP targets in four bounded observations. Guarded probe exited before evaluating any JS. No lock dismissal/bypass, OS auth change, other app interaction, raw OS dumps or screenshot.",
+  "receipts": [
+    {
+      "command": "EXPO_PUBLIC_API_URL=http://127.0.0.1:8787 EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+      "exitCode": 0,
+      "artifact": "metro.log",
+      "meaning": "Metro started and then intentionally terminated; no native bundle-load success."
+    },
+    {
+      "command": "adb -s 10.0.0.167:43417 reverse tcp:8081 tcp:8081",
+      "exitCode": 0
+    },
+    {
+      "command": "adb -s 10.0.0.167:43417 shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 -p host.exp.exponent",
+      "exitCode": 0,
+      "artifact": "launch.log"
+    },
+    {
+      "command": "node verification/v6/native-dependency-compat/probe.cjs",
+      "exitCode": 1,
+      "artifact": "probe.log"
+    },
+    {
+      "command": "adb -s 10.0.0.167:43417 shell am force-stop host.exp.exponent",
+      "exitCode": 0
+    },
+    {
+      "command": "adb -s 10.0.0.167:43417 reverse --remove tcp:8081",
+      "exitCode": 0
+    },
+    {
+      "command": "kill -TERM 1961439",
+      "exitCode": 0
+    }
+  ],
+  "cleanupInfrastructure": "Own Expo process force-stopped; temporary8081 reverse removed; Metro stopped. Final listener check shows no8081/8787 listeners and reverse list empty. Protected app content was not touched.",
+  "next": "When user makes authorized device runtime available, rerun guarded probe; clear only if exact preauthorized synthetic account matches. No broad Expo Go clearing.",
+  "cost": "No API server, provider/model calls, deployment, native build service or DB actions.",
+  "rootMutation": "Evidence directory only; no root source/dependency edits."
+}

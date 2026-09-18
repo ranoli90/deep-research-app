@@ -1,0 +1,17 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/html.extraction.test.ts (3 tests) 7183ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  5228ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  1362ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  591ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  09:07:00
+   Duration  7.52s (transform 94ms, setup 0ms, collect 114ms, tests 7.18s, environment 0ms, prepare 80ms)
+

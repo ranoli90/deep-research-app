@@ -1,0 +1,72 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/lease-clock.integration.test.ts (6 tests | 6 failed) 7110ms
+   × W02 rejects expired semantic mutation after account lock wait 1218ms
+     → expected { value: undefined } to deeply equal { error: 'stale_worker' }
+   × W02 rejects expired terminal mutation after account lock wait 1143ms
+     → expected { value: undefined } to deeply equal { error: 'stale_worker' }
+   × W02 rejects provider issuance when lease expires waiting for account lock 1165ms
+     → expected { value: { …(2) } } to deeply equal { Object (error) }
+   × W02 rejects provider issuance when lease expires waiting for legacy lock 1160ms
+     → expected { value: { …(2) } } to deeply equal { Object (error) }
+   × W02 rejects provider issuance when lease expires waiting for key lock 1158ms
+     → expected { value: { …(2) } } to deeply equal { Object (error) }
+   × W02 rejects provider issuance when lease expires waiting for project lock 1153ms
+     → expected { value: { …(2) } } to deeply equal { Object (error) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects expired semantic mutation after account lock wait
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects expired terminal mutation after account lock wait
+AssertionError: expected { value: undefined } to deeply equal { error: 'stale_worker' }
+
+- Expected
++ Received
+
+  {
+-   "error": "stale_worker",
++   "value": undefined,
+  }
+
+ ❯ test/lease-clock.integration.test.ts:56:18
+     54|    else await db.query("UPDATE runs SET phase='writing' WHERE id=$1",[…
+     55|   }));
+     56|   expect(result).toEqual({error:"stale_worker"});
+       |                  ^
+     57|   expect((await pool.query("SELECT lifecycle,phase FROM runs WHERE id=…
+     58|  }finally{x.session.stop();await deleteAccount(pool,x.accountId);}
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects provider issuance when lease expires waiting for account lock
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects provider issuance when lease expires waiting for legacy lock
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects provider issuance when lease expires waiting for key lock
+ FAIL  test/lease-clock.integration.test.ts > W02 rejects provider issuance when lease expires waiting for project lock
+AssertionError: expected { value: { …(2) } } to deeply equal { Object (error) }
+
+- Expected
++ Received
+
+  {
+-   "error": "stale_or_unauthorized_attempt",
++   "value": {
++     "intentId": "48d9fd8b-96a9-4c7d-8497-8e4475a5b612",
++     "issue": true,
++   },
+  }
+
+ ❯ test/lease-clock.integration.test.ts:65:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  20:39:37
+   Duration  8.08s (transform 485ms, setup 0ms, collect 693ms, tests 7.11s, environment 0ms, prepare 103ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts

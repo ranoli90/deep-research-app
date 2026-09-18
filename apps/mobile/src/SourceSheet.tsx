@@ -1,0 +1,57 @@
+import { useState } from "react";
+import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { publicSourceUrl, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
+import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
+import { breakLongTokens } from "./report-layout";
+
+type Props = { source: SourceDetail; onClose(): void; onOpenOriginal(url: string): void;
+  onDelete?(target: SourceDeletionTarget): void; deletionPending?: boolean; deletionError?: string | null;
+  offline?: boolean; admissionPending?: boolean;
+  styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
+    kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
+export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
+  deletionError, offline = false, admissionPending = false }: Props) {
+  const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
+  const target = sourceDeletionTarget(source);
+  const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
+  const confirming = sameSourceDeletionTarget(confirmation, target);
+  const url = publicSourceUrl(source.locator);
+  return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
+    <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
+    <Text style={styles.kicker}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+    <ScrollView style={styles.sheetBody} nestedScrollEnabled>
+      <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
+      <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
+      <Text selectable style={styles.bodyText}>{source.exactText}</Text>
+      {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
+        <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
+        {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
+      </View> : null}
+      <Text style={styles.bodyText}>Extraction: {source.extractionMethod ?? "unknown"}</Text>
+      {source.warnings?.map((warning, index) => <Text key={index} selectable style={styles.bodyText}>{warning}</Text>)}
+      {source.coverage !== "complete" ? <Text style={styles.bodyText}>This extraction may omit content or structure. The displayed passage does not establish complete document coverage.</Text> : null}
+      {source.passageLocator?.geometry?.length ? <View accessibilityLabel="Extracted passage coordinates">
+        <Text style={styles.kicker}>Extracted coordinates: {source.passageLocator.coordinates ?? "coordinate system unknown"}. No page image or highlight is available.</Text>
+        {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
+      </View> : null}
+      <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
+      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser">
+        <Text style={styles.link}>Open original source</Text>
+      </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
+      {onDelete ? <View>
+        {deletionError ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{deletionError}</Text> : null}
+        {unavailable ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{unavailable}</Text> : null}
+        {confirming ? <View accessibilityLabel="Confirm source deletion">
+          <Text style={styles.bodyText}>Delete this source from your account? Its stored content will be removed and research that depends on it will become unavailable. Copies of an uploaded document used by other research are included. Cached reports and selected attachments on this device will be cleared; other saved reports can be reopened from Library. Your original file is unchanged.</Text>
+          <Pressable disabled={!!unavailable} accessibilityState={{disabled:!!unavailable}} accessibilityRole="button" accessibilityLabel="Confirm delete source and dependent research"
+            onPress={() => { if (!unavailable && target && sameSourceDeletionTarget(confirmation,target)) { setConfirmation(null); onDelete(target); } }}>
+            <Text style={styles.link}>Delete source and dependent research</Text>
+          </Pressable>
+          <Pressable disabled={deletionPending} accessibilityRole="button" accessibilityLabel="Keep source" onPress={() => setConfirmation(null)}><Text style={styles.link}>Keep source</Text></Pressable>
+        </View> : <Pressable disabled={!!unavailable} accessibilityState={{disabled:!!unavailable}} accessibilityRole="button" accessibilityLabel="Delete this source"
+          onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.link}>Delete this source</Text></Pressable>}
+      </View> : null}
+    </ScrollView>
+    <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet"><Text style={styles.link}>Close</Text></Pressable>
+  </View>;
+}

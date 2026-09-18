@@ -1,0 +1,16 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts source-deletion source-view
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/source-deletion.test.ts (9 tests) 15ms
+ ✓ test/source-view.test.ts (6 tests) 15ms
+ ✓ test/source-deletion-flow.test.ts (6 tests) 15ms
+
+ Test Files  3 passed (3)
+      Tests  21 passed (21)
+   Start at  21:23:44
+   Duration  472ms (transform 290ms, setup 0ms, collect 425ms, tests 46ms, environment 1ms, prepare 277ms)
+

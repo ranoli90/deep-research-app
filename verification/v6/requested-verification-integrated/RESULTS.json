@@ -1,0 +1,85 @@
+{
+  "requirements": [
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "3.2.7",
+    "platform": "Linux",
+    "database": "deep_research_lease_clock_v6"
+  },
+  "paidCalls": 0,
+  "results": [
+    {
+      "command": "pnpm verify",
+      "artifact": "verify.log",
+      "exitCode": 1,
+      "scope": "147 core pass/1 stale diagnostic narrative assertion fails; later suites not run",
+      "sha256": "c300ec72aca594ff0e0d0b76018120a1bb3df07b43122e4d81d4493367edda23"
+    },
+    {
+      "command": "pnpm verify",
+      "artifact": "verify-final.log",
+      "exitCode": 0,
+      "scope": "148 core,116 backend,132 mobile,6 governance; configured types and boundaries",
+      "sha256": "1ae3c008ad0701ef26dfce13a9888eebdd4d8ab763e2d82f6703a9f9a184b554"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "extraction.log",
+      "exitCode": 0,
+      "scope": "17/17 actual isolated extraction/API/worker;4 files;87.78s; synthetic documents/fabricated model transport",
+      "sha256": "a5f02344f449992809fb653be256faadbc7a704e59903f81837fbd18ab70cbe1"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-types-export.log",
+      "exitCode": 0,
+      "scope": "Mobile TypeScript followed by export in same retained log",
+      "sha256": "86d457bd2c677c9dd2ff60d041956fae8b33412a7a8f107f714fedbddba44c5b"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-requested-verification-bundle",
+      "artifact": "mobile-types-export.log",
+      "exitCode": 0,
+      "scope": "647 modules;2.17MB Android JavaScript; not native build",
+      "sha256": "86d457bd2c677c9dd2ff60d041956fae8b33412a7a8f107f714fedbddba44c5b"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-validator.log",
+      "exitCode": 0,
+      "scope": "Canonical document structure/consistency only",
+      "sha256": "eae03a954501edbfe266052fe452877209becdc565a5b279f502e8ad15904aea"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "handoff-validator.log",
+      "exitCode": 0,
+      "scope": "Canonical document structure/consistency only",
+      "sha256": "843e7c908de3e7d516927da6b02a1337dfa98c54ed449f62a7e5417bf0a9e49b"
+    }
+  ],
+  "review": "Primary integration and agent code review are same-model engineering reviews, not independent human semantic validation. M08 diagnostic assertion changed to reject invented verification from question text; positive report ID/content checks retained. Production targeted verification independently has positive/negative evidence controls. Initial failure preserved.",
+  "limits": [
+    "Native verification flow unrun; device locked, protected synthetic cache cleanup pending",
+    "Real-model semantic applicability, arbitrary malformed-provenance typed termination and external gates remain open"
+  ],
+  "actualExtractionTrace": "document-controls.json",
+  "related": [
+    "../requested-verification/RESULTS.json",
+    "../requested-verification-mobile/RESULTS.json"
+  ],
+  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289",
+  "typecheckClarification": "Design typecheck suppression was removed in5f10a84. Current configured design command executes without || true; passing it does not imply unconfigured exhaustive design analysis."
+}

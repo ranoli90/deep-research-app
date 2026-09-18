@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-09-18T04:06:44.902961+00:00",
+  "requirement": "W09",
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "reviewedBase": "Apply combined PostCSS8.5.28+Vitest4.1.11 remediation.patch; separate from newMetroexperiment",
+  "proposal": "Scope overrides to every Metro family dependency declared by @expo/metro54.2.0, aligning all fourteen0.83.3 pins to0.83.8. Existing RN-side0.83.8 reused. Never lone image-size replacement or partial Metrocore override.",
+  "reason": "Upstream Metro0.83.8 explicitly replaces image-size with vendored parsers to fix CVE alerts; image-size itself has no patched version in current audit",
+  "risk": "Outside exactExpoSDK54 wrapper pins. SameMetro patch series but Expo-specific private imports/transform behavior may depend on exact versions; bundle success is not native runtime/standalone compatibility. No claim Expo vendor supports this override.",
+  "validation": [
+    "resolved graph verifies all @expo/metro Metro edges0.83.8",
+    "mobiletests andtypecheck",
+    "AndroidJS export",
+    "dependency audit",
+    "offline frozen reinstall"
+  ],
+  "privacySpend": "Build-tool dependencies only; no provider/model/networkprocessing or allowance changes; no DB/native/deploy. Registry downloads permitted, install scripts disabled.",
+  "rollback": "Remove only scopedMetro overrides and matchinglock changes, preservePostCSS/Vitest fixes. Restores knownimage-size exposure; retain all audit receipts rather than masking advisory.",
+  "vendor": "https://github.com/react/metro/releases/tag/v0.83.8"
+}

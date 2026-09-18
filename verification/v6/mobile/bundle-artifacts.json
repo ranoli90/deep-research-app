@@ -1,0 +1,18 @@
+{
+  "evidenceClass": "android_javascript_bundle_only",
+  "nativeExecution": false,
+  "artifactRoot": "/tmp/deep-v6-mobile-bundle",
+  "environment": "Node20.20.2/pnpm9.15.9/Expo54.0.37/Linux",
+  "files": [
+    {
+      "path": "_expo/static/js/android/index-8137e42f435aaf6e588c037ac2caf0e1.hbc",
+      "bytes": 2017509,
+      "sha256": "b17ec3c321a08594dfcd5e152bb9974a4b29ee296d64848b576789a727db48ec"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 150,
+      "sha256": "ea7d62b97f61bd46b11c1d7eea0e77da7d1314f44cce59606247aa6c35305d96"
+    }
+  ]
+}

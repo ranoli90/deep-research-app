@@ -1,0 +1,28 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+evaluation control database (retained): deep_eval_control_fb94b48febc84e409426073d003f0980
+ ❯ test/eval-live.extraction.test.ts (10 tests | 2 failed | 8 skipped) 1563ms
+   × retains legitimate unavailable public read receipt bodyless_fetch and rejects fabricated success or digest 380ms
+   × retains legitimate unavailable public read receipt http_error_body and rejects fabricated success or digest 260ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/eval-live.extraction.test.ts > retains legitimate unavailable public read receipt bodyless_fetch and rejects fabricated success or digest
+ FAIL  test/eval-live.extraction.test.ts > retains legitimate unavailable public read receipt http_error_body and rejects fabricated success or digest
+Error: evaluation_receipt_identity_unconfirmed
+ ❯ Object.execute src/evaluation/production-driver.ts:80:259
+
+ ❯ test/eval-live.extraction.test.ts:153:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 skipped (10)
+   Start at  06:16:56
+   Duration  2.85s (transform 815ms, setup 0ms, import 1.14s, tests 1.56s, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t retains legitimate unavailable public read receipt

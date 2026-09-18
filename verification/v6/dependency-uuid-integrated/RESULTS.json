@@ -1,0 +1,69 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "ece80f4d7be60843963e383b3707083547f61042",
+  "recordedAt": "2026-09-18T04:28:44.982671+00:00",
+  "cwd": "/home/oranolio/Desktop/Deep",
+  "scope": "Reviewed UUID-only root integration; working tree not committed by agent. No Metro override.",
+  "impact": "Previously reviewed impact and actual Expo iOS prebuild evidence in ../dependency-uuid-root-candidate. Root change is scoped xcode>uuid11.1.1 plus matching lock only; no source/test/API/native graph edits. xcode3 uses CommonJS v4 only; major override explicitly outside declared^7.0.3 but covered by actual API compatibility controls.",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux"
+  },
+  "receipts": [
+    {
+      "command": "git apply --check verification/v6/dependency-uuid-root-candidate/uuid-only-root.patch",
+      "exitCode": 0
+    },
+    {
+      "command": "git apply verification/v6/dependency-uuid-root-candidate/uuid-only-root.patch",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm install --offline --ignore-scripts --frozen-lockfile",
+      "exitCode": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "node verification/v6/dependency-uuid-integrated/roundtrip.cjs",
+      "exitCode": 0,
+      "artifact": "roundtrip.json",
+      "scope": "Actual xcode parse/edit/write/reparse;1000 sampled unique uppercase24hex IDs; UUIDv4 format; patched v3/v5 invalid-buffer RangeErrors."
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json",
+      "scope": "Zero moderate, two high image-size advisories retained; not clean security."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log"
+    },
+    {
+      "command": "git diff --check -- package.json pnpm-lock.yaml",
+      "exitCode": 0
+    }
+  ],
+  "resolvedGraph": {
+    "overrides": {
+      "@expo/metro-config>postcss": "8.5.28",
+      "xcode>uuid": "11.1.1"
+    },
+    "expoMetro": "54.2.0",
+    "actualExpoMetro": "0.83.3",
+    "xcode": "3.0.1",
+    "uuidEntry": "/home/oranolio/Desktop/Deep/node_modules/uuid/dist/cjs/index.js",
+    "uuid": "11.1.1"
+  },
+  "limits": [
+    "No DB suite, provider calls, native build/device check or commit.",
+    "Prior isolated iOS prebuild is config-plugin generation only, not native acceptance.",
+    "Metro remains0.83.3 and its two high image-size advisories remain; isolated Metro experiment unadopted."
+  ],
+  "rollback": "Remove xcode>uuid override and matching lock delta only; preserve PostCSS/Vitest fixes and track reintroduced UUID advisory.",
+  "lockSha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e"
+}

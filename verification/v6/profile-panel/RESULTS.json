@@ -1,0 +1,60 @@
+{
+  "task": "W07 responsibility-based profile presentation extraction",
+  "observedHead": "72145f20a4f32a3ba5615d08b2bf2d2e759765fc",
+  "implementation": "uncommitted working-tree changes; parent checkpoint required",
+  "files": [
+    "apps/mobile/App.tsx",
+    "apps/mobile/src/ProfilePanel.tsx",
+    "apps/mobile/test/profile-panel.test.ts",
+    "apps/mobile/test/lifecycle.test.ts"
+  ],
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "checks": [
+    {
+      "artifact": "tests-initial.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "scope": "130pass/6fail:two static App-only assertions no longer followed moved profile presentation;four new component tests needed React binding under Vitest classic JSX. All protection retained when correcting.",
+      "sha256": "bfeaa5ca0906bdbcdc2ff2796f52ffaf8d003ede6b0f814959ab886ef09c47aa"
+    },
+    {
+      "artifact": "tests-final.log",
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "scope": "136/136:132existing +4component callback/confirmation/disclosure controls; existing static protection follows moved component.",
+      "sha256": "6bcfec2ad2dc3751a25fcff4d188e9008a97ff58e2db8898cad3f91c34c5460d"
+    },
+    {
+      "artifact": "typecheck.log",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "Mobile TypeScript including extracted component and tests.",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "artifact": "android-export.log",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-profile-panel-bundle",
+      "exitCode": 0,
+      "scope": "648modules/2.18MB Android JS export, not native build or device acceptance.",
+      "sha256": "208d94fa01e8e298509262f0aa694d0576d6606882c5162cc6072d078a09a2f7"
+    }
+  ],
+  "review": {
+    "skill": "vercel:react-best-practices",
+    "source": "/home/oranolio/.codex/plugins/cache/openai-curated-remote/vercel/0.21.4/skills/react-best-practices/SKILL.md",
+    "findings": "Dedicated module with narrow display-state type and callbacks; no new state/effects/fetch or authority. Direct imports, existing conditional mount, no unnecessary memoization. Accessible buttons and destructive confirmation retained. No inputs added."
+  },
+  "impact": {
+    "dependencies": "none",
+    "schemaMigration": "none",
+    "privacyCost": "existing handlers/generation checks untouched; no new network/provider action",
+    "presentation": "Remove unsupported appearance availability claim; explicitly state push unavailable; readable Research/Demo mode names preserve route identity."
+  },
+  "rollback": "Restore inline presentation if needed while retaining truthful availability wording, accessible labels, destructive confirmation and all original account/generation controls.",
+  "limits": "No DB/native/hosted/live-model evidence. Existing development sign-in/route controls remain because no new auth capability or broad Settings redesign is introduced.",
+  "canonicalFollowup": "Primary owns STATUS/HANDOFF/ledger/registry and mobile-spec reconciliation.",
+  "implementationCommit": "6490546f51bdbf0267abfba36aae9924e904f61b"
+}

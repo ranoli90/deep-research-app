@@ -1,0 +1,64 @@
+{
+  "requirements": [
+    "W04",
+    "W03",
+    "W09"
+  ],
+  "baseCommit": "1d54ea090cd01891a97ea1078204ba71137d0052",
+  "state": "uncommitted additive migration037 and focused test",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "database": "new isolated deep_research_artifact_cap_v6 at127.0.0.1:55432"
+  },
+  "commands": [
+    {
+      "command": "python3 setup using import psycopg",
+      "exitCode": 1,
+      "artifact": "setup-python-failure.log",
+      "scope": "Missing optional library; no mutation"
+    },
+    {
+      "command": "node --input-type=module; pg.Pool postgres://deep:deep_local_dev_only@127.0.0.1:55432/postgres; SELECT1 pg_database datname deep_research_artifact_cap_v6 then CREATE DATABASE deep_research_artifact_cap_v6 iff absent",
+      "exitCode": 0,
+      "artifact": "database-setup.log",
+      "scope": "Dedicated DB creation, no truncation"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_artifact_cap_v6 pnpm --filter @deep/backend test:integration test/artifact-size.integration.test.ts",
+      "exitCode": 1,
+      "artifact": "before.log",
+      "tests": "1failed/1passed",
+      "scope": "Before037: actual writer exact8MiB violates old check23514"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_artifact_cap_v6 pnpm --filter @deep/backend test:integration test/artifact-size.integration.test.ts",
+      "exitCode": 1,
+      "artifact": "final.log",
+      "scope": "Vitest worker OOM during generic8MiB Buffer deep equality. No passing assertion claimed. Replaced with full native byte equality, no safety weakening."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_artifact_cap_v6 pnpm --filter @deep/backend test:integration test/artifact-size.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "final-buffer-equality.log",
+      "tests": "2/2;1.44s",
+      "scope": "8MiB exact bytes+digest+account/run roundtrip, all migrations replay twice retaining bytes,8MiB+1 rejected23514, foreignsource denied atomically"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec tsx -e: createPool dedicated artifact DB, SELECT id FROM accounts WHERE deleted_at IS NULL, deleteAccount for each, pool.end",
+      "exitCode": 0,
+      "artifact": "crash-account-cleanup.log",
+      "scope": "Only synthetic accounts in new dedicated suite DB; clears OOM leftovers without truncation"
+    }
+  ],
+  "impact": "Only named evidence_artifacts_body_check grows from1500000 to8388608 to match authorized attachment8MiB admission. Old migrations unchanged, all replayed. Public-fetch1.5MB code cap untouched. No service/dependency/provider/prompt/API change.",
+  "rollback": "Keep8MiB storage reader/constraint for admitted bytes; disable new uploads if necessary. Never shrink constraint over existing records or discard admitted raw bytes.",
+  "limits": "Real localPG storage tests only; officialPDF actual extraction rerun belongs to evaluator agent. No model/native/provider quality claim.",
+  "dbSlot": "released after cleanup; no running tests"
+}

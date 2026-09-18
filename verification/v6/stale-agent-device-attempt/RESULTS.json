@@ -1,0 +1,16 @@
+{
+  "task": "W07 coordination incident",
+  "baseCommit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "scope": "Agent self-report plus primary listener/reverse inspection; not acceptance",
+  "events": [
+    "Reused agent resumed stale native context after receiving read-only mutation audit",
+    "After delivery: screencap to native-corrected.png; taps for absent app controls, swipe, filtered UI inspection; window/power state; removed screenshot; wake/swipe; device remained NotificationShade/locked",
+    "Primary immediately prohibited all further native actions; agent confirmed no new API/Metro process/reverse setup after task delivery",
+    "Primary ss inspection found no8081/8787listeners; adb reverse list empty",
+    "Screenshot deleted; no account content read/cleared and no native acceptance inferred"
+  ],
+  "timestamps": "Exact agent action UTC not recorded; no inferred timestamp",
+  "paidCalls": 0,
+  "remaining": "Protected synthetic cache cleanup still pending unlock; no global Expo cleanup authorized",
+  "coordination": "Agent paused; future tasks must use current source/evidence and explicit narrow ownership"
+}

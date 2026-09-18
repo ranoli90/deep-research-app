@@ -1,0 +1,4 @@
+W09 manual CI configuration, uncommitted over ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6.
+Local node/yaml parse exit0: workflow_dispatch sole trigger; contents read permission.
+Hosted dispatch/execution: NOT RUN. No repository push, new paid allowance, deployment or model calls.
+Existing Node20.20.2/pnpm9.15.9/local dependencies used for syntax inspection.

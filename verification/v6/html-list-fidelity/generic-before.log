@@ -1,0 +1,71 @@
+
+ RUN  v4.1.11 /tmp/deep-html-list-zy4akjz3/repo/apps/backend
+
+ ❯ test/html-lists.extraction.test.ts (5 tests | 4 failed) 3735ms
+   × W04 preserves generic ol restrictions omitted by main-content heuristics 701ms
+   × W04 preserves generic ul restrictions omitted by main-content heuristics 707ms
+   × W04 supplemental list excludes navigation/aside and retains nested order plus struck-through qualification 680ms
+   × W04 bounded list supplementation labels omissions and keeps old extractor versions readable 779ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/html-lists.extraction.test.ts > W04 preserves generic ol restrictions omitted by main-content heuristics
+AssertionError: expected 'Deployment restrictions apply to the …' to contain 'remote storage is unsupported'
+
+- Expected
++ Received
+
+- remote storage is unsupported
++ Deployment restrictions apply to the following cases:
++ Section 0 describes how processing is coordinated through shared memory, with persistent state transitions and careful synchronization between readers and writers. The deployment configuration must satisfy documented operational requirements.
++ Section 1 describes how processing is coordinated through shared memory, with persistent state transitions and careful synchronization between readers and writers. The deployment configuration must satisfy documented operational requirements.
+
+ ❯ test/html-lists.extraction.test.ts:7:66
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/html-lists.extraction.test.ts > W04 preserves generic ul restrictions omitted by main-content heuristics
+AssertionError: expected 'Deployment restrictions apply to the …' to contain 'remote storage is unsupported'
+
+- Expected
++ Received
+
+- remote storage is unsupported
++ Deployment restrictions apply to the following cases:
++ Section 0 describes how processing is coordinated through shared memory, with persistent state transitions and careful synchronization between readers and writers. The deployment configuration must satisfy documented operational requirements.
++ Section 1 describes how processing is coordinated through shared memory, with persistent state transitions and careful synchronization between readers and writers. The deployment configuration must satisfy documented operational requirements.
+
+ ❯ test/html-lists.extraction.test.ts:7:66
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/html-lists.extraction.test.ts > W04 supplemental list excludes navigation/aside and retains nested order plus struck-through qualification
+TypeError: Cannot read properties of undefined (reading 'text')
+ ❯ test/html-lists.extraction.test.ts:14:79
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/html-lists.extraction.test.ts > W04 bounded list supplementation labels omissions and keeps old extractor versions readable
+AssertionError: expected [ …(2) ] to include 'supplemental_list_limit_reached'
+ ❯ test/html-lists.extraction.test.ts:24:64
+     22| it("W04 bounded list supplementation labels omissions and keeps old ex…
+     23|  const result=await extractOffline(guide(`<ol>${Array.from({length:110…
+     24|  expect(result.status).toBe("partial");expect(result.warnings).toConta…
+       |                                                                ^
+     25|  expect(result.blocks.filter(b=>b.locator.startsWith("list:")).map(b=>…
+     26|  expect(ExtractedDocument.safeParse({...result,version:"trafilatura-2.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  22:29:23
+   Duration  4.05s (transform 124ms, setup 0ms, import 170ms, tests 3.73s, environment 0ms)
+
+undefined
+/tmp/deep-html-list-zy4akjz3/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts

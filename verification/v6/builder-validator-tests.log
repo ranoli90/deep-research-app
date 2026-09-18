@@ -1,0 +1,21 @@
+test_claimed_live_gate_pass (test_builder_handoff.BuilderHandoffTests.test_claimed_live_gate_pass) ... ok
+test_deferred_safety (test_builder_handoff.BuilderHandoffTests.test_deferred_safety) ... ok
+test_missing_disposition (test_builder_handoff.BuilderHandoffTests.test_missing_disposition) ... ok
+test_mutated_external_review (test_builder_handoff.BuilderHandoffTests.test_mutated_external_review) ... ok
+test_mutated_original_sources (test_builder_handoff.BuilderHandoffTests.test_mutated_original_sources) ... ok
+test_stale_goal_archive (test_builder_handoff.BuilderHandoffTests.test_stale_goal_archive) ... ok
+test_unqualified_push_guarantee (test_builder_handoff.BuilderHandoffTests.test_unqualified_push_guarantee) ... ok
+test_valid_package (test_builder_handoff.BuilderHandoffTests.test_valid_package) ... FAIL
+
+======================================================================
+FAIL: test_valid_package (test_builder_handoff.BuilderHandoffTests.test_valid_package)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/oranolio/Desktop/Deep/scripts/test_builder_handoff.py", line 25, in test_valid_package
+    self.assertTrue(result['ok'],result)
+AssertionError: False is not true : {'scope': 'revision_3_handoff_document_integrity_only', 'ok': False, 'application_tests_run': 0, 'errors': ['P0 evidence overstated', 'P0 evidence overstated', 'P0 evidence overstated', 'P0 evidence overstated', 'Native evidence overstated']}
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.376s
+
+FAILED (failures=1)

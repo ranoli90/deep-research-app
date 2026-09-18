@@ -1,0 +1,64 @@
+{
+  "files": [
+    {
+      "path": "apps/backend/src/modules/research-corrections.ts",
+      "sha256": "ce546f8e348fdf20afeed2494f5ac0fab70cf8b5cd086726d15d098ce99ea161"
+    },
+    {
+      "path": "apps/backend/test/question-patch.integration.test.ts",
+      "sha256": "7810fa3f17c6ee87e1c38739bc228f217506669d9a74f8c4547d85079b41ffdd"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "ce4e732ddbb9220fc766934d663bc643db523ee043039e5e33beffb357454176"
+    },
+    {
+      "path": "packages/research-core/src/index.ts",
+      "sha256": "6c704b27e54e1502ee7b4176b7880eb681d900dd6d1eb94165a6825599076c9b"
+    },
+    {
+      "path": "packages/research-core/src/question-patch.ts",
+      "sha256": "7bac03795c15cf730ce52636e85ead55dfb97e32de94760501d45abddbd55634"
+    },
+    {
+      "path": "packages/research-core/test/question-patch.test.ts",
+      "sha256": "58611794ba0be82e0312c697b733d7877ed52d2e2001981a06f6d8fa7f961b6c"
+    },
+    {
+      "path": "verification/v6/question-patch/HANDOFF.md",
+      "sha256": "5a24787762bb0a2e37ce0e7b7ad5675dbb39f629d6988d0dec89a1ab48fbc94c"
+    },
+    {
+      "path": "verification/v6/question-patch/RESULTS.json",
+      "sha256": "e64da5fad3a4bf15da94adfc3df1d9207d17c91f308d734db20674c060f3d02e"
+    },
+    {
+      "path": "verification/v6/question-patch/boundaries.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "path": "verification/v6/question-patch/core-initial.log",
+      "sha256": "abcd51820e4c1b783515a9ab378f4b42536237bad2bed029d121063c651e4cf8"
+    },
+    {
+      "path": "verification/v6/question-patch/core-typecheck.log",
+      "sha256": "92fa2eb4e8ca1367214abb8e4ddc24506524be0bed9366c4fadafd6820be65d2"
+    },
+    {
+      "path": "verification/v6/question-patch/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/question-patch/integration-final.log",
+      "sha256": "e2457342e0f2197c2fcbe32ffc715e9d2a988ee9ae868e16bd3eeaac302101ad"
+    },
+    {
+      "path": "verification/v6/question-patch/integration-initial.log",
+      "sha256": "9673f78e2ede8a27723984512397ea0cf5198071c04456196cf3072e40791308"
+    },
+    {
+      "path": "verification/v6/question-patch/typecheck-initial.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ]
+}

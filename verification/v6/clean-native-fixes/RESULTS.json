@@ -1,0 +1,56 @@
+{
+  "requirements": [
+    "W03",
+    "W07",
+    "W09"
+  ],
+  "implementationCommit": "659c335cacc4762983661a7dfa52ce9a64f642a4",
+  "checkout": "/tmp/deep-clean-659c335",
+  "sourceState": "Exact detached commit; final git status porcelain empty",
+  "commands": [
+    {
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "sha256": "33dcffca3191260d0d06521d8a8796ad6aebd80e26eafefc57782835de6abc8a"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log",
+      "sha256": "a37ebf97a9e2177ecf14e864d1cce7cc49bc135b38e940f55473bb2331ac8fe7"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-native-fixes-export",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "sha256": "66b4c9da3f20c5619ad349ea3a0d98cf7ee52996657d23211994e3789a988716"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "validate-review.log"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "validate-handoff.log"
+    }
+  ],
+  "results": "157core/136backend/200mobile/6governance tests; configured types/boundaries; separate mobile types;651module2.21MB AndroidJSexport5274ms. Exact export filename matches root fix export.",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "host": "Linuxx86_64"
+  },
+  "paidCalls": 0,
+  "scope": "Local cleancheckout only; no PostgreSQL/parser/provider/native repeat, hostedCI or release. Native build/journey separate packet.",
+  "nativeEvidence": "../native-current-emulator/RESULTS.json"
+}

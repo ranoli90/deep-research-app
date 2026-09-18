@@ -1,0 +1,72 @@
+{
+  "task": "W09 exact detached dependency and requested-verification corruption checkpoint proof",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "recordedAt": "2026-09-18T04:33:52.314693+00:00",
+  "cwd": "/tmp/deep-v6-clean-5fb44af",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "platform": "linux",
+    "arch": "x64",
+    "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c"
+  },
+  "scope": "Exact committed dependency/corruption checkpoint only; root uncommitted metadata and later extraction fixes excluded. Not final milestone proof.",
+  "receipts": [
+    {
+      "command": "git clone --no-hardlinks --no-checkout /home/oranolio/Desktop/Deep /tmp/deep-v6-clean-5fb44af; git checkout --detach 5fb44af",
+      "exitCode": 0,
+      "artifact": "clone.log"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "scope": "Cached packages only; no registry downloads or lifecycle scripts."
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "scope": "155 research-core,116 backend,136 mobile,6 governance tests; configured types and boundaries."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-5fb44af-android",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "648 modules,2.18 MB,5740ms; JS/Hermes export only."
+    },
+    {
+      "command": "git status --porcelain=v1",
+      "exitCode": 0,
+      "artifact": "final-status.log",
+      "scope": "Empty: checkout remains clean."
+    },
+    {
+      "command": "git diff --exit-code",
+      "exitCode": 0,
+      "artifact": "final-diff.log"
+    }
+  ],
+  "counts": {
+    "researchCore": 155,
+    "backend": 116,
+    "mobile": 136,
+    "governance": 6
+  },
+  "failures": [],
+  "limits": [
+    "No PostgreSQL/extraction suites in this checkout packet. Existing exact-scope receipts remain separately attributed.",
+    "No API/provider/device/native build, audit network request, hosted CI or deployment.",
+    "Clean checkout and JS export do not establish model quality, native compatibility or milestone completion."
+  ],
+  "lockSha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e",
+  "exportArtifacts": "export-hashes.json records exact emitted bundle/metadata hashes; bundle retained at stated /tmp output path.",
+  "sourceMutation": "None; root evidence directory only. No commits."
+}

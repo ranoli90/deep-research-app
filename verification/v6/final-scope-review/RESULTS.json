@@ -1,0 +1,78 @@
+{
+  "task": "W01\u2013W09 exact-source bounded closure review",
+  "commit": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "recordedAt": "2026-09-18T05:08:49.140240+00:00",
+  "method": "Read-only same-model engineering review of exact source, canonical status/handoff, registered V6 plan/specs and existing receipts. No checks rerun, DB/device/network/providers, source/canonical changes or commits. Not independent human validation.",
+  "conclusion": "Two concrete authorized local omissions: executable W08 paired runner and explicit W06 new-document correction path. Exact-span input editing is valid granular typed work; broader semantic-criterion editor/selective traversal and additional format UI are not automatically required closure blockers. Existing owned Markdown export may satisfy deterministic format representation; primary evaluates that scope.",
+  "prioritizedItems": [
+    {
+      "priority": 1,
+      "requirement": "W08; W05/W06 evaluation through common production path; V6-F16",
+      "title": "Executable registered paired-evaluation runner is still missing",
+      "classification": "Concrete unblocked implementation/preflight/control gap; actual paid execution and independent adjudication remain gated",
+      "evidence": [
+        "apps/backend/src/eval-live.ts:1-6 always exits2 or3; credential presence misleadingly called authorized before exit3",
+        "evals/matched-pipeline/model-protocol.json:7 sourceModes and :32 resultRequirements exist as protocol",
+        "evals/matched-pipeline/corpus.mts:73 exposes only acquire|extract|validate, explicitly no model execution",
+        "apps/backend/test/matched-pipeline.extraction.test.ts:25-33 builds two real API arms; :51-68 executes actual worker/parser and records trace with fabricated model",
+        "apps/backend/src/ports/research-strategy.ts:4 two implemented admitted strategy values"
+      ],
+      "smallestNext": "Implement evaluator-owned planning/recording runner around the existing production API/worker/parser/tools/writer/checker, fail closed without current explicit authorization. Add nonbillable same-path contract controls using injected transports; do not implement a second research loop or score from fabricated outputs. Replace obsolete eval:live stub text only when real command exists and register commands.",
+      "regressions": [
+        "Missing/zero/unrecognized authorization denies before admission/provider calls even when credentials exist.",
+        "Plan hashes pin registration/docs/code/policies and exact task repetitions; evaluator gold/criteria/split absent from generator requests.",
+        "Both arms use identical resource/processor/tool policies and persist admitted strategy despite worker default change.",
+        "All attempted original/corrected/full runs including failed, cancelled, unknown receipt recorded; restart preserves identity and never blindly resends unknown attempts.",
+        "Frozen document mode and live discovery have distinct projections; hidden decisive sources never guide live discovery."
+      ],
+      "externalGate": "User current paid budget/scope/approved command; real receipts, provider enforcement and independent/human adjudication are not implied by runner existence."
+    },
+    {
+      "priority": 2,
+      "requirement": "W06 source/input change; canonical specs/ENGINE_CONTRACTS.md:88; staged spec06:38 add/remove source; W04/W07 document correction journey",
+      "title": "An existing research correction cannot accept a newly supplied document",
+      "classification": "Concrete local input-change omission; original source deletion and refresh are already implemented",
+      "evidence": [
+        "apps/backend/src/modules/research-corrections.ts:33 validates only old.attachmentIds and :35 spreads old brief unchanged apart from question/constraints/output preference",
+        "packages/contracts/src/index.ts:221-232 correction union has no attachment-change field/action",
+        "apps/mobile/App.tsx:585-586 correction request sends question/evidencePolicy only",
+        "specs/ENGINE_CONTRACTS.md:88 requires parsing new document and checking support/conflicts without assuming new is correct"
+      ],
+      "smallestNext": "Narrow typed append-owned-attachment correction only: preserve original question and old attachments, validate added attachment owner/liveness/consent under existing account/parent locks, bind entire patch in idempotency, inherit still-authorized old evidence with explicit snapshot policy, parse new bytes normally and conservatively recompute all support. No replacement/removal/implicit deletion or selective savings. Local actual PDF conflict controls plus ownership/replay are executable without paid calls.",
+      "externalGate": "Device picker/full corrected native journey and real-model conflict quality remain gated; local API/extraction tests can implement the path."
+    }
+  ],
+  "alreadyRepairedNotReopened": [
+    "Source deletion/descendant invalidation/tombstone replay",
+    "Requested check scheduling and immutable target/proof recovery including corruption",
+    "Correction draft recovery, exact span validation and mandatory relaxed public rediscovery",
+    "HTML list/withdrawal-marker preservation and whole-passage capacity through128",
+    "Configured-route preflight now actual settings endpoint, not rejected session mock"
+  ],
+  "notLocalImplementationBlockers": [
+    "Current locked native device / unfinished actual journey; do not infer pass from JS export",
+    "Unknown current paid budget / real-model heldout repetitions and independent adjudication",
+    "Hosted identity/backup/retention/network/provider invoice enforcement and signed current platforms",
+    "OCR and arbitrary larger-context/complex layout breadth honestly unavailable/partial; no blanket new extractor adoption",
+    "Selective dependency traversal: conservative full rerun explicitly permitted while completeness unknown",
+    "Hosted workflow execution requires separate action; manual workflow exists and exact clean checkout is currently delegated"
+  ],
+  "metadataOwnedByPrimary": "STATUS/HANDOFF opening checkpoint and repeated historical pending-capacity sentences remain stale at exact0602f96 despite appended correct407/33/148 receipts; primary already consolidating, do not treat as new source defect. New final clean proof is in another agent task.",
+  "evidenceBoundary": "Current407 PostgreSQL/33actual extraction and148 mobile/types/JSexport are prior terminal receipts supplied by primary, not rerun here; fabricated transports are not real-model quality.",
+  "examinedButNotPromoted": [
+    {
+      "priority": 2,
+      "requirement": "W06 accepted patch types/formatting; canonical specs/ENGINE_CONTRACTS.md:91; staged spec06:38",
+      "title": "Format-only changes cannot take a no-research path",
+      "classification": "Not established as required remaining implementation; primary review noted existing owned Markdown representation endpoint already renders same claim set without research. A format-revision/UI addition must not be invented from this requirement.",
+      "evidence": [
+        "packages/contracts/src/index.ts:221-232 only replace_question and replace_question_span",
+        "apps/backend/src/modules/research-corrections.ts:35-43 always derives question/new run/full reserve/reopen_discovery true",
+        "apps/mobile/App.tsx:585-586 sends rewritten correction question, no explicit format intent",
+        "specs/ENGINE_CONTRACTS.md:91 explicitly requires same claim set without expensive default search"
+      ],
+      "smallestNext": "An explicit bounded format action over an owned report version, preserving every claim/citation/limitation and identity. Start with a deterministic presentation choice supported by canonical blocks, not a semantic rewrite. Test zero search/model/provider issuance, ownership/version/deletion veto and unchanged factual content. Decide whether rendering is transient or versioned before adding public schema; do not infer format intent from arbitrary correction prose.",
+      "externalGate": "Native accessibility/user journey proof remains separately device gated; local rendering and ownership controls are not."
+    }
+  ]
+}

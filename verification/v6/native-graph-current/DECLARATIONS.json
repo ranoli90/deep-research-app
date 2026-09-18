@@ -1,0 +1,48 @@
+{
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "evidence": "installed package declarations only; selected graph is separate",
+  "sourceHashes": {
+    "apps/mobile/android/gradle/wrapper/gradle-wrapper.properties": "7e0821d895908883350587c74476b717016ab416320c44dc82a10def916c6fb5",
+    "apps/mobile/android/build.gradle": "bdb916d3fe7085c9e9f3bb45bd5eacb97f5d2c5a2b2af965642f7d904739ca68",
+    "apps/mobile/android/settings.gradle": "b972e62b131d7ee4c1de379daa09cc4a891dd31af3d2b720a46c634494dbd078",
+    "apps/mobile/android/gradle.properties": "815512557a44f1e92bf4e2c139a0017e4e0c00fbfc7a60d7b777a4f0fa4ae765",
+    "node_modules/expo-document-picker/android/build.gradle": "217035ba0068217b528b3c5286943c9b77895b147abb518e783f1567486d068f",
+    "node_modules/expo-file-system/android/build.gradle": "1e5c4af46ff3f8667d5fb762be820ec59658d9c01288e94d416870f946a6f760",
+    "node_modules/expo-secure-store/android/build.gradle": "a873071177f0b43681c880e235722eb47826c2e3c686af4e1417cca579356a2b",
+    "node_modules/expo-crypto/android/build.gradle": "f820f1ae3c5516b48d7135084203ddccd642de191b6fa8490dd1484b65249fa8",
+    "node_modules/expo-modules-core/android/build.gradle": "dd3124583dd0d613cb604ff5f9a706f48eedf6cc618fe542155fbf25c7c6191f",
+    "node_modules/react-native/gradle/libs.versions.toml": "5c102e98c9a37b82d46a4dc014c3fb3deb13b14819c82c09e4da31e2a8c8ed88"
+  },
+  "declaredCoordinates": {
+    "picker": [
+      "commons-io:commons-io:2.6",
+      "androidx.annotation:annotation:1.0.0"
+    ],
+    "filesystem": [
+      "commons-codec:commons-codec:1.10",
+      "commons-io:commons-io:1.4",
+      "com.squareup.okhttp3:okhttp:4.9.2",
+      "com.squareup.okhttp3:okhttp-urlconnection:4.9.2",
+      "com.squareup.okio:okio:2.9.0",
+      "androidx.legacy:legacy-support-v4:1.0.0",
+      "androidx.documentfile:documentfile:1.1.0"
+    ],
+    "securestore": [
+      "androidx.biometric:biometric:1.1.0"
+    ],
+    "modulescore": [
+      "androidx.annotation:annotation:1.7.1"
+    ],
+    "crypto": []
+  },
+  "generatedOptions": {
+    "hermes": true,
+    "newArchitecture": true,
+    "gradle": "8.14.3"
+  },
+  "warnings": [
+    "Prebuild recommends RN0.81.5; kept installed0.81.4",
+    "expo-system-ui absent; automatic userInterfaceStyle native feature unavailable"
+  ],
+  "mutations": "Isolated generated Android tree and launcher scripts only; no root dependency or installed app change"
+}

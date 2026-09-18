@@ -1,0 +1,13 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+
+
+ Test Files  16 passed (16)
+      Tests  148 passed (148)
+   Start at  22:56:41
+   Duration  3.64s (transform 1.66s, setup 0ms, import 3.77s, tests 1.05s, environment 4ms)
+

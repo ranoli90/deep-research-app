@@ -1,0 +1,78 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/policy.test.ts (8 tests) 19ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 39ms
+ ✓ test/p1-p2.test.ts (24 tests) 44ms
+ ✓ test/admission.test.ts (10 tests) 17ms
+ ❯ test/v6-publication.test.ts (14 tests | 2 failed) 25ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-01 rejects negated support 4ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-02 compares whole numbers including single digits 1ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-03 propagates failure through the report wrapper 3ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-04 propagates failure through the report wrapper 2ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-05 rejects unknown claim binding 0ms
+   ✓ W01 / V6-F01 production citation regressions > PROBE-06 rejects unmapped material prose 0ms
+   × W01 / V6-F01 production citation regressions > rejects an extra unsupported assertion hidden behind one valid claim mapping 9ms
+     → expected false to be true // Object.is equality
+   × W01 / V6-F01 production citation regressions > rejects duplicate claim identities with competing texts 1ms
+     → expected false to be true // Object.is equality
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-01 accepts direct matching support 1ms
+   ✓ W01 / V6-F01 production citation regressions > preserves an exact scoped statement and unrelated negative predicate 0ms
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-02 rejects unknown passage IDs 0ms
+   ✓ W01 / V6-F01 production citation regressions > CONTROL-03 rejects a large numeric mismatch 0ms
+   ✓ W01 / V6-F01 production citation regressions > checks ownership on claim-only citations 0ms
+   ✓ W01 / V6-F01 production citation regressions > checks exact source version on claim-only citations 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > rejects an extra unsupported assertion hidden behind one valid claim mapping
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:41:70
+     39|     const args = input();
+     40|     args.blocks[0]!.text += " Atlas costs 0 EUR and is available world…
+     41|     expect(citationValidationFails(validateMaterialCitations(args))).t…
+       |                                                                      ^
+     42|   });
+     43|   it("rejects duplicate claim identities with competing texts", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/v6-publication.test.ts > W01 / V6-F01 production citation regressions > rejects duplicate claim identities with competing texts
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/v6-publication.test.ts:46:70
+     44|     const args = input();
+     45|     args.claims.unshift({ ...args.claims[0]!, text: "Atlas costs 0 EUR…
+     46|     expect(citationValidationFails(validateMaterialCitations(args))).t…
+       |                                                                      ^
+     47|   });
+     48|   it("CONTROL-01 accepts direct matching support", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  2 failed | 67 passed (69)
+   Start at  09:22:24
+   Duration  975ms (transform 612ms, setup 0ms, collect 1.14s, tests 144ms, environment 1ms, prepare 506ms)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

@@ -1,0 +1,11 @@
+Scope: all 6 workspace projects
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 321, reused 0, downloaded 0, added 0
+Progress: resolved 699, reused 0, downloaded 0, added 0
+ WARN  5 deprecated subdependencies found: cron-parser@4.9.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@7.0.3
+
+Packages: +730
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 736, reused 677, downloaded 0, added 81
+Progress: resolved 736, reused 677, downloaded 0, added 730, done
+Done in 4s using pnpm v9.15.9

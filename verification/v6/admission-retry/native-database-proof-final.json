@@ -1,0 +1,12 @@
+{
+  "runs": [
+    {
+      "id": "028dbdfe-e595-4b6b-8568-69c41a6d802d",
+      "idempotency_key": "4c3a19cc-6e4b-431b-bba1-1d6604b4aab8",
+      "lifecycle": "terminal",
+      "terminal_outcome": "completed"
+    }
+  ],
+  "attachmentCount": 1,
+  "expectedKey": "4c3a19cc-6e4b-431b-bba1-1d6604b4aab8"
+}

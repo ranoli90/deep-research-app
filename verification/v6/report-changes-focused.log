@@ -1,0 +1,37 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (86 tests) 37526ms
+   ✓ W05 substantive support execution and persisted revisions > performs and stores scoped checks with stable claim revisions on replay  322ms
+   ✓ W05 substantive support execution and persisted revisions > does not reuse corrupted claim revisions or support receipts  378ms
+   ✓ W01/W05 scoped support at the real publication gate > does not fall back to literal support when a managed assertion is partial  336ms
+   ✓ W01/W05 scoped support at the real publication gate > rejects altered assertion text and unmapped extra prose  341ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  1314ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  1381ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  770ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects invented premise keys and publishes no report  397ms
+   ✓ W05 generic writer, exact final wording and canonical publication > blocks an oversized final assertion set without truncation or a second paid attempt  493ms
+   ✓ W05 generic writer, exact final wording and canonical publication > rejects draft self-reference before dispatch  518ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  1661ms
+   ✓ W05 generic writer, exact final wording and canonical publication > adds a new checker result without overwriting an older version or paying again  379ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  798ms
+   ✓ W05 durable criterion coverage review > vetoes supported coverage when named assertions failed substantive checks  444ms
+   ✓ W05 durable criterion coverage review > rejects missing question reviews without recording coverage  386ms
+   ✓ W05 durable criterion coverage review > rejects changed evidence before saving coverage while retaining cost  372ms
+   ✓ W05 durable criterion coverage review > purges saved coverage on account deletion  469ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  3366ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  910ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  424ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  1797ms
+   ✓ W05 structured services through production processRun > does not turn a failed assertion into a verified event or template report  461ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  2135ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  496ms
+   ✓ W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true  2299ms
+   ✓ W05 unresolved criteria trigger a distinct public query and rechecked synthesis  4259ms
+   ✓ W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker  3622ms
+
+ Test Files  1 passed (1)
+      Tests  86 passed (86)
+   Start at  15:17:52
+   Duration  38.72s (transform 668ms, setup 0ms, collect 976ms, tests 37.53s, environment 0ms, prepare 74ms)
+

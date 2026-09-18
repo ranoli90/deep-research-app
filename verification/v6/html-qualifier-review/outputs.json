@@ -1,0 +1,268 @@
+[
+  {
+    "case": "list",
+    "inputSha256": "5702e3771dc6c81f262ad124b10e6aaf8a323717cc3cdb2a2cf47644653bbeb1",
+    "result": {
+      "version": "trafilatura-2.2.0/structure-v2",
+      "digest": "5702e3771dc6c81f262ad124b10e6aaf8a323717cc3cdb2a2cf47644653bbeb1",
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately",
+        "list_order_preserved_separately",
+        "supplemental_lists_may_overlap_main_content"
+      ],
+      "blocks": [
+        {
+          "kind": "heading",
+          "locator": "block:0",
+          "text": "Storage deployment",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:1",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:2",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:3",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "heading",
+          "locator": "block:4",
+          "text": "Current restrictions",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:5",
+          "text": "The following status replaces the previous claim.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:6",
+          "text": "Distributed writes are supported. Distributed writes are unavailable.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:7",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:8",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:9",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "list:0",
+          "text": "The following status replaces the previous claim.\nUnordered list:\n[item 1] [struck-through: Distributed writes are supported.] Distributed writes are unavailable.",
+          "rows": []
+        }
+      ]
+    }
+  },
+  {
+    "case": "prose",
+    "inputSha256": "7a2f279bffe272c37cd85eff8e100038ce2524488ebcd87b30e478f79e56f400",
+    "result": {
+      "version": "trafilatura-2.2.0/structure-v2",
+      "digest": "7a2f279bffe272c37cd85eff8e100038ce2524488ebcd87b30e478f79e56f400",
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blocks": [
+        {
+          "kind": "heading",
+          "locator": "block:0",
+          "text": "Storage deployment",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:1",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:2",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:3",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "heading",
+          "locator": "block:4",
+          "text": "Current restrictions",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:5",
+          "text": "The following status replaces the previous claim.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:6",
+          "text": "Distributed writes are supported. Distributed writes are unavailable.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:7",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:8",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:9",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        }
+      ]
+    }
+  },
+  {
+    "case": "table",
+    "inputSha256": "0af33442b3386b431bf0871f83c62ed4641f1a484d0750fd898a0aafab19bf81",
+    "result": {
+      "version": "trafilatura-2.2.0/structure-v2",
+      "digest": "0af33442b3386b431bf0871f83c62ed4641f1a484d0750fd898a0aafab19bf81",
+      "status": "partial",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blocks": [
+        {
+          "kind": "heading",
+          "locator": "block:0",
+          "text": "Storage deployment",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:1",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:2",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:3",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "heading",
+          "locator": "block:4",
+          "text": "Current restrictions",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:5",
+          "text": "The following status replaces the previous claim.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:6",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:7",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "text",
+          "locator": "block:8",
+          "text": "This operational guide describes storage coordination, deployment requirements and system availability. Readers must distinguish current capabilities from withdrawn historical claims.",
+          "rows": []
+        },
+        {
+          "kind": "table",
+          "locator": "table:0",
+          "text": "Capability | Status\nDistributed writes | Supported for all plans. Unavailable on current plans.",
+          "rows": [
+            [
+              {
+                "text": "Capability",
+                "header": true,
+                "colspan": 1,
+                "rowspan": 1,
+                "scope": ""
+              },
+              {
+                "text": "Status",
+                "header": true,
+                "colspan": 1,
+                "rowspan": 1,
+                "scope": ""
+              }
+            ],
+            [
+              {
+                "text": "Distributed writes",
+                "header": false,
+                "colspan": 1,
+                "rowspan": 1,
+                "scope": ""
+              },
+              {
+                "text": "Supported for all plans. Unavailable on current plans.",
+                "header": false,
+                "colspan": 1,
+                "rowspan": 1,
+                "scope": ""
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  }
+]

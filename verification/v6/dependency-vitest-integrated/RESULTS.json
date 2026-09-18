@@ -1,0 +1,67 @@
+{
+  "task": "V6-W09",
+  "requirementIds": [
+    "W09",
+    "V6-F19"
+  ],
+  "baseCommit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "4.1.11",
+    "platform": "Linux",
+    "postgres": "127.0.0.1:55432/deep_research_vitest4_v6_20260917"
+  },
+  "paidCalls": 0,
+  "results": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "scope": "Local dependency installation",
+      "sha256": "4dde742ba21b91deee38d42f716fde9db7786825517012d9480afd94178bf619"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "scope": "155 core,116 backend,136 mobile,6 governance; configured unsuppressed types/boundaries",
+      "sha256": "82add3043ab2ef6550fda01e4c03f79160d388187ed77c6320cd6ca29ec7a88e"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 pnpm test:integration",
+      "exitCode": 0,
+      "artifact": "integration.log",
+      "scope": "393/393 in26 files,397.62seconds; real local PostgreSQL, fabricated provider transports",
+      "sha256": "172e4a5440274f2312c0862b89de3e91a46d142ec5911ddbb787efbfb8e40dfe"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "artifact": "extraction.log",
+      "scope": "17/17 actual isolated extraction/API controls,79.03seconds; fabricated models",
+      "sha256": "ed719d5896b7cf24d9449464f198218c4d296d57abc87217bf40906da82aeb27"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log",
+      "scope": "Configured mobile types",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json",
+      "scope": "1moderate/2high remain; no security waiver",
+      "sha256": "602864560220db87fa4545e94a61afa27af841f1e144031208c8ee93d0a83868"
+    }
+  ],
+  "limits": [
+    "No test/source/config adaptation to runner",
+    "Not live model quality, native build, hosted CI or exact clean checkout proof",
+    "New synthetic database created without dropping prior data"
+  ]
+}

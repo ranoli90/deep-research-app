@@ -1,0 +1,111 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/correction-rediscovery.integration.test.ts (2 tests | 1 failed) 22947ms
+   ✓ W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading  14969ms
+   × W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence 7685ms
+     → expected { …(14) } to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence
+AssertionError: expected { …(14) } to be null
+
+- Expected: 
+null
+
++ Received: 
+{
+  "account_id": "f7c1f8e9-7452-44e6-8591-ca3c8bdbdce6",
+  "basis": {
+    "briefRevision": 2,
+    "cancellationEpoch": 0,
+    "consentEpoch": 1,
+    "evidenceRevision": 1,
+    "workerLeaseFence": 1,
+  },
+  "blocks": [
+    {
+      "citationIds": [],
+      "claimIds": [],
+      "id": "heading_0",
+      "kind": "heading",
+      "text": "Evidence",
+    },
+    {
+      "citationIds": [
+        "e3855704-e7c6-4fb4-9a72-3c4cbfa8b31c",
+      ],
+      "claimIds": [
+        "ef484781-b167-4d2b-836e-28a153b7990d",
+      ],
+      "id": "paragraph_0_0",
+      "kind": "text",
+      "text": "Solmere supports Linux.",
+    },
+  ],
+  "change_summary": {
+    "comparison": {
+      "addedClaimRevisionIds": [],
+      "addedCriterionIds": [
+        "b9d5c1f4-1f15-42f9-83e2-0bfc2b7bf984",
+      ],
+      "newlyCitedSourceVersionIds": [],
+      "parentReportId": "3c1889b5-64d6-43bb-b26c-5725b6e5be6a",
+      "removedClaimRevisionIds": [],
+      "removedCriterionIds": [
+        "76451e5a-2b9b-4bed-8844-0ecad420619c",
+      ],
+      "reportStateChanged": false,
+      "reusedCitedSourceVersionIds": [
+        "76dc7949-cdec-47ed-9ab7-a342a3dc56a5",
+      ],
+      "unchangedAssertions": 1,
+      "version": "report-changes.v1",
+    },
+    "conclusionChanged": false,
+    "evidenceUpdated": false,
+    "newlyFeasible": [],
+    "newlyInfeasible": [],
+    "notes": "Assertions: 0 added, 0 removed, 1 unchanged. Criteria: 1 added, 1 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+  },
+  "claim_ids": [
+    "ef484781-b167-4d2b-836e-28a153b7990d",
+  ],
+  "id": "a3a597f2-5a1c-4a57-b465-e6b9a5586420",
+  "limitations": [],
+  "outcome": "completed",
+  "published_at": 2026-09-18T03:52:50.824Z,
+  "redacted_at": null,
+  "route_mode": "controlled-research",
+  "run_id": "4ee4b911-e00f-4ec7-a73c-acc97e718127",
+  "source_access_summary": [
+    {
+      "accessLevel": "full-text",
+      "originCluster": "example.org",
+      "sourceId": "5dc8aaa3-f94a-4a19-ac30-68255f067b74",
+      "title": "Solmere platforms",
+    },
+  ],
+  "version": 1,
+}
+
+ ❯ test/correction-rediscovery.integration.test.ts:62:70
+     60| it("W06 disabled required rediscovery cannot silently publish a relaxe…
+     61|  const x=await setup();await processRun(pool,{...config,structuredDisc…
+     62|  expect(await getLatestReportForRun(pool,x.child.runId,x.accountId)).t…
+       |                                                                      ^
+     63|  expect((await getRun(pool,x.child.runId))?.terminal_outcome).toBe("fa…
+     64|  expect(x.model.queries).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  21:52:24
+   Duration  27.27s (transform 2.41s, setup 0ms, collect 3.56s, tests 22.95s, environment 0ms, prepare 295ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts

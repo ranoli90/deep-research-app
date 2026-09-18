@@ -1,0 +1,194 @@
+{
+  "requirements": [
+    "W06",
+    "V2-04",
+    "G05"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T04:01:31.600124+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "deep_research_lease_clock_v6; local PostgreSQL127.0.0.1:55432; exclusive granted serial slot"
+  },
+  "evidenceClass": "Production worker, durable tool/receipt/database boundaries on real local PostgreSQL; model/search/read/extraction outputs and provider costs are explicitly fabricated nonbillable transports. Not live semantic or human validation.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "artifact": "types-initial-failure.json",
+      "sha256": "d053dfb7374868bea02a9783fecee7e466f9163d35dcd1a87188723a6a468379",
+      "scope": "Initial callback implicit-any compile errors; tool transcript preserved, fixed explicit projections"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "New test typechecks before runtime"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration -- test/correction-rediscovery.integration.test.ts",
+      "exitCode": 130,
+      "artifact": "integration-before.log",
+      "sha256": "aa3c85713438427694d80f5a694de1196b905108f03897d85fe343baabff80ed",
+      "scope": "Incorrect extra -- did not restrict suite as intended; interrupted own Vitest. No completion claim; isolated DB only. No data drop to erase failure."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 1,
+      "artifact": "integration-focused-before.log",
+      "sha256": "0ce4fbbf4431fde799c32a6c7a7bde4c4d806d07a9e12ace9c3acc5888790d1a",
+      "scope": "2failed: synthetic task operator supports is outside canonical schema; parent publication unavailable"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 1,
+      "artifact": "integration-diagnostic.log",
+      "sha256": "74c68cd123155806ffb38c4a9aaac5cbdd87aeee7dfa34fcf401e138835a0903",
+      "scope": "2failed: diagnostic identifies task_invalid_output; corrected synthetic operator to contains"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 1,
+      "artifact": "integration-before-fixed-fixture.log",
+      "sha256": "ff5a1a8f199d4ad5313c5ba8f256e46c2f511fb13bf1438d9a6479a428729ed8",
+      "scope": "1pass1fail: positive exact reuse/new-source discovery passes; disabled discovery actually publishes old-only report and violates expected no-publication"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "artifact": "types-integrated.log",
+      "sha256": "b96e118b0983c33ed0ccc17795a69c7d97cb41349c6b6371be8c8b75f4ce5e71",
+      "scope": "Introduced SQL template trailing-quote syntax error while adapting fresh-version control; fixed without weakening assertions"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "types-integrated-final.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Configured types after syntax repair; command proceeded to focused execution"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "integration-final.log",
+      "sha256": "91b65483d9d259a992eca8335f877bfedafb182cad9b59c5ee22d1fbd6f9bdf3",
+      "scope": "2/2;10.35s after one-line production guard"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t W06",
+      "exitCode": 0,
+      "artifact": "gateway-w06.log",
+      "sha256": "6be0a092871bfe3ff693ee685471df70749b7447ca6c5afa97dd5f8b8b6c3e6a",
+      "scope": "8passed128intentionally excluded by name filter;39.82s"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "gateway-full.log",
+      "sha256": "c32f72c76f32837586edc6d1ecec52fc36128da10671c726194973ef61a8a160",
+      "scope": "136/136;161.40s; all affected gateway controls"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "types-agreement.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Final test extension configured typecheck"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "integration-agreement-final.log",
+      "sha256": "c1be6e3d98561fa8f4d98ef69b4fdacbb2ed9e13a0d9e7bfb797fbfc6f1bca07",
+      "scope": "2/2;14.67s including fresh full rerun reference agreement"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts -t 'disabled required rediscovery'",
+      "artifact": "preflight-before.log",
+      "exitCode": 1,
+      "scope": "Primary reproduced unnecessary brief operation before known capability rejection;1failed1filtered",
+      "sha256": "fe0d78d510505100a17bc149e29da3475d18a919e72fab33693efc9ffb4968b9"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts test/question-patch.integration.test.ts",
+      "artifact": "preflight-final.log",
+      "exitCode": 0,
+      "scope": "8/8;16.61s; disabled correction creates zero provider intents, enabled corrected/full agreement and span controls",
+      "sha256": "53991ba100e1981a4fe75967fe2af5e81c5726f50b550fc4a6a3af5444d61c07"
+    }
+  ],
+  "change": "Existing admitted reopen_discovery=true on a non-document correction now fails explicitly with correction_rediscovery_disabled if structured discovery is disabled. No inference from model-extracted equal criteria can erase obligation. Only brief preparation can occur before this guard; no extraction/support/writer or report in negative control.",
+  "testAdaptations": "Four existing worker-executed non-document correction cases now enable bounded public search. Exact reuse case adds one search call(7\u21928) and asserts no reader call + confirmed3syntheticmicro. Missing-parent and sum-to-ratio preserve all old assertions with sameURL search/no reread. Fresh-version case replaces manual child source/version seeding with durable read operation of fabricated transport and derives expected fresh version from its finished receipt; retains evidenceUpdated/unchanged assertions. Other test cases untouched.",
+  "agreement": {
+    "evidenceClass": "real_local_postgresql_production_worker_with_fabricated_model_search_reader_transports",
+    "referenceFacts": [
+      "Solmere supports Linux.",
+      "Vesper supports Windows."
+    ],
+    "correctedFacts": [
+      "Solmere supports Linux.",
+      "Vesper supports Windows."
+    ],
+    "rerunFacts": [
+      "Solmere supports Linux.",
+      "Vesper supports Windows."
+    ],
+    "correctedRunId": "636286df-1f29-4d43-81cd-85c33323774c",
+    "fullRunId": "12024e5a-432b-4286-a7bb-55fcd708cf5a",
+    "measurements": [
+      {
+        "id": "12024e5a-432b-4286-a7bb-55fcd708cf5a",
+        "spent_micro": "10",
+        "reused_passages": 0,
+        "durable_reads": 2,
+        "provider_attempts": 8
+      },
+      {
+        "id": "636286df-1f29-4d43-81cd-85c33323774c",
+        "spent_micro": "10",
+        "reused_passages": 1,
+        "durable_reads": 1,
+        "provider_attempts": 8
+      }
+    ],
+    "queries": [
+      "Which tools support Linux or Windows?",
+      "Which tools support Linux or Windows?"
+    ],
+    "readLocators": [
+      "https://example.org/vesper.txt",
+      "https://example.org/solmere.txt",
+      "https://example.org/vesper.txt"
+    ],
+    "limitations": [
+      "No live semantic validation or independent human adjudication.",
+      "Extraction and provider receipts are fabricated transports; spend is synthetic micro-units."
+    ]
+  },
+  "impact": {
+    "publicSchema": "None; existing replacement/refresh policies, change-set reopen marker and worker unresolved reason are reused.",
+    "cost": "No allowance increase. Tests fabricate all model/search costs. Both corrected/full arms8providerattempts10syntheticmicro; one source read avoided, not model spend. No real model requests.",
+    "privacy": "No attachment search permission change; existing mixed-document public-query gate preserved. Exact original revised question is the only executed query; source text never expands search authority.",
+    "rollback": "Disable new correction scheduling when discovery cannot execute. Keep admitted reopen obligation/explicit failure, membership ownership/digest readers, source-deletion tombstones, required proof/publication vetoes and financial unknown holds. Reverting guard restores reproduced defect and is not a clean rollback.",
+    "remaining": "Granular correction patches, complete selective dependency traversal, freshness beyond snapshot/refresh, unseen live semantic agreement and independent adjudication remain open. No native claim. W09 PostCSS isolated packet remains separate."
+  },
+  "files": [
+    {
+      "path": "apps/backend/src/worker/structured-research.ts",
+      "sha256": "10a0bdb7900f4eeb33e8a34bc004db5993a978859df90ac07f3f1b14a5cdb634"
+    },
+    {
+      "path": "apps/backend/test/correction-rediscovery.integration.test.ts",
+      "sha256": "0e79f2b4396d9e2767e94bfa2044bae58a83e8bab9ad63d881937e756aa13220"
+    },
+    {
+      "path": "apps/backend/test/model-gateway.integration.test.ts",
+      "sha256": "42b8fc900ba3c110aa6b93aa9b9ed683b2f215d15a7530b46f2d0c0f85466725"
+    }
+  ],
+  "primaryFollowOn": "Moved capability guard before task preparation after reproduced unnecessary provider intent. Prior agent source hashes/tests describe earlier guard location; final8-case proof covers moved guard. Final source hashes in correction-checkpoint/FILES.json."
+}

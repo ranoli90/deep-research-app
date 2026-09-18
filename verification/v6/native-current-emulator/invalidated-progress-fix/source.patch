@@ -1,0 +1,141 @@
+diff --git a/apps/mobile/App.tsx b/apps/mobile/App.tsx
+--- a/apps/mobile/App.tsx
++++ b/apps/mobile/App.tsx
+@@ -44,6 +44,7 @@
+ import {
+   androidBack,
+   applySnapshot,
++  researchActivity,
+   attachFile,
+   canSubmit,
+   conciseBlocks,
+@@ -149,6 +150,7 @@
+   const reading = useRef(createReadingRestoration());
+   const readerIdentity = useRef("");
+   const readerGeneration = useRef(0);
++  const activity = researchActivity(state);
+   const blocks: ReportBlock[] = state.report
+     ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
+   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
+@@ -927,7 +929,7 @@
+               </Text>
+             ) : null}
+ 
+-            {state.status === "progress" || state.status === "loading" ? (
++            {activity.inProgress ? (
+               <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
+                 <Text style={styles.kicker}>{state.run?.phase ?? "queued"}</Text>
+                 <Text style={styles.bodyText}>
+@@ -940,11 +942,8 @@
+               </View>
+             ) : null}
+ 
+-            {state.status === "cancelled" ? (
+-              <Text style={styles.bodyText}>Cancelled. Partial evidence is kept unless you delete your account.</Text>
+-            ) : null}
+-            {state.status === "failed" ? (
+-              <Text style={styles.bodyText}>The run failed. Saved evidence, if any, is still in your library.</Text>
++            {activity.terminalNotice ? (
++              <Text style={styles.bodyText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
+             ) : null}
+             {state.status === "awaiting_input" ? (
+               <View style={styles.card} accessibilityLabel="Clarification needed">
+diff --git a/apps/mobile/src/state.ts b/apps/mobile/src/state.ts
+--- a/apps/mobile/src/state.ts
++++ b/apps/mobile/src/state.ts
+@@ -105,6 +105,20 @@
+   return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
+ }
+ 
++/** The owned run lifecycle outranks cached screen status when describing current work. */
++export function researchActivity(state: Pick<UiState, "run" | "report" | "pendingContentInvalidation">): { inProgress: boolean; terminalNotice: string | null } {
++  const run = state.run;
++  if (!run) return { inProgress: false, terminalNotice: null };
++  if (run.contentInvalidated === true) return { inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." };
++  if (run.lifecycle !== "terminal") return {
++    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling"].includes(run.lifecycle), terminalNotice: null,
++  };
++  const noReport = state.report ? "" : " No report is available.";
++  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: `Research was cancelled.${noReport}` };
++  if (run.outcome === "failed") return { inProgress: false, terminalNotice: `Research failed.${noReport}` };
++  return { inProgress: false, terminalNotice: state.report ? null : "Research has ended. No report is available." };
++}
++
+ export function restoreAfterReopen(saved: UiState): UiState {
+   let status = saved.status;
+   if (saved.report && (status === "progress" || status === "empty" || status === "loading")) {
+diff --git a/apps/mobile/src/remote-invalidation.ts b/apps/mobile/src/remote-invalidation.ts
+--- a/apps/mobile/src/remote-invalidation.ts
++++ b/apps/mobile/src/remote-invalidation.ts
+@@ -8,7 +8,8 @@
+ /** Preserve independent input and exact request journals, but never keep deleted evidence content. */
+ export function redactInvalidatedContent(state: UiState, runId: string, cleanupPending = true): UiState {
+   if (state.run?.runId !== runId) return state;
+-  return { ...state, run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
++  return { ...state, status: state.run.lifecycle === "terminal" && state.run.outcome === "cancelled" ? "cancelled" : state.status,
++    run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
+     report: null, previousReport: null, source: null, correctionDraft: null, readingAnchor: null,
+     events: [], attachments: [], clarification: [], flagSent: false,
+     pendingContentInvalidation: cleanupPending ? runId : null, error: "This research used a deleted source. Saved report content has been hidden." };
+diff --git a/apps/mobile/test/invalidated-progress.test.ts b/apps/mobile/test/invalidated-progress.test.ts
+--- /dev/null
++++ b/apps/mobile/test/invalidated-progress.test.ts
+@@ -0,0 +1,58 @@
++import { expect, it } from "vitest";
++import { applyRemoteInvalidation, redactInvalidatedContent } from "../src/remote-invalidation";
++import { createSessionStorage, memoryStore } from "../src/persist";
++import { emptyState, openLibraryItem, researchActivity, type UiState } from "../src/state";
++const runId = "592be93e-5060-4410-a802-af2ff6dfebfd";
++const tombstone = { runId, lifecycle: "terminal", phase: "writing", outcome: "cancelled", reportId: null, labeledDemo: false, contentInvalidated: true };
++it("W03/W07 reopening an invalidated Library run persists terminal status instead of invented progress", async () => {
++  const cache = memoryStore(), credentials = memoryStore(), store = createSessionStorage(cache, credentials);
++  await store.activate({ accountId: "synthetic", token: "synthetic" });
++  let state: UiState = openLibraryItem({ ...emptyState(), signedIn: true, draft: "Keep this independent draft" }, runId);
++  expect(state.status).toBe("progress");
++  await applyRemoteInvalidation(state, tombstone, {
++    current: () => true,
++    hide: () => { state = redactInvalidatedContent({ ...state, run: tombstone }, runId); },
++    save: (next, id) => store.redactRunContent("synthetic", id, next),
++  });
++  expect(state.status).toBe("cancelled");
++  expect(researchActivity(state)).toEqual({ inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." });
++  const restored = (await createSessionStorage(cache, credentials).hydrate()).state;
++  expect(restored.run?.lifecycle).toBe("terminal");
++  expect(restored.status).toBe("cancelled");
++  expect(restored.report).toBeNull();
++  expect(restored.pendingContentInvalidation).toBeNull();
++  expect(restored.draft).toBe("Keep this independent draft");
++});
++
++it.each(["completed", "completed_with_limitations", "cancelled", "failed"])("W07 terminal %s without report never offers progress or cancellation", outcome => {
++  const state = { ...emptyState(), status: "progress" as const, run: { ...tombstone, contentInvalidated: false, outcome } };
++  expect(researchActivity(state).inProgress).toBe(false);
++  expect(researchActivity(state).terminalNotice).toContain("No report is available.");
++});
++it.each(["queued", "running", "cancelling"])("W07 actual %s work still shows progress", lifecycle => {
++  expect(researchActivity({ ...emptyState(), run: { ...tombstone, lifecycle, outcome: null, contentInvalidated: false } }).inProgress).toBe(true);
++});
++it("W03 stale progress cache cannot imply activity for an invalidated run or incomplete cleanup", () => {
++  const state = { ...emptyState(), status: "progress" as const, run: tombstone };
++  expect(researchActivity(state).inProgress).toBe(false);
++  expect(researchActivity({ ...state, pendingContentInvalidation: runId }).inProgress).toBe(false);
++  const unbound: UiState = { ...emptyState(), status: "loading" };
++  expect(researchActivity(unbound).inProgress).toBe(false);
++  expect(researchActivity({ ...state, run: { ...tombstone, lifecycle: "awaiting_input", outcome: null, contentInvalidated: false } }).inProgress).toBe(false);
++});
++
++it("W03 invalidated content does not claim an active server run has ended", () => {
++  const state = { ...emptyState(), run: { ...tombstone, lifecycle: "cancelling", outcome: null } };
++  expect(researchActivity(state)).toEqual({ inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." });
++});
++it("W03 failed cleanup keeps the terminal invalidation visible without invented work", async () => {
++  let state = openLibraryItem({ ...emptyState(), signedIn: true }, runId);
++  await expect(applyRemoteInvalidation(state, tombstone, {
++    current: () => true,
++    hide: () => { state = redactInvalidatedContent({ ...state, run: tombstone }, runId); },
++    save: async () => { throw new Error("storage unavailable"); },
++  })).rejects.toThrow("storage unavailable");
++  expect(state.status).toBe("cancelled");
++  expect(state.pendingContentInvalidation).toBe(runId);
++  expect(researchActivity(state).inProgress).toBe(false);
++});

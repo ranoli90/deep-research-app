@@ -1,0 +1,16 @@
+
+> @deep/mobile@0.1.0 bundle:android /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-v6-admission-preflight-bundle
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.6% (569/570)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (648/648)
+Android Bundled 6558ms apps/mobile/index.ts (648 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-43eea2f0bc80ad0380a9e3a311d25898.hbc (2.18 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-v6-admission-preflight-bundle

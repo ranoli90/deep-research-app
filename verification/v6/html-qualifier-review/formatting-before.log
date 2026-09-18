@@ -1,0 +1,68 @@
+
+ RUN  v4.1.11 /tmp/deep-html-formatting-0f0c7c0/apps/backend
+
+ ❯ test/html-formatting.extraction.test.ts (9 tests | 9 failed) 6133ms
+   × W04 preserves s qualification in every emitted prose copy 699ms
+   × W04 preserves s qualification in every emitted list copy 667ms
+   × W04 preserves s qualification in every emitted table copy 671ms
+   × W04 preserves del qualification in every emitted prose copy 671ms
+   × W04 preserves del qualification in every emitted list copy 674ms
+   × W04 preserves del qualification in every emitted table copy 679ms
+   × W04 preserves strike qualification in every emitted prose copy 677ms
+   × W04 preserves strike qualification in every emitted list copy 674ms
+   × W04 preserves strike qualification in every emitted table copy 718ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves s qualification in every emitted prose copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves s qualification in every emitted list copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves del qualification in every emitted prose copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves del qualification in every emitted list copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves strike qualification in every emitted prose copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves strike qualification in every emitted list copy
+AssertionError: expected 'Distributed writes are supported. Dis…' to contain '[struck-through: Distributed writes a…'
+
+Expected: "[struck-through: Distributed writes are supported.]"
+Received: "Distributed writes are supported. Distributed writes are unavailable."
+
+ ❯ test/html-formatting.extraction.test.ts:11:49
+      9|  const result=await extractOffline(Buffer.from(html),"text/html");
+     10|  const matches=result.blocks.filter(b=>b.text.includes(old));expect(ma…
+     11|  for(const block of matches){expect(block.text).toContain(`[struck-thr…
+       |                                                 ^
+     12|  if(location==="table"){const table=matches.find(b=>b.kind==="table");…
+     13|  else expect(matches.some(b=>b.locator.startsWith("block:"))).toBe(tru…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves s qualification in every emitted table copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves del qualification in every emitted table copy
+ FAIL  test/html-formatting.extraction.test.ts > W04 preserves strike qualification in every emitted table copy
+AssertionError: expected 'Capability | Status\nDistributed writ…' to contain '[struck-through: Distributed writes a…'
+
+- Expected
++ Received
+
+- [struck-through: Distributed writes are supported.]
++ Capability | Status
++ Distributed writes | Distributed writes are supported. Distributed writes are unavailable.
+
+ ❯ test/html-formatting.extraction.test.ts:11:49
+      9|  const result=await extractOffline(Buffer.from(html),"text/html");
+     10|  const matches=result.blocks.filter(b=>b.text.includes(old));expect(ma…
+     11|  for(const block of matches){expect(block.text).toContain(`[struck-thr…
+       |                                                 ^
+     12|  if(location==="table"){const table=matches.find(b=>b.kind==="table");…
+     13|  else expect(matches.some(b=>b.locator.startsWith("block:"))).toBe(tru…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed (9)
+   Start at  22:43:12
+   Duration  6.54s (transform 177ms, setup 0ms, import 235ms, tests 6.13s, environment 0ms)
+
+undefined
+/tmp/deep-html-formatting-0f0c7c0/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/html-formatting.extraction.test.ts

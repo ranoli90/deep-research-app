@@ -1,0 +1,60 @@
+{
+  "implementationCommit": "d19de6bb277be24b87f7b09324698e3a058ff60e",
+  "files": [
+    {
+      "path": "verification/v6/clean-frozen-pdf/RESULTS.json",
+      "sha256": "9aa1ecee6b5638e06b95f0ca7f561d644ae69c30dace0679547e725e9b3184ab",
+      "bytes": 1494
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/commit.log",
+      "sha256": "9ef3d8862411046a46e2eaaf41624af88f7f786cc0645e86226e6db4a6ae816e",
+      "bytes": 41
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/install.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/install.log",
+      "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932",
+      "bytes": 330
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/status-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/validate-handoff.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/validate-handoff.log",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "bytes": 120
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/validate-review.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/validate-review.log",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "bytes": 259
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/verify.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    {
+      "path": "verification/v6/clean-frozen-pdf/verify.log",
+      "sha256": "cb31a109698fafaa99b34c2c766ee3015eaac79203c7775f0b8cd7d86a94d8f0",
+      "bytes": 2373
+    }
+  ]
+}

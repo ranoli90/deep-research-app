@@ -1,0 +1,102 @@
+{
+  "task": "W03/W07 configured-route upload preflight; W02 journal preservation",
+  "commit": "0f0c7c006cdd95e10c0b22a9f6a6991ca1b30691",
+  "clone": "/tmp/deep-admission-preflight-1ph35qo7/repo",
+  "recordedAt": "2026-09-18T05:00:33.084978+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "expo": "54",
+    "database": "deep_research_lease_clock_v6 for isolated actual API probe only",
+    "paid": 0
+  },
+  "status": "corrected settings preflight passed local API contract and mobile controls; primary integration pending",
+  "evidenceClass": "mobile local unit/transport controls + actual local Fastify/PostgreSQL API contract probe + Android JS export; no native or model claim",
+  "checks": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exit": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test test/admission-preflight.test.ts",
+      "exit": 1,
+      "artifact": "before.log",
+      "tests": "10failed/2passed (pre-fix)"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exit": 0,
+      "artifact": "mobile-final.log",
+      "tests": "148/148,16files,136prior+12new",
+      "scope": "Historical incorrect /v1/session implementation: mock/type/export pass only, NOT real API contract proof; primary review rejected before application."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exit": 0,
+      "artifact": "typecheck.log",
+      "scope": "Historical incorrect /v1/session implementation: mock/type/export pass only, NOT real API contract proof; primary review rejected before application."
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-admission-preflight-bundle",
+      "exit": 0,
+      "artifact": "android-export.log",
+      "result": "648modules,2.18MB; JS export only",
+      "scope": "Historical incorrect /v1/session implementation: mock/type/export pass only, NOT real API contract proof; primary review rejected before application."
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exit": 0,
+      "artifact": "boundaries.log",
+      "scope": "Historical incorrect /v1/session implementation: mock/type/export pass only, NOT real API contract proof; primary review rejected before application."
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "artifact": "diff-check.log",
+      "scope": "Historical incorrect /v1/session implementation: mock/type/export pass only, NOT real API contract proof; primary review rejected before application."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exit": 0,
+      "artifact": "mobile-corrected.log",
+      "tests": "148/148,16files; corrected settings endpoint"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exit": 0,
+      "artifact": "typecheck-corrected.log"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-admission-preflight-settings-bundle",
+      "exit": 0,
+      "artifact": "android-export-corrected.log",
+      "result": "648modules/2.18MB; JS export only"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exit": 0,
+      "artifact": "boundaries-corrected.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "artifact": "diff-check-corrected.log"
+    },
+    {
+      "command": "PREFLIGHT_REPO=/tmp/deep-admission-preflight-1ph35qo7/repo TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm exec tsx /home/oranolio/Desktop/Deep/verification/v6/admission-preflight/api-contract-probe.mts",
+      "exit": 0,
+      "artifact": "api-contract.log",
+      "scope": "Actual local Fastify authentication/settings/upload/admission + real PostgreSQL + mobile submitAdmission; session flags absent, settings flags boolean, both disabled modes zero writes/upload/admission, both enabled modes actual upload/admission, accepted recovery while flagsdisabled, unauth401, provider intents0; no worker."
+    }
+  ],
+  "limits": [
+    "Configuration flag is not readiness/model health/budget assurance; server remains authoritative.",
+    "Route can change between check and upload/admission.",
+    "Check/Withdraw remains independently available; disabled preflight never clears or withdraws a saved identity.",
+    "Existing new-draft offline/reconnect behavior unchanged.",
+    "No native/live-model/paid/deployment evidence."
+  ],
+  "reviewFailure": "Initial task premise incorrectly named /v1/session. Agent failed to verify server shape; prior148passes mocked wrong response and are not actual endpoint proof. Corrected source uses /v1/settings; old patch retained, not root-applied."
+}

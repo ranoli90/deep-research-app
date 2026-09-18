@@ -1,0 +1,140 @@
+{
+  "requirementIds": [
+    "W03",
+    "W04",
+    "W06",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "productionBaseCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "evidenceClass": "synthetic Android14 x86_64 debug-native UI with actual API/worker/isolated PDF parser and fabricated model transport",
+  "serial": "emulator-5556",
+  "physicalDeviceInteractedWith": false,
+  "paidCalls": 0,
+  "operations": [
+    {
+      "command": null,
+      "exitCode": 0,
+      "artifact": "apk-install.log",
+      "operation": "Install isolated current-source APK onto emulator-5556; exact invocation was not retained in the paired install log"
+    },
+    {
+      "command": "adb -s emulator-5556 reverse tcp:8787 tcp:8787; adb -s emulator-5556 reverse tcp:8081 tcp:8081",
+      "exitCode": 0,
+      "artifact": "launch.json"
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+      "status": "terminated before async cleanup",
+      "artifact": "api.log",
+      "exitCode": 143
+    },
+    {
+      "command": "EXPO_PUBLIC_API_URL=http://127.0.0.1:8787 EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+      "exitCode": 0,
+      "termination": "task-owned Expo PID2401026 SIGTERM; wrapper returned terminal0",
+      "artifact": "metro-before-fix.log"
+    },
+    {
+      "command": "python3 verification/v6/native-current-emulator/ui.py tap <exact-label>",
+      "exitCode": 0,
+      "scope": "Exact UI controls described by saved snapshots; not a standalone test assertion suite"
+    },
+    {
+      "command": "python3 verification/v6/native-current-emulator/ui.py text 'Does Ardent support underwater recording?'",
+      "exitCode": 0,
+      "result": "Admitted text truncated to Does Ardent support underwater; cause unverified; not full-input success"
+    },
+    {
+      "command": "python3 verification/v6/native-current-emulator/ui.py text 'Which firmware'; python3 verification/v6/native-current-emulator/ui.py text ' supports Ardent'; python3 verification/v6/native-current-emulator/ui.py text ' offline recording?'",
+      "exitCode": 0,
+      "artifact": "correction-draft.json",
+      "result": "Complete draft independently inspected before Submit correction"
+    },
+    {
+      "command": "node verification/v6/native-current-emulator/db-trace.mjs verification/v6/native-current-emulator/trace-before-delete.json",
+      "exitCode": 0,
+      "result": "3 completed related runs,3 reports,21 confirmed fabricated provider intents;2 parsed source versions;4 reused passage memberships"
+    },
+    {
+      "command": "adb -s emulator-5556 shell settings put system font_scale 1.3",
+      "exitCode": 0,
+      "priorValue": "null",
+      "artifact": "pending-large-text.json",
+      "scope": "Retry control visible with larger text; not screen-reader/accessibility acceptance"
+    },
+    {
+      "command": "pnpm exec tsx verification/v6/native-current-emulator/cleanup.mts",
+      "exitCode": 0,
+      "artifact": "cleanup-final.log",
+      "scope": "Exact owned second synthetic account ID/created-time/zero-run guard; production deleteAccount; no truncation"
+    },
+    {
+      "command": "adb -s emulator-5556 emu kill",
+      "exitCode": 0,
+      "artifact": "emulator.log"
+    },
+    {
+      "command": "EXPO_PUBLIC_API_URL=http://127.0.0.1:8787 EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile start --localhost --port 8081",
+      "exitCode": 0,
+      "artifact": "metro-final.log",
+      "scope": "Final current JS including both native-found fixes; stopped task-owned process"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "command": "PGPASSWORD=<local-test-password> psql -h 127.0.0.1 -p 55432 -U deep -d deep_research_native_v6 -X -A -t -c <read-only counts>",
+      "exitCode": 127,
+      "reason": "psql executable absent; used installed pg driver instead"
+    },
+    {
+      "command": "node --input-type=module <read-only SELECT id,account_id,status,question FROM runs>",
+      "exitCode": 1,
+      "reason": "SQL42703: status column does not exist; inspected schema, joined research_briefs and lifecycle fields; no mutation"
+    },
+    {
+      "command": "python3 verification/v6/native-current-emulator/ui.py inspect immediately after cold start",
+      "exitCode": 1,
+      "reason": "UiTestAutomationBridge returned null root; no XML; following JSON read also failed. Later independent inspect passed",
+      "artifact": "pending-delete-cold-offline.failed-empty"
+    },
+    {
+      "command": "mv verification/v6/native-current-emulator/metro.exit verification/v6/native-current-emulator/metro-before-fix.exit",
+      "exitCode": 1,
+      "reason": "Initial Metro command had no paired exit file; terminal0 was returned by exec session99676 and is recorded above"
+    },
+    {
+      "command": "initial emulator startup",
+      "result": "System UI ANR dialog; selected Wait once; later app responsive",
+      "artifact": "startup-anr.json"
+    },
+    {
+      "command": "native source Delete confirmation",
+      "result": "Failed400 empty JSON DELETE body; local pending-deletion guard retained",
+      "artifact": "deletion-failure.json"
+    },
+    {
+      "command": "Library reopen of successfully invalidated source run",
+      "result": "Deleted content hidden but misleading WRITING/spinner/Cancel remains after settlement",
+      "artifact": "invalidated-reopen-settled.json"
+    },
+    {
+      "command": "pnpm exec tsx verification/v6/native-current-emulator/cleanup.ts",
+      "exitCode": 1,
+      "artifact": "cleanup.log",
+      "reason": "ESM top-level await outside package scope treated as CJS; explicit .mts repaired module format, no database effect in failure"
+    },
+    {
+      "command": "python3 verification/v6/native-current-emulator/ui.py inspect immediately after logout cold start",
+      "exitCode": 1,
+      "artifact": "logged-out-cold-first.failed-empty",
+      "reason": "Transient UiTestAutomationBridge null root; subsequent inspection independentpass"
+    },
+    {
+      "command": "SIGTERM to native harness leaf PID2400962",
+      "exitCode": 143,
+      "reason": "No async stopped receipt; second account remained. Exact owned cleanup.mts invoked separately; final zeroactiveaccounts verified."
+    }
+  ]
+}

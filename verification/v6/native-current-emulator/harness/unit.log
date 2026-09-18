@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/native-document-control.unit.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  04:55:34
+   Duration  394ms (transform 169ms, setup 0ms, import 227ms, tests 15ms, environment 0ms)
+

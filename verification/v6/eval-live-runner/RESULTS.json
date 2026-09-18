@@ -1,0 +1,93 @@
+{
+  "requirements": [
+    "W08",
+    "W09"
+  ],
+  "sourceBase": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "sourceState": "uncommitted isolated candidate; root source untouched",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "typescript": "5.9.3",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime",
+    "database": "isolated local deep_research_eval_runner_v6"
+  },
+  "actualProviderSpendMicro": 0,
+  "semanticScores": null,
+  "scope": "fabricated transports through actual local API/worker/HTML extraction/writer/checker; no live quality/native/hosted proof",
+  "checks": [
+    {
+      "command": "git diff --check",
+      "cwd": "/tmp/deep-eval-runner-0602f96",
+      "exitCode": 0,
+      "artifact": "diff-check.log"
+    },
+    {
+      "command": "git apply --check /home/oranolio/Desktop/Deep/verification/v6/eval-live-runner/source.patch",
+      "cwd": "/home/oranolio/Desktop/Deep",
+      "exitCode": 0,
+      "artifact": "root-apply-check.log"
+    }
+  ],
+  "receipts": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "artifact": "typecheck-initial.log",
+      "resolution": "Explicit pg.PoolClient replaces overloaded connect ReturnType"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck-identity.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts test/governance.test.ts",
+      "exitCode": 0,
+      "tests": 18,
+      "artifact": "units-release.log"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<isolated local DB> EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/eval-live.integration.test.ts",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 1,
+      "artifact": "integration-initial.log",
+      "resolution": "Separate UUID and text SQL parameter placeholders in synthetic ledger test"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_eval_runner_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/eval-live-runner/integration-final-traces pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/eval-live.integration.test.ts",
+      "exitCode": 0,
+      "tests": 3,
+      "seconds": 13.31,
+      "artifact": "integration-final.log"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_eval_runner_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/eval-live-runner/integration-identity-traces pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/eval-live.integration.test.ts -t 'executes the same'",
+      "exitCode": 0,
+      "tests": 1,
+      "filtered": 2,
+      "seconds": 12.92,
+      "artifact": "integration-identity.log",
+      "scope": "After final trace-integrity guard; unchanged other two controls not rerun"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "artifact": "boundaries.log"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_eval_runner_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/eval-live-runner/extraction-final-traces pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+      "exitCode": 0,
+      "tests": 3,
+      "artifact": "extraction-final.log",
+      "scope": "Final source, renamed into actual-extraction suite so standard integration CI does not require unprovisioned Python runtime"
+    }
+  ]
+}

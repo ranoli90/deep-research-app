@@ -1,0 +1,66 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/eval-benchmark.unit.test.ts (1 test) 111ms
+ ✓ test/model-gateway.unit.test.ts (14 tests) 119ms
+stdout | test/scope-context.unit.test.ts > W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values
+scope-context-serialization { full: 1042010, compact: 14626, request: 43085, pairs: 1770 }
+
+ ✓ test/scope-context.unit.test.ts (1 test) 500ms
+   ✓ W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values  498ms
+ ✓ test/identity.unit.test.ts (14 tests) 59ms
+ ✓ test/live-search.unit.test.ts (8 tests) 62ms
+ ✓ test/governance.test.ts (6 tests) 1383ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  1080ms
+ ✓ test/ssrf.unit.test.ts (11 tests) 22ms
+ ✓ test/config.unit.test.ts (8 tests) 7ms
+ ✓ test/research-strategy.unit.test.ts (4 tests) 7ms
+ ✓ test/admission.unit.test.ts (5 tests) 10ms
+ ✓ test/report-export.unit.test.ts (7 tests) 7ms
+ ✓ test/openrouter.unit.test.ts (4 tests) 7ms
+ ✓ test/diagnostic-worker.unit.test.ts (2 tests) 7ms
+ ✓ test/route-capabilities.unit.test.ts (2 tests) 5ms
+ ✓ test/usage.unit.test.ts (14 tests) 6ms
+ ✓ test/live-policy.unit.test.ts (3 tests) 4ms
+ ❯ test/generation-receipt.unit.test.ts (10 tests | 1 failed) 5049ms
+   ✓ W02 actual generation receipt transport controls > uses only fixed GET metadata and retains exact cost without provider content 33ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 2ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > 404 is unresolved, never evidence of zero cost 1ms
+   ✓ W02 actual generation receipt transport controls > bounds body bytes and rejects invalid UTF-8 2ms
+   × W02 actual generation receipt transport controls > times out even if transport ignores cancellation 5004ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+   ✓ W02 actual generation receipt transport controls > does not fetch for canceled or invalid arguments 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/generation-receipt.unit.test.ts > W02 actual generation receipt transport controls > times out even if transport ignores cancellation
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/generation-receipt.unit.test.ts:34:3
+     32|     expect((await lookupGenerationReceipt(args())).kind).toBe("unavail…
+     33|   });
+     34|   it("times out even if transport ignores cancellation", async () => {
+       |   ^
+     35|     globalThis.fetch = vi.fn(() => new Promise<Response>(() => undefin…
+     36|     expect((await lookupGenerationReceipt({ ...args(), deadlineMs: 10 …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed (17)
+      Tests  1 failed | 113 passed (114)
+   Start at  20:27:08
+   Duration  7.61s (transform 1.30s, setup 0ms, collect 4.66s, tests 7.37s, environment 4ms, prepare 1.54s)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:unit: `vitest run --config vitest.unit.config.ts`
+Exit status 1

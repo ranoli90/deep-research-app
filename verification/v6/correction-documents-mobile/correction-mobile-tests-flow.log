@@ -1,0 +1,48 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-correction-mobile/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-correction-mobile/apps/mobile
+
+ ❯ test/correction-documents-flow.test.ts (6 tests | 2 failed) 45ms
+   × W02 failed child GET retains request; successful actual snapshot is persisted before journal deletion 10ms
+   × W03 account change during child GET cannot persist adoption 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correction-documents-flow.test.ts > W02 failed child GET retains request; successful actual snapshot is persisted before journal deletion
+Error: Verification run could not be reopened. Retry the saved request.
+ ❯ fail src/verification-request.ts:64:22
+     62| /** Validate the actual authenticated GET snapshot before clearing the…
+     63| export function readVerificationRun(value: unknown, expectedRunId: str…
+     64|   const fail = () => new Error("Verification run could not be reopened…
+       |                      ^
+     65|   if (!record(value) || !uuid.test(expectedRunId) || value.runId !== e…
+     66|       value.routeMode !== "controlled-research" || value.labeledDemo !…
+ ❯ readVerificationRun src/verification-request.ts:70:76
+ ❯ adoptCorrectionSnapshot src/correction-documents-flow.ts:47:35
+ ❯ test/correction-documents-flow.test.ts:42:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/correction-documents-flow.test.ts > W03 account change during child GET cannot persist adoption
+AssertionError: expected [Function] to throw error including 'superseded' but got 'Verification run could not be reopene…'
+
+Expected: "superseded"
+Received: "Verification run could not be reopened. Retry the saved request."
+
+ ❯ test/correction-documents-flow.test.ts:48:224
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 17 passed (18)
+      Tests  2 failed | 169 passed (171)
+   Start at  23:20:28
+   Duration  2.79s (transform 1.39s, setup 0ms, import 2.90s, tests 955ms, environment 3ms)
+
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

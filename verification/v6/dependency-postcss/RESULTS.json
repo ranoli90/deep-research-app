@@ -1,0 +1,88 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "9d95ad50bfdd267a3d6b3b8d19246b9909927455",
+  "workingTree": true,
+  "cwd": "/tmp/deep-v6-clean-9d95ad5",
+  "recordedAt": "2026-09-18T03:42:14.282669+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "expo": "54.0.37",
+    "metroConfig": "54.0.17",
+    "vitest": "3.2.7"
+  },
+  "results": [
+    {
+      "command": "pnpm install --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "sha256": "95e6aa2985c37b34d1ed8e2f31da379502fe8a5f4951411cdeb593bf9ace35c5",
+      "scope": "Isolated checkout lock resolution and installation; lifecycle scripts disabled"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "mobile-tests.log",
+      "sha256": "f36ddc529963acda92c2b49b2af38f2582a7b8a3420fd6f5c6755effe2e3f0e4",
+      "scope": "123/123 in13files;8.51s; exact9d95ad5 checkout plus override, not later root W05 work"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log",
+      "sha256": "ae03c5fbca48841e3337edf0c891da883bb984c1106b7fee25a3114e52996ec3",
+      "scope": "Configured mobile typecheck"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-postcss-android",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "sha256": "e2d8673df8871e5abfa16b35196b84f607ac3c536c8f747a1ce2d08c0266e384",
+      "scope": "Android JS/Hermes export645modules2.16MB; no signed/native build or runtime/device acceptance"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json",
+      "sha256": "c287d30915107bc7f0c0da45e46ec52f759bf47ef86adec7fe32dd35a1cd0472",
+      "scope": "3moderate/2high remain; previous receipt5moderate/4high;4PostCSS advisories removed"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "frozen-install.log",
+      "sha256": "5e0077e0796ca37f4efc6c02872dbdf568ed37fb80fd0d1a07ebb76f8ceccfda",
+      "scope": "Frozen lock installation offline; scripts disabled"
+    }
+  ],
+  "resolution": {
+    "metroConfig": "54.0.17",
+    "postcss": "8.5.28",
+    "path": "/tmp/deep-v6-clean-9d95ad5/node_modules/postcss/package.json"
+  },
+  "patch": {
+    "artifact": "remediation.patch",
+    "sha256": "1f2be7213dc80415457a46224fc04e861077a605b953e89c5a33edb2381e30c0",
+    "scope": "package.json adds only pnpm.overrides @expo/metro-config>postcss=8.5.28; lock removes8.4.49 and reuses already present8.5.28;9insertions11deletions"
+  },
+  "rootWorkspace": {
+    "packageJsonMatchesHead": true,
+    "lockMatchesHead": true
+  },
+  "impact": {
+    "reason": "Expo metro-config declares~8.4.32, causing8.4.49 despite already installed8.5.28 throughVite. Scoped override fixes known PostCSS XSS/source-map disclosure advisories without changing Expo/native dependencies, Metro,Vitest,UUID.",
+    "compatibility": "Same PostCSS major but minor change outside Expo declaredrange; therefore a tested local override, not a vendor-supported ExpoSDK patch claim. Current application native styles do not exercise user-supplied CSS; this reduces developer/build-tool exposure.",
+    "limitations": "No added CSS transformation integration test, webexport, native install/deviceexecution or Gradle graph proof. Existing mobile tests and actual AndroidJS export demonstrate configured path compatibility only. No source/model/provider behavior altered.",
+    "rollback": "Remove scoped override and restore matching lockfile as an explicit regression to recorded vulnerablePostCSS; retain audit history and open findings. No ownership,privacy,financial or publication controls change.",
+    "remaining": "uuid7.0.3moderate; image-size1.2.1twohigh; vitest/@vitest/mocker3.2.7twomoderate. No audit exclusion or severity weakening.",
+    "paidCalls": 0
+  },
+  "sources": [
+    "https://github.com/postcss/postcss/security/advisories/GHSA-fxqj-rqcc-2cmp",
+    "https://github.com/postcss/postcss/security/advisories/GHSA-qx2v-qp2m-jg93",
+    "https://github.com/postcss/postcss/security/advisories/GHSA-6g55-p6wh-862q",
+    "https://github.com/postcss/postcss/security/advisories/GHSA-r28c-9q8g-f849"
+  ]
+}

@@ -1,0 +1,13 @@
+
+> @deep/research-core@0.1.0 test /tmp/deep-append-document-4c3seb7g/repo/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/packages/research-core
+
+
+ Test Files  15 passed (15)
+      Tests  157 passed (157)
+   Start at  23:23:39
+   Duration  3.44s (transform 1.86s, setup 0ms, import 4.01s, tests 1.41s, environment 7ms)
+

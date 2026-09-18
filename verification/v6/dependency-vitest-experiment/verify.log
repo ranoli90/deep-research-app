@@ -1,0 +1,74 @@
+
+> deep-research-mobile@0.1.0 verify /tmp/deep-v6-vitest-6490546
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /tmp/deep-v6-vitest-6490546
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /tmp/deep-v6-vitest-6490546
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /tmp/deep-v6-vitest-6490546/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-v6-vitest-6490546/packages/research-core
+
+
+ Test Files  13 passed (13)
+      Tests  148 passed (148)
+   Start at  22:03:39
+   Duration  2.51s (transform 1.37s, setup 0ms, import 2.64s, tests 1.00s, environment 3ms)
+
+
+> @deep/backend@0.1.0 test:unit /tmp/deep-v6-vitest-6490546/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-v6-vitest-6490546/apps/backend
+
+
+ Test Files  17 passed (17)
+      Tests  116 passed (116)
+   Start at  22:03:43
+   Duration  5.92s (transform 2.41s, setup 0ms, import 6.98s, tests 4.73s, environment 4ms)
+
+
+> @deep/mobile@0.1.0 test /tmp/deep-v6-vitest-6490546/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-v6-vitest-6490546/apps/mobile
+
+
+ Test Files  15 passed (15)
+      Tests  136 passed (136)
+   Start at  22:03:49
+   Duration  2.52s (transform 1.38s, setup 0ms, import 2.58s, tests 705ms, environment 3ms)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /tmp/deep-v6-vitest-6490546/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-v6-vitest-6490546/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  22:03:54
+   Duration  2.24s (transform 168ms, setup 0ms, import 889ms, tests 1.15s, environment 0ms)
+

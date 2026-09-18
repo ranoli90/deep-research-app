@@ -1,0 +1,36 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/artifact-size.integration.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/artifact-size.integration.test.ts (2 tests | 1 failed) 963ms
+   × W04 stores exact 8MiB uploaded artifact and preserves it through full migration replay 112ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/artifact-size.integration.test.ts > W04 stores exact 8MiB uploaded artifact and preserves it through full migration replay
+error: new row for relation "evidence_artifacts" violates check constraint "evidence_artifacts_body_check"
+ ❯ ../../node_modules/pg/lib/client.js:694:17
+ ❯ insertExtractedVersion src/modules/evidence.ts:26:5
+     24|   if (args.bytes) {
+     25|     artifactId = crypto.randomUUID();
+     26|     await db.query("INSERT INTO evidence_artifacts(id,account_id,run_i…
+       |     ^
+     27|   }
+     28|   await db.query(`INSERT INTO source_versions(id,source_id,account_id,…
+ ❯ withTx src/platform/db.ts:33:20
+ ❯ test/artifact-size.integration.test.ts:16:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  05:57:12
+   Duration  1.66s (transform 420ms, setup 0ms, import 563ms, tests 963ms, environment 0ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/artifact-size.integration.test.ts`
+Exit status 1

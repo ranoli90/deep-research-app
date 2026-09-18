@@ -1,0 +1,13 @@
+{
+  "commands": [
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0
+    }
+  ],
+  "scope": "document structure only; corrected invalid implementation pointer; prior failure retained"
+}

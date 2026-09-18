@@ -1,0 +1,28 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/requested-verification.integration.test.ts (18 tests) 56869ms
+   ✓ W05 explicitly requested verification executes exact target support and publishes a source-bound scoped outcome  4178ms
+   ✓ W02/W05 replay and concurrent requests reuse one child allowance/outbox while distinct requests allocate revisions  3269ms
+   ✓ W03/W05 rejects foreign or stale report targets and disabled processing before child admission  1833ms
+   ✓ W05 omission of the requested assertion in the model assessment cannot publish verification  2403ms
+   ✓ W02 unknown assessment retains the admitted allowance and is never blindly resent  2369ms
+   ✓ W05 a missing target remains required and cannot fall through to ordinary research even when challenge scheduling is off  1929ms
+   ✓ W03 account deletion purges private target/note/result and keeps opaque required obligation  2856ms
+   ✓ W03/W06 deleting an original source invalidates and purges requested verification descendants  2125ms
+   ✓ W05 refreshed uploaded source produces new owned extraction evidence without public discovery  2882ms
+   ✓ W02 uppercase request identity resolves exactly and withdrawn keys cannot admit a delayed verification  2073ms
+   ✓ W05 API strict verification schedules a child while ordinary output feedback schedules no work  3107ms
+   ✓ W05 publication independently rejects missing_result after a completed verification  3850ms
+   ✓ W05 publication independently rejects missing_target after a completed verification  4129ms
+   ✓ W05 publication independently rejects changed_scope after a completed verification  5387ms
+   ✓ W05 publication independently rejects false_result after a completed verification  4105ms
+   ✓ W05 refreshed known URL produces localized contradicted outcome without candidate discovery or target replacement  3382ms
+   ✓ W05 refreshed known URL produces localized partially_supported outcome without candidate discovery or target replacement  3391ms
+   ✓ W05 refreshed known URL produces localized insufficient outcome without candidate discovery or target replacement  3373ms
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  21:27:26
+   Duration  58.29s (transform 768ms, setup 0ms, collect 1.22s, tests 56.87s, environment 0ms, prepare 70ms)
+

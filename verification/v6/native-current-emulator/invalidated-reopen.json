@@ -1,0 +1,177 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2400]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[42,149][457,222]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[883,149][1038,264]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[883,149][1038,264]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[42,285][1038,389]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[63,306][1017,368]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Deleted source cleanup",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,389][1080,677]",
+    "clickable": "false"
+  },
+  {
+    "text": "A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[44,433][1036,517]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Retry device cleanup",
+    "class": "android.widget.Button",
+    "bounds": "[45,518][1035,633]",
+    "clickable": "true"
+  },
+  {
+    "text": "Retry device cleanup",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,518][1035,633]",
+    "clickable": "false"
+  },
+  {
+    "text": "This research used a deleted source. Saved report content has been hidden.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,719][1080,928]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,928][1080,2044]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research progress",
+    "class": "android.view.ViewGroup",
+    "bounds": "[42,970][1038,1440]",
+    "clickable": "false"
+  },
+  {
+    "text": "WRITING",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[86,1014][994,1071]",
+    "clickable": "false"
+  },
+  {
+    "text": "Waiting for the server. Closing this app will not stop the job.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[86,1087][994,1227]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "In progress",
+    "class": "android.widget.FrameLayout",
+    "bounds": "[514,1227][568,1280]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Cancel research",
+    "class": "android.widget.Button",
+    "bounds": "[87,1280][993,1395]",
+    "clickable": "true"
+  },
+  {
+    "text": "Cancel",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[87,1280][993,1395]",
+    "clickable": "false"
+  },
+  {
+    "text": "Does Ardent support underwater ",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[21,2067][853,2184]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[853,2068][1059,2183]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[895,2089][1017,2162]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2207][540,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[164,2238][375,2305]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2207][1080,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[734,2238][886,2305]",
+    "clickable": "false"
+  }
+]

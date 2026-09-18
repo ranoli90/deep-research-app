@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/research-strategy.unit.test.ts (4 tests) 48ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  18:38:54
+   Duration  3.60s (transform 1.91s, setup 0ms, collect 2.65s, tests 48ms, environment 1ms, prepare 236ms)
+

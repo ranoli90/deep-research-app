@@ -1,0 +1,25 @@
+
+ RUN  v4.1.11 /tmp/deep-eval-runner-0602f96/apps/backend
+
+ ❯ test/eval-live.integration.test.ts (2 tests | 1 failed) 14905ms
+   × prior different-account same-key held and confirmed liabilities count before any new provider work 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/eval-live.integration.test.ts > prior different-account same-key held and confirmed liabilities count before any new provider work
+error: inconsistent types deduced for parameter $1
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ test/eval-live.integration.test.ts:43:3
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  23:18:12
+   Duration  16.26s (transform 868ms, setup 0ms, import 1.21s, tests 14.91s, environment 0ms)
+
+undefined
+/tmp/deep-eval-runner-0602f96/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/eval-live.integration.test.ts

@@ -1,0 +1,209 @@
+{
+  "requirementIds": [
+    "W03",
+    "W04",
+    "W08",
+    "W09"
+  ],
+  "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "implementationCommit": null,
+  "workingTree": "/tmp/deep-frozen-eval-0fc; uncommitted isolated evaluator changes",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "4.1.11",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime",
+    "database": "real local PostgreSQL, fresh retained random databases per extraction invocation"
+  },
+  "actualProviderSpendMicro": 0,
+  "semanticScores": null,
+  "independentHumanAdjudication": null,
+  "scope": "Exact frozen supplied PDF inputs through existing authenticated upload, admission, production worker, extraction/support/writer/checker. Fabricated provider transports in all executed controls; no discovery superiority claim.",
+  "changes": [
+    "PDF-only source metadata projection from hash-verified registration; no evaluator criteria/reference answers in execution projection.",
+    "File path containment, PDF MIME/magic, frozen digest,8MiB size, max3 distinct sources preflight.",
+    "Stable approval/slot/source upload keys, owner API checks; separate uploads for originals and fresh rerun, inherited correction.",
+    "Frozen-mode discovery/retrieval/challenge scheduling disabled equally in both arms; existing model/consent/cost permissions remain.",
+    "Individual unsupported task unrun records; CLI nonzero for incomplete denominator; all-unsupported exits before DB setup.",
+    "Trace owned attempted source versions and supplied attachment statuses even with no passages; artifact and source version digest validation retained.",
+    "Durable upload journal records attachment identity before proceeding; expired approval retains attachment for explicit cleanup and creates no run/provider call.",
+    "Trace includes run_events IDs, owner/run identity, numeric sequence order, phase, payload and timestamps; failure reasons are observed from persisted events.",
+    "CLI source dirty-tree pathspec now includes migrations, matching the complete source hash inventory."
+  ],
+  "results": [
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts test/frozen-documents.unit.test.ts",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/units-boundaries.log",
+      "scope": "21unit controls"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/typecheck-boundaries.log",
+      "scope": "backend types"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/extraction-first.log",
+      "scope": "5/5 prior evaluator control set"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+      "exitCode": 1,
+      "artifact": "verification/v6/frozen-pdf-evaluator/extraction-final.log",
+      "scope": "5passed1failed official TMP capacity"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+      "exitCode": 1,
+      "artifact": "verification/v6/frozen-pdf-evaluator/extraction-review.log",
+      "scope": "5passed1failed confirmed SQL23514"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/extraction-capacity-fixed.log",
+      "scope": "8/8 actual extraction controls45.23s tests46.53s overall; all3registered official PDFs, fourrun synthetic PDF pairing, replay, unreadable source digest tamper, expiry after first upload, same identity changedbytes; existing HTML/accounting/unknowncontrols unchanged",
+      "database": "deep_eval_control_b5d4a71c7f8f469999d1502c32b03b4f"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/typecheck-upload-journal.log",
+      "scope": "final backend source types"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/boundaries.log",
+      "scope": "runtime import boundaries"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/install.log",
+      "scope": "isolated frozen offline dependency setup"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"registered official frozen PDFs\"",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/official-event-trace.log",
+      "scope": "1selected test covering3actual official PDFs passed;7unselected tests not executed by focused name filter; exact failure reasons/owned ordered events asserted",
+      "database": "deep_eval_control_0bea3719a212459190a4884563691bfb",
+      "traceArtifact": "verification/v6/frozen-pdf-evaluator/eval-runner-fYLgW8.json.gz"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "verification/v6/frozen-pdf-evaluator/typecheck-event-trace.log",
+      "scope": "backend typecheck after event trace/dirty migration inclusion"
+    }
+  ],
+  "failures": [
+    "Official TMP1171718295-byte PDF passes upload/parser but existing evidence_artifacts_body_check rejects bytes above1500000. First official corpus check and instrumented diagnosis retained. Fix delegated to primary migration agent; assertions unchanged. Repaired by root-owned additive idempotent migration037; complete unchanged official extraction assertions now pass."
+  ],
+  "remaining": [
+    "Frozen HTML unsupported; preserve unsupported slots, never relabel MIME.",
+    "Actual paid repetitions, semantic scoring and independent human adjudication remain externally gated.",
+    "ESP32 full extracted model context exceeds existing policy; observed failure retained, no source clipping, context expansion or semantic success claimed."
+  ],
+  "rollback": "Disable frozen evaluation scheduling or restore source-mode unavailable gate. Retain existing uploaded data ownership/deletion, receipt reads and settlement, unknown holds, immutable evidence and publication checks. No runtime model-route, public API schema, dependency or allowance changes.",
+  "impactChecklist": {
+    "publicContracts": "none; evaluator-only optional projection fields",
+    "dependencies": "none",
+    "prompts": "unchanged",
+    "modelRoutes": "unchanged; scheduling disabled for public discovery/challenge in supplied mode",
+    "database": "no evaluator migration; root-owned artifact capacity repair separately linked when available",
+    "privacy": "owned binary uploads; documents persist under existing deletion policy; expiry after upload retains owned attachment, no hidden cleanup or run admission",
+    "spend": "no authorization expansion; default deny and current explicit grants required; tests fabricated and nonbillable"
+  },
+  "canonicalSnippet": "Frozen supplied-document evaluation now supports registered PDFs using exact hash-verified owned uploads through the production API/worker/parser. Unsupported HTML remains explicitly unrun per task, incomplete CLI executions exit2, and generation receives no evaluator references. Local controls use fabricated model responses and do not establish semantic accuracy, live cost, or discovery-strategy superiority.",
+  "artifactCapacityMigration": {
+    "path": "apps/backend/migrations/037_evidence_artifact_upload_limit.sql",
+    "sha256": "8a57b4d04cfa2823c11f6b1f5e5e4e2f89e6575aa2f5e05b408b62aa7f23193c",
+    "owner": "primary/mutation-audit agent; copied after primary review; not authored by evaluator agent"
+  },
+  "officialDocuments": [
+    {
+      "sourceId": "rfc9112",
+      "runId": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 46,
+      "cost": {
+        "confirmedMicro": 2,
+        "heldMicro": 0,
+        "unknownIntents": 0
+      },
+      "scope": "actual production PDF ingestion; fabricated model lacks domain-specific assertions; terminal failure retained, no semantic answer established",
+      "observedFailureReason": "no_relevant_assertions",
+      "failureEventArtifact": "verification/v6/frozen-pdf-evaluator/official-failure-events.json"
+    },
+    {
+      "sourceId": "tmp117",
+      "runId": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 50,
+      "cost": {
+        "confirmedMicro": 2,
+        "heldMicro": 0,
+        "unknownIntents": 0
+      },
+      "scope": "actual production PDF ingestion; fabricated model lacks domain-specific assertions; terminal failure retained, no semantic answer established",
+      "observedFailureReason": "no_relevant_assertions",
+      "failureEventArtifact": "verification/v6/frozen-pdf-evaluator/official-failure-events.json"
+    },
+    {
+      "sourceId": "esp32",
+      "runId": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+      "outcome": "failed",
+      "reportId": null,
+      "passages": 78,
+      "cost": {
+        "confirmedMicro": 1,
+        "heldMicro": 0,
+        "unknownIntents": 0
+      },
+      "scope": "actual production PDF ingestion; model input rejected by existing context policy before assertion extraction; no semantic answer established, no input-context expansion performed",
+      "observedFailureReason": "model_context_exceeds_policy",
+      "failureEventArtifact": "verification/v6/frozen-pdf-evaluator/official-failure-events.json"
+    }
+  ],
+  "traceArtifact": "verification/v6/frozen-pdf-evaluator/eval-runner-yZlQql.json.gz",
+  "traceHeaderCaveat": "Existing control harness top-level evidenceClass retains historical actual_html wording; new per-trace frozen_pdf and official_pdf labels identify actual PDF execution. Artifact is exact unedited complete harness output compressed losslessly.",
+  "rootReviewFollowup": {
+    "baseCommit": "1d54ea090cd01891a97ea1078204ba71137d0052",
+    "scope": "Review caught legitimate bodyless/non2xx/parser-failure receipt rejection in widened owned trace; strict unavailable shapes preserve failures, not evidence; successful outcome/source digest tampering rejected without extra provider calls.",
+    "results": [
+      {
+        "command": "pnpm --filter @deep/backend typecheck",
+        "exitCode": 0,
+        "artifact": "typecheck-unavailable-read.log",
+        "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+      },
+      {
+        "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"retains legitimate unavailable public read receipt\"",
+        "exitCode": 0,
+        "artifact": "unavailable-read-after.log",
+        "sha256": "e7aa6118f461b8c0e6f8dfd5408fdc931ed810374d29a382f9ccc2d8042a7bd1"
+      },
+      {
+        "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"retains legitimate unavailable public read receipt\"",
+        "exitCode": 1,
+        "artifact": "unavailable-read-before.log",
+        "sha256": "e29487bddd055794a192d96ca509df2aaed5a5cf83a1951d527cf003b6032bc2"
+      },
+      {
+        "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"retains legitimate unavailable public read receipt\"",
+        "exitCode": 0,
+        "artifact": "unavailable-read-parser-final.log",
+        "sha256": "c4f7564878df61dd375a3204785ac649f07f7c8be058e4594feb4beaf32302c0"
+      }
+    ],
+    "terminal": "3/3 pass incl actual invalid-UTF8 sandbox parser exception;8 unselected;3.76s; prior2failed retained"
+  }
+}

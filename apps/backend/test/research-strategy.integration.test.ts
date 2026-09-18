@@ -1,0 +1,35 @@
+import { beforeAll, afterAll, expect, it } from "vitest";
+import type { FastifyInstance } from "fastify";
+import type PgBoss from "pg-boss";
+import type pg from "pg";
+import { buildApp } from "../src/api/app.js";
+import { createPool, migrate } from "../src/platform/db.js";
+import { createQueue } from "../src/adapters/queue.js";
+import { loadConfig } from "../src/platform/config.js";
+import { getRun } from "../src/modules/runs.js";
+let pool:pg.Pool,boss:PgBoss,baseline:FastifyInstance,adaptive:FastifyInstance;
+beforeAll(async()=>{
+ const databaseUrl=process.env.TEST_DATABASE_URL??"postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
+ pool=createPool(databaseUrl);await migrate(pool);boss=await createQueue(databaseUrl);
+ const config=loadConfig({NODE_ENV:"test",DATABASE_URL:databaseUrl,DEV_ALLOW_FIXTURE_ROUTE:"false",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-strategy-test",LIVE_SPEND_CAP_MICRO:"1000000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000"});
+ baseline=await buildApp({pool,boss,config:{...config,structuredStrategy:"iterative-baseline.v1"}});
+ adaptive=await buildApp({pool,boss,config:{...config,structuredStrategy:"criterion-adaptive.v1"}});
+});
+afterAll(async()=>{await baseline.close();await adaptive.close();await boss.stop({graceful:false,timeout:2000});await pool.end();});
+it("W08 API pins server strategy; idempotent retries and corrections inherit it across changed defaults",async()=>{
+ const session=(await baseline.inject({method:"POST",url:"/v1/dev/session",payload:{}})).json();
+ const headers={authorization:`Bearer ${session.token}`};
+ await baseline.inject({method:"POST",url:"/v1/consent",headers,payload:{grant:true}});
+ const key=crypto.randomUUID(),payload={question:"Compare archive export and offline reading.",routeMode:"controlled-research",attachmentIds:[]};
+ const first=await baseline.inject({method:"POST",url:"/v1/runs",headers:{...headers,"idempotency-key":key},payload});expect(first.statusCode).toBe(200);
+ const runId=first.json().runId;expect((await getRun(pool,runId))?.research_strategy).toBe("iterative-baseline.v1");
+ const replay=await adaptive.inject({method:"POST",url:"/v1/runs",headers:{...headers,"idempotency-key":key},payload});expect(replay.statusCode).toBe(200);expect(replay.json().runId).toBe(runId);
+ expect((await getRun(pool,runId))?.research_strategy).toBe("iterative-baseline.v1");
+ const corrected=await adaptive.inject({method:"POST",url:`/v1/runs/${runId}/corrections`,headers,payload:{expectedBriefRevision:1,correctionText:"Require archive export.",patch:{kind:"replace_question",question:"Which option supports archive export?",evidencePolicy:"refresh"}}});
+ expect(corrected.statusCode).toBe(200);expect((await getRun(pool,corrected.json().runId))?.research_strategy).toBe("iterative-baseline.v1");
+ const fresh=await adaptive.inject({method:"POST",url:"/v1/runs",headers,payload});expect(fresh.statusCode).toBe(200);expect((await getRun(pool,fresh.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
+ const injected=await adaptive.inject({method:"POST",url:"/v1/runs",headers,payload:{...payload,researchStrategy:"iterative-baseline.v1"}});expect(injected.statusCode).toBe(200);expect((await getRun(pool,injected.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
+ expect((await pool.query("SELECT count(*)::int n FROM run_dispatch_outbox WHERE run_id=ANY($1::uuid[])",[[runId,corrected.json().runId,fresh.json().runId]])).rows[0].n).toBe(3);
+ expect((await pool.query("SELECT 1 FROM provider_intents i JOIN runs r ON r.id=i.run_id WHERE r.account_id=$1",[session.accountId])).rowCount).toBe(0);
+ await baseline.inject({method:"POST",url:"/v1/account/deletion",headers});
+});

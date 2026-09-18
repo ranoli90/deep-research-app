@@ -1,0 +1,56 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/html.extraction.test.ts (3 tests) 8316ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > preserves all decisive spans and exact byte digests  5524ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > handles actual plain text and preserves table spans without executing script  1925ms
+   ✓ W04 real isolated parser over supplied synthetic bytes > does not label PDF bytes as parsed text  866ms
+ ❯ test/pdf.extraction.test.ts (2 tests | 2 failed) 2576ms
+   × W04 parses original digital PDF bytes into page-bound text with honest layout limitations 885ms
+     → expected 'unavailable' to be 'partial' // Object.is equality
+   × W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support 1689ms
+     → expected [ 'unsupported_mime' ] to include 'invalid_pdf'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/pdf.extraction.test.ts > W04 parses original digital PDF bytes into page-bound text with honest layout limitations
+AssertionError: expected 'unavailable' to be 'partial' // Object.is equality
+
+Expected: "partial"
+Received: "unavailable"
+
+ ❯ test/pdf.extraction.test.ts:10:25
+      8|   const result = await extractOffline(bytes, "application/pdf");
+      9|   expect(result.digest).toBe(createHash("sha256").update(bytes).digest…
+     10|   expect(result.status).toBe("partial");
+       |                         ^
+     11|   expect(result.blocks).toHaveLength(2);
+     12|   expect(result.blocks[0]?.locator).toBe("page:1/block:0");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/pdf.extraction.test.ts > W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support
+AssertionError: expected [ 'unsupported_mime' ] to include 'invalid_pdf'
+ ❯ test/pdf.extraction.test.ts:25:30
+     23|     const invalid = await extractOffline(bytes, "application/pdf");
+     24|     expect(invalid.status).toBe("unavailable"); expect(invalid.blocks)…
+     25|     expect(invalid.warnings).toContain("invalid_pdf");
+       |                              ^
+     26|   }
+     27| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 3 passed (5)
+   Start at  11:02:08
+   Duration  11.51s (transform 90ms, setup 0ms, collect 158ms, tests 10.89s, environment 1ms, prepare 165ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts`
+Exit status 1

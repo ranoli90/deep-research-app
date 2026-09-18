@@ -1,0 +1,99 @@
+{
+  "task": "W03/W07 bounded account-generation and pending-action review",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "recordedAt": "2026-09-18T04:30:44.376733+00:00",
+  "method": "Read-only source and existing-control inspection. No test execution, simulator/device, DB, source edits or provider requests. Same-model engineering review, not independent validation.",
+  "conclusion": "No new confirmed substantive race or recovery dead end found in the bounded reviewed paths. This is not exhaustive lifecycle/native proof.",
+  "boundaries": [
+    {
+      "path": "Pending verification",
+      "evidence": [
+        "apps/mobile/src/verification-request.ts:51",
+        "apps/mobile/App.tsx:647",
+        "apps/mobile/App.tsx:665",
+        "apps/mobile/App.tsx:694",
+        "apps/mobile/test/verification-request.test.ts:16"
+      ],
+      "assessment": "Required protected request snapshot precedes POST; account guards are checked around awaits. Unknown response retains exact identity. Accepted child is GET-validated and durably adopted before pending state clears. Bound resolve/withdraw remains explicit. Account switch invalidates pending account guard and storage epoch; prior snapshot cannot be applied to new account."
+    },
+    {
+      "path": "Source deletion",
+      "evidence": [
+        "apps/mobile/App.tsx:528",
+        "apps/mobile/src/source-deletion-flow.ts:5",
+        "apps/mobile/test/source-deletion-flow.test.ts"
+      ],
+      "assessment": "Account guard survives intended run deselection while outstanding view/source requests are invalidated. Required redaction precedes server deletion. Failed reply or acknowledgement write retains pending source ID. Refresh application rejects pending deletion; redaction clears report/run/source/reading/correction/attachments. Helper control covers late receipt after account switch."
+    },
+    {
+      "path": "Protected snapshot ordering",
+      "evidence": [
+        "apps/mobile/src/persist.ts:67",
+        "apps/mobile/src/persist.ts:118",
+        "apps/mobile/src/persist.ts:130",
+        "apps/mobile/src/persist.ts:204",
+        "apps/mobile/test/session-storage.test.ts",
+        "apps/mobile/test/source-deletion-flow.test.ts"
+      ],
+      "assessment": "Serialized operations plus epoch/token and persistSequence checks prevent queued ordinary writes overtaking required snapshots and prevent old account writes being adopted by new owner. Required write snapshots its input before await and rejects superseded completion. Clear invalidates epoch immediately, then records denial and clears stored content."
+    },
+    {
+      "path": "Reading state",
+      "evidence": [
+        "apps/mobile/App.tsx:136",
+        "apps/mobile/src/reading-position.ts",
+        "apps/mobile/test/reading-position.test.ts:51",
+        "apps/mobile/test/reading-position.test.ts:86"
+      ],
+      "assessment": "Reader identity binds token, immutable report ID, visibility and displayed block list. Generation rejects prior view/account measurements; source opening saves anchor and hiding clears transient tracker. Protected hydration clears cross-account anchors; tests cover stale callbacks and process recreation."
+    }
+  ],
+  "rejectedSuspicions": [
+    "An in-flight parent refresh during verification can update the same owned parent view, but applySnapshot preserves pending journal; child selection invalidates prior view requests. No journal erasure found.",
+    "Deletion account guard intentionally does not use view guard: it must remain current while selecting no run; stale source/read callbacks are separately invalidated.",
+    "Verifying/deleting busy refs are not reset on account change, but they prevent a second operation until the old finally releases them; no overlapping old-finally/new-operation race established. Broader stalled native transport behavior is not tested here."
+  ],
+  "remainingEvidenceGates": [
+    "Locked-device source-deletion and synthetic protected cache cleanup remain unconfirmed.",
+    "Full authenticated native account switching, accessibility/reconnect, standalone/iOS and production identity/backup lifecycle remain open.",
+    "Existing unit/integration receipts are reused as context only; no new runtime pass is claimed."
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/mobile/App.tsx",
+      "sha256": "15d8bb95b242a6f2b78d7a8c04ecfefa1788fd7251f2325f2db2f15fba7940d3"
+    },
+    {
+      "path": "apps/mobile/src/api.ts",
+      "sha256": "78c0bb2ccaccaec137d5303472cdfe69c7a67e5fac10dc3218aa0b6437f0b20d"
+    },
+    {
+      "path": "apps/mobile/src/request-scope.ts",
+      "sha256": "06ead79c08859fee35bf334d7ece1450388f9c24e74dc6acdf449333b062e4fa"
+    },
+    {
+      "path": "apps/mobile/src/persist.ts",
+      "sha256": "9713fc5fb74f92403869918f09f4de9bb9bb693e0b6604a6e57eaf6688955d85"
+    },
+    {
+      "path": "apps/mobile/src/protected-content.ts",
+      "sha256": "960326ce1f34f8886f2b070319f0d1117d1ea8817ad341fca303bd00e5b47f53"
+    },
+    {
+      "path": "apps/mobile/src/verification-request.ts",
+      "sha256": "e0a9598a7feca06e168060eece6a26a718d90c71425e30b0ca379c1d675dc2bb"
+    },
+    {
+      "path": "apps/mobile/src/source-deletion-flow.ts",
+      "sha256": "ccf24c5d20ead25e335ef5e10a568dde0bdb132197f2deb069c6af211aa91c6b"
+    },
+    {
+      "path": "apps/mobile/src/source-deletion.ts",
+      "sha256": "997b188b7034dedbb82ccf5c6357dc2875a051042bb61076a94878b0325e1eb5"
+    },
+    {
+      "path": "apps/mobile/src/reading-position.ts",
+      "sha256": "0131d43726d72e2fe351b91b24cf0d512f4d549d69c6ec24a8f26f00c1227660"
+    }
+  ]
+}

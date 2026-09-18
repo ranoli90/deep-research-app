@@ -8,7 +8,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { InjectedCrash, processRun } from "../src/worker/executor.js";
+import { InjectedCrash, processRun } from "../src/worker/diagnostic-executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun, publishReport } from "../src/modules/reports.js";
@@ -302,6 +302,12 @@ describe("P0 smoke against shipped API/worker/postgres", () => {
     expect(mid.sources.length).toBeGreaterThan(0);
     const checkpoints = await pool.query(`SELECT count(*)::int AS n FROM checkpoints WHERE run_id = $1`, [runId]);
     expect(checkpoints.rows[0].n).toBe(0);
+    const crashed = await getRun(pool, runId);
+    // A fresh process using the same configured worker name must not steal an unexpired attempt.
+    await processRun(pool, config, runId);
+    expect((await getRun(pool, runId))?.worker_lease_fence).toBe(crashed?.worker_lease_fence);
+    expect((await getRun(pool, runId))?.lifecycle).not.toBe("terminal");
+    await pool.query(`UPDATE run_leases SET expires_at = now() - interval '1 second' WHERE run_id = $1`, [runId]);
     await processRun(pool, config, runId);
     const run = await getRun(pool, runId);
     expect(run?.lifecycle).toBe("terminal");

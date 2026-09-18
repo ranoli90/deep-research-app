@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
-import { admitProposedAction } from "../src/admission.js";
+import { admitProposedAction, admitExecutableAction } from "../src/admission.js";
 import { extractConstraints } from "../src/brief.js";
 import { shouldFullRerun, impactForCorrection } from "../src/impact.js";
 import type { ControllerState, PolicyDecision } from "../src/types.js";
@@ -60,6 +60,22 @@ function proposal(partial: Partial<PolicyDecision> = {}): PolicyDecision {
 }
 
 describe("admitProposedAction — shipped gates", () => {
+  it("V6-F15 rejects another run and either inconsistent revision basis", () => {
+    expect(admitProposedAction(state(), proposal({ runId: "00000000-0000-4000-8000-000000000099" })).rejectReason).toBe("wrong_run");
+    const s = state();
+    s.basis.briefRevision = 2;
+    expect(admitProposedAction(s, proposal()).rejectReason).toBe("stale_revision");
+    expect(admitProposedAction(s, proposal({ briefRevision: 2 })).rejectReason).toBe("stale_revision");
+  });
+  it("V6-F15 rejects an empty fetch locator", () => {
+    expect(admitProposedAction(state(), proposal({ type: "fetch", arguments: {} })).rejectReason).toBe("unsafe_url");
+  });
+  it("V6-F15 model flags cannot waive an untried blocking gap", () => {
+    const s = state({ gaps: [{ id: "gap", missingFact: "required compatibility", whyItCouldChangeAnswer: "eligibility",
+      importance: "blocking", suggestedQuery: "compatibility", latestOutcome: "untried" }] });
+    const d = admitProposedAction(s, proposal({ type: "synthesize", arguments: { allowOpenGaps: true, stopPolicy: "done" } }));
+    expect(d.rejectReason).toBe("blocking_gap_open");
+  });
   it("rejects hostile source proposals that expand tools, secrets, or spend", () => {
     const s = state();
     for (const bad of [
@@ -88,6 +104,11 @@ describe("admitProposedAction — shipped gates", () => {
       proposal({ type: "search", estimatedMaxCostMicro: 5_000 }),
     );
     expect(d.type).toBe("stop");
+    expect(d.rejectReason).toBe("allowance_exhausted");
+  });
+  it("server tariffs cannot be waived by a zero proposed cost", () => {
+    const d = admitProposedAction(state({ spentMicro: 95_000, budgetMicro: 100_000 }),
+      proposal({ type: "search", estimatedMaxCostMicro: 0 }));
     expect(d.rejectReason).toBe("allowance_exhausted");
   });
 
@@ -146,4 +167,49 @@ describe("unknown-dependency correction forces full rerun", () => {
       ),
     ).toBe(false);
   });
+});
+
+
+describe("V6-F15 executable argument boundaries", () => {
+  it.each([
+    { query: "postgres", sql: "SELECT * FROM accounts" },
+    { query: "postgres", accountId: "another-owner" },
+    { query: "postgres", budget: { cap: 999999 } },
+    { query: ["postgres"] },
+    { query: "" },
+    { query: "x".repeat(4001) },
+    { query: "postgres", options: { headers: { Authorization: "unapproved" } } },
+  ])("rejects undeclared, mistyped or oversized executable search arguments", (arguments_) => {
+    expect(admitProposedAction(state(), proposal({ arguments: arguments_ })).rejectReason).toBe("invalid_arguments");
+  });
+  it("rejects arbitrary calculation code and unbound verification; valid named controls remain admitted", () => {
+    expect(admitProposedAction(state(), proposal({ type: "calculate", arguments: { expression: "process.exit()" } })).rejectReason).toBe("invalid_arguments");
+    expect(admitProposedAction(state(), proposal({ type: "verify", arguments: {} })).rejectReason).toBe("invalid_arguments");
+    expect(admitProposedAction(state(), proposal({ type: "calculate", arguments: { formula: "ratio", inputClaimIds: ["c1", "c2"] } })).rejectReason).toBeUndefined();
+    expect(admitProposedAction(state(), proposal({ type: "verify", arguments: { claimId: "c1", checks: ["support"] } })).rejectReason).toBeUndefined();
+    expect(admitProposedAction(state(), proposal()).rejectReason).toBeUndefined();
+  });
+  it("does not accept a model's proposed check result as executable challenge input", () => {
+    expect(admitProposedAction(state(), proposal({ type: "challenge", arguments: {
+      targetConclusion: "candidate is eligible", falsificationHypothesis: "an exclusion applies", recordOnly: true,
+      result: "no_counterexample_found", counterevidenceFound: false,
+    } })).rejectReason).toBe("invalid_arguments");
+  });
+});
+
+
+it("V6-F15 transformed challenges retain data targets but cannot waive executable search policy", () => {
+  const challenge = proposal({ type: "challenge", estimatedMaxCostMicro: 0, arguments: {
+    query: "managed postgres germany", targetConclusion: "candidate is eligible",
+    falsificationHypothesis: "an exclusion applies", recordOnly: false,
+  } });
+  const actual = admitExecutableAction(state(), challenge);
+  expect(actual.rejectReason).toBeUndefined(); expect(actual.type).toBe("search");
+  expect(actual.arguments).toMatchObject({ query: "managed postgres germany", disconfirm: true });
+  expect(actual.arguments).not.toHaveProperty("recordOnly");
+  expect(admitExecutableAction(state({ spentMicro: DEFAULT_RUN_BUDGET_MICRO }), challenge).rejectReason).toBe("allowance_exhausted");
+  const privateChallenge = { ...challenge, arguments: { ...challenge.arguments, query: "find CANARY:PRIVATE" } };
+  expect(admitExecutableAction(state({ privateCanaries: ["CANARY:PRIVATE"] }), privateChallenge).rejectReason).toBe("private_query_blocked");
+  const extra = { ...challenge, arguments: { ...challenge.arguments, headers: { authorization: "unapproved" } } };
+  expect(admitExecutableAction(state(), extra).rejectReason).toBe("invalid_arguments");
 });

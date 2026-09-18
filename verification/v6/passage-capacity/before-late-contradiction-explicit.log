@@ -1,0 +1,35 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts -t 'observes a contradiction'
+
+
+ RUN  v4.1.11 /tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend
+
+ ❯ test/passage-capacity.integration.test.ts (5 tests | 1 failed | 4 skipped) 727ms
+   × W01 observes a contradiction at passage25 and cannot publish the positive claim 512ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/passage-capacity.integration.test.ts > W01 observes a contradiction at passage25 and cannot publish the positive claim
+AssertionError: [{"payload":{}},{"payload":{"taskId":"dc4682fb-b632-4829-9490-2c44e3afaa27","strategy":"criterion-adaptive.v1","briefRevision":1}},{"payload":{"reason":"invalid_extraction_selection"}}]: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ test/passage-capacity.integration.test.ts:64:368
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 skipped (5)
+   Start at  22:45:08
+   Duration  3.19s (transform 1.70s, setup 0ms, import 2.22s, tests 727ms, environment 0ms)
+
+/tmp/deep-passage-capacity-sfm0i4me/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts -t 'observes a contradiction'`
+Exit status 1

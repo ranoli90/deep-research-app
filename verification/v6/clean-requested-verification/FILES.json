@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "path": "verification/v6/clean-requested-verification/RESULTS.json",
+      "sha256": "21e38e2ef281e6f589e5db25f812358a0be0b5f0932acc6a54b434d78e85375c"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/SETUP.json",
+      "sha256": "5c90c00894a7fa323cb621c7a08e0fe51d2b4210ce60ee2d373be1aa07126399"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/android-export.log",
+      "sha256": "f68c2ca281eac49c5e564a9918145ec93b407eec32e378c773eac01457772163"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/checkout-0.log",
+      "sha256": "859cdbcb83eaec306085a8a8056947a7937ed42c39701344b3b819711895de00"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/checkout-1.log",
+      "sha256": "5a60e1d71f2bef35d94a1d96b1ea8c0e89cd0fd1756dbdcf46da520bf00bcadc"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/checkout-2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/checkout-3.log",
+      "sha256": "7316b76c08260396ccae19f934d493d255014509fc28488d934b99e7593e47c0"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/final-head.log",
+      "sha256": "7316b76c08260396ccae19f934d493d255014509fc28488d934b99e7593e47c0"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/final-status.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/final-symbolic-ref.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/install-exit.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/install.log",
+      "sha256": "3405406e42e65a4a103d1f39e8afd1943de1082b18ff4054c7e6b2343113a873"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/mobile-typecheck.log",
+      "sha256": "1fb18375048953d0d402c9d4a977d6122133b66f86153fa6d9d9809a3c6f3403"
+    },
+    {
+      "path": "verification/v6/clean-requested-verification/verify.log",
+      "sha256": "1dbf460157f092250ccf0bc102af3f54e44842869b9c20d6e9ee67e922e11ac4"
+    }
+  ]
+}

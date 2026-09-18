@@ -1,0 +1,109 @@
+{
+  "task": "W02 mutation-basis lease-clock audit",
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "target": "Reviewed implementation checkpoint eb133e86ac9d8fc7a16be54088fc872c1c3fa63d",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "initialDatabase": "deep_research_test",
+    "isolatedDatabase": "deep_research_lease_clock_v6",
+    "host": "127.0.0.1:55432"
+  },
+  "evidenceClass": "Real local PostgreSQL lock waits; synthetic accounts/routes. No model/network provider transports or paid calls. No native/hosted claim.",
+  "tests": [
+    {
+      "artifact": "pre-fix.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 1,
+      "scope": "6 failures; semantic/terminal expiry defects reproduced; provider tests interfered with retained standardDB unbound-key liability.",
+      "sha256": "bb7d9340437f8d8bb66faefb24d00c91195ac9d74b5c925fb0791f5e467ab8ff"
+    },
+    {
+      "artifact": "pre-fix-isolated-budget.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 1,
+      "scope": "All6 expiry defects reproduced after adjusting only synthetic testkey cap for retained global legacy liability.",
+      "sha256": "617964ca190de6ea39a05ce0fd73bb762eb3e681404dcb0775a902c681e47e9f"
+    },
+    {
+      "artifact": "focused.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 0,
+      "scope": "Initial6 regressions pass after fenced-session/live-spend fixes.",
+      "sha256": "809689febb7a0e90eb826d4ea694f4295ba05e717d7496fd26522f3ab7cf1523"
+    },
+    {
+      "artifact": "affected.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts test/v6-execution.integration.test.ts test/provider-reconciliation.integration.test.ts",
+      "exitCode": 1,
+      "scope": "9leaseclock+22v6execution pass;13provider-reconciliation fail provider_key_cap_exhausted from retained standardDB liability; no guard weakened.",
+      "sha256": "2df397fee5a85f6d28bdafbef4c816b862d29bb35caf4fd700cc511ad0d27dfe"
+    },
+    {
+      "artifact": "renewal-pre-fix.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 143,
+      "scope": "Test harness took lease-row lock before attempting expiry setup and blocked itself; specific Vitest process terminated. Harness order corrected, not application proof.",
+      "sha256": "e54a475df2e822a67f62bbaad3bf40d53e2653c022fc956c24f559867f9854b5"
+    },
+    {
+      "artifact": "renewal-pre-fix-corrected-harness.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 1,
+      "scope": "9pass; renewal revival and replacement lease alreadyexpired reproduced as2failures.",
+      "sha256": "ed4ee34a5fb42f3b51ed83608e59defb0282e8774223f986319919f6b6ee0d3a"
+    },
+    {
+      "artifact": "affected-isolated.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts test/v6-execution.integration.test.ts test/provider-reconciliation.integration.test.ts",
+      "exitCode": 0,
+      "scope": "46/46 pass in15.60sec:11new+22execution+13financial controls.",
+      "sha256": "2df43bf4a38199d0772dba8089da8c66086c54d8b60165737ec8c689b762518c"
+    },
+    {
+      "artifact": "typecheck.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Configured backend typecheck pass.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "gateway-deletion.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts test/source-deletion.integration.test.ts",
+      "exitCode": 0,
+      "scope": "142/142 pass (136gateway+6source deletion),153.26sec; fabricated provider transport/local PostgreSQL, no real model semantic evidence.",
+      "sha256": "aef445113e5b94f0118e16fec37fd25a8c704bd1fab9c47df5d3fdd2651784b5"
+    },
+    {
+      "artifact": "postinsert-pre-fix.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 1,
+      "scope": "11pass1failure: provider_intents INSERT blocked past expiry then incorrectly returned issue:true. Real transactional table lock; no test trigger/schema changes.",
+      "sha256": "7d11f1ec679517988e34f1772e5cb65dd32cf1ebf14eefd41d2de6dd21f68995"
+    },
+    {
+      "artifact": "postinsert-final.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts",
+      "exitCode": 0,
+      "scope": "12/12pass in13.71sec; final lease check rolls back action/intent and preserves original allowance after INSERT wait expiry.",
+      "sha256": "d4fe037e22a07e9f24237acb02ae4c4f62401c39952a37a576a4a1a43188c161"
+    },
+    {
+      "artifact": "postinsert-types.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend typecheck after additional final issuance check.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "setup": {
+    "artifact": "database-setup.log",
+    "exitCode": 0,
+    "scope": "Created only new dedicated local database; no preexisting database drop or truncate.",
+    "command": "pnpm --filter @deep/backend exec node --input-type=module -e 'import pg from \"pg\";const p=new pg.Pool({connectionString:\"postgres://deep:deep_local_dev_only@127.0.0.1:55432/postgres\"});try{await p.query(\"CREATE DATABASE deep_research_lease_clock_v6\");console.log(\"created dedicated lease-clock database\")}finally{await p.end()}'"
+  },
+  "rollback": "Retain wall-clock expiry and fence checks; disable affected scheduling on regression. Never revert to transaction-start lease authorization. Financial settlement after expiry/deletion remains allowed under existing receipt rules.",
+  "issuanceScope": "Lease validity is checked again after action/intent INSERTs before the issuance transaction returns. This is local durable authorization evidence, not external exactly-once delivery or a guarantee against arbitrary process pauses between transaction commit and transport.",
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d"
+}

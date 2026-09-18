@@ -1,0 +1,14 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/admission-recovery.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/admission-recovery.integration.test.ts (4 tests) 631ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:24:50
+   Duration  1.74s (transform 552ms, setup 0ms, collect 890ms, tests 631ms, environment 0ms, prepare 79ms)
+

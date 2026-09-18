@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/v6-execution.integration.test.ts (13 tests) 594ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  11:48:15
+   Duration  1.33s (transform 340ms, setup 0ms, collect 527ms, tests 594ms, environment 0ms, prepare 71ms)
+

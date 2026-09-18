@@ -1,0 +1,110 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "4f5378a1ed89b179ede15532347da1735e035796946bbec99c0e482caa63a586"
+  },
+  {
+    "path": "agent-handoff.md",
+    "sha256": "617131e5a85127959c2b66da2d0439ab5939aa7ba93d989d0a9423a6d3a1ee6c"
+  },
+  {
+    "path": "android-js-export.log",
+    "sha256": "c1b350930f95860397d44fefefa781eb63b33e83c66a7abacf4db598f516c313"
+  },
+  {
+    "path": "mobile-tests-final.log",
+    "sha256": "b33e7997e586160f88bf60b6e102075dc4db0bb7a8143d0328118099d724823a"
+  },
+  {
+    "path": "mobile-tests.log",
+    "sha256": "3897ac01953be11458cb5e62b54f5e06e13d092094a4dddc90e3c4587e1cf760"
+  },
+  {
+    "path": "mobile-typecheck-final.log",
+    "sha256": "70438f50ca40dafc014a4e2e1fa843e728aa5cc056d4af6ca55e6fba4998a0cf"
+  },
+  {
+    "path": "mobile-typecheck.log",
+    "sha256": "70438f50ca40dafc014a4e2e1fa843e728aa5cc056d4af6ca55e6fba4998a0cf"
+  },
+  {
+    "path": "native-after-source.json",
+    "sha256": "63e56cdd613846f08bc83c66e22a050acaee451519112d25efe81c44e03bd8e3"
+  },
+  {
+    "path": "native-api.log",
+    "sha256": "cf72b7d92a580e141f44ee91ee75e6f05889edbd8a8d77aa0712b6e3cf69b9cc"
+  },
+  {
+    "path": "native-baseline.json",
+    "sha256": "4eb93ece68ba76c6da5e0319f11e1f62986ca4747452f128f6472ccec6ca3e36"
+  },
+  {
+    "path": "native-before-source.json",
+    "sha256": "63e56cdd613846f08bc83c66e22a050acaee451519112d25efe81c44e03bd8e3"
+  },
+  {
+    "path": "native-cleanup.json",
+    "sha256": "3aedd2f930af294c1757ea38f9812c0fcff398fa6f417356590d562bbaccc600"
+  },
+  {
+    "path": "native-corrected.json",
+    "sha256": "73b399bdb156ffbdaa64e223acc357ff47fbc1172183ee45eb519e2b251377d3"
+  },
+  {
+    "path": "native-correction-controls.json",
+    "sha256": "80afb3710a389a6ebfe188cd41f1b2980b55f1a91bd147f7b221fc717b758668"
+  },
+  {
+    "path": "native-correction-draft-final.json",
+    "sha256": "e90354a4724a4181776254240825fb7f5da8b9f940e099a068131fda01a4973c"
+  },
+  {
+    "path": "native-correction-draft.json",
+    "sha256": "18718b8199b5eb2ae872c20a239fc41ed677ae7d8c64265c2181fc53827b2c3d"
+  },
+  {
+    "path": "native-harness-typecheck.log",
+    "sha256": "d9a8f8bd379de1ad2d5c6119f89252d6810f3caf129c6b9678918fb1d90b25e3"
+  },
+  {
+    "path": "native-metro.log",
+    "sha256": "ae54aab4a15adfc9a6872adf61e699eac194bd72d4272a84728094ebc99e0b34"
+  },
+  {
+    "path": "native-reopened-final.json",
+    "sha256": "80afb3710a389a6ebfe188cd41f1b2980b55f1a91bd147f7b221fc717b758668"
+  },
+  {
+    "path": "native-reopened-retry.json",
+    "sha256": "18718b8199b5eb2ae872c20a239fc41ed677ae7d8c64265c2181fc53827b2c3d"
+  },
+  {
+    "path": "native-reopened.json",
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  {
+    "path": "native-report-initial.json",
+    "sha256": "7dcd550fd83ff9e4af6acb4edcea940c4d0d2ab4f7be7a9665e2a7dea025bda7"
+  },
+  {
+    "path": "native-selected.json",
+    "sha256": "ee1352a9b39a8a7ec8d705f75a7dccb00c26aeb3fb2beee873c25f85bf7fc174"
+  },
+  {
+    "path": "native-share.json",
+    "sha256": "275351ec533565ee3b09e61ef61e13484ef67098638ba072f791ee0cd72aeeb8"
+  },
+  {
+    "path": "native-source.json",
+    "sha256": "faffdd637c21716d26e5a1be7cee5c58f71307fb2f8eb5c5ac6ce3e9d1416cef"
+  },
+  {
+    "path": "native-ui.py",
+    "sha256": "68eef118d364590e19b3ef9c95d297199dae2846b5b84fbe41dfc1e20be84ce4"
+  },
+  {
+    "path": "table-shape-regression-failure.log",
+    "sha256": "0c6311baf6709c74bc8eb93efe0bab8cc31e2fdfd1bef01176bafffbdfa73961"
+  }
+]

@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:extraction /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> vitest run --config vitest.extraction.config.ts test/append-document.extraction.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:22:15
+   Duration  19.31s (transform 954ms, setup 0ms, import 1.27s, tests 17.87s, environment 0ms)
+

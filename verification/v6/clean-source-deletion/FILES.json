@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "RESULTS.json",
+      "sha256": "e29b8606f5ba7086f1b2ff47cef33c5f5ce0962f68ea40b3b0d83dfe1bff7af8",
+      "bytes": 1322
+    },
+    {
+      "path": "android-export.log",
+      "sha256": "e5e9b3f03e546c04695e46eaaeecb6eb2cc1c6c0ba84f57378dbd7d73503a18f",
+      "bytes": 534
+    },
+    {
+      "path": "clone.log",
+      "sha256": "42df33b1cbeb019c6ef3db31776fa8b8d2e8b9245382a2a9c2765fc4ce2b8478",
+      "bytes": 127
+    },
+    {
+      "path": "install.log",
+      "sha256": "e380f47ca13bbd5728f350f5ecfb4833b8200b0a85a5f473aba92931520a199d",
+      "bytes": 330
+    },
+    {
+      "path": "mobile.log",
+      "sha256": "710b5732e387ddefd8cd6491583d87a0c63003464e73f7e8ba339a4d2a46266d",
+      "bytes": 980
+    },
+    {
+      "path": "types.log",
+      "sha256": "ae03c5fbca48841e3337edf0c891da883bb984c1106b7fee25a3114e52996ec3",
+      "bytes": 104
+    }
+  ]
+}

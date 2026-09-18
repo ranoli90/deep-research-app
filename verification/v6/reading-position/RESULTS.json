@@ -1,0 +1,122 @@
+{
+  "requirements": [
+    "W03",
+    "W07",
+    "V2-12"
+  ],
+  "baseCommit": "eb134584dcceb1ccc4b8b018d3df8888aedaf1df",
+  "workingTree": false,
+  "recordedAt": "2026-09-18T03:10:25.751989+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7"
+  },
+  "scope": "Pure reader generation/layout controls and real protected-storage abstraction with in-memory backing stores; process recreation simulated by new session storage instance. No native/device restart, rotation, screenreader or native SecureStore evidence in these unit receipts. Actual App wiring belongs to primary integration.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile test -- reading-position",
+      "exitCode": 0,
+      "scope": "8/8 initial tracker controls",
+      "artifact": "unit.log",
+      "sha256": "8c3f1baa9bf3fcdc0032cf843e13265d1bb9527255e5313e3f8c576ed3fb7b95"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- reading-position",
+      "exitCode": 0,
+      "scope": "9/9 after concise/canonical distinction",
+      "artifact": "unit-final.log",
+      "sha256": "a469c2a1e8f64aa8b8919362d64213556033d052c3e7610bc92b066dea881cae"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "Configured mobile typecheck before dimension gate",
+      "artifact": "types.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- reading-position",
+      "exitCode": 0,
+      "scope": "11/11,359ms; final tracker dimensions/layout/owner controls",
+      "artifact": "unit-dimensions.log",
+      "sha256": "294181e69fb276177cdf18d836181cec774ed212f90541b534c653c1e198cae1"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "Configured mobile typecheck after dimension gate",
+      "artifact": "types-dimensions.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "artifact": "mobile-integrated.log",
+      "scope": "107pass/1fail: static lifecycle assertion expected removed restoreAnchor symbol. Replacement asserts tracker and viewport/content/drag wiring; no scroll/protection assertion removed."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "mobile-integrated-final.log",
+      "scope": "108/108 integrated mobile controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "types-integrated-final.log",
+      "scope": "Final integrated mobile source"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-reading-bundle",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "Android JS export643modules/2.15MB; not native build"
+    }
+  ],
+  "findings": [
+    "Removed anchor fallback could miss restoration when card measured before fallback block, because previous App retried only callbacks for removed saved block ID.",
+    "One restoration per mount needs viewport/content readiness; pending restore now waits until content contains target start and clamps to actual scroll range.",
+    "Existing protected snapshots retain report anchor but deliberately close transient source sheet after restart. This change does not persist or restore an arbitrary source reading offset."
+  ],
+  "impact": {
+    "schema": "Existing reportId/blockId/signed offset shape unchanged; account ownership remains enforced by protected session envelope. Immutable report ID is the version boundary; no cross-version mapping by generic block names.",
+    "lifecycle": "Mount generations ignore stale callbacks; actual user drag cancels pending restoration; once consumed, later layout events do not rewind user. Concise hidden blocks get a distinct note from removed sections. Source return uses fresh layout and signed invoking-block offset.",
+    "rollback": "Can disable automatic scroll restoration without deleting protected anchors or relaxing account/session clearing. No dependency, permission, public contract, migration, provider or spend changes."
+  },
+  "files": [
+    {
+      "path": "apps/mobile/src/reading-position.ts",
+      "sha256": "0131d43726d72e2fe351b91b24cf0d512f4d549d69c6ec24a8f26f00c1227660"
+    },
+    {
+      "path": "apps/mobile/test/reading-position.test.ts",
+      "sha256": "54b27183e555e24f60a97486fd8923eb1431e1026b213769e269781d237ba63a"
+    }
+  ],
+  "integration": "Primary App uses generation per owned report/visible block set/mount, viewport/content callbacks, once-only restoration, drag cancellation; source return remount. Original protected anchor schema unchanged.",
+  "native": {
+    "environment": "Authorized REDMI Note15 5G Android16 ExpoGo54.0.8, local Metro offline",
+    "class": "Actual cached-reader/ADB swipe/cold process restart/SecureStore; synthetic offline session sentinel is not an API credential. No API or research executed.",
+    "seed": "12synthetic blocks, immutable report offline-reading-version-1; section6 offset20 restored visibly",
+    "swipe": "Actual ADB swipe saved section7 offset124.08898162841797",
+    "restart": "Exact saved anchor retained through cold process restart; own app UI visibly at section7",
+    "artifacts": [
+      "native-seed.json",
+      "native-restored-ui-retry.json",
+      "native-scrolled-ui.json",
+      "native-scrolled-storage.json",
+      "native-second-ui-retry.json",
+      "native-second-storage-retry.json",
+      "native-cleanup.json"
+    ],
+    "failedAttempts": "Both first deep-link launches after force-stop showed no own project target. Relaunch opened own project. Initial UI false and inspector errors retained; no claim those attempts passed.",
+    "cleanup": "Protected cache/session cleared: no report/pending/session, draft0. ExpoGo force-stopped, Metro stopped, reverse8081 removed, tempXML removed.",
+    "paidCalls": 0,
+    "limits": [
+      "No authenticated API journey in this control.",
+      "No source-sheet internal offset, rotation, screen reader, standalone or iOS proof."
+    ]
+  },
+  "implementationCommit": "31539846f2ad1d31d75b5e6cb29edd0d6cb19e6c"
+}

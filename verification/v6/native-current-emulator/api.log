@@ -1,0 +1,4 @@
+{"event":"native_control_ready","evidenceClass":"native_ui_actual_api_worker_pdf_fabricated_model","paidCalls":0,"database":"deep_research_native_v6","fixtureRoute":false}
+{"event":"native_control_run","runId":"0441dbdb-cbf8-4262-ac00-42b569c31075","reports":[{"id":"7a2bd706-400d-4d60-b34d-55a73227324f","outcome":"completed"}],"fabricatedCalls":7,"paidCalls":0}
+{"event":"native_control_run","runId":"098f0560-13cd-4dee-8d09-55a539c13999","reports":[{"id":"7006cbc3-3d39-4fdb-bbb1-effd4dc01e34","outcome":"completed"}],"fabricatedCalls":14,"paidCalls":0}
+{"event":"native_control_run","runId":"592be93e-5060-4410-a802-af2ff6dfebfd","reports":[{"id":"2f22a2fc-7bcd-4681-9412-e2751a9eb111","outcome":"completed"}],"fabricatedCalls":21,"paidCalls":0}

@@ -1,0 +1,17 @@
+test_claimed_live_gate_pass (test_builder_handoff.BuilderHandoffTests.test_claimed_live_gate_pass) ... ok
+test_deferred_safety (test_builder_handoff.BuilderHandoffTests.test_deferred_safety) ... ok
+test_fake_native_pass (test_builder_handoff.BuilderHandoffTests.test_fake_native_pass) ... ok
+test_missing_disposition (test_builder_handoff.BuilderHandoffTests.test_missing_disposition) ... ok
+test_missing_local_evidence (test_builder_handoff.BuilderHandoffTests.test_missing_local_evidence) ... ok
+test_mutated_external_review (test_builder_handoff.BuilderHandoffTests.test_mutated_external_review) ... ok
+test_mutated_original_sources (test_builder_handoff.BuilderHandoffTests.test_mutated_original_sources) ... ok
+test_partial_checkpoint_cannot_claim_complete (test_builder_handoff.BuilderHandoffTests.test_partial_checkpoint_cannot_claim_complete) ... ok
+test_stale_goal_archive (test_builder_handoff.BuilderHandoffTests.test_stale_goal_archive) ... ok
+test_tampered_local_evidence (test_builder_handoff.BuilderHandoffTests.test_tampered_local_evidence) ... ok
+test_unqualified_push_guarantee (test_builder_handoff.BuilderHandoffTests.test_unqualified_push_guarantee) ... ok
+test_valid_package (test_builder_handoff.BuilderHandoffTests.test_valid_package) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.604s
+
+OK

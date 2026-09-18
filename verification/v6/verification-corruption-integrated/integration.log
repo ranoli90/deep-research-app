@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  35 passed (35)
+   Start at  22:27:33
+   Duration  107.82s (transform 1.21s, setup 0ms, import 1.63s, tests 106.05s, environment 0ms)
+

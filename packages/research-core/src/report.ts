@@ -1,18 +1,15 @@
 import type { CanonicalReport, ReportBlock, TerminalOutcome } from "@deep/contracts";
 import { extractCandidates } from "./candidates.js";
 import { calculate, extractMonthlyPrice, tryCalculate } from "./calculate.js";
-import { validateMaterialCitations } from "./citations.js";
+import { validateMaterialCitations, UNRESOLVED_SECTION, UNRESOLVED_DISCONFIRMATION, type CitationValidation } from "./citations.js";
+import { deriveReportText, type ReportDerivation } from "./report-derivations.js";
 import { detectContradictions } from "./contradictions.js";
 import { needsPrimaryEvidence } from "./gaps.js";
 import { PRIMARY_SOURCE_TYPES } from "./independence.js";
-import { independentClusterCount } from "./policy.js";
 import { citationIdsExist } from "./support.js";
 import type { ControllerState, StoredClaim, StoredPassage } from "./types.js";
 
-export type CitationProblem = {
-  unknownIds: string[];
-  unsupported: { claimId: string; passageId: string; decision: string }[];
-};
+export type CitationProblem = CitationValidation;
 
 export function stripUnsafeMarkup(text: string): string {
   return text.replace(/<\/?script\b[^>]*>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "").replace(/javascript:/gi, "");
@@ -42,11 +39,12 @@ export function goldEvidenceDiagnostic(args: {
   return { withoutGoldUsesLimitation, withGoldUsesLimitation, bottleneck };
 }
 
-/** Canonical Markdown export. Citations are 8-char owned passage prefixes. No PDF. */
-export function blocksToMarkdown(blocks: ReportBlock[]): string {
+/** Canonical block renderer. The export service supplies resolved bibliography references. */
+export function blocksToMarkdown(blocks: ReportBlock[], references?: ReadonlyMap<string, string>): string {
   return blocks
     .map((block) => {
-      const cites = block.citationIds.map((c) => `[${c.slice(0, 8)}]`).join(" ");
+      const cites = block.citationIds.map((c) => references?.get(c) ??
+        `Source unavailable (passage: ${c.replace(/[^a-zA-Z0-9-]/g, (char) => `&#${char.charCodeAt(0)};`)}).`).join(" ");
       let body = stripUnsafeMarkup(block.text);
       if (block.kind === "heading") body = `## ${body}`;
       if (block.kind === "code") body = "```\n" + body + "\n```";
@@ -86,11 +84,7 @@ export function checkReportCitations(
   claims: StoredClaim[],
   passages: StoredPassage[],
 ): CitationProblem {
-  const extra = validateMaterialCitations({ blocks, claims, passages });
-  return {
-    unknownIds: extra.unknownIds,
-    unsupported: extra.unsupported.map((u) => ({ claimId: u.claimId, passageId: u.passageId, decision: u.decision })),
-  };
+  return validateMaterialCitations({ blocks, claims, passages });
 }
 
 export function conciseFromCanonical(blocks: ReportBlock[]): ReportBlock[] {
@@ -126,10 +120,6 @@ function addClaim(
 }
 
 export function composeReport(state: ControllerState, reportId: string): CanonicalReport {
-  const constraintsLine = state.constraints
-    .map((c) => `${c.field}=${c.value}${c.units ? " " + c.units : ""}`)
-    .join("; ");
-
   const falsePremise = state.passages.find((p) =>
     /does not exist|no such (product|feature)|not a real product/i.test(p.exactText),
   );
@@ -162,7 +152,7 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     blocks.push({
       id: "answer",
       kind: "text",
-      text: `${quoted} The named premise is rejected rather than invented.`,
+      text: quoted,
       claimIds: ["claim-false-premise"],
       citationIds: [falsePremise.id],
     });
@@ -201,16 +191,6 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
           : primary.exactText.slice(0, 400),
       type: asInference ? "inference" : "external-fact",
       passageIds: [primary.id],
-    });
-  }
-
-  if (constraintsLine) {
-    blocks.push({
-      id: "constraints",
-      kind: "text",
-      text: `Applied supplied constraints: ${constraintsLine}. These were taken from the question and were not re-asked.`,
-      claimIds: [],
-      citationIds: [],
     });
   }
 
@@ -277,33 +257,24 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
 
   if (contradictions.length > 0) {
     for (const c of contradictions) {
+      const id = `contradiction-${c.topic}-${c.passageIds.join("-")}`;
+      const text = deriveReportText("evidence-comparison", { constraints: state.constraints, sources: state.sources, passages: state.passages, claims }, c.passageIds);
+      claims.push({ id: `claim-${id}`, text, type: "calculation", supportStatus: "unverified", passageIds: c.passageIds, derivation: "evidence-comparison" });
       blocks.push({
-        id: `contradiction-${c.topic}`,
+        id,
         kind: "caveat",
-        text: `${c.status === "explained" ? "Scope-explained" : "Unresolved"} disagreement on ${c.topic}: ${c.left} vs ${c.right}. ${c.explanation} Newest source is not automatically correct. Both sources are retained; values are not averaged.`,
-        claimIds: [],
+        text,
+        claimIds: [`claim-${id}`],
         citationIds: c.passageIds,
       });
     }
   }
 
-  const facts = claims.filter((c) => c.type === "external-fact" || c.type === "limitation");
-  const inferences = claims.filter((c) => c.type === "inference");
-  blocks.push({
-    id: "statement-classes",
-    kind: "text",
-    text: `FACT: ${facts.map((c) => c.text.slice(0, 80)).join(" | ") || "none recorded"}. CALCULATION: see calculation blocks. INFERENCE: ${inferences.map((c) => c.text.slice(0, 80)).join(" | ") || "none presented as fact"}. UNCERTAINTY: ${state.gaps.filter((g) => g.importance !== "background").map((g) => g.remainingUncertainty ?? g.missingFact).join("; ") || "localized to listed limitations"}.`,
-    claimIds: [],
-    citationIds: [],
-  });
-
   for (const d of state.disconfirmations ?? []) {
     blocks.push({
       id: `disconfirm-${d.id}`.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 80) || "disconfirm",
       kind: "caveat",
-      text: stripUnsafeMarkup(
-        `Disconfirmation of “${d.targetConclusion.slice(0, 120)}”: ${d.result}. ${d.impact} No counterexample found is not proof.`,
-      ),
+      text: UNRESOLVED_DISCONFIRMATION,
       claimIds: [],
       citationIds: [],
     });
@@ -374,15 +345,6 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
       });
     }
   }
-
-  const clusters = independentClusterCount(state.sources);
-  blocks.push({
-    id: "independence",
-    kind: "text",
-    text: `Accessed ${state.sources.length} source version(s) in ${clusters} origin cluster(s). Repeated syndication is not counted as independent confirmation.`,
-    claimIds: [],
-    citationIds: state.passages.map((p) => p.id).slice(0, 8),
-  });
 
   if (injection) {
     blocks.push({
@@ -527,22 +489,48 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
     limitations.push("A critical claim was removed during verification; the summary was revisited rather than left unsupported.");
     const remaining = state.passages[0];
     if (remaining && !blocks.some((b) => b.id === "remaining-evidence")) {
+      const text = stripUnsafeMarkup(remaining.exactText);
+      claims.push({ id: "claim-remaining-evidence", text, type: "external-fact", supportStatus: "direct", passageIds: [remaining.id] });
       blocks.push({
         id: "remaining-evidence",
         kind: "text",
-        text: remaining.exactText.slice(0, 400),
-        claimIds: [],
+        text,
+        claimIds: ["claim-remaining-evidence"],
         citationIds: [remaining.id],
       });
     }
   }
+
+  const derived: { id: string; derivation: ReportDerivation }[] = [
+    ...(state.constraints.length ? [{ id: "constraints", derivation: "supplied-constraints" as const }] : []),
+    { id: "independence", derivation: "source-counts" },
+    { id: "statement-classes", derivation: "statement-classes" },
+    ...(extracted.length ? [{ id: "comparison-table", derivation: "candidate-table" as const }, { id: "candidate-listing", derivation: "candidate-listing" as const }, { id: "eligibility", derivation: "candidate-eligibility" as const }] : []),
+    ...([
+      ["access-limits", "access-limits"], ["calculation-annual", "annual-calculation"], ["denominators", "percentage-context"],
+      ["freshness", "dated-statements"], ["translation", "language-note"], ["scope-qualifier", "population-scope"],
+    ] as const).filter(([id]) => blocks.some((b) => b.id === id)).map(([id, derivation]) => ({ id, derivation })),
+  ];
+  for (const item of derived) {
+    const text = deriveReportText(item.derivation, { constraints: state.constraints, sources: state.sources, claims, passages: state.passages });
+    const id = `claim-${item.id}`;
+    claims.push({ id, text, type: "calculation", supportStatus: "direct", passageIds: [], derivation: item.derivation });
+    const block: ReportBlock = { id: item.id, kind: "text", text, claimIds: [id], citationIds: [] };
+    const existing = blocks.find((b) => b.id === item.id);
+    if (existing) Object.assign(existing, { text, claimIds: [id] });
+    else if (item.id === "constraints") blocks.splice(1, 0, block);
+    else blocks.push(block);
+  }
+
+  const unresolvedSections = withdrawUnverifiableSections(state, blocks, claims);
+  if (unresolvedSections.length) limitations.push("Some sections remain unresolved after evidence validation.");
 
   return {
     reportId,
     version: 1,
     runId: state.runId,
     basis: state.basis,
-    outcome: repaired.revisited ? "completed_with_limitations" : outcome,
+    outcome: repaired.revisited || unresolvedSections.length ? "completed_with_limitations" : outcome,
     blocks,
     claimIds: claims.map((c) => c.id),
     limitations,
@@ -560,17 +548,39 @@ export function composeReport(state: ControllerState, reportId: string): Canonic
           newlyInfeasible: extracted.filter((c) => c.feasibility === "violates").map((c) => c.identity),
           notes: "Hard constraint change reopened candidate discovery.",
         }
-      : /Follow-up: verify only/i.test(state.brief.originalQuestion)
-        ? {
-            evidenceUpdated: true,
-            conclusionChanged: false,
-            newlyFeasible: [],
-            newlyInfeasible: [],
-            notes: "Targeted follow-up verified the named claim without reopening candidate discovery.",
-          }
-        : undefined,
+      : undefined,
     routeMode: state.brief.desiredOutcome === "hosted" ? "hosted-baseline" : "fixture",
   };
+}
+
+/** Localize failed draft sections before publication; publication still independently rejects invalid drafts. */
+export function withdrawUnverifiableSections(state: Pick<ControllerState, "constraints" | "sources" | "passages">,
+  blocks: ReportBlock[], claims: StoredClaim[]): string[] {
+  const context = { constraints: state.constraints, sources: state.sources, claims, passages: state.passages };
+  const problems = validateMaterialCitations({ blocks, claims, passages: state.passages, derivationContext: context });
+  // Ambiguous identity is not repairable by choosing whichever value happened to win a map insertion.
+  if (problems.duplicateClaims.length) return [];
+  const badClaims = new Set([...problems.unsupported.map((p) => p.claimId), ...problems.overstrong.map((p) => p.claimId), ...problems.missingClaims]);
+  const badPassages = new Set([...problems.unknownIds, ...problems.unownedIds, ...problems.wrongVersion.map((p) => p.citationId)]);
+  const badBlocks = new Set(problems.unmappedBlocks);
+  const withdrawn: string[] = [];
+  for (const block of blocks) {
+    if (!badBlocks.has(block.id) && !block.claimIds.some((id) => badClaims.has(id)) && !block.citationIds.some((id) => badPassages.has(id))) continue;
+    withdrawn.push(block.id);
+    block.kind = "caveat";
+    block.text = UNRESOLVED_SECTION;
+    block.claimIds = [];
+    block.citationIds = [];
+  }
+  const retained = new Set(blocks.flatMap((b) => b.claimIds));
+  for (const claim of claims) if (!retained.has(claim.id)) claim.supportStatus = "withdrawn";
+  // Dependent summaries are recomputed from retained statements, not left with obsolete claims.
+  for (const claim of claims.filter((c) => c.derivation === "statement-classes" && retained.has(c.id))) {
+    claim.text = deriveReportText("statement-classes", context);
+    const block = blocks.find((b) => b.claimIds.includes(claim.id));
+    if (block) block.text = claim.text;
+  }
+  return withdrawn;
 }
 
 export function explainFreshness(state: ControllerState): string | null {

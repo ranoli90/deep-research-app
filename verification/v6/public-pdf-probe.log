@@ -1,0 +1,25 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+Error: Transform failed with 5 errors:
+/home/oranolio/Desktop/Deep/scripts/v6-document-probe.ts:6:0: ERROR: Top-level await is currently not supported with the "cjs" output format
+/home/oranolio/Desktop/Deep/scripts/v6-document-probe.ts:8:15: ERROR: Top-level await is currently not supported with the "cjs" output format
+/home/oranolio/Desktop/Deep/scripts/v6-document-probe.ts:9:18: ERROR: Top-level await is currently not supported with the "cjs" output format
+/home/oranolio/Desktop/Deep/scripts/v6-document-probe.ts:10:23: ERROR: Top-level await is currently not supported with the "cjs" output format
+/home/oranolio/Desktop/Deep/scripts/v6-document-probe.ts:18:0: ERROR: Top-level await is currently not supported with the "cjs" output format
+    at failureErrorWithLog (/home/oranolio/Desktop/Deep/node_modules/esbuild/lib/main.js:1752:15)
+    at /home/oranolio/Desktop/Deep/node_modules/esbuild/lib/main.js:1019:50
+    at responseCallbacks.<computed> (/home/oranolio/Desktop/Deep/node_modules/esbuild/lib/main.js:886:9)
+    at handleIncomingPacket (/home/oranolio/Desktop/Deep/node_modules/esbuild/lib/main.js:941:12)
+    at Socket.readFromStdout (/home/oranolio/Desktop/Deep/node_modules/esbuild/lib/main.js:864:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23) {
+  name: 'TransformError',
+  code: 'ERR_REQUIRE_ASYNC_MODULE'
+}
+
+Node.js v20.20.2

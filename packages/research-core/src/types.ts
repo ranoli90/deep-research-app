@@ -132,6 +132,7 @@ export type StoredClaim = {
   type: string;
   supportStatus: string;
   passageIds: string[];
+  derivation?: import("./report-derivations.js").ReportDerivation;
 };
 
 export type Coverage = {

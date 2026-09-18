@@ -1,0 +1,19 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (72 tests) 14707ms
+   ✓ W05 generic writer, exact final wording and canonical publication > writes changed prose, checks it separately, publishes and reopens its premise lineage  737ms
+   ✓ W05 generic writer, exact final wording and canonical publication > keeps supported synthesis while blocking a made-up heading, paragraph and limitation  757ms
+   ✓ W05 generic writer, exact final wording and canonical publication > reuses a durable draft after restart without another writer request  354ms
+   ✓ W05 generic writer, exact final wording and canonical publication > purges drafts and composed claim text on account deletion  793ms
+   ✓ W05 durable criterion coverage review > executes review once, stores exact claim revisions and revalidates replay  375ms
+   ✓ W05 report completion requires exact final coverage > completes and reopens a report only after final assertion coverage executes  1454ms
+   ✓ W05 report completion requires exact final coverage > does not publish when the required review returns invalid output  420ms
+   ✓ W05 structured services through production processRun > runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  843ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  973ms
+
+ Test Files  1 passed (1)
+      Tests  72 passed (72)
+   Start at  14:34:16
+   Duration  15.86s (transform 639ms, setup 0ms, collect 934ms, tests 14.71s, environment 0ms, prepare 69ms)
+

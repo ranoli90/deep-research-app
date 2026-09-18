@@ -1,0 +1,73 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-correction-mobile/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+src/persist.ts(126,9): error TS1128: Declaration or statement expected.
+src/persist.ts(126,14): error TS1005: ':' expected.
+src/persist.ts(126,57): error TS1005: ',' expected.
+src/persist.ts(127,21): error TS1005: ',' expected.
+src/persist.ts(127,30): error TS1005: ';' expected.
+src/persist.ts(128,8): error TS1128: Declaration or statement expected.
+src/persist.ts(129,5): error TS1128: Declaration or statement expected.
+src/persist.ts(129,6): error TS1128: Declaration or statement expected.
+src/persist.ts(130,26): error TS1005: ',' expected.
+src/persist.ts(130,41): error TS1005: ',' expected.
+src/persist.ts(130,51): error TS1005: ';' expected.
+src/persist.ts(130,65): error TS1109: Expression expected.
+src/persist.ts(131,13): error TS1005: ':' expected.
+src/persist.ts(131,45): error TS1005: ',' expected.
+src/persist.ts(132,11): error TS1003: Identifier expected.
+src/persist.ts(132,18): error TS1005: ',' expected.
+src/persist.ts(132,42): error TS1005: ';' expected.
+src/persist.ts(142,5): error TS1128: Declaration or statement expected.
+src/persist.ts(142,6): error TS1128: Declaration or statement expected.
+src/persist.ts(144,26): error TS1005: ',' expected.
+src/persist.ts(144,41): error TS1005: ',' expected.
+src/persist.ts(144,51): error TS1005: ';' expected.
+src/persist.ts(144,65): error TS1109: Expression expected.
+src/persist.ts(145,13): error TS1005: ':' expected.
+src/persist.ts(145,45): error TS1005: ',' expected.
+src/persist.ts(146,11): error TS1003: Identifier expected.
+src/persist.ts(146,18): error TS1005: ',' expected.
+src/persist.ts(146,42): error TS1005: ';' expected.
+src/persist.ts(155,5): error TS1128: Declaration or statement expected.
+src/persist.ts(155,6): error TS1128: Declaration or statement expected.
+src/persist.ts(156,20): error TS1005: ',' expected.
+src/persist.ts(156,39): error TS1005: ';' expected.
+src/persist.ts(156,53): error TS1109: Expression expected.
+src/persist.ts(157,13): error TS1005: ':' expected.
+src/persist.ts(157,45): error TS1005: ',' expected.
+src/persist.ts(158,18): error TS1005: ',' expected.
+src/persist.ts(158,51): error TS1005: ',' expected.
+src/persist.ts(158,60): error TS1005: ':' expected.
+src/persist.ts(158,77): error TS1005: ',' expected.
+src/persist.ts(159,13): error TS1005: ':' expected.
+src/persist.ts(159,41): error TS1005: ',' expected.
+src/persist.ts(160,13): error TS1005: ':' expected.
+src/persist.ts(160,134): error TS1005: ',' expected.
+src/persist.ts(161,14): error TS1005: ':' expected.
+src/persist.ts(173,9): error TS1005: ',' expected.
+src/persist.ts(175,14): error TS1005: ';' expected.
+src/persist.ts(175,46): error TS1005: ',' expected.
+src/persist.ts(175,72): error TS1005: ',' expected.
+src/persist.ts(176,13): error TS1005: ':' expected.
+src/persist.ts(176,28): error TS1005: ',' expected.
+src/persist.ts(177,14): error TS1005: ':' expected.
+src/persist.ts(236,9): error TS1005: ',' expected.
+src/persist.ts(238,12): error TS1005: ';' expected.
+src/persist.ts(238,26): error TS1109: Expression expected.
+src/persist.ts(239,7): error TS1136: Property assignment expected.
+src/persist.ts(249,5): error TS1128: Declaration or statement expected.
+src/persist.ts(249,6): error TS1128: Declaration or statement expected.
+src/persist.ts(250,12): error TS1005: ';' expected.
+src/persist.ts(250,26): error TS1109: Expression expected.
+src/persist.ts(251,37): error TS1005: ',' expected.
+src/persist.ts(252,17): error TS1005: ',' expected.
+src/persist.ts(252,19): error TS1136: Property assignment expected.
+src/persist.ts(254,5): error TS1128: Declaration or statement expected.
+src/persist.ts(254,6): error TS1128: Declaration or statement expected.
+src/persist.ts(255,3): error TS1128: Declaration or statement expected.
+src/persist.ts(256,1): error TS1128: Declaration or statement expected.
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

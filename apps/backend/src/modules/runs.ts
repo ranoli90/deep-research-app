@@ -1,5 +1,8 @@
+import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
-import type { Queryable } from "../platform/db.js";
+import { withTx, type Queryable } from "../platform/db.js";
+import pg from "pg";
+import { lockActiveAccount } from "./access.js";
 
 export type RunRow = {
   id: string;
@@ -8,6 +11,7 @@ export type RunRow = {
   brief_id: string;
   parent_run_id: string | null;
   route_mode: string;
+  research_strategy: ResearchStrategy;
   lifecycle: Lifecycle;
   phase: Phase;
   terminal_outcome: TerminalOutcome | null;
@@ -30,6 +34,7 @@ function mapRun(r: Record<string, unknown>): RunRow {
     brief_id: String(r.brief_id),
     parent_run_id: r.parent_run_id ? String(r.parent_run_id) : null,
     route_mode: String(r.route_mode),
+    research_strategy: researchStrategy(r.research_strategy),
     lifecycle: r.lifecycle as Lifecycle,
     phase: r.phase as Phase,
     terminal_outcome: (r.terminal_outcome as TerminalOutcome) ?? null,
@@ -91,17 +96,23 @@ export async function insertRun(
     briefId: string;
     parentRunId?: string;
     routeMode: string;
+    researchStrategy?: ResearchStrategy;
     briefRevision: number;
     consentEpoch: number;
     idempotencyKey: string;
     budgetMicro: number;
   },
 ): Promise<void> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => insertRun(client, row));
+  const parent = row.parentRunId ? await getRun(db, row.parentRunId) : null;
+  if (row.parentRunId && (!parent || parent.account_id !== row.accountId)) throw new Error("permission_denied");
+  if (parent && (await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[row.accountId,parent.id])).rowCount) throw Object.assign(new Error("source_deleted"),{code:"permission_denied",statusCode:409});
+  const strategy = parent?.research_strategy ?? researchStrategy(row.researchStrategy);
   await db.query(
     `INSERT INTO runs (
       id, account_id, conversation_id, brief_id, parent_run_id, route_mode, lifecycle, phase,
-      brief_revision, consent_epoch, idempotency_key, budget_micro
-    ) VALUES ($1,$2,$3,$4,$5,$6,'queued','preparing',$7,$8,$9,$10)`,
+      brief_revision, consent_epoch, idempotency_key, budget_micro, research_strategy
+    ) VALUES ($1,$2,$3,$4,$5,$6,'queued','preparing',$7,$8,$9,$10,$11)`,
     [
       row.id,
       row.accountId,
@@ -113,14 +124,17 @@ export async function insertRun(
       row.consentEpoch,
       row.idempotencyKey,
       row.budgetMicro,
+      strategy,
     ],
   );
+  await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1) ON CONFLICT DO NOTHING`, [row.id]);
 }
 
 export async function emitEvent(
   db: Queryable,
   args: { runId: string; accountId: string; type: string; summary: string; phase: Phase; payload?: unknown },
 ): Promise<void> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => emitEvent(client, args));
   await db.query(`SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))`, [args.runId]);
   await db.query(
     `INSERT INTO run_events (run_id, account_id, sequence, type, public_summary, phase, payload)
@@ -145,22 +159,17 @@ export async function listEvents(db: Queryable, runId: string, after = 0): Promi
 }
 
 export async function claimLease(db: Queryable, runId: string, owner: string, leaseMs: number): Promise<number | null> {
-  const run = await getRun(db, runId);
+  if (db instanceof pg.Pool) return withTx(db, (client) => claimLease(client, runId, owner, leaseMs));
+  if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
+  const run = await getRun(db, runId, { forUpdate: true });
   if (!run || run.lifecycle === "terminal") return null;
-  const existing = await db.query<{ fence: string; owner: string; expires_at: Date }>(
-    `SELECT fence, owner, expires_at FROM run_leases WHERE run_id = $1`,
+  const existing = await db.query<{ fence: string; owner: string; active: boolean }>(
+    `SELECT fence, owner, expires_at > clock_timestamp() AS active FROM run_leases WHERE run_id = $1 FOR UPDATE`,
     [runId],
   );
   const held = existing.rows[0];
-  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner !== owner) {
+  if (held?.active) {
     return null;
-  }
-  if (held && new Date(held.expires_at).getTime() > Date.now() && held.owner === owner) {
-    await db.query(
-      `UPDATE run_leases SET expires_at = now() + ($2 || ' milliseconds')::interval WHERE run_id = $1`,
-      [runId, String(leaseMs)],
-    );
-    return Number(held.fence);
   }
   const fence = run.worker_lease_fence + 1;
   await db.query(
@@ -173,11 +182,25 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
   );
   await db.query(
     `INSERT INTO run_leases (run_id, fence, owner, expires_at)
-     VALUES ($1,$2,$3, now() + ($4 || ' milliseconds')::interval)
+     VALUES ($1,$2,$3, clock_timestamp() + ($4 || ' milliseconds')::interval)
      ON CONFLICT (run_id) DO UPDATE SET fence = EXCLUDED.fence, owner = EXCLUDED.owner, expires_at = EXCLUDED.expires_at`,
     [runId, fence, owner, String(leaseMs)],
   );
   return fence;
+}
+
+export async function renewLease(db: Queryable, runId: string, owner: string, fence: number, leaseMs: number): Promise<boolean> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => renewLease(client, runId, owner, fence, leaseMs));
+  if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
+  // Acquire both rows before checking wall-clock expiry. A single UPDATE can
+  // evaluate its predicate before blocking on another transaction's row lock.
+  await getRun(db, runId, { forUpdate: true });
+  await db.query("SELECT run_id FROM run_leases WHERE run_id = $1 FOR UPDATE", [runId]);
+  const result = await db.query(`UPDATE run_leases l SET expires_at = clock_timestamp() + ($4 * interval '1 millisecond')
+    FROM runs r WHERE l.run_id = $1 AND r.id = l.run_id AND l.owner = $2 AND l.fence = $3
+      AND r.worker_lease_fence = $3 AND r.lifecycle <> 'terminal' AND l.expires_at > clock_timestamp()`,
+    [runId, owner, fence, leaseMs]);
+  return result.rowCount === 1;
 }
 
 export async function checkpoint(db: Queryable, runId: string, evidenceRevision: number, phase: Phase, payload: unknown): Promise<void> {
@@ -201,6 +224,22 @@ export async function addSpent(db: Queryable, runId: string, micro: number): Pro
 
 export async function setPhase(db: Queryable, runId: string, phase: Phase): Promise<void> {
   await db.query(`UPDATE runs SET phase = $2, updated_at = now() WHERE id = $1`, [runId, phase]);
+}
+
+/** Ownership, cancellation and its event share deletion's account/run lock order. */
+export async function cancelOwnedRun(pool: pg.Pool, accountId: string, runId: string): Promise<RunRow | null> {
+  return withTx(pool, async (db) => {
+    await lockActiveAccount(db, accountId);
+    const run = await getRun(db, runId, { forUpdate: true });
+    if (!run || run.account_id !== accountId) return null;
+    const updated = await cancelRun(db, runId);
+    if (!updated) throw new Error("cancellation_run_disappeared");
+    await emitEvent(db, {
+      runId, accountId, type: "cancel_requested", phase: updated.phase,
+      summary: "Stopping new work. An already-issued provider call may still finish accounting.",
+    });
+    return updated;
+  });
 }
 
 export async function cancelRun(db: Queryable, runId: string): Promise<RunRow | null> {

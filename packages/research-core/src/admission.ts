@@ -1,5 +1,6 @@
 import {
   ActionProposalSchema,
+  ExecutableArguments,
   ActionTypeSchema,
   FIXTURE_FETCH_COST_MICRO,
   FIXTURE_SEARCH_COST_MICRO,
@@ -25,18 +26,18 @@ export type AdmitOptions = {
 };
 
 function liveCallPermitted(gate: LiveSpendGate): boolean {
+  if (![gate.capMicro, gate.usedMicro, gate.estimatedMicro].every((v) => Number.isSafeInteger(v) && v >= 0)) return false;
   if (gate.capMicro <= 0) return false;
   return gate.capMicro - gate.usedMicro >= gate.estimatedMicro;
 }
 
 function runBudgetCostMicro(proposal: PolicyDecision, opts: AdmitOptions): number {
-  if (opts.liveSpend) {
-    if (proposal.type === "search") return FIXTURE_SEARCH_COST_MICRO;
-    if (proposal.type === "fetch") return FIXTURE_FETCH_COST_MICRO;
-    if (proposal.type === "synthesize") return FIXTURE_SYNTH_COST_MICRO;
-    return 0;
-  }
-  return proposal.estimatedMaxCostMicro ?? 0;
+  // Internal exploration counters use server tariffs. Provider reservation is separately atomic.
+  const tariff = proposal.type === "search" ? FIXTURE_SEARCH_COST_MICRO
+    : proposal.type === "fetch" ? FIXTURE_FETCH_COST_MICRO
+    : proposal.type === "synthesize" ? FIXTURE_SYNTH_COST_MICRO : 0;
+  // An overestimate can conservatively reduce admission, but never waive the server tariff.
+  return opts.liveSpend ? tariff : Math.max(tariff, proposal.estimatedMaxCostMicro ?? 0);
 }
 
 const UNAVAILABLE_CAPABILITIES = new Set(["extract_table", "inspect_visual"]);
@@ -117,7 +118,10 @@ export function admitProposedAction(
     });
   }
 
-  if (proposal.briefRevision !== state.brief.revision && proposal.briefRevision !== state.basis.briefRevision) {
+  if (proposal.runId !== state.runId) {
+    return asDecision(proposal, { type: "stop", rejectReason: "wrong_run", rationale: "proposal belongs to another run", arguments: { reason: "wrong_run" } });
+  }
+  if (proposal.briefRevision !== state.brief.revision || proposal.briefRevision !== state.basis.briefRevision) {
     return asDecision(proposal, {
       type: "stop",
       rejectReason: "stale_revision",
@@ -138,7 +142,7 @@ export function admitProposedAction(
 
   if (proposal.type === "fetch") {
     const locator = String(proposal.arguments.locator ?? "");
-    if (locator && !isAllowedLocator(locator)) {
+    if (!locator || !isAllowedLocator(locator)) {
       return asDecision(proposal, {
         type: "stop",
         rejectReason: "unsafe_url",
@@ -152,7 +156,10 @@ export function admitProposedAction(
     const blockingUntried = (state.gaps ?? []).find(
       (g) => g.importance === "blocking" && (g.latestOutcome === "untried" || !g.latestOutcome) && g.resolution !== "resolved" && g.suggestedQuery,
     );
-    if (blockingUntried && !proposal.arguments.stopPolicy && !proposal.arguments.allowOpenGaps) {
+    const explorationAvailable = canSpendExploration({ totalBudgetMicro: state.budgetMicro,
+      spentPlusReservedMicro: state.spentMicro, actionCostMicro: FIXTURE_SEARCH_COST_MICRO,
+      isFinishingAction: false, finishingCostMicro: FIXTURE_SYNTH_COST_MICRO });
+    if (blockingUntried && explorationAvailable) {
       return asDecision(proposal, {
         type: "stop",
         rejectReason: "blocking_gap_open",
@@ -215,7 +222,12 @@ export function admitProposedAction(
     });
   }
 
-  return proposal;
+  const executable = ExecutableArguments[typeParse.data].safeParse(proposal.arguments);
+  if (!executable.success) {
+    return asDecision(proposal, { type: "stop", rejectReason: "invalid_arguments",
+      rationale: "Action arguments do not match the executable contract", arguments: { reason: "invalid_arguments" } });
+  }
+  return { ...parsed.data, arguments: executable.data };
 }
 
 /** Back-compat alias used by fixture/OpenRouter adapters. */
@@ -225,4 +237,15 @@ export function authorizeAction(
   opts?: AdmitOptions,
 ): PolicyDecision {
   return admitProposedAction(state, proposal, opts);
+}
+
+/** Validate the proposal and then the exact transformed operation; no authority fields are carried through. */
+export function admitExecutableAction(state: ControllerState, proposal: PolicyDecision, opts: AdmitOptions = {}): PolicyDecision {
+  const admitted = admitProposedAction(state, proposal, opts);
+  if (admitted.rejectReason || admitted.type !== "challenge" || admitted.arguments.recordOnly === true) return admitted;
+  return admitProposedAction(state, { ...admitted, type: "search", arguments: {
+    query: admitted.arguments.query, targetConclusion: admitted.arguments.targetConclusion,
+    falsificationHypothesis: admitted.arguments.falsificationHypothesis, disconfirm: true,
+    selectionReason: admitted.arguments.selectionReason,
+  } }, opts);
 }

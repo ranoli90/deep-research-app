@@ -1,0 +1,23 @@
+
+> @deep/mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+test/auth-recovery.test.ts(8,62): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'URL' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'URL' is not assignable to type 'import("url").URL'.
+        The types returned by 'searchParams[Symbol.iterator]()' are incompatible between these types.
+          Type 'IterableIterator<[string, string]>' is missing the following properties from type 'URLSearchParamsIterator<[string, string]>': map, filter, take, drop, and 9 more.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: { encoding: BufferEncoding; flag?: string | undefined; } | BufferEncoding): string', gave the following error.
+    Argument of type 'URL' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'URL' is not assignable to type 'import("url").URL'.
+        The types returned by 'searchParams[Symbol.iterator]()' are incompatible between these types.
+          Type 'IterableIterator<[string, string]>' is missing the following properties from type 'URLSearchParamsIterator<[string, string]>': map, filter, take, drop, and 9 more.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'URL' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'URL' is not assignable to type 'import("url").URL'.
+        The types returned by 'searchParams[Symbol.iterator]()' are incompatible between these types.
+          Type 'IterableIterator<[string, string]>' is missing the following properties from type 'URLSearchParamsIterator<[string, string]>': map, filter, take, drop, and 9 more.
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

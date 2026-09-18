@@ -1,0 +1,2953 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/request-scope.test.ts (11 tests) 105ms
+ ✓ test/verification-request.test.ts (9 tests) 75ms
+ ✓ test/admission-retry.test.ts (13 tests) 403ms
+ ✓ test/protected-content.test.ts (11 tests) 54ms
+ ✓ test/reading-position.test.ts (11 tests) 44ms
+ ✓ test/correction-draft.test.ts (6 tests) 27ms
+ ✓ test/source-deletion-flow.test.ts (6 tests) 29ms
+ ❯ test/lifecycle.test.ts (12 tests | 2 failed) 79ms
+   ✓ P0-N native state mapping > maps composer gates for consent, auth, offline, and empty draft 5ms
+   ✓ P0-N native state mapping > persistSession then hydrateOnLaunch restores token, draft, and last run 6ms
+   ✓ P0-N native state mapping > persistSession with a null token does not wipe a stored session token 1ms
+   ✓ P0-N native state mapping > hydrateOnLaunch does not invent a session when persistSession never ran 1ms
+   ✓ P0-N native state mapping > openLibraryItem switches to research and binds the run before polling 1ms
+   × P0-N native state mapping > App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem 21ms
+     → expected 'import { ProfilePanel } from "./src/P…' to match /Processor disclosures/
+   × P0-N native state mapping > App.tsx labels composer, progress, report, source sheet, library, and settings 14ms
+     → expected 'import { ProfilePanel } from "./src/P…' to contain 'accessibilityLabel="Settings"'
+   ✓ P0-N native state mapping > M05 network failures are offline errors and block submit without dropping the draft 1ms
+   ✓ P0-N native state mapping > expired session clears account content and routes to settings 1ms
+   ✓ P0-N native state mapping > concise view keeps eligibility after a 120 EUR constraint correction 2ms
+   ✓ P0-N native state mapping > concise and detailed views share the same answer block identity 15ms
+   ✓ P0-N native state mapping > cancel and correction statuses are distinct 1ms
+ ✓ test/session-storage.test.ts (10 tests) 22ms
+ ✓ test/source-deletion.test.ts (9 tests) 28ms
+ ✓ test/journey.test.ts (15 tests) 18ms
+ ❯ test/profile-panel.test.ts (4 tests | 4 failed) 39ms
+   × W07 profile preserves accessible account, consent, restore and deletion-page callbacks 28ms
+     → React is not defined
+   × W03 account deletion remains behind explicit destructive confirmation 3ms
+     → React is not defined
+   × W07 mode labels are readable while callbacks retain the existing route identities 2ms
+     → React is not defined
+   × W07 unavailable capabilities are explicit and account data cleanup remains disclosed 2ms
+     → React is not defined
+ ✓ test/document-input.test.ts (7 tests) 18ms
+ ✓ test/report-layout.test.ts (6 tests) 16ms
+ ✓ test/source-view.test.ts (6 tests) 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/lifecycle.test.ts > P0-N native state mapping > App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem
+AssertionError: expected 'import { ProfilePanel } from "./src/P…' to match /Processor disclosures/
+
+- Expected: 
+/Processor disclosures/
+
++ Received: 
+"import { ProfilePanel } from \"./src/ProfilePanel\";
+import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from \"./src/verification-request\";
+import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from \"./src/source-deletion\";
+import { submitSourceDeletion } from \"./src/source-deletion-flow\";
+import { createReadingRestoration } from \"./src/reading-position\";
+import { nativeDocumentDigest } from \"./src/native-document-digest\";
+import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from \"./src/admission-retry\";
+import { SourceSheet } from \"./src/SourceSheet\";
+import { readSourceDetail } from \"./src/source-view\";
+import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from \"./src/correction-draft\";
+import { AttachmentPanel } from \"./src/AttachmentPanel\";
+import { clearDocumentPickerCache, pickDocument } from \"./src/native-documents\";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from \"react\";
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  Keyboard,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from \"react-native\";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from \"react-native-safe-area-context\";
+import { StatusBar } from \"expo-status-bar\";
+import { color, space, type as typeTokens } from \"@deep/design\";
+import { sessionStorage } from \"./src/native-session\";
+import { SupersededRequest } from \"./src/request-scope\";
+import { OUTPUT_REPORT_CATEGORIES } from \"@deep/contracts\";
+import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from \"./src/api\";
+import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from \"./src/persist\";
+import { breakLongTokens, formatChangeSummary, parseTable } from \"./src/report-layout\";
+import {
+  androidBack,
+  applySnapshot,
+  attachFile,
+  canSubmit,
+  conciseBlocks,
+  emptyState,
+  expireLocalSession,
+  logout as logoutState,
+  mergeEvents,
+  openLibraryItem,
+  submitPrerequisite,
+  type ReportBlock,
+  type UiState,
+} from \"./src/state\";
+
+/** Hermes/Expo Go has no global crypto.randomUUID. */
+function newId(): string {
+  const bytes = new Uint8Array(16);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, \"0\")).join(\"\");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function useTheme() {
+  const scheme = useColorScheme() === \"dark\" ? \"dark\" : \"light\";
+  return color[scheme];
+}
+
+function AppInner() {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const [state, setStateRaw] = useState<UiState>(emptyState());
+  const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
+    const guard = api.capture();
+    setStateRaw((previous) => guard.current() ? (typeof update === \"function\" ? update(previous) : update) : previous);
+    guard.release();
+  }, []);
+  const setViewState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
+    const guard = api.captureView();
+    setStateRaw((previous) => guard.current() ? (typeof update === \"function\" ? update(previous) : update) : previous);
+    guard.release();
+  }, []);
+  const [token, setToken] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
+  const submitting = useRef(false);
+  const deletingSource = useRef(false);
+  const verifying = useRef(false);
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationPolicy, setVerificationPolicy] = useState<\"reuse_snapshot\" | \"refresh_sources\">(\"reuse_snapshot\");
+  const [verificationNote, setVerificationNote] = useState(\"\");
+  useEffect(() => { setVerificationNote(\"\"); setVerificationPolicy(\"reuse_snapshot\"); }, [token]);
+  const [sourceDeleteBusy, setSourceDeleteBusy] = useState(false);
+  const pickingDocument = useRef(false);
+  const [documentPending, setDocumentPending] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const signingIn = useRef<Promise<string> | null>(null);
+  const refreshing = useRef(new Map<string, symbol>());
+  const [detailed, setDetailed] = useState(true);
+  const savedCorrection = activeCorrectionDraft(state);
+  const correction = savedCorrection?.question ?? \"\";
+  const evidencePolicy = savedCorrection?.evidencePolicy ?? \"reuse_snapshot\";
+  const staleCorrection = Boolean(savedCorrection && state.run?.brief && savedCorrection.baseRevision !== state.run.brief.revision);
+  function changeCorrection(patch: { question?: string; evidencePolicy?: \"reuse_snapshot\" | \"refresh\" }) {
+    const runId = state.run?.runId, revision = state.run?.brief?.revision;
+    if (!token || !runId || !revision || !api.currentRun(token, runId)) return;
+    setViewState(s => editCorrectionDraft(s, runId, revision, patch));
+  }
+  const setCorrection = (question: string) => changeCorrection({ question });
+  const setEvidencePolicy = (evidencePolicy: \"reuse_snapshot\" | \"refresh\") => changeCorrection({ evidencePolicy });
+  const [correctionPending,setCorrectionPending]=useState(false);
+  const correctionAttempt=useRef<symbol|null>(null);
+  const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode===\"legacy\"?\"legacy\":!state.run?.labeledDemo&&state.run?.correctionMode===\"replace_question\"?\"replace_question\":\"unavailable\";
+  const correctionReady=!staleCorrection&&correctionMode!==\"unavailable\"&&Boolean(state.run?.brief?.revision)&&(correctionMode===\"legacy\"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
+  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
+  const [clarifyAnswer, setClarifyAnswer] = useState(\"\");
+  const [attachName, setAttachName] = useState(\"note.txt\");
+  const [attachText, setAttachText] = useState(\"\");
+  const [showAttach, setShowAttach] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [processors, setProcessors] = useState<string[]>([]);
+  const [privacyFlows, setPrivacyFlows] = useState(\"\");
+  const [deletionVsSub, setDeletionVsSub] = useState(\"\");
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const [flagOpen, setFlagOpen] = useState(false);
+  const [flagCategory, setFlagCategory] = useState<(typeof OUTPUT_REPORT_CATEGORIES)[number]>(\"inaccurate\");
+  const [flagNote, setFlagNote] = useState(\"\");
+  const [flagInclude, setFlagInclude] = useState(false);
+  const [flagStatus, setFlagStatus] = useState<\"idle\" | \"submitting\" | \"submitted\" | \"error\">(\"idle\");
+  const poll = useRef<ReturnType<typeof setInterval> | null>(null);
+  const conversationScroll = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const reading = useRef(createReadingRestoration());
+  const readerIdentity = useRef(\"\");
+  const readerGeneration = useRef(0);
+  const blocks: ReportBlock[] = state.report
+    ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
+  const readerVisible = state.tab === \"research\" && !state.source && Boolean(state.report);
+  // Identity stays in memory. Protected snapshots contain only report/block IDs.
+  const readerKey = JSON.stringify([token, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
+  if (readerIdentity.current !== readerKey) {
+    readerIdentity.current = readerKey;
+    scrollY.current = 0;
+    if (readerVisible && token && state.report) {
+      readerGeneration.current = reading.current.begin({ ownerKey: token, reportId: state.report.reportId }, state.readingAnchor, blocks.map(b => b.id), state.report.blocks.map(b => b.id));
+    } else {
+      reading.current.clear();
+      readerGeneration.current = 0;
+    }
+  }
+  const readerView = readerGeneration.current;
+  function restoreReadingPosition() {
+    const result = reading.current.take(readerView);
+    if (result.kind !== \"ready\") return;
+    scrollY.current = result.y;
+    conversationScroll.current?.scrollTo({ y: result.y, animated: false });
+    if (result.note) setState(s => ({ ...s, readingAnchor: result.anchor, error: result.note! }));
+  }
+
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  useEffect(() => {
+    if (!hydrated || submitting.current || deletingSource.current || verifying.current) return;
+    const guard = api.capture();
+    void persistSession(sessionStorage, { token, state }).catch(() => {
+      if (guard.current()) setState((s) => s.error === \"Could not save this device’s session.\" ? s : { ...s, error: \"Could not save this device’s session.\" });
+    }).finally(() => guard.release());
+  }, [state, token, hydrated, setState]);
+
+  function persistAnchor(reportId: string, blockId?: string) {
+    const anchor = reading.current.capture(readerView, scrollY.current, blockId);
+    if (!anchor || anchor.reportId !== reportId) return;
+    setState(s => s.report?.reportId === reportId ? { ...s, readingAnchor: anchor } : s);
+  }
+
+  function saveVisibleReadingPosition() {
+    if (state.report && !state.source) persistAnchor(state.report.reportId);
+  }
+
+  async function ensureSession() {
+    if (signingIn.current) return signingIn.current;
+    const pending = startSession(); signingIn.current = pending;
+    try { return await pending; }
+    finally { if (signingIn.current === pending) signingIn.current = null; }
+  }
+
+  async function startSession() {
+    if (token) return token;
+    if (!hydrated) throw new Error(\"Restoring this device’s session. Try again shortly.\");
+    if (!storageReady) throw new Error(\"Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.\");
+    let guard: ReturnType<typeof api.capture> | undefined;
+    try {
+      const s = await api.session();
+      api.activateSession(s.token);
+      guard = api.capture();
+      await activateLocalSession(sessionStorage, s);
+      if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
+      const accepted = guard;
+      setToken((previous) => accepted.current() ? s.token : previous);
+      setState((prev) => {
+        if (!accepted.current()) return prev;
+        const next = { ...emptyState(), draft: prev.signedIn ? \"\" : prev.draft, signedIn: true, error: null };
+
+        return next;
+      });
+      guard.release();
+      return s.token;
+    } catch (e) {
+      if (isSupersededRequest(e)) throw e;
+      if (guard?.current()) api.activateSession(null);
+      setState((s) => ({ ...s, error: (e as Error).message, tab: \"settings\" }));
+      throw e;
+    } finally { guard?.release(); }
+  }
+
+  async function grantConsent() {
+    try {
+      const t = token ?? (await ensureSession());
+      await api.consent(t, true);
+      setState((s) => {
+        const next = { ...s, consentGranted: true, error: null };
+
+        return next;
+      });
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message, tab: \"settings\" }));
+    }
+  }
+
+  function clearPanels() {
+    refreshing.current.clear();
+    setUploadStatus(null);
+    setCorrection(\"\"); setClarifyAnswer(\"\"); setAttachText(\"\"); setAttachName(\"note.txt\");
+    setFlagNote(\"\"); setFlagOpen(false); setFlagStatus(\"idle\"); setFlagInclude(false);
+    setRestoreMessage(null); setProcessors([]); setPrivacyFlows(\"\"); setDeletionVsSub(\"\");
+  }
+
+  async function onAuthFailure() {
+    stopPolling(); api.activateSession(null); clearPanels();
+    setToken(null); setState((s) => expireLocalSession(s));
+    try { await clearAccountLocal(sessionStorage); }
+    catch { setState((s) => ({ ...s, error: \"Session expired. Device cleanup failed; retry signing out.\" })); }
+  }
+
+  async function refreshRun(t: string, runId: string) {
+    if (!api.currentRun(t, runId)) return;
+    const key = `${t}:${runId}`;
+    if (refreshing.current.has(key)) return;
+    const attempt = Symbol(); refreshing.current.set(key, attempt);
+    try {
+      const snap = await api.getRun(t, runId);
+      const ev = await api.events(t, runId, 0);
+      const report = snap.reportId ? await api.report(t, snap.reportId) : null;
+      setViewState((s) => {
+        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
+        let next = applySnapshot(s, snap);
+        next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
+        if (report) {
+          next = {
+            ...next,
+            report: {
+              reportId: report.reportId,
+              version: report.version,
+              blocks: report.blocks,
+              limitations: report.limitations ?? [],
+              labeledDemo: report.labeledDemo,
+              changeSummary: report.changeSummary ?? null,
+            },
+          };
+        } else if (snap.runId && s.run?.runId !== snap.runId) {
+          next = { ...next, report: null };
+        } else if (!snap.reportId && (snap.lifecycle === \"awaiting_input\" || snap.lifecycle === \"queued\" || snap.lifecycle === \"running\")) {
+          next = { ...next, report: null };
+        }
+
+        return next;
+      });
+      setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) {
+        setViewState((s) => {
+          const next = { ...s, offline: true, error: (e as Error).message };
+
+          return next;
+        });
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally { if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
+  }
+
+  function stopPolling() {
+    if (poll.current) {
+      clearInterval(poll.current);
+      poll.current = null;
+    }
+  }
+
+  function startPolling(t: string, runId: string) {
+    if (!api.currentRun(t, runId)) return;
+    stopPolling();
+    poll.current = setInterval(() => {
+      void refreshRun(t, runId);
+    }, 1000);
+  }
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener(\"hardwareBackPress\", () => {
+      api.closeSource();
+      let consumed = false;
+      setState((s) => {
+        const r = androidBack(s);
+        consumed = r.consumed;
+        return r.next;
+      });
+      return consumed;
+    });
+    void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+      if (v) setState((s) => ({ ...s, reducedMotion: true }));
+    });
+    let mounted = true;
+    const hydration = api.capture();
+    void Promise.resolve().then(clearDocumentPickerCache).then(() => hydrateOnLaunch(sessionStorage)).then(async ({ token: t, accountId, state: saved }) => {
+      if (!hydration.current()) return;
+      api.activateSession(t);
+      const restored = api.capture();
+      let s = saved;
+      if (t) {
+        try {
+          const identity = await api.sessionInfo(t);
+          if (identity.accountId !== accountId) { restored.release(); await onAuthFailure(); return; }
+        } catch (error) {
+          if (isSupersededRequest(error)) { restored.release(); return; }
+          if (isExpiredSession(error)) { restored.release(); await onAuthFailure(); return; }
+          s = { ...saved, offline: true, error: \"Could not refresh this session. Saved content remains on this device; new research is disabled until reconnected.\" };
+        }
+      }
+      if (!restored.current()) { restored.release(); return; }
+      setStorageReady(true);
+      setToken((previous) => restored.current() ? t : previous);
+      setState((previous) => restored.current() ? s : previous);
+      if (t && s.run?.runId && !s.pendingSourceDeletion) {
+        api.selectRun(s.run.runId);
+        void refreshRun(t, s.run.runId);
+        startPolling(t, s.run.runId);
+      }
+      restored.release();
+    }).catch(() => setState((s) => ({ ...s, error: \"Device session storage or temporary-file cleanup is unavailable. Try again when device storage is available.\" })))
+      .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
+    const showEvt = Platform.OS === \"ios\" ? \"keyboardWillShow\" : \"keyboardDidShow\";
+    const hideEvt = Platform.OS === \"ios\" ? \"keyboardWillHide\" : \"keyboardDidHide\";
+    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
+    const appSub = AppState.addEventListener(\"change\", (st) => {
+      if (st !== \"active\") {
+        void sessionStorage.flush().catch(() => setState(s => ({ ...s, error: \"Could not save this device’s session.\" })));
+        return;
+      }
+      void api.health()
+        .then(() => setState((s) => (s.offline ? { ...s, offline: false, error: null } : s)))
+        .catch((e) => {
+          if (isOfflineError(e)) {
+            setState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+          }
+        });
+    });
+    return () => {
+      mounted = false;
+      sub.remove();
+      show.remove();
+      hide.remove();
+      appSub.remove();
+      api.activateSession(null);
+      if (poll.current) clearInterval(poll.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (state.tab !== \"settings\" || !token) return;
+    void api.settings(token).then((s: {
+      processors?: string[];
+      privacyDisclosure?: { dataFlows?: string; deletionVsSubscription?: string };
+    }) => {
+      if (Array.isArray(s.processors)) setProcessors(s.processors);
+      if (s.privacyDisclosure?.dataFlows) setPrivacyFlows(s.privacyDisclosure.dataFlows);
+      if (s.privacyDisclosure?.deletionVsSubscription) setDeletionVsSub(s.privacyDisclosure.deletionVsSubscription);
+    }).catch(() => {
+      /* keep last known processors; signed-out path shows the sign-in prompt */
+    });
+  }, [state.tab, token]);
+
+  async function onPickDocument() {
+    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
+    if (!token || !state.signedIn) { setState(s => ({ ...s, tab: \"settings\", error: \"Sign in before selecting a document.\" })); return; }
+    if (state.attachments.length >= 3) { setState(s => ({ ...s, error: \"Attachment limit is 3 files.\" })); return; }
+    const guard = api.capture();
+    pickingDocument.current = true; setDocumentPending(true);
+    try {
+      const file = await pickDocument(guard.current);
+      if (file && guard.current()) setState(s => guard.current() && !deletingSource.current && !s.pendingSourceDeletion ? attachFile(s, file) : s);
+    } catch (error) {
+      if (guard.current() && !isSupersededRequest(error)) setState(s => guard.current() ? { ...s, error: (error as Error).message } : s);
+    } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
+  }
+
+  async function onSend() {
+    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current) return;
+    if (!storageReady) return;
+    const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
+    if (!gate.ok) {
+      const tab = submitPrerequisite(state);
+      setViewState((s) => ({ ...s, error: gate.reason ?? \"Cannot send\", tab }));
+      return;
+    }
+    const accountGuard = api.capture();
+    try {
+      submitting.current = true;
+      setUploadStatus(\"Preparing saved request…\");
+      api.selectRun(null);
+      stopPolling();
+      const t = token ?? (await ensureSession());
+      if (state.pendingAdmission) { await api.sessionInfo(t); setState(s => ({ ...s, offline: false })); }
+      const guard = api.captureView();
+      let created;
+      try {
+        const pending = state.pendingAdmission ?? await prepareAdmission(state.draft, state.routeMode, state.attachments, newId, nativeDocumentDigest, guard.current);
+        created = await submitAdmission(pending, state.attachments, {
+          digest: nativeDocumentDigest,
+          current: guard.current,
+          progress: setUploadStatus,
+          save: async draft => {
+            await sessionStorage.saveAdmission(t, draft);
+            if (!guard.current()) throw new SupersededRequest();
+            setState(s => ({ ...s, pendingAdmission: draft, attachments: s.pendingAdmission ? s.attachments : s.attachments.map((f,i) => ({ ...f, id: draft.uploads[i]?.key })) }));
+          },
+          upload: (file, key) => file.bytes ? api.attachBytes(t, file.filename, file.mime, file.bytes, key) : api.attach(t, file.filename, file.mime, file.text, key),
+          admit: (draft, ids) => api.createRun(t, draft.question, draft.routeMode, draft.key, ids),
+        });
+        if (!guard.current()) throw new SupersededRequest();
+      } finally { guard.release(); }
+      await adoptAdmission(t, created);
+    } catch (e) {
+      if (!accountGuard.current() || isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) {
+        setViewState((s) => {
+          const next = {
+            ...s,
+            offline: true,
+            error: (e as Error).message,
+          };
+
+          return next;
+        });
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
+  }
+
+  async function adoptAdmission(t: string, created: AdmittedRun) {
+      const guard = api.captureView();
+      try {
+      const next: UiState = {
+          ...state,
+          pendingAdmission: null,
+          status: \"progress\" as const,
+          error: null,
+          attachments: [],
+          report: null,
+          previousReport: state.report
+            ? { reportId: state.report.reportId, blocks: state.report.blocks }
+            : state.previousReport,
+          run: {
+            runId: created.runId,
+            lifecycle: created.lifecycle,
+            phase: created.phase,
+            outcome: null,
+            reportId: null,
+            labeledDemo: created.labeledDemo,
+          },
+      };
+      await sessionStorage.finishAdmission(t, next);
+      if (!guard.current()) throw new SupersededRequest();
+      api.selectRun(created.runId);
+      setViewState(next);
+      setShowAttach(false);
+      AccessibilityInfo.announceForAccessibility(
+        \"Research in progress. Cancel is available. Closing the app will not stop the job.\",
+      );
+      await refreshRun(t, created.runId);
+      startPolling(t, created.runId);
+      } finally { guard.release(); }
+  }
+
+  async function resolvePendingAdmission() {
+    if (!token || !state.pendingAdmission || submitting.current || !storageReady) return;
+    const guard = api.captureView(); submitting.current = true; setUploadStatus(\"Checking saved request…\");
+    try {
+      const result = await api.resolveRunRequest(token, state.pendingAdmission.key);
+      if (!guard.current()) throw new SupersededRequest();
+      if (result.status === \"accepted\") await adoptAdmission(token, readAdmittedRun(result.run));
+      else if (result.status === \"withdrawn\") {
+        await sessionStorage.saveAdmission(token, null);
+        if (!guard.current()) throw new SupersededRequest();
+        setState(s => ({ ...s, pendingAdmission: null, offline: false, error: \"No active request remains for this key. The saved request is withdrawn; you can edit and send again.\" }));
+      } else throw new Error(\"The saved request could not be resolved. Retry checking it.\");
+    } catch (error) {
+      if (!guard.current() || isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); submitting.current = false; setUploadStatus(null); }
+  }
+
+  async function onCancel() {
+    if (!token || !state.run) return;
+    try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
+    catch (error) {
+      if (isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: \"Could not confirm cancellation. Retry or reopen this run.\" }));
+    }
+  }
+
+  async function onDeleteSource(target?: SourceDeletionTarget) {
+    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification) return;
+    const guard = api.capture();
+    try {
+      if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error(\"The source changed. Review deletion again.\");
+      const pending = state.pendingSourceDeletion ? state : prepareSourceDeletion(state, target?.sourceId ?? \"\");
+      deletingSource.current = true; setSourceDeleteBusy(true);
+      stopPolling(); api.closeSource(); api.selectRun(null);
+      const confirmed = await submitSourceDeletion(pending, {
+        current: guard.current,
+        save: next => sessionStorage.persistRequired(token, next),
+        hide: next => { setAttachText(\"\"); setAttachName(\"note.txt\"); setShowAttach(false); setState(s => guard.current() ? next : s); },
+        remove: id => api.deleteSource(token, id),
+      });
+      if (guard.current()) setState({ ...confirmed, offline: false });
+    } catch (error) {
+      if (!guard.current() || isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (error as Error).message, offline: isOfflineError(error) || s.offline }));
+    } finally { guard.release(); deletingSource.current = false; setSourceDeleteBusy(false); }
+  }
+
+  async function onOpenSource(id: string, blockId: string) {
+    try {
+      const t = token;
+      if (!t) {
+        setViewState((s) => ({ ...s, error: \"Sign in to inspect sources.\", tab: \"settings\" }));
+        return;
+      }
+      if (state.report) persistAnchor(state.report.reportId, blockId);
+      const src = readSourceDetail(await api.source(t, id));
+      setViewState((s) => ({ ...s, source: src, tab: \"research\" }));
+      AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    }
+  }
+
+  async function onCorrect() {
+    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification) return;
+    const text = correction.trim();
+    if (!text) {
+      setViewState((s) => ({ ...s, error: \"Write a correction first. The draft and last report stay on this device.\" }));
+      return;
+    }
+    if(!correctionReady||!state.run.brief?.revision) {
+      setViewState((s)=>({...s,error:\"Corrections are unavailable for this run. Refresh its status before trying again.\"}));return;
+    }
+    const attempt=Symbol(\"correction\"),guard=api.captureView();correctionAttempt.current=attempt;setCorrectionPending(true);
+    try {
+      const child = await api.correct(token, state.run.runId, state.run.brief.revision, text,
+        correctionMode===\"replace_question\"?{kind:\"replace_question\",question:text,evidencePolicy}:undefined);
+      if(!guard.current())throw new SupersededRequest();
+      api.selectRun(child.runId);
+      setShowAttach(false);
+      setViewState((s) => {
+        const next = {
+          ...s,
+          status: \"progress\" as const,
+          correctionDraft: null,
+          error: null,
+          previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+          run: {
+            runId: child.runId,
+            lifecycle: \"queued\",
+            phase: \"preparing\",
+            outcome: null,
+            reportId: null,
+            labeledDemo: s.run?.labeledDemo ?? true,
+          },
+        };
+
+        return next;
+      });
+      startPolling(token, child.runId);
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) {
+        setViewState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally {
+      guard.release();
+      if(correctionAttempt.current===attempt){correctionAttempt.current=null;setCorrectionPending(false);}
+    }
+  }
+
+  async function onContinueClarification() {
+    if (!token || !state.run) return;
+    const geography = clarifyAnswer.trim();
+    if (!geography) {
+      setViewState((s) => ({ ...s, error: \"Enter a jurisdiction. The app will not assume a country.\" }));
+      return;
+    }
+    try {
+      await api.continueRun(token, state.run.runId, geography);
+      setViewState((s) => {
+        const next = { ...s, status: \"progress\" as const, error: null };
+
+        return next;
+      });
+      AccessibilityInfo.announceForAccessibility(\"Clarification saved. Research continues on the server.\");
+      await refreshRun(token, state.run.runId);
+      startPolling(token, state.run.runId);
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) {
+        setViewState((s) => {
+          const next = { ...s, offline: true, error: (e as Error).message };
+
+          return next;
+        });
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    }
+  }
+
+  async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
+    if (!token) return;
+    if (runId === pending.parentRunId) throw new Error(\"Verification resolved to its parent instead of a child. Retry the saved request.\");
+    api.selectRun(runId);
+    const guard = api.captureView();
+    try {
+      const snap = readVerificationRun(await api.getRun(token, runId), runId);
+      if (!guard.current()) throw new SupersededRequest();
+      let next = applySnapshot({ ...state, pendingVerification: null, previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport, report: null, source: null, events: [], readingAnchor: null, correctionDraft: null }, snap);
+      next = { ...next, error: null, offline: false, tab: \"research\" };
+      await sessionStorage.persistRequired(token, next);
+      if (!guard.current()) throw new SupersededRequest();
+      setState(next);
+      await refreshRun(token, runId); startPolling(token, runId);
+    } finally { guard.release(); }
+  }
+
+  async function onFollowUp() {
+    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission) return;
+    const guard = api.capture();
+    try {
+      verifying.current = true; setVerificationBusy(true);
+      let pending = state.pendingVerification;
+      if (!pending) {
+        if (state.report?.labeledDemo) throw new Error(\"Demo reports do not support evidence verification.\");
+        const claimId = state.report?.blocks.find(b => b.kind === \"answer\" && b.claimIds.length)?.claimIds[0] ?? state.report?.blocks.find(b => b.claimIds.length)?.claimIds[0];
+        if (!claimId || !state.report?.version) throw new Error(\"Reopen a current report with a supported claim before requesting verification.\");
+        pending = prepareVerificationRequest({ run: state.run, report: state.report, reportId: state.report.reportId, reportVersion: state.report.version, claimId, note: verificationNote, evidencePolicy: verificationPolicy, idempotencyKey: newId(), pendingAdmission: state.pendingAdmission, pendingSourceDeletion: state.pendingSourceDeletion });
+      }
+      api.selectRun(pending.parentRunId); stopPolling();
+      const accepted = await submitVerificationRequest(pending, {
+        current: guard.current,
+        save: async saved => {
+          await sessionStorage.persistRequired(token, { ...state, pendingVerification: saved });
+          if (!guard.current()) throw new SupersededRequest();
+          setState(s => ({ ...s, pendingVerification: saved }));
+        },
+        post: (id, request) => api.followUp(token, id, request),
+      });
+      if (guard.current()) await adoptVerification(pending, accepted.runId);
+    } catch (error) {
+      if (!guard.current() || isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
+  }
+
+  async function resolvePendingVerification() {
+    const pending = state.pendingVerification;
+    if (!token || !pending || verifying.current) return;
+    const guard = api.capture();
+    try {
+      verifying.current = true; setVerificationBusy(true);
+      const result = await api.resolveRunRequest(token, pending.request.idempotencyKey, pending);
+      if (!guard.current()) throw new SupersededRequest();
+      if (result.status === \"accepted\") await adoptVerification(pending, readAdmittedRun(result.run).runId);
+      else if (result.status === \"withdrawn\") {
+        const next = { ...state, pendingVerification: null, error: \"The saved verification request is withdrawn. No new verification will start under this key.\" };
+        await sessionStorage.persistRequired(token, next);
+        if (guard.current()) setState(next);
+      } else throw new Error(\"Verification status could not be confirmed. Retry the saved request.\");
+    } catch (error) {
+      if (guard.current() && !isSupersededRequest(error)) setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
+  }
+
+  async function onShare(reportId?: string) {
+    const id = reportId ?? state.report?.reportId;
+    if (!token || !id || state.pendingSourceDeletion || deletingSource.current) return;
+    try {
+      const md = await api.exportMd(token, id);
+      await Share.share({ message: md.markdown, title: \"Research report\" });
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState((s) => ({ ...s, error: (e as Error).message }));
+    }
+  }
+
+
+  return (
+    <SafeAreaView style={styles.safe} accessibilityLabel=\"Deep Research\">
+      <StatusBar style={theme === color.dark ? \"light\" : \"dark\"} />
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === \"ios\" ? \"padding\" : \"height\"} keyboardVerticalOffset={insets.top}>
+        <View style={styles.header}>
+          <Text style={styles.wordmark} accessibilityRole=\"header\" allowFontScaling maxFontSizeMultiplier={2}>
+            Deep Research
+          </Text>
+          <Pressable onPress={() => setState((s) => ({ ...s, tab: \"settings\" }))} accessibilityRole=\"button\" accessibilityLabel=\"Open profile and settings\">
+            <Text style={styles.link}>Profile</Text>
+          </Pressable>
+        </View>
+        {state.routeMode === \"fixture\" ? (
+          <View style={styles.banner} accessibilityLabel=\"Demo fixture route\">
+            <Text style={styles.bannerText}>Demo route — labeled fixture, not live research</Text>
+          </View>
+        ) : (
+          <View style={styles.bannerLive} accessibilityLabel=\"Live research route\">
+            <Text style={styles.bannerText}>Live research route</Text>
+          </View>
+        )}
+        {state.pendingVerification ? <View style={styles.card} accessibilityLabel=\"Saved verification request\">
+          <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
+          <Pressable disabled={verificationBusy} accessibilityRole=\"button\" accessibilityLabel=\"Retry saved verification\" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
+          <Pressable disabled={verificationBusy} accessibilityRole=\"button\" accessibilityLabel=\"Check or withdraw verification\" onPress={() => void resolvePendingVerification()}><Text style={styles.link}>Check or withdraw</Text></Pressable>
+        </View> : null}
+        {state.pendingSourceDeletion ? <View style={styles.card} accessibilityLabel=\"Pending source deletion\">
+          <Text style={styles.bodyText}>Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.</Text>
+          <Pressable accessibilityRole=\"button\" accessibilityLabel=\"Retry source deletion\" disabled={sourceDeleteBusy}
+            onPress={() => void onDeleteSource()}><Text style={styles.link}>{sourceDeleteBusy ? \"Confirming deletion…\" : \"Retry deletion\"}</Text></Pressable>
+        </View> : null}
+        {state.error ? (
+          <Text style={styles.error} accessibilityLiveRegion=\"polite\">
+            {state.error}
+          </Text>
+        ) : null}
+
+        {state.tab === \"research\" && !state.source ? (
+          <ScrollView
+            key={readerView}
+            ref={conversationScroll}
+            style={styles.body}
+            contentContainerStyle={{ paddingBottom: 200 }}
+            keyboardShouldPersistTaps=\"handled\"
+            accessibilityLabel=\"Research conversation\"
+            scrollEventThrottle={100}
+            onLayout={event => { reading.current.measureViewport(readerView, event.nativeEvent.layout.height); restoreReadingPosition(); }}
+            onContentSizeChange={(_width, height) => { reading.current.measureContent(readerView, height); restoreReadingPosition(); }}
+            onScroll={(event) => { if (readerView === readerGeneration.current) scrollY.current = event.nativeEvent.contentOffset.y; }}
+            onScrollBeginDrag={() => reading.current.userScrolled(readerView)}
+            onScrollEndDrag={() => saveVisibleReadingPosition()}
+            onMomentumScrollEnd={() => saveVisibleReadingPosition()}
+          >
+            {state.pendingAdmission ? <View style={styles.card} accessibilityLabel=\"Saved research request\">
+              <Text style={styles.bodyText}>Request awaiting confirmation. Retry keeps the same question and documents.</Text>
+              {state.pendingAdmission.uploads.some(u => !u.attachmentId) ? <Text style={styles.bodyText}>Select the original files again: {state.pendingAdmission.uploads.filter(u => !u.attachmentId).map(u => u.filename).join(\", \")}</Text> : null}
+              <Pressable disabled={uploadStatus !== null} accessibilityRole=\"button\" accessibilityLabel=\"Check or withdraw saved research request\" onPress={() => void resolvePendingAdmission()}><Text style={styles.link}>Check or withdraw saved request</Text></Pressable>
+            </View> : null}
+            {!state.run && !state.report && !state.pendingAdmission ? (
+              <Text style={styles.welcome}>
+                Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.
+              </Text>
+            ) : null}
+
+            {state.status === \"progress\" || state.status === \"loading\" ? (
+              <View style={styles.card} accessibilityLabel=\"Research progress\" accessibilityLiveRegion=\"polite\">
+                <Text style={styles.kicker}>{state.run?.phase ?? \"queued\"}</Text>
+                <Text style={styles.bodyText}>
+                  {state.events.at(-1)?.publicSummary ?? \"Waiting for the server. Closing this app will not stop the job.\"}
+                </Text>
+                {state.reducedMotion ? null : <ActivityIndicator accessibilityLabel=\"In progress\" />}
+                <Pressable onPress={onCancel} accessibilityRole=\"button\" accessibilityLabel=\"Cancel research\">
+                  <Text style={styles.link}>Cancel</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {state.status === \"cancelled\" ? (
+              <Text style={styles.bodyText}>Cancelled. Partial evidence is kept unless you delete your account.</Text>
+            ) : null}
+            {state.status === \"failed\" ? (
+              <Text style={styles.bodyText}>The run failed. Saved evidence, if any, is still in your library.</Text>
+            ) : null}
+            {state.status === \"awaiting_input\" ? (
+              <View style={styles.card} accessibilityLabel=\"Clarification needed\">
+                <Text style={styles.kicker}>Need one detail</Text>
+                <Text style={styles.bodyText}>{state.events.find((e) => e.type === \"clarify\")?.publicSummary ?? \"Which jurisdiction should this answer apply to?\"}</Text>
+                <TextInput
+                  value={clarifyAnswer}
+                  onChangeText={setClarifyAnswer}
+                  placeholder=\"Jurisdiction\"
+                  placeholderTextColor={theme.muted}
+                  style={styles.input}
+                  allowFontScaling
+                  maxFontSizeMultiplier={2}
+                  accessibilityLabel=\"Clarification answer\"
+                />
+                <Pressable
+                  onPress={() => void onContinueClarification()}
+                  accessibilityRole=\"button\"
+                  accessibilityLabel=\"Submit clarification and continue\"
+                  disabled={!clarifyAnswer.trim()}
+                >
+                  <Text style={styles.send}>Continue research</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            {state.offline ? (
+              <Text style={styles.caveat} accessibilityLiveRegion=\"polite\">
+                Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.
+              </Text>
+            ) : null}
+
+            {state.report ? (
+              <View style={styles.card} accessibilityLabel=\"Research report\" onLayout={(event) => {
+                reading.current.measureCard(readerView, event.nativeEvent.layout.y);
+                restoreReadingPosition();
+              }}>
+                <View style={styles.row}>
+                  <Text style={styles.kicker}>{state.report.labeledDemo ? \"Fixture report\" : \"Live report\"}</Text>
+                  <Pressable onPress={() => setDetailed((d) => !d)} accessibilityRole=\"button\" accessibilityLabel={detailed ? \"Show concise view\" : \"Show detailed view\"}>
+                    <Text style={styles.link}>{detailed ? \"Concise\" : \"Detailed\"}</Text>
+                  </Pressable>
+                </View>
+                {detailed && blocks.length > 4 ? (
+                  <View style={styles.outline} accessibilityLabel=\"Report outline\">
+                    <Text style={styles.kicker}>Outline</Text>
+                    {blocks.map((b) => (
+                      <Text key={`outline-${b.id}`} style={styles.outlineItem}>
+                        {b.kind} · {b.id}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
+                {blocks.map((b) => (
+                  <ReportBlockView
+                    key={b.id}
+                    block={b}
+                    styles={styles}
+                    onOpenSource={(id) => void onOpenSource(id, b.id)}
+                    onLayoutY={(y) => {
+                      reading.current.measureBlock(readerView, b.id, y);
+                      restoreReadingPosition();
+                    }}
+                  />
+                ))}
+                {state.report.changeSummary ? (
+                  <Text style={styles.caveat} accessibilityLabel=\"Change summary\">
+                    {formatChangeSummary(state.report.changeSummary)}
+                  </Text>
+                ) : null}
+                {state.report.limitations.map((l) => (
+                  <Text key={l} style={styles.caveat}>
+                    {l}
+                  </Text>
+                ))}
+                <Pressable onPress={() => onShare()} accessibilityRole=\"button\" accessibilityLabel=\"Share report as Markdown\">
+                  <Text style={styles.link}>Share Markdown</Text>
+                </Pressable>
+                {!state.report.labeledDemo ? <View>
+                  <Text style={styles.bodyText}>Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.</Text>
+                  <TextInput value={verificationNote} onChangeText={setVerificationNote} maxLength={4000} editable={!verificationBusy && !state.pendingVerification}
+                    accessibilityLabel=\"Optional feedback saved with verification\" placeholder=\"Optional feedback for this request\" style={styles.input} />
+                  <Text style={styles.caveat}>Feedback is saved with the request. The check assesses the selected claim and evidence; it does not assess this note.</Text>
+                  <Pressable disabled={verificationBusy || !!state.pendingVerification} accessibilityRole=\"button\" accessibilityLabel=\"Change verification evidence policy\"
+                    onPress={() => setVerificationPolicy(p => p === \"reuse_snapshot\" ? \"refresh_sources\" : \"reuse_snapshot\")}>
+                    <Text style={styles.link}>{verificationPolicy === \"reuse_snapshot\" ? \"Use inspected evidence\" : \"Refresh inspected sources\"}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => void onFollowUp()} disabled={verificationBusy || !!state.pendingVerification} accessibilityRole=\"button\" accessibilityLabel=\"Recheck the answer claim\">
+                    <Text style={styles.link}>{verificationBusy ? \"Requesting check…\" : \"Recheck answer claim\"}</Text>
+                  </Pressable>
+                </View> : null}
+                {state.flagSent || flagStatus === \"submitted\" ? (
+                  <Text style={styles.caveat} accessibilityLabel=\"Flag submitted\">Report submitted. Thank you.</Text>
+                ) : flagOpen ? (
+                  <View accessibilityLabel=\"Report generated output\">
+                    <Text style={styles.kicker}>Report this generated answer</Text>
+                    {OUTPUT_REPORT_CATEGORIES.map((cat) => (
+                      <Pressable
+                        key={cat}
+                        onPress={() => setFlagCategory(cat)}
+                        accessibilityRole=\"button\"
+                        accessibilityLabel={`Category ${cat}`}
+                        accessibilityState={{ selected: flagCategory === cat }}
+                      >
+                        <Text style={flagCategory === cat ? styles.link : styles.bodyText}>{cat}</Text>
+                      </Pressable>
+                    ))}
+                    <TextInput
+                      value={flagNote}
+                      onChangeText={setFlagNote}
+                      placeholder=\"Optional explanation\"
+                      accessibilityLabel=\"Report explanation\"
+                      style={styles.input}
+                      multiline
+                    />
+                    <Pressable
+                      onPress={() => setFlagInclude((v) => !v)}
+                      accessibilityRole=\"button\"
+                      accessibilityLabel=\"Include report excerpt\"
+                      accessibilityState={{ selected: flagInclude }}
+                    >
+                      <Text style={styles.link}>{flagInclude ? \"Include excerpt: yes\" : \"Include excerpt: no\"}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={async () => {
+                        if (!token || !state.report) return;
+                        setFlagStatus(\"submitting\");
+                        try {
+                          await api.challenge(token, state.report.reportId, {
+                            claimId: state.report.blocks.find((b) => b.id === \"answer\")?.claimIds[0],
+                            category: flagCategory,
+                            note: flagNote,
+                            includeExcerpt: flagInclude,
+                          });
+                          setFlagStatus(\"submitted\");
+                          setState((s) => ({ ...s, flagSent: true }));
+                        } catch (error) {
+                          if (isSupersededRequest(error)) return;
+                          setFlagStatus(\"error\");
+                        }
+                      }}
+                      accessibilityRole=\"button\"
+                      accessibilityLabel=\"Submit generated-output report\"
+                      disabled={flagStatus === \"submitting\"}
+                    >
+                      <Text style={styles.link}>{flagStatus === \"submitting\" ? \"Submitting…\" : \"Submit report\"}</Text>
+                    </Pressable>
+                    {flagStatus === \"error\" ? <Text style={styles.error}>Could not submit. Try again.</Text> : null}
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setFlagOpen(true)}
+                    accessibilityRole=\"button\"
+                    accessibilityLabel=\"Flag this generated answer\"
+                  >
+                    <Text style={styles.link}>Flag this answer</Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : null}
+            {state.previousReport ? (
+              <View style={styles.card} accessibilityLabel=\"Previous report version\">
+                <Text style={styles.kicker}>Previous version</Text>
+                <Text style={styles.bodyText}>{state.previousReport.blocks.find((b) => b.id === \"answer\")?.text ?? \"Earlier result kept.\"}</Text>
+                <Pressable
+                  onPress={() => void onShare(state.previousReport?.reportId)}
+                  accessibilityRole=\"button\"
+                  accessibilityLabel=\"Share previous report as Markdown\"
+                >
+                  <Text style={styles.link}>Share previous Markdown</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {(state.report || state.status === \"completed\" || state.status === \"partial\") && state.run ? (
+              <View style={styles.card} accessibilityLabel=\"Correction\">
+                <Text style={styles.kicker}>{correctionMode===\"replace_question\"?\"Revise the question\":\"Correction\"}</Text>
+                {correctionMode===\"unavailable\"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
+                {staleCorrection ? <>
+                  <Text style={styles.body}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
+                  <Pressable disabled={correctionPending} accessibilityRole=\"button\" accessibilityLabel=\"Use saved correction for current version\" onPress={() => {
+                    const runId = state.run?.runId, revision = state.run?.brief?.revision;
+                    if (token && runId && revision && api.currentRun(token, runId)) setViewState(s => rebaseCorrectionDraft(s, runId, revision));
+                  }}><Text style={styles.link}>Use this correction for the current version</Text></Pressable>
+                </> : null}
+                {correctionMode===\"replace_question\"?<>
+                  <Text style={styles.body}>Write the complete updated question. Its conclusions will be checked again.</Text>
+                  <Pressable disabled={correctionPending} onPress={()=>setCorrection(state.run?.brief?.originalQuestion??\"\")} accessibilityRole=\"button\" accessibilityLabel=\"Use current question\">
+                    <Text style={styles.link}>Edit current question</Text>
+                  </Pressable>
+                  {([\"reuse_snapshot\",\"refresh\"] as const).map((policy)=><Pressable key={policy} disabled={correctionPending} onPress={()=>setEvidencePolicy(policy)} accessibilityRole=\"radio\" accessibilityState={{checked:evidencePolicy===policy,disabled:correctionPending}} accessibilityLabel={policy===\"reuse_snapshot\"?\"Reuse previously read source versions\":\"Read sources again\"}>
+                    <Text style={styles.body}>{evidencePolicy===policy?\"● \":\"○ \"}{policy===\"reuse_snapshot\"?\"Reuse previously read source versions\":\"Read sources again\"}</Text>
+                  </Pressable>)}
+                  <Text style={styles.body}>Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.</Text>
+                </>:null}
+                {correctionReady&&Number.isSafeInteger(state.run.correctionReserveMicro)&&state.run.correctionReserveMicro!>=0?<Text style={styles.body}>Reserves US${(state.run.correctionReserveMicro!/1_000_000).toFixed(2)} of research allowance. Your earlier report remains available.</Text>:null}
+                <TextInput
+                  value={correction}
+                  onChangeText={setCorrection}
+                  placeholder={correctionMode===\"replace_question\"?\"Your complete revised research question\":\"Actually, the budget is 120 EUR\"}
+                  multiline
+                  maxLength={20_000}
+                  editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!==\"unavailable\"}
+                  placeholderTextColor={theme.muted}
+                  style={styles.input}
+                  allowFontScaling
+                  maxFontSizeMultiplier={2}
+                  accessibilityLabel={correctionMode===\"replace_question\"?\"Revised research question\":\"Correction field\"}
+                />
+                <Pressable onPress={onCorrect} disabled={correctionPending||!correctionReady} accessibilityState={{disabled:correctionPending||!correctionReady,busy:correctionPending}} accessibilityRole=\"button\" accessibilityLabel=\"Submit correction\">
+                  <Text style={styles.send}>{correctionPending?\"Updating…\":\"Update research\"}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </ScrollView>
+        ) : null}
+
+        {state.source ? (
+          <SourceSheet source={state.source} styles={styles}
+            onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
+            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification}
+            onOpenOriginal={(url) => {
+              const guard = api.captureView();
+              void Linking.openURL(url).catch(() => {
+                if (guard.current()) setViewState(s => ({ ...s, error: \"Could not open the original source.\" }));
+              }).finally(() => guard.release());
+            }}
+            onClose={() => {
+              api.closeSource();
+              setState(s => ({ ...s, source: null }));
+            }} />
+        ) : null}
+
+        {state.tab === \"library\" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy ? (
+          <Library
+            token={token}
+            styles={styles}
+            onOpen={async (id) => {
+              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification) return;
+              api.selectRun(id);
+              if (!token) return;
+              setState((s) => openLibraryItem(s, id));
+              await refreshRun(token, id);
+              startPolling(token, id);
+            }}
+            onShare={(reportId) => onShare(reportId)}
+          />
+        ) : null}
+        {state.tab === \"settings\" ? (
+          <ProfilePanel
+            styles={styles}
+            processors={processors}
+            privacyFlows={privacyFlows}
+            deletionVsSub={deletionVsSub}
+            restoreMessage={restoreMessage}
+            state={state}
+            onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
+            onConsent={grantConsent}
+            onSignIn={() => { void ensureSession().catch(() => undefined); }}
+            onRestore={async () => {
+              if (!token) {
+                setRestoreMessage(\"Sign in first. Restore still requires a store sandbox.\");
+                return;
+              }
+              try {
+                await api.restorePurchases(token);
+                setRestoreMessage(\"Unexpected restore success; purchases remain gated.\");
+              } catch (e) {
+      if (isSupersededRequest(e)) return;
+                setRestoreMessage(e instanceof Error ? e.message : \"Restore is unavailable until a store sandbox is connected.\");
+              }
+            }}
+            onMode={(routeMode) => setState((s) => s.pendingAdmission ? { ...s, error: \"Check or withdraw the saved request before changing research mode.\" } : { ...s, routeMode })}
+            onDelete={async () => {
+              if (!token) return;
+              try {
+                stopPolling();
+                const result = await api.deleteAccount(token);
+                api.activateSession(null); clearPanels();
+                setToken(null); setState({ ...emptyState(), error: result.fileCleanupPending ? \"Account access removed. Stored file deletion is queued for retry.\" : null });
+                await clearAccountLocal(sessionStorage);
+              } catch (error) {
+                if (isSupersededRequest(error)) return;
+                setState((s) => ({ ...s, error: \"Could not confirm complete deletion. Retry deletion or device cleanup.\" }));
+              }
+            }}
+            onLogout={() => {
+              stopPolling();
+              api.activateSession(null); clearPanels();
+              void logoutLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => setState((s) => ({ ...s, error: \"Device cleanup failed. Retry signing out.\" })));
+              setToken(null);
+              setState((s) => logoutState(s));
+            }}
+            onRevoke={async () => {
+              if (!token) return;
+              try { await api.consent(token, false); setState((s) => ({ ...s, consentGranted: false })); }
+              catch (error) {
+                if (isSupersededRequest(error)) return;
+                setState((s) => ({ ...s, error: \"Could not confirm consent revocation. Retry.\" }));
+              }
+            }}
+          />
+        ) : null}
+
+        {state.tab === \"research\" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+          <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
+            pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
+            onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
+            onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
+            onAttachNote={() => {
+                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
+                setState((s) =>
+                  attachFile(s, {
+                    filename: attachName.endsWith(\".pdf\") ? `${attachName}.notes.txt` : attachName || \"note.txt\",
+                    mime: attachName.endsWith(\".md\") ? \"text/markdown\" : \"text/plain\",
+                    text: attachText,
+                  }),
+                );
+                setAttachText(\"\");
+                setShowAttach(false);
+              }} />
+        ) : null}
+        {state.tab === \"research\" && !state.source && !keyboardOpen && state.report && !showAttach ? (
+          <Pressable
+            onPress={() => setShowAttach(true)}
+            accessibilityRole=\"button\"
+            accessibilityLabel=\"Show attachment fields\"
+            style={styles.attachRow}
+          >
+            <Text style={styles.link}>Attach a file ({state.attachments.length}/3)</Text>
+          </Pressable>
+        ) : null}
+
+        {state.tab === \"research\" && !state.source ? (
+        <View style={styles.composerWrap}>
+          <TextInput
+            editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
+            value={state.draft}
+            onChangeText={(draft) => {
+              setState((s) => {
+                const next = { ...s, draft };
+
+                return next;
+              });
+            }}
+            placeholder=\"Ask with constraints, dates, and what would change the answer\"
+            placeholderTextColor={theme.muted}
+            style={styles.composer}
+            multiline
+            allowFontScaling
+            maxFontSizeMultiplier={2}
+            accessibilityLabel=\"Research question\"
+          />
+          <Pressable
+            disabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion}
+            accessibilityState={{ disabled: !hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion }}
+            onPress={onSend}
+            style={styles.sendBtn}
+            accessibilityRole=\"button\"
+            accessibilityLabel=\"Start research\"
+            hitSlop={12}
+          >
+            <Text style={styles.send}>{state.pendingAdmission ? \"Retry\" : \"Send\"}</Text>
+          </Pressable>
+        </View>
+        ) : null}
+
+        <View style={styles.tabs} accessibilityRole=\"tablist\">
+          {([\"research\", \"library\"] as const).map((tab) => (
+            <Pressable
+              key={tab}
+              onPress={() => setState((s) => ({ ...s, tab }))}
+              accessibilityRole=\"tab\"
+              accessibilityState={{ selected: state.tab === tab }}
+              accessibilityLabel={tab === \"research\" ? \"Research\" : \"Library\"}
+              style={styles.tab}
+            >
+              <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+function Library({
+  token,
+  styles,
+  onOpen,
+  onShare,
+}: {
+  token: string | null;
+  styles: ReturnType<typeof makeStyles>;
+  onOpen: (id: string) => void;
+  onShare: (reportId: string) => void;
+}) {
+  type LibraryItem = { id: string; title: string; status: string; report_id?: string | null };
+  const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryItem[]; error: string | null }>({ token: null, items: [], error: null });
+  const items = loaded.token === token ? loaded.items : [];
+  useEffect(() => {
+    if (!token) return;
+    let current = true;
+    void api.library(token).then((r) => { if (current) setLoaded((previous) => current ? { token, items: r.items ?? [], error: null } : previous); })
+      .catch((error) => { if (current && !isSupersededRequest(error)) setLoaded({ token, items: [], error: \"Could not load saved reports. Reopen Library to retry.\" }); });
+    return () => { current = false; };
+  }, [token]);
+  if (!token) {
+    return (
+      <Text style={styles.bodyText} accessibilityLabel=\"Saved reports\">
+        Sign in from Profile to see saved reports.
+      </Text>
+    );
+  }
+  if (items.length === 0) {
+    return (
+      <Text style={styles.bodyText} accessibilityLabel=\"Saved reports\">
+        {loaded.token !== token ? \"Loading saved reports…\" : loaded.error ?? \"No reports yet.\"}
+      </Text>
+    );
+  }
+  return (
+    <ScrollView style={styles.body} accessibilityLabel=\"Saved reports\">
+      {items.map((it) => (
+        <View key={it.id} style={styles.card}>
+          <Pressable onPress={() => onOpen(it.id)} accessibilityRole=\"button\" accessibilityLabel={`Open ${it.title}`}>
+            <Text style={styles.title}>{breakLongTokens(it.title)}</Text>
+            <Text style={styles.kicker}>{it.status}</Text>
+          </Pressable>
+          {it.report_id ? (
+            <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole=\"button\" accessibilityLabel={`Share ${it.title}`}>
+              <Text style={styles.link}>Share Markdown</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+
+function ReportBlockView({
+  block,
+  styles,
+  onOpenSource,
+  onLayoutY,
+}: {
+  block: ReportBlock;
+  styles: ReturnType<typeof makeStyles>;
+  onOpenSource: (id: string) => void;
+  onLayoutY?: (y: number) => void;
+}) {
+  const text = breakLongTokens(block.text);
+  let body: ReactNode;
+  if (block.kind === \"table\") {
+    const rows = parseTable(block.text);
+    body = (
+      <View style={styles.bounded}>
+        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Table ${block.id}`}>
+          <View>
+            {rows.map((row, i) => (
+              <View key={`${block.id}-r${i}`} style={styles.tableRow}>
+                {row.map((cell, j) => (
+                  <Text
+                    key={`${block.id}-c${i}-${j}`}
+                    selectable
+                    style={i === 0 ? styles.tableHead : styles.tableCell}
+                  >
+                    {cell}
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  } else if (block.kind === \"code\") {
+    body = (
+      <View style={styles.bounded}>
+        <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Code ${block.id}`}>
+          <Text selectable style={styles.code}>{block.text}</Text>
+        </ScrollView>
+      </View>
+    );
+  } else if (block.kind === \"heading\") {
+    body = <Text selectable accessibilityRole=\"header\" style={styles.title}>{text}</Text>;
+  } else if (block.kind === \"quote\") {
+    body = <Text selectable style={styles.quote}>{text}</Text>;
+  } else {
+    body = <Text selectable style={block.kind === \"caveat\" ? styles.caveat : styles.bodyText}>{text}</Text>;
+  }
+  return (
+    <View
+      nativeID={`block-${block.id}`}
+      style={{ marginBottom: space.md }}
+      onLayout={(e) => onLayoutY?.(e.nativeEvent.layout.y)}
+    >
+      {body}
+      <View style={styles.citeRow}>
+        {block.citationIds.map((id) => (
+          <Pressable
+            key={id}
+            onPress={() => onOpenSource(id)}
+            accessibilityRole=\"button\"
+            accessibilityLabel={`Open source ${id.slice(0, 8)}`}
+            hitSlop={8}
+          >
+            <Text style={[styles.link, styles.citeLink]}>Source {id.slice(0, 8)}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function makeStyles(theme: (typeof color)[\"light\"] | (typeof color)[\"dark\"]) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: theme.bg },
+    header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: \"row\", justifyContent: \"space-between\", alignItems: \"flex-start\", flexWrap: \"wrap\", gap: 8 },
+    wordmark: { ...typeTokens.title, color: theme.ink, flexShrink: 1 },
+    link: { color: theme.accent, fontSize: 16, paddingVertical: 8 },
+    banner: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
+    bannerLive: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
+    bannerText: { color: theme.ink, fontSize: 13 },
+    error: { color: theme.danger, padding: space.md },
+    body: { flex: 1, padding: space.md },
+    welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
+    card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, overflow: \"hidden\" },
+    sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: \"100%\" },
+    sheetBody: { flex: 1, maxHeight: \"100%\" },
+    bounded: { width: \"100%\", maxWidth: \"100%\" },
+    outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
+    outlineItem: { ...typeTokens.caption, color: theme.muted, marginBottom: 2 },
+    tableRow: { flexDirection: \"row\", borderBottomWidth: 1, borderBottomColor: theme.line },
+    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 6, paddingRight: 12 },
+    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 6, paddingRight: 12, textTransform: \"uppercase\" },
+    code: { fontFamily: Platform.OS === \"ios\" ? \"Menlo\" : \"monospace\", fontSize: 13, color: theme.ink, paddingVertical: 8 },
+    quote: { ...typeTokens.body, color: theme.ink, fontStyle: \"italic\", paddingLeft: space.sm, borderLeftWidth: 2, borderLeftColor: theme.line },
+    citeRow: { flexDirection: \"row\", flexWrap: \"wrap\" },
+    citeLink: { paddingRight: 16 },
+    kicker: { ...typeTokens.caption, color: theme.muted, textTransform: \"uppercase\", marginBottom: 6 },
+    title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
+    bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },
+    caveat: { ...typeTokens.body, color: theme.caveat, marginTop: 8 },
+    row: { flexDirection: \"row\", justifyContent: \"space-between\", alignItems: \"center\" },
+    composerWrap: { flexDirection: \"row\", alignItems: \"flex-end\", padding: space.sm, borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.surface },
+    composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, padding: space.sm },
+    sendBtn: { paddingHorizontal: space.md, paddingVertical: space.sm },
+    send: { color: theme.accent, fontWeight: \"600\", fontSize: 16 },
+    tabs: { flexDirection: \"row\", borderTopWidth: 1, borderColor: theme.line },
+    tab: { flex: 1, alignItems: \"center\", paddingVertical: 12, paddingHorizontal: 4 },
+    tabOn: { color: theme.ink, fontWeight: \"600\", textTransform: \"capitalize\", textAlign: \"center\" },
+    tabOff: { color: theme.muted, textTransform: \"capitalize\", textAlign: \"center\" },
+    input: { borderWidth: 1, borderColor: theme.line, borderRadius: 8, padding: space.sm, color: theme.ink, marginBottom: 8 },
+    attachRow: { paddingHorizontal: space.md, paddingTop: space.sm },
+  });
+}
+
+export function App() {
+  return (
+    <SafeAreaProvider>
+      <AppInner />
+    </SafeAreaProvider>
+  );
+}
+"
+
+ ❯ test/lifecycle.test.ts:92:17
+     90|     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
+     91|     expect(src).toMatch(/api\.settings\(token\)/);
+     92|     expect(src).toMatch(/Processor disclosures/);
+       |                 ^
+     93|     expect(src).toMatch(/Report generated output/);
+     94|     expect(src).toMatch(/Include report excerpt/);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  test/lifecycle.test.ts > P0-N native state mapping > App.tsx labels composer, progress, report, source sheet, library, and settings
+AssertionError: expected 'import { ProfilePanel } from "./src/P…' to contain 'accessibilityLabel="Settings"'
+
+- Expected
++ Received
+
+- accessibilityLabel="Settings"
++ import { ProfilePanel } from "./src/ProfilePanel";
++ import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
++ import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
++ import { submitSourceDeletion } from "./src/source-deletion-flow";
++ import { createReadingRestoration } from "./src/reading-position";
++ import { nativeDocumentDigest } from "./src/native-document-digest";
++ import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from "./src/admission-retry";
++ import { SourceSheet } from "./src/SourceSheet";
++ import { readSourceDetail } from "./src/source-view";
++ import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from "./src/correction-draft";
++ import { AttachmentPanel } from "./src/AttachmentPanel";
++ import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
++ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
++ import {
++   AccessibilityInfo,
++   ActivityIndicator,
++   AppState,
++   BackHandler,
++   Keyboard,
++   KeyboardAvoidingView,
++   Linking,
++   Platform,
++   Pressable,
++   ScrollView,
++   Share,
++   StyleSheet,
++   Text,
++   TextInput,
++   useColorScheme,
++   View,
++ } from "react-native";
++ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
++ import { StatusBar } from "expo-status-bar";
++ import { color, space, type as typeTokens } from "@deep/design";
++ import { sessionStorage } from "./src/native-session";
++ import { SupersededRequest } from "./src/request-scope";
++ import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
++ import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
++ import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
++ import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
++ import {
++   androidBack,
++   applySnapshot,
++   attachFile,
++   canSubmit,
++   conciseBlocks,
++   emptyState,
++   expireLocalSession,
++   logout as logoutState,
++   mergeEvents,
++   openLibraryItem,
++   submitPrerequisite,
++   type ReportBlock,
++   type UiState,
++ } from "./src/state";
++
++ /** Hermes/Expo Go has no global crypto.randomUUID. */
++ function newId(): string {
++   const bytes = new Uint8Array(16);
++   for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
++   bytes[6] = (bytes[6]! & 0x0f) | 0x40;
++   bytes[8] = (bytes[8]! & 0x3f) | 0x80;
++   const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
++   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
++ }
++
++ function useTheme() {
++   const scheme = useColorScheme() === "dark" ? "dark" : "light";
++   return color[scheme];
++ }
++
++ function AppInner() {
++   const theme = useTheme();
++   const insets = useSafeAreaInsets();
++   const [state, setStateRaw] = useState<UiState>(emptyState());
++   const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
++     const guard = api.capture();
++     setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
++     guard.release();
++   }, []);
++   const setViewState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
++     const guard = api.captureView();
++     setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
++     guard.release();
++   }, []);
++   const [token, setToken] = useState<string | null>(null);
++   const [hydrated, setHydrated] = useState(false);
++   const [storageReady, setStorageReady] = useState(false);
++   const submitting = useRef(false);
++   const deletingSource = useRef(false);
++   const verifying = useRef(false);
++   const [verificationBusy, setVerificationBusy] = useState(false);
++   const [verificationPolicy, setVerificationPolicy] = useState<"reuse_snapshot" | "refresh_sources">("reuse_snapshot");
++   const [verificationNote, setVerificationNote] = useState("");
++   useEffect(() => { setVerificationNote(""); setVerificationPolicy("reuse_snapshot"); }, [token]);
++   const [sourceDeleteBusy, setSourceDeleteBusy] = useState(false);
++   const pickingDocument = useRef(false);
++   const [documentPending, setDocumentPending] = useState(false);
++   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
++   const signingIn = useRef<Promise<string> | null>(null);
++   const refreshing = useRef(new Map<string, symbol>());
++   const [detailed, setDetailed] = useState(true);
++   const savedCorrection = activeCorrectionDraft(state);
++   const correction = savedCorrection?.question ?? "";
++   const evidencePolicy = savedCorrection?.evidencePolicy ?? "reuse_snapshot";
++   const staleCorrection = Boolean(savedCorrection && state.run?.brief && savedCorrection.baseRevision !== state.run.brief.revision);
++   function changeCorrection(patch: { question?: string; evidencePolicy?: "reuse_snapshot" | "refresh" }) {
++     const runId = state.run?.runId, revision = state.run?.brief?.revision;
++     if (!token || !runId || !revision || !api.currentRun(token, runId)) return;
++     setViewState(s => editCorrectionDraft(s, runId, revision, patch));
++   }
++   const setCorrection = (question: string) => changeCorrection({ question });
++   const setEvidencePolicy = (evidencePolicy: "reuse_snapshot" | "refresh") => changeCorrection({ evidencePolicy });
++   const [correctionPending,setCorrectionPending]=useState(false);
++   const correctionAttempt=useRef<symbol|null>(null);
++   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
++   const correctionReady=!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
++   useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
++   const [clarifyAnswer, setClarifyAnswer] = useState("");
++   const [attachName, setAttachName] = useState("note.txt");
++   const [attachText, setAttachText] = useState("");
++   const [showAttach, setShowAttach] = useState(false);
++   const [keyboardOpen, setKeyboardOpen] = useState(false);
++   const [processors, setProcessors] = useState<string[]>([]);
++   const [privacyFlows, setPrivacyFlows] = useState("");
++   const [deletionVsSub, setDeletionVsSub] = useState("");
++   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
++   const [flagOpen, setFlagOpen] = useState(false);
++   const [flagCategory, setFlagCategory] = useState<(typeof OUTPUT_REPORT_CATEGORIES)[number]>("inaccurate");
++   const [flagNote, setFlagNote] = useState("");
++   const [flagInclude, setFlagInclude] = useState(false);
++   const [flagStatus, setFlagStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
++   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
++   const conversationScroll = useRef<ScrollView>(null);
++   const scrollY = useRef(0);
++   const reading = useRef(createReadingRestoration());
++   const readerIdentity = useRef("");
++   const readerGeneration = useRef(0);
++   const blocks: ReportBlock[] = state.report
++     ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
++   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
++   // Identity stays in memory. Protected snapshots contain only report/block IDs.
++   const readerKey = JSON.stringify([token, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
++   if (readerIdentity.current !== readerKey) {
++     readerIdentity.current = readerKey;
++     scrollY.current = 0;
++     if (readerVisible && token && state.report) {
++       readerGeneration.current = reading.current.begin({ ownerKey: token, reportId: state.report.reportId }, state.readingAnchor, blocks.map(b => b.id), state.report.blocks.map(b => b.id));
++     } else {
++       reading.current.clear();
++       readerGeneration.current = 0;
++     }
++   }
++   const readerView = readerGeneration.current;
++   function restoreReadingPosition() {
++     const result = reading.current.take(readerView);
++     if (result.kind !== "ready") return;
++     scrollY.current = result.y;
++     conversationScroll.current?.scrollTo({ y: result.y, animated: false });
++     if (result.note) setState(s => ({ ...s, readingAnchor: result.anchor, error: result.note! }));
++   }
++
++   const styles = useMemo(() => makeStyles(theme), [theme]);
++
++   useEffect(() => {
++     if (!hydrated || submitting.current || deletingSource.current || verifying.current) return;
++     const guard = api.capture();
++     void persistSession(sessionStorage, { token, state }).catch(() => {
++       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
++     }).finally(() => guard.release());
++   }, [state, token, hydrated, setState]);
++
++   function persistAnchor(reportId: string, blockId?: string) {
++     const anchor = reading.current.capture(readerView, scrollY.current, blockId);
++     if (!anchor || anchor.reportId !== reportId) return;
++     setState(s => s.report?.reportId === reportId ? { ...s, readingAnchor: anchor } : s);
++   }
++
++   function saveVisibleReadingPosition() {
++     if (state.report && !state.source) persistAnchor(state.report.reportId);
++   }
++
++   async function ensureSession() {
++     if (signingIn.current) return signingIn.current;
++     const pending = startSession(); signingIn.current = pending;
++     try { return await pending; }
++     finally { if (signingIn.current === pending) signingIn.current = null; }
++   }
++
++   async function startSession() {
++     if (token) return token;
++     if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
++     if (!storageReady) throw new Error("Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.");
++     let guard: ReturnType<typeof api.capture> | undefined;
++     try {
++       const s = await api.session();
++       api.activateSession(s.token);
++       guard = api.capture();
++       await activateLocalSession(sessionStorage, s);
++       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
++       const accepted = guard;
++       setToken((previous) => accepted.current() ? s.token : previous);
++       setState((prev) => {
++         if (!accepted.current()) return prev;
++         const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null };
++
++         return next;
++       });
++       guard.release();
++       return s.token;
++     } catch (e) {
++       if (isSupersededRequest(e)) throw e;
++       if (guard?.current()) api.activateSession(null);
++       setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
++       throw e;
++     } finally { guard?.release(); }
++   }
++
++   async function grantConsent() {
++     try {
++       const t = token ?? (await ensureSession());
++       await api.consent(t, true);
++       setState((s) => {
++         const next = { ...s, consentGranted: true, error: null };
++
++         return next;
++       });
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else setState((s) => ({ ...s, error: (e as Error).message, tab: "settings" }));
++     }
++   }
++
++   function clearPanels() {
++     refreshing.current.clear();
++     setUploadStatus(null);
++     setCorrection(""); setClarifyAnswer(""); setAttachText(""); setAttachName("note.txt");
++     setFlagNote(""); setFlagOpen(false); setFlagStatus("idle"); setFlagInclude(false);
++     setRestoreMessage(null); setProcessors([]); setPrivacyFlows(""); setDeletionVsSub("");
++   }
++
++   async function onAuthFailure() {
++     stopPolling(); api.activateSession(null); clearPanels();
++     setToken(null); setState((s) => expireLocalSession(s));
++     try { await clearAccountLocal(sessionStorage); }
++     catch { setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." })); }
++   }
++
++   async function refreshRun(t: string, runId: string) {
++     if (!api.currentRun(t, runId)) return;
++     const key = `${t}:${runId}`;
++     if (refreshing.current.has(key)) return;
++     const attempt = Symbol(); refreshing.current.set(key, attempt);
++     try {
++       const snap = await api.getRun(t, runId);
++       const ev = await api.events(t, runId, 0);
++       const report = snap.reportId ? await api.report(t, snap.reportId) : null;
++       setViewState((s) => {
++         if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
++         let next = applySnapshot(s, snap);
++         next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
++         if (report) {
++           next = {
++             ...next,
++             report: {
++               reportId: report.reportId,
++               version: report.version,
++               blocks: report.blocks,
++               limitations: report.limitations ?? [],
++               labeledDemo: report.labeledDemo,
++               changeSummary: report.changeSummary ?? null,
++             },
++           };
++         } else if (snap.runId && s.run?.runId !== snap.runId) {
++           next = { ...next, report: null };
++         } else if (!snap.reportId && (snap.lifecycle === "awaiting_input" || snap.lifecycle === "queued" || snap.lifecycle === "running")) {
++           next = { ...next, report: null };
++         }
++
++         return next;
++       });
++       setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else if (isOfflineError(e)) {
++         setViewState((s) => {
++           const next = { ...s, offline: true, error: (e as Error).message };
++
++           return next;
++         });
++       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
++     } finally { if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
++   }
++
++   function stopPolling() {
++     if (poll.current) {
++       clearInterval(poll.current);
++       poll.current = null;
++     }
++   }
++
++   function startPolling(t: string, runId: string) {
++     if (!api.currentRun(t, runId)) return;
++     stopPolling();
++     poll.current = setInterval(() => {
++       void refreshRun(t, runId);
++     }, 1000);
++   }
++
++   useEffect(() => {
++     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
++       api.closeSource();
++       let consumed = false;
++       setState((s) => {
++         const r = androidBack(s);
++         consumed = r.consumed;
++         return r.next;
++       });
++       return consumed;
++     });
++     void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
++       if (v) setState((s) => ({ ...s, reducedMotion: true }));
++     });
++     let mounted = true;
++     const hydration = api.capture();
++     void Promise.resolve().then(clearDocumentPickerCache).then(() => hydrateOnLaunch(sessionStorage)).then(async ({ token: t, accountId, state: saved }) => {
++       if (!hydration.current()) return;
++       api.activateSession(t);
++       const restored = api.capture();
++       let s = saved;
++       if (t) {
++         try {
++           const identity = await api.sessionInfo(t);
++           if (identity.accountId !== accountId) { restored.release(); await onAuthFailure(); return; }
++         } catch (error) {
++           if (isSupersededRequest(error)) { restored.release(); return; }
++           if (isExpiredSession(error)) { restored.release(); await onAuthFailure(); return; }
++           s = { ...saved, offline: true, error: "Could not refresh this session. Saved content remains on this device; new research is disabled until reconnected." };
++         }
++       }
++       if (!restored.current()) { restored.release(); return; }
++       setStorageReady(true);
++       setToken((previous) => restored.current() ? t : previous);
++       setState((previous) => restored.current() ? s : previous);
++       if (t && s.run?.runId && !s.pendingSourceDeletion) {
++         api.selectRun(s.run.runId);
++         void refreshRun(t, s.run.runId);
++         startPolling(t, s.run.runId);
++       }
++       restored.release();
++     }).catch(() => setState((s) => ({ ...s, error: "Device session storage or temporary-file cleanup is unavailable. Try again when device storage is available." })))
++       .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
++     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
++     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
++     const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
++     const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
++     const appSub = AppState.addEventListener("change", (st) => {
++       if (st !== "active") {
++         void sessionStorage.flush().catch(() => setState(s => ({ ...s, error: "Could not save this device’s session." })));
++         return;
++       }
++       void api.health()
++         .then(() => setState((s) => (s.offline ? { ...s, offline: false, error: null } : s)))
++         .catch((e) => {
++           if (isOfflineError(e)) {
++             setState((s) => ({ ...s, offline: true, error: (e as Error).message }));
++           }
++         });
++     });
++     return () => {
++       mounted = false;
++       sub.remove();
++       show.remove();
++       hide.remove();
++       appSub.remove();
++       api.activateSession(null);
++       if (poll.current) clearInterval(poll.current);
++     };
++   }, []);
++
++   useEffect(() => {
++     if (state.tab !== "settings" || !token) return;
++     void api.settings(token).then((s: {
++       processors?: string[];
++       privacyDisclosure?: { dataFlows?: string; deletionVsSubscription?: string };
++     }) => {
++       if (Array.isArray(s.processors)) setProcessors(s.processors);
++       if (s.privacyDisclosure?.dataFlows) setPrivacyFlows(s.privacyDisclosure.dataFlows);
++       if (s.privacyDisclosure?.deletionVsSubscription) setDeletionVsSub(s.privacyDisclosure.deletionVsSubscription);
++     }).catch(() => {
++       /* keep last known processors; signed-out path shows the sign-in prompt */
++     });
++   }, [state.tab, token]);
++
++   async function onPickDocument() {
++     if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
++     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
++     if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
++     const guard = api.capture();
++     pickingDocument.current = true; setDocumentPending(true);
++     try {
++       const file = await pickDocument(guard.current);
++       if (file && guard.current()) setState(s => guard.current() && !deletingSource.current && !s.pendingSourceDeletion ? attachFile(s, file) : s);
++     } catch (error) {
++       if (guard.current() && !isSupersededRequest(error)) setState(s => guard.current() ? { ...s, error: (error as Error).message } : s);
++     } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
++   }
++
++   async function onSend() {
++     if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current) return;
++     if (!storageReady) return;
++     const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
++     if (!gate.ok) {
++       const tab = submitPrerequisite(state);
++       setViewState((s) => ({ ...s, error: gate.reason ?? "Cannot send", tab }));
++       return;
++     }
++     const accountGuard = api.capture();
++     try {
++       submitting.current = true;
++       setUploadStatus("Preparing saved request…");
++       api.selectRun(null);
++       stopPolling();
++       const t = token ?? (await ensureSession());
++       if (state.pendingAdmission) { await api.sessionInfo(t); setState(s => ({ ...s, offline: false })); }
++       const guard = api.captureView();
++       let created;
++       try {
++         const pending = state.pendingAdmission ?? await prepareAdmission(state.draft, state.routeMode, state.attachments, newId, nativeDocumentDigest, guard.current);
++         created = await submitAdmission(pending, state.attachments, {
++           digest: nativeDocumentDigest,
++           current: guard.current,
++           progress: setUploadStatus,
++           save: async draft => {
++             await sessionStorage.saveAdmission(t, draft);
++             if (!guard.current()) throw new SupersededRequest();
++             setState(s => ({ ...s, pendingAdmission: draft, attachments: s.pendingAdmission ? s.attachments : s.attachments.map((f,i) => ({ ...f, id: draft.uploads[i]?.key })) }));
++           },
++           upload: (file, key) => file.bytes ? api.attachBytes(t, file.filename, file.mime, file.bytes, key) : api.attach(t, file.filename, file.mime, file.text, key),
++           admit: (draft, ids) => api.createRun(t, draft.question, draft.routeMode, draft.key, ids),
++         });
++         if (!guard.current()) throw new SupersededRequest();
++       } finally { guard.release(); }
++       await adoptAdmission(t, created);
++     } catch (e) {
++       if (!accountGuard.current() || isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else if (isOfflineError(e)) {
++         setViewState((s) => {
++           const next = {
++             ...s,
++             offline: true,
++             error: (e as Error).message,
++           };
++
++           return next;
++         });
++       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
++     } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
++   }
++
++   async function adoptAdmission(t: string, created: AdmittedRun) {
++       const guard = api.captureView();
++       try {
++       const next: UiState = {
++           ...state,
++           pendingAdmission: null,
++           status: "progress" as const,
++           error: null,
++           attachments: [],
++           report: null,
++           previousReport: state.report
++             ? { reportId: state.report.reportId, blocks: state.report.blocks }
++             : state.previousReport,
++           run: {
++             runId: created.runId,
++             lifecycle: created.lifecycle,
++             phase: created.phase,
++             outcome: null,
++             reportId: null,
++             labeledDemo: created.labeledDemo,
++           },
++       };
++       await sessionStorage.finishAdmission(t, next);
++       if (!guard.current()) throw new SupersededRequest();
++       api.selectRun(created.runId);
++       setViewState(next);
++       setShowAttach(false);
++       AccessibilityInfo.announceForAccessibility(
++         "Research in progress. Cancel is available. Closing the app will not stop the job.",
++       );
++       await refreshRun(t, created.runId);
++       startPolling(t, created.runId);
++       } finally { guard.release(); }
++   }
++
++   async function resolvePendingAdmission() {
++     if (!token || !state.pendingAdmission || submitting.current || !storageReady) return;
++     const guard = api.captureView(); submitting.current = true; setUploadStatus("Checking saved request…");
++     try {
++       const result = await api.resolveRunRequest(token, state.pendingAdmission.key);
++       if (!guard.current()) throw new SupersededRequest();
++       if (result.status === "accepted") await adoptAdmission(token, readAdmittedRun(result.run));
++       else if (result.status === "withdrawn") {
++         await sessionStorage.saveAdmission(token, null);
++         if (!guard.current()) throw new SupersededRequest();
++         setState(s => ({ ...s, pendingAdmission: null, offline: false, error: "No active request remains for this key. The saved request is withdrawn; you can edit and send again." }));
++       } else throw new Error("The saved request could not be resolved. Retry checking it.");
++     } catch (error) {
++       if (!guard.current() || isSupersededRequest(error)) return;
++       if (isExpiredSession(error)) await onAuthFailure();
++       else setState(s => ({ ...s, error: (error as Error).message }));
++     } finally { guard.release(); submitting.current = false; setUploadStatus(null); }
++   }
++
++   async function onCancel() {
++     if (!token || !state.run) return;
++     try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
++     catch (error) {
++       if (isSupersededRequest(error)) return;
++       if (isExpiredSession(error)) await onAuthFailure();
++       else setState((s) => ({ ...s, error: "Could not confirm cancellation. Retry or reopen this run." }));
++     }
++   }
++
++   async function onDeleteSource(target?: SourceDeletionTarget) {
++     if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification) return;
++     const guard = api.capture();
++     try {
++       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
++       const pending = state.pendingSourceDeletion ? state : prepareSourceDeletion(state, target?.sourceId ?? "");
++       deletingSource.current = true; setSourceDeleteBusy(true);
++       stopPolling(); api.closeSource(); api.selectRun(null);
++       const confirmed = await submitSourceDeletion(pending, {
++         current: guard.current,
++         save: next => sessionStorage.persistRequired(token, next),
++         hide: next => { setAttachText(""); setAttachName("note.txt"); setShowAttach(false); setState(s => guard.current() ? next : s); },
++         remove: id => api.deleteSource(token, id),
++       });
++       if (guard.current()) setState({ ...confirmed, offline: false });
++     } catch (error) {
++       if (!guard.current() || isSupersededRequest(error)) return;
++       if (isExpiredSession(error)) await onAuthFailure();
++       else setState(s => ({ ...s, error: (error as Error).message, offline: isOfflineError(error) || s.offline }));
++     } finally { guard.release(); deletingSource.current = false; setSourceDeleteBusy(false); }
++   }
++
++   async function onOpenSource(id: string, blockId: string) {
++     try {
++       const t = token;
++       if (!t) {
++         setViewState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
++         return;
++       }
++       if (state.report) persistAnchor(state.report.reportId, blockId);
++       const src = readSourceDetail(await api.source(t, id));
++       setViewState((s) => ({ ...s, source: src, tab: "research" }));
++       AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else setViewState((s) => ({ ...s, error: (e as Error).message }));
++     }
++   }
++
++   async function onCorrect() {
++     if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification) return;
++     const text = correction.trim();
++     if (!text) {
++       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
++       return;
++     }
++     if(!correctionReady||!state.run.brief?.revision) {
++       setViewState((s)=>({...s,error:"Corrections are unavailable for this run. Refresh its status before trying again."}));return;
++     }
++     const attempt=Symbol("correction"),guard=api.captureView();correctionAttempt.current=attempt;setCorrectionPending(true);
++     try {
++       const child = await api.correct(token, state.run.runId, state.run.brief.revision, text,
++         correctionMode==="replace_question"?{kind:"replace_question",question:text,evidencePolicy}:undefined);
++       if(!guard.current())throw new SupersededRequest();
++       api.selectRun(child.runId);
++       setShowAttach(false);
++       setViewState((s) => {
++         const next = {
++           ...s,
++           status: "progress" as const,
++           correctionDraft: null,
++           error: null,
++           previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
++           run: {
++             runId: child.runId,
++             lifecycle: "queued",
++             phase: "preparing",
++             outcome: null,
++             reportId: null,
++             labeledDemo: s.run?.labeledDemo ?? true,
++           },
++         };
++
++         return next;
++       });
++       startPolling(token, child.runId);
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else if (isOfflineError(e)) {
++         setViewState((s) => ({ ...s, offline: true, error: (e as Error).message }));
++       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
++     } finally {
++       guard.release();
++       if(correctionAttempt.current===attempt){correctionAttempt.current=null;setCorrectionPending(false);}
++     }
++   }
++
++   async function onContinueClarification() {
++     if (!token || !state.run) return;
++     const geography = clarifyAnswer.trim();
++     if (!geography) {
++       setViewState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
++       return;
++     }
++     try {
++       await api.continueRun(token, state.run.runId, geography);
++       setViewState((s) => {
++         const next = { ...s, status: "progress" as const, error: null };
++
++         return next;
++       });
++       AccessibilityInfo.announceForAccessibility("Clarification saved. Research continues on the server.");
++       await refreshRun(token, state.run.runId);
++       startPolling(token, state.run.runId);
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else if (isOfflineError(e)) {
++         setViewState((s) => {
++           const next = { ...s, offline: true, error: (e as Error).message };
++
++           return next;
++         });
++       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
++     }
++   }
++
++   async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
++     if (!token) return;
++     if (runId === pending.parentRunId) throw new Error("Verification resolved to its parent instead of a child. Retry the saved request.");
++     api.selectRun(runId);
++     const guard = api.captureView();
++     try {
++       const snap = readVerificationRun(await api.getRun(token, runId), runId);
++       if (!guard.current()) throw new SupersededRequest();
++       let next = applySnapshot({ ...state, pendingVerification: null, previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport, report: null, source: null, events: [], readingAnchor: null, correctionDraft: null }, snap);
++       next = { ...next, error: null, offline: false, tab: "research" };
++       await sessionStorage.persistRequired(token, next);
++       if (!guard.current()) throw new SupersededRequest();
++       setState(next);
++       await refreshRun(token, runId); startPolling(token, runId);
++     } finally { guard.release(); }
++   }
++
++   async function onFollowUp() {
++     if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission) return;
++     const guard = api.capture();
++     try {
++       verifying.current = true; setVerificationBusy(true);
++       let pending = state.pendingVerification;
++       if (!pending) {
++         if (state.report?.labeledDemo) throw new Error("Demo reports do not support evidence verification.");
++         const claimId = state.report?.blocks.find(b => b.kind === "answer" && b.claimIds.length)?.claimIds[0] ?? state.report?.blocks.find(b => b.claimIds.length)?.claimIds[0];
++         if (!claimId || !state.report?.version) throw new Error("Reopen a current report with a supported claim before requesting verification.");
++         pending = prepareVerificationRequest({ run: state.run, report: state.report, reportId: state.report.reportId, reportVersion: state.report.version, claimId, note: verificationNote, evidencePolicy: verificationPolicy, idempotencyKey: newId(), pendingAdmission: state.pendingAdmission, pendingSourceDeletion: state.pendingSourceDeletion });
++       }
++       api.selectRun(pending.parentRunId); stopPolling();
++       const accepted = await submitVerificationRequest(pending, {
++         current: guard.current,
++         save: async saved => {
++           await sessionStorage.persistRequired(token, { ...state, pendingVerification: saved });
++           if (!guard.current()) throw new SupersededRequest();
++           setState(s => ({ ...s, pendingVerification: saved }));
++         },
++         post: (id, request) => api.followUp(token, id, request),
++       });
++       if (guard.current()) await adoptVerification(pending, accepted.runId);
++     } catch (error) {
++       if (!guard.current() || isSupersededRequest(error)) return;
++       if (isExpiredSession(error)) await onAuthFailure();
++       else setState(s => ({ ...s, error: (error as Error).message }));
++     } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
++   }
++
++   async function resolvePendingVerification() {
++     const pending = state.pendingVerification;
++     if (!token || !pending || verifying.current) return;
++     const guard = api.capture();
++     try {
++       verifying.current = true; setVerificationBusy(true);
++       const result = await api.resolveRunRequest(token, pending.request.idempotencyKey, pending);
++       if (!guard.current()) throw new SupersededRequest();
++       if (result.status === "accepted") await adoptVerification(pending, readAdmittedRun(result.run).runId);
++       else if (result.status === "withdrawn") {
++         const next = { ...state, pendingVerification: null, error: "The saved verification request is withdrawn. No new verification will start under this key." };
++         await sessionStorage.persistRequired(token, next);
++         if (guard.current()) setState(next);
++       } else throw new Error("Verification status could not be confirmed. Retry the saved request.");
++     } catch (error) {
++       if (guard.current() && !isSupersededRequest(error)) setState(s => ({ ...s, error: (error as Error).message }));
++     } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
++   }
++
++   async function onShare(reportId?: string) {
++     const id = reportId ?? state.report?.reportId;
++     if (!token || !id || state.pendingSourceDeletion || deletingSource.current) return;
++     try {
++       const md = await api.exportMd(token, id);
++       await Share.share({ message: md.markdown, title: "Research report" });
++     } catch (e) {
++       if (isSupersededRequest(e)) return;
++       if (isExpiredSession(e)) await onAuthFailure();
++       else setState((s) => ({ ...s, error: (e as Error).message }));
++     }
++   }
++
++
++   return (
++     <SafeAreaView style={styles.safe} accessibilityLabel="Deep Research">
++       <StatusBar style={theme === color.dark ? "light" : "dark"} />
++       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={insets.top}>
++         <View style={styles.header}>
++           <Text style={styles.wordmark} accessibilityRole="header" allowFontScaling maxFontSizeMultiplier={2}>
++             Deep Research
++           </Text>
++           <Pressable onPress={() => setState((s) => ({ ...s, tab: "settings" }))} accessibilityRole="button" accessibilityLabel="Open profile and settings">
++             <Text style={styles.link}>Profile</Text>
++           </Pressable>
++         </View>
++         {state.routeMode === "fixture" ? (
++           <View style={styles.banner} accessibilityLabel="Demo fixture route">
++             <Text style={styles.bannerText}>Demo route — labeled fixture, not live research</Text>
++           </View>
++         ) : (
++           <View style={styles.bannerLive} accessibilityLabel="Live research route">
++             <Text style={styles.bannerText}>Live research route</Text>
++           </View>
++         )}
++         {state.pendingVerification ? <View style={styles.card} accessibilityLabel="Saved verification request">
++           <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
++           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
++           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Check or withdraw verification" onPress={() => void resolvePendingVerification()}><Text style={styles.link}>Check or withdraw</Text></Pressable>
++         </View> : null}
++         {state.pendingSourceDeletion ? <View style={styles.card} accessibilityLabel="Pending source deletion">
++           <Text style={styles.bodyText}>Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.</Text>
++           <Pressable accessibilityRole="button" accessibilityLabel="Retry source deletion" disabled={sourceDeleteBusy}
++             onPress={() => void onDeleteSource()}><Text style={styles.link}>{sourceDeleteBusy ? "Confirming deletion…" : "Retry deletion"}</Text></Pressable>
++         </View> : null}
++         {state.error ? (
++           <Text style={styles.error} accessibilityLiveRegion="polite">
++             {state.error}
++           </Text>
++         ) : null}
++
++         {state.tab === "research" && !state.source ? (
++           <ScrollView
++             key={readerView}
++             ref={conversationScroll}
++             style={styles.body}
++             contentContainerStyle={{ paddingBottom: 200 }}
++             keyboardShouldPersistTaps="handled"
++             accessibilityLabel="Research conversation"
++             scrollEventThrottle={100}
++             onLayout={event => { reading.current.measureViewport(readerView, event.nativeEvent.layout.height); restoreReadingPosition(); }}
++             onContentSizeChange={(_width, height) => { reading.current.measureContent(readerView, height); restoreReadingPosition(); }}
++             onScroll={(event) => { if (readerView === readerGeneration.current) scrollY.current = event.nativeEvent.contentOffset.y; }}
++             onScrollBeginDrag={() => reading.current.userScrolled(readerView)}
++             onScrollEndDrag={() => saveVisibleReadingPosition()}
++             onMomentumScrollEnd={() => saveVisibleReadingPosition()}
++           >
++             {state.pendingAdmission ? <View style={styles.card} accessibilityLabel="Saved research request">
++               <Text style={styles.bodyText}>Request awaiting confirmation. Retry keeps the same question and documents.</Text>
++               {state.pendingAdmission.uploads.some(u => !u.attachmentId) ? <Text style={styles.bodyText}>Select the original files again: {state.pendingAdmission.uploads.filter(u => !u.attachmentId).map(u => u.filename).join(", ")}</Text> : null}
++               <Pressable disabled={uploadStatus !== null} accessibilityRole="button" accessibilityLabel="Check or withdraw saved research request" onPress={() => void resolvePendingAdmission()}><Text style={styles.link}>Check or withdraw saved request</Text></Pressable>
++             </View> : null}
++             {!state.run && !state.report && !state.pendingAdmission ? (
++               <Text style={styles.welcome}>
++                 Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.
++               </Text>
++             ) : null}
++
++             {state.status === "progress" || state.status === "loading" ? (
++               <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
++                 <Text style={styles.kicker}>{state.run?.phase ?? "queued"}</Text>
++                 <Text style={styles.bodyText}>
++                   {state.events.at(-1)?.publicSummary ?? "Waiting for the server. Closing this app will not stop the job."}
++                 </Text>
++                 {state.reducedMotion ? null : <ActivityIndicator accessibilityLabel="In progress" />}
++                 <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel research">
++                   <Text style={styles.link}>Cancel</Text>
++                 </Pressable>
++               </View>
++             ) : null}
++
++             {state.status === "cancelled" ? (
++               <Text style={styles.bodyText}>Cancelled. Partial evidence is kept unless you delete your account.</Text>
++             ) : null}
++             {state.status === "failed" ? (
++               <Text style={styles.bodyText}>The run failed. Saved evidence, if any, is still in your library.</Text>
++             ) : null}
++             {state.status === "awaiting_input" ? (
++               <View style={styles.card} accessibilityLabel="Clarification needed">
++                 <Text style={styles.kicker}>Need one detail</Text>
++                 <Text style={styles.bodyText}>{state.events.find((e) => e.type === "clarify")?.publicSummary ?? "Which jurisdiction should this answer apply to?"}</Text>
++                 <TextInput
++                   value={clarifyAnswer}
++                   onChangeText={setClarifyAnswer}
++                   placeholder="Jurisdiction"
++                   placeholderTextColor={theme.muted}
++                   style={styles.input}
++                   allowFontScaling
++                   maxFontSizeMultiplier={2}
++                   accessibilityLabel="Clarification answer"
++                 />
++                 <Pressable
++                   onPress={() => void onContinueClarification()}
++                   accessibilityRole="button"
++                   accessibilityLabel="Submit clarification and continue"
++                   disabled={!clarifyAnswer.trim()}
++                 >
++                   <Text style={styles.send}>Continue research</Text>
++                 </Pressable>
++               </View>
++             ) : null}
++             {state.offline ? (
++               <Text style={styles.caveat} accessibilityLiveRegion="polite">
++                 Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.
++               </Text>
++             ) : null}
++
++             {state.report ? (
++               <View style={styles.card} accessibilityLabel="Research report" onLayout={(event) => {
++                 reading.current.measureCard(readerView, event.nativeEvent.layout.y);
++                 restoreReadingPosition();
++               }}>
++                 <View style={styles.row}>
++                   <Text style={styles.kicker}>{state.report.labeledDemo ? "Fixture report" : "Live report"}</Text>
++                   <Pressable onPress={() => setDetailed((d) => !d)} accessibilityRole="button" accessibilityLabel={detailed ? "Show concise view" : "Show detailed view"}>
++                     <Text style={styles.link}>{detailed ? "Concise" : "Detailed"}</Text>
++                   </Pressable>
++                 </View>
++                 {detailed && blocks.length > 4 ? (
++                   <View style={styles.outline} accessibilityLabel="Report outline">
++                     <Text style={styles.kicker}>Outline</Text>
++                     {blocks.map((b) => (
++                       <Text key={`outline-${b.id}`} style={styles.outlineItem}>
++                         {b.kind} · {b.id}
++                       </Text>
++                     ))}
++                   </View>
++                 ) : null}
++                 {blocks.map((b) => (
++                   <ReportBlockView
++                     key={b.id}
++                     block={b}
++                     styles={styles}
++                     onOpenSource={(id) => void onOpenSource(id, b.id)}
++                     onLayoutY={(y) => {
++                       reading.current.measureBlock(readerView, b.id, y);
++                       restoreReadingPosition();
++                     }}
++                   />
++                 ))}
++                 {state.report.changeSummary ? (
++                   <Text style={styles.caveat} accessibilityLabel="Change summary">
++                     {formatChangeSummary(state.report.changeSummary)}
++                   </Text>
++                 ) : null}
++                 {state.report.limitations.map((l) => (
++                   <Text key={l} style={styles.caveat}>
++                     {l}
++                   </Text>
++                 ))}
++                 <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
++                   <Text style={styles.link}>Share Markdown</Text>
++                 </Pressable>
++                 {!state.report.labeledDemo ? <View>
++                   <Text style={styles.bodyText}>Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.</Text>
++                   <TextInput value={verificationNote} onChangeText={setVerificationNote} maxLength={4000} editable={!verificationBusy && !state.pendingVerification}
++                     accessibilityLabel="Optional feedback saved with verification" placeholder="Optional feedback for this request" style={styles.input} />
++                   <Text style={styles.caveat}>Feedback is saved with the request. The check assesses the selected claim and evidence; it does not assess this note.</Text>
++                   <Pressable disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Change verification evidence policy"
++                     onPress={() => setVerificationPolicy(p => p === "reuse_snapshot" ? "refresh_sources" : "reuse_snapshot")}>
++                     <Text style={styles.link}>{verificationPolicy === "reuse_snapshot" ? "Use inspected evidence" : "Refresh inspected sources"}</Text>
++                   </Pressable>
++                   <Pressable onPress={() => void onFollowUp()} disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Recheck the answer claim">
++                     <Text style={styles.link}>{verificationBusy ? "Requesting check…" : "Recheck answer claim"}</Text>
++                   </Pressable>
++                 </View> : null}
++                 {state.flagSent || flagStatus === "submitted" ? (
++                   <Text style={styles.caveat} accessibilityLabel="Flag submitted">Report submitted. Thank you.</Text>
++                 ) : flagOpen ? (
++                   <View accessibilityLabel="Report generated output">
++                     <Text style={styles.kicker}>Report this generated answer</Text>
++                     {OUTPUT_REPORT_CATEGORIES.map((cat) => (
++                       <Pressable
++                         key={cat}
++                         onPress={() => setFlagCategory(cat)}
++                         accessibilityRole="button"
++                         accessibilityLabel={`Category ${cat}`}
++                         accessibilityState={{ selected: flagCategory === cat }}
++                       >
++                         <Text style={flagCategory === cat ? styles.link : styles.bodyText}>{cat}</Text>
++                       </Pressable>
++                     ))}
++                     <TextInput
++                       value={flagNote}
++                       onChangeText={setFlagNote}
++                       placeholder="Optional explanation"
++                       accessibilityLabel="Report explanation"
++                       style={styles.input}
++                       multiline
++                     />
++                     <Pressable
++                       onPress={() => setFlagInclude((v) => !v)}
++                       accessibilityRole="button"
++                       accessibilityLabel="Include report excerpt"
++                       accessibilityState={{ selected: flagInclude }}
++                     >
++                       <Text style={styles.link}>{flagInclude ? "Include excerpt: yes" : "Include excerpt: no"}</Text>
++                     </Pressable>
++                     <Pressable
++                       onPress={async () => {
++                         if (!token || !state.report) return;
++                         setFlagStatus("submitting");
++                         try {
++                           await api.challenge(token, state.report.reportId, {
++                             claimId: state.report.blocks.find((b) => b.id === "answer")?.claimIds[0],
++                             category: flagCategory,
++                             note: flagNote,
++                             includeExcerpt: flagInclude,
++                           });
++                           setFlagStatus("submitted");
++                           setState((s) => ({ ...s, flagSent: true }));
++                         } catch (error) {
++                           if (isSupersededRequest(error)) return;
++                           setFlagStatus("error");
++                         }
++                       }}
++                       accessibilityRole="button"
++                       accessibilityLabel="Submit generated-output report"
++                       disabled={flagStatus === "submitting"}
++                     >
++                       <Text style={styles.link}>{flagStatus === "submitting" ? "Submitting…" : "Submit report"}</Text>
++                     </Pressable>
++                     {flagStatus === "error" ? <Text style={styles.error}>Could not submit. Try again.</Text> : null}
++                   </View>
++                 ) : (
++                   <Pressable
++                     onPress={() => setFlagOpen(true)}
++                     accessibilityRole="button"
++                     accessibilityLabel="Flag this generated answer"
++                   >
++                     <Text style={styles.link}>Flag this answer</Text>
++                   </Pressable>
++                 )}
++               </View>
++             ) : null}
++             {state.previousReport ? (
++               <View style={styles.card} accessibilityLabel="Previous report version">
++                 <Text style={styles.kicker}>Previous version</Text>
++                 <Text style={styles.bodyText}>{state.previousReport.blocks.find((b) => b.id === "answer")?.text ?? "Earlier result kept."}</Text>
++                 <Pressable
++                   onPress={() => void onShare(state.previousReport?.reportId)}
++                   accessibilityRole="button"
++                   accessibilityLabel="Share previous report as Markdown"
++                 >
++                   <Text style={styles.link}>Share previous Markdown</Text>
++                 </Pressable>
++               </View>
++             ) : null}
++
++             {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
++               <View style={styles.card} accessibilityLabel="Correction">
++                 <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
++                 {correctionMode==="unavailable"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
++                 {staleCorrection ? <>
++                   <Text style={styles.body}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
++                   <Pressable disabled={correctionPending} accessibilityRole="button" accessibilityLabel="Use saved correction for current version" onPress={() => {
++                     const runId = state.run?.runId, revision = state.run?.brief?.revision;
++                     if (token && runId && revision && api.currentRun(token, runId)) setViewState(s => rebaseCorrectionDraft(s, runId, revision));
++                   }}><Text style={styles.link}>Use this correction for the current version</Text></Pressable>
++                 </> : null}
++                 {correctionMode==="replace_question"?<>
++                   <Text style={styles.body}>Write the complete updated question. Its conclusions will be checked again.</Text>
++                   <Pressable disabled={correctionPending} onPress={()=>setCorrection(state.run?.brief?.originalQuestion??"")} accessibilityRole="button" accessibilityLabel="Use current question">
++                     <Text style={styles.link}>Edit current question</Text>
++                   </Pressable>
++                   {(["reuse_snapshot","refresh"] as const).map((policy)=><Pressable key={policy} disabled={correctionPending} onPress={()=>setEvidencePolicy(policy)} accessibilityRole="radio" accessibilityState={{checked:evidencePolicy===policy,disabled:correctionPending}} accessibilityLabel={policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}>
++                     <Text style={styles.body}>{evidencePolicy===policy?"● ":"○ "}{policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}</Text>
++                   </Pressable>)}
++                   <Text style={styles.body}>Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.</Text>
++                 </>:null}
++                 {correctionReady&&Number.isSafeInteger(state.run.correctionReserveMicro)&&state.run.correctionReserveMicro!>=0?<Text style={styles.body}>Reserves US${(state.run.correctionReserveMicro!/1_000_000).toFixed(2)} of research allowance. Your earlier report remains available.</Text>:null}
++                 <TextInput
++                   value={correction}
++                   onChangeText={setCorrection}
++                   placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
++                   multiline
++                   maxLength={20_000}
++                   editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!=="unavailable"}
++                   placeholderTextColor={theme.muted}
++                   style={styles.input}
++                   allowFontScaling
++                   maxFontSizeMultiplier={2}
++                   accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
++                 />
++                 <Pressable onPress={onCorrect} disabled={correctionPending||!correctionReady} accessibilityState={{disabled:correctionPending||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
++                   <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
++                 </Pressable>
++               </View>
++             ) : null}
++           </ScrollView>
++         ) : null}
++
++         {state.source ? (
++           <SourceSheet source={state.source} styles={styles}
++             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
++             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification}
++             onOpenOriginal={(url) => {
++               const guard = api.captureView();
++               void Linking.openURL(url).catch(() => {
++                 if (guard.current()) setViewState(s => ({ ...s, error: "Could not open the original source." }));
++               }).finally(() => guard.release());
++             }}
++             onClose={() => {
++               api.closeSource();
++               setState(s => ({ ...s, source: null }));
++             }} />
++         ) : null}
++
++         {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy ? (
++           <Library
++             token={token}
++             styles={styles}
++             onOpen={async (id) => {
++               if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification) return;
++               api.selectRun(id);
++               if (!token) return;
++               setState((s) => openLibraryItem(s, id));
++               await refreshRun(token, id);
++               startPolling(token, id);
++             }}
++             onShare={(reportId) => onShare(reportId)}
++           />
++         ) : null}
++         {state.tab === "settings" ? (
++           <ProfilePanel
++             styles={styles}
++             processors={processors}
++             privacyFlows={privacyFlows}
++             deletionVsSub={deletionVsSub}
++             restoreMessage={restoreMessage}
++             state={state}
++             onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
++             onConsent={grantConsent}
++             onSignIn={() => { void ensureSession().catch(() => undefined); }}
++             onRestore={async () => {
++               if (!token) {
++                 setRestoreMessage("Sign in first. Restore still requires a store sandbox.");
++                 return;
++               }
++               try {
++                 await api.restorePurchases(token);
++                 setRestoreMessage("Unexpected restore success; purchases remain gated.");
++               } catch (e) {
++       if (isSupersededRequest(e)) return;
++                 setRestoreMessage(e instanceof Error ? e.message : "Restore is unavailable until a store sandbox is connected.");
++               }
++             }}
++             onMode={(routeMode) => setState((s) => s.pendingAdmission ? { ...s, error: "Check or withdraw the saved request before changing research mode." } : { ...s, routeMode })}
++             onDelete={async () => {
++               if (!token) return;
++               try {
++                 stopPolling();
++                 const result = await api.deleteAccount(token);
++                 api.activateSession(null); clearPanels();
++                 setToken(null); setState({ ...emptyState(), error: result.fileCleanupPending ? "Account access removed. Stored file deletion is queued for retry." : null });
++                 await clearAccountLocal(sessionStorage);
++               } catch (error) {
++                 if (isSupersededRequest(error)) return;
++                 setState((s) => ({ ...s, error: "Could not confirm complete deletion. Retry deletion or device cleanup." }));
++               }
++             }}
++             onLogout={() => {
++               stopPolling();
++               api.activateSession(null); clearPanels();
++               void logoutLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => setState((s) => ({ ...s, error: "Device cleanup failed. Retry signing out." })));
++               setToken(null);
++               setState((s) => logoutState(s));
++             }}
++             onRevoke={async () => {
++               if (!token) return;
++               try { await api.consent(token, false); setState((s) => ({ ...s, consentGranted: false })); }
++               catch (error) {
++                 if (isSupersededRequest(error)) return;
++                 setState((s) => ({ ...s, error: "Could not confirm consent revocation. Retry." }));
++               }
++             }}
++           />
++         ) : null}
++
++         {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
++           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
++             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
++             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
++             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
++             onAttachNote={() => {
++                 if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
++                 setState((s) =>
++                   attachFile(s, {
++                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
++                     mime: attachName.endsWith(".md") ? "text/markdown" : "text/plain",
++                     text: attachText,
++                   }),
++                 );
++                 setAttachText("");
++                 setShowAttach(false);
++               }} />
++         ) : null}
++         {state.tab === "research" && !state.source && !keyboardOpen && state.report && !showAttach ? (
++           <Pressable
++             onPress={() => setShowAttach(true)}
++             accessibilityRole="button"
++             accessibilityLabel="Show attachment fields"
++             style={styles.attachRow}
++           >
++             <Text style={styles.link}>Attach a file ({state.attachments.length}/3)</Text>
++           </Pressable>
++         ) : null}
++
++         {state.tab === "research" && !state.source ? (
++         <View style={styles.composerWrap}>
++           <TextInput
++             editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
++             value={state.draft}
++             onChangeText={(draft) => {
++               setState((s) => {
++                 const next = { ...s, draft };
++
++                 return next;
++               });
++             }}
++             placeholder="Ask with constraints, dates, and what would change the answer"
++             placeholderTextColor={theme.muted}
++             style={styles.composer}
++             multiline
++             allowFontScaling
++             maxFontSizeMultiplier={2}
++             accessibilityLabel="Research question"
++           />
++           <Pressable
++             disabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion}
++             accessibilityState={{ disabled: !hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion }}
++             onPress={onSend}
++             style={styles.sendBtn}
++             accessibilityRole="button"
++             accessibilityLabel="Start research"
++             hitSlop={12}
++           >
++             <Text style={styles.send}>{state.pendingAdmission ? "Retry" : "Send"}</Text>
++           </Pressable>
++         </View>
++         ) : null}
++
++         <View style={styles.tabs} accessibilityRole="tablist">
++           {(["research", "library"] as const).map((tab) => (
++             <Pressable
++               key={tab}
++               onPress={() => setState((s) => ({ ...s, tab }))}
++               accessibilityRole="tab"
++               accessibilityState={{ selected: state.tab === tab }}
++               accessibilityLabel={tab === "research" ? "Research" : "Library"}
++               style={styles.tab}
++             >
++               <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab}</Text>
++             </Pressable>
++           ))}
++         </View>
++       </KeyboardAvoidingView>
++     </SafeAreaView>
++   );
++ }
++
++ function Library({
++   token,
++   styles,
++   onOpen,
++   onShare,
++ }: {
++   token: string | null;
++   styles: ReturnType<typeof makeStyles>;
++   onOpen: (id: string) => void;
++   onShare: (reportId: string) => void;
++ }) {
++   type LibraryItem = { id: string; title: string; status: string; report_id?: string | null };
++   const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryItem[]; error: string | null }>({ token: null, items: [], error: null });
++   const items = loaded.token === token ? loaded.items : [];
++   useEffect(() => {
++     if (!token) return;
++     let current = true;
++     void api.library(token).then((r) => { if (current) setLoaded((previous) => current ? { token, items: r.items ?? [], error: null } : previous); })
++       .catch((error) => { if (current && !isSupersededRequest(error)) setLoaded({ token, items: [], error: "Could not load saved reports. Reopen Library to retry." }); });
++     return () => { current = false; };
++   }, [token]);
++   if (!token) {
++     return (
++       <Text style={styles.bodyText} accessibilityLabel="Saved reports">
++         Sign in from Profile to see saved reports.
++       </Text>
++     );
++   }
++   if (items.length === 0) {
++     return (
++       <Text style={styles.bodyText} accessibilityLabel="Saved reports">
++         {loaded.token !== token ? "Loading saved reports…" : loaded.error ?? "No reports yet."}
++       </Text>
++     );
++   }
++   return (
++     <ScrollView style={styles.body} accessibilityLabel="Saved reports">
++       {items.map((it) => (
++         <View key={it.id} style={styles.card}>
++           <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${it.title}`}>
++             <Text style={styles.title}>{breakLongTokens(it.title)}</Text>
++             <Text style={styles.kicker}>{it.status}</Text>
++           </Pressable>
++           {it.report_id ? (
++             <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${it.title}`}>
++               <Text style={styles.link}>Share Markdown</Text>
++             </Pressable>
++           ) : null}
++         </View>
++       ))}
++     </ScrollView>
++   );
++ }
++
++
++ function ReportBlockView({
++   block,
++   styles,
++   onOpenSource,
++   onLayoutY,
++ }: {
++   block: ReportBlock;
++   styles: ReturnType<typeof makeStyles>;
++   onOpenSource: (id: string) => void;
++   onLayoutY?: (y: number) => void;
++ }) {
++   const text = breakLongTokens(block.text);
++   let body: ReactNode;
++   if (block.kind === "table") {
++     const rows = parseTable(block.text);
++     body = (
++       <View style={styles.bounded}>
++         <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Table ${block.id}`}>
++           <View>
++             {rows.map((row, i) => (
++               <View key={`${block.id}-r${i}`} style={styles.tableRow}>
++                 {row.map((cell, j) => (
++                   <Text
++                     key={`${block.id}-c${i}-${j}`}
++                     selectable
++                     style={i === 0 ? styles.tableHead : styles.tableCell}
++                   >
++                     {cell}
++                   </Text>
++                 ))}
++               </View>
++             ))}
++           </View>
++         </ScrollView>
++       </View>
++     );
++   } else if (block.kind === "code") {
++     body = (
++       <View style={styles.bounded}>
++         <ScrollView horizontal nestedScrollEnabled accessibilityLabel={`Code ${block.id}`}>
++           <Text selectable style={styles.code}>{block.text}</Text>
++         </ScrollView>
++       </View>
++     );
++   } else if (block.kind === "heading") {
++     body = <Text selectable accessibilityRole="header" style={styles.title}>{text}</Text>;
++   } else if (block.kind === "quote") {
++     body = <Text selectable style={styles.quote}>{text}</Text>;
++   } else {
++     body = <Text selectable style={block.kind === "caveat" ? styles.caveat : styles.bodyText}>{text}</Text>;
++   }
++   return (
++     <View
++       nativeID={`block-${block.id}`}
++       style={{ marginBottom: space.md }}
++       onLayout={(e) => onLayoutY?.(e.nativeEvent.layout.y)}
++     >
++       {body}
++       <View style={styles.citeRow}>
++         {block.citationIds.map((id) => (
++           <Pressable
++             key={id}
++             onPress={() => onOpenSource(id)}
++             accessibilityRole="button"
++             accessibilityLabel={`Open source ${id.slice(0, 8)}`}
++             hitSlop={8}
++           >
++             <Text style={[styles.link, styles.citeLink]}>Source {id.slice(0, 8)}</Text>
++           </Pressable>
++         ))}
++       </View>
++     </View>
++   );
++ }
++
++ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
++   return StyleSheet.create({
++     safe: { flex: 1, backgroundColor: theme.bg },
++     header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 },
++     wordmark: { ...typeTokens.title, color: theme.ink, flexShrink: 1 },
++     link: { color: theme.accent, fontSize: 16, paddingVertical: 8 },
++     banner: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
++     bannerLive: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
++     bannerText: { color: theme.ink, fontSize: 13 },
++     error: { color: theme.danger, padding: space.md },
++     body: { flex: 1, padding: space.md },
++     welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
++     card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, overflow: "hidden" },
++     sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: "100%" },
++     sheetBody: { flex: 1, maxHeight: "100%" },
++     bounded: { width: "100%", maxWidth: "100%" },
++     outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
++     outlineItem: { ...typeTokens.caption, color: theme.muted, marginBottom: 2 },
++     tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: theme.line },
++     tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 6, paddingRight: 12 },
++     tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 6, paddingRight: 12, textTransform: "uppercase" },
++     code: { fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 13, color: theme.ink, paddingVertical: 8 },
++     quote: { ...typeTokens.body, color: theme.ink, fontStyle: "italic", paddingLeft: space.sm, borderLeftWidth: 2, borderLeftColor: theme.line },
++     citeRow: { flexDirection: "row", flexWrap: "wrap" },
++     citeLink: { paddingRight: 16 },
++     kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 6 },
++     title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
++     bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },
++     caveat: { ...typeTokens.body, color: theme.caveat, marginTop: 8 },
++     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
++     composerWrap: { flexDirection: "row", alignItems: "flex-end", padding: space.sm, borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.surface },
++     composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, padding: space.sm },
++     sendBtn: { paddingHorizontal: space.md, paddingVertical: space.sm },
++     send: { color: theme.accent, fontWeight: "600", fontSize: 16 },
++     tabs: { flexDirection: "row", borderTopWidth: 1, borderColor: theme.line },
++     tab: { flex: 1, alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
++     tabOn: { color: theme.ink, fontWeight: "600", textTransform: "capitalize", textAlign: "center" },
++     tabOff: { color: theme.muted, textTransform: "capitalize", textAlign: "center" },
++     input: { borderWidth: 1, borderColor: theme.line, borderRadius: 8, padding: space.sm, color: theme.ink, marginBottom: 8 },
++     attachRow: { paddingHorizontal: space.md, paddingTop: space.sm },
++   });
++ }
++
++ export function App() {
++   return (
++     <SafeAreaProvider>
++       <AppInner />
++     </SafeAreaProvider>
++   );
++ }
++ import { useState } from "react";
++ import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
++ import { publicSourceUrl, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
++ import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
++ import { breakLongTokens } from "./report-layout";
++
++ type Props = { source: SourceDetail; onClose(): void; onOpenOriginal(url: string): void;
++   onDelete?(target: SourceDeletionTarget): void; deletionPending?: boolean; deletionError?: string | null;
++   offline?: boolean; admissionPending?: boolean;
++   styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
++     kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
++ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
++   deletionError, offline = false, admissionPending = false }: Props) {
++   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
++   const target = sourceDeletionTarget(source);
++   const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
++   const confirming = sameSourceDeletionTarget(confirmation, target);
++   const url = publicSourceUrl(source.locator);
++   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
++     <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
++     <Text style={styles.kicker}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
++     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
++       <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
++       <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
++       <Text selectable style={styles.bodyText}>{source.exactText}</Text>
++       {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
++         <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
++         {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
++       </View> : null}
++       <Text style={styles.bodyText}>Extraction: {source.extractionMethod ?? "unknown"}</Text>
++       {source.warnings?.map((warning, index) => <Text key={index} selectable style={styles.bodyText}>{warning}</Text>)}
++       {source.coverage !== "complete" ? <Text style={styles.bodyText}>This extraction may omit content or structure. The displayed passage does not establish complete document coverage.</Text> : null}
++       {source.passageLocator?.geometry?.length ? <View accessibilityLabel="Extracted passage coordinates">
++         <Text style={styles.kicker}>Extracted coordinates: {source.passageLocator.coordinates ?? "coordinate system unknown"}. No page image or highlight is available.</Text>
++         {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
++       </View> : null}
++       <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
++       {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser">
++         <Text style={styles.link}>Open original source</Text>
++       </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
++       {onDelete ? <View>
++         {deletionError ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{deletionError}</Text> : null}
++         {unavailable ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{unavailable}</Text> : null}
++         {confirming ? <View accessibilityLabel="Confirm source deletion">
++           <Text style={styles.bodyText}>Delete this source from your account? Its stored content will be removed and research that depends on it will become unavailable. Copies of an uploaded document used by other research are included. Cached reports and selected attachments on this device will be cleared; other saved reports can be reopened from Library. Your original file is unchanged.</Text>
++           <Pressable disabled={!!unavailable} accessibilityState={{disabled:!!unavailable}} accessibilityRole="button" accessibilityLabel="Confirm delete source and dependent research"
++             onPress={() => { if (!unavailable && target && sameSourceDeletionTarget(confirmation,target)) { setConfirmation(null); onDelete(target); } }}>
++             <Text style={styles.link}>Delete source and dependent research</Text>
++           </Pressable>
++           <Pressable disabled={deletionPending} accessibilityRole="button" accessibilityLabel="Keep source" onPress={() => setConfirmation(null)}><Text style={styles.link}>Keep source</Text></Pressable>
++         </View> : <Pressable disabled={!!unavailable} accessibilityState={{disabled:!!unavailable}} accessibilityRole="button" accessibilityLabel="Delete this source"
++           onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.link}>Delete this source</Text></Pressable>}
++       </View> : null}
++     </ScrollView>
++     <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet"><Text style={styles.link}>Close</Text></Pressable>
++   </View>;
++ }
++
+
+ ❯ test/lifecycle.test.ts:128:19
+    126|       'accessibilityLabel="Correction"',
+    127|     ]) {
+    128|       expect(src).toContain(label);
+       |                   ^
+    129|     }
+    130|     expect(src).toMatch(/tab === "research" \? "Research"/);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  test/profile-panel.test.ts > W07 profile preserves accessible account, consent, restore and deletion-page callbacks
+ReferenceError: React is not defined
+ ❯ Module.ProfilePanel src/ProfilePanel.tsx:36:3
+     34|   onOpenDeletionPage: () => void;
+     35| }) {
+     36|   return (
+       |   ^
+     37|     <ScrollView style={styles.body} accessibilityLabel="Settings">
+     38|       <Text style={styles.title} accessibilityRole="header">Settings</…
+ ❯ render test/profile-panel.test.ts:13:19
+ ❯ test/profile-panel.test.ts:20:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  test/profile-panel.test.ts > W03 account deletion remains behind explicit destructive confirmation
+ReferenceError: React is not defined
+ ❯ Module.ProfilePanel src/ProfilePanel.tsx:36:3
+     34|   onOpenDeletionPage: () => void;
+     35| }) {
+     36|   return (
+       |   ^
+     37|     <ScrollView style={styles.body} accessibilityLabel="Settings">
+     38|       <Text style={styles.title} accessibilityRole="header">Settings</…
+ ❯ render test/profile-panel.test.ts:13:19
+ ❯ test/profile-panel.test.ts:25:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  test/profile-panel.test.ts > W07 mode labels are readable while callbacks retain the existing route identities
+ReferenceError: React is not defined
+ ❯ Module.ProfilePanel src/ProfilePanel.tsx:36:3
+     34|   onOpenDeletionPage: () => void;
+     35| }) {
+     36|   return (
+       |   ^
+     37|     <ScrollView style={styles.body} accessibilityLabel="Settings">
+     38|       <Text style={styles.title} accessibilityRole="header">Settings</…
+ ❯ render test/profile-panel.test.ts:13:19
+ ❯ test/profile-panel.test.ts:31:73
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  test/profile-panel.test.ts > W07 unavailable capabilities are explicit and account data cleanup remains disclosed
+ReferenceError: React is not defined
+ ❯ Module.ProfilePanel src/ProfilePanel.tsx:36:3
+     34|   onOpenDeletionPage: () => void;
+     35| }) {
+     36|   return (
+       |   ^
+     37|     <ScrollView style={styles.body} accessibilityLabel="Settings">
+     38|       <Text style={styles.title} accessibilityRole="header">Settings</…
+ ❯ render test/profile-panel.test.ts:13:19
+ ❯ test/profile-panel.test.ts:34:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  2 failed | 13 passed (15)
+      Tests  6 failed | 130 passed (136)
+   Start at  21:55:48
+   Duration  3.89s (transform 1.29s, setup 0ms, collect 3.27s, tests 967ms, environment 6ms, prepare 2.59s)
+
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

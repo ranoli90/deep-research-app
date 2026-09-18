@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/report-export.unit.test.ts (7 tests) 25ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  18:45:15
+   Duration  4.90s (transform 2.39s, setup 0ms, collect 3.46s, tests 25ms, environment 1ms, prepare 487ms)
+

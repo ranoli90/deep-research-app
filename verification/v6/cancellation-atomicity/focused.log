@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/cancellation-atomicity.integration.test.ts (5 tests) 576ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  21:05:25
+   Duration  1.68s (transform 577ms, setup 0ms, collect 899ms, tests 576ms, environment 0ms, prepare 67ms)
+

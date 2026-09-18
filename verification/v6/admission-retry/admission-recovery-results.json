@@ -1,0 +1,63 @@
+{
+  "requirements": [
+    "W02",
+    "W03",
+    "W07"
+  ],
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T02:25:45.254794+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "local PostgreSQL 127.0.0.1:55432/deep_research_test"
+  },
+  "scope": "Actual API/auth/domain/PostgreSQL admission resolve-or-withdraw and account-lock races. Synthetic questions, no worker execution, model/native/semantic proof or paid calls.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/backend test:integration test/admission-recovery.integration.test.ts",
+      "exitCode": 0,
+      "tests": 4,
+      "durationSeconds": 1.74,
+      "artifact": "admission-recovery-integration.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "recovery-backend-types.log"
+    }
+  ],
+  "files": [
+    {
+      "path": "apps/backend/src/modules/admission-recovery.ts",
+      "sha256": "cae860506da64ba34894c596ec83ac483a66279cc7b744bada747292b25c65d7"
+    },
+    {
+      "path": "apps/backend/src/modules/run-admission.ts",
+      "sha256": "0d8127adbaf75e396eb7844f7c2e9aa505f38387dd245a728aab8ffa8c6f3d69"
+    },
+    {
+      "path": "apps/backend/src/api/app.ts",
+      "sha256": "cf7c43f32837950ac02817bdf8102d1db4919eae6cf4a2d58f2b197923bad7a6"
+    },
+    {
+      "path": "apps/backend/migrations/035_admission_withdrawals.sql",
+      "sha256": "514391f5209847d974bf38a195ec651c18a5e5d2a97729b1bbb978bbf9546085"
+    },
+    {
+      "path": "apps/backend/test/admission-recovery.integration.test.ts",
+      "sha256": "ee08d42f293485f637ef7f7a6975bbebe09f77091c11ca0c20a9e1233d115e28"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "admission-recovery-integration.log",
+      "sha256": "e57db4a23fb5eb3a8a7076ba7b69a4d5957876b91bb597b629eaf4becdd61a40"
+    },
+    {
+      "path": "recovery-backend-types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ]
+}

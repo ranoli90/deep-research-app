@@ -1,0 +1,38 @@
+
+> @deep/mobile@0.1.0 bundle:android /home/oranolio/Desktop/Deep/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-v6-mobile-bundle
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓░░░░░░░░░░░░░░░  9.6% ( 64/207)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (595/599)
+Android Bundling failed 5607ms apps/mobile/index.ts (599 modules)
+Error: Unable to resolve module ./action-arguments.js from /home/oranolio/Desktop/Deep/packages/contracts/src/index.ts: 
+
+None of these files exist:
+  * ../../packages/contracts/src/action-arguments.js(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * ../../packages/contracts/src/action-arguments.js
+[0m [90m 292 |[39m
+ [90m 293 |[39m
+[31m[1m>[22m[39m[90m 294 |[39m [36mexport[39m { [33mExecutableArguments[39m[33m,[39m type [33mExecutableAction[39m[33m,[39m type [33mExecutableActionKind[39m } [36mfrom[39m [32m"./action-arguments.js"[39m[33m;[39m
+ [90m     |[39m                                                                                        [31m[1m^[22m[39m
+ [90m 295 |[39m
+ [90m 296 |[39m [36mexport[39m [33m*[39m [36mfrom[39m [32m"./research-model.js"[39m[33m;[39m
+ [90m 297 |[39m[0m
+
+Import stack:
+
+ packages/contracts/src/index.ts
+ | import "./action-arguments.js"
+
+ apps/mobile/App.tsx
+ | import "@deep/contracts"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 bundle:android: `expo export --platform android --output-dir /tmp/deep-v6-mobile-bundle`
+Exit status 1

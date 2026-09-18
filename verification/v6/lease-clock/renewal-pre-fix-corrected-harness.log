@@ -1,0 +1,72 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/lease-clock.integration.test.ts (11 tests | 2 failed) 12216ms
+   ✓ W02 rejects expired semantic mutation after account lock wait  1200ms
+   ✓ W02 rejects expired terminal mutation after account lock wait  1140ms
+   ✓ W02 rejects provider issuance when lease expires waiting for account lock  1157ms
+   ✓ W02 rejects provider issuance when lease expires waiting for legacy lock  1153ms
+   ✓ W02 rejects provider issuance when lease expires waiting for key lock  1153ms
+   ✓ W02 rejects provider issuance when lease expires waiting for project lock  1149ms
+   ✓ W02 rolls back semantic mutation whose transaction callback outlives its lease  1139ms
+   ✓ W02 rolls back terminal mutation whose transaction callback outlives its lease  1136ms
+   ✓ W02 permits current fenced writes and provider reservation 46ms
+   × W02 renewal cannot revive a lease after waiting for its row lock 1163ms
+     → expected { value: true } to deeply equal { value: false }
+   × W02 a newly claimed lease starts after its run lock wait 1143ms
+     → expected { owner: 'replacement-owner', …(1) } to deeply equal { owner: 'replacement-owner', …(1) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/lease-clock.integration.test.ts > W02 renewal cannot revive a lease after waiting for its row lock
+AssertionError: expected { value: true } to deeply equal { value: false }
+
+- Expected
++ Received
+
+  {
+-   "value": false,
++   "value": true,
+  }
+
+ ❯ test/lease-clock.integration.test.ts:93:18
+     91|  const x=await setup();try{
+     92|   const result=await delayed(x,db=>db.query("SELECT run_id FROM run_le…
+     93|   expect(result).toEqual({value:false});
+       |                  ^
+     94|   expect((await pool.query("SELECT expires_at<clock_timestamp() AS exp…
+     95|  }finally{x.session.stop();await deleteAccount(pool,x.accountId);}
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/lease-clock.integration.test.ts > W02 a newly claimed lease starts after its run lock wait
+AssertionError: expected { owner: 'replacement-owner', …(1) } to deeply equal { owner: 'replacement-owner', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "current": true,
++   "current": false,
+    "owner": "replacement-owner",
+  }
+
+ ❯ test/lease-clock.integration.test.ts:102:19
+    100|   expect(result).toEqual({value:x.fence+1});
+    101|   const current=(await pool.query("SELECT owner,expires_at>clock_times…
+    102|   expect(current).toEqual({owner:"replacement-owner",current:true});
+       |                   ^
+    103|  }finally{x.session.stop();await deleteAccount(pool,x.accountId);}
+    104| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  20:42:28
+   Duration  13.01s (transform 404ms, setup 0ms, collect 587ms, tests 12.22s, environment 0ms, prepare 74ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts

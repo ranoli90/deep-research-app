@@ -1,0 +1,18 @@
+[
+  {
+    "case": "list",
+    "matchingElements": [
+      "<list rend=\"ul\">\n      <item><del rend=\"overstrike\">Distributed writes are supported.</del> Distributed writes are unavailable.</item>\n    </list>\n    "
+    ]
+  },
+  {
+    "case": "prose",
+    "matchingElements": [
+      "<p><del rend=\"overstrike\">Distributed writes are supported.</del> Distributed writes are unavailable.</p>\n    "
+    ]
+  },
+  {
+    "case": "table",
+    "matchingElements": []
+  }
+]

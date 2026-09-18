@@ -1,0 +1,42 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"b003091a-5008-4a71-ab40-d07842ab9193","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:06:28.845Z"}
+{"level":"info","event":"action","runId":"b003091a-5008-4a71-ab40-d07842ab9193","type":"stop","rationale":"action type reveal_keys is not a permitted research action","step":1,"t":"2026-09-17T18:06:29.003Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:06:31.012Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"search","rationale":"Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.","step":1,"t":"2026-09-17T18:06:31.225Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"fetch","rationale":"Inspect the preferred source type (vendor-matrix) before more weak sources","step":2,"t":"2026-09-17T18:06:31.510Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:06:31.922Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T18:06:32.169Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T18:06:32.256Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"verify","rationale":"Scope-check contradiction on compatibility before treating newest as correct","step":6,"t":"2026-09-17T18:06:32.314Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"challenge","rationale":"Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.","step":7,"t":"2026-09-17T18:06:32.403Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":8,"t":"2026-09-17T18:06:32.579Z"}
+{"level":"info","event":"action","runId":"3ad7e1f5-ebea-4acd-aa1e-0b15a6bd4a4e","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":9,"t":"2026-09-17T18:06:32.652Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:06:34.406Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T18:06:34.733Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T18:06:34.826Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:06:34.988Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T18:06:35.124Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T18:06:35.288Z"}
+{"level":"info","event":"action","runId":"14a0808c-670d-4a92-bfb7-ccc702216197","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T18:06:35.391Z"}
+{"level":"info","event":"action","runId":"8febe72b-4b13-4b6b-87bd-eba65f50beb4","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:06:36.854Z"}
+{"level":"info","event":"action","runId":"8febe72b-4b13-4b6b-87bd-eba65f50beb4","type":"search","rationale":"Investigate an uncovered required question","step":1,"t":"2026-09-17T18:06:36.978Z"}
+{"level":"info","event":"action","runId":"8febe72b-4b13-4b6b-87bd-eba65f50beb4","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":2,"t":"2026-09-17T18:06:37.067Z"}
+{"level":"info","event":"action","runId":"09a96ce8-0053-4486-9b21-55449d8e7430","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:06:38.132Z"}
+ ✓ test/controller-admission.integration.test.ts (6 tests) 13304ms
+   ✓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources  3314ms
+   ✓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap  3238ms
+   ✓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun  2685ms
+   ✓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search  1280ms
+   ✓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call  688ms
+   ✓ controller admission on the fixture worker path > issued then failed live intents still consume the reservation  393ms
+ ✓ test/v6-execution.integration.test.ts (22 tests) 3934ms
+   ✓ W02 real PostgreSQL execution boundaries > A08 concurrent reservations cannot exceed one project bucket; unknown attempts are not resent  441ms
+   ✓ W02 real PostgreSQL execution boundaries > A09 actual receipt overrun is recorded without clamping or stealing another account reservation  310ms
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  12:06:20
+   Duration  24.53s (transform 2.92s, setup 0ms, collect 5.33s, tests 17.24s, environment 1ms, prepare 469ms)
+

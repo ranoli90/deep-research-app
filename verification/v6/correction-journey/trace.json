@@ -1,0 +1,163 @@
+{
+  "evidenceClass": "local_api_worker_actual_pdf_fabricated_model",
+  "sourceTransport": "binary upload",
+  "question": "What does the GRPGDK field note say about underwater recording?",
+  "originalBytesSha256": "b36a7592efad899bb096c5cf7741c3d12a16fc9c34faf4a14321ba4f39780de0",
+  "runId": "4f4aded9-f705-49da-811f-df90df133e29",
+  "reportId": "656855d0-612d-4c08-abb4-f327f8f6c4a2",
+  "reportText": "GRPGDK does not support underwater recording.",
+  "source": {
+    "passageId": "5d696278-6b14-40da-97c9-44003e2743b8",
+    "sourceVersionId": "ca6c5515-e50e-493d-9c42-6d1e3fc0e27d",
+    "locator": {
+      "kind": "text",
+      "rows": [],
+      "block": "page:1/block:0",
+      "geometry": [
+        {
+          "box": [
+            50,
+            737.516,
+            272.084,
+            748.616
+          ],
+          "text": "Field notes: GRPGDK sensor deployment"
+        },
+        {
+          "box": [
+            50,
+            719.516,
+            354.7760000000002,
+            730.616
+          ],
+          "text": "GRPGDK supports offline recording only on firmware 4.2."
+        },
+        {
+          "box": [
+            50,
+            701.516,
+            314.78000000000014,
+            712.616
+          ],
+          "text": "GRPGDK does not support underwater recording."
+        }
+      ],
+      "coordinates": "PDF points; bottom-left origin",
+      "normalization": "extractor-output-v1"
+    },
+    "access": "partial-text",
+    "method": "docling-parse-7.20.0/geometry-v1",
+    "warnings": [
+      "pdf_layout_tables_and_ocr_unverified"
+    ]
+  },
+  "support": [
+    {
+      "claimRevisionId": "cc85ad61-0983-4a0e-9dd7-3094a0a553d6",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "claimRevisionId": "4b12dce0-8990-4973-8394-2bc0c13bed29",
+      "decision": "supported",
+      "checks": [
+        {
+          "rule": "exact_evidence_bindings",
+          "passed": true
+        },
+        {
+          "rule": "scope_matches_claim",
+          "passed": true
+        },
+        {
+          "rule": "readable_evidence",
+          "passed": true
+        },
+        {
+          "rule": "scope_grounded_in_quotes",
+          "passed": true
+        },
+        {
+          "rule": "numbers_grounded",
+          "passed": true
+        },
+        {
+          "rule": "quantities_grounded",
+          "passed": true
+        },
+        {
+          "rule": "numeric_context_preserved",
+          "passed": true
+        },
+        {
+          "rule": "currency_preserved",
+          "passed": true
+        },
+        {
+          "rule": "no_detected_contradiction",
+          "passed": true
+        },
+        {
+          "rule": "qualification_preserved",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "paidProviderCalls": 0,
+  "modelResponses": "fabricated",
+  "correctionJourney": {
+    "question": "What firmware does GRPGDK require for offline recording?",
+    "runId": "1068ffd9-0082-4683-878d-3c28e36fa0c3",
+    "reportId": "5b22c337-92ff-497a-bd72-0f7815e8d6cd",
+    "text": "GRPGDK supports offline recording only on firmware 4.2.",
+    "reusedPassageId": "5d696278-6b14-40da-97c9-44003e2743b8",
+    "reusedSourceVersionId": "ca6c5515-e50e-493d-9c42-6d1e3fc0e27d",
+    "newSourceRows": 0,
+    "claimsRecomputed": true,
+    "fullRerunReportId": "ff372917-eb50-4de1-b083-b14b02a060a1",
+    "fullRerunTextMatches": true,
+    "comparison": "local fabricated model control, not independent semantic adjudication"
+  }
+}

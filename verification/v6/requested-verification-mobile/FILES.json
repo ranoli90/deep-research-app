@@ -1,0 +1,38 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "2921bc861e93b1f9c0c92c6bcce638663e51612a4d5ed66c35c93a97eb411e51"
+  },
+  {
+    "path": "mobile-integrated-initial.log",
+    "sha256": "c2914755410947d5854a7040d8f6be57910654d393629b9d79be20bdbf817c65"
+  },
+  {
+    "path": "mobile-integrated-reviewed.log",
+    "sha256": "e6a4fa8b08b97ef663da443c835c332da60950ec7944f4045b6f68a4589972a6"
+  },
+  {
+    "path": "types-adoption.log",
+    "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  },
+  {
+    "path": "types-integrated-initial.log",
+    "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  },
+  {
+    "path": "types-integrated-reviewed.log",
+    "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  },
+  {
+    "path": "types.log",
+    "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  },
+  {
+    "path": "unit-adoption.log",
+    "sha256": "5938063130bf047b9d779718a137963a08d56ea3902c789637107a6feb24b369"
+  },
+  {
+    "path": "unit.log",
+    "sha256": "0d8f7884545713c76e3b8c36a9f08d1b76158f91b81d04b09e52ba4cd46d807d"
+  }
+]

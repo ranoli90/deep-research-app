@@ -1,0 +1,226 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2392]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,150][431,224]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[906,151][1035,257]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Demo fixture route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[45,279][1035,375]",
+    "clickable": "false"
+  },
+  {
+    "text": "Demo route \u2014 labeled fixture, not live research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[67,301][1012,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "Session expired. Sign in again. Account data was cleared from this device.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,375][1080,566]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Settings",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,566][1080,2223]",
+    "clickable": "false"
+  },
+  {
+    "text": "Settings",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[45,611][1035,685]",
+    "clickable": "false"
+  },
+  {
+    "text": "Account and research privacy. Purchases and push notifications are currently unavailable.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,707][1035,843]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Sign in development session",
+    "class": "android.widget.Button",
+    "bounds": "[45,844][1035,950]",
+    "clickable": "true"
+  },
+  {
+    "text": "Sign in (development)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,844][1035,950]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Grant AI processing consent",
+    "class": "android.widget.Button",
+    "bounds": "[45,950][1035,1056]",
+    "clickable": "true"
+  },
+  {
+    "text": "Grant AI processing consent",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,950][1035,1056]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Switch between demo and research mode",
+    "class": "android.widget.Button",
+    "bounds": "[45,1056][1035,1162]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research mode: Demo",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1056][1035,1162]",
+    "clickable": "false"
+  },
+  {
+    "text": "Demo reports are labeled and never presented as live completed research.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1184][1035,1320]",
+    "clickable": "false"
+  },
+  {
+    "text": "Processors: Sign in to see processor disclosures.",
+    "content-desc": "Processor disclosures",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1320][1035,1388]",
+    "clickable": "false"
+  },
+  {
+    "text": "This app cannot see a provider's internal searches.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1410][1035,1546]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Restore purchases",
+    "class": "android.widget.Button",
+    "bounds": "[45,1547][1035,1653]",
+    "clickable": "true"
+  },
+  {
+    "text": "Restore purchases",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1547][1035,1653]",
+    "clickable": "false"
+  },
+  {
+    "text": "Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1675][1035,1879]",
+    "clickable": "false"
+  },
+  {
+    "text": "Push notifications are unavailable. Reopen the app to refresh research progress.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,1901][1035,2037]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Revoke AI processing consent",
+    "class": "android.widget.Button",
+    "bounds": "[45,2038][1035,2144]",
+    "clickable": "true"
+  },
+  {
+    "text": "Revoke consent (stops new research)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,2038][1035,2144]",
+    "clickable": "false"
+  },
+  {
+    "text": "Drafts and reports are saved on this device while signed in. Signing out clears this account\u2019s saved content.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,2166][1035,2223]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Log out and clear saved drafts and reports",
+    "class": "android.widget.Button",
+    "bounds": "[45,2370][1035,2223]",
+    "clickable": "true"
+  },
+  {
+    "text": "Log out and clear saved content",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,2370][1035,2223]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2226][540,2347]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[186,2259][353,2313]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2226][1080,2347]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[748,2259][871,2313]",
+    "clickable": "false"
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "evidenceClass": "actual local Fastify auth/settings/upload/admission and real PostgreSQL plus mobile helper; no worker/providers",
+  "checks": [
+    {
+      "enabled": false,
+      "mode": "controlled-research",
+      "checks": 1,
+      "saves": 0,
+      "uploads": 0,
+      "admissions": 0
+    },
+    {
+      "enabled": false,
+      "mode": "fixture",
+      "checks": 1,
+      "saves": 0,
+      "uploads": 0,
+      "admissions": 0
+    },
+    {
+      "enabled": true,
+      "mode": "controlled-research",
+      "checks": 1,
+      "saves": 2,
+      "uploads": 1,
+      "admissions": 1
+    },
+    {
+      "enabled": true,
+      "mode": "fixture",
+      "checks": 1,
+      "saves": 2,
+      "uploads": 1,
+      "admissions": 1
+    }
+  ],
+  "providerIntents": 0,
+  "sessionFlagsAbsent": true,
+  "settingsFlagsBoolean": true,
+  "unauthenticatedSettingsRejected": true,
+  "acceptedRecoveryWithDisabledFlags": true
+}

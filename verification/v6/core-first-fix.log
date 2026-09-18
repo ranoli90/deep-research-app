@@ -1,0 +1,18 @@
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/v6-publication.test.ts (11 tests) 12ms
+ ✓ test/p1-p2.test.ts (24 tests) 41ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 49ms
+ ✓ test/policy.test.ts (8 tests) 17ms
+ ✓ test/admission.test.ts (7 tests) 13ms
+
+ Test Files  5 passed (5)
+      Tests  63 passed (63)
+   Start at  08:10:17
+   Duration  970ms (transform 721ms, setup 0ms, collect 1.19s, tests 132ms, environment 1ms, prepare 485ms)
+

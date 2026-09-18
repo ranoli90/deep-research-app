@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
@@ -8,7 +9,7 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
-import { processRun } from "../src/worker/executor.js";
+import { InjectedCrash, processRun } from "../src/worker/diagnostic-executor.js";
 import { getRun, listEvents } from "../src/modules/runs.js";
 import { insertVersionAndPassage, loadEvidence } from "../src/modules/evidence.js";
 import { getLatestReportForRun, getReportForAccount, publishReport, recordFanout, completionDispatchPayload, fanoutAllowed } from "../src/modules/reports.js";
@@ -17,6 +18,7 @@ import { recordIntent, reconcileIntent } from "../src/modules/billing.js";
 import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";
 import { providerFailureState } from "../src/adapters/model/outcomes.js";
 import { redact } from "../src/platform/log.js";
+import { exportReportForAccount } from "../src/modules/report-export.js";
 
 const TEST_URL =
   process.env.TEST_DATABASE_URL ??
@@ -350,14 +352,15 @@ describe("remaining launch-scope IDs", () => {
     expect(JSON.stringify(report?.blocks)).toMatch(/vector engine|INTERNAL-PROPOSAL|supplied/i);
   });
 
-  it("E06 PDF attachment is disclosed as text-only / unread pages", async () => {
+  it("E06 actual PDF with no readable evidence is disclosed as unread pages", async () => {
     const { token, accountId } = await authed();
     const att = await app.inject({
       method: "POST",
-      url: "/v1/attachments",
-      headers: { authorization: `Bearer ${token}` },
-      payload: { filename: "scan.pdf", mime: "application/pdf", text: "page 1 only" },
+      url: "/v1/attachments/bytes",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/octet-stream", "x-document-mime": "application/pdf", "x-file-name": "scan.pdf" },
+      payload: await readFile(new URL("./fixtures/documents/empty-page.pdf", import.meta.url)),
     });
+    expect(att.statusCode).toBe(201);
     const created = await createRun(token, "Reconcile the attached scan.pdf with public Postgres pricing in Germany under 50 EUR as of 2026-03-01", {
       attachmentIds: [att.json().attachmentId],
     });
@@ -395,14 +398,48 @@ describe("remaining launch-scope IDs", () => {
     expect(md).toMatch(/Vendor A/);
     expect(md).toMatch(/\| Vendor \|/);
     expect(md).toMatch(/Café|Vendor|EUR/);
-    const ids = [...md.matchAll(/\[([0-9a-f]{8})\]/gi)]
+    expect(md).toContain("## Sources");
+    expect(md).toContain("Non-public document locator"); // Diagnostic fixture:// locators are not public URLs.
+    expect(md).toContain("Passage locator:");
+    const ids = [...md.matchAll(/passage: ([0-9a-f-]{36})/gi)]
       .map((m) => m[1])
       .filter((id): id is string => typeof id === "string");
     expect(ids.length).toBeGreaterThan(0);
     const passages = await pool.query<{ id: string }>(`SELECT id FROM passages WHERE account_id = $1 AND run_id = $2`, [accountId, runId]);
-    const prefixes = new Set(passages.rows.map((r) => r.id.slice(0, 8)));
+    const ownedIds = new Set(passages.rows.map((r) => r.id));
     for (const id of ids) {
-      expect(prefixes.has(id), `export citation [${id}] must be an owned passage`).toBe(true);
+      expect(ownedIds.has(id), `export citation [${id}] must be an owned passage`).toBe(true);
+    }
+    const references = [...md.matchAll(/\[\^source-(\d+)\](?!:)/g)].map((m) => m[1]);
+    expect(references.length).toBeGreaterThan(0);
+    for (const reference of references) expect(md).toContain(`[^source-${reference}]:`);
+    // Same-account source access still requires exact run membership; reused evidence
+    // resolves only while the immutable source-version and passage digests match.
+    const child = await createRun(token, "Inspect reused evidence in the exported report");
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`UPDATE reports SET run_id=$1 WHERE id=$2`, [child.json().runId, snap.json().reportId]);
+      const unbound = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(unbound).toContain("Source unavailable.");
+      expect(unbound).not.toContain("Source version:");
+      await client.query(`INSERT INTO run_evidence_membership(run_id,account_id,passage_id,source_version_id,origin_run_id,passage_digest,version_digest)
+        SELECT $1,p.account_id,p.id,p.source_version_id,p.run_id,p.content_hash,v.content_hash
+        FROM passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$2`, [child.json().runId, runId]);
+      const reused = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(reused).toBe(md);
+      await client.query(`UPDATE run_evidence_membership SET version_digest='tampered' WHERE run_id=$1`, [child.json().runId]);
+      expect(await exportReportForAccount(client, snap.json().reportId, accountId)).toBe(unbound);
+      const outsider = await authed();
+      expect(await exportReportForAccount(client, snap.json().reportId, outsider.accountId)).toBeNull();
+      await client.query("UPDATE reports SET limitations=$1::jsonb WHERE id=$2", [
+        JSON.stringify(["A required target remains contradicted; its conclusion is unresolved"]), snap.json().reportId]);
+      const limitedExport = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(limitedExport).toContain("## Limitations");
+      expect(limitedExport).toContain("A required target remains contradicted; its conclusion is unresolved");
+    } finally {
+      await client.query("ROLLBACK");
+      client.release();
     }
   });
 
@@ -576,7 +613,7 @@ describe("remaining launch-scope IDs", () => {
     expect(ids.every((id) => have.has(id))).toBe(true);
   });
 
-  it("R19 follow-up verifies one claim and keeps the parent report", async () => {
+  it("R19 diagnostic follow-up keeps the parent report without claiming executed targeted verification", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
     await processRun(pool, config, created.json().runId);
@@ -585,20 +622,22 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${created.json().runId}/follow-up`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { claimId: "answer", note: "Verify the Widget 4 announcement only" },
+      payload: { claimId: parent?.claim_ids[0], note: "Verify the Widget 4 announcement only" },
     });
     expect(follow.statusCode).toBe(200);
-    expect(follow.json().reopenedDiscovery).toBe(false);
+    expect(follow.json()).toMatchObject({reopenedDiscovery:true,verificationMode:"diagnostic_research"});
     await processRun(pool, config, follow.json().runId);
     expect(await getLatestReportForRun(pool, created.json().runId, accountId)).toBeTruthy();
     expect(parent?.id).toBeTruthy();
     const childEvents = await listEvents(pool, follow.json().runId, 0);
-    expect(JSON.stringify(childEvents)).toMatch(/verify the named claim|Follow-up/i);
+    expect(JSON.stringify(childEvents)).toMatch(/diagnostic research rerun/i);
+    expect(JSON.stringify(childEvents)).not.toMatch(/will verify the named claim without reopening/i);
     const childReport = await getLatestReportForRun(pool, follow.json().runId, accountId);
+    expect(childReport).toBeTruthy();
     expect(childReport?.id).not.toBe(parent?.id);
     const summary = childReport?.change_summary ?? childReport?.changeSummary;
     const notes = typeof summary === "string" ? summary : JSON.stringify(summary);
-    expect(notes).toMatch(/without reopening candidate discovery/i);
+    expect(notes??"").not.toMatch(/Targeted follow-up verified|without reopening candidate discovery/i);
   });
 
   it("R20 dates a retrieved price and keeps a founding year as history", async () => {
@@ -660,7 +699,7 @@ describe("remaining launch-scope IDs", () => {
     const { token } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
     const runId = created.json().runId as string;
-    await processRun(pool, config, runId, { pauseAt: "writing", workerId: "live-owner" });
+    await expect(processRun(pool, config, runId, { crashAfter: "before-publish", workerId: "live-owner" })).rejects.toBeInstanceOf(InjectedCrash);
     const stolen = await claimLease(pool, runId, "other-worker", 30_000);
     expect(stolen).toBeNull();
     await pool.query(`UPDATE run_leases SET expires_at = now() - interval '1 second' WHERE run_id = $1`, [runId]);

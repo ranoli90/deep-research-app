@@ -1,0 +1,42 @@
+{
+  "task": "V6-W04-W08",
+  "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "revisionScope": "Uncommitted corpus registration",
+  "environment": {
+    "node": "20.20.2",
+    "python": "3.12.3",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "paidCalls": 0,
+  "humanAdjudication": null,
+  "results": [
+    {
+      "artifact": "acquire.log",
+      "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts acquire",
+      "exitCode": 1,
+      "scope": "First official redirect rejected; retained",
+      "exitEvidence": "Agent terminal observation"
+    },
+    {
+      "artifact": "acquire-second.log",
+      "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts acquire",
+      "exitCode": 0,
+      "scope": "13actual documents,12task families; bounded evaluator8MiB limit differs from production1.5MB",
+      "exitEvidence": "Agent terminal observation"
+    },
+    {
+      "artifact": "validate-before-extraction.log",
+      "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts validate",
+      "exitCode": 0,
+      "scope": "Frozen6development/6heldout before extraction",
+      "exitEvidence": "Agent terminal observation"
+    },
+    {
+      "artifact": "extract.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm exec tsx evals/matched-pipeline/corpus.mts extract",
+      "exitCode": 1,
+      "scope": "13documents extracted;1SQLite exact-reference locator missing. Narrow table/PDF checks, no OCR/model scoring",
+      "exitEvidence": "Agent terminal observation for acquisition/validation; extraction failure count plus implemented exit mapping (terminal handle unavailable after agent limit)"
+    }
+  ]
+}

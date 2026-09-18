@@ -1,0 +1,16 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/lease-clock.integration.test.ts (6 tests) 7080ms
+   ✓ W02 rejects expired semantic mutation after account lock wait  1197ms
+   ✓ W02 rejects expired terminal mutation after account lock wait  1151ms
+   ✓ W02 rejects provider issuance when lease expires waiting for account lock  1161ms
+   ✓ W02 rejects provider issuance when lease expires waiting for legacy lock  1154ms
+   ✓ W02 rejects provider issuance when lease expires waiting for key lock  1154ms
+   ✓ W02 rejects provider issuance when lease expires waiting for project lock  1148ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  20:40:09
+   Duration  7.90s (transform 379ms, setup 0ms, collect 582ms, tests 7.08s, environment 0ms, prepare 71ms)
+

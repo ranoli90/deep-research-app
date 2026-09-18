@@ -1,0 +1,15 @@
+
+> @deep/mobile@0.1.0 bundle:android /tmp/deep-correction-mobile/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-correction-mobile-export-final
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (641/648)
+Android Bundled 3721ms apps/mobile/index.ts (649 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-29128da29f0899f61795bde019569e6d.hbc (2.2 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-correction-mobile-export-final

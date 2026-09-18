@@ -1,0 +1,117 @@
+{
+  "scope": "saved public documentation; agent-inspected references, no independent human adjudication",
+  "results": [
+    {
+      "id": "postgres-connect",
+      "sha256": "b923116c8f59af2ec6850236887869323e504f27bc36bbddb0560c8c18afcabb",
+      "mode": "readability",
+      "elapsedMs": 675.384483,
+      "missing": [
+        "connect_timeout connection parameter is ignored when using PQconnectPoll"
+      ],
+      "warnings": [],
+      "outputChars": 67046,
+      "rssBytes": 131416064
+    },
+    {
+      "id": "postgres-numeric",
+      "sha256": "6c22c8edb738adebc4713060f9328a1d2982e2cbe6f0b3b985ae08114a455bb7",
+      "mode": "readability",
+      "elapsedMs": 300.7091750000002,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 14859,
+      "rssBytes": 137416704
+    },
+    {
+      "id": "postgres-isolation",
+      "sha256": "beef1cd1c5f512e3934fd049454730e3cc9d459e69db8e938bf941125387cefc",
+      "mode": "readability",
+      "elapsedMs": 163.82048499999996,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 23801,
+      "rssBytes": 137756672
+    },
+    {
+      "id": "python-decimal",
+      "sha256": "8b96da623aacbcbb95030dd7a82b05d958e57bdf7ac6cdbacd6c5d02b5634d60",
+      "mode": "semantic-root",
+      "elapsedMs": 1778.920872,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 128565,
+      "rssBytes": 208998400
+    },
+    {
+      "id": "python-csv",
+      "sha256": "70b409803ada2f3a5c497c34731fdb64d0e741ebf6c8e7f48d54240ac7205f61",
+      "mode": "semantic-root",
+      "elapsedMs": 474.0509599999996,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 36410,
+      "rssBytes": 245301248
+    },
+    {
+      "id": "python-sqlite",
+      "sha256": "3fe30e8afed56948455d8680a62ae6831d195476eb70ba4df304bc667b02c833",
+      "mode": "semantic-root",
+      "elapsedMs": 1719.3870259999994,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 144081,
+      "rssBytes": 249901056
+    },
+    {
+      "id": "node-http",
+      "sha256": "8573c4155c0b62934d3b780b5dd66296ad27f64dacb701152fbbb4c7ee57d67d",
+      "mode": "semantic-root",
+      "elapsedMs": 1378.3669870000003,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 98351,
+      "rssBytes": 322252800
+    },
+    {
+      "id": "node-fs",
+      "sha256": "95767bdf95e8b6e0eaee943c613fe17844beaacb25bb127cd60fc58f955b61d5",
+      "mode": "semantic-root",
+      "elapsedMs": 3265.843465000001,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 202307,
+      "rssBytes": 413757440
+    },
+    {
+      "id": "mdn-table-de",
+      "sha256": "372c8edae9c098e5e47addc6ae70d16eccaf5ea39a34964edae3daaddc6d36a3",
+      "mode": "semantic-root",
+      "elapsedMs": 468.21514299999944,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 35154,
+      "rssBytes": 452816896
+    },
+    {
+      "id": "mdn-table-en",
+      "sha256": "f7aded973aee008f2082d6a81cdf1a8d6db052ce6f27e0b0d43750233ff0441d",
+      "mode": "semantic-root",
+      "elapsedMs": 379.09448300000076,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 34114,
+      "rssBytes": 488992768
+    },
+    {
+      "id": "sqlite-support",
+      "sha256": "55a5a0643f1f8a023f19e0f3279c89d32f91e663bf5c7748fcc35513f15fa4a8",
+      "mode": "readability",
+      "elapsedMs": 82.06961300000148,
+      "missing": [],
+      "warnings": [],
+      "outputChars": 8689,
+      "rssBytes": 490696704
+    }
+  ]
+}

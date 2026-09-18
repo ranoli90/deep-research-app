@@ -1,0 +1,405 @@
+
+> @deep/mobile@0.1.0 start /home/oranolio/Desktop/Deep/apps/mobile
+> expo start --localhost --port 8081
+
+Starting project at /home/oranolio/Desktop/Deep/apps/mobile
+Starting Metro Bundler
+Skipping dependency validation in offline mode
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (727/743)
+Android Bundled 5124ms apps/mobile/index.ts (753 modules)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 52ms apps/mobile/index.ts (1 module)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 44ms apps/mobile/index.ts (1 module)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 84ms apps/mobile/index.ts (1 module)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 41ms apps/mobile/index.ts (1 module)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 44ms apps/mobile/index.ts (1 module)
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "./src/native-document-digest" from "apps/mobile/App.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./src/native-document-digest from /home/oranolio/Desktop/Deep/apps/mobile/App.tsx: 
+
+None of these files exist:
+  * src/native-document-digest(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src/native-document-digest
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { nativeDocumentDigest } [36mfrom[39m [32m"./src/native-document-digest"[39m[33m;[39m
+ [90m   |[39m                                       [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { prepareAdmission[33m,[39m submitAdmission[33m,[39m readAdmittedRun[33m,[39m type [33mAdmittedRun[39m } [36mfrom[39m [32m"./src/admission-retry"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mSourceSheet[39m } [36mfrom[39m [32m"./src/SourceSheet"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { readSourceDetail } [36mfrom[39m [32m"./src/source-view"[39m[33m;[39m[0m]
+Unable to resolve "expo-crypto" from "apps/mobile/src/native-document-digest.ts"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m
+
+Import stack:
+
+ apps/mobile/src/native-document-digest.ts
+ | import "expo-crypto"
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module expo-crypto from /home/oranolio/Desktop/Deep/apps/mobile/src/native-document-digest.ts: expo-crypto could not be found within the project or in these directories:
+  node_modules
+  ../../node_modules
+  node_modules
+  ../../node_modules
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m]
+Unable to resolve "expo-crypto" from "apps/mobile/src/native-document-digest.ts"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m
+
+Import stack:
+
+ apps/mobile/src/native-document-digest.ts
+ | import "expo-crypto"
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module expo-crypto from /home/oranolio/Desktop/Deep/apps/mobile/src/native-document-digest.ts: expo-crypto could not be found within the project or in these directories:
+  node_modules
+  ../../node_modules
+  node_modules
+  ../../node_modules
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m]
+Unable to resolve "expo-crypto" from "apps/mobile/src/native-document-digest.ts"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m
+
+Import stack:
+
+ apps/mobile/src/native-document-digest.ts
+ | import "expo-crypto"
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module expo-crypto from /home/oranolio/Desktop/Deep/apps/mobile/src/native-document-digest.ts: expo-crypto could not be found within the project or in these directories:
+  node_modules
+  ../../node_modules
+  node_modules
+  ../../node_modules
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCrypto[39m [36mfrom[39m [32m"expo-crypto"[39m[33m;[39m
+ [90m   |[39m                          [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m type { [33mDocumentDigester[39m } [36mfrom[39m [32m"./admission-retry"[39m[33m;[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m[0m]
+Unable to resolve "expo-crypto" from "apps/mobile/src/native-document-digest.ts"
+[0m [90m 3 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m
+ [90m 4 |[39m [36mexport[39m [36mconst[39m nativeDocumentDigest[33m:[39m [33mDocumentDigester[39m [33m=[39m [36masync[39m bytes [33m=>[39m {
+[31m[1m>[22m[39m[90m 5 |[39m   [36mconst[39m [33mCrypto[39m [33m=[39m [36mawait[39m [36mimport[39m([32m"expo-crypto"[39m)[33m.[39m[36mcatch[39m(() [33m=>[39m {
+ [90m   |[39m                                [31m[1m^[22m[39m
+ [90m 6 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable. Use a current app build to submit documents; saved reports remain readable."[39m)[33m;[39m
+ [90m 7 |[39m   })[33m;[39m
+ [90m 8 |[39m   [36mif[39m ([36mtypeof[39m [33mCrypto[39m[33m.[39mdigest [33m!==[39m [32m"function"[39m) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable."[39m)[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/src/native-document-digest.ts
+ | import "expo-crypto"
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module expo-crypto from /home/oranolio/Desktop/Deep/apps/mobile/src/native-document-digest.ts: expo-crypto could not be found within the project or in these directories:
+  node_modules
+  ../../node_modules
+  node_modules
+  ../../node_modules
+[0m [90m 3 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m
+ [90m 4 |[39m [36mexport[39m [36mconst[39m nativeDocumentDigest[33m:[39m [33mDocumentDigester[39m [33m=[39m [36masync[39m bytes [33m=>[39m {
+[31m[1m>[22m[39m[90m 5 |[39m   [36mconst[39m [33mCrypto[39m [33m=[39m [36mawait[39m [36mimport[39m([32m"expo-crypto"[39m)[33m.[39m[36mcatch[39m(() [33m=>[39m {
+ [90m   |[39m                                [31m[1m^[22m[39m
+ [90m 6 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable. Use a current app build to submit documents; saved reports remain readable."[39m)[33m;[39m
+ [90m 7 |[39m   })[33m;[39m
+ [90m 8 |[39m   [36mif[39m ([36mtypeof[39m [33mCrypto[39m[33m.[39mdigest [33m!==[39m [32m"function"[39m) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable."[39m)[33m;[39m[0m]
+Unable to resolve "expo-crypto" from "apps/mobile/src/native-document-digest.ts"
+[0m [90m 3 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m
+ [90m 4 |[39m [36mexport[39m [36mconst[39m nativeDocumentDigest[33m:[39m [33mDocumentDigester[39m [33m=[39m [36masync[39m bytes [33m=>[39m {
+[31m[1m>[22m[39m[90m 5 |[39m   [36mconst[39m [33mCrypto[39m [33m=[39m [36mawait[39m [36mimport[39m([32m"expo-crypto"[39m)[33m.[39m[36mcatch[39m(() [33m=>[39m {
+ [90m   |[39m                                [31m[1m^[22m[39m
+ [90m 6 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable. Use a current app build to submit documents; saved reports remain readable."[39m)[33m;[39m
+ [90m 7 |[39m   })[33m;[39m
+ [90m 8 |[39m   [36mif[39m ([36mtypeof[39m [33mCrypto[39m[33m.[39mdigest [33m!==[39m [32m"function"[39m) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable."[39m)[33m;[39m[0m
+
+Import stack:
+
+ apps/mobile/src/native-document-digest.ts
+ | import "expo-crypto"
+
+ apps/mobile/App.tsx
+ | import "./src/native-document-digest"
+
+ apps/mobile/index.ts
+ | import "./App"
+
+ 
+ | import "./apps/mobile/index.ts"
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module expo-crypto from /home/oranolio/Desktop/Deep/apps/mobile/src/native-document-digest.ts: expo-crypto could not be found within the project or in these directories:
+  node_modules
+  ../../node_modules
+  node_modules
+  ../../node_modules
+[0m [90m 3 |[39m [90m/** Exact bytes through the SDK's native SHA256 implementation; no JS fallback. */[39m
+ [90m 4 |[39m [36mexport[39m [36mconst[39m nativeDocumentDigest[33m:[39m [33mDocumentDigester[39m [33m=[39m [36masync[39m bytes [33m=>[39m {
+[31m[1m>[22m[39m[90m 5 |[39m   [36mconst[39m [33mCrypto[39m [33m=[39m [36mawait[39m [36mimport[39m([32m"expo-crypto"[39m)[33m.[39m[36mcatch[39m(() [33m=>[39m {
+ [90m   |[39m                                [31m[1m^[22m[39m
+ [90m 6 |[39m     [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable. Use a current app build to submit documents; saved reports remain readable."[39m)[33m;[39m
+ [90m 7 |[39m   })[33m;[39m
+ [90m 8 |[39m   [36mif[39m ([36mtypeof[39m [33mCrypto[39m[33m.[39mdigest [33m!==[39m [32m"function"[39m) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Native document SHA256 is unavailable."[39m)[33m;[39m[0m]
+/home/oranolio/Desktop/Deep/node_modules/@expo/cli/build/src/utils/errors.js:130
+    throw error;
+    ^
+
+Error: ENOENT: no such file or directory, watch '/home/oranolio/Desktop/Deep/node_modules/expo-crypto_tmp_1838161/android/src/main'
+    at FSWatcher.<computed> (node:internal/fs/watchers:247:19)
+    at Object.watch (node:fs:2503:36)
+    at FallbackWatcher._watchdir (/home/oranolio/Desktop/Deep/node_modules/metro-file-map/src/watchers/FallbackWatcher.js:119:33)
+    at /home/oranolio/Desktop/Deep/node_modules/metro-file-map/src/watchers/FallbackWatcher.js:219:22
+    at Walker.<anonymous> (/home/oranolio/Desktop/Deep/node_modules/metro-file-map/src/watchers/FallbackWatcher.js:358:5)
+    at Walker.emit (node:events:524:28)
+    at /home/oranolio/Desktop/Deep/node_modules/walker/lib/walker.js:69:16
+    at FSReqCallback.oncomplete (node:fs:187:23) {
+  errno: -2,
+  syscall: 'watch',
+  code: 'ENOENT',
+  path: '/home/oranolio/Desktop/Deep/node_modules/expo-crypto_tmp_1838161/android/src/main',
+  filename: '/home/oranolio/Desktop/Deep/node_modules/expo-crypto_tmp_1838161/android/src/main'
+}
+
+Node.js v20.20.2
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 start: `expo start --localhost --port 8081`
+Exit status 7

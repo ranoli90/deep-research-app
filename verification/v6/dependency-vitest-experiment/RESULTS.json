@@ -1,0 +1,106 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "workingTree": true,
+  "cwd": "/tmp/deep-v6-vitest-6490546",
+  "recordedAt": "2026-09-18T04:05:08.736253+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "mocker": "4.1.11",
+    "vite": "7.3.6",
+    "postcss": "8.5.28"
+  },
+  "results": [
+    {
+      "command": "pnpm install --offline --ignore-scripts",
+      "exitCode": 1,
+      "artifact": "install-offline.log",
+      "sha256": "fc821f9c89959debf7aac93b8c003eceb2f5b7b352a537a14b6471dcfc3e7a1b",
+      "scope": "Expected cache miss Vitest4.1.11 tarball; no secret/provider access"
+    },
+    {
+      "command": "pnpm install --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-registry.log",
+      "sha256": "a3262bc030b2c9718bcc3bf2828031ec69d410dd5e9aa109122d68a1c145392e",
+      "scope": "Authorized registry downloads15tarballs; scripts disabled"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "sha256": "9cabb5dc5d9582c0f71524ee9c1dbb154a79485da8ac7196ac8afb8091ab8495",
+      "scope": "148research-core+116backend+136mobile+6governance controls; configured typechecks and boundaries pass; no assertion/config/source changes"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log",
+      "sha256": "46ae20b01efad90a533b8843fa91b4f8506929ea3e4742be6da4da8796769da2",
+      "scope": "Configured mobile typecheck"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json",
+      "sha256": "602864560220db87fa4545e94a61afa27af841f1e144031208c8ee93d0a83868",
+      "scope": "1moderate uuid+2high image-size remain; PostCSS and Vitest/mocker findings removed"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-frozen-offline.log",
+      "sha256": "25959809acd228270a3b0031b55153b25faa6345ccc0c46b33f1953856eeefea",
+      "scope": "Successful offline reproducible frozen installation after cache population"
+    }
+  ],
+  "patches": [
+    {
+      "path": "remediation.patch",
+      "sha256": "82b00d061c4a4412427f1f57bf660ff82a10ecdd67fc4bba18dd27f380c5b173",
+      "scope": "Combined PostCSS override+3exactVitestdevDeclarations+lock against6490546"
+    },
+    {
+      "path": "vitest-only.patch",
+      "sha256": "fe5b20b2c6ace24535cdf480b378d22dbd3c61597b5d405b8a52ffa266e97b30",
+      "scope": "Vitest-only addition against primary current PostCSS-integrated package/lock baseline"
+    }
+  ],
+  "rootPatchBaseline": [
+    {
+      "path": "apps/backend/package.json",
+      "rootBaselineSha256": "d08c4068b17bf764449cc882700b3c0f572c57ceb490a4db5cb7d9bab9f61b44"
+    },
+    {
+      "path": "apps/mobile/package.json",
+      "rootBaselineSha256": "a7061d886364d3ff89587da7459be0ab4e9a07e364d6ac57627093f65fba0370"
+    },
+    {
+      "path": "packages/research-core/package.json",
+      "rootBaselineSha256": "31ff9fafcad6ecd1d33792dd8fe0ed1887a13f5e508cd5583a656f6d7816a07a"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "rootBaselineSha256": "c87ad2f92a4f61be9010a8ac5799b4b44024006e3100ff9e2d254148c4728cc3"
+    }
+  ],
+  "impact": {
+    "license": "Vitest,mocker,Vite MIT; existing Node20.20.2 satisfiesVitest^20/Vite>=20.19 engines.",
+    "dependencyScope": "Only3 existing devDependency declarations change^3.2.4\u2192exact4.1.11 plus already approvedPostCSS override. Vitest-owned transitive graph changes include chai6, es-module-lexer2, std-env4, tinyexec1, tinyrainbow3, obug and standard-schema. Removes vite-node wrapper; Vite7.3.6 unchanged. No nativeSDK/Expo/Metro/UUID changes.",
+    "compatibility": "No major runner incompatibility observed in configured type/unit/governance checks. No changes to tests/assertions/config/source and no skipped controls were introduced.",
+    "reproducibility": "Initial offline installation fails honestly without new runner tarball; authorized registry download succeeds, then frozenofflineinstall passes.",
+    "rootSafety": "Experiment agent modified only isolatedclone+root evidence directory. Primary independently integratedPostCSS during experiment; rootVitest remains3.x. No rootpackage/lock/source edits by experiment agent.",
+    "rollback": "Restore three previousVitest declarations and matchinglock while preservingPostCSS override. Such rollback restores knownVitest/mocker advisory and must remain recorded; no weakened tests or auditexclusions.",
+    "nextChecks": "Before promotion run serial realPostgreSQL integration and actualextraction withVitest4 in isolatedclone; runner major affects DB mocks and fixtures even though unitchecks pass. NativeJS export remains PostCSS prior evidence, not thisexperiment.",
+    "limits": "NoDB, actualextraction, native, hostedCI, liveproviders or paid calls in thispacket."
+  },
+  "sources": [
+    "https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9",
+    "https://v4.vitest.dev/guide/migration"
+  ],
+  "paidCalls": 0
+}

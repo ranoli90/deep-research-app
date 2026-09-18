@@ -1,0 +1,245 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Demo fixture route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Live research route",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Network request failed",
+      "label": "",
+      "bounds": "[0,375][1080,519]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,519][1080,1865]",
+      "class": "android.widget.ScrollView"
+    },
+    {
+      "text": "Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.",
+      "label": "",
+      "bounds": "[45,586][1035,722]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research report",
+      "bounds": "[45,723][1035,1865]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "LIVE REPORT",
+      "label": "",
+      "bounds": "[93,790][313,841]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Show concise view",
+      "bounds": "[825,771][987,877]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Concise",
+      "label": "",
+      "bounds": "[825,771][987,877]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Evidence",
+      "label": "",
+      "bounds": "[93,877][987,951]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Ardent supports offline recording only on firmware 4.2.",
+      "label": "",
+      "bounds": "[93,1018][987,1154]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Open source a978fa92",
+      "bounds": "[93,1154][479,1260]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Source a978fa92",
+      "label": "",
+      "bounds": "[93,1154][479,1260]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+      "label": "Change summary",
+      "bounds": "[92,1327][988,1735]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Share report as Markdown",
+      "bounds": "[93,1736][987,1842]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Share Markdown",
+      "label": "",
+      "bounds": "[93,1736][987,1842]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Verify the answer claim",
+      "bounds": "[93,1842][987,1865]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Verify this claim",
+      "label": "",
+      "bounds": "[93,1842][987,1865]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Flag this generated answer",
+      "bounds": "[93,1948][987,1865]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Flag this answer",
+      "label": "",
+      "bounds": "[93,1948][987,1865]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Previous report version",
+      "bounds": "[45,2146][1035,1865]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "PREVIOUS VERSION",
+      "label": "",
+      "bounds": "[92,2193][988,1865]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Earlier result kept.",
+      "label": "",
+      "bounds": "[92,2261][988,1865]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Share previous report as Markdown",
+      "bounds": "[93,2330][987,1865]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Share previous Markdown",
+      "label": "",
+      "bounds": "[93,2330][987,1865]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Show attachment fields",
+      "bounds": "[0,1865][1080,1994]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Attach a file (0/3)",
+      "label": "",
+      "bounds": "[45,1887][1035,1993]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "What does the Ardent field note say about underwater recording?",
+      "label": "Research question",
+      "bounds": "[22,2019][866,2200]",
+      "class": "android.widget.EditText"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[867,2094][1058,2200]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Send",
+      "label": "",
+      "bounds": "[912,2116][1013,2177]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][360,2348]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[96,2259][264,2313]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[360,2226][720,2348]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[478,2259][601,2313]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Settings",
+      "bounds": "[720,2226][1080,2348]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Settings",
+      "label": "",
+      "bounds": "[827,2259][973,2313]",
+      "class": "android.widget.TextView"
+    }
+  ]
+}

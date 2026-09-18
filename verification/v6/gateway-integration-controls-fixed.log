@@ -1,0 +1,15 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (11 tests) 3632ms
+   ✓ W05 durable model gateway on real PostgreSQL > records an issued reservation before network and reuses a stored validated result without another call  483ms
+   ✓ W05 durable model gateway on real PostgreSQL > revalidates evidence basis and never reuses an older revision's result  382ms
+   ✓ W05 durable model gateway on real PostgreSQL > rejects other-account evidence before spending  331ms
+   ✓ W05 durable model gateway on real PostgreSQL > incurred cost survives delete but a late model result cannot persist  315ms
+   ✓ W05 durable model gateway on real PostgreSQL > does not issue two calls when identical model requests race  318ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  12:32:27
+   Duration  7.88s (transform 2.12s, setup 0ms, collect 3.18s, tests 3.63s, environment 1ms, prepare 498ms)
+

@@ -1,0 +1,13 @@
+
+> @deep/mobile@0.1.0 start /home/oranolio/Desktop/Deep/apps/mobile
+> expo start --localhost --port 8081
+
+Starting project at /home/oranolio/Desktop/Deep/apps/mobile
+Starting Metro Bundler
+Skipping dependency validation in offline mode
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 1061ms apps/mobile/index.ts (727 modules)
+Android node_modules/expo-crypto/build/Crypto.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 907ms node_modules/expo-crypto/build/Crypto.js (613 modules)

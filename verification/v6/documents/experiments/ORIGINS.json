@@ -1,0 +1,27 @@
+[
+  {
+    "source": "/tmp/deep-v6-pdf/compare_modes.py",
+    "sha256": "598da177ec7809b0a862b3958c66f1e9a5feeaa60a0707d8e043ef08385df8a1",
+    "reproductionFile": "pypdf_modes.py"
+  },
+  {
+    "source": "/tmp/deep-v6-pdf/pdfium_probe.py",
+    "sha256": "516a570a9e6c9e6c4cbfcb1d2f9f8c51f30ad718f3123228a01be6a59244acce",
+    "reproductionFile": "pdfium.py"
+  },
+  {
+    "source": "/tmp/deep-docling-experiment/probe.py",
+    "sha256": "f76b8c18aebb75270ce5923792c0c3ff999402529af985662fb1f57872eb5a3c",
+    "reproductionFile": "docling_native.py"
+  },
+  {
+    "source": "/tmp/deep-docling-experiment/line_probe.py",
+    "sha256": "497bd3f82dbcfac49fa31b4a2577f80419ca1d2f682e75d52740dad0946110ec",
+    "reproductionFile": "docling_lines.py"
+  },
+  {
+    "source": "/tmp/deep-docling-experiment/ordered_probe.py",
+    "sha256": "8c29ca3db587d3934a59b01c4892b251c6840ccaa14ff950bccfe730f2737270",
+    "reproductionFile": "docling_ordered.py"
+  }
+]

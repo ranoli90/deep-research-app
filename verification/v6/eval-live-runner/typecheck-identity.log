@@ -1,0 +1,4 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-eval-runner-0602f96/apps/backend
+> tsc -p tsconfig.json --noEmit
+

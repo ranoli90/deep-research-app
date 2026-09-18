@@ -1,0 +1,9 @@
+{
+  "evidenceClass": "public_document_acquisition_failure",
+  "candidate": "Raspberry Pi Pico datasheet",
+  "url": "https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf",
+  "observedBy": "web.open",
+  "result": "400 Content length is too large:10485761+",
+  "selectionDecision": "Do not truncate or relabel it as a full parsed document. Its size exceeds the application8MiB attachment bound. Register distinct TI TMP117 sensor accuracy-versus-resolution task instead; decision made before task extraction/model execution.",
+  "paidCalls": 0
+}

@@ -1,0 +1,49 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts test/api-request.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ❯ test/api-request.test.ts (3 tests | 2 failed) 42ms
+   × sends authenticated bodyless DELETE without advertising empty JSON 34ms
+   × bodyless authenticated reads omit JSON headers while JSON POST bodies retain them 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/api-request.test.ts > sends authenticated bodyless DELETE without advertising empty JSON
+AssertionError: promise rejected "ApiError: Body cannot be empty when conte… { status: … }" instead of resolving
+ ❯ test/api-request.test.ts:12:53
+
+
+Caused by: ApiError: Body cannot be empty when content-type is set to application/json
+ ❯ req src/api.ts:47:13
+ ❯ test/api-request.test.ts:12:2
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { status: 400 }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/api-request.test.ts > bodyless authenticated reads omit JSON headers while JSON POST bodies retain them
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/api-request.test.ts:19:61
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  05:34:12
+   Duration  443ms (transform 163ms, setup 0ms, import 218ms, tests 42ms, environment 0ms)
+
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts test/api-request.test.ts`
+Exit status 1

@@ -1,0 +1,5 @@
+
+> @deep/mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+exit_code=0

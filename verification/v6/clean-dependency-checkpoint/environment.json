@@ -1,0 +1,9 @@
+{
+  "node": "v20.20.2",
+  "pnpm": "9.15.9",
+  "typescript": "5.9.3",
+  "vitest": "4.1.11",
+  "platform": "linux",
+  "arch": "x64",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c"
+}

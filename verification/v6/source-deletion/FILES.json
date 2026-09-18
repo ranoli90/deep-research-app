@@ -1,0 +1,46 @@
+[
+  {
+    "path": "HANDOFF.md",
+    "sha256": "fcd1de991d3453a9839f0b90b18c0dce5d006308835c8b07c85d3765c8724752"
+  },
+  {
+    "path": "RESULTS.json",
+    "sha256": "328bca7b4720edcba569085b69645d59bdb156a382c01c49579b3be47e42c86a"
+  },
+  {
+    "path": "export-integration.log",
+    "sha256": "ffb59e338477bde008b8aef88822b29de30a9d146f41788d9a4b2d30d805d70b"
+  },
+  {
+    "path": "export-unit.log",
+    "sha256": "55e78673bbd089f541a3bb65b19f42fa630b8ba1f1a4bc037734f80fd3972f69"
+  },
+  {
+    "path": "integration-initial.log",
+    "sha256": "df6d3696becdf51e04a5ed7c84dbb09e0e25708c003590e62a9a951c25dd2574"
+  },
+  {
+    "path": "integration-second.log",
+    "sha256": "047b4b3b89d2f463b0ef6e06fc9a669a1cc4a4d1309e91816f14e62e6d009b30"
+  },
+  {
+    "path": "integration-third.log",
+    "sha256": "ea8295b920f97c24baf9ad31b030dbf8938b112c1ad7a395d3af7cf1451a7bc8"
+  },
+  {
+    "path": "typecheck-final.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "typecheck-initial.log",
+    "sha256": "885570066589f2446cc809175146d484061439a8c47237bc8b1a10dd8529f0d6"
+  },
+  {
+    "path": "typecheck-second.log",
+    "sha256": "74055ba1fc59650899a34979258f2a7994b5b0c848f6feaf61e612061c240b58"
+  },
+  {
+    "path": "typecheck-third.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  }
+]

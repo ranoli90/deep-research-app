@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/p1-p2.test.ts (25 tests) 143ms
+
+ Test Files  1 passed (1)
+      Tests  25 passed (25)
+   Start at  17:52:28
+   Duration  3.56s (transform 1.62s, setup 0ms, collect 2.05s, tests 143ms, environment 1ms, prepare 478ms)
+

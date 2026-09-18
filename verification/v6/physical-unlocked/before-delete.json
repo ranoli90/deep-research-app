@@ -1,0 +1,253 @@
+{
+  "evidenceClass": "native UI / actual local API-worker-PDF-parser / fabricated model",
+  "paidCalls": 0,
+  "accountId": "b19e0195-b244-4e7c-ad43-a6d952441d7e",
+  "capturedAt": "2026-09-18T13:17:46.646Z",
+  "runs": [
+    {
+      "id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "parent_run_id": null,
+      "lifecycle": "terminal",
+      "terminal_outcome": "completed",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T13:14:53.113Z",
+      "updated_at": "2026-09-18T13:14:56.665Z",
+      "spent_micro": "7",
+      "original_question": "Does Ardent support underwater recording?"
+    },
+    {
+      "id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "parent_run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "lifecycle": "terminal",
+      "terminal_outcome": "completed",
+      "route_mode": "controlled-research",
+      "created_at": "2026-09-18T13:16:54.677Z",
+      "updated_at": "2026-09-18T13:16:56.426Z",
+      "spent_micro": "7",
+      "original_question": "Which firmware supports Ardent offline recording?"
+    }
+  ],
+  "reports": [
+    {
+      "id": "d9b307d7-ed3b-4204-bcc3-a685f3b7045b",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "outcome": "completed",
+      "blocks": [
+        {
+          "id": "heading_0",
+          "kind": "heading",
+          "text": "Evidence",
+          "claimIds": [],
+          "citationIds": []
+        },
+        {
+          "id": "paragraph_0_0",
+          "kind": "text",
+          "text": "Ardent does not support underwater recording.",
+          "claimIds": [
+            "1dad1fca-54f7-4c1a-a3ff-2f4aee37f5a0"
+          ],
+          "citationIds": [
+            "105be8ef-2dee-458a-a5d5-d620d298fb2d"
+          ]
+        }
+      ],
+      "change_summary": null,
+      "published_at": "2026-09-18T13:14:56.665Z",
+      "redacted_at": null
+    },
+    {
+      "id": "c5426ce0-8aed-437e-9954-f8de17c6005e",
+      "run_id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "outcome": "completed",
+      "blocks": [
+        {
+          "id": "heading_0",
+          "kind": "heading",
+          "text": "Evidence",
+          "claimIds": [],
+          "citationIds": []
+        },
+        {
+          "id": "paragraph_0_0",
+          "kind": "text",
+          "text": "Ardent supports offline recording only on firmware 4.2.",
+          "claimIds": [
+            "0abd9ecb-e830-45cc-83ed-022a303b0f06"
+          ],
+          "citationIds": [
+            "105be8ef-2dee-458a-a5d5-d620d298fb2d"
+          ]
+        }
+      ],
+      "change_summary": {
+        "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+        "comparison": {
+          "version": "report-changes.v1",
+          "parentReportId": "d9b307d7-ed3b-4204-bcc3-a685f3b7045b",
+          "addedCriterionIds": [],
+          "reportStateChanged": false,
+          "removedCriterionIds": [],
+          "unchangedAssertions": 0,
+          "addedClaimRevisionIds": [
+            "a1b457eb-8aa0-4042-acf1-42cac491d047"
+          ],
+          "removedClaimRevisionIds": [
+            "7fc30fc7-d561-4988-af27-ac4b53d21e4e"
+          ],
+          "newlyCitedSourceVersionIds": [],
+          "reusedCitedSourceVersionIds": [
+            "e0a9e335-3df1-4fbd-87b5-d082249cebd6"
+          ]
+        },
+        "newlyFeasible": [],
+        "evidenceUpdated": false,
+        "newlyInfeasible": [],
+        "conclusionChanged": true
+      },
+      "published_at": "2026-09-18T13:16:56.426Z",
+      "redacted_at": null
+    }
+  ],
+  "sources": [
+    {
+      "id": "2ac3a1ee-30d3-441b-abc9-a7b373585eab",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "title": "deep-v6-physical-control.pdf",
+      "version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "content_hash": "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd",
+      "access_level": "partial-text",
+      "text_coverage": "selected_extracted_blocks"
+    }
+  ],
+  "passages": [
+    {
+      "id": "105be8ef-2dee-458a-a5d5-d620d298fb2d",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "exact_text": "Field notes: Ardent sensor deployment\nArdent supports offline recording only on firmware 4.2.\nArdent does not support underwater recording.",
+      "locator": {
+        "kind": "text",
+        "rows": [],
+        "block": "page:1/block:0",
+        "geometry": [
+          {
+            "box": [
+              50,
+              737.516,
+              255.42800000000003,
+              748.616
+            ],
+            "text": "Field notes: Ardent sensor deployment"
+          },
+          {
+            "box": [
+              50,
+              719.516,
+              338.1200000000001,
+              730.616
+            ],
+            "text": "Ardent supports offline recording only on firmware 4.2."
+          },
+          {
+            "box": [
+              50,
+              701.516,
+              298.12400000000014,
+              712.616
+            ],
+            "text": "Ardent does not support underwater recording."
+          }
+        ],
+        "coordinates": "PDF points; bottom-left origin",
+        "normalization": "extractor-output-v1"
+      },
+      "extraction_method": "docling-parse-7.20.0/geometry-v1",
+      "content_hash": "646d39d74aa6a218cc89cfb641050afcc080dc5b2e7182c402d2fb4f49c37edb"
+    },
+    {
+      "id": "36d116ad-b1df-4870-903d-52d3199459b5",
+      "run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+      "locator": {
+        "kind": "text",
+        "rows": [],
+        "block": "page:2/block:0",
+        "geometry": [
+          {
+            "box": [
+              50,
+              737.516,
+              166.7,
+              748.616
+            ],
+            "text": "Regional testing limits"
+          },
+          {
+            "box": [
+              50,
+              719.516,
+              284.1200000000001,
+              730.616
+            ],
+            "text": "Region       Tested duration       Qualification"
+          },
+          {
+            "box": [
+              50,
+              701.516,
+              297.4520000000002,
+              712.616
+            ],
+            "text": "North        9 hours               Dry conditions only"
+          },
+          {
+            "box": [
+              50,
+              683.516,
+              347.44400000000024,
+              694.616
+            ],
+            "text": "This result does not apply to immersion or cold weather."
+          }
+        ],
+        "coordinates": "PDF points; bottom-left origin",
+        "normalization": "extractor-output-v1"
+      },
+      "extraction_method": "docling-parse-7.20.0/geometry-v1",
+      "content_hash": "4a137cd22eefc1fe40002d7a431c2f8432aa8afa9b44a7b060cf29d639cea8ac"
+    }
+  ],
+  "reads": [],
+  "reuse": [
+    {
+      "run_id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "passage_id": "105be8ef-2dee-458a-a5d5-d620d298fb2d",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "origin_run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "passage_digest": "646d39d74aa6a218cc89cfb641050afcc080dc5b2e7182c402d2fb4f49c37edb",
+      "version_digest": "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+    },
+    {
+      "run_id": "74ee1421-7010-4560-a843-3c4600d7bc9d",
+      "passage_id": "36d116ad-b1df-4870-903d-52d3199459b5",
+      "source_version_id": "e0a9e335-3df1-4fbd-87b5-d082249cebd6",
+      "origin_run_id": "9a5bd68e-7735-4219-bf79-169ebeb3232b",
+      "passage_digest": "4a137cd22eefc1fe40002d7a431c2f8432aa8afa9b44a7b060cf29d639cea8ac",
+      "version_digest": "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+    }
+  ],
+  "intents": [
+    {
+      "state": "confirmed",
+      "count": 14
+    }
+  ],
+  "account": [
+    {
+      "id": "b19e0195-b244-4e7c-ad43-a6d952441d7e",
+      "deleted_at": null
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9D589123906E4432A5685393 /* Synthetic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AD70CD535049FEB830D703 /* Synthetic.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D6AD70CD535049FEB830D703 /* Synthetic.swift */ = {isa = PBXFileReference; name = "Synthetic.swift"; path = "Synthetic.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		AAAAAAAAAAAAAAAAAAAAAAAA = {
+			isa = PBXGroup;
+			children = (
+				DFD43B4B1BC94A3CBEB535AB /* Synthetic */,
+			);
+			sourceTree = "<group>";
+		};
+		DFD43B4B1BC94A3CBEB535AB /* Synthetic */ = {
+			isa = PBXGroup;
+			children = (
+				D6AD70CD535049FEB830D703 /* Synthetic.swift */,
+			);
+			name = Synthetic;
+			path = Synthetic;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		BBBBBBBBBBBBBBBBBBBBBBBB = {
+			isa = PBXProject;
+			mainGroup = AAAAAAAAAAAAAAAAAAAAAAAA;
+			targets = (
+			);
+		};
+/* End PBXProject section */
+	};
+	rootObject = BBBBBBBBBBBBBBBBBBBBBBBB;
+}

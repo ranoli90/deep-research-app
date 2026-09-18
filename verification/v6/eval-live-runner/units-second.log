@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /tmp/deep-eval-runner-0602f96/apps/backend
+
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  23:19:25
+   Duration  2.47s (transform 327ms, setup 0ms, import 1.21s, tests 2.48s, environment 0ms)
+

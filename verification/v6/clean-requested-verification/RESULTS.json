@@ -1,0 +1,85 @@
+{
+  "task": "W09 exact committed requested-verification clean-checkout proof",
+  "commit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289",
+  "checkout": "/tmp/deep-clean-requested-verification-52ge46jz/repo",
+  "finishedUtc": "2026-09-18T03:53:47.136253+00:00",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "python": "Python 3.12.3",
+    "kernel": "Linux 6.14.0-37-generic x86_64 GNU/Linux"
+  },
+  "setup": "SETUP.json",
+  "checks": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "scope": "Frozen committed lockfile;781packages;downloaded0;dependency lifecycle scripts disabled.",
+      "sha256": "3405406e42e65a4a103d1f39e8afd1943de1082b18ff4054c7e6b2343113a873"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "scope": "Committed configured package/backend typechecks, core/backend/mobile units, import boundaries and governance; no DB suite.",
+      "sha256": "1dbf460157f092250ccf0bc102af3f54e44842869b9c20d6e9ee67e922e11ac4"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-typecheck.log",
+      "scope": "Explicit mobile TypeScript.",
+      "sha256": "1fb18375048953d0d402c9d4a977d6122133b66f86153fa6d9d9809a3c6f3403"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-clean-requested-verification-52ge46jz/android-export",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "Android JS export647modules,2.17MB; not signed/native build or device acceptance.",
+      "sha256": "f68c2ca281eac49c5e564a9918145ec93b407eec32e378c773eac01457772163"
+    },
+    {
+      "command": "git -C /tmp/deep-clean-requested-verification-52ge46jz/repo status --porcelain=v1",
+      "exitCode": 0,
+      "artifact": "final-status.log",
+      "scope": "Empty output: tracked and untracked status clean; installed ignored dependencies excluded.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git -C /tmp/deep-clean-requested-verification-52ge46jz/repo rev-parse HEAD",
+      "exitCode": 0,
+      "artifact": "final-head.log",
+      "scope": "Exact requested implementation commit.",
+      "sha256": "7316b76c08260396ccae19f934d493d255014509fc28488d934b99e7593e47c0"
+    },
+    {
+      "command": "git -C /tmp/deep-clean-requested-verification-52ge46jz/repo symbolic-ref -q HEAD",
+      "exitCode": 1,
+      "artifact": "final-symbolic-ref.log",
+      "scope": "Expected exit1 with empty output confirms detached HEAD, not a failed build.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "cleanFinalStatus": true,
+  "detached": true,
+  "networkSpend": "Dependency install explicitly offline; Expo offline/no telemetry/no dotenv. No DB, provider requests, paid services or deployments used. No OS-wide network-denial claim.",
+  "limits": [
+    "Independent local clone, not hosted CI receipt.",
+    "Configured verify and explicit mobile typechecking only.",
+    "JS export is not native dependency resolution, signed build or on-device test.",
+    "No DB/extraction or real-model semantic quality claim."
+  ],
+  "exportFiles": [
+    {
+      "path": "_expo/static/js/android/index-f0035426fc0d9f8f1e36de5623c2da73.hbc",
+      "bytes": 2174819,
+      "sha256": "32ad085b4399209dd7f6f22a79d0f783f37dc0cc1491996eb076f3fc41f0fe1d"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 150,
+      "sha256": "effb58d311739de24222f1294d8301be49fb2d74990e757ce86e708b49e0d950"
+    }
+  ]
+}

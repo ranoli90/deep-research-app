@@ -1,0 +1,81 @@
+{
+  "task": "V6-W01-W09",
+  "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "revisionScope": "Uncommitted follow-on working tree over recorded commit",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "database": "local PostgreSQL 127.0.0.1:55432; synthetic accounts only"
+  },
+  "paidCalls": 0,
+  "requirementIds": [
+    "W02",
+    "W03"
+  ],
+  "evidenceClass": "local_PostgreSQL_fabricated_provider_metadata",
+  "results": [
+    {
+      "artifact": "transport-unit.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts",
+      "exitCode": 0,
+      "scope": "10/10 fabricated metadata transport controls",
+      "sha256": "1bd68bf6509b8c1952135930ff0aaf40bf83a2ede1436e21ebff5bb3d5480330"
+    },
+    {
+      "artifact": "help.log",
+      "command": "pnpm exec tsx scripts/reconcile-provider.mts --help",
+      "exitCode": 0,
+      "scope": "Help only; no DB or network",
+      "sha256": "10cc30088cb69c1d967f4550ca288438a4625c28e320e033caa5fcc96c3747f7"
+    },
+    {
+      "artifact": "types-initial.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "scope": "Concurrent source-deletion test typing error; retained",
+      "sha256": "74055ba1fc59650899a34979258f2a7994b5b0c848f6feaf61e612061c240b58"
+    },
+    {
+      "artifact": "types-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Before review fixes",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "integration-initial.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts",
+      "exitCode": 1,
+      "scope": "7/8; test NOWAIT probes collided with each other",
+      "sha256": "4b260ae5c28ec486e83e7734c1dcd8794125670b36fc97da2671276948ef8393"
+    },
+    {
+      "artifact": "integration-final.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts",
+      "exitCode": 0,
+      "scope": "8/8 initial integration",
+      "sha256": "6069b5e1fdc54f77e5a4f03228ba991d7365088c3938e95ba58c05e139de8108"
+    },
+    {
+      "artifact": "integration-reviewed.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts",
+      "exitCode": 0,
+      "scope": "13/13; includes undersized historical holds and cross-account key/project/legacy budget races",
+      "sha256": "3c1feef12a450bec24d59869d88a45900e346a2addc3a11fe90d0da45ad6a407"
+    },
+    {
+      "artifact": "types-reviewed.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Reviewed financial changes",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "limits": [
+    "No live provider lookup or historical production repair executed",
+    "No paid budget available",
+    "Provider-side cost enforcement remains unproven"
+  ],
+  "rollback": "Disable operator recovery/repair; preserve receipts, unknown holds and budget locks."
+}

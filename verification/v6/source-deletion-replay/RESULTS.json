@@ -1,0 +1,39 @@
+{
+  "requirements": [
+    "W02",
+    "W03",
+    "W06"
+  ],
+  "baseCommit": "b7c34b15687a8d0af0efb5dacca37e1904719365",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "database": "deep_research_lease_clock_v6",
+    "platform": "local Linux"
+  },
+  "checks": [
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+      "artifact": "pre-fix.log",
+      "exitCode": 1,
+      "scope": "6pass/1fail: exact prior no-attachment admission replay created a fresh run after source deletion"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts test/admission-recovery.integration.test.ts",
+      "artifact": "final.log",
+      "exitCode": 0,
+      "scope": "11/11 realPG; exact uppercase key veto, owner isolation, fresh request allowed, original source-deletion/financial hold controls preserved"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "typecheck.log",
+      "exitCode": 0,
+      "scope": "Configured backend types; concurrent requestedverification source is separate/uncommitted"
+    }
+  ],
+  "impact": "No new schema/dependency. Existing035 withdrawal marker stores exact admission-key hash before source invalidation scrubs key. Account/run locks and atomic deletion transaction unchanged.",
+  "rollback": "Keep opaque replay veto and source tombstones; disable affected admission rather than recreate deleted research.",
+  "limits": "Forward protection for keys still available at deletion. Historical scrubbed keys cannot be reconstructed; no fabricated historical repair. No model/native/hosted claim.",
+  "paidCalls": 0,
+  "implementationCommit": "a86faf8a50b85652b80438287e2c5d1d7ab498d7"
+}

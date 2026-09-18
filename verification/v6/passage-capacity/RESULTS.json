@@ -1,0 +1,111 @@
+{
+  "task": "W01/W02/W05/W06/W08 bounded whole-passage capacity",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "prerequisite": "reviewed HTML structure-v2 source.patch (not included in this patch)",
+  "worktree": "/tmp/deep-passage-capacity-sfm0i4me/repo",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "database": "deep_research_lease_clock_v6",
+    "provider": "fabricated transports only",
+    "paid": 0
+  },
+  "status": "passed bounded local packet; milestone remains incomplete",
+  "checks": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exit": 0,
+      "artifact": "install.log"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts",
+      "exit": 1,
+      "artifact": "before.log",
+      "tests": "4failed; original25 confirmed;3test UUID collision failures"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts",
+      "exit": 1,
+      "artifact": "before-corrected-fixture.log",
+      "tests": "3failed/1passed;25and128 max24 rejection,129 correct, byte test reached earlier count rejection"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts",
+      "exit": 1,
+      "artifact": "after-first.log",
+      "tests": "3failed/1passed; invalid synthetic attachment locator, scoped128timeout, wrong exact byte reason expectation"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts",
+      "exit": 1,
+      "artifact": "after-second.log",
+      "tests": "4passed/1failed; contradiction test queried legacy status rather than authoritative scoped decision"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'observes a contradiction'",
+      "exit": 1,
+      "artifact": "before-late-contradiction.log",
+      "tests": "missing expected support context; other4 excluded by explicit focus"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'observes a contradiction'",
+      "exit": 1,
+      "artifact": "before-late-contradiction-explicit.log",
+      "tests": "explicit missing support context with invalid_extraction_selection; other4 excluded by explicit focus"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/passage-capacity.unit.test.ts",
+      "exit": 0,
+      "artifact": "unit.log",
+      "tests": "1/1"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exit": 0,
+      "artifact": "typecheck.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exit": 0,
+      "artifact": "typecheck-final.log"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exit": 0,
+      "artifact": "boundaries.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "artifact": "diff-check.log"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts test/requested-verification.integration.test.ts",
+      "exit": 0,
+      "artifact": "final-integration.log",
+      "tests": "40/40 (5newcapacity+35existingverification),2files",
+      "durationSeconds": 214.48,
+      "scope": "owned whole evidence through extraction/support/writer/final proof; terminal replay; snapshot correction/verification; latecontradiction disputed; 128publication;129andbytebounds; existing verification recovery/corruption/deletion/unknownhold controls"
+    }
+  ],
+  "evidenceClass": "real local PostgreSQL + production worker/proof paths with fabricated model and extraction transports",
+  "bounds": {
+    "passages": 128,
+    "passageCharacters": 24000,
+    "sources": 40,
+    "verificationSources": 24,
+    "contextBytes": 240000,
+    "fullRequestBytes": 128000,
+    "outputTokens": 4096,
+    "reservedMicroPerOperation": 21658
+  },
+  "limitations": [
+    "No live model quality, attention, arbitrary semantic correctness, native, hosted or paid claim.",
+    "All readable owned passages selected; no relevance ranking, truncation or batching.",
+    "Documents may still fail byte/source/output bounds despite <=128passages.",
+    "Synthetic boundary timing affected by concurrent nonDB extraction work; not live latency benchmark.",
+    "Rollback must retain expanded immutable proof readers for admitted obligations."
+  ],
+  "recordedAt": "2026-09-18T04:49:26.685866+00:00"
+}

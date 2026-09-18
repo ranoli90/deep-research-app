@@ -1,0 +1,81 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/cancellation-atomicity.integration.test.ts (3 tests | 3 failed) 512ms
+   × W02 concurrent cancellation API requests atomically preserve distinct event sequences 137ms
+     → expected [ 200, 500 ] to deeply equal [ 200, 200 ]
+   × W02 cancellation cannot recreate events after account deletion races its event insertion 119ms
+     → expected 1 to be +0 // Object.is equality
+   × W02 event insertion failure rolls cancellation back rather than acknowledging a partial mutation 40ms
+     → expected { lifecycle: 'cancelling', …(1) } to deeply equal { lifecycle: 'queued', …(1) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/cancellation-atomicity.integration.test.ts > W02 concurrent cancellation API requests atomically preserve distinct event sequences
+AssertionError: expected [ 200, 500 ] to deeply equal [ 200, 200 ]
+
+- Expected
++ Received
+
+  [
+    200,
+-   200,
++   500,
+  ]
+
+ ❯ test/cancellation-atomicity.integration.test.ts:42:92
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/cancellation-atomicity.integration.test.ts > W02 cancellation cannot recreate events after account deletion races its event insertion
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ test/cancellation-atomicity.integration.test.ts:57:119
+     55|   await lock.release();released=true;await pending;
+     56|   expect((await request).statusCode).toBe(200);
+     57|   expect((await pool.query("SELECT count(*)::int AS n FROM run_events …
+       |                                                                                                                       ^
+     58|   expect((await pool.query("SELECT deleted_at IS NOT NULL AS deleted F…
+     59|  }finally{if(!released)await lock.release();if(pending)await pending;a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/cancellation-atomicity.integration.test.ts > W02 event insertion failure rolls cancellation back rather than acknowledging a partial mutation
+AssertionError: expected { lifecycle: 'cancelling', …(1) } to deeply equal { lifecycle: 'queued', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "cancellation_epoch": 0,
+-   "lifecycle": "queued",
++   "cancellation_epoch": "1",
++   "lifecycle": "cancelling",
+  }
+
+ ❯ test/cancellation-atomicity.integration.test.ts:64:109
+     62|  const x=await setup(),gate=await trigger(x.runId,true);try{
+     63|   expect((await cancel(x)).statusCode).toBe(500);
+     64|   expect((await pool.query("SELECT lifecycle,cancellation_epoch FROM r…
+       |                                                                                                             ^
+     65|   expect((await pool.query("SELECT count(*)::int AS n FROM run_events …
+     66|  }finally{await gate.cleanup();await deleteAccount(pool,x.accountId);}
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  21:04:09
+   Duration  1.64s (transform 568ms, setup 0ms, collect 916ms, tests 512ms, environment 0ms, prepare 67ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts

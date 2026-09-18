@@ -1,0 +1,39 @@
+{
+  "requirements": [
+    "W08",
+    "W09"
+  ],
+  "commit": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "state": "root working tree edits, uncommitted",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11"
+  },
+  "checks": [
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts",
+      "artifact": "pre-fix.log",
+      "exitCode": 1,
+      "passed": 13,
+      "failed": 2
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts",
+      "artifact": "final-units.log",
+      "exitCode": 0,
+      "passed": 15
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "typecheck.log",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check -- apps/backend/src/evaluation/runner.ts apps/backend/test/eval-live.unit.test.ts",
+      "artifact": "diff-check.log",
+      "exitCode": 0
+    }
+  ],
+  "scope": "Injected Date.now clock crossing exposure/attempt journal awaits. No DB/provider/native execution. Approval expiration blocks future admission, not completion/receipt of already admitted work."
+}

@@ -1,0 +1,39 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/v6-execution.integration.test.ts (20 tests) 2674ms
+{"level":"info","event":"action","runId":"09c23742-b7f6-4ac3-a03d-96b03a21e3df","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:04:52.431Z"}
+{"level":"info","event":"action","runId":"09c23742-b7f6-4ac3-a03d-96b03a21e3df","type":"stop","rationale":"action type reveal_keys is not a permitted research action","step":1,"t":"2026-09-17T18:04:52.493Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:04:53.140Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"search","rationale":"Decision-blocking gap: authoritative compatibility limitation. Switching source type to vendor-matrix.","step":1,"t":"2026-09-17T18:04:53.189Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"fetch","rationale":"Inspect the preferred source type (vendor-matrix) before more weak sources","step":2,"t":"2026-09-17T18:04:53.220Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:04:53.245Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":4,"t":"2026-09-17T18:04:53.274Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":5,"t":"2026-09-17T18:04:53.306Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"verify","rationale":"Scope-check contradiction on compatibility before treating newest as correct","step":6,"t":"2026-09-17T18:04:53.337Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"challenge","rationale":"Disconfirm material conclusion: Official compatibility documentation that lists the named version as supported.","step":7,"t":"2026-09-17T18:04:53.360Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":8,"t":"2026-09-17T18:04:53.390Z"}
+{"level":"info","event":"action","runId":"c28e4aa6-f9eb-46bb-9d1b-0499edcf553b","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":9,"t":"2026-09-17T18:04:53.409Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:04:54.055Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T18:04:54.104Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T18:04:54.128Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T18:04:54.154Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T18:04:54.190Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-17T18:04:54.226Z"}
+{"level":"info","event":"action","runId":"b0aeaf5d-808e-41a0-bbcb-a9ac7e1a0d8a","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-17T18:04:54.248Z"}
+{"level":"info","event":"action","runId":"40dbf0ef-521e-4ea0-a2e5-c0c3e48b3d06","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:04:54.834Z"}
+{"level":"info","event":"action","runId":"40dbf0ef-521e-4ea0-a2e5-c0c3e48b3d06","type":"search","rationale":"Investigate an uncovered required question","step":1,"t":"2026-09-17T18:04:54.878Z"}
+{"level":"info","event":"action","runId":"40dbf0ef-521e-4ea0-a2e5-c0c3e48b3d06","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":2,"t":"2026-09-17T18:04:54.901Z"}
+{"level":"info","event":"action","runId":"bb803be1-77a2-40ad-86dd-02c48e0fb116","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-17T18:04:55.416Z"}
+ ✓ test/controller-admission.integration.test.ts (6 tests) 4201ms
+   ✓ controller admission on the fixture worker path > rejects injected privileged proposals and still inspects remaining sources  1004ms
+   ✓ controller admission on the fixture worker path > records a source-type pivot and stop reason for a compatibility gap  905ms
+   ✓ controller admission on the fixture worker path > unknown-dependency correction forces a full rerun  804ms
+   ✓ controller admission on the fixture worker path > processRun records an issued live intent before the provider call for a well-formed search  586ms
+   ✓ controller admission on the fixture worker path > default run allowance blocks a larger provider reserve before any network call  302ms
+
+ Test Files  2 passed (2)
+      Tests  26 passed (26)
+   Start at  12:04:45
+   Duration  10.00s (transform 1.22s, setup 0ms, collect 2.12s, tests 6.88s, environment 1ms, prepare 322ms)
+

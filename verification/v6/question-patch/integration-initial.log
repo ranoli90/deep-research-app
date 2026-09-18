@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/question-patch.integration.test.ts (5 tests) 1713ms
+   ✓ W02 concurrent exact replay reserves and dispatches one child, while accepted-note changes remain distinct  408ms
+   ✓ W03/W06 foreign owner, stale revision, revoked consent, wrong digest/quote and split Unicode cannot admit child  339ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  22:01:43
+   Duration  4.87s (transform 1.48s, setup 0ms, collect 2.20s, tests 1.71s, environment 0ms, prepare 355ms)
+

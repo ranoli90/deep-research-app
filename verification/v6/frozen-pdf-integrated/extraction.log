@@ -1,0 +1,19 @@
+
+> @deep/backend@0.1.0 test:extraction /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.extraction.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+matched-pipeline artifact: /tmp/deep-matched-pipeline-wmSMCG/document-controls.json
+{"level":"info","event":"action","runId":"5d702350-8dc2-47c4-8675-491df629d0b5","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-18T12:20:27.383Z"}
+{"level":"info","event":"action","runId":"5d702350-8dc2-47c4-8675-491df629d0b5","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T12:20:27.404Z"}
+{"level":"info","event":"action","runId":"5d702350-8dc2-47c4-8675-491df629d0b5","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":2,"t":"2026-09-18T12:20:27.422Z"}
+{"level":"info","event":"action","runId":"5d702350-8dc2-47c4-8675-491df629d0b5","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":3,"t":"2026-09-18T12:20:27.435Z"}
+evaluation control database (retained): deep_eval_control_53f93869affc4544aadf002f64617b8a
+
+ Test Files  8 passed (8)
+      Tests  47 passed (47)
+   Start at  06:19:34
+   Duration  136.65s (transform 1.27s, setup 0ms, import 2.57s, tests 133.00s, environment 1ms)
+

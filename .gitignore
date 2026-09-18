@@ -27,3 +27,4 @@ apps/mobile/credentials.json
 *.keystore
 .jobeezy-expo-token
 .deep-expo-token
+__pycache__/

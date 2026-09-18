@@ -40,7 +40,7 @@ describe("M04 report layout", () => {
     expect(src).toMatch(/block\.kind === "code"/);
     expect(src).toMatch(/citeRow/);
     expect(src).toMatch(/breakLongTokens/);
-    expect(src).toMatch(/styles\.sheetBody/);
+    expect(readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8")).toMatch(/styles\.sheetBody/);
     expect(src).toMatch(/accessibilityLabel="Change summary"/);
     expect(src).toMatch(/Share previous report as Markdown/);
   });
@@ -55,4 +55,8 @@ describe("M04 report layout", () => {
     expect(text).toMatch(/without reopening candidate discovery/);
     expect(text).toMatch(/Earlier conclusion kept/);
   });
+});
+it("structured comparison does not imply that a prior conclusion was carried forward",()=>{
+ const notes="Assertions: 0 added, 0 removed, 1 unchanged. Reused cited source versions: 1.";
+ expect(formatChangeSummary({evidenceUpdated:false,conclusionChanged:false,notes,comparison:{version:"report-changes.v1"}})).toBe(notes);
 });

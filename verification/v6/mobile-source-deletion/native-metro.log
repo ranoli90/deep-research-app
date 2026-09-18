@@ -1,0 +1,20 @@
+
+> @deep/mobile@0.1.0 start /home/oranolio/Desktop/Deep/apps/mobile
+> expo start --localhost --port 8081
+
+Starting project at /home/oranolio/Desktop/Deep/apps/mobile
+Starting Metro Bundler
+Skipping dependency validation in offline mode
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 2776ms apps/mobile/index.ts (758 modules)
+ WARN  Waiting for a DevTools connection to app='host.exp.exponent' on device='25098RA98G - 16 - API 36'.
+    Try again when the main bundle for the app is built and connection is established.
+    If no connection occurs, try to:
+    - Restart the app. For Android, force stopping the app first might be required.
+    - Ensure a stable connection to the device.
+    - Ensure that the app is built in a mode that supports debugging.
+    - Take the app out of running in the background.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 41ms apps/mobile/index.ts (1 module)

@@ -1,0 +1,15 @@
+
+> @deep/backend@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+test/source-deletion.integration.test.ts(61,84): error TS2322: Type '{ version: string; digest: string; status: "extracted"; warnings: never[]; blocks: { kind: "text"; locator: string; text: string; rows: never[]; }[]; }' is not assignable to type '{ version: "trafilatura-2.2.0/structure-v1" | "pypdf-6.19.0/digital-v1" | "docling-parse-7.20.0/geometry-v1" | "utf8-notes-v1" | "unavailable-v1"; status: "unavailable" | "partial" | "extracted"; blocks: { ...; }[]; digest: string; warnings: string[]; }'.
+  Types of property 'version' are incompatible.
+    Type 'string' is not assignable to type '"trafilatura-2.2.0/structure-v1" | "pypdf-6.19.0/digital-v1" | "docling-parse-7.20.0/geometry-v1" | "utf8-notes-v1" | "unavailable-v1"'.
+test/source-deletion.integration.test.ts(130,59): error TS2345: Argument of type '() => Promise<{ version: string; digest: string; status: "extracted"; warnings: never[]; blocks: { kind: "text"; locator: string; text: string; rows: never[]; }[]; }>' is not assignable to parameter of type 'NormalizedProcedure<(bytes: Buffer<ArrayBufferLike>, mime: string, options?: { signal?: AbortSignal | undefined; runtime?: string | undefined; }) => Promise<{ version: "trafilatura-2.2.0/structure-v1" | ... 3 more ... | "unavailable-v1"; status: "unavailable" | ... 1 more ... | "extracted"; blocks: { ...; }[]; diges...'.
+  Type 'Promise<{ version: string; digest: string; status: "extracted"; warnings: never[]; blocks: { kind: "text"; locator: string; text: string; rows: never[]; }[]; }>' is not assignable to type 'Promise<{ version: "trafilatura-2.2.0/structure-v1" | "pypdf-6.19.0/digital-v1" | "docling-parse-7.20.0/geometry-v1" | "utf8-notes-v1" | "unavailable-v1"; status: "unavailable" | "partial" | "extracted"; blocks: { ...; }[]; digest: string; warnings: string[]; }>'.
+    Type '{ version: string; digest: string; status: "extracted"; warnings: never[]; blocks: { kind: "text"; locator: string; text: string; rows: never[]; }[]; }' is not assignable to type '{ version: "trafilatura-2.2.0/structure-v1" | "pypdf-6.19.0/digital-v1" | "docling-parse-7.20.0/geometry-v1" | "utf8-notes-v1" | "unavailable-v1"; status: "unavailable" | "partial" | "extracted"; blocks: { ...; }[]; digest: string; warnings: string[]; }'.
+      Types of property 'version' are incompatible.
+        Type 'string' is not assignable to type '"trafilatura-2.2.0/structure-v1" | "pypdf-6.19.0/digital-v1" | "docling-parse-7.20.0/geometry-v1" | "utf8-notes-v1" | "unavailable-v1"'.
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

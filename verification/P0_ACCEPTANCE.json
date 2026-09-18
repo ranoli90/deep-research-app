@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "partial_p0_checkpoint",
   "authority": "IMPLEMENTATION_PLAN.md",
   "as_of": "2026-09-17",
@@ -21,25 +21,49 @@
     {
       "id": "P0-D",
       "name": "Local deterministic and database correctness",
-      "status": "implemented and verified",
+      "status": "local_checks_passed",
       "allows_paid_calls": false,
       "real_postgres_required_for_persistence": true,
       "allows_labeled_model_fixtures": true,
-      "evidence": {
+      "scope": "Smoke suite plus transaction, authorization, privacy, budget and fencing cases. Not live-model or hosted-service proof. Local PostgreSQL does not prove hosted auth/RLS/storage/pooler.",
+      "historical_evidence": {
         "postgres": "postgres:16.10-alpine via docker compose on host port 55432",
         "queue": "pg-boss 10.0.4",
         "tests": "pnpm test:integration 107/107, exit 0 (includes original 12 smoke IDs plus JOB-1 Linux add/drop, JOB-2, G01/G02, G06/G07 local, P4 recovery, E10, R02 France discovery, controller admission, live-search issued-before-provider, and remaining launch-scope IDs). V2-03 gold-evidence diagnostic is research-core, not a live A/B.",
         "launch": "pnpm p0:launch twice 2026-09-17: citationCount=10; cancelOutcome=cancelled; cancelReportId=null; latePublicationRejected=true",
         "artifacts": "scratch p0-d-tests.log, p0-d-launch.log"
       },
-      "scope": "Smoke suite plus transaction, authorization, privacy, budget and fencing cases. Not live-model or hosted-service proof. Local PostgreSQL does not prove hosted auth/RLS/storage/pooler."
+      "historical_evidence_note": "Preserved prior observations only. Quoted FULL-TEXT labels, PDF claims and reserved-spend balances are not accepted current evidence or spending authority.",
+      "current_evidence": [
+        {
+          "path": "verification/v6/integration-deletion.log",
+          "sha256": "a3baee79e750daf2245cc0f1a10da8fc4502a3c6a7894434f89490590628d65c",
+          "command": "pnpm test:integration",
+          "exit_code": 0,
+          "run_commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+          "working_tree": "deletion implementation subsequently committed as 999533b",
+          "environment": "Linux Node 20.20.2, pnpm 9.15.9; local PostgreSQL port 55432",
+          "scope": "148/148 local PostgreSQL integration tests, including original smoke cases and current deletion regressions"
+        },
+        {
+          "path": "verification/v6/verify-deletion.log",
+          "sha256": "7373b8130cfe59d18b4ee9b376292ecf39cdefa61277ed5b225da3332ae4ee32",
+          "command": "pnpm verify",
+          "exit_code": 0,
+          "run_commit": "8b05f708dceb2bba67c403f235f8b3ec3a39b0af",
+          "working_tree": "deletion implementation subsequently committed as 999533b",
+          "environment": "Linux Node 20.20.2, pnpm 9.15.9; local PostgreSQL port 55432",
+          "scope": "81 core, 52 backend, 32 mobile unit tests; typecheck, boundaries and governance; no native execution"
+        }
+      ]
     },
     {
       "id": "P0-L",
       "name": "Authorized live model and retrieval trace",
-      "status": "implemented and verified",
+      "status": "not_revalidated",
       "requires_authorized_routes_and_budget": true,
-      "evidence": {
+      "scope": "Actual source passages, bounded cited report, receipts and one correction. Fixture success does not pass.",
+      "historical_evidence": {
         "command": "tsx scripts/p0-live-check.ts with LIVE_ROUTE_ENABLED=true LIVE_RETRIEVAL_ENABLED=true API_PORT=8788",
         "model": "openai/gpt-4o-mini plus OpenRouter web plugin",
         "runId": "1351c267-0388-45e4-bd70-3b1b430a49a7",
@@ -50,24 +74,27 @@
         "spend_usd": "0.096 of authorized 5.00 remaining ~4.90",
         "artifacts": "scratch p0-l-live-4.log copied to p0-l-live.log"
       },
-      "scope": "Actual source passages, bounded cited report, receipts and one correction. Fixture success does not pass."
+      "historical_evidence_note": "Preserved prior observations only. Quoted FULL-TEXT labels, PDF claims and reserved-spend balances are not accepted current evidence or spending authority.",
+      "current_gap": "No authorized current live receipt test; semantic gateway/writer/checker and correction reuse incomplete. Historical traces used truncated HTML and template synthesis."
     },
     {
       "id": "P0-N",
       "name": "Native lifecycle",
-      "status": "partial",
+      "status": "not_revalidated",
       "platform_status": {
-        "ios": "blocked by a named external dependency",
-        "android": "implemented and verified"
+        "ios": "blocked",
+        "android": "historical_only"
       },
       "missing": {
         "ios": "Xcode / iOS runtime on this Linux host; TestFlight deferred by user"
       },
-      "evidence": {
+      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
+      "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence.",
+      "historical_evidence": {
         "android": "physical Xiaomi 25098RA98G a3fa7852 Android 16; Expo Go SDK 54; recapture 2026-09-16 verification/p0n-android-recapture.json: persist/hydrate 120 EUR after force-stop; library Open switches to Research report; FULL-TEXT source a77f6087; live API cancel-during-writing run 3e0f50a5 outcome=cancelled reportId=null. Prior G03 share/deletion/Vendor C."
       },
-      "structural_fallback": "apps/mobile implements Research/Library/Settings, composer, progress, report, source sheet, attach/share/flag/logout; persistSession/hydrateOnLaunch/openLibraryItem are called from App.tsx. Not a substitute for missing iOS device evidence.",
-      "scope": "Actual per-platform consent/input, close/reopen, citation inspection, cancellation and correction. Web/CLI is not native evidence."
+      "historical_evidence_note": "Preserved prior observations only. Quoted FULL-TEXT labels, PDF claims and reserved-spend balances are not accepted current evidence or spending authority.",
+      "current_gap": "No native execution of V6 changes; identity, secure session generations and binary-file flow remain open."
     }
   ],
   "all_required_gates_must_pass_for_p0_verified": true,

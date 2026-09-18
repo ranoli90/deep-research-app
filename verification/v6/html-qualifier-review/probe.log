@@ -1,0 +1,76 @@
+[
+  {
+    "case": "list",
+    "status": "partial",
+    "version": "trafilatura-2.2.0/structure-v2",
+    "matching": [
+      {
+        "locator": "block:6",
+        "text": "Distributed writes are supported. Distributed writes are unavailable.",
+        "rows": []
+      },
+      {
+        "locator": "list:0",
+        "text": "The following status replaces the previous claim.\nUnordered list:\n[item 1] [struck-through: Distributed writes are supported.] Distributed writes are unavailable.",
+        "rows": []
+      }
+    ]
+  },
+  {
+    "case": "prose",
+    "status": "partial",
+    "version": "trafilatura-2.2.0/structure-v2",
+    "matching": [
+      {
+        "locator": "block:6",
+        "text": "Distributed writes are supported. Distributed writes are unavailable.",
+        "rows": []
+      }
+    ]
+  },
+  {
+    "case": "table",
+    "status": "partial",
+    "version": "trafilatura-2.2.0/structure-v2",
+    "matching": [
+      {
+        "locator": "table:0",
+        "text": "Capability | Status\nDistributed writes | Supported for all plans. Unavailable on current plans.",
+        "rows": [
+          [
+            {
+              "text": "Capability",
+              "header": true,
+              "colspan": 1,
+              "rowspan": 1,
+              "scope": ""
+            },
+            {
+              "text": "Status",
+              "header": true,
+              "colspan": 1,
+              "rowspan": 1,
+              "scope": ""
+            }
+          ],
+          [
+            {
+              "text": "Distributed writes",
+              "header": false,
+              "colspan": 1,
+              "rowspan": 1,
+              "scope": ""
+            },
+            {
+              "text": "Supported for all plans. Unavailable on current plans.",
+              "header": false,
+              "colspan": 1,
+              "rowspan": 1,
+              "scope": ""
+            }
+          ]
+        ]
+      }
+    ]
+  }
+]

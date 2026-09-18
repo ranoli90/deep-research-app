@@ -1,0 +1,195 @@
+{
+  "scope": "PyPI version metadata advisory lookup; limited coverage, not independent security audit",
+  "results": [
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "attrs",
+      "version": "26.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "vulnerabilities": []
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "defusedxml",
+      "version": "0.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "doclang",
+      "version": "0.7.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "docling-core",
+      "version": "2.97.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "docling-parse",
+      "version": "7.20.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "vulnerabilities": []
+    },
+    {
+      "name": "jsonref",
+      "version": "1.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "jsonschema",
+      "version": "4.26.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "latex2mathml",
+      "version": "3.81.1",
+      "vulnerabilities": []
+    },
+    {
+      "name": "lxml",
+      "version": "6.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "pandas",
+      "version": "3.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "pillow",
+      "version": "12.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.46.5",
+      "vulnerabilities": []
+    },
+    {
+      "name": "pydantic-settings",
+      "version": "2.15.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.2.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "referencing",
+      "version": "0.37.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "vulnerabilities": []
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.6.3",
+      "vulnerabilities": []
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "tabulate",
+      "version": "0.10.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "typer",
+      "version": "0.26.8",
+      "vulnerabilities": []
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "vulnerabilities": []
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "vulnerabilities": []
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "vulnerabilities": []
+    }
+  ]
+}

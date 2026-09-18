@@ -1,0 +1,28 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/v6-deletion.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":0,"t":"2026-09-17T16:15:57.097Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-17T16:15:57.150Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-17T16:15:57.185Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-17T16:15:57.258Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-17T16:15:57.296Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":5,"t":"2026-09-17T16:15:57.323Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":6,"t":"2026-09-17T16:15:57.353Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":7,"t":"2026-09-17T16:15:57.378Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":8,"t":"2026-09-17T16:15:57.404Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":9,"t":"2026-09-17T16:15:57.435Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":10,"t":"2026-09-17T16:15:57.458Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":11,"t":"2026-09-17T16:15:57.492Z"}
+{"level":"info","event":"action","runId":"ef02a002-7ed2-41ad-a36b-10bd713786a3","type":"stop","rationale":"Repeated searches returned no novel source family or coverage progress","step":12,"t":"2026-09-17T16:15:57.519Z"}
+ ✓ test/v6-deletion.integration.test.ts (4 tests) 1291ms
+   ✓ W03 deletion removes raw attachments and private text from every owned research store  808ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  10:15:55
+   Duration  2.41s (transform 566ms, setup 0ms, collect 904ms, tests 1.29s, environment 0ms, prepare 69ms)
+

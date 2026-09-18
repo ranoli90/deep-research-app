@@ -1,0 +1,93 @@
+{
+  "scope": "saved public documentation; agent-inspected references, no independent human adjudication",
+  "results": [
+    {
+      "id": "postgres-connect",
+      "sha256": "b923116c8f59af2ec6850236887869323e504f27bc36bbddb0560c8c18afcabb",
+      "elapsedMs": 183.02161600149702,
+      "rssBytes": 57163776,
+      "missing": [],
+      "outputChars": 56567
+    },
+    {
+      "id": "postgres-numeric",
+      "sha256": "6c22c8edb738adebc4713060f9328a1d2982e2cbe6f0b3b985ae08114a455bb7",
+      "elapsedMs": 58.9415730064502,
+      "rssBytes": 57294848,
+      "missing": [],
+      "outputChars": 14940
+    },
+    {
+      "id": "postgres-isolation",
+      "sha256": "beef1cd1c5f512e3934fd049454730e3cc9d459e69db8e938bf941125387cefc",
+      "elapsedMs": 52.61618799704593,
+      "rssBytes": 57556992,
+      "missing": [],
+      "outputChars": 23252
+    },
+    {
+      "id": "python-decimal",
+      "sha256": "8b96da623aacbcbb95030dd7a82b05d958e57bdf7ac6cdbacd6c5d02b5634d60",
+      "elapsedMs": 581.3478630007012,
+      "rssBytes": 73912320,
+      "missing": [],
+      "outputChars": 68735
+    },
+    {
+      "id": "python-csv",
+      "sha256": "70b409803ada2f3a5c497c34731fdb64d0e741ebf6c8e7f48d54240ac7205f61",
+      "elapsedMs": 145.92596699367277,
+      "rssBytes": 73912320,
+      "missing": [],
+      "outputChars": 20326
+    },
+    {
+      "id": "python-sqlite",
+      "sha256": "3fe30e8afed56948455d8680a62ae6831d195476eb70ba4df304bc667b02c833",
+      "elapsedMs": 527.8683850046946,
+      "rssBytes": 74305536,
+      "missing": [],
+      "outputChars": 68711
+    },
+    {
+      "id": "node-http",
+      "sha256": "8573c4155c0b62934d3b780b5dd66296ad27f64dacb701152fbbb4c7ee57d67d",
+      "elapsedMs": 505.56572699861135,
+      "rssBytes": 75878400,
+      "missing": [],
+      "outputChars": 91774
+    },
+    {
+      "id": "node-fs",
+      "sha256": "95767bdf95e8b6e0eaee943c613fe17844beaacb25bb127cd60fc58f955b61d5",
+      "elapsedMs": 1110.8058399986476,
+      "rssBytes": 92549120,
+      "missing": [],
+      "outputChars": 161775
+    },
+    {
+      "id": "mdn-table-de",
+      "sha256": "372c8edae9c098e5e47addc6ae70d16eccaf5ea39a34964edae3daaddc6d36a3",
+      "elapsedMs": 80.50868900318164,
+      "rssBytes": 92680192,
+      "missing": [],
+      "outputChars": 29314
+    },
+    {
+      "id": "mdn-table-en",
+      "sha256": "f7aded973aee008f2082d6a81cdf1a8d6db052ce6f27e0b0d43750233ff0441d",
+      "elapsedMs": 76.94856899615843,
+      "rssBytes": 92680192,
+      "missing": [],
+      "outputChars": 25425
+    },
+    {
+      "id": "sqlite-support",
+      "sha256": "55a5a0643f1f8a023f19e0f3279c89d32f91e663bf5c7748fcc35513f15fa4a8",
+      "elapsedMs": 23.300596993067302,
+      "rssBytes": 92811264,
+      "missing": [],
+      "outputChars": 6826
+    }
+  ]
+}
