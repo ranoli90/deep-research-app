@@ -1,3 +1,4 @@
+import { verificationPublicationClaims } from "./verification-proof.js";
 import { SCOPED_SUPPORT_VERSION, type StoredClaim } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { MODEL_PROMPT_VERSION, STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
@@ -36,5 +37,8 @@ export async function scopedPublicationClaims(db:Queryable,args:{runId:string;ac
   // Any negative/current check wins over another positive. Managed assertions cannot fall back to literal approval.
   for(const id of managedIds) if(!approved.has(id)) rejected.add(id);
   for(const id of rejected) approved.delete(id);
+  const verification=await verificationPublicationClaims(db,args);
+  for(const [id,item] of verification.approved)approved.set(id,item);
+  for(const id of verification.rejected){rejected.add(id);approved.delete(id);}
   return {approved,rejected,managedIds};
 }

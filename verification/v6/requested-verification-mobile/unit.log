@@ -1,0 +1,14 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts verification-request
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/verification-request.test.ts (6 tests) 23ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  21:27:28
+   Duration  555ms (transform 168ms, setup 0ms, collect 224ms, tests 23ms, environment 0ms, prepare 88ms)
+

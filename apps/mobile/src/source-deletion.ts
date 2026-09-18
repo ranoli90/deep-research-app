@@ -44,7 +44,7 @@ export function prepareSourceDeletion(state: UiState & {pendingSourceDeletion?: 
   if (!state.signedIn) throw new Error("Sign in before deleting a source.");
   if (state.pendingSourceDeletion) throw new Error("Retry the pending source deletion before starting another.");
   const target = sourceDeletionTarget(state.source);
-  const unavailable = sourceDeletionUnavailable({target,offline:state.offline,admissionPending:!!state.pendingAdmission,busy:false});
+  const unavailable = sourceDeletionUnavailable({target,offline:state.offline,admissionPending:!!state.pendingAdmission || !!state.pendingVerification,busy:false});
   if (unavailable) throw new Error(unavailable);
   if (target?.sourceId !== sourceId) throw new Error("The selected source changed. Review its deletion again.");
   return { ...state, pendingSourceDeletion:sourceId, tab:"research", run:null, report:null, previousReport:null, source:null,

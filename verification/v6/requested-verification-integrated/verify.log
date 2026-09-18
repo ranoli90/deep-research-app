@@ -1,0 +1,105 @@
+7ccfe802e9695a48fe01b15cf676c3d07cc60a41
+v20.20.2
+9.15.9
+
+> deep-research-mobile@0.1.0 verify /home/oranolio/Desktop/Deep
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/packages/research-core
+
+ ✓ test/evidence-calculation.test.ts (14 tests) 61ms
+ ❯ test/p1-p2.test.ts (25 tests | 1 failed) 136ms
+   ✓ JOB-1 platform constraints > marks NoteDroid ineligible for missing iPhone and NoteKeep eligible 16ms
+   ✓ JOB-1 platform constraints > adding Linux as a correction excludes NoteKeep 5ms
+   ✓ JOB-1 platform constraints > dropping Linux as a correction reopens NoteKeep 3ms
+   ✓ V2-01 / P1 gaps > names a vendor-matrix gap when only review summaries exist for a compatibility question 2ms
+   ✓ V2-03 gold-evidence diagnostic > records retrieval as the bottleneck when only the injected matrix passage surfaces the limitation 47ms
+   ✓ E03 scope qualifiers > will not let a 65+ study support an unqualified everyone claim 0ms
+   ✓ S04 markup > strips script tags from report text 0ms
+   ✓ R22 calculation > preserves annual-from-monthly formula 4ms
+   ✓ V2-04 budget parse > reads 120 not a trailing 0 from 120 EUR 1ms
+   ✓ geography correction intent > treats 'Actually, Germany is required' as a hard geography change 0ms
+   ✓ V2-05 dose correction > updates dose units without reopening budget discovery 1ms
+   ✓ V2-06 unknown dependency fallback > requires a full rerun when completeness is unknown 3ms
+   ✓ V2-06 unknown dependency fallback > does not treat a known candidate-space reopen as a full rerun 1ms
+   ✓ candidate prices > marks a 90 EUR option as violating a 50 EUR hard cap 1ms
+   ✓ R17 output preference > infers concise vs detailed from the question 5ms
+   ✓ R18 context compaction > keeps hard constraints and passage IDs after dropping extra searches 10ms
+   ✓ J10 writing reserve includes finishing cost > will not spend the last finishing-cost slice on another fetch 2ms
+   ✓ E10 critical claim removal > revisits the conclusion when the answer claim is unsupported 1ms
+   ✓ E10 critical claim removal > composeReport withdraws a question-asserted 42% that the 24% table does not support 1ms
+   ✓ V2-03 gold-evidence diagnostic > summaries-only miss the limitation; injecting the matrix recovers it 2ms
+   ✓ E09 markdown export > emits tables, fenced code, unicode, and explicit unavailable labels when citation metadata is absent 1ms
+   ✓ E09 markdown export > escapes an unavailable citation identity instead of interpreting it as markup 0ms
+   × M08 follow-up change summary > emits a follow-up change summary without reopening discovery 17ms
+     → expected undefined to be false // Object.is equality
+   ✓ M04 comparison table and code listing > emits a wide table and code listing from extracted vendors 2ms
+   ✓ V2-19 unread scanned table > does not guess a scanned table and names extract_table as unavailable 1ms
+ ✓ test/scope-comparison.test.ts (11 tests) 484ms
+   ✓ compact projection preserves every pair, field relation and original assertion binding  464ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 72ms
+ ✓ test/admission.test.ts (21 tests) 39ms
+ ✓ test/scoped-support.test.ts (12 tests) 42ms
+ ✓ test/policy.test.ts (8 tests) 28ms
+ ✓ test/model-bindings.test.ts (8 tests) 71ms
+ ✓ test/v6-publication.test.ts (22 tests) 33ms
+ ✓ test/generic-candidates.test.ts (3 tests) 22ms
+ ✓ test/calculation-report.test.ts (1 test) 18ms
+ ✓ test/research-coverage.test.ts (8 tests) 28ms
+ ✓ test/counterevidence.test.ts (2 tests) 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/p1-p2.test.ts > M08 follow-up change summary > emits a follow-up change summary without reopening discovery
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected: 
+false
+
++ Received: 
+undefined
+
+ ❯ test/p1-p2.test.ts:461:53
+    459|     s.sources = [{ id: "sa", title: "A", locator: "fixture://vendor-a/…
+    460|     const report = composeReport(s, "00000000-0000-4000-8000-000000000…
+    461|     expect(report.changeSummary?.conclusionChanged).toBe(false);
+       |                                                     ^
+    462|     expect(report.changeSummary?.notes).toMatch(/without reopening can…
+    463|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 12 passed (13)
+      Tests  1 failed | 147 passed (148)
+   Start at  21:46:54
+   Duration  2.92s (transform 1.07s, setup 0ms, collect 2.52s, tests 1.04s, environment 4ms, prepare 1.69s)
+
+/home/oranolio/Desktop/Deep/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+exit_code=1

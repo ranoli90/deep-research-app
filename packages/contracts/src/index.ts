@@ -297,3 +297,4 @@ export * from "./research-model.js";
 export * from "./scope-comparison.js";
 export * from "./evidence-calculation.js";
 export * from "./counterevidence.js";
+export * from "./requested-verification.js";

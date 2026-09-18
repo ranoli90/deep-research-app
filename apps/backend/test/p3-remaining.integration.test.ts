@@ -613,7 +613,7 @@ describe("remaining launch-scope IDs", () => {
     expect(ids.every((id) => have.has(id))).toBe(true);
   });
 
-  it("R19 follow-up verifies one claim and keeps the parent report", async () => {
+  it("R19 diagnostic follow-up keeps the parent report without claiming executed targeted verification", async () => {
     const { token, accountId } = await authed();
     const created = await createRun(token, "What did ACME announce about Widget 4?");
     await processRun(pool, config, created.json().runId);
@@ -625,17 +625,19 @@ describe("remaining launch-scope IDs", () => {
       payload: { claimId: parent?.claim_ids[0], note: "Verify the Widget 4 announcement only" },
     });
     expect(follow.statusCode).toBe(200);
-    expect(follow.json().reopenedDiscovery).toBe(false);
+    expect(follow.json()).toMatchObject({reopenedDiscovery:true,verificationMode:"diagnostic_research"});
     await processRun(pool, config, follow.json().runId);
     expect(await getLatestReportForRun(pool, created.json().runId, accountId)).toBeTruthy();
     expect(parent?.id).toBeTruthy();
     const childEvents = await listEvents(pool, follow.json().runId, 0);
-    expect(JSON.stringify(childEvents)).toMatch(/verify the named claim|Follow-up/i);
+    expect(JSON.stringify(childEvents)).toMatch(/diagnostic research rerun/i);
+    expect(JSON.stringify(childEvents)).not.toMatch(/will verify the named claim without reopening/i);
     const childReport = await getLatestReportForRun(pool, follow.json().runId, accountId);
+    expect(childReport).toBeTruthy();
     expect(childReport?.id).not.toBe(parent?.id);
     const summary = childReport?.change_summary ?? childReport?.changeSummary;
     const notes = typeof summary === "string" ? summary : JSON.stringify(summary);
-    expect(notes).toMatch(/without reopening candidate discovery/i);
+    expect(notes??"").not.toMatch(/Targeted follow-up verified|without reopening candidate discovery/i);
   });
 
   it("R20 dates a retrieved price and keeps a founding year as history", async () => {

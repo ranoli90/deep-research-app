@@ -1,0 +1,34 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "70d533f06d92e3ffadf20903e98e63a3bc76ff8e8088af502348be141760fc45"
+  },
+  {
+    "path": "document-controls.json",
+    "sha256": "8b8849ee3468f19596ecf046bd401d3ad76b56571b12b1548a09073e97835219"
+  },
+  {
+    "path": "extraction.log",
+    "sha256": "a5f02344f449992809fb653be256faadbc7a704e59903f81837fbd18ab70cbe1"
+  },
+  {
+    "path": "handoff-validator.log",
+    "sha256": "843e7c908de3e7d516927da6b02a1337dfa98c54ed449f62a7e5417bf0a9e49b"
+  },
+  {
+    "path": "mobile-types-export.log",
+    "sha256": "86d457bd2c677c9dd2ff60d041956fae8b33412a7a8f107f714fedbddba44c5b"
+  },
+  {
+    "path": "review-validator.log",
+    "sha256": "eae03a954501edbfe266052fe452877209becdc565a5b279f502e8ad15904aea"
+  },
+  {
+    "path": "verify-final.log",
+    "sha256": "1ae3c008ad0701ef26dfce13a9888eebdd4d8ab763e2d82f6703a9f9a184b554"
+  },
+  {
+    "path": "verify.log",
+    "sha256": "c300ec72aca594ff0e0d0b76018120a1bb3df07b43122e4d81d4493367edda23"
+  }
+]

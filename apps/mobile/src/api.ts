@@ -1,4 +1,4 @@
-import { CorrectionRequestSchema,type ResearchCorrectionPatch } from "@deep/contracts";
+import { CorrectionRequestSchema, RequestedVerificationRequestSchema, type RequestedVerificationRequest,type ResearchCorrectionPatch } from "@deep/contracts";
 import { createRequestScope, SupersededRequest } from "./request-scope";
 
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
@@ -82,7 +82,7 @@ export const api = {
       headers: { "idempotency-key": idempotencyKey },
       body: JSON.stringify({ question, routeMode, attachmentIds }),
     }),
-  resolveRunRequest: (token: string, idempotencyKey: string) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey }) }),
+  resolveRunRequest: (token: string, idempotencyKey: string, verification?: { parentRunId: string; request: RequestedVerificationRequest }) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey, ...(verification ? { verification } : {}) }) }),
   attach: (token: string, filename: string, mime: string, text: string, key?: string) =>
     req("/v1/attachments", { method: "POST", token, scope: "view", headers: key ? { "idempotency-key": key } : {}, body: JSON.stringify({ filename, mime, text }) }),
   continueRun: (token: string, id: string, geography: string) =>
@@ -98,12 +98,12 @@ export const api = {
       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
       body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText,...(patch?{patch}:{}) })),
     }),
-  followUp: (token: string, id: string, claimId: string, note: string) =>
+  followUp: (token: string, id: string, request: RequestedVerificationRequest) =>
     req(`/v1/runs/${id}/follow-up`, {
       method: "POST",
       token,
       scope: "view", runId: id,
-      body: JSON.stringify({ claimId, note }),
+      body: JSON.stringify(RequestedVerificationRequestSchema.parse(request)),
     }),
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
   deleteSource: (token: string, sourceId: string) => req(`/v1/sources/${sourceId}`, { method: "DELETE", token }),

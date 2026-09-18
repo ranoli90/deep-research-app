@@ -1,3 +1,4 @@
+import type { PendingVerificationRequest } from "./verification-request";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
 import type { CorrectionDraft } from "./correction-draft";
@@ -33,6 +34,7 @@ export type UiState = {
   correctionDraft: CorrectionDraft | null;
   pendingAdmission: AdmissionDraft | null;
   pendingSourceDeletion: string | null;
+  pendingVerification: PendingVerificationRequest | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -40,6 +42,7 @@ export type UiState = {
   run: RunSnapshot | null;
   report: {
     reportId: string;
+    version?: number;
     blocks: ReportBlock[];
     limitations: string[];
     labeledDemo: boolean;
@@ -64,6 +67,7 @@ export function emptyState(): UiState {
     correctionDraft: null,
     pendingAdmission: null,
     pendingSourceDeletion: null,
+    pendingVerification: null,
     consentGranted: false,
     signedIn: false,
     offline: false,
@@ -108,6 +112,7 @@ export function restoreAfterReopen(saved: UiState): UiState {
 }
 
 export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
+  if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };
   if (state.offline) return { ok: false, reason: "You are offline. The draft is saved and will not be sent." };

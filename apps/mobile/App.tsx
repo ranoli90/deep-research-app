@@ -1,3 +1,4 @@
+import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
 import { submitSourceDeletion } from "./src/source-deletion-flow";
 import { createReadingRestoration } from "./src/reading-position";
@@ -87,6 +88,11 @@ function AppInner() {
   const [storageReady, setStorageReady] = useState(false);
   const submitting = useRef(false);
   const deletingSource = useRef(false);
+  const verifying = useRef(false);
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationPolicy, setVerificationPolicy] = useState<"reuse_snapshot" | "refresh_sources">("reuse_snapshot");
+  const [verificationNote, setVerificationNote] = useState("");
+  useEffect(() => { setVerificationNote(""); setVerificationPolicy("reuse_snapshot"); }, [token]);
   const [sourceDeleteBusy, setSourceDeleteBusy] = useState(false);
   const pickingDocument = useRef(false);
   const [documentPending, setDocumentPending] = useState(false);
@@ -157,7 +163,7 @@ function AppInner() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useEffect(() => {
-    if (!hydrated || submitting.current || deletingSource.current) return;
+    if (!hydrated || submitting.current || deletingSource.current || verifying.current) return;
     const guard = api.capture();
     void persistSession(sessionStorage, { token, state }).catch(() => {
       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
@@ -259,6 +265,7 @@ function AppInner() {
             ...next,
             report: {
               reportId: report.reportId,
+              version: report.version,
               blocks: report.blocks,
               limitations: report.limitations ?? [],
               labeledDemo: report.labeledDemo,
@@ -388,7 +395,7 @@ function AppInner() {
   }, [state.tab, token]);
 
   async function onPickDocument() {
-    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion) return;
+    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
     if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
     const guard = api.capture();
@@ -402,7 +409,7 @@ function AppInner() {
   }
 
   async function onSend() {
-    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current) return;
+    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current) return;
     if (!storageReady) return;
     const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
     if (!gate.ok) {
@@ -502,7 +509,9 @@ function AppInner() {
         setState(s => ({ ...s, pendingAdmission: null, offline: false, error: "No active request remains for this key. The saved request is withdrawn; you can edit and send again." }));
       } else throw new Error("The saved request could not be resolved. Retry checking it.");
     } catch (error) {
-      if (guard.current() && !isSupersededRequest(error)) setState(s => ({ ...s, error: (error as Error).message }));
+      if (!guard.current() || isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (error as Error).message }));
     } finally { guard.release(); submitting.current = false; setUploadStatus(null); }
   }
 
@@ -517,7 +526,7 @@ function AppInner() {
   }
 
   async function onDeleteSource(target?: SourceDeletionTarget) {
-    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current) return;
+    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification) return;
     const guard = api.capture();
     try {
       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
@@ -557,7 +566,7 @@ function AppInner() {
   }
 
   async function onCorrect() {
-    if (!token || !state.run || correctionAttempt.current) return;
+    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification) return;
     const text = correction.trim();
     if (!text) {
       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
@@ -635,31 +644,70 @@ function AppInner() {
     }
   }
 
-  async function onFollowUp() {
-    if (!token || !state.run) return;
+  async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
+    if (!token) return;
+    if (runId === pending.parentRunId) throw new Error("Verification resolved to its parent instead of a child. Retry the saved request.");
+    api.selectRun(runId);
+    const guard = api.captureView();
     try {
-      const claimId = state.report?.blocks.find((b) => b.id === "answer")?.claimIds[0];
-      if (!claimId) {
-        setViewState((s) => ({ ...s, error: "This answer has no supported claim to check. Add a follow-up question in the composer." }));
-        return;
-      }
-      const child = await api.followUp(token, state.run.runId, claimId, "Verify the answer claim only");
-      api.selectRun(child.runId);
-      setViewState((s) => {
-        const next = {
-          ...s,
-          previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
-          status: "progress" as const,
-        };
+      const snap = readVerificationRun(await api.getRun(token, runId), runId);
+      if (!guard.current()) throw new SupersededRequest();
+      let next = applySnapshot({ ...state, pendingVerification: null, previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport, report: null, source: null, events: [], readingAnchor: null, correctionDraft: null }, snap);
+      next = { ...next, error: null, offline: false, tab: "research" };
+      await sessionStorage.persistRequired(token, next);
+      if (!guard.current()) throw new SupersededRequest();
+      setState(next);
+      await refreshRun(token, runId); startPolling(token, runId);
+    } finally { guard.release(); }
+  }
 
-        return next;
+  async function onFollowUp() {
+    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission) return;
+    const guard = api.capture();
+    try {
+      verifying.current = true; setVerificationBusy(true);
+      let pending = state.pendingVerification;
+      if (!pending) {
+        if (state.report?.labeledDemo) throw new Error("Demo reports do not support evidence verification.");
+        const claimId = state.report?.blocks.find(b => b.kind === "answer" && b.claimIds.length)?.claimIds[0] ?? state.report?.blocks.find(b => b.claimIds.length)?.claimIds[0];
+        if (!claimId || !state.report?.version) throw new Error("Reopen a current report with a supported claim before requesting verification.");
+        pending = prepareVerificationRequest({ run: state.run, report: state.report, reportId: state.report.reportId, reportVersion: state.report.version, claimId, note: verificationNote, evidencePolicy: verificationPolicy, idempotencyKey: newId(), pendingAdmission: state.pendingAdmission, pendingSourceDeletion: state.pendingSourceDeletion });
+      }
+      api.selectRun(pending.parentRunId); stopPolling();
+      const accepted = await submitVerificationRequest(pending, {
+        current: guard.current,
+        save: async saved => {
+          await sessionStorage.persistRequired(token, { ...state, pendingVerification: saved });
+          if (!guard.current()) throw new SupersededRequest();
+          setState(s => ({ ...s, pendingVerification: saved }));
+        },
+        post: (id, request) => api.followUp(token, id, request),
       });
-      startPolling(token, child.runId);
-    } catch (e) {
-      if (isSupersededRequest(e)) return;
-      if (isExpiredSession(e)) await onAuthFailure();
-      else setViewState((s) => ({ ...s, error: (e as Error).message }));
-    }
+      if (guard.current()) await adoptVerification(pending, accepted.runId);
+    } catch (error) {
+      if (!guard.current() || isSupersededRequest(error)) return;
+      if (isExpiredSession(error)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
+  }
+
+  async function resolvePendingVerification() {
+    const pending = state.pendingVerification;
+    if (!token || !pending || verifying.current) return;
+    const guard = api.capture();
+    try {
+      verifying.current = true; setVerificationBusy(true);
+      const result = await api.resolveRunRequest(token, pending.request.idempotencyKey, pending);
+      if (!guard.current()) throw new SupersededRequest();
+      if (result.status === "accepted") await adoptVerification(pending, readAdmittedRun(result.run).runId);
+      else if (result.status === "withdrawn") {
+        const next = { ...state, pendingVerification: null, error: "The saved verification request is withdrawn. No new verification will start under this key." };
+        await sessionStorage.persistRequired(token, next);
+        if (guard.current()) setState(next);
+      } else throw new Error("Verification status could not be confirmed. Retry the saved request.");
+    } catch (error) {
+      if (guard.current() && !isSupersededRequest(error)) setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); verifying.current = false; setVerificationBusy(false); }
   }
 
   async function onShare(reportId?: string) {
@@ -697,6 +745,11 @@ function AppInner() {
             <Text style={styles.bannerText}>Live research route</Text>
           </View>
         )}
+        {state.pendingVerification ? <View style={styles.card} accessibilityLabel="Saved verification request">
+          <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
+          <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
+          <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Check or withdraw verification" onPress={() => void resolvePendingVerification()}><Text style={styles.link}>Check or withdraw</Text></Pressable>
+        </View> : null}
         {state.pendingSourceDeletion ? <View style={styles.card} accessibilityLabel="Pending source deletion">
           <Text style={styles.bodyText}>Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Retry source deletion" disabled={sourceDeleteBusy}
@@ -830,9 +883,19 @@ function AppInner() {
                 <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
                   <Text style={styles.link}>Share Markdown</Text>
                 </Pressable>
-                <Pressable onPress={onFollowUp} accessibilityRole="button" accessibilityLabel="Verify the answer claim">
-                  <Text style={styles.link}>Verify this claim</Text>
-                </Pressable>
+                {!state.report.labeledDemo ? <View>
+                  <Text style={styles.bodyText}>Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.</Text>
+                  <TextInput value={verificationNote} onChangeText={setVerificationNote} maxLength={4000} editable={!verificationBusy && !state.pendingVerification}
+                    accessibilityLabel="Optional feedback saved with verification" placeholder="Optional feedback for this request" style={styles.input} />
+                  <Text style={styles.caveat}>Feedback is saved with the request. The check assesses the selected claim and evidence; it does not assess this note.</Text>
+                  <Pressable disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Change verification evidence policy"
+                    onPress={() => setVerificationPolicy(p => p === "reuse_snapshot" ? "refresh_sources" : "reuse_snapshot")}>
+                    <Text style={styles.link}>{verificationPolicy === "reuse_snapshot" ? "Use inspected evidence" : "Refresh inspected sources"}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => void onFollowUp()} disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Recheck the answer claim">
+                    <Text style={styles.link}>{verificationBusy ? "Requesting check…" : "Recheck answer claim"}</Text>
+                  </Pressable>
+                </View> : null}
                 {state.flagSent || flagStatus === "submitted" ? (
                   <Text style={styles.caveat} accessibilityLabel="Flag submitted">Report submitted. Thank you.</Text>
                 ) : flagOpen ? (
@@ -944,7 +1007,7 @@ function AppInner() {
                   placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
                   multiline
                   maxLength={20_000}
-                  editable={!correctionPending&&correctionMode!=="unavailable"}
+                  editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!=="unavailable"}
                   placeholderTextColor={theme.muted}
                   style={styles.input}
                   allowFontScaling
@@ -962,7 +1025,7 @@ function AppInner() {
         {state.source ? (
           <SourceSheet source={state.source} styles={styles}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
-            offline={state.offline} admissionPending={!!state.pendingAdmission}
+            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification}
             onOpenOriginal={(url) => {
               const guard = api.captureView();
               void Linking.openURL(url).catch(() => {
@@ -975,12 +1038,12 @@ function AppInner() {
             }} />
         ) : null}
 
-        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy ? (
+        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy ? (
           <Library
             token={token}
             styles={styles}
             onOpen={async (id) => {
-              if (state.pendingSourceDeletion || deletingSource.current) return;
+              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification) return;
               api.selectRun(id);
               if (!token) return;
               setState((s) => openLibraryItem(s, id));
@@ -1045,13 +1108,13 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
             onAttachNote={() => {
-                if (deletingSource.current || state.pendingSourceDeletion) return;
+                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
                 setState((s) =>
                   attachFile(s, {
                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
@@ -1077,7 +1140,7 @@ function AppInner() {
         {state.tab === "research" && !state.source ? (
         <View style={styles.composerWrap}>
           <TextInput
-            editable={hydrated && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
+            editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
             value={state.draft}
             onChangeText={(draft) => {
               setState((s) => {

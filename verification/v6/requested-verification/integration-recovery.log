@@ -1,0 +1,35 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/requested-verification.integration.test.ts (24 tests) 66192ms
+   ✓ W05 explicitly requested verification executes exact target support and publishes a source-bound scoped outcome  4641ms
+   ✓ W02/W05 replay and concurrent requests reuse one child allowance/outbox while distinct requests allocate revisions  3229ms
+   ✓ W03/W05 rejects foreign or stale report targets and disabled processing before child admission  2094ms
+   ✓ W05 omission of the requested assertion in the model assessment cannot publish verification  2458ms
+   ✓ W02 unknown assessment retains the admitted allowance and is never blindly resent  2392ms
+   ✓ W05 a missing target remains required and cannot fall through to ordinary research even when challenge scheduling is off  1923ms
+   ✓ W03 account deletion purges private target/note/result and keeps opaque required obligation  2850ms
+   ✓ W03/W06 deleting an original source invalidates and purges requested verification descendants  2111ms
+   ✓ W05 refreshed uploaded source produces new owned extraction evidence without public discovery  2894ms
+   ✓ W02 uppercase request identity resolves exactly and withdrawn keys cannot admit a delayed verification  2107ms
+   ✓ W05 API strict verification schedules a child while ordinary output feedback schedules no work  3060ms
+   ✓ W05 publication independently rejects missing_result after a completed verification  3162ms
+   ✓ W05 publication independently rejects missing_target after a completed verification  2976ms
+   ✓ W05 publication independently rejects changed_scope after a completed verification  3003ms
+   ✓ W05 publication independently rejects false_result after a completed verification  3101ms
+   ✓ W05 refreshed known URL produces localized contradicted outcome without candidate discovery or target replacement  3214ms
+   ✓ W05 refreshed known URL produces localized partially_supported outcome without candidate discovery or target replacement  3153ms
+   ✓ W05 refreshed known URL produces localized insufficient outcome without candidate discovery or target replacement  3118ms
+   ✓ W05 a verified output claim can be explicitly checked again with intact provenance and a new child revision  4064ms
+   ✓ W05 losing a marker while target rows remain cannot silently execute ordinary research  1955ms
+   ✓ W05 scheduling flag disable after admission leaves the required target intact and publishes no substitute  2041ms
+   ✓ W02/W03 deletion during assessment allows only incurred-cost settlement and no target or report resurrection  2229ms
+   ✓ W02 bound recovery rejects ordinary-run collisions, key mismatches, changed requests and lost target proof  2089ms
+   ✓ W02 bound recovery remains available with scheduling disabled and withdraws exact uppercase keys  2056ms
+ ✓ test/admission-recovery.integration.test.ts (4 tests) 612ms
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  21:37:09
+   Duration  69.02s (transform 985ms, setup 0ms, collect 1.83s, tests 66.80s, environment 0ms, prepare 133ms)
+

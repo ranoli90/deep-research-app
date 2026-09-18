@@ -1,0 +1,66 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/requested-verification.integration.test.ts (26 tests | 1 failed | 25 skipped) 3206ms
+   ↓ W05 explicitly requested verification executes exact target support and publishes a source-bound scoped outcome
+   ↓ W02/W05 replay and concurrent requests reuse one child allowance/outbox while distinct requests allocate revisions
+   ↓ W03/W05 rejects foreign or stale report targets and disabled processing before child admission
+   ↓ W05 omission of the requested assertion in the model assessment cannot publish verification
+   ↓ W02 unknown assessment retains the admitted allowance and is never blindly resent
+   ↓ W05 a missing target remains required and cannot fall through to ordinary research even when challenge scheduling is off
+   ↓ W03 account deletion purges private target/note/result and keeps opaque required obligation
+   ↓ W03/W06 deleting an original source invalidates and purges requested verification descendants
+   ↓ W05 refreshed uploaded source produces new owned extraction evidence without public discovery
+   ↓ W02 uppercase request identity resolves exactly and withdrawn keys cannot admit a delayed verification
+   ↓ W05 API strict verification schedules a child while ordinary output feedback schedules no work
+   ↓ W05 publication independently rejects missing_result after a completed verification
+   ↓ W05 publication independently rejects missing_target after a completed verification
+   ↓ W05 publication independently rejects changed_scope after a completed verification
+   ↓ W05 publication independently rejects false_result after a completed verification
+   × W05 refreshed known URL produces localized contradicted outcome without candidate discovery or target replacement 2992ms
+     → expected { …(3) } to match object { Object (outcome) }
+(2 matching properties omitted from actual)
+   ↓ W05 refreshed known URL produces localized partially_supported outcome without candidate discovery or target replacement
+   ↓ W05 refreshed known URL produces localized insufficient outcome without candidate discovery or target replacement
+   ↓ W05 a verified output claim can be explicitly checked again with intact provenance and a new child revision
+   ↓ W05 losing a marker while target rows remain cannot silently execute ordinary research
+   ↓ W05 scheduling flag disable after admission leaves the required target intact and publishes no substitute
+   ↓ W02/W03 deletion during assessment allows only incurred-cost settlement and no target or report resurrection
+   ↓ W02 bound recovery rejects ordinary-run collisions, key mismatches, changed requests and lost target proof
+   ↓ W02 bound recovery remains available with scheduling disabled and withdraws exact uppercase keys
+   ↓ W05 malformed cyclic target lineage is rejected before recursive proof restoration
+   ↓ W05 finite repeated verification lineage reaches an explicit admission ceiling without another reservation
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/requested-verification.integration.test.ts > W05 refreshed known URL produces localized contradicted outcome without candidate discovery or target replacement
+AssertionError: expected { …(3) } to match object { Object (outcome) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "outcome": "contradicted_in_inspected_evidence",
++   "outcome": "blocked",
+  }
+
+ ❯ test/requested-verification.integration.test.ts:167:23
+    165|  await processRun(pool,config,child.runId);expect(reader).toHaveBeenCa…
+    166|  const saved=await loadVerification(pool,{runId:child.runId,accountId:…
+    167|  expect(saved.result).toMatchObject({outcome:status==="contradicted"?"…
+       |                       ^
+    168|  const report=await getLatestReportForRun(pool,child.runId,x.accountId…
+    169|  expect(report?.limitations).toContain(`Selected claim (quoted for rev…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 25 skipped (26)
+   Start at  21:43:12
+   Duration  4.55s (transform 722ms, setup 0ms, collect 1.14s, tests 3.21s, environment 0ms, prepare 67ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t refreshed known URL produces localized contradicted

@@ -1,3 +1,4 @@
+import { processRequestedVerification } from "./requested-verification.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
 import { settleRun } from "../modules/billing.js";
@@ -21,6 +22,8 @@ export async function processRun(pool:pg.Pool,config:AppConfig,runId:string,opts
       });
       return;
     }
+    const verification=(await pool.query("SELECT verification_required_revision IS NOT NULL OR EXISTS(SELECT 1 FROM requested_verifications WHERE run_id=r.id) AS required FROM runs r WHERE id=$1",[runId])).rows[0]?.required;
+    if(verification)return processRequestedVerification(pool,config,session,{runId,accountId:run.account_id,briefRevision:run.brief_revision,fence});
     await processStructuredResearch(pool,config,session,{runId,accountId:run.account_id,briefRevision:run.brief_revision,fence},opts);
   });
 }

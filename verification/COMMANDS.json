@@ -798,5 +798,93 @@
     "scope": "Exact clean-source-deletion committed Android JS proof",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "17/17 actual isolated extraction/API/worker;4 files;87.78s; synthetic documents/fabricated model transport",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-requested-verification-bundle",
+    "status": "implemented_application_command",
+    "scope": "647 modules;2.17MB Android JavaScript; not native build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "1 initial targeted worker control",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "73/73 = 22 requested verification + 51 existing P3",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/admission-recovery.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "28/28 = 24 requested verification + 4 existing admission recovery",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t R19",
+    "status": "implemented_application_command",
+    "scope": "Historical diagnostic expected no reopened discovery; actual diagnostic behavior now truthfully disclosed. One failed, 50 deselected; corrected controls in 73/73 receipt.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:governance",
+    "status": "implemented_application_command",
+    "scope": "Production boundary/governance control; no model quality claim.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/model-gateway.integration.test.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "169/169:26 requested verification +136 model gateway +7 source deletion;274.58s. Before negative citation review fix.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL produces localized contradicted'",
+    "status": "implemented_application_command",
+    "scope": "Attempted contradictory model status without evidence correctly blocked by existing binding validator; test input corrected to insufficient, not production guard weakened.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL|explicitly requested verification'",
+    "status": "implemented_application_command",
+    "scope": "4/4 selected controls,22 deselected intentionally:positive scoped publication + contradiction/qualification/unresolved; negative counterEvidence citation union fixed, positive support bindings unchanged.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "git diff --check",
+    "status": "implemented_application_command",
+    "scope": "Source whitespace diff check.",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
   }
 ]

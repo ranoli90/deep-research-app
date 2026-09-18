@@ -1,3 +1,4 @@
+import { readPendingVerificationRequest } from "./verification-request";
 import { readPendingSourceDeletion } from "./source-deletion";
 import { emptyState, restoreAfterReopen, type UiState } from "./state";
 import { readAdmissionDraft, type AdmissionDraft } from "./admission-retry";
@@ -16,8 +17,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 function storedState(state: UiState) {
-  const { draft, correctionDraft, pendingSourceDeletion, run, report, previousReport, readingAnchor, routeMode, consentGranted, status } = state;
-  return { draft, correctionDraft, pendingSourceDeletion, run, report, previousReport, readingAnchor, routeMode, consentGranted, status };
+  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, run, report, previousReport, readingAnchor, routeMode, consentGranted, status } = state;
+  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, run, report, previousReport, readingAnchor, routeMode, consentGranted, status };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -181,6 +182,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           const envelope: unknown = JSON.parse(rawSnapshot);
           if (record(envelope) && envelope.accountId === session.accountId && record(envelope.state)) {
             state.pendingSourceDeletion = readPendingSourceDeletion(envelope.state.pendingSourceDeletion);
+            state.pendingVerification = readPendingVerificationRequest(envelope.state.pendingVerification);
             if (state.pendingSourceDeletion) {
               state.run = null; state.report = null; state.previousReport = null; state.source = null;
               state.readingAnchor = null; state.correctionDraft = null; state.events = []; state.attachments = []; state.status = "empty";

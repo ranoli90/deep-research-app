@@ -1,3 +1,5 @@
+import { RequestedVerificationRequestSchema } from "@deep/contracts";
+import { admitRequestedVerification } from "../modules/requested-verification.js";
 import { admitResearchCorrection } from "../modules/research-corrections.js";
 import { deleteSourceForAccount } from "../modules/source-deletion.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
@@ -56,7 +58,7 @@ import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertCh
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { z } from "zod";
-import { resolveAdmission } from "../modules/admission-recovery.js";
+import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
 import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
@@ -131,9 +133,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.post("/v1/run-requests/resolve", async (req, reply) => {
     const a = await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const input = z.object({ idempotencyKey: z.string().uuid() }).strict().safeParse(req.body);
+    const input = z.object({ idempotencyKey: z.string().uuid(), verification: VerificationRecoverySchema.optional() }).strict().safeParse(req.body);
     if (!input.success) return reply.code(400).send(err("invalid_input", "Saved request key required.", crypto.randomUUID()));
-    const resolved = await resolveAdmission(pool, a.accountId, input.data.idempotencyKey);
+    const resolved = await resolveAdmission(pool, a.accountId, input.data.idempotencyKey, input.data.verification);
     if (!resolved) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return resolved;
   });
@@ -410,6 +412,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!run || run.account_id !== a.accountId) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
+    if(run.route_mode==="controlled-research"){
+      const parsed=RequestedVerificationRequestSchema.safeParse(req.body);
+      if(!parsed.success)return reply.code(400).send(err("invalid_input","A current report, selected claim and verification request are required.",crypto.randomUUID()));
+      const created=await admitRequestedVerification(pool,config,a.accountId,id,parsed.data);
+      await tryDispatchRun(pool,boss,created.runId);return created;
+    }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
@@ -453,14 +461,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         runId: childId,
         accountId: a.accountId,
         type: "follow_up_accepted",
-        summary: "Targeted follow-up will verify the named claim without reopening candidate discovery.",
+        summary: "A diagnostic research rerun was requested. This route does not establish targeted claim verification.",
         phase: "preparing",
-        payload: { claimId: body.claimId ?? null, reopenedDiscovery: false },
+        payload: { claimId: body.claimId ?? null, reopenedDiscovery: true, verificationMode: "diagnostic_research" },
       });
       return { childId, revision };
     });
     await tryDispatchRun(pool, boss, created.childId);
-    return { runId: created.childId, parentRunId: id, briefRevision: created.revision, reopenedDiscovery: false };
+    return { runId: created.childId, parentRunId: id, briefRevision: created.revision, reopenedDiscovery: true, verificationMode: "diagnostic_research" };
   });
 
   app.get("/v1/reports/:id", async (req, reply) => {

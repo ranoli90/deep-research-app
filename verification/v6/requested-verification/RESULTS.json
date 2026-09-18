@@ -1,0 +1,176 @@
+{
+  "task": "W05 requested scoped verification with W01/W02/W03/W06 proof/recovery/deletion controls",
+  "implementation": "uncommitted working tree; primary reviews and commits",
+  "metadataObservedHead": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
+  "revisionLimit": "Earlier incremental receipts were captured during shared working-tree implementation; no individual HEAD stamp was recorded in those terminal logs. Final source manifest identifies reviewed files.",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "deep_research_lease_clock_v6",
+    "host": "127.0.0.1:55432"
+  },
+  "evidenceClass": "Real local PostgreSQL/API/worker; synthetic documents and fabricated provider/read transports. No live-model quality, paid spend, native build or hosted claim.",
+  "checks": [
+    {
+      "artifact": "typecheck-initial.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "28bc914b2b4e3a9d1bc3b8474c7b9770ac33c657351bbca5a3347bff4e125681"
+    },
+    {
+      "artifact": "typecheck-second.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "typecheck-expanded.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "typecheck-lineage.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "typecheck-recovery.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "typecheck-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend and imported contracts/core TypeScript; initial errors corrected.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "integration-initial.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+      "exitCode": 0,
+      "scope": "1 initial targeted worker control",
+      "sha256": "40571b86ed9bc03d256629f227d24cf1a8ac8a1834549c25c29c64f7aff78457"
+    },
+    {
+      "artifact": "integration-expanded.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+      "exitCode": 1,
+      "scope": "8/9 pass; mock incorrectly expected omitted plugins rather than explicit empty list; corrected exact assertion",
+      "sha256": "e5307c49edb520a9011755c9ef8d376de271f37ff73b9667628e32eb03fa347c"
+    },
+    {
+      "artifact": "integration-full-first.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts",
+      "exitCode": 0,
+      "scope": "18/18 controls",
+      "sha256": "676af5dcd03c1725fc0b8583ade1f32dd6e991f8a13f3eb21db500b03404b694"
+    },
+    {
+      "artifact": "integration-second.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/p3-remaining.integration.test.ts",
+      "exitCode": 0,
+      "scope": "73/73 = 22 requested verification + 51 existing P3",
+      "sha256": "947d36802a4509bceea9019d1b305ddb2efb4c0f84245824417ef5deddd5b642"
+    },
+    {
+      "artifact": "integration-recovery.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/admission-recovery.integration.test.ts",
+      "exitCode": 0,
+      "scope": "28/28 = 24 requested verification + 4 existing admission recovery",
+      "sha256": "6a2504b7fed7fd5f5cf95cc1840a32867aa17393d88ef7095a2db8bdbb124eec"
+    },
+    {
+      "artifact": "diagnostic-r19-old-expectation.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t R19",
+      "exitCode": 1,
+      "scope": "Historical diagnostic expected no reopened discovery; actual diagnostic behavior now truthfully disclosed. One failed, 50 deselected; corrected controls in 73/73 receipt.",
+      "sha256": "0f1bd6be2f6b47a733a72656dc29320dc8f2b2dca905bb33f7858d4e0ed7037b"
+    },
+    {
+      "artifact": "boundaries.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Production boundary/governance control; no model quality claim.",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "artifact": "boundaries-final.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Production boundary/governance control; no model quality claim.",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "artifact": "governance-initial.log",
+      "command": "pnpm --filter @deep/backend test:governance",
+      "exitCode": 0,
+      "scope": "Production boundary/governance control; no model quality claim.",
+      "sha256": "65f05e991259c6db8705d5dee0e6a669a913c4d0469cbe6c76d1b1905d03fa2c"
+    },
+    {
+      "artifact": "governance-final.log",
+      "command": "pnpm --filter @deep/backend test:governance",
+      "exitCode": 0,
+      "scope": "Production boundary/governance control; no model quality claim.",
+      "sha256": "65490d4c402e409e8b0450e7506fdb16f08f11822f3add0d5082646343320351"
+    },
+    {
+      "artifact": "integration-final.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts test/model-gateway.integration.test.ts test/source-deletion.integration.test.ts",
+      "exitCode": 0,
+      "scope": "169/169:26 requested verification +136 model gateway +7 source deletion;274.58s. Before negative citation review fix.",
+      "sha256": "895f4e67303074ce96a201f1fdd6eaf1223bfc3a366013f16c55d7ecccedd030"
+    },
+    {
+      "artifact": "negative-citation-pre-fix.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL produces localized contradicted'",
+      "exitCode": 1,
+      "scope": "Attempted contradictory model status without evidence correctly blocked by existing binding validator; test input corrected to insufficient, not production guard weakened.",
+      "sha256": "94720c21cc785edae63a2189dfaaabdf0da3c2f40aba5f464b245c2c6198a4e4"
+    },
+    {
+      "artifact": "negative-citation-pre-fix-valid-binding.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL produces localized contradicted'",
+      "exitCode": 1,
+      "scope": "Reproduced negative-report missing contrary passage link: independently detected contradiction, model evidence empty, citationIds empty.",
+      "sha256": "492ce5184336373b9e2ed87ce69d17dc842f6c458762b14072a10a251447296b"
+    },
+    {
+      "artifact": "negative-citation-fixed.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts -t 'refreshed known URL|explicitly requested verification'",
+      "exitCode": 0,
+      "scope": "4/4 selected controls,22 deselected intentionally:positive scoped publication + contradiction/qualification/unresolved; negative counterEvidence citation union fixed, positive support bindings unchanged.",
+      "sha256": "409e8949cc09f5c2cc79a6d14311bf093cbaa527b00cb277ccaea9c706dbfab6"
+    },
+    {
+      "artifact": "typecheck-citation-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Final backend/imported contracts/core typecheck after citation fix.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "diff-check-final.log",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "scope": "Source whitespace diff check.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pending": [],
+  "handoff": "HANDOFF.md",
+  "finalObservedHead": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
+  "rollback": "Disable new scheduling, retain exact-key bound recovery/withdrawal, target/required-proof readers, publication veto, deletion, financial settlement and unknown holds.",
+  "cost": "No live provider calls or paid spend. Fabricated provider receipts use synthetic microamounts. Current live budget unknown, not authorized.",
+  "remaining": "Real model semantics/independent evaluation and full native verification journey not established. Some malformed-proof corruption fails closed through retry rather than terminal blocked. Private notes are saved feedback, not assessed."
+}

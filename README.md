@@ -15,6 +15,8 @@ pnpm dev:demo           # explicit non-production historical fixture diagnostic
 Development auth: `POST /v1/dev/session` then `POST /v1/consent`. Never put provider keys in the mobile bundle. The structured live entrypoint `pnpm dev:live` requires a project-authorized key and positive scoped caps; its existence grants no spending authority. Production does not load the historical fixture controller. P0-L/P0-N remain separately gated; see `STATUS.md`.
 
 
+Explicit claim rechecks create an owned child for the selected report claim, using saved evidence or rereading selected known sources. Saved feedback is not assessed. Results describe inspected-evidence support and retain limitations; ordinary report feedback alone schedules no research. See [ADR037](docs/adr/DECISIONS.md#adr037--requested-claim-checks-preserve-an-immutable-evidence-obligation-2026-09-17) and [engine contracts](specs/ENGINE_CONTRACTS.md) for proof, recovery and rollback boundaries. Local synthetic controls do not establish live-model quality.
+
 ## Specification provenance
 **Version 3 — independent-review reconciliation, 2026-09-16.** This complete package supersedes `Deep_Research_Reviewed_Build_Kit.zip` and the earlier standalone Grok goal. `Grok_Code_Deep_Research_Goal.md` preserves the original v3 build assignment; the active user assignment and adopted V6 contracts govern current work.
 

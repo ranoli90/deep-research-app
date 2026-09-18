@@ -35,3 +35,4 @@ export { calculateEvidence } from "./evidence-calculation.js";
 export * from "./calculation-report.js";
 
 export * from "./counterevidence.js";
+export { requestedVerificationOutcome } from "./requested-verification.js";

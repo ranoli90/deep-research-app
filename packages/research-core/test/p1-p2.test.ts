@@ -445,7 +445,7 @@ describe("E09 markdown export", () => {
 });
 
 describe("M08 follow-up change summary", () => {
-  it("emits a follow-up change summary without reopening discovery", () => {
+  it("does not manufacture verification from a diagnostic question prefix", () => {
     const s = state("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01\n\nFollow-up: verify only claim-primary. Verify the answer claim only");
     s.passages = [
       {
@@ -458,8 +458,10 @@ describe("M08 follow-up change summary", () => {
     ];
     s.sources = [{ id: "sa", title: "A", locator: "fixture://vendor-a/pricing-de", accessLevel: "full-text", sourceType: "vendor-docs" }];
     const report = composeReport(s, "00000000-0000-4000-8000-000000000080");
-    expect(report.changeSummary?.conclusionChanged).toBe(false);
-    expect(report.changeSummary?.notes).toMatch(/without reopening candidate discovery/);
+    expect(report.reportId).toBe("00000000-0000-4000-8000-000000000080");
+    expect(report.blocks.length).toBeGreaterThan(0);
+    expect(report.changeSummary).toBeUndefined();
+    expect(JSON.stringify(report)).not.toMatch(/Targeted follow-up verified|without reopening candidate discovery/);
   });
 });
 

@@ -1,5 +1,5 @@
 {
-  "scope": "Cumulative current-code recheck over committed c10109a and labeled uncommitted admission/lease follow-ons. Original review pin retained; evidence classes stay distinct and no milestone-completion claim is implied.",
+  "scope": "Cumulative recheck through committed9d95ad5 plus reviewed requested-verification working tree over7ccfe80. Original review pin and distinct evidence classes retained; milestone incomplete.",
   "findings": [
     {
       "id": "V6-F01",
@@ -20,7 +20,7 @@
       "title": "Verify and related actions are mostly event labels",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "Production executes extraction, scoped support, six-field scope comparison and exact evidence-bound calculation planning/results before writing. Comparison preserves unknown fields and explicitly does not assess entailment or quantity compatibility. Calculated reports restore owned input revisions, numeric spans, formulas, output, assumptions and citations at final coverage/publication; a sum-to-ratio corrected journey passes through the production worker with fabricated model transport. Typed outcomes and replay/owner/revision/tamper/deletion/concurrency controls replace event-only success on these paths. Default-off bounded counterevidence now captures original targets, executes admitted search/reads/reassessment and persists typed outcomes; restart/unknown/deletion controls pass. Checkpoint002e2d6 repaired the limited-publication bypass and crash-window search replay, with17focused PostgreSQL controls. Arithmetic applicability and independent semantic quality remain open."
+      "basis": "Production executes extraction, scoped support, six-field scope comparison and exact evidence-bound calculation planning/results before writing. Comparison preserves unknown fields and explicitly does not assess entailment or quantity compatibility. Calculated reports restore owned input revisions, numeric spans, formulas, output, assumptions and citations at final coverage/publication; a sum-to-ratio corrected journey passes through the production worker with fabricated model transport. Typed outcomes and replay/owner/revision/tamper/deletion/concurrency controls replace event-only success on these paths. Default-off bounded counterevidence now captures original targets, executes admitted search/reads/reassessment and persists typed outcomes; restart/unknown/deletion controls pass. Checkpoint002e2d6 repaired the limited-publication bypass and crash-window search replay, with17focused PostgreSQL controls. Arithmetic applicability and independent semantic quality remain open. Requested scoped verification now executes the actual worker/checker over immutable inspected evidence or selected-source refresh, with required proof restoration, negative citation links and bound retry/withdrawal;169 affected PostgreSQL controls plus final4 citation cases pass across separate runs. Private feedback notes are saved but not assessed; no live semantic proof."
     },
     {
       "id": "V6-F04",

@@ -1,0 +1,15 @@
+
+> @deep/backend@0.1.0 test:governance /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/governance.test.ts (6 tests) 1469ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  1147ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  21:39:38
+   Duration  3.15s (transform 94ms, setup 0ms, collect 1.25s, tests 1.47s, environment 0ms, prepare 140ms)
+

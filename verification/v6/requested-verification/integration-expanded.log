@@ -1,0 +1,45 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/requested-verification.integration.test.ts (9 tests | 1 failed) 24249ms
+   ✓ W05 explicitly requested verification executes exact target support and publishes a source-bound scoped outcome  3301ms
+   ✓ W02/W05 replay and concurrent requests reuse one child allowance/outbox while distinct requests allocate revisions  2556ms
+   ✓ W03/W05 rejects foreign or stale report targets and disabled processing before child admission  1870ms
+   ✓ W05 omission of the requested assertion in the model assessment cannot publish verification  2828ms
+   ✓ W02 unknown assessment retains the admitted allowance and is never blindly resent  3508ms
+   ✓ W05 a missing target remains required and cannot fall through to ordinary research even when challenge scheduling is off  2488ms
+   ✓ W03 account deletion purges private target/note/result and keeps opaque required obligation  3283ms
+   ✓ W03/W06 deleting an original source invalidates and purges requested verification descendants  2063ms
+   × W05 refreshed uploaded source produces new owned extraction evidence without public discovery 2240ms
+     → expected null to be truthy
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/requested-verification.integration.test.ts > W05 refreshed uploaded source produces new owned extraction evidence without public discovery
+AssertionError: expected null to be truthy
+
+- Expected: 
+true
+
++ Received: 
+null
+
+ ❯ test/requested-verification.integration.test.ts:106:88
+    104|  };
+    105|  await processRun(pool,config,child.runId);expect(calls).toEqual(["res…
+    106|  const report=await getLatestReportForRun(pool,child.runId,x.accountId…
+       |                                                                                        ^
+    107|  const oldIds=x.report.blocks.flatMap((b:{citationIds:string[]})=>b.ci…
+    108|  expect(newIds.length).toBeGreaterThan(0);expect(newIds.some((id:strin…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  21:24:29
+   Duration  25.54s (transform 705ms, setup 0ms, collect 1.08s, tests 24.25s, environment 0ms, prepare 68ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/requested-verification.integration.test.ts

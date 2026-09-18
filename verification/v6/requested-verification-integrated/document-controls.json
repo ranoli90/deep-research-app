@@ -1,0 +1,2495 @@
+{
+  "commit": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
+  "workingTree": "Uncommitted matched-pipeline implementation",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "versions": [
+    {
+      "path": "apps/backend/src/adapters/model/prompts.ts",
+      "sha256": "795c678c63074542241a45c38926d24ace51c9816833ae1697f3594395111470"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    },
+    {
+      "path": "packages/contracts/src/research-model.ts",
+      "sha256": "7317c13bc286b87635be2862c1bdabaf9e6e087842e076502d9b6905b28af3ab"
+    },
+    {
+      "path": "evals/matched-pipeline/protocol.json",
+      "sha256": "163f04c5e6937f9ee58f03f83ad4550b081ba1a77c412f003b7119e281c4e002"
+    }
+  ],
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the UYTIZK field note say about underwater recording?",
+      "sourceSha256": "cfad81bb549b86976eef9ed0d19fc32c5ee7aa0c9b0d935401ad96bd28c0a8fd",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    },
+    {
+      "label": "A1-original",
+      "runId": "a23ff57e-50d6-4b09-a966-4a56982770f8",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 5011.397678000001,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "0de30b03-adea-42b9-a507-9f3ee0978b73",
+        "runId": "a23ff57e-50d6-4b09-a966-4a56982770f8",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "UYTIZK does not support underwater recording.",
+            "claimIds": [
+              "0e2adf81-b682-47d6-ab94-7e1d79a9d8bd"
+            ],
+            "citationIds": [
+              "637a8ea0-3876-4aa8-8090-4b5413cc528b"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "f3ffc2f4-55f8-4c16-88ec-78094e6b4c94",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://5e645bef-0572-422a-833f-5a69f008176a"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0caf0bec-0f20-4817-adf1-f9bb4273f06f",
+          "source_version_id": "5fad1c8c-64b7-4c5f-8854-26bcba4fc20e",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "637a8ea0-3876-4aa8-8090-4b5413cc528b",
+          "source_version_id": "5fad1c8c-64b7-4c5f-8854-26bcba4fc20e",
+          "exact_text": "Field notes: UYTIZK sensor deployment\nUYTIZK supports offline recording only on firmware 4.2.\nUYTIZK does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  262.748,
+                  748.616
+                ],
+                "text": "Field notes: UYTIZK sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  345.44000000000017,
+                  730.616
+                ],
+                "text": "UYTIZK supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  305.44400000000013,
+                  712.616
+                ],
+                "text": "UYTIZK does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "7399aa08-865e-4d8f-b08a-26fe8fad52f9",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "UYTIZK does not support underwater recording.",
+                "start": 94,
+                "passageId": "637a8ea0-3876-4aa8-8090-4b5413cc528b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "1be4757a-4c41-459b-9240-4d48518a8acf",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "UYTIZK does not support underwater recording.",
+                "start": 94,
+                "passageId": "637a8ea0-3876-4aa8-8090-4b5413cc528b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "a23ff57e-50d6-4b09-a966-4a56982770f8",
+          "accountId": "58b40a57-43e0-4888-857a-f5a0ac02c8ca",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-original",
+      "runId": "4147a620-5f90-455b-81d3-62600c6e9286",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4691.585085999999,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "d2e45b3d-cefd-4224-aa5a-67f4149b1fb9",
+        "runId": "4147a620-5f90-455b-81d3-62600c6e9286",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "UYTIZK does not support underwater recording.",
+            "claimIds": [
+              "41dd6120-8c36-42c1-b2f7-f169f885a263"
+            ],
+            "citationIds": [
+              "c0a7aa3b-6e12-4e54-9a31-819576826960"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "d03bdabc-50a8-4793-8c32-cf18639de77a",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://397a04e3-0bd5-41bb-829a-0f55856ad846"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "4b3d0592-45c0-43cd-b60f-efe358a920e9",
+          "source_version_id": "c030a600-4061-4850-b9eb-80ad1f5e12bd",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "c0a7aa3b-6e12-4e54-9a31-819576826960",
+          "source_version_id": "c030a600-4061-4850-b9eb-80ad1f5e12bd",
+          "exact_text": "Field notes: UYTIZK sensor deployment\nUYTIZK supports offline recording only on firmware 4.2.\nUYTIZK does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  262.748,
+                  748.616
+                ],
+                "text": "Field notes: UYTIZK sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  345.44000000000017,
+                  730.616
+                ],
+                "text": "UYTIZK supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  305.44400000000013,
+                  712.616
+                ],
+                "text": "UYTIZK does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "81a02793-3346-4aa3-8ced-b405685ce350",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "UYTIZK does not support underwater recording.",
+                "start": 94,
+                "passageId": "c0a7aa3b-6e12-4e54-9a31-819576826960"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "38e273a9-3386-499a-b273-dafedfeadcf4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "UYTIZK does not support underwater recording.",
+                "start": 94,
+                "passageId": "c0a7aa3b-6e12-4e54-9a31-819576826960"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "4147a620-5f90-455b-81d3-62600c6e9286",
+          "accountId": "58b40a57-43e0-4888-857a-f5a0ac02c8ca",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-correction",
+      "runId": "9a8cb57f-17a9-4d54-a0c5-d1784aaa2c8d",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 2916.181328999999,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 0,
+      "report": {
+        "reportId": "b92088c6-6bb5-4b0c-b3ee-4c9ae71a8ce7",
+        "runId": "9a8cb57f-17a9-4d54-a0c5-d1784aaa2c8d",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "UYTIZK supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "f21a2659-d378-4bec-8935-d92f4821ea6b"
+            ],
+            "citationIds": [
+              "c0a7aa3b-6e12-4e54-9a31-819576826960"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "d03bdabc-50a8-4793-8c32-cf18639de77a",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://397a04e3-0bd5-41bb-829a-0f55856ad846"
+          }
+        ],
+        "changeSummary": {
+          "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+          "comparison": {
+            "version": "report-changes.v1",
+            "parentReportId": "d2e45b3d-cefd-4224-aa5a-67f4149b1fb9",
+            "addedCriterionIds": [],
+            "reportStateChanged": false,
+            "removedCriterionIds": [],
+            "unchangedAssertions": 0,
+            "addedClaimRevisionIds": [
+              "6d737015-f867-4415-8110-fa36a29ad6fa"
+            ],
+            "removedClaimRevisionIds": [
+              "38e273a9-3386-499a-b273-dafedfeadcf4"
+            ],
+            "newlyCitedSourceVersionIds": [],
+            "reusedCitedSourceVersionIds": [
+              "c030a600-4061-4850-b9eb-80ad1f5e12bd"
+            ]
+          },
+          "newlyFeasible": [],
+          "evidenceUpdated": false,
+          "newlyInfeasible": [],
+          "conclusionChanged": true
+        },
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "4b3d0592-45c0-43cd-b60f-efe358a920e9",
+          "source_version_id": "c030a600-4061-4850-b9eb-80ad1f5e12bd",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "c0a7aa3b-6e12-4e54-9a31-819576826960",
+          "source_version_id": "c030a600-4061-4850-b9eb-80ad1f5e12bd",
+          "exact_text": "Field notes: UYTIZK sensor deployment\nUYTIZK supports offline recording only on firmware 4.2.\nUYTIZK does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  262.748,
+                  748.616
+                ],
+                "text": "Field notes: UYTIZK sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  345.44000000000017,
+                  730.616
+                ],
+                "text": "UYTIZK supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  305.44400000000013,
+                  712.616
+                ],
+                "text": "UYTIZK does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "8e0c0013-dcab-4404-80e4-2a84f625bd15",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "UYTIZK supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "c0a7aa3b-6e12-4e54-9a31-819576826960"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "6d737015-f867-4415-8110-fa36a29ad6fa",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "UYTIZK supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "c0a7aa3b-6e12-4e54-9a31-819576826960"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "9a8cb57f-17a9-4d54-a0c5-d1784aaa2c8d",
+          "accountId": "58b40a57-43e0-4888-857a-f5a0ac02c8ca",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-corrected-full-rerun",
+      "runId": "e1ee99a9-337b-44af-822d-c7d75391f548",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4327.138926,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "8391434f-faea-460d-a6a8-c89bafcf123f",
+        "runId": "e1ee99a9-337b-44af-822d-c7d75391f548",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "UYTIZK supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "e8b0e116-4fff-43d2-a104-b9d96ab2deb4"
+            ],
+            "citationIds": [
+              "6070e28d-bfa5-4a0f-9b78-e9ca2da9893c"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "9fdb8518-8d26-4881-8143-e660e8ab2a6f",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://775ae91f-551d-46b7-8852-ac4e6a0ea841"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0dd64b42-5b78-44c1-b6dd-f453608fcdf9",
+          "source_version_id": "6d1a53b7-2d8f-4479-bbe4-e0347a38a376",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "6070e28d-bfa5-4a0f-9b78-e9ca2da9893c",
+          "source_version_id": "6d1a53b7-2d8f-4479-bbe4-e0347a38a376",
+          "exact_text": "Field notes: UYTIZK sensor deployment\nUYTIZK supports offline recording only on firmware 4.2.\nUYTIZK does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  262.748,
+                  748.616
+                ],
+                "text": "Field notes: UYTIZK sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  345.44000000000017,
+                  730.616
+                ],
+                "text": "UYTIZK supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  305.44400000000013,
+                  712.616
+                ],
+                "text": "UYTIZK does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "bf562ea2-2572-4507-a9ce-f0907e575b32",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "UYTIZK supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "6070e28d-bfa5-4a0f-9b78-e9ca2da9893c"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "6086308b-a805-4ac0-91f4-cae412ef1e70",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "UYTIZK supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "6070e28d-bfa5-4a0f-9b78-e9ca2da9893c"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "e1ee99a9-337b-44af-822d-c7d75391f548",
+          "accountId": "58b40a57-43e0-4888-857a-f5a0ac02c8ca",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-unavailable",
+      "runId": "1dc0ca56-3581-4f84-b53c-014187137ef0",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1585.3718029999982,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "1dc0ca56-3581-4f84-b53c-014187137ef0",
+          "accountId": "0e1769c2-d495-4566-9089-d686d518dc26",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-unavailable",
+      "runId": "14482a74-9a57-4a78-bba1-0dbc92dc8b1e",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 2297.644544999999,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "14482a74-9a57-4a78-bba1-0dbc92dc8b1e",
+          "accountId": "0e1769c2-d495-4566-9089-d686d518dc26",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-iterative-public",
+      "runId": "442a8340-e714-4d04-8324-f08fc981a3d1",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 9381.143236,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does WYCBGKU support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:export",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "fba38a96-7060-4125-b85f-8c82d46c08b0",
+        "runId": "442a8340-e714-4d04-8324-f08fc981a3d1",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "WYCBGKU supports full export.",
+            "claimIds": [
+              "ba57d758-d398-4f3c-9f32-71a04a6ec396"
+            ],
+            "citationIds": [
+              "56b714a7-2279-44d4-9326-f88af9240baa"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "WYCBGKU supports offline editing.",
+            "claimIds": [
+              "9fca7ff3-cffd-4e34-9af7-ebd53b041fac"
+            ],
+            "citationIds": [
+              "ca9e8ae7-ce7f-45af-84b4-0d45e2c5c6e8"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "0028f596-6c2a-49f2-a123-646caec90acb",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "f4f34ae5-d6ea-4639-9ebf-f597be0b8ac4",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "01152efd-d61b-40e9-9877-1d3e1216ba2d",
+          "source_version_id": "f507b8b0-7528-4014-9f2d-85d7dca2a6b0",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "56b714a7-2279-44d4-9326-f88af9240baa",
+          "source_version_id": "fc0a42cb-a834-49e8-b873-a643b3415164",
+          "exact_text": "WYCBGKU supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "99447202-dc8d-432c-bc96-a226442c1f1b",
+          "source_version_id": "fc0a42cb-a834-49e8-b873-a643b3415164",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "b6fc6bd0-622c-474b-9ce5-2dddf4045e9b",
+          "source_version_id": "f507b8b0-7528-4014-9f2d-85d7dca2a6b0",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "ca9e8ae7-ce7f-45af-84b4-0d45e2c5c6e8",
+          "source_version_id": "f507b8b0-7528-4014-9f2d-85d7dca2a6b0",
+          "exact_text": "WYCBGKU supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "d2a93971-8973-4a06-9c2c-8ef74bb98c73",
+          "source_version_id": "fc0a42cb-a834-49e8-b873-a643b3415164",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "1f2833e8-b26e-4b81-a52a-cf05ae674c87",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "56b714a7-2279-44d4-9326-f88af9240baa"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c3775390-1826-4dee-bb0c-393e6a00fa77",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "56b714a7-2279-44d4-9326-f88af9240baa"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "431d100b-edff-4ed1-b802-1cc991f99eb0",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "WYCBGKU supports offline editing.",
+                "start": 0,
+                "passageId": "ca9e8ae7-ce7f-45af-84b4-0d45e2c5c6e8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c735d14a-bd99-4d59-8833-2e63f2f90fd5",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "56b714a7-2279-44d4-9326-f88af9240baa"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "3355b185-eea1-4218-9c28-ab5bde3d365b",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "WYCBGKU supports offline editing.",
+                "start": 0,
+                "passageId": "ca9e8ae7-ce7f-45af-84b4-0d45e2c5c6e8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "442a8340-e714-4d04-8324-f08fc981a3d1",
+          "accountId": "7bf1f267-1daf-4571-ab19-d052ac988839",
+          "routeMode": "controlled-research",
+          "spentMicro": 19,
+          "confirmedProviderMicro": 19,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 19
+          },
+          "intentTotalMicro": 19,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-iterative-public",
+      "runId": "7f137f50-e36c-4c9c-8717-9db9ae0965b4",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 10786.625818,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does WYCBGKU support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "aacc0865-0aef-45a1-aae7-649f9c40b2c8",
+        "runId": "7f137f50-e36c-4c9c-8717-9db9ae0965b4",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "WYCBGKU supports full export.",
+            "claimIds": [
+              "b78cae38-d748-48b3-afed-5e262f01fe5f"
+            ],
+            "citationIds": [
+              "6cd0c1b8-3bb5-4ee8-b783-a57882061e1b"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "WYCBGKU supports offline editing.",
+            "claimIds": [
+              "fd647fee-f1af-4e2e-9b45-3cd58c8d368d"
+            ],
+            "citationIds": [
+              "f38a5e30-644d-4414-ab83-8e04fdb5b99b"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "67e6c27b-46f8-4db4-8896-4bc67b40f323",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "bb290b1f-6965-43d5-b498-b6b1f6545525",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "180c3b5d-dde1-4d37-8605-32a5010de32f",
+          "source_version_id": "947412fa-c9c1-4ce6-86ed-2551adcbd29d",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "6cd0c1b8-3bb5-4ee8-b783-a57882061e1b",
+          "source_version_id": "947412fa-c9c1-4ce6-86ed-2551adcbd29d",
+          "exact_text": "WYCBGKU supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "789fa8ca-6c8e-40f8-8048-5f64ccc3a4c1",
+          "source_version_id": "947412fa-c9c1-4ce6-86ed-2551adcbd29d",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "bc2f4164-25cb-4fd5-b0e9-04c445fafb1a",
+          "source_version_id": "c5ab9e71-3ce6-4034-95f0-81f232212620",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "d7f61472-f7d5-47e7-9728-f829759d814b",
+          "source_version_id": "c5ab9e71-3ce6-4034-95f0-81f232212620",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "f38a5e30-644d-4414-ab83-8e04fdb5b99b",
+          "source_version_id": "c5ab9e71-3ce6-4034-95f0-81f232212620",
+          "exact_text": "WYCBGKU supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "b9258db0-7862-4431-ac5a-7ad9ee8c0a7f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "6cd0c1b8-3bb5-4ee8-b783-a57882061e1b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "b0aacd33-d7b2-40e5-b4e9-f46eed0462a0",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "6cd0c1b8-3bb5-4ee8-b783-a57882061e1b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "85d3eef3-2c7d-4ac6-be2c-cf724519b7f3",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "WYCBGKU supports offline editing.",
+                "start": 0,
+                "passageId": "f38a5e30-644d-4414-ab83-8e04fdb5b99b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "98df2ebd-b0af-4971-aa4f-ce38cf862459",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "WYCBGKU supports full export.",
+                "start": 0,
+                "passageId": "6cd0c1b8-3bb5-4ee8-b783-a57882061e1b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c94822d7-e7a2-425f-be9f-124d50f0836f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "WYCBGKU supports offline editing.",
+                "start": 0,
+                "passageId": "f38a5e30-644d-4414-ab83-8e04fdb5b99b"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "7f137f50-e36c-4c9c-8717-9db9ae0965b4",
+          "accountId": "7bf1f267-1daf-4571-ab19-d052ac988839",
+          "routeMode": "controlled-research",
+          "spentMicro": 16,
+          "confirmedProviderMicro": 16,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 16
+          },
+          "intentTotalMicro": 16,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    }
+  ]
+}

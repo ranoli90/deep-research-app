@@ -1,3 +1,4 @@
+import { verificationReportMatches } from "./verification-proof.js";
 import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
 import { calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
@@ -16,6 +17,8 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   // Its outcome label cannot bypass an admitted proof obligation or corrupt saved proof.
   const challengeLimitations=await counterevidenceLimitations(db,challengeBasis);
   if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
+  const verification=await verificationReportMatches(db,accountId,report);
+  if(verification!==null)return verification;
   if(report.outcome!=="completed")return true;
   if(challengeLimitations.length)return false;
   const task=await db.query("SELECT id FROM research_tasks WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3",[report.runId,accountId,report.basis.briefRevision]);
