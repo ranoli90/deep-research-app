@@ -4,9 +4,9 @@ Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `
 
 **Implemented:** one-sentence composer; researching-this brief from persisted intent/brief flags; truthful semantic activity trail; editorial report; evidence sheet with named uncertainty; conversational corrections/library/settings; EAS device APK (no host Gradle).
 
-**Integrated:** Session A `8bae4c3` (handoff named `4c10e2c`). **Not integrated:** Session B (no final committed SHA; worktree still dirty on `66df545`).
+**Integrated:** Session A `1155204` / `e9af55c` (plus earlier `8bae4c3` / `4c10e2c`). **Not integrated:** Session B (no final committed SHA; worktree still dirty on `66df545`).
 
-**Verified deterministic:** `@deep/mobile` Vitest 229 including domain mapping tests. **Verified native:** EAS APK `4a142400-ddac-41be-a7a7-8115c448f0d6` on 10.0.0.167:43417, two fixture no-file journeys. **Verified live provider:** none. **Product-quality verified:** fixture UX only. **Blocked external:** Session B handoff commit; live semantic six-class protocol.
+**Verified deterministic:** `@deep/mobile` Vitest including domain mapping tests. **Verified native:** EAS APK `4a142400-ddac-41be-a7a7-8115c448f0d6` on 10.0.0.167:43417, two fixture no-file journeys. **Verified live provider:** Session A's bounded Azure briefs (`verification/v7/live-semantic/`); not a full source-backed report+correction. **Product-quality verified:** no. **Blocked external:** Session B handoff commit.
 
 Rollback: revert this branch; disable the local-dev cleartext plugin for any HTTPS-only build; Session A rollback remains disable portfolio/intent at admission.
 
@@ -18,7 +18,7 @@ Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-gover
 
 **Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
 
-**Verified live provider:** none in this lane. **Product-quality verified:** no. **Blocked external:** live semantic protocol on the six task classes (no current explicit grant executed here). **Unverified:** native/mobile Research Beta journey (Session C).
+**Verified live provider:** bounded Azure briefs for the six Session A task classes via `pnpm eval:live-semantic` (`verification/v7/live-semantic/RESULTS.json`). Two schema-invalid briefs with confirmed receipts, one `outcome_unknown` hold without retry, then remaining classes on a new isolated ledger using exact-quote-v2 (one grounded success, original correction success, corrected/unknown schema-invalid with receipts). **Product-quality verified:** no. **Unverified:** native/mobile Research Beta journey (Session C). No routing superiority claim.
 
 Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
 

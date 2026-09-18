@@ -136,6 +136,14 @@
     "implementation": "apps/backend/src/eval-live.ts, apps/backend/src/evaluation/"
   },
   {
+    "command": "pnpm eval:live-semantic",
+    "status": "implemented_application_command",
+    "scope": "Session A bounded live semantic briefs on six task classes through the shipped model gateway; default-deny without current explicit approval/hash/scope/budget. Not a full source-backed report journey or routing superiority claim.",
+    "network": true,
+    "paid": true,
+    "implementation": "apps/backend/src/eval-live-semantic.ts,package.json#eval:live-semantic"
+  },
+  {
     "command": "pnpm verify",
     "status": "implemented_application_command",
     "scope": "typecheck + unit tests + AST boundary check; deterministic and nonbillable",

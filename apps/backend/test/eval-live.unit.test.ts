@@ -65,15 +65,22 @@ it("live semantic path fail-closes without explicit current approval and issues 
  ]);
 });
 it("malformed or expired live-semantic grants fail closed with zero provider calls",async()=>{
- const {executeLiveSemanticEval}=await import("../src/evaluation/live-semantic.js");
+ const {executeLiveSemanticEval,sha256:liveSha}=await import("../src/evaluation/live-semantic.js");
  const providerCall=vi.fn(async()=>null);
- const g=grant(),raw=JSON.stringify(g),flags={execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:sha256(raw)};
+ const g={version:"live-semantic-authorization.v1" as const,approvalId:id,approvalReference:"unit-control-not-authorization",issuedAt:new Date(Date.now()-1000).toISOString(),expiresAt:new Date(Date.now()+600000).toISOString(),taskClasses:["one_sentence_purchase_comparison"] as const,budgetMicro:400000,budgetScope:"evaluation:unit",policyId:"openrouter-azure-mini-zdr-text-v1",exclusiveDatabaseAcknowledged:true as const,maxAttempts:6};
+ const raw=JSON.stringify(g),flags={execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:liveSha(raw)};
  await expect(executeLiveSemanticEval({rawAuthorization:"{not-json",flags,driver:{providerCall}})).rejects.toThrow();
  expect(providerCall).not.toHaveBeenCalled();
  await expect(executeLiveSemanticEval({rawAuthorization:raw,flags,driver:{providerCall},now:Date.now()+86400000})).rejects.toThrow();
  expect(providerCall).not.toHaveBeenCalled();
  await expect(executeLiveSemanticEval({rawAuthorization:JSON.stringify({...g,approvalId:"22222222-2222-4222-8222-222222222222"}),flags,driver:{providerCall}})).rejects.toThrow();
  expect(providerCall).not.toHaveBeenCalled();
+});
+it("credentials alone cannot authorize the live-semantic CLI",{timeout:60_000},()=>{
+ const r=spawnSync(process.execPath,["--import","tsx","src/eval-live-semantic.ts"],{encoding:"utf8",env:{...process.env,OPENROUTER_API_KEY:"sentinel-private-key",LIVE_SPEND_CAP_MICRO:"1000000"}});
+ expect(r.status).toBe(2);
+ expect(r.stderr).toContain("explicit current approval");
+ expect(r.stdout+r.stderr).not.toContain("sentinel-private-key");
 });
 
 it("unsupported document tasks remain individually unrun while supported frozen slots execute",async()=>{

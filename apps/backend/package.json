@@ -17,6 +17,7 @@
     "test:governance": "vitest run --config vitest.unit.config.ts test/governance.test.ts",
     "eval:fixture": "tsx src/eval-fixture.ts",
     "eval:live": "tsx src/eval-live.ts",
+    "eval:live-semantic": "tsx src/eval-live-semantic.ts",
     "doctor": "tsx src/platform/doctor.ts",
     "api": "tsx src/api/server.ts",
     "worker": "tsx src/worker/main.ts"
