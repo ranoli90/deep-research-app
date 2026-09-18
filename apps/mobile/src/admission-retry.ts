@@ -84,9 +84,10 @@ export function readAdmittedRun(value: unknown): AdmittedRun {
     throw new Error("Research admission could not be confirmed. Retry the saved request.");
   return v;
 }
-/** The journal is acknowledged before any network effect. It contains no document bytes. */
+/** Fresh authenticated route preflight precedes the journal; the journal precedes uploads/admission. It contains no document bytes. */
 export async function submitAdmission(draft: AdmissionDraft, files: AttachmentDraft[], io: {
   digest: DocumentDigester;
+  preflight(): Promise<unknown>;
   save(draft: AdmissionDraft): Promise<void>;
   upload(file: AttachmentDraft, key: string): Promise<unknown>;
   admit(draft: AdmissionDraft, attachmentIds: string[]): Promise<unknown>;
@@ -95,6 +96,13 @@ export async function submitAdmission(draft: AdmissionDraft, files: AttachmentDr
   let saved = readAdmissionDraft(draft);
   const check = () => { if (!io.current()) throw new SupersededRequest(); };
   check();
+  io.progress("Checking research availability…");
+  const settings = await io.preflight(); check();
+  const flag = settings && typeof settings === "object" && !Array.isArray(settings)
+    ? (settings as Record<string, unknown>)[saved.routeMode === "fixture" ? "fixtureRouteAllowed" : "liveRouteEnabled"] : undefined;
+  if (flag !== true) throw new Error(flag === false
+    ? "This research mode is disabled on the server. No new upload or research request was sent. Use Check or withdraw for a saved request."
+    : "Could not confirm availability for this research mode. No new upload or research request was sent. Retry, or use Check or withdraw for a saved request.");
   const used = new Set<number>();
   const candidates = new Map<number, { file: AttachmentDraft; digest: string }>();
   const selected = new Map<number, AttachmentDraft>();

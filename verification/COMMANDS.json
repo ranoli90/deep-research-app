@@ -1048,5 +1048,21 @@
     "scope": "Development SQLite actual parser and model-request serialization only; no provider/DB",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-preflight-root-export",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "648modules,2.18MB JavaScript export; no native build",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "PREFLIGHT_REPO=/tmp/deep-admission-preflight-1ph35qo7/repo TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm exec tsx /home/oranolio/Desktop/Deep/verification/v6/admission-preflight/api-contract-probe.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/admission-preflight/api-contract-probe.mts",
+    "scope": "Actual local Fastify authentication/settings/upload/admission + real PostgreSQL + mobile submitAdmission; session flags absent, settings flags boolean, both disabled modes zero writes/upload/admission, both enabled modes actual upload/admission, accepted recovery while flagsdisabled, unauth401, provider intents0; no worker.",
+    "network": false,
+    "paid": false
   }
 ]

@@ -6224,6 +6224,21 @@
       "artifact": "lease-clock/RESULTS.json",
       "exitCode": 0,
       "scope": "12realPG expired-authority regressions with broader affected checks; local mutation/issuance only"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W07",
+        "W09"
+      ],
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "admission-preflight-integrated/mobile.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_mobile",
+      "revision": "b15c3d85a9fe9911db2323dba5de3a369359591d + reviewed mobile preflight working tree",
+      "scope": "148/148; actual API probe separately scoped",
+      "sha256": "6419dac4c0e58798fe8beab6ab31b7f12acb802a3ee72ce744d76f71887d7db5"
     }
   ],
   "unresolved": [
@@ -6281,6 +6296,6 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "1aebd5d7dfaded622998a3e0c8fc0934bdd7015e",
+  "latestReviewedImplementationCommit": "b15c3d85a9fe9911db2323dba5de3a369359591d",
   "latestEvidencePacket": "verification/v6/html-list-integrated/RESULTS.json"
 }

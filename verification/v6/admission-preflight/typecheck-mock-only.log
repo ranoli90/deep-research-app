@@ -1,0 +1,4 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-admission-preflight-1ph35qo7/repo/apps/mobile
+> tsc -p tsconfig.json --noEmit
+

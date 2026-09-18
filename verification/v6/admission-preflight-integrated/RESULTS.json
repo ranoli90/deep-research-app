@@ -1,0 +1,38 @@
+{
+  "task": "V6-W02-W03-W07-W09",
+  "baseCommit": "b15c3d85a9fe9911db2323dba5de3a369359591d",
+  "revision": "b15c3d85a9fe9911db2323dba5de3a369359591d + reviewed mobile preflight working tree",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "platform": "Linux"
+  },
+  "paidCalls": 0,
+  "evidenceClass": "local mobile unit/types/JavaScript export",
+  "checks": [
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "mobile.log",
+      "scope": "148/148 mobile controls,16files"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck.log",
+      "scope": "TypeScript"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-preflight-root-export",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "648modules,2.18MB JavaScript export; no native build"
+    }
+  ],
+  "limits": [
+    "Actual local authenticated API contract probe recorded separately in admission-preflight/RESULTS.json on isolated clone.",
+    "No native/full journey/model quality or readiness guarantee.",
+    "Historical incorrect session endpoint patch rejected before root application; preserved."
+  ]
+}

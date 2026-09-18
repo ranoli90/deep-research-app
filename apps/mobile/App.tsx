@@ -424,13 +424,18 @@ function AppInner() {
       api.selectRun(null);
       stopPolling();
       const t = token ?? (await ensureSession());
-      if (state.pendingAdmission) { await api.sessionInfo(t); setState(s => ({ ...s, offline: false })); }
       const guard = api.captureView();
       let created;
       try {
         const pending = state.pendingAdmission ?? await prepareAdmission(state.draft, state.routeMode, state.attachments, newId, nativeDocumentDigest, guard.current);
         created = await submitAdmission(pending, state.attachments, {
           digest: nativeDocumentDigest,
+          preflight: async () => {
+            const settings = await api.settings(t);
+            if (!guard.current()) throw new SupersededRequest();
+            setState(s => guard.current() ? { ...s, offline: false } : s);
+            return settings;
+          },
           current: guard.current,
           progress: setUploadStatus,
           save: async draft => {
