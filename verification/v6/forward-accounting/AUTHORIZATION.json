@@ -1,0 +1,17 @@
+{
+  "version": "matched-evaluation-authorization.v1",
+  "approvalId": "83059390-9021-4b62-969c-0e73c36d2279",
+  "approvalReference": "user-20260918-fix-forward-accounting",
+  "issuedAt": "2026-09-18T16:55:55.174Z",
+  "expiresAt": "2026-09-18T20:55:55.174Z",
+  "protocolSha256": "b59e262535703623787f44e86019525d7f74c1081bdfa06375ba9aa43d939699",
+  "freezeSha256": "5cf2653b681eaa96677c82941443d67c0b762f68d2adc9b51952fd74dd50d14b",
+  "taskIds": [
+    "MC-D01"
+  ],
+  "budgetMicro": 400000,
+  "accountId": "97143e38-b2a2-4ba8-b032-b104d9b7b9a2",
+  "budgetScope": "evaluation:83059390-9021-4b62-969c-0e73c36d2279",
+  "sourceMode": "frozen_supplied_document",
+  "exclusiveDatabaseAcknowledged": true
+}

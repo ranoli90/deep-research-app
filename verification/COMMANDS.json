@@ -1800,5 +1800,29 @@
     "network": true,
     "paid": false,
     "implementation": "verification/v6/paid-readiness/inspect-route-provenance.mts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/provider-quota.unit.test.ts test/eval-live.unit.test.ts",
+    "implementation": "apps/backend/test/provider-quota.unit.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Deterministic quota and evaluator controls; no paid transport",
+    "status": "implemented_application_command"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/prepare.mts",
+    "implementation": "verification/v6/forward-accounting/prepare.mts",
+    "network": true,
+    "paid": false,
+    "scope": "One-use explicitly authorized new local evaluation ledger; historical database read-only; quota GET only",
+    "status": "implemented_application_command"
+  },
+  {
+    "command": "python3 verification/v6/forward-accounting/run-paid.py",
+    "implementation": "verification/v6/forward-accounting/run-paid.py",
+    "network": true,
+    "paid": true,
+    "scope": "User-authorized single MC-D01 four-step comparison capped at $0.40; strict grant, no retries",
+    "status": "implemented_application_command"
   }
 ]

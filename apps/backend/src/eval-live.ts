@@ -1,3 +1,5 @@
+import { DEFAULT_RUN_BUDGET_MICRO } from "@deep/contracts";
+import {readProviderQuota,requireProviderCapacity} from "./evaluation/provider-quota.js";
 import { parseArgs } from "node:util";
 import { readFile,mkdir,open,readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -46,6 +48,9 @@ async function main(){
   const documents=await loadFrozenDocuments(plan,resolve(root,"verification/v6/matched-corpus/raw"));
   const config={...loadConfig(),...(grant.sourceMode==="frozen_supplied_document"?{structuredDiscoveryEnabled:false,liveRetrievalEnabled:false,structuredChallengeEnabled:false}:{})};if(!token)throw new Error("dedicated_existing_session_required");
   await journal({event:"effective_configuration",config:{openRouterModel:config.openRouterModel,structuredModelEnabled:config.structuredModelEnabled,structuredDiscoveryEnabled:config.structuredDiscoveryEnabled,liveRetrievalEnabled:config.liveRetrievalEnabled,fixtureRouteAllowed:config.fixtureRouteAllowed,leaseMs:config.leaseMs,strategyArms:["iterative-baseline.v1","criterion-adaptive.v1"],challengeEnabled:!!config.structuredChallengeEnabled,projectCapMicro:Math.min(config.liveSpendCapMicro,grant.budgetMicro),keyCapMicro:Math.min(config.liveKeySpendCapMicro??0,grant.budgetMicro),consentPolicyVersion:config.consentPolicyVersion}});
+  const quota=await readProviderQuota(config.openRouterApiKey??"");
+  await journal({event:"provider_quota_preflight",quota,budgetMicro:grant.budgetMicro,scope:"Forward capacity only; no historical intent settlement or release"});
+  requireProviderCapacity(quota,grant.budgetMicro);
   pool=createPool(config.databaseUrl);lock=await pool.connect();
   if(!(await lock.query("SELECT pg_try_advisory_lock(hashtextextended('matched-evaluation-runner',0)) AS locked")).rows[0].locked)throw new Error("evaluation_runner_already_active");
   // Schema/queue provisioning is a separate authorized setup step; never migrate here.
@@ -54,7 +59,7 @@ async function main(){
   driver=await productionDriver(pool,boss,config,grant,token,documents,journal);
   const activeDriver=driver;
   enteredRunner=true;
-  const result=await runMatched(plan,{...driver,exposure:()=>{if(queueFailed)throw new Error("queue_unavailable");return activeDriver.exposure();}},journal);if(result.halted||result.recordedResults!==result.expectedSteps)process.exitCode=2;
+  const result=await runMatched(plan,{...driver,exposure:async()=>{if(queueFailed)throw new Error("queue_unavailable");const current=await readProviderQuota(config.openRouterApiKey??"");await journal({event:"provider_quota_recheck",quota:current});requireProviderCapacity(current,DEFAULT_RUN_BUDGET_MICRO);return activeDriver.exposure();}},journal);if(result.halted||result.recordedResults!==result.expectedSteps)process.exitCode=2;
  }catch{if(!enteredRunner)for(const step of stepsFor(plan))await journal({event:"unrun",stepId:step.id,reason:"preflight_unavailable"});await journal({event:"fatal",reason:"evaluation_stopped_unconfirmed_or_unavailable",semanticScores:null});process.exitCode=2;}
  finally{
   const cleanup=await Promise.allSettled([driver?.close(),boss?.stop({graceful:false,timeout:2000})]);

@@ -1,3 +1,9 @@
+## ADR058 forward-accounting repair — 2026-09-18
+
+The user authorized fixing the mistaken preflight block. All70 historical OpenRouter intents are confirmed-state on terminal runs in the pre-receipt schema; their individual actual costs remain unknown. Their $5.545 estimates are not new unpaid charges. The original database is unchanged and fingerprinted. The authorized new $0.40 evaluation period has its own local account/ledger, with no old action resend or hold release. Provider quota is checked from the actual project key before evaluation and each step; existing active-ledger unknown/same-key reservation gates are unchanged. Details: ADR058 and verification/v6/forward-accounting/SETUP.json. This supersedes the prior operator impasse; no new user permission is needed.
+
+Thirteen quota regressions and sixteen existing evaluator unit controls pass; backend typecheck and both metadata validators pass. The real registered MC-D01 comparison is prepared but not yet executed at this checkpoint. Runtime/publication quality remains unproved until its actual receipts/results are recorded. Rollback disables new evaluation while preserving both ledgers and every receipt/hold; no key, private token, deployment or release authority is added.
+
 ## Blocked checkpoint — 2026-09-18
 
 Goal remains incomplete. Three consecutive turns retained the same financial-provenance blocker after explicit spending authorization. The latest read-only check on709fb2d7df28bbf28649a117d69a856a06caa41b confirms unchanged legacy OpenRouter estimates; see verification/v6/paid-readiness/PROJECT_ROUTE_RECHECK.json. No current process is being awaited, no generation was sent, no hold released and no old action resent. The first two turns completed independent clean-checkout verification and canonical-plan reconciliation; further status/fixture repetition does not prove the missing real-model journey.
