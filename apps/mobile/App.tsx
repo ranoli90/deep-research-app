@@ -1288,7 +1288,7 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" && !state.source && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+        {state.tab === "research" && !state.source && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!!state.pendingAdmission && state.pendingAdmission.uploads.some(u => !u.attachmentId))) ? (
           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
