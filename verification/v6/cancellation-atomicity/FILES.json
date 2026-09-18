@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "path": "verification/v6/cancellation-atomicity/affected.log",
+      "sha256": "0312b9dba62b73e21a0de480092180e3c1261bbb77eb7fe02f0742ddfb9a9937",
+      "bytes": 133647
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/boundaries.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2",
+      "bytes": 14
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/cleanup.log",
+      "sha256": "a750ed0b52e569d4f796f61eb1c1f94ac82bdcdf020428ef1872238c753058ab",
+      "bytes": 37
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/focused.log",
+      "sha256": "ef43f73b3f9f3262ca3483b7ec01d7abc92a77cff3d32aaff304ab2e30d5a196",
+      "bytes": 308
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/pre-fix.log",
+      "sha256": "037c1492ec605625eb31b35518429cd88d0c0d3eaf81b525b577bcf9bd8db9a7",
+      "bytes": 3463
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/typecheck.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "bytes": 107
+    },
+    {
+      "path": "verification/v6/cancellation-atomicity/RESULTS.json",
+      "sha256": "343d5afdc44dd83d8759ff2d85eb42cfa89168be331b06e31c89de0fd02601b3",
+      "bytes": 5309
+    }
+  ]
+}

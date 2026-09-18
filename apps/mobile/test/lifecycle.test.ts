@@ -101,7 +101,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
     expect(src).toMatch(/startPolling\(token, child\.runId\)/);
-    expect(src).toMatch(/restoreAnchor/);
+    expect(src).toMatch(/createReadingRestoration/);
+    expect(src).toMatch(/measureViewport/);
+    expect(src).toMatch(/measureContent/);
+    expect(src).toMatch(/userScrolled/);
     expect(src).toMatch(/scrollTo/);
     expect(src).toMatch(/restoreReadingPosition/);
     expect(src).toMatch(/tab === "research" && !state\.source \? \(\s*<ScrollView/);

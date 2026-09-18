@@ -654,5 +654,93 @@
     "scope": "Exact locally executed verification command; evidence scope in verification/v6/admission-retry/native-hash-upload-receipt-results.json",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-admission-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Detached eb133e8 Android JS export, offline; see clean-admission RESULTS.",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts test/p0-smoke.integration.test.ts test/g01-g02.integration.test.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node scripts/check-boundaries.mjs",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec node --input-type=module -e 'import pg from \"pg\";const p=new pg.Pool({connectionString:\"postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6\"});try{const triggers=await p.query(\"SELECT count(*)::int AS count FROM pg_trigger WHERE tgname LIKE $1\",[\"cancel_test_%\"]);const functions=await p.query(\"SELECT count(*)::int AS count FROM pg_proc WHERE proname LIKE $1\",[\"cancel_test_%\"]);console.log(JSON.stringify({testTriggers:triggers.rows[0].count,testFunctions:functions.rows[0].count}));if(triggers.rows[0].count||functions.rows[0].count)process.exitCode=1;}finally{await p.end()}'",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/package.json",
+    "scope": "Local cancellation atomicity control; exact scope in verification/v6/cancellation-atomicity/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test -- reading-position",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-reading-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs seed",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs observe",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/reading-position/native-reading.cjs cleanup",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/reading-position/native-reading.cjs",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile start --localhost",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local reading-position verification; exact scope and failures in reading-position/RESULTS.json",
+    "network": false,
+    "paid": false
   }
 ]

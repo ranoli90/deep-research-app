@@ -2,6 +2,7 @@ import { researchStrategy, type ResearchStrategy } from "../ports/research-strat
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
+import { lockActiveAccount } from "./access.js";
 
 export type RunRow = {
   id: string;
@@ -133,6 +134,7 @@ export async function emitEvent(
   db: Queryable,
   args: { runId: string; accountId: string; type: string; summary: string; phase: Phase; payload?: unknown },
 ): Promise<void> {
+  if (db instanceof pg.Pool) return withTx(db, (client) => emitEvent(client, args));
   await db.query(`SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))`, [args.runId]);
   await db.query(
     `INSERT INTO run_events (run_id, account_id, sequence, type, public_summary, phase, payload)
@@ -222,6 +224,22 @@ export async function addSpent(db: Queryable, runId: string, micro: number): Pro
 
 export async function setPhase(db: Queryable, runId: string, phase: Phase): Promise<void> {
   await db.query(`UPDATE runs SET phase = $2, updated_at = now() WHERE id = $1`, [runId, phase]);
+}
+
+/** Ownership, cancellation and its event share deletion's account/run lock order. */
+export async function cancelOwnedRun(pool: pg.Pool, accountId: string, runId: string): Promise<RunRow | null> {
+  return withTx(pool, async (db) => {
+    await lockActiveAccount(db, accountId);
+    const run = await getRun(db, runId, { forUpdate: true });
+    if (!run || run.account_id !== accountId) return null;
+    const updated = await cancelRun(db, runId);
+    if (!updated) throw new Error("cancellation_run_disappeared");
+    await emitEvent(db, {
+      runId, accountId, type: "cancel_requested", phase: updated.phase,
+      summary: "Stopping new work. An already-issued provider call may still finish accounting.",
+    });
+    return updated;
+  });
 }
 
 export async function cancelRun(db: Queryable, runId: string): Promise<RunRow | null> {

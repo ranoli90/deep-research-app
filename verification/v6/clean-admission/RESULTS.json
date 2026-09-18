@@ -1,0 +1,41 @@
+{
+  "requirementIds": [
+    "W09",
+    "W02",
+    "W07"
+  ],
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d",
+  "checkout": "/tmp/deep-v6-clean-eb133e8",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "local Linux"
+  },
+  "results": [
+    {
+      "command": "CI=1 pnpm install --offline --frozen-lockfile",
+      "artifact": "install.log",
+      "exitCode": 0,
+      "scope": "781packages,0downloads; frozen lock unchanged"
+    },
+    {
+      "command": "pnpm verify",
+      "artifact": "verify.log",
+      "exitCode": 0,
+      "scope": "148core/116backend/97mobile/6governance, configured strict types and boundaries"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-admission-bundle",
+      "artifact": "android-export.log",
+      "exitCode": 0,
+      "scope": "642modules/2.14MB; identical JSbundle hash to workspace integrated export, not native build"
+    }
+  ],
+  "limits": [
+    "No database suites rerun in this detached checkout; focused realPG tests recorded separately.",
+    "Hosted CI and standalone dependency resolution unrun.",
+    "Source changes after eb133e8 are excluded."
+  ],
+  "cleanAfterChecks": true,
+  "paidCalls": 0
+}

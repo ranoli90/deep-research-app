@@ -40,7 +40,7 @@ import { reserveAllowance } from "../modules/billing.js";
 import { pinRouteCapabilities } from "../modules/route-capabilities.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import {
-  cancelRun,
+  cancelOwnedRun,
   emitEvent,
   findRunByIdempotency,
   getBrief,
@@ -258,19 +258,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    const run = await getRun(pool, id);
-    if (!run || run.account_id !== a.accountId) {
+    const updated = await cancelOwnedRun(pool, a.accountId, id);
+    if (!updated) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
-    const updated = await cancelRun(pool, id);
-    await emitEvent(pool, {
-      runId: id,
-      accountId: a.accountId,
-      type: "cancel_requested",
-      summary: "Stopping new work. An already-issued provider call may still finish accounting.",
-      phase: updated?.phase ?? run.phase,
-    });
-    return { runId: id, lifecycle: updated?.lifecycle, cancellationEpoch: updated?.cancellation_epoch };
+    return { runId: id, lifecycle: updated.lifecycle, cancellationEpoch: updated.cancellation_epoch };
   });
 
   app.post("/v1/runs/:id/continue", async (req, reply) => {

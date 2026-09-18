@@ -6268,5 +6268,8 @@
     "implementationCommit": "5f10a8471b67b8a3ddd95245f2736fc794fba210"
   },
   "cleanCheckoutEvidence": "clean-checkout/RESULTS.json",
-  "protectedContentEvidence": "protected-content/RESULTS.json"
+  "protectedContentEvidence": "protected-content/RESULTS.json",
+  "cancellationAtomicityEvidence": "verification/v6/cancellation-atomicity/RESULTS.json",
+  "readingPositionEvidence": "verification/v6/reading-position/RESULTS.json",
+  "admissionCleanCheckoutEvidence": "verification/v6/clean-admission/RESULTS.json"
 }

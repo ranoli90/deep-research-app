@@ -1,0 +1,77 @@
+{
+  "task": "W02/W03 cancellation atomicity and deletion mutation-basis audit",
+  "baseCommit": "eb134584dcceb1ccc4b8b018d3df8888aedaf1df",
+  "target": "uncommitted working tree for primary review/integration",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "deep_research_lease_clock_v6",
+    "host": "127.0.0.1:55432"
+  },
+  "requirements": [
+    "W02 atomic cancellation mutation/event and unique ordered sequences",
+    "W03 active ownership and no post-account-deletion event resurrection",
+    "G02 cancellation duringwriting still vetoes publication",
+    "J06 cancellation aftercompletion preserves published report"
+  ],
+  "implementation": [
+    "runs.cancelOwnedRun locks activeaccount then currentrun, rechecksowner and atomically commits cancellation with event",
+    "API cancellation delegates durable writes to owning runs module",
+    "emitEvent called withPool holds its advisory transaction lock through eventINSERT"
+  ],
+  "impact": {
+    "publicSchema": "unchanged",
+    "migration": "none; scoped temporary integration triggers removed",
+    "dependencies": "none",
+    "privacy": "rechecks activeaccount and owner under deletion lock order",
+    "spend": "none; existing issued financial receipts remain independently settleable",
+    "externalAuthority": "none"
+  },
+  "rollback": "Retain account/run serialization and cancellation/event atomicity. On regression disable cancellation admission rather than restoring partial mutation/event resurrection; existing worker cancellation/publication veto and financial settlement remain authoritative.",
+  "evidenceClass": "Real local PostgreSQL barriers, API injection and queue; synthetic testdata and diagnostic fixtures. No paid modelcalls, native/hosted or real-modelsemantic claim.",
+  "checks": [
+    {
+      "artifact": "pre-fix.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts",
+      "exitCode": 1,
+      "scope": "Three reproduced bugs: simultaneous cancellation HTTP200/500 due duplicate event sequence; one event resurrected after account deletion; event insertion error leaves cancellation partially committed. Bigint epoch observation subsequently normalized to integer; lifecycle mismatch independently proved partial mutation.",
+      "sha256": "037c1492ec605625eb31b35518429cd88d0c0d3eaf81b525b577bcf9bd8db9a7"
+    },
+    {
+      "artifact": "focused.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts",
+      "exitCode": 0,
+      "scope": "5/5 controls pass: concurrent cancellation, deletion race, eventfailure rollback, directPool sequencing, foreign/deleted-session denial.",
+      "sha256": "ef43f73b3f9f3262ca3483b7ec01d7abc92a77cff3d32aaff304ab2e30d5a196"
+    },
+    {
+      "artifact": "affected.log",
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/cancellation-atomicity.integration.test.ts test/p0-smoke.integration.test.ts test/g01-g02.integration.test.ts test/p3-remaining.integration.test.ts",
+      "exitCode": 0,
+      "scope": "81/81 in51.28sec; includes existing cancellation duringwriting and aftercompletion/reportretention controls. Local PG and diagnostic fixture behavior, not realmodel quality.",
+      "sha256": "0312b9dba62b73e21a0de480092180e3c1261bbb77eb7fe02f0742ddfb9a9937"
+    },
+    {
+      "artifact": "typecheck.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Configured backend types pass.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "boundaries.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Import boundaries pass.",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "artifact": "cleanup.log",
+      "command": "pnpm --filter @deep/backend exec node --input-type=module -e 'import pg from \"pg\";const p=new pg.Pool({connectionString:\"postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6\"});try{const triggers=await p.query(\"SELECT count(*)::int AS count FROM pg_trigger WHERE tgname LIKE $1\",[\"cancel_test_%\"]);const functions=await p.query(\"SELECT count(*)::int AS count FROM pg_proc WHERE proname LIKE $1\",[\"cancel_test_%\"]);console.log(JSON.stringify({testTriggers:triggers.rows[0].count,testFunctions:functions.rows[0].count}));if(triggers.rows[0].count||functions.rows[0].count)process.exitCode=1;}finally{await p.end()}'",
+      "exitCode": 0,
+      "scope": "Zero temporary test triggers/functions remain. Triggercreation and removal each run transactionally, scoped only generated test run UUIDs.",
+      "sha256": "a750ed0b52e569d4f796f61eb1c1f94ac82bdcdf020428ef1872238c753058ab"
+    }
+  ]
+}
