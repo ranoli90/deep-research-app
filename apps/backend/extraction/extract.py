@@ -188,8 +188,19 @@ def extract(request):
     if mime not in ("text/html", "application/xhtml+xml"):
         result.update(status="unavailable", warnings=["unsupported_mime"])
         return result
-    result["version"] = "trafilatura-2.2.0/structure-v3"
-    document = html.fromstring(raw)
+    result["version"] = "trafilatura-2.2.0/structure-v4"
+    # lxml's HTML default can decode unlabelled UTF-8 as Latin-1, corrupting
+    # country/entity names before both main-content and supplemental extraction.
+    # Prefer strictly valid UTF-8 bytes; retain the prior declared/inferred path
+    # for legacy encodings, explicitly marked as uncertain.
+    encoding_warnings = []
+    try:
+        raw.decode("utf-8-sig", errors="strict")
+        parser = html.HTMLParser(encoding="utf-8", no_network=True)
+    except UnicodeDecodeError:
+        parser = html.HTMLParser(no_network=True)
+        encoding_warnings.append("non_utf8_encoding_inferred")
+    document = html.fromstring(raw, parser=parser)
     # Scripts, challenge fallbacks and form fields are not documentary content.
     for element in document.xpath("//script|//style|//noscript|//form|//nav|//header|//footer"):
         element.drop_tree()
@@ -239,7 +250,7 @@ def extract(request):
     list_blocks, list_warnings = supplemental_lists(document, result["blocks"])
     result["blocks"].extend(table_blocks)
     result["blocks"].extend(list_blocks)
-    result["warnings"] = ["main_content_extraction_may_omit_regions", "table_order_preserved_separately", *list_warnings]
+    result["warnings"] = ["main_content_extraction_may_omit_regions", "table_order_preserved_separately", *encoding_warnings, *list_warnings]
     if not result["blocks"]:
         result.update(status="unavailable", warnings=["insufficient_static_content"])
     if len(result["blocks"]) > 10000:

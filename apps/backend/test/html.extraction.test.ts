@@ -4,6 +4,21 @@ import { describe, expect, it } from "vitest";
 import { extractOffline } from "../src/adapters/extraction/offline.js";
 
 describe("W04 real isolated parser over supplied synthetic bytes", () => {
+  it("preserves UTF-8 scope qualifiers in saved HTML without a charset tag", async () => {
+    const bytes = Buffer.from('<html><body><h1>Regional restrictions</h1><p>Only available in Österreich. Café equipment costs 50 EUR per month.</p><ul><li>漢字 edition is not available in Canada.</li></ul></body></html>');
+    const result = await extractOffline(bytes, "text/html");
+    const text = result.blocks.map(b => b.text).join("\n");
+    expect(text).toContain("Österreich");
+    expect(text).toContain("Café");
+    expect(text).toContain("漢字");
+    expect(result.digest).toBe(createHash("sha256").update(bytes).digest("hex"));
+  });
+  it("preserves declared legacy encoding while exposing the inference warning", async () => {
+    const bytes = Buffer.from('<html><head><meta charset="windows-1252"></head><body><p>Only available in Österreich. Café equipment costs 50 EUR per month.</p></body></html>', "latin1");
+    const result = await extractOffline(bytes, "text/html");
+    expect(result.blocks.map(b => b.text).join("\n")).toContain("Österreich");
+    expect(result.warnings).toContain("non_utf8_encoding_inferred");
+  });
   it("preserves all decisive spans and exact byte digests", async () => {
     const root = new URL("./fixtures/extraction/", import.meta.url);
     const manifest = JSON.parse(await readFile(new URL("EXPECTED.json", root), "utf8"));

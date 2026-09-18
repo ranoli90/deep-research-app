@@ -1,0 +1,35 @@
+import {afterAll,beforeAll,expect,it} from "vitest";
+import type {FastifyInstance} from "fastify";
+import type PgBoss from "pg-boss";
+import type pg from "pg";
+import {MAX_FETCH_BYTES} from "@deep/contracts";
+import {buildApp} from "../src/api/app.js";
+import {createPool,migrate} from "../src/platform/db.js";
+import {loadConfig} from "../src/platform/config.js";
+import {createQueue} from "../src/adapters/queue.js";
+let app:FastifyInstance,pool:pg.Pool,boss:PgBoss;
+beforeAll(async()=>{
+ const databaseUrl=process.env.TEST_DATABASE_URL!;
+ if(!databaseUrl)throw Error("Explicit isolated TEST_DATABASE_URL required");
+ pool=createPool(databaseUrl);await migrate(pool);boss=await createQueue(databaseUrl);
+ app=await buildApp({pool,boss,config:loadConfig({NODE_ENV:"test",DATABASE_URL:databaseUrl,APP_AUTH_MODE:"development",DEV_ALLOW_FIXTURE_ROUTE:"false"})});
+});
+afterAll(async()=>{await app.close();await boss.stop({graceful:false,timeout:2000});await pool.end();});
+it("saved HTML is an owned, idempotent binary upload, never ready text or a public URL",async()=>{
+ const session=(await app.inject({method:"POST",url:"/v1/dev/session",payload:{}})).json();
+ const headers={authorization:`Bearer ${session.token}`,"content-type":"application/octet-stream","x-document-mime":"text/html","x-file-name":"saved.html","idempotency-key":crypto.randomUUID()};
+ const bytes=Buffer.from('<html><body><p>Only on firmware 4.2. This is a synthetic file.</p><script>alert(1)</script></body></html>');
+ const response=await app.inject({method:"POST",url:"/v1/attachments/bytes",headers,payload:bytes});
+ expect(response.statusCode).toBe(201);expect(response.json().processingState).toBe("stored");expect(response.json().coverage).toBe("not-read");
+ const row=(await pool.query("SELECT * FROM attachments WHERE id=$1",[response.json().attachmentId])).rows[0];
+ expect(row.account_id).toBe(session.accountId);expect(row.raw_bytes).toEqual(bytes);expect(row.extraction).toBeNull();expect(row.extracted_text).toBeNull();
+ const replay=await app.inject({method:"POST",url:"/v1/attachments/bytes",headers,payload:bytes});expect(replay.json().attachmentId).toBe(row.id);
+ expect((await app.inject({method:"POST",url:"/v1/attachments/bytes",headers,payload:Buffer.concat([bytes,Buffer.from(" ")])})).statusCode).toBe(409);
+ const other=(await app.inject({method:"POST",url:"/v1/dev/session",payload:{}})).json();
+ expect((await app.inject({method:"GET",url:`/v1/attachments/${row.id}`,headers:{authorization:`Bearer ${other.token}`}})).statusCode).toBe(404);
+ const oversize=await app.inject({method:"POST",url:"/v1/attachments/bytes",headers:{...headers,"idempotency-key":crypto.randomUUID()},payload:Buffer.alloc(MAX_FETCH_BYTES+1,32)});
+ expect(oversize.statusCode).toBe(400);
+ expect((await pool.query("SELECT count(*)::int n FROM attachments WHERE account_id=$1",[session.accountId])).rows[0].n).toBe(1);
+ const pasted=await app.inject({method:"POST",url:"/v1/attachments",headers:{authorization:`Bearer ${session.token}`},payload:{filename:"saved.html",mime:"text/html",text:bytes.toString()}});
+ expect(pasted.statusCode).toBe(400);
+});

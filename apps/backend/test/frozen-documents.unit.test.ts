@@ -22,15 +22,15 @@ it("rejects symlinks outside corpus, oversize files, and HTML masquerading as PD
  await writeFile(join(directory,"document.pdf"),"<html>not a pdf</html>");await expect(loadFrozenDocuments(plan(),directory)).rejects.toThrow();
  }finally{await rm(directory,{recursive:true});await rm(outside,{recursive:true});}
 });
-it("loads every registered official PDF without importing reference criteria or relabeling HTML",async()=>{
+it("loads every registered official PDF and HTML without importing reference criteria",async()=>{
  const {readFile}=await import("node:fs/promises");const {registeredPlan}=await import("../src/evaluation/authorization.js");
  const root=new URL("../../../",import.meta.url);
  const [protocol,freeze,tasks,sources]=await Promise.all(["model-protocol.json","FREEZE.json","tasks.json","sources.json"].map(name=>readFile(new URL(`evals/matched-pipeline/${name}`,root),"utf8")));
  const grant={sourceMode:"frozen_supplied_document",protocolSha256:sha256(protocol!),freezeSha256:sha256(freeze!),taskIds:JSON.parse(tasks!).tasks.map((t:{id:string})=>t.id)} as RegisteredPlan["authorization"];
  const registered=registeredPlan(grant,{protocol:protocol!,freeze:freeze!,tasks:tasks!,sources:sources!});
  const documents=await loadFrozenDocuments(registered,new URL("verification/v6/matched-corpus/raw",root).pathname);
- expect([...documents.keys()].sort()).toEqual(["esp32","rfc9112","tmp117"]);
- expect(registered.tasks.filter(t=>t.unavailableReason)).toHaveLength(9);
+ expect([...documents.keys()].sort()).toEqual(JSON.parse(sources!).sources.map((s:{id:string})=>s.id).sort());
+ expect(registered.tasks.filter(t=>t.unavailableReason)).toHaveLength(0);
  for(const task of registered.tasks){expect(task).not.toHaveProperty("references");expect(task).not.toHaveProperty("mandatoryCriteria");}
 });
 it("rejects duplicate and excessive source lists before reading or uploading bytes",async()=>{
@@ -39,7 +39,19 @@ it("rejects duplicate and excessive source lists before reading or uploading byt
  p.tasks[0]!.sources=Array.from({length:4},(_,i)=>({...p.tasks[0]!.sources![0]!,id:`doc-${i}`}));
  await expect(loadFrozenDocuments(p,tmpdir())).rejects.toThrow("frozen_sources_unregistered");
 });
-it("all-unsupported registered frozen tasks exit incomplete before database/session/provider setup",async()=>{
+it("unsupported MIME remains unrun and is rejected by the loader independently",async()=>{
+ const {registeredPlan}=await import("../src/evaluation/authorization.js");
+ const protocol=JSON.stringify({version:"matched-real-model-protocol.v1",arms:{A1:"iterative-baseline.v1",B:"criterion-adaptive.v1"},repetitions:{allTasks:1,selectedThreeRepeats:[]}});
+ const tasks=JSON.stringify({tasks:[{id:"MC-D01",question:"Document?",correctedQuestion:"Revised?",sourceIds:["doc"]}]}),sources=JSON.stringify({sources:[{id:"doc",file:"document.xml",mime:"application/xml"}]});
+ const freeze=JSON.stringify({tasksSha256:sha256(tasks),sourcesSha256:sha256(sources),documents:[{id:"doc",sha256:sha256(bytes)}]});
+ const grant={sourceMode:"frozen_supplied_document",protocolSha256:sha256(protocol),freezeSha256:sha256(freeze),taskIds:["MC-D01"]} as RegisteredPlan["authorization"];
+ expect(registeredPlan(grant,{protocol,freeze,tasks,sources}).tasks[0]!.unavailableReason).toBe("frozen_source_mime_unsupported");
+ const directory=await mkdtemp(join(tmpdir(),"frozen-unsupported-"));try{
+  await writeFile(join(directory,"document.pdf"),bytes);const p=plan();p.tasks[0]!.sources![0]!.mime="application/xml";
+  await expect(loadFrozenDocuments(p,directory)).rejects.toThrow("frozen_document_invalid");
+ }finally{await rm(directory,{recursive:true});}
+});
+it("supported HTML still exits incomplete without session before database/provider setup",async()=>{
  const {readFile}=await import("node:fs/promises"),{spawnSync}=await import("node:child_process");
  const root=new URL("../../../",import.meta.url),directory=await mkdtemp(join(tmpdir(),"frozen-cli-"));
  try{
@@ -48,6 +60,6 @@ it("all-unsupported registered frozen tasks exit incomplete before database/sess
  const auth=join(directory,"authorization.json"),output=join(directory,"output");await writeFile(auth,raw);
  const result=spawnSync(process.execPath,["--import","tsx","src/eval-live.ts","--execute","--operator-confirms-user-approval","--authorization",auth,"--sha256",sha256(raw),"--approval-id",approvalId,"--output",output],{encoding:"utf8",env:{...process.env,EVAL_SESSION_TOKEN:"",OPENROUTER_API_KEY:"",DATABASE_URL:"not-a-database"}});
  expect(result.status).toBe(2);const events=(await readFile(join(output,"receipts.jsonl"),"utf8")).trim().split("\n").map(line=>JSON.parse(line));
- expect(events.filter(e=>e.event==="unrun")).toHaveLength(4);expect(events.filter(e=>e.event==="unrun").every(e=>e.reason==="frozen_source_mime_unsupported")).toBe(true);expect(events.some(e=>e.event==="attempt"||e.event==="admitted"||e.event==="effective_configuration")).toBe(false);
+ expect(events.filter(e=>e.event==="unrun")).toHaveLength(4);expect(events.filter(e=>e.event==="unrun").every(e=>e.reason==="preflight_unavailable")).toBe(true);expect(events.some(e=>e.event==="attempt"||e.event==="admitted"||e.event==="effective_configuration")).toBe(false);
  }finally{await rm(directory,{recursive:true});}
 });

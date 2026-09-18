@@ -45,8 +45,8 @@ Read [REVIEW.md](REVIEW.md) for the skeptical verdict and [STATUS.md](STATUS.md)
 
 ## Commands that exist in this kit
 ```sh
-python scripts/validate_review.py
-python -m unittest discover -s scripts -p 'test_review_validator.py' -v
+python3 scripts/validate_review.py
+python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v
 ```
 These validate documentation/data integrity and the validator itself, not research accuracy, native behavior, security, billing or deployment. `verification/COMMANDS.json` distinguishes real commands from proposed application commands. Python 3.10+ with the standard library is sufficient for these checks.
 
@@ -60,8 +60,8 @@ The original 42 sources/18 observations remain unchanged. `research/RECONCILIATI
 
 ## Additional revision-3 artifact checks
 ```sh
-python scripts/validate_builder_handoff.py
-python -m unittest discover -s scripts -p 'test_builder_handoff.py' -v
+python3 scripts/validate_builder_handoff.py
+python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v
 ```
 These validate the planning package's disposition coverage, preserved input hashes, gate labels and notification-contract wording; they do not execute any application logic. After application implementation, use actual application CI/evidence rather than changing this historical snapshot checker to claim runtime readiness.
 
@@ -70,3 +70,5 @@ Current application implementation and evidence are summarized in `STATUS.md`. A
 Current bounded native evidence is in `verification/v6/native-current-emulator/`: actual Android debug compilation and synthetic emulator report/source/correction/document-append/share-preview/deletion controls. Model responses are fabricated; this is not semantic quality, physical-device or release acceptance.
 
 ADR051–052 align durable artifact storage with the existing8MiB upload limit and implement registered frozen-PDF evaluation through the owned binary API and actual parser. Official PDFs expose retained unresolved/no-assertion and model-context-limit failures; HTML frozen slots remain unrun. See `verification/v6/frozen-pdf-integrated/` for integrated verification. No paid semantic results or expanded release authority.
+
+ADR054 adds bounded saved-HTML binary uploads and frozen HTML evaluation through the existing production parser/worker. Structure-v4 preserves valid UTF-8 country/entity names without requiring a charset tag; previous receipt versions remain readable. Native picker formats are unchanged. Local model transports remain fabricated and cannot establish semantic quality; see `verification/v6/current-continuation/` and current STATUS for failures and remaining gates.

@@ -7,7 +7,7 @@ import { MAX_FETCH_BYTES, MAX_ATTACHMENT_BYTES } from "@deep/contracts";
 const Cell = z.object({ text: z.string().max(1_000_000), header: z.boolean(),
   colspan: z.number().int().min(1).max(1000), rowspan: z.number().int().min(1).max(1000), scope: z.string().max(100) }).strict();
 export const ExtractedDocument = z.object({
-  version: z.enum(["trafilatura-2.2.0/structure-v3", "trafilatura-2.2.0/structure-v2", "trafilatura-2.2.0/structure-v1", "pypdf-6.19.0/digital-v1", "docling-parse-7.20.0/geometry-v1", "utf8-notes-v1", "unavailable-v1"]), digest: z.string().regex(/^[a-f0-9]{64}$/),
+  version: z.enum(["trafilatura-2.2.0/structure-v4", "trafilatura-2.2.0/structure-v3", "trafilatura-2.2.0/structure-v2", "trafilatura-2.2.0/structure-v1", "pypdf-6.19.0/digital-v1", "docling-parse-7.20.0/geometry-v1", "utf8-notes-v1", "unavailable-v1"]), digest: z.string().regex(/^[a-f0-9]{64}$/),
   status: z.enum(["extracted", "partial", "unavailable"]), warnings: z.array(z.string().max(200)).max(100),
   blocks: z.array(z.object({ kind: z.enum(["text", "heading", "code", "table"]),
     locator: z.string().max(200), text: z.string().max(1_000_000), rows: z.array(z.array(Cell).max(1000)).max(10000),

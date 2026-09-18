@@ -1,5 +1,15 @@
 # Builder handoff
 
+## Current continuation — ADR054
+
+Current branch `codex/v6-saved-html`, base `4d818feb1dcf8808b38c980ac2f2f204977e2d7b` (merged main). The W01–W09 milestone remains incomplete. Saved UTF-8 HTML now enters authenticated binary upload, isolated extraction and registered frozen evaluation using the existing production worker/writer/checker. Structure-v4 fixes reproduced unlabelled UTF-8 corruption; old receipts remain readable and immutable. See `verification/v6/current-continuation/` for exact commands, failures, traces and final results as recorded. No new mobile picker/native build, paid model call, deployment or push.
+
+The initial full PostgreSQL suite retained a passage-capacity timeout (423passed/1failed); the unchanged focused rerun passes6/6 including new HTML ownership/admission. Do not silently erase the first failed run or infer a general performance repair. Real-model semantic scoring and independent adjudication remain gated; large-context/OCR and broader native/hosted controls remain unfinished. Preserve all three untracked ZIPs. Staged identical V6 input: `/tmp/deep-v6-evidence-staging`.
+
+Rollback disables new HTML admission/evaluation while preserving admitted bytes, old/new proof readers, source membership, deletion, publication fences, receipt reconciliation and unknown holds. Never substitute ready notes, fixture reports or unsandboxed extraction. Exact current terminal evidence and next work are recorded in STATUS and the continuation result manifest.
+
+## Historical checkpoint record (superseded by the continuation above)
+
 The W01–W09 goal remains active and incomplete. Preserve the existing app, unrelated changes and both untracked user ZIPs. No push/deployment/hosted migration/public exposure or paid provider calls; current allowance unknown. STATUS.md owns current scope, EXECUTION_LEDGER.md and evidence packets preserve history.
 
 ## Current checkpoint

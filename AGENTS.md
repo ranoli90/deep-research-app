@@ -1,5 +1,5 @@
 # AGENTS.md — repository contract
-Status: reviewed instructions, not an application implementation. Owner role: engineering lead. Reviewed: 2026-09-16.
+Status: repository instructions for the implemented application. Owner role: engineering lead. Reviewed: 2026-09-18.
 
 ## Read only what the task needs
 Read the active user authorization, this file, `STATUS.md`, then the relevant canonical document from `README.md`. For engineering tasks also read `ARCHITECTURE.md` and the scoped AGENTS file. For quality work read `EVALUATION.md`; do not load all research history into every coding task.
@@ -21,12 +21,12 @@ New dependencies, new services, shared abstractions, migrations, public schemas,
 Never make checks green by deleting assertions, broadening accepted errors, weakening types, masking exceptions, silently skipping tests or replacing live paths with fixtures. Test changes that reduce protection need explicit review with evidence. A failed check remains failed until fixed or openly accepted by the authorized owner.
 
 ## Commands and evidence
-Only `verification/COMMANDS.json` establishes which commands exist. In this kit:
+Only `verification/COMMANDS.json` establishes which commands exist. Documentation checks:
 ```sh
-python scripts/validate_review.py
-python -m unittest discover -s scripts -p 'test_review_validator.py' -v
+python3 scripts/validate_review.py
+python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v
 ```
-Application `pnpm` commands are proposed and unavailable until implemented. Deterministic verification must never incur hidden live API charges. Live probes/build services/deploys require explicit authorized commands and budgets.
+Application commands are implemented where registered, including `pnpm verify`, `pnpm test:integration` and backend `test:extraction`. Inspect their configuration and use an isolated local test database; these commands do not establish live or release acceptance. Deterministic verification must never incur hidden live API charges. Live probes/build services/deploys require explicit authorized commands and budgets.
 
 For every result record task/requirement IDs, actual commit or `not-a-repository`, command, exit code, environment, artifact and scope. Native claims require native execution; model integration claims require real receipts; benchmark conclusions require the registered protocol. Same-model self-review is not independent human validation.
 

@@ -46,7 +46,7 @@ it("executes the same API/worker/parser/writer/checker for paired originals, cor
  try{
   const result=await runMatched(plan,x.driver,async e=>{events.push(e)});expect(result).toEqual({expectedSteps:4,recordedResults:4,halted:null});
   const rows=events.filter(e=>e.event==="result").map(e=>e.receipt);expect(rows.map(r=>r.trace.strategy)).toEqual(["iterative-baseline.v1","criterion-adaptive.v1","criterion-adaptive.v1","iterative-baseline.v1"]);
-  for(const row of rows){expect(row.outcome).toBe("completed");expect(row.trace.report.blocks.length).toBeGreaterThan(0);expect(row.trace.passages.length).toBeGreaterThan(0);expect(row.trace.support.length).toBeGreaterThan(0);expect(row.trace.attempts.length).toBeGreaterThan(0);expect(row.trace.operations.length).toBeGreaterThan(0);expect(row.trace.extraction.length).toBeGreaterThan(0);expect(row.trace.artifacts.length).toBeGreaterThan(0);expect(createHash("sha256").update(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).digest("hex")).toBe(row.trace.artifacts[0].digest);expect(row.trace.extraction[0].extraction.version).toBe("trafilatura-2.2.0/structure-v3");expect(row.cost.heldMicro).toBe(0);}
+  for(const row of rows){expect(row.outcome).toBe("completed");expect(row.trace.report.blocks.length).toBeGreaterThan(0);expect(row.trace.passages.length).toBeGreaterThan(0);expect(row.trace.support.length).toBeGreaterThan(0);expect(row.trace.attempts.length).toBeGreaterThan(0);expect(row.trace.operations.length).toBeGreaterThan(0);expect(row.trace.extraction.length).toBeGreaterThan(0);expect(row.trace.artifacts.length).toBeGreaterThan(0);expect(createHash("sha256").update(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).digest("hex")).toBe(row.trace.artifacts[0].digest);expect(row.trace.extraction[0].extraction.version).toBe("trafilatura-2.2.0/structure-v4");expect(row.cost.heldMicro).toBe(0);}
   expect(rows[2].trace.reuse.length).toBeGreaterThan(0);expect(rows[2].trace.passages.map((p:any)=>p.id)).toEqual(rows[1].trace.passages.map((p:any)=>p.id));expect(rows[3].trace.passages[0].id).not.toBe(rows[1].trace.passages[0].id);expect(read).toHaveBeenCalledTimes(3);
   expect(JSON.stringify(rows[2].trace.report)).toContain("firmware 4.2");expect(JSON.stringify(rows[3].trace.report)).toContain("firmware 4.2");
   const calls=model.calls.length;const steps=stepsFor(plan);const replay=await x.driver.admit(steps[0]!);expect(replay.runId).toBe(rows[0].runId);expect(model.calls.length).toBe(calls);
@@ -77,17 +77,29 @@ it("records a new opaque provider failure and retains its real reservation witho
  try{const r=await runMatched(plan,x.driver,async e=>{events.push(e)});expect(r.halted).toBe("unknown_or_incomplete_run");expect(provider).toHaveBeenCalledOnce();const result=events.find(e=>e.event==="result").receipt;expect(result.reportId).toBeNull();expect(result.cost.heldMicro).toBeGreaterThan(0);expect(result.cost.unknownIntents).toBe(1);expect(result.trace.attempts).toHaveLength(1);expect(events.filter(e=>e.event==="unrun")).toHaveLength(3);}finally{await x.driver.close();}
 },30000);
 
-it("frozen PDF pairs use exact owned uploads, actual parser, inherited correction and replay without discovery",async()=>{
- const bytes=await readFile(new URL("./fixtures/documents/digital-scoped.pdf",import.meta.url));
- const source={id:"synthetic-pdf",file:"document.pdf",mime:"application/pdf",sha256:createHash("sha256").update(bytes).digest("hex")};
+it.each(["pdf","html"] as const)("frozen %s pairs use exact owned uploads, actual parser, inherited correction and replay without discovery",async kind=>{
+ const entity=kind==="pdf"?"Ardent":`Device${crypto.randomUUID().replaceAll("-","")}`;
+ const bytes=kind==="pdf"?await readFile(new URL("./fixtures/documents/digital-scoped.pdf",import.meta.url)):Buffer.from(`<!doctype html><html><head><meta charset="utf-8"></head><body><h1>Saved field note</h1><p>${entity} does not support underwater recording.</p><p>${entity} supports offline recording only on firmware 4.2.</p><script src="https://example.invalid/tracker">FABRICATED_SCRIPT_ASSERTION</script><p>This synthetic document tests exact byte ingestion and scoped evidence handling. Its statements are fabricated, not actual product capabilities.</p></body></html>`);
+ const source={id:`synthetic-${kind}`,file:`document.${kind}`,mime:kind==="pdf"?"application/pdf":"text/html",sha256:createHash("sha256").update(bytes).digest("hex")};
  const x=await setup({source,bytes});const model=matchedDocumentModel();globalThis.fetch=model.transport;
+ if(kind==="html"){
+  const store=attachmentStore.storeAttachment;let seeded=false;
+  vi.spyOn(attachmentStore,"storeAttachment").mockImplementation(async(...args)=>{
+   const id=await store(...args);
+   if(id&&!seeded){seeded=true;await pool.query("UPDATE attachments SET extraction=$2 WHERE id=$1",[id,JSON.stringify({version:"trafilatura-2.2.0/structure-v3",digest:source.sha256,status:"partial",warnings:[],blocks:[{kind:"text",locator:"block:0",text:"Old cached extraction omitted the decisive evidence.",rows:[]}]})]);}
+   return id;
+  });
+ }
  const read=vi.spyOn(transport,"safeFetch").mockImplementation(async()=>{throw Error("frozen_mode_must_not_fetch");});
- const plan:RegisteredPlan={authorization:x.grant,tasks:[{id:"MC-D01",index:0,repetitions:1,question:"What does Ardent say about underwater recording?",correctedQuestion:"What firmware does Ardent require for offline recording?",sources:[source]}],registeredTaskIds:["MC-D01"],unselectedTaskIds:[],protocolHash:"",freezeHash:"",tasksHash:"",sourcesHash:""};
- const events:any[]=[];traces.push({kind:"frozen_pdf_four_run",events});
+ const plan:RegisteredPlan={authorization:x.grant,tasks:[{id:"MC-D01",index:0,repetitions:1,question:`What does ${entity} say about underwater recording?`,correctedQuestion:`What firmware does ${entity} require for offline recording?`,sources:[source]}],registeredTaskIds:["MC-D01"],unselectedTaskIds:[],protocolHash:"",freezeHash:"",tasksHash:"",sourcesHash:""};
+ const events:any[]=[];traces.push({kind:`frozen_${kind}_four_run`,events});
  try{
  expect(await runMatched(plan,x.driver,async e=>{events.push(e)})).toEqual({expectedSteps:4,recordedResults:4,halted:null});
  const rows=events.filter(e=>e.event==="result").map(e=>e.receipt);
- for(const row of rows){expect(row.outcome).toBe("completed");expect(row.trace.extraction).toHaveLength(1);expect(row.trace.extraction[0].extraction.version).toBe("docling-parse-7.20.0/geometry-v1");expect(row.trace.artifacts[0].digest).toBe(source.sha256);expect(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).toEqual(bytes);expect(row.trace.support.length).toBeGreaterThan(0);}
+ for(const row of rows){expect(row.outcome).toBe("completed");expect(row.trace.extraction).toHaveLength(1);expect(row.trace.extraction[0].extraction.version).toBe(kind==="pdf"?"docling-parse-7.20.0/geometry-v1":"trafilatura-2.2.0/structure-v4");expect(row.trace.artifacts[0].digest).toBe(source.sha256);expect(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).toEqual(bytes);expect(row.trace.support.length).toBeGreaterThan(0);expect(JSON.stringify(row.trace.passages)).not.toContain("FABRICATED_SCRIPT_ASSERTION");expect(row.trace.extraction[0].transport.requestedUrl).toMatch(/^attachment:\/\//);}
+ expect(JSON.stringify(rows[0].trace.report)).toContain("does not support underwater recording");
+ expect(JSON.stringify(rows[2].trace.report)).toContain("only on firmware 4.2");
+ expect(JSON.stringify(rows[3].trace.report)).toContain("only on firmware 4.2");
  expect(rows[2].trace.passages.map((p:any)=>p.id)).toEqual(rows[1].trace.passages.map((p:any)=>p.id));expect(rows[3].trace.passages[0].id).not.toBe(rows[1].trace.passages[0].id);
  expect((await pool.query("SELECT count(*)::int n FROM attachments WHERE account_id=$1",[x.account.accountId])).rows[0].n).toBe(3);
  const calls=model.calls.length;expect((await runMatched(plan,x.driver,async()=>{})).recordedResults).toBe(4);expect(model.calls.length).toBe(calls);
@@ -126,6 +138,30 @@ it("registered official frozen PDFs traverse owned admission and real extraction
   }finally{await x.driver.close();read.mockRestore();}
  }
 },120000);
+
+it("registered SQLite HTML retains decisive restrictions through owned API and real extraction",async()=>{
+ const {registeredPlan}=await import("../src/evaluation/authorization.js"),{loadFrozenDocuments}=await import("../src/evaluation/frozen-documents.js");
+ const root=new URL("../../../",import.meta.url),base=new URL("evals/matched-pipeline/",root);
+ const [protocol,freeze,tasks,sources]=await Promise.all(["model-protocol.json","FREEZE.json","tasks.json","sources.json"].map(name=>readFile(new URL(name,base),"utf8")));
+ const task=JSON.parse(tasks!).tasks.find((t:any)=>t.sourceIds.includes("sqlite-wal"));
+ const grant={sourceMode:"frozen_supplied_document",protocolSha256:createHash("sha256").update(protocol!).digest("hex"),freezeSha256:createHash("sha256").update(freeze!).digest("hex"),taskIds:[task.id]} as Authorization;
+ const plan=registeredPlan(grant,{protocol:protocol!,freeze:freeze!,tasks:tasks!,sources:sources!});
+ const docs=await loadFrozenDocuments(plan,new URL("verification/v6/matched-corpus/raw",root).pathname),document=docs.get("sqlite-wal")!;
+ const x=await setup(document);globalThis.fetch=matchedDocumentModel().transport;
+ const read=vi.spyOn(transport,"safeFetch").mockImplementation(async()=>{throw Error("frozen_mode_must_not_fetch");});
+ try{
+  const admitted=await x.driver.admit({id:"sqlite",taskId:task.id,repeat:1,arm:"A1",kind:"original",question:task.question,idempotencyKey:crypto.randomUUID(),sources:[document.source]});
+  const receipt=await x.driver.execute(admitted.runId);traces.push({kind:"official_html_ingestion_only_no_semantic_score",sourceId:"sqlite-wal",receipt});
+  const trace=receipt.trace as any;expect(trace.extraction).toHaveLength(1);expect(trace.extraction[0].extraction.version).toBe("trafilatura-2.2.0/structure-v4");
+  expect(trace.artifacts[0].digest).toBe(document.source.sha256);expect(Buffer.from(trace.artifacts[0].bytes_base64,"base64")).toEqual(document.bytes);
+  expect(trace.passages.some((p:any)=>/does not work over a network filesystem/.test(p.exact_text))).toBe(true);
+  expect(trace.passages.some((p:any)=>/only be one writer at a time/.test(p.exact_text))).toBe(true);
+  expect(trace.passages.every((p:any)=>p.locator&&p.source_digest===document.source.sha256)).toBe(true);
+  expect(trace.supplied[0].mime).toBe("text/html");expect(read).not.toHaveBeenCalled();
+  expect(receipt.reportId).toBeNull();expect(receipt.cost.unknownIntents).toBe(0);
+  expect(trace.events.find((e:any)=>e.type==="research_unresolved")?.payload.reason).toBe("no_relevant_assertions");
+ }finally{await x.driver.close();}
+},60000);
 
 it("expiry after first awaited upload prevents second upload, admission and provider work",async()=>{
  const bytes=await readFile(new URL("./fixtures/documents/digital-scoped.pdf",import.meta.url));const source={id:"first",file:"first.pdf",mime:"application/pdf",sha256:createHash("sha256").update(bytes).digest("hex")},second={...source,id:"second",file:"second.pdf"};

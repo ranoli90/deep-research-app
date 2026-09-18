@@ -23,7 +23,8 @@ export async function ingestAttachments(pool: pg.Pool, run: { id: string; accoun
     const cached = ExtractedDocument.safeParse(att.extraction);
     let extraction: ExtractedDocument;
     if (cached.success && bytes && cached.data.digest === digest &&
-        (att.mime !== "application/pdf" || cached.data.version === "docling-parse-7.20.0/geometry-v1")) extraction = cached.data;
+        (att.mime !== "application/pdf" || cached.data.version === "docling-parse-7.20.0/geometry-v1") &&
+        (att.mime !== "text/html" || cached.data.version === "trafilatura-2.2.0/structure-v4")) extraction = cached.data;
     else if (!bytes || digest !== att.sha256) {
       extraction = { version: "unavailable-v1", digest, status: "unavailable", blocks: [], warnings: ["original_bytes_unavailable_or_changed"] };
     } else {

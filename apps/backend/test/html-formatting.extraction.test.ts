@@ -11,7 +11,7 @@ for(const tag of ["s","del","strike"])for(const location of ["prose","list","tab
  for(const block of matches){expect(block.text).toContain(`[struck-through: ${old}]`);expect(block.text).toContain(current);expect(block.text.indexOf(old)).toBeLessThan(block.text.indexOf(current));}
  if(location==="table"){const table=matches.find(b=>b.kind==="table");expect(table).toBeDefined();expect(table!.rows.flat().find(c=>c.text.includes(old))!.text).toContain(`[struck-through: ${old}]`);}
  else expect(matches.some(b=>b.locator.startsWith("block:"))).toBe(true);
- expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v3");
+ expect(result.status).toBe("partial");expect(result.version).toBe("trafilatura-2.2.0/structure-v4");
  for(const version of ["trafilatura-2.2.0/structure-v1","trafilatura-2.2.0/structure-v2"])expect(ExtractedDocument.safeParse({...result,version}).success).toBe(true);
 });
 

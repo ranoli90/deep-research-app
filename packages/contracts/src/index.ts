@@ -274,6 +274,7 @@ export const ALLOWED_ATTACHMENT_MIMES = [
   "text/plain",
   "text/markdown",
   "application/pdf",
+  "text/html",
 ] as const;
 
 export const MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;

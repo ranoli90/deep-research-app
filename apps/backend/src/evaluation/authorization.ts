@@ -29,7 +29,7 @@ export function registeredPlan(grant:Authorization,files:{protocol:string;freeze
    const pin=z.object({sha256:hex}).parse(freeze.documents?.find((s:{id:string})=>s.id===id));
    return {...source,sha256:pin.sha256};
   });
-  if(task.sources.some(s=>s.mime!=="application/pdf"))task.unavailableReason="frozen_source_mime_unsupported";
+  if(task.sources.some(s=>!["application/pdf","text/html"].includes(s.mime)))task.unavailableReason="frozen_source_mime_unsupported";
  }
  return task;});
  if(grant.taskIds.some(id=>!tasks.some(t=>t.id===id)))throw new Error("unregistered_task");

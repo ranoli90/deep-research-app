@@ -82,7 +82,7 @@
   {
     "command": "pnpm typecheck",
     "status": "implemented_application_command",
-    "scope": "Configured workspace TypeScript checks; design retains pre-existing || true, so this is not exhaustive design typecheck proof",
+    "scope": "Unsuppressed configured workspace TypeScript checks for packages and backend; mobile typecheck is separately registered.",
     "network": false,
     "paid": false,
     "implementation": "package.json#typecheck"
@@ -1368,5 +1368,101 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:unit test/html-upload.unit.test.ts test/frozen-documents.unit.test.ts test/eval-live.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04/W08 saved HTML admission/registration boundary controls; no provider activity",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "W01-W09 real local PostgreSQL tests; retained isolated synthetic database, fabricated model transport",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/html-upload.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04 authenticated HTML binary upload ownership/idempotency/limits, real local PostgreSQL",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/current-continuation/eval-traces pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W08 real isolated extraction and local PostgreSQL; fabricated models, no semantic scoring; evaluator creates fresh retained synthetic DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "node verification/v6/current-continuation/setup.mjs",
+    "status": "implemented_application_command",
+    "scope": "Fresh retained local synthetic PostgreSQL database; refuses existing database",
+    "implementation": "verification/v6/current-continuation/setup.mjs",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:unit test/html-upload.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04 saved HTML admission regression, local only",
+    "implementation": "apps/backend/package.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction test/html.extraction.test.ts -t 'without a charset tag'",
+    "status": "implemented_application_command",
+    "scope": "W04 actual isolated parser Unicode regression; other cases deselected explicitly",
+    "implementation": "apps/backend/package.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction test/html.extraction.test.ts test/html-lists.extraction.test.ts test/html-formatting.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04 structure-v4 actual isolated HTML extraction including Unicode and legacy encoding",
+    "implementation": "apps/backend/package.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/html-upload.integration.test.ts test/passage-capacity.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04 HTML upload plus unchanged W05 capacity timeout recheck; real local PostgreSQL",
+    "implementation": "apps/backend/package.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/current-continuation/eval-traces pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W08 structure-v3 intermediate evaluator controls, dedicated fresh database and fabricated transports",
+    "implementation": "apps/backend/package.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/current-continuation/eval-traces-v4 pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W08 full actual isolated extraction and PostgreSQL; structure-v4; fabricated providers, zero paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/current-continuation/cache-traces pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'frozen html pairs'",
+    "status": "implemented_application_command",
+    "scope": "W04/W06 actual saved-HTML ingestion reparses stale cached v3; four-run synthetic correction control; remaining12 evaluator tests explicitly deselected and covered by full suite",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
   }
 ]

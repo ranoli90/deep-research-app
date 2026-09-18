@@ -41,7 +41,7 @@ export async function productionDriver(pool:pg.Pool,boss:PgBoss,config:AppConfig
     if(step.unavailableReason||!step.sources?.length||step.sources.length>3||new Set(step.sources.map(s=>s.id)).size!==step.sources.length)throw new Error("frozen_sources_unavailable");
     for(const source of step.sources){
      const document=documents?.get(source.id);
-     if(!document||document.source.sha256!==source.sha256||document.source.file!==source.file||document.source.mime!==source.mime||source.mime!=="application/pdf"||sha256(document.bytes)!==source.sha256)throw new Error("frozen_document_digest_mismatch");
+     if(!document||document.source.sha256!==source.sha256||document.source.file!==source.file||document.source.mime!==source.mime||!["application/pdf","text/html"].includes(source.mime)||sha256(document.bytes)!==source.sha256)throw new Error("frozen_document_digest_mismatch");
     }
     if(step.kind!=="correction")for(const source of step.sources){
      if(Date.now()>=Date.parse(grant.expiresAt))throw new Error("approval_expired");

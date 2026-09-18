@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
-import { MAX_ATTACHMENT_BYTES } from "@deep/contracts";
+import { MAX_ATTACHMENT_BYTES, MAX_FETCH_BYTES } from "@deep/contracts";
 import { ExtractedDocument } from "../adapters/extraction/offline.js";
 import { withTx } from "../platform/db.js";
 
@@ -57,10 +57,12 @@ export async function storeAttachment(pool: pg.Pool, args: {
 /** Magic and UTF-8 checks establish input class, not successful parsing. Paths are never accepted. */
 export function validateAttachmentBytes(bytes: Buffer, mime: string, filename: string): void {
   if (!bytes.length || bytes.length > MAX_ATTACHMENT_BYTES) throw new Error("invalid_attachment_size");
+  // Saved pages use the same bound and isolated parser as fetched HTML.
+  if (mime === "text/html" && bytes.length > MAX_FETCH_BYTES) throw new Error("invalid_attachment_size");
   if (!filename || filename.length > 180 || /[\\/\x00-\x1f\x7f]/.test(filename)) throw new Error("invalid_attachment_name");
   if (mime === "application/pdf") {
     if (!bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))) throw new Error("pdf_bytes_required");
-  } else if (["text/plain", "text/markdown"].includes(mime)) {
+  } else if (["text/plain", "text/markdown", "text/html"].includes(mime)) {
     const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(text) || text.startsWith("%PDF-")) throw new Error("invalid_text_bytes");
   } else throw new Error("unsupported_attachment_mime");
