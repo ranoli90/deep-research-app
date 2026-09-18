@@ -39,11 +39,12 @@ export function goldEvidenceDiagnostic(args: {
   return { withoutGoldUsesLimitation, withGoldUsesLimitation, bottleneck };
 }
 
-/** Canonical Markdown export. Citations are 8-char owned passage prefixes. No PDF. */
-export function blocksToMarkdown(blocks: ReportBlock[]): string {
+/** Canonical block renderer. The export service supplies resolved bibliography references. */
+export function blocksToMarkdown(blocks: ReportBlock[], references?: ReadonlyMap<string, string>): string {
   return blocks
     .map((block) => {
-      const cites = block.citationIds.map((c) => `[${c.slice(0, 8)}]`).join(" ");
+      const cites = block.citationIds.map((c) => references?.get(c) ??
+        `Source unavailable (passage: ${c.replace(/[^a-zA-Z0-9-]/g, (char) => `&#${char.charCodeAt(0)};`)}).`).join(" ");
       let body = stripUnsafeMarkup(block.text);
       if (block.kind === "heading") body = `## ${body}`;
       if (block.kind === "code") body = "```\n" + body + "\n```";

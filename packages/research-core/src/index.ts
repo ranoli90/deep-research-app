@@ -33,3 +33,5 @@ export * from "./discovery-planning.js";
 export { compareAssertionScopes, projectScopeComparison } from "./scope-comparison.js";
 export { calculateEvidence } from "./evidence-calculation.js";
 export * from "./calculation-report.js";
+
+export * from "./counterevidence.js";

@@ -1,0 +1,8 @@
+
+> @deep/backend@0.1.0 api /home/oranolio/Desktop/Deep/apps/backend
+> tsx src/api/server.ts
+
+{"level":"info","event":"api_listen","host":"127.0.0.1","port":8787,"t":"2026-09-17T23:48:49.916Z"}
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 api: `tsx src/api/server.ts`
+Exit status 143

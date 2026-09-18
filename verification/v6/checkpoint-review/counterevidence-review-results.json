@@ -1,0 +1,71 @@
+{
+  "task": "W01/W02/W05 counterevidence integration review",
+  "baseCommit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+  "testedRevision": "base commit plus uncommitted working tree; no agent commit",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "local PostgreSQL 127.0.0.1:55432/deep_research_test"
+  },
+  "scope": "Real local PostgreSQL production modules with synthetic source data and fabricated provider/read transports; no paid requests, no native/live semantic quality claims. Same-model agent review, not independent human review.",
+  "results": [
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-publication-before.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "exitCode": 1,
+      "result": "132 passed; 2 intended publication regressions failed; 134 total; 153.30s",
+      "sha256": "4e63b60b954ce7f3aff6994910c97595b80b26ac53c3600547777334e66aa728"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-replay-before.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 1,
+      "result": "13 passed; 4 intended publication/replay regressions failed; 119 deselected; 136 total; 25.93s",
+      "sha256": "258ccda157ec877d4c7660cb49d3eaf9bb28d946b80e27a3898356a8810071a4"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-after.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 0,
+      "result": "Intermediate fix:17 passed;119 deselected;30.09s. Superseded by stricter missing-proof veto.",
+      "sha256": "fb669e467dbdf8ba8ee6b8c14c99d9223cdc3d0fa76413d7d355fa4a624aff43"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-typecheck.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "result": "Intermediate backend typecheck.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-final.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 0,
+      "result": "Final stricter publication/replay fix:17 passed;119 deselected;136 total;35.28s",
+      "sha256": "304ba1bf90a1530609cf28f3bf123474591993f654f3e19fb335ad47bcf71b67"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-typecheck-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "result": "Concurrent primary export edit: report-export.unit.test.ts15 expected2 args got3. Preserved, not a passing check.",
+      "sha256": "ad20e74baba5db154ab2398a35eaf534f804ea4cdda09d8bd9473af9c8a15b6d"
+    },
+    {
+      "artifact": "verification/v6/checkpoint-review/counterevidence-typecheck-integrated.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "result": "Final integrated backend types after primary completed export signature.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "sourceHashes": {
+    "apps/backend/src/modules/counterevidence.ts": "0d14f7977b69dfa74272a45f9e6a2b0784b87c3c67ae066b661080a8582fc270",
+    "apps/backend/src/modules/publication-coverage.ts": "4f3f6b056101074278110ff5771c7e455c39c32f9d33b2c4931669dec8d8db05",
+    "apps/backend/src/worker/structured-research.ts": "468226f800a366098af580b7a371b8ee81c43ae1841c28aa832c2be452d197ce",
+    "apps/backend/test/model-gateway.integration.test.ts": "126421a6bbc07de1e46b71554be7674703f1253d2f6423883d6cef88d05a588d"
+  },
+  "rollback": "Disable new challenge scheduling but keep all required-proof publication vetoes, target warnings, ownership, receipt reconciliation, unknown holds and deletion. No down migration.",
+  "remaining": "Held-out/live semantic quality and enabled native journey unverified. Primary integrates canonical docs and result registry."
+}

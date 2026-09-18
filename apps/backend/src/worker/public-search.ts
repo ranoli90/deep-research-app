@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
-import { CONSENT_POLICY_VERSION,ResearchModelOutputs } from "@deep/contracts";
+import { CONSENT_POLICY_VERSION,ResearchModelOutputs,CounterevidenceSearchSchema,COUNTEREVIDENCE_SUFFIX } from "@deep/contracts";
 import { MAX_DISCOVERY_QUERIES,validateModelBindings } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { withTx } from "../platform/db.js";
@@ -17,7 +17,8 @@ import type { FencedSession } from "./fenced-session.js";
 export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:FencedSession,args:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;proposal:unknown}) {
  if(!config.structuredDiscoveryEnabled||!config.structuredModelEnabled||!config.liveRouteEnabled||config.openRouterModel!==DISCOVERY_POLICY.model)
   return {kind:"blocked" as const,reason:"structured_discovery_disabled"};
- const parsed=ResearchModelOutputs.propose_action.safeParse(args.proposal);
+ const transformed=CounterevidenceSearchSchema.safeParse(args.proposal);
+ const parsed=transformed.success?transformed:ResearchModelOutputs.propose_action.safeParse(args.proposal);
  if(!parsed.success||parsed.data.action.type!=="search")return {kind:"blocked" as const,reason:"invalid_search_action"};
  const proposal={...parsed.data,action:{...parsed.data.action,query:parsed.data.action.query.trim()}};
  const validate=()=>session.write(async(db)=>{
@@ -27,7 +28,9 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   if(task.planningStatus!=="ready")throw new Error("search_task_requires_clarification");
   // Explicit private/public query approval for mixed document tasks remains a separate unfinished capability.
   if(brief.attachmentIds.length)throw new Error("document_search_requires_public_query_approval");
-  const errors=validateModelBindings("propose_action",proposal,{...briefContext(brief.originalQuestion),task:task.specification});
+  if(transformed.success&&(!config.structuredChallengeEnabled||proposal.action.query!==`${proposal.action.publicQueryBasis.quote.trim()} ${COUNTEREVIDENCE_SUFFIX}`))throw new Error("invalid_counterevidence_query_transform");
+  const validatedProposal=transformed.success?{...proposal,action:{type:"search" as const,query:proposal.action.publicQueryBasis.quote.trim(),questionKeys:proposal.action.questionKeys,publicQueryBasis:proposal.action.publicQueryBasis}}:proposal;
+  const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion),task:task.specification});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
  });
  await validate();

@@ -18,6 +18,7 @@ import { recordIntent, reconcileIntent } from "../src/modules/billing.js";
 import { canIssueLiveCall, liveSpendUsedMicro } from "../src/modules/live-spend.js";
 import { providerFailureState } from "../src/adapters/model/outcomes.js";
 import { redact } from "../src/platform/log.js";
+import { exportReportForAccount } from "../src/modules/report-export.js";
 
 const TEST_URL =
   process.env.TEST_DATABASE_URL ??
@@ -397,14 +398,48 @@ describe("remaining launch-scope IDs", () => {
     expect(md).toMatch(/Vendor A/);
     expect(md).toMatch(/\| Vendor \|/);
     expect(md).toMatch(/Café|Vendor|EUR/);
-    const ids = [...md.matchAll(/\[([0-9a-f]{8})\]/gi)]
+    expect(md).toContain("## Sources");
+    expect(md).toContain("Non-public document locator"); // Diagnostic fixture:// locators are not public URLs.
+    expect(md).toContain("Passage locator:");
+    const ids = [...md.matchAll(/passage: ([0-9a-f-]{36})/gi)]
       .map((m) => m[1])
       .filter((id): id is string => typeof id === "string");
     expect(ids.length).toBeGreaterThan(0);
     const passages = await pool.query<{ id: string }>(`SELECT id FROM passages WHERE account_id = $1 AND run_id = $2`, [accountId, runId]);
-    const prefixes = new Set(passages.rows.map((r) => r.id.slice(0, 8)));
+    const ownedIds = new Set(passages.rows.map((r) => r.id));
     for (const id of ids) {
-      expect(prefixes.has(id), `export citation [${id}] must be an owned passage`).toBe(true);
+      expect(ownedIds.has(id), `export citation [${id}] must be an owned passage`).toBe(true);
+    }
+    const references = [...md.matchAll(/\[\^source-(\d+)\](?!:)/g)].map((m) => m[1]);
+    expect(references.length).toBeGreaterThan(0);
+    for (const reference of references) expect(md).toContain(`[^source-${reference}]:`);
+    // Same-account source access still requires exact run membership; reused evidence
+    // resolves only while the immutable source-version and passage digests match.
+    const child = await createRun(token, "Inspect reused evidence in the exported report");
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`UPDATE reports SET run_id=$1 WHERE id=$2`, [child.json().runId, snap.json().reportId]);
+      const unbound = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(unbound).toContain("Source unavailable.");
+      expect(unbound).not.toContain("Source version:");
+      await client.query(`INSERT INTO run_evidence_membership(run_id,account_id,passage_id,source_version_id,origin_run_id,passage_digest,version_digest)
+        SELECT $1,p.account_id,p.id,p.source_version_id,p.run_id,p.content_hash,v.content_hash
+        FROM passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$2`, [child.json().runId, runId]);
+      const reused = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(reused).toBe(md);
+      await client.query(`UPDATE run_evidence_membership SET version_digest='tampered' WHERE run_id=$1`, [child.json().runId]);
+      expect(await exportReportForAccount(client, snap.json().reportId, accountId)).toBe(unbound);
+      const outsider = await authed();
+      expect(await exportReportForAccount(client, snap.json().reportId, outsider.accountId)).toBeNull();
+      await client.query("UPDATE reports SET limitations=$1::jsonb WHERE id=$2", [
+        JSON.stringify(["A required target remains contradicted; its conclusion is unresolved"]), snap.json().reportId]);
+      const limitedExport = await exportReportForAccount(client, snap.json().reportId, accountId);
+      expect(limitedExport).toContain("## Limitations");
+      expect(limitedExport).toContain("A required target remains contradicted; its conclusion is unresolved");
+    } finally {
+      await client.query("ROLLBACK");
+      client.release();
     }
   });
 

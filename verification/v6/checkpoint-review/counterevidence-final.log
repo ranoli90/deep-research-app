@@ -1,0 +1,25 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (136 tests | 119 skipped) 33452ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: contradictory  1205ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: supportive  1467ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: qualified  1538ms
+   ✓ W05 counterevidence execution > preserves unknown search reservation and does not resend on replay  1001ms
+   ✓ W05 counterevidence execution > rejects changed target revision and foreign owner before a new request  1245ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=true linked=true  7157ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=false linked=true  6303ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=true linked=false  4497ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=false linked=false  5361ms
+   ✓ W05 counterevidence limited publication fails closed when required proof is lost, even with a warning  496ms
+   ✓ W05 counterevidence rejects late source content after cancel  406ms
+   ✓ W05 counterevidence rejects late source content after delete  411ms
+   ✓ W05 counterevidence cannot replace its real result with an optimistic stored flag  618ms
+   ✓ W05 counterevidence retains an unknown support outcome without another model send  527ms
+   ✓ W05 counterevidence race cannot double-send its search and shares the three-query ceiling  645ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed | 119 skipped (136)
+   Start at  18:29:55
+   Duration  35.28s (transform 1.05s, setup 0ms, collect 1.59s, tests 33.45s, environment 0ms, prepare 71ms)
+

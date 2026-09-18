@@ -1,5 +1,5 @@
 # Codebase governance — prevent drift mechanically
-Owner role: engineering lead. Status: proposed application controls; only review-data checks exist today. Reviewed: 2026-09-16.
+Owner role: engineering lead. Status: application controls implemented in part; command readiness, import boundaries and production fixture isolation execute locally. Clean-checkout/CI and broader governance coverage remain open. Reviewed: 2026-09-17.
 
 ## Principle
 Future agents should navigate a small map, read the exact contract, make one coherent change and receive machine-detectable failures when they cross boundaries. A large instruction file cannot substitute for those failures. The short-map/mechanical-boundary approach is supported by OpenAI’s published harness experience, but this project retains blocking privacy, security and billing gates rather than copying that team’s merge policy (S31).

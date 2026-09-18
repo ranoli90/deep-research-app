@@ -1,3 +1,4 @@
+import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
 import { calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
 import { compileCheckedDraft,draftStatements,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
@@ -8,7 +9,15 @@ import { loadSupportContext,persistScopedSupport,restoreWriterDraft } from "./sc
 
 /** No caller completion flag or saved model verdict substitutes for current coverage of this exact report. */
 export async function reportCompletionCovered(db:Queryable,accountId:string,report:CanonicalReport):Promise<boolean> {
+  const challengeBasis={runId:report.runId,accountId,briefRevision:report.basis.briefRevision};
+  // Missing targets cannot establish which conclusions need qualification.
+  if(await requiredCounterevidenceMissing(db,challengeBasis))return false;
+  // Limited publication must carry every independently restored target warning too.
+  // Its outcome label cannot bypass an admitted proof obligation or corrupt saved proof.
+  const challengeLimitations=await counterevidenceLimitations(db,challengeBasis);
+  if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
   if(report.outcome!=="completed")return true;
+  if(challengeLimitations.length)return false;
   const task=await db.query("SELECT id FROM research_tasks WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3",[report.runId,accountId,report.basis.briefRevision]);
   // Historical controller reports have no structured task; retain their existing publication contract.
   if(!task.rowCount)return true;

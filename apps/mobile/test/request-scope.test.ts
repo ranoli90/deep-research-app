@@ -84,3 +84,16 @@ it("W06 malformed executable correction patches never reach the network",()=>{
  expect(()=>api.correct("a","parent",1,"New question",{kind:"replace_question",question:"New question",evidencePolicy:"reuse_snapshot",budgetMicro:999} as never)).toThrow();
  expect(fetcher).not.toHaveBeenCalled();
 });
+
+it("W04 binary upload sends exact bytes and rejects a late receipt after account switching", async () => {
+  const response = deferred<Response>(); const fetch = vi.fn(() => response.promise); vi.stubGlobal("fetch", fetch);
+  api.activateSession("account-a");
+  const bytes = new Uint8Array([37, 80, 68, 70, 0, 255]);
+  const pending = api.attachBytes("account-a", "Study 1.pdf", "application/pdf", bytes).catch(error => error);
+  const request = fetch.mock.calls[0] as unknown as [string, RequestInit];
+  expect(request[0]).toContain("/v1/attachments/bytes");
+  expect(new Uint8Array(request[1].body as ArrayBuffer)).toEqual(bytes);
+  expect(request[1].headers).toMatchObject({ "content-type": "application/octet-stream", "x-document-mime": "application/pdf", "x-file-name": "Study%201.pdf" });
+  api.activateSession("account-b"); response.resolve(Response.json({ attachmentId: "a-only" }));
+  expect(isSupersededRequest(await pending)).toBe(true);
+});

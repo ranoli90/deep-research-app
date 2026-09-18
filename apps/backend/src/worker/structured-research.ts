@@ -1,6 +1,9 @@
+import { executeCounterevidence } from "./counterevidence.js";
+import { getCounterevidence } from "../modules/counterevidence.js";
+import { publicSearchDigest } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
+import { counterevidenceSearch, nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
 import { getRun,getBrief,emitEvent,setPhase,markTerminal } from "../modules/runs.js";
@@ -33,6 +36,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
+  const requiredProof=await session.write(db=>db.query(`SELECT 1 FROM runs r WHERE r.id=$1 AND r.account_id=$2 AND r.counterevidence_required_revision=$3
+    AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
+  if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
   const queries:string[]=[];
   await ingestAttachments(pool,run,await getBrief(pool,run.brief_id),session);
   await session.write(async(db)=>{
@@ -45,7 +51,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
     AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]));
   let selected=await selectPassages();
-  const priorDiscovery=await session.write((db)=>db.query("SELECT 1 FROM search_operations WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 LIMIT 1",[args.runId,args.accountId,args.briefRevision]));
+  const savedChallenge=await session.write(db=>getCounterevidence(db,args));
+  const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
+  // The search receipt may commit before its challenge pointer. Recover its purpose
+  // from the exact server-owned request digest without issuing an ordinary search.
+  const challengeDigest=challengeQuery?publicSearchDigest(challengeQuery.action.query):null;
+  const priorDiscovery=await session.write((db)=>db.query(`SELECT 1 FROM search_operations s
+    WHERE s.run_id=$1 AND s.account_id=$2 AND s.brief_revision=$3
+    AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.search_intent_id=s.intent_id AND c.run_id=s.run_id AND c.account_id=s.account_id)
+    AND (s.result->'receipt'->>'requestDigest') IS DISTINCT FROM $4::text LIMIT 1`,[args.runId,args.accountId,args.briefRevision,challengeDigest]));
   const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
@@ -75,6 +89,12 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
     const support=await executeAssertionSupport(pool,config,session,target);
     if(support.kind!=="support")return pendingOrBlocked(support);
+    const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
+    if(challenge.kind==="challenge") {
+      await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
+        summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
+      if(challenge.evidenceChanged){selected=await selectPassages();continue;}
+    }
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
         action:{type:"compare_scopes",claimKeys:extraction.output.assertions.map(a=>a.key)}});

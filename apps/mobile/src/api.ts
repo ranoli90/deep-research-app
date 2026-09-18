@@ -70,6 +70,10 @@ export const api = {
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
   sessionInfo: (token: string) => req("/v1/session", { token }) as Promise<{ accountId: string; authMode: string }>,
   consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
+  attachBytes: (token: string, filename: string, mime: string, bytes: Uint8Array) =>
+    req("/v1/attachments/bytes", { method: "POST", token, scope: "view",
+      headers: { "content-type": "application/octet-stream", "x-document-mime": mime, "x-file-name": encodeURIComponent(filename) },
+      body: new Uint8Array(bytes).buffer }),
   createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = []) =>
     req("/v1/runs", {
       method: "POST",

@@ -1,139 +1,139 @@
 {
-  "scope": "recheck and implementation checkpoint; open entries are not completion evidence; see RESULTS for executed commands",
+  "scope": "Current recheck includes preserved uncommitted integrated source atop 1448c7ded0d5302231aea9966f9104b0c2dfef3e; original review IDs/pin retained. Local test passes do not establish milestone completion; subsequent review defects remain open.",
   "findings": [
     {
       "id": "V6-F01",
       "title": "Citation checking accepts opposite and insufficiently supported claims",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Production negatives reproduced; literal/scope abstention, mapping/type-label guards, persisted revisions/support and deterministic derivations added. General semantic checker and complete writer remain open. Scoped publication now rechecks managed canonical assertion revisions and permits a supported paraphrase without weakening default literal/mapping/owner gates; partial/stale/missing/corrupt/forged approvals reject. Real-model semantic quality and generic writer integration remain open. Actual binary API/structured-worker/report/source/deletion trace now passes with a renamed PDF entity and fabricated model responses. An unrelated-qualification false rejection was reproduced and repaired with versioned checks and paired controls; broader semantic/native evidence remains open."
+      "basis": "Production publication regressions reproduce the supplied opposite/overstrong/unmapped claims and reject wrong owner, source version and claim revision. Publication now restores persisted scoped support, preserves supported paraphrases, rejects missing/stale/corrupt/forged bindings and rechecks final writer wording. Arithmetic uses separately revalidated proofs and exact canonical rendering; it cannot masquerade as source wording. Local PostgreSQL controls and real-PDF production-worker journeys pass with fabricated model responses. Real-model support precision, broader contradiction/qualification recall and independent semantic evaluation remain unproven."
     },
     {
       "id": "V6-F02",
       "title": "Production candidate logic is restricted to fixture names",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "Literal fixture-name matching was removed earlier; a new worker service now executes arbitrary scoped assertion extraction through the structured gateway on selected owned whole passages. Randomized entity transport controls pass. General processRun integration and real semantic extraction evaluation remain open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics. Production composition now excludes the historical diagnostic executor and fixture catalogs through a transitive source-graph check with a positive fixture-detection control. The old bounded controller is non-production only and retains its regression assertions. Disabled production processing fails explicitly without fallback. General semantic quality, remaining substantive actions and held-out evaluation remain open."
+      "basis": "The production executor uses structured task preparation and arbitrary scoped assertion extraction over owned passages, followed by support, coverage and generic writing. Renamed/randomized entities pass local controls. Transitive import checks exclude fixture catalogs, evaluator gold and the historical diagnostic executor from production; disabled processing fails without a fixture fallback. General candidate discovery, eligibility quality and held-out real-model performance remain unproven."
     },
     {
       "id": "V6-F03",
       "title": "Verify and related actions are mostly event labels",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "A new worker service now executes structured assertion support and persists independent scope/numeric/access/contradiction checks with exact claim revisions and evidence digests. Legacy processRun verify/compare/calculate branches still need replacement; service tests do not complete that integration. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics. Production composition now excludes the historical diagnostic executor and fixture catalogs through a transitive source-graph check with a positive fixture-detection control. The old bounded controller is non-production only and retains its regression assertions. Disabled production processing fails explicitly without fallback. General semantic quality, remaining substantive actions and held-out evaluation remain open. compare_scopes now executes deterministic recorded-field comparison, persists exact claim revision/evidence/support identities and passes a revalidated result to the production writer. Null scope remains unknown; entailment/quantity compatibility remain explicitly unassessed. Replay, owner/revision/tamper/deletion/concurrency controls pass locally. Named calculation and counterevidence execution remain open. Compact projection now preserves every compared pair and relation while removing repeated scope values; legacy writer request representation is pinned and unknown outcomes are not resent. A60-assertion/1770-pair serialization control fits the unchanged request ceiling; no semantic or paid-cost improvement is established. Evidence-calculation handler now executes exact arithmetic from supported revisions and uniquely bound numeric evidence, with durable typed unknown outcomes. Owner/revision/tamper/deletion/replay/concurrency controls pass. Production selection, writer integration and proof-aware calculated publication remain open; no calculated-report completion claim. Calculation claims now have a canonical proof mapping, exact renderer and real publication revalidation of owned input revisions/arithmetic/output/citations. Computed statements remain inference and cannot bypass final question coverage. Production selection/writer adoption and corrected arithmetic journey remain open. Production structured worker now selects strict arithmetic plans through the versioned gateway when supported quantities exist, then executes/reuses actual calculation records. Unknown results and provider holds remain explicit; old writer request paths are preserved. Writer adoption, final derived-answer coverage and corrected arithmetic remain open. Calculated-report integration now carries actual persisted arithmetic into canonical writer output and final coverage; the corrected sum-to-ratio production-worker control passes with fabricated model transport. Unknown/omitted arithmetic and unsupported prose remain limited. Named counterevidence/challenge execution, semantic applicability and held-out quality remain open."
+      "basis": "Production executes extraction, scoped support, six-field scope comparison and exact evidence-bound calculation planning/results before writing. Comparison preserves unknown fields and explicitly does not assess entailment or quantity compatibility. Calculated reports restore owned input revisions, numeric spans, formulas, output, assumptions and citations at final coverage/publication; a sum-to-ratio corrected journey passes through the production worker with fabricated model transport. Typed outcomes and replay/owner/revision/tamper/deletion/concurrency controls replace event-only success on these paths. Default-off bounded counterevidence now captures original targets, executes admitted search/reads/reassessment and persists typed outcomes; restart/unknown/deletion controls pass. Subsequent review found partial-outcome publication bypass, under repair. Arithmetic applicability and independent semantic quality remain open."
     },
     {
       "id": "V6-F04",
       "title": "Task coverage is inferred from source presence",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "W05 criterion coverage: a structured review now produces persisted question outcomes tied to exact task/evidence/claim revisions and support checker versions. Deterministic guards veto unsupported assertions, missing criterion bindings, scope mismatch and model requirement waivers. Ambiguity and omitted original requirements prevent completion. Replay and deletion are covered locally; main-worker stopping and final-report coverage integration remain open. This is answer coverage, not candidate eligibility or real-model quality proof. Legacy toState still uses source presence until general controller integration. Final generic writer now executes coverage and publication independently revalidates complete outcomes against exact compiled report blocks/claim membership; legacy controller stopping remains open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics. Structured production worker now uses actual criterion coverage to drive distinct original-question refinement queries, repeats real extraction/support/coverage after new evidence, and explicitly stops at a durable query ceiling or unavailable public wording. Nonbillable PostgreSQL control changes incomplete coverage to complete after a second source; real semantic/discovery quality remains unproven."
+      "basis": "Production persists question/criterion coverage tied to exact task, evidence, claim revisions and checker versions. Deterministic guards reject unsupported/mis-scoped assertions, missing criterion bindings, waived requirements and unresolved ambiguity. Coverage drives bounded distinct refinement queries; new evidence is extracted and checked again. Final publication independently revalidates coverage against exact compiled report blocks and claim membership, including selected arithmetic proofs. Preliminary source-only coverage can still trigger unnecessary discovery for arithmetic questions; real-model criterion interpretation and candidate eligibility remain unproven. Source-count stopping survives only in historical diagnostics."
     },
     {
       "id": "V6-F05",
       "title": "Live synthesis remains a deterministic scenario composer",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "W05 generic writer: composed headings, paragraphs and limitations become distinct canonical assertions linked to checked premise revisions, then undergo exact final-wording support and publication checks. Unsupported surfaces become localized caveats; supported synthesis remains. Migration020 preserves draft lineage and checker versions; deletion purges it. Currency mismatch independently rejects. Reports conservatively remain incomplete until criterion coverage is implemented. Main processRun integration and real semantic evaluation remain open. Structured processRun now executes extraction/support/coverage/generic writing on available owned evidence; source discovery and named compare/calculate/challenge execution remain open. Legacy route findings are retained as historical diagnostics."
+      "basis": "Production uses the structured generic writer rather than the scenario composer. Final factual prose becomes canonical assertions linked to checked premises and is checked again against original evidence; unsupported sections become localized limitations. Selected arithmetic is rendered by the server with exact results, assumptions and citations. Final question coverage controls complete versus limited publication. Local source/PDF/correction journeys use fabricated model responses; useful real-model synthesis and held-out answer quality remain unproven."
     },
     {
       "id": "V6-F06",
       "title": "Fetched HTML is truncated and mislabeled as complete evidence",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Controlled fetch uses sandboxed Trafilatura, saved bytes, structured blocks and partial coverage. Real-byte experiment recorded; challenge/MIME/coverage work remains."
+      "basis": "Controlled fetching retains bounded saved bytes and uses isolated Trafilatura 2.2.0 after the identical-byte Readability/structure-preserving comparison. Extracted blocks, locators, parser provenance and limitations persist; HTML is partial-text, never raw markup promoted to complete evidence. Durable production source reads use this adapter and reuse exact finished versions. Broader independent extraction fidelity, dynamic/blocked pages and evidence selection beyond bounded whole-passage context remain open."
     },
     {
       "id": "V6-F07",
       "title": "PDF attachment feature does not parse real PDF bytes",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; binary and isolated digital-text repair, broader quality/native flow open",
-      "basis": "Pasted PDF rejection and original binary byte/digest regression reproduced. Authenticated binary upload, isolated Docling Parse geometry, page/cell source inspection and fenced deletion/cancellation pass local tests. Real RFC diagnostic retained baseline failures and preserved selected negation; table/column/OCR and native picker remain open. Actual binary API/structured-worker/report/source/deletion trace now passes with a renamed PDF entity and fabricated model responses. An unrelated-qualification false rejection was reproduced and repaired with versioned checks and paired controls; broader semantic/native evidence remains open. Production composition now excludes the historical diagnostic executor and fixture catalogs through a transitive source-graph check with a positive fixture-detection control. The old bounded controller is non-production only and retains its regression assertions. Disabled production processing fails explicitly without fallback. General semantic quality, remaining substantive actions and held-out evaluation remain open."
+      "basis": "Authenticated binary upload preserves original PDF bytes/digests; pasted text cannot claim PDF MIME. Isolated Docling Parse digital-text extraction persists page/cell geometry, provenance and explicit limitations. Actual API/PDF/production-worker/report/source/reopen/correction/deletion controls pass with fabricated model responses. The real RFC diagnostic retains failed baselines and demonstrates the selected adapter preserving a decisive prohibition. OCR, general table/column fidelity, broader independent corpus and complete native source-reading journey remain unproven; unavailable capabilities stay partial/unavailable. Current-bundle Android Expo Go selected and uploaded a1211-byte synthetic PDF with matching digest after consent; disabled admission created no research run."
     },
     {
       "id": "V6-F08",
       "title": "Correction reuse is a flag rather than demonstrated evidence reuse",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial implementation with real identity reuse",
-      "basis": "Correction flags do not establish immutable evidence membership or actual reuse. Typed full-question replacement now atomically admits a child with explicit snapshot/refresh policy, accepted patch text and unknown dependency completeness. Exact passage/version digest memberships drive the production extraction/support/writer/publication path; child claims are newly checked. API + actual PDF correction matches a full-rerun fabricated-model control while retaining citation identity. Granular patches, result change summaries, selective traversal, freshness and independent semantic comparator evidence remain open. Structured publication now derives report-changes.v1 from owned published claim revisions, criterion definitions and actual cited snapshot membership. Exact wording/scope equality is not semantic equivalence; missing history gives no comparison and forged caller flags are ignored. Granular patches, semantic adjudication, freshness and native input remain open. Mobile now submits typed complete-question replacement with explicit snapshot/refresh using server-advertised capability and displayed revision. Request-generation controls pass; native interaction and correction draft process-death recovery remain open."
+      "basis": "Typed complete-question replacement atomically admits a child with explicit reuse_snapshot or refresh policy and immutable authorized passage/version digest membership. Dependency completeness remains unknown, so child assertions/support are recomputed and public discovery reopens conservatively. Actual-PDF correction matches a full-rerun control with fabricated model responses; the calculated sum-to-ratio correction reuses source versions with new checked claims. report-changes.v1 derives exact claim/scope/criterion/cited-version differences from stored results, not caller flags. Mobile submits typed replacements with displayed revision and request-generation guards. Granular patch types, selective traversal, source-specific deletion/refresh semantics, correction-draft recovery, native interaction and independently adjudicated corrected-result agreement remain open."
     },
     {
       "id": "V6-F09",
       "title": "Live spending admission is non-atomic and estimated cost is called confirmed",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Atomic account/run/project/key limits, stable attempts, actual receipt parsing and late receipt settlement added. Unknown holds stay distinct from confirmed cost; live paths no longer add fixture tariffs. Actual overruns remain visible, contradictory receipts reject, deletion cannot be reversed. Historical settlements retain unknown basis and are not recharged. Missing receipt acquisition, historical repair and enforceable provider bound remain open. Search transport now bounds body/deadline, rejects redirects and retains known cost on invalid output; explicit plugin/model cost ceiling and durable search output remain open. New pinned public-search coordinator now reserves a documented model-plus-single-plugin amount and stores results for replay; unknown outcomes persist across evidence arrivals. Local race/deletion/receipt tests pass. Live invoice/tariff verification and worker discovery integration remain open."
+      "basis": "Atomic account/run/project/credential admission, stable logical actions/attempts, actual receipts and late settlement are implemented. Unknown outcomes retain reservations; confirmed cost is separate from held/simulated amounts, overruns remain visible and contradictory receipts reject. Pinned public discovery reserves the documented model-plus-plugin amount and stores replayable results; production discovery/read scheduling is integrated. Real local race/deletion/receipt controls pass. Missing receipt acquisition, historical settlement repair, live invoice/tariff verification and externally enforceable provider bounds remain open. No current remaining live allowance is established by old ledger notes."
     },
     {
       "id": "V6-F10",
       "title": "Accepted run and queue admission have a crash gap",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; repaired boundary",
-      "basis": "Local real PostgreSQL/pg-boss tests cover atomic admission/outbox and retry. External exactly-once delivery is not claimed."
+      "basis": "Real local PostgreSQL/pg-boss controls cover atomic run/reservation/outbox admission, dispatch retry and crash recovery. Accepted work survives the transaction-to-queue handoff. Hosted queue/pooler behavior and external exactly-once delivery are not established by these tests."
     },
     {
       "id": "V6-F11",
       "title": "Leases and terminal mutations are not fully fenced",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Unique attempt ownership, row-serialized acquisition, heartbeat and fenced worker writes added. Recovery tests now assert same-name workers cannot steal leases. Complete evidence-basis mutation checks remain open."
+      "basis": "Production shares unique-attempt, row-serialized lease acquisition, heartbeat and fence/brief/account checks around durable mutations. Same-name workers cannot steal active leases; stale/cancelled/deleted work cannot publish current evidence or reports in local race controls. Model/source/comparison/calculation results restore exact owned evidence and revision identities. Late financial receipts settle separately without reviving content. Hosted failover behavior and exhaustive coverage of future mutation paths remain unproven."
     },
     {
       "id": "V6-F12",
       "title": "Network fetch protections are incomplete",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Validated DNS pinned to socket, bounded streams/redirects/deadline, HTTP status retained. Local HTTP transport tested; private query policy still requires work."
+      "basis": "Safe fetch validates DNS and pins the approved address to the socket, revalidates redirects, rejects private destinations/credentials/disallowed ports and bounds status/body/deadline handling. Search transport rejects redirects and bounds UTF-8/JSON responses and total time. Production public queries bind to approved spans of the original question; document-plus-public search fails closed pending an explicit approval flow. Local controlled transport tests pass; broader deployment networking and the mixed-document public-query approval flow remain open."
     },
     {
       "id": "V6-F13",
       "title": "Deletion does not cover all private data paths",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; local server boundary repaired, external/mobile gates open",
-      "basis": "Twelve retained-data/raw-file assertions reproduced; nine local database/filesystem tests now cover current stores, raw bytes, legacy cleanup failure/retry, prior tombstone replay, real upload contention and late API writes. Hosted backup/retention and mobile caches remain unverified."
+      "basis": "Account deletion purges current raw and derived stores, including memberships, model results, report lineage and calculation proofs; legacy disk cleanup retries durably and prior tombstones replay. Local PostgreSQL/filesystem controls cover real upload contention and late callbacks without content resurrection. Mobile owner/backend caches and request generations have deterministic isolation/clear tests. Hosted backup/retention, provider-side deletion, source-specific deletion and wider authenticated native deletion/cache lifecycle remain unverified. Limited current-bundle native account deletion purged selected/uploaded synthetic document content and cleared draft/selection; derived counterevidence deletion has local PostgreSQL controls."
     },
     {
       "id": "V6-F14",
       "title": "Production identity and cross-object ownership are incomplete",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "Atomic admission ownership plus configured Supabase verification and issuer/subject mapping implemented. Production rejects dev tokens; published report membership gates challenge/follow-up claims. Transport-double/local PostgreSQL tests pass; hosted verification, mobile login/refresh and provider-side identity deletion remain activation gates."
+      "basis": "Atomic admission and cross-object membership checks enforce ownership. The configured Supabase adapter verifies the user endpoint, maps issuer/subject to a local owner with zero implicit allowance and rejects development tokens in production. Published report membership gates challenge/follow-up claims. Local PostgreSQL and transport-double controls pass; hosted identity verification/revocation, mobile production login/refresh and provider-side identity deletion remain activation gates."
     },
     {
       "id": "V6-F15",
       "title": "Model admission trusts an overly broad proposal shape",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "reproduced; partial repair",
-      "basis": "Strict bounded action arguments and transformed re-admission remain enforced. Structured gateway now has six closed output contracts, current downstream consent, local provenance/handle validation and durable fenced results. Gateway integration into the general controller and substantive action handlers remains open."
+      "basis": "Closed versioned gateway contracts now drive production task, assertion, support, calculation-plan, writer and coverage operations. Server-owned account/run/revision/budget fields, downstream consent, local handle/provenance validation and durable fenced results remain outside model prose. Search and arithmetic plans validate their executable bindings; calculated-report context pins exact proof identity. Source text cannot grant authority. Counterevidence uses closed transformed-query authority and substantive persisted results with local controls; broader action and real-model invalid-output behavior need their own executed evidence; the historical broad proposal adapter is not the production controller."
     },
     {
       "id": "V6-F16",
       "title": "Benchmark measures fixture machinery rather than independent quality",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; open",
-      "basis": "Historical fixture benchmark is diagnostic only. Same-pipeline held-out general evaluation remains unimplemented."
+      "basis": "The historical bounded fixture benchmark remains diagnostic only. Production integration and actual extraction controls prove specific behavior with fabricated model responses, not independent answer quality. A competent simple baseline and adaptive candidate using the same production API/worker/tools, registered held-out tasks/documents, selected repetitions, failures, corrected-result agreement and real cost/latency evaluation remain unfinished. No human adjudication or live superiority is claimed."
     },
     {
       "id": "V6-F17",
       "title": "Mobile secret storage and in-flight account isolation need strengthening",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; local repair, native verification open",
-      "basis": "SecureStore-only credentials, owner/backend-scoped cache, serialized persistence and account/run/source generations implemented. Delayed transport/write and failure controls pass; Android JS bundle passes. No native keychain/device proof; production login/refresh remains open."
+      "basis": "Credentials use SecureStore; content caches are owner/backend-scoped with serialized persistence and account/run/source generations. Deterministic delayed-response/write/failure controls and Android JS export pass. Current-bundle Expo Go observations cover startup, keyboard-visible composer, draft recovery, offline sign-in failure, synthetic binary picker/upload consent and account deletion; the separately installed old APK was not upgraded. Native authenticated account switching, secure session lifecycle, correction/source/sharing/deletion flows and production login/refresh remain unverified. Content-cache encryption remains open."
     },
     {
       "id": "V6-F18",
       "title": "Shared Markdown loses usable evidence references",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-      "status": "rechecked; open",
-      "basis": "Markdown exporter still uses abbreviated passage IDs without a usable bibliography."
+      "status": "rechecked; local bibliography repair, native sharing open",
+      "basis": "Owned Markdown export resolves a single SQL snapshot against digest-pinned authorized run passages, including correction reuse. It includes full title/publisher/public URL, access/coverage, locator, extractor/version/passage IDs and explicit unavailable references. Core fallback preserves full escaped IDs. Six unit,25 core and51 integration controls cover owner/run/reuse/digest boundaries; failed fixture-locator expectation is retained. Current and previous report sharing use this endpoint; actual native share journey remains unverified."
     },
     {
       "id": "V6-F19",
       "title": "Canonical documentation overstates or contradicts current state",
       "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
       "status": "rechecked; partial repair",
-      "basis": "Current status/handoff and P0 gate schema distinguish historical evidence, scoped current artifacts and failures. Review and handoff validators now verify actual implementation/evidence references with negative tests. Broader canonical reconciliation remains ongoing."
+      "basis": "Command/evidence records distinguish current local controls, fabricated model transport, limited current-bundle Android observations and historical evidence. Architecture and this finding ledger now describe the structured production executor, with the old bounded controller explicitly diagnostic. Original review IDs/pin and historical artifacts are retained. Broader canonical status/plan/setup reconciliation, clean-checkout reproduction and remaining W01-W09 completion evidence are still open; document validation is not runtime or quality proof."
     }
   ],
-  "checkpointEvidence": "Production planning:286 full PostgreSQL,115 final focused,14 actual extraction,144/93/52/6 verify, final typecheck and Android JS export; writer/final derived-answer coverage and real-model/native evidence remain open."
+  "checkpointEvidence": "Preserved combined verify148/99/61/6 and PostgreSQL305/305 pass; integrated Android JavaScript export631 modules/2.09MB; actual extraction rerun14/14,37.76s. All28 session-transition manifest hashes match. Fabricated model transports are not semantic quality evidence; limited Expo Go upload/consent/deletion observations are not a complete research journey or standalone build. Review reproduced and repaired partial-outcome challenge-publication bypass and crash-window extra discovery;17 focused PostgreSQL controls pass. Export preserves required limitations (7 units plus owned E09 PostgreSQL control). No new paid calls; W01-W09 incomplete."
 }

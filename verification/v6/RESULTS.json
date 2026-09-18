@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Calculated report/corrected arithmetic checkpoint:291 full PostgreSQL,119 focused,14 actual extraction,145/93/52/6 verify, typechecks and Android JS export passed. Limited real Android Expo Go composer/restart/offline-auth observations; W01-W09 remains incomplete.",
+  "workingTree": "Reviewed native documents, owned bibliography including limitations, bounded counterevidence and publication/replay repairs. Preserved combined verify/integration and new extraction14/14; final focused repairs pass. Implementation commit recorded in subsequent metadata. W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -5251,18 +5251,912 @@
       "evidenceClass": "document_structure_only",
       "scope": "Canonical document/registry integrity; not application correctness",
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W07"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + native-document working tree",
+      "command": "pnpm --filter @deep/mobile add --save-exact expo-document-picker@14.0.8 expo-file-system@19.0.24",
+      "artifact": "native-documents/mobile-document-install.log",
+      "exitCode": 0,
+      "evidenceClass": "dependency_install",
+      "scope": "One new JS package; SDK-pinned versions, exact lockfile",
+      "sha256": "9082e2abe471c282ca45248052543ede5118b8af007b981dae64a2634def0f9b"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W07"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + native-document working tree",
+      "command": "pnpm audit --prod --json",
+      "artifact": "native-documents/mobile-document-audit.json",
+      "exitCode": 1,
+      "evidenceClass": "dependency_audit",
+      "scope": "3 moderate/4 high existing JS advisories; native graph not covered",
+      "sha256": "37a338812529449493c3136c18d29ef36ebac1e8bc669aa0a513fa340b8b661c"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W07"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + native-document working tree",
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "native-documents/mobile-document-unit-progress.log",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit",
+      "scope": "61/61,2.38s; includes exact binary transport, late-account discard and cache-copy cleanup",
+      "sha256": "d373b8dee53b7d40b3635fd9df4ea9b533f87c2b0565cf731e81c7882df262d6"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W07"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + native-document working tree",
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "native-documents/mobile-document-typecheck-progress.log",
+      "exitCode": 0,
+      "evidenceClass": "static_typecheck",
+      "scope": "Mobile source including separate AttachmentPanel and progress state",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W07"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + native-document working tree",
+      "command": "ADB system-picker/Expo Go/local API sequence; helper and observations recorded",
+      "artifact": "native-documents/OBSERVATIONS.json",
+      "exitCode": 0,
+      "evidenceClass": "native_android_local_binary_api",
+      "scope": "Real synthetic PDF selection/upload/digest verification and account deletion; admission disabled; no full research claim",
+      "sha256": "c1364f8de2691d91f6004c6505985d795a3c3546d12fbd2749a60120e32bde8e"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "artifact": "session-transition/counterevidence-focused-fifth.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 14 passed | 119 skipped (133). Deselected tests are not passes.",
+      "sha256": "7082051d3aef754ad8a407c7632364e4695891f7671af4c6a7cab02be37419ac"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "artifact": "session-transition/counterevidence-focused-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 132 passed (132). Deselected tests are not passes.",
+      "sha256": "f4de2308b5480b83456d4e80aedee17787c5ecf6cdbac9b47de279de08f9fd02"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "artifact": "session-transition/counterevidence-focused-fourth.log",
+      "exitCode": 1,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "12/14 selected passed; real restart extra-discovery defect; subsequently fixed.",
+      "sha256": "04b1f34cc4d72677eda70102b8e1b846acf24c82e2a7f38856852130ce809c2a"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "artifact": "session-transition/counterevidence-focused-initial.log",
+      "exitCode": 1,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "7/8 selected passed; test queried nonexistent provider_intents.kind; corrected via run_actions join.",
+      "sha256": "bfb8c647fe64354e27a397010ae60e82d9d9dd05bbdfe37876da4d36419ac8ca"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "artifact": "session-transition/counterevidence-focused-second.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 8 passed | 119 skipped (127). Deselected tests are not passes.",
+      "sha256": "fa58da05afcd07ab87c0ce876b2c5fe7fb2d5726b6f65ba529a02ba3209ab6fa"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "artifact": "session-transition/counterevidence-focused-third.log",
+      "exitCode": 1,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "12/13 selected passed; real unknown-model-receipt classification defect; subsequently fixed.",
+      "sha256": "f9eec1827fa7fa2cbcb314ead09d3e37da93188bc10ec73ff5070a4a3ab0797c"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm test:integration",
+      "artifact": "session-transition/counterevidence-integration-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "305/305 across16 files,289.00s;133 gateway cases. Synthetic data/fabricated transports; no real-model semantic validation. Subsequent review found partial-outcome challenge-publication bypass; separate fix/regression required.",
+      "sha256": "04836c089fa9f483784dc944bdbb84770d02409fee2afae48f5ba92a8b37e2a0"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/counterevidence-typecheck-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/counterevidence-typecheck-fourth.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/counterevidence-typecheck-initial.log",
+      "exitCode": 2,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Duplicate kind and implicit reads type; fixed in later source.",
+      "sha256": "0a397d1287862a0b57d68605ed19a26e5c6721e749f61795bf2340413ebcac0f"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/counterevidence-typecheck-second.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/counterevidence-typecheck-third.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm verify",
+      "artifact": "session-transition/counterevidence-verify-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "148 core/99 backend/61 mobile/6 governance; configured typechecks/boundaries pass. Design script retains pre-existing || true; not exhaustive design typechecking.",
+      "sha256": "ffad98d6974b9e48999d956892d83c1a1d995868a9bd0ad68b4beaf2fefe6e73"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W05",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm verify",
+      "artifact": "session-transition/counterevidence-verify.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit_and_structure",
+      "scope": "148 core/99 backend/60 mobile/6 governance; before final hardening; configured typechecks/boundaries pass. Design script retains pre-existing || true; not exhaustive design typechecking.",
+      "sha256": "89e85c017d32b5e9a7999185f8144b8a3873051e4df0d4c024583cb158f390f5"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/research-core exec vitest run test/p1-p2.test.ts",
+      "artifact": "session-transition/export-bibliography-core-fallback.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 25 passed (25). Deselected tests are not passes.",
+      "sha256": "5d7041298d7ba797b5077332117188dac0bd8709bab8d071c8e0d553dd3032de"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/research-core exec vitest run test/p1-p2.test.ts",
+      "artifact": "session-transition/export-bibliography-core-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 24 passed (24). Deselected tests are not passes.",
+      "sha256": "58e80c289d5f5ee6084dca48666f32be46ea01499e880347cef194620d11b9e3"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/research-core exec vitest run test/p1-p2.test.ts",
+      "artifact": "session-transition/export-bibliography-core.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 24 passed (24). Deselected tests are not passes.",
+      "sha256": "8c9bad615ff15466eea8994cbab582ec61bb1097734c21a73d6e09213e6246c8"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts",
+      "artifact": "session-transition/export-bibliography-integration-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "51/51,46.34s; owned export/reuse/digest controls and retained prior cases; native share not exercised.",
+      "sha256": "4388401d588cc40038cf4bfca05696c490be0a09278652fd3f8f950dfe741428"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts",
+      "artifact": "session-transition/export-bibliography-integration.log",
+      "exitCode": 1,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "scope": "50/51 passed; fixture-locator HTTPS test expectation corrected without weakening ownership controls.",
+      "sha256": "39e9cbb6a2de8094e52de022fccbf64e9d238645caad34d80b485f0a74d5ed75"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/export-bibliography-typecheck-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "session-transition/export-bibliography-typecheck.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "static_typecheck",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "artifact": "session-transition/export-bibliography-unit-fallback.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 6 passed (6). Deselected tests are not passes.",
+      "sha256": "7ed13d35f37f5863f9c3df32065af3fa64c13a90128c132b0ebf1ef8f6858f0a"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "artifact": "session-transition/export-bibliography-unit-final.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 6 passed (6). Deselected tests are not passes.",
+      "sha256": "620e6e866823f5566dbe256b3c54c7bbf692017350e2bc986f34b064b3d60561"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "artifact": "session-transition/export-bibliography-unit.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "deterministic_unit",
+      "scope": "Preserved intermediary run; final combined receipt supersedes this source snapshot. Observed tests: 6 passed (6). Deselected tests are not passes.",
+      "sha256": "410190811d251d9dd1264449d5ce4fbf64867c8ee86358f00e0c47c845ee11ba"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-document-bundle",
+      "artifact": "session-transition/mobile-document-android-bundle-integrated.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "android_javascript_export",
+      "scope": "631 modules,2.09MB; not native/signed standalone build or full device acceptance.",
+      "sha256": "6d037b265a7a91945dce311f295fde87e8c4332074bf76b6073a2404322a28e2"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "session-transition/parallel-checkpoint-handoff-docs.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "document_integrity",
+      "scope": "Prior document state only; rerun after current metadata integration.",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W07",
+        "W09"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Uncommitted integrated native documents, bibliography and counterevidence checkpoint; intermediary logs precede final hardening where noted",
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "session-transition/parallel-checkpoint-review-docs.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "document_integrity",
+      "scope": "Prior document state only; rerun after current metadata integration.",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "requirementIds": [
+        "W03",
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "commit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+      "workingTree": "Integrated checkpoint before subsequent review fixes",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "artifact": "checkpoint-review/extraction.log",
+      "exitCode": 0,
+      "environment": {
+        "node": "20.20.2",
+        "pnpm": "9.15.9",
+        "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+        "postgres": "local 127.0.0.1:55432, test database"
+      },
+      "evidenceClass": "actual_extraction_local_api_worker",
+      "scope": "14/14 across3 files,37.76s; actual offline parser/API/worker, fabricated model/search transport; no live semantics",
+      "sha256": "179d39f0e490d6555e5d8febff8218550c062ead12b2ba31eb89a7c708635784"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-publication-before.log",
+      "sha256": "4e63b60b954ce7f3aff6994910c97595b80b26ac53c3600547777334e66aa728",
+      "scope": "132 passed/2 failed;153.30s; reproduced limited-publication bypass"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 1,
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-replay-before.log",
+      "sha256": "258ccda157ec877d4c7660cb49d3eaf9bb28d946b80e27a3898356a8810071a4",
+      "scope": "13 passed/4 failed/119 deselected;25.93s; publication bypass and extra-search crash window reproduced"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-after.log",
+      "sha256": "fb669e467dbdf8ba8ee6b8c14c99d9223cdc3d0fa76413d7d355fa4a624aff43",
+      "scope": "17 passed/119 deselected;30.09s; intermediate before missing-record all-outcome veto"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres_fabricated_provider",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-final.log",
+      "sha256": "304ba1bf90a1530609cf28f3bf123474591993f654f3e19fb335ad47bcf71b67",
+      "scope": "17 passed/119 deselected;35.28s; final missing-record veto, limited target warnings and crash-window replay"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "evidenceClass": "static_types",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-typecheck.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Intermediate checkpoint"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "evidenceClass": "static_types",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-typecheck-final.log",
+      "sha256": "ad20e74baba5db154ab2398a35eaf534f804ea4cdda09d8bd9473af9c8a15b6d",
+      "scope": "Concurrent export regression added third argument before source signature repair; retained failure"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "evidenceClass": "static_types",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/counterevidence-typecheck-integrated.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Integrated source signature and publication repairs"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "evidenceClass": "static_types",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/backend-types-final.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Final primary verification after export repair"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "exitCode": 1,
+      "evidenceClass": "deterministic_unit",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/export-limitations-before.log",
+      "sha256": "63b7b16be7c449454cde21623947fe70de1d0adde202d6106a68c2f4a48c972e",
+      "scope": "6 passed/1 failed; reproduced omission of required report limitations"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "exitCode": 0,
+      "evidenceClass": "deterministic_unit",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/export-limitations-after.log",
+      "sha256": "a4609f4752a2cc4d829ca85f2482481dea2d0247ad731e1cd8ebadbd5e127a7a",
+      "scope": "7/7; escaped limitations and bibliography"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t E09",
+      "exitCode": 0,
+      "evidenceClass": "local_postgres",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/export-postgres.log",
+      "sha256": "6044937dfd0e6ae055f89b103b2f83f0f9ad69fabaaecc2a4d5c6038776e2d49",
+      "scope": "1 passed/50 deselected;8.15s; owned snapshot exports stored limitations with bibliography"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/review-docs.log",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "scope": "Canonical registry and documentation"
+    },
+    {
+      "requirementIds": [
+        "W01",
+        "W02",
+        "W05",
+        "W07",
+        "W09"
+      ],
+      "revision": "1448c7ded0d5302231aea9966f9104b0c2dfef3e + reviewed checkpoint source",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "evidenceClass": "document_integrity",
+      "environment": "Linux; Node20.20.2; pnpm9.15.9; PostgreSQL127.0.0.1:55432 where applicable",
+      "artifact": "checkpoint-review/handoff-docs.log",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "scope": "Historical package linkage and current handoff structure"
     }
   ],
   "unresolved": [
-    "W01: broader held-out semantic checking and real-model quality evidence",
-    "W02: missing receipt acquisition/historical settlement and remaining substantive typed tool actions",
-    "W03: hosted identity/native lifecycle, source-specific deletion and mixed-document public-query approval",
-    "W04: native binary picker and broader independent document fidelity corpus",
-    "W05: broader discovery/evidence selection and complete-context capacity, calculation writer adoption/final coverage and substantive counterevidence actions",
-    "W06: granular typed patches, selective dependency traversal, semantic change adjudication and freshness policy beyond explicit snapshot/refresh",
-    "W07: native file/correction/account flows and usable export bibliography",
-    "W08-W09: same-pipeline baseline/adaptive held-out evaluation, failures/repetitions, independent references and final canonical reconciliation",
-    "W10: separate release gates; no new deployment, paid model or native quality claim"
+    "W01: held-out semantic quality and broader contradiction/qualification recall",
+    "W02: mutation-basis audit, receipt acquisition, historical settlement repair and enforceable live provider bounds",
+    "W03: source-specific deletion/dependent invalidation, cache protection, wider lifecycle, hosted identity and external retention",
+    "W04: broader independent extraction corpus/table-column fidelity, native source reading and resolved standalone dependency audit",
+    "W05: real-model applicability, candidate discovery/eligibility, requested verification scheduling and latency",
+    "W06: granular typed patches, selective dependency traversal, freshness/source deletion, correction draft recovery and independently evaluated rerun agreement",
+    "W07: complete authenticated native research/source/correction/share/account-switch/accessibility/reconnect/reading-position journey; upload retry/preflight",
+    "W08-W09: matched same-pipeline baseline/adaptive evaluation, independent held-out references, failures/repetitions, clean-checkout/CI proof and remaining canonical reconciliation",
+    "W10: separate externally gated hosted/signed/iOS/release work; current paid authorization unknown"
   ],
   "liveSpend": {
     "newPaidCalls": 0,
@@ -5270,7 +6164,13 @@
     "currentAuthorizedRemainingBudget": "not established; no paid work authorized by kit",
     "historicalReservations": "not used as current authorization"
   },
-  "checkpointCommit": "b89df84",
-  "implementationCommit": "b89df8424e18e5a69d81faf03198175ccfdb0a31",
-  "calculatedReportImplementationCommit": "e22598840b7d0df7da34549fdc6bb38b23111f6f"
+  "checkpointCommit": "1448c7ded0d5302231aea9966f9104b0c2dfef3e",
+  "implementationCommit": "e22598840b7d0df7da34549fdc6bb38b23111f6f",
+  "calculatedReportImplementationCommit": "e22598840b7d0df7da34549fdc6bb38b23111f6f",
+  "sessionTransitionManifest": {
+    "artifact": "session-transition/FILES.json",
+    "sha256": "43d5770c8221342c99ebc01ffb0a48a8d821511d2c5d75cc136297c86650de2d",
+    "checkedFiles": 28,
+    "result": "All28 artifact hashes match preserved manifest; handoff draft is historical and its pending-results language is superseded by terminal logs."
+  }
 }

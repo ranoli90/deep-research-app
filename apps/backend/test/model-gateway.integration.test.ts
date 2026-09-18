@@ -1,3 +1,6 @@
+import { executeCounterevidence } from "../src/worker/counterevidence.js";
+import { counterevidenceContext,counterevidenceLimitations } from "../src/modules/counterevidence.js";
+import { counterevidenceSearch } from "@deep/research-core";
 import { mkdir,writeFile } from "node:fs/promises";
 import { executeCalculationPlanning } from "../src/worker/calculation-planning.js";
 import { prepareCalculationClaim } from "../src/modules/calculation-publication.js";
@@ -24,7 +27,7 @@ import { createDevSession, deleteAccount, grantConsent } from "../src/modules/ac
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
 import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, type StoredClaim } from "@deep/research-core";
-import { claimLease,getRun,cancelRun } from "../src/modules/runs.js";
+import { claimLease,getRun,cancelRun,emitEvent } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
@@ -1350,3 +1353,164 @@ it.each(["omitCalculation","wrongQuantity","unsupportedProse"] as const)("W05 ca
  expect(report.blocks.some((b:{text:string})=>b.text.includes("guaranteed total"))).toBe(false);
  if(option==="unsupportedProse")expect(report.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 20 hectares");
 },sumQuestion));
+
+async function counterevidenceCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+ const c=await supportCase(x);globalThis.fetch=vi.fn(async()=>response(c.proposal)) as typeof fetch;
+ const checked=await executeAssertionSupport(pool,x.config,x.session,c.args);if(checked.kind!=="support")throw new Error("missing initial support");
+ const config={...x.config,structuredChallengeEnabled:true,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
+ return {...c,config,args:{...c.args,supportIntentId:checked.intentId},checked};
+}
+function counterevidenceTransport() {
+ return vi.fn(async(_input:unknown,init?:RequestInit)=>{
+  const body=JSON.parse(String(init?.body));if(body.plugins?.length)return searchReply(true,"https://example.org/counterevidence");
+  const ctx=JSON.parse(body.messages[1].content);
+  return response({assessments:ctx.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Optimistic nonbillable control",missingEvidence:[]}))});
+ }) as typeof fetch;
+}
+describe("W05 counterevidence execution",()=>{
+ it.each(["contradictory","supportive","qualified"])("executes search, read and exact original-target support: %s",async(kind)=>runCase(async x=>{
+  const c=await counterevidenceCase(x),original=c.output.assertions[0]!.text;
+  globalThis.fetch=counterevidenceTransport();const read=vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,kind==="contradictory"?original.replace("restored","did not restore"):kind==="qualified"?original.replace("restored","may have restored"):original));
+  const first=await executeCounterevidence(pool,c.config,x.session,c.args);
+  expect(first).toMatchObject({kind:"challenge",outcome:kind==="supportive"?"no_counterevidence_found_in_inspected_evidence":"counterevidence_found",evidenceChanged:true});
+  const row=(await pool.query("SELECT * FROM counterevidence_checks WHERE run_id=$1",[x.runId])).rows[0];
+  expect(row.targets[0].claimRevisionId).toBe(c.checked.checks[0]!.claimRevisionId);expect(row.result[0].claimKey).toBe("area");expect(row.evidence_digest).toMatch(/^[a-f0-9]{64}$/);
+  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({...first,evidenceChanged:false});expect(read).toHaveBeenCalledTimes(1);expect(fetch).toHaveBeenCalledTimes(2);
+  const limitations=await counterevidenceLimitations(pool,c.args);expect(limitations.length).toBe(kind==="supportive"?0:1);if(kind!=="supportive")expect(limitations[0]).toContain(original);
+  await withTx(pool,db=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT 1 FROM counterevidence_checks WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
+ }));
+ it("preserves unknown search reservation and does not resend on replay",async()=>runCase(async x=>{
+  const c=await counterevidenceCase(x);globalThis.fetch=vi.fn(async()=>searchReply(false)) as typeof fetch;
+  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"outcome_unknown"});
+  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"outcome_unknown"});expect(fetch).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT i.state,i.reserved_max_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE i.run_id=$1 AND a.kind='search'",[x.runId])).rows).toMatchObject([{state:"outcome-unknown"}]);
+  expect((await counterevidenceLimitations(pool,c.args))[0]).toContain("search_outcome_unknown");
+ }));
+ it("rejects changed target revision and foreign owner before a new request",async()=>runCase(async x=>{
+  const c=await counterevidenceCase(x);globalThis.fetch=counterevidenceTransport();vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,c.output.assertions[0]!.text));
+  await executeCounterevidence(pool,c.config,x.session,c.args);const calls=vi.mocked(fetch).mock.calls.length;
+  await expect(counterevidenceContext(pool,{...c.args,accountId:crypto.randomUUID()})).rejects.toThrow("challenge_missing");
+  await pool.query("UPDATE claim_revisions SET text_digest=repeat('0',64) WHERE id=$1",[c.checked.checks[0]!.claimRevisionId]);
+  await expect(executeCounterevidence(pool,c.config,x.session,c.args)).rejects.toThrow("challenge_original_target_changed");expect(fetch).toHaveBeenCalledTimes(calls);
+ }));
+ it("rejects transformed private terms while allowing only the closed public suffix",async()=>runCase(async x=>{
+  const c=await searchCase(x),proposal=counterevidenceSearch(question,["q1"])!;globalThis.fetch=vi.fn() as typeof fetch;
+  await expect(performPublicSearch(pool,{...c.config,structuredChallengeEnabled:true},x.session,{...c.args,proposal:{...proposal,action:{...proposal.action,query:proposal.action.query+" SECRET_CANARY"}}})).rejects.toThrow("invalid_counterevidence_query_transform");expect(fetch).not.toHaveBeenCalled();
+ }));
+});
+it.each([{contradiction:true,linked:true},{contradiction:false,linked:true},{contradiction:true,linked:false},{contradiction:false,linked:false}])("W05 counterevidence production preserves original target when re-extraction omits it; contradiction=$contradiction linked=$linked",async({contradiction,linked})=>runCase(async x=>{
+ const entity=`Study-${crypto.randomUUID()}`,original=`${entity} supports offline editing.`,secondary="A separate observation describes online editing.";
+ const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/initial",title:"Initial evidence",publisher:"Study",originCluster:"initial"});
+ await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/initial",text:original,accessLevel:"partial-text"});
+ const normal=structuredWorkerTransport();let extractionCalls=0;
+ globalThis.fetch=vi.fn(async(input,init)=>{
+  const body=JSON.parse(String(init?.body));if(body.plugins?.length)return searchReply(true,"https://example.org/challenge");
+  const ctx=JSON.parse(body.messages[1].content),op=body.response_format.json_schema.name;
+  if(op==="research_extract_assertions_v1") {
+   extractionCalls++;const p=extractionCalls===1?ctx.passages.find((p:{text:string})=>p.text===original):ctx.passages.find((p:{text:string})=>p.text.includes(secondary));
+   const text=extractionCalls===1?original:secondary,start=p.text.indexOf(text);
+   return response({candidates:[],assertions:[{key:extractionCalls===1?"original":"replacement",candidateKey:null,criterionKeys:["c1"],text,scope:{...scope,entity:extractionCalls===1?entity:null},quantities:[],evidence:[{passageId:p.id,start,end:start+text.length,quote:text}]}],limitations:[]});
+  }
+  if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:"supported",assertionKeys:ctx.approvedClaimKeys,reason:"Optimistic boundary control"}],omittedRequirements:[]});
+  if(op==="research_write_report_v1")return response({title:"Findings",sections:[{heading:"Evidence",paragraphs:ctx.assertions.filter((a:{key:string})=>ctx.approvedClaimKeys.includes(a.key)).map((a:{key:string;text:string})=>({text:a.text,claimKeys:[a.key]}))}],unresolvedQuestionKeys:[],limitations:[]});
+  return normal(input,init);
+ }) as typeof fetch;
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,`${contradiction?original.replace("supports","does not support"):original} ${secondary}`));
+ await releaseForWorker(x);const enabled={...x.config,structuredChallengeEnabled:true,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
+ await processRun(pool,enabled,x.runId,{pauseAt:"writing"});
+ // Crash boundary: reads and provider receipts survived, but challenge completion was not checkpointed.
+ await pool.query("UPDATE counterevidence_checks SET state='planned',read_operations='[]',result=NULL,model_intent_id=NULL,outcome=NULL,evidence_revision=NULL,evidence_digest=NULL,context_manifest=NULL,checker_version=NULL WHERE run_id=$1",[x.runId]);
+ // Earlier crash boundary: the search result committed before its challenge pointer was saved.
+ if(!linked)await pool.query("UPDATE counterevidence_checks SET search_intent_id=NULL WHERE run_id=$1",[x.runId]);
+ await processRun(pool,enabled,x.runId);
+ expect(sourceReader.readSource).toHaveBeenCalledTimes(1);
+ expect(vi.mocked(fetch).mock.calls.filter(([,init])=>JSON.parse(String(init?.body)).plugins?.length)).toHaveLength(1);
+ const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows[0];expect(report).toBeDefined();
+ expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(contradiction?"completed_with_limitations":"completed");
+ expect(extractionCalls).toBe(2);expect(JSON.stringify(report.blocks)).toContain(secondary);
+ const challenge=(await pool.query("SELECT targets,result,outcome FROM counterevidence_checks WHERE run_id=$1",[x.runId])).rows[0];expect(challenge.targets[0].assertion.text).toBe(original);
+ expect(challenge.outcome).toBe(contradiction?"counterevidence_found":"no_counterevidence_found_in_inspected_evidence");
+ if(contradiction) {
+  expect(report.limitations.join(" ")).toContain(original);
+  const canonical:CanonicalReport={reportId:report.id,runId:x.runId,version:report.version,basis:report.basis,outcome:report.outcome,blocks:report.blocks,claimIds:report.claim_ids,limitations:report.limitations,sourceAccessSummary:report.source_access_summary,routeMode:report.route_mode};
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(true);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,limitations:[]})).toBe(false);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,limitations:["Some requested questions remain unresolved."]})).toBe(false);
+  await pool.query("UPDATE counterevidence_checks SET result='[]' WHERE run_id=$1",[x.runId]);
+  await expect(reportCompletionCovered(pool,x.accountId,canonical)).rejects.toThrow("stored_challenge_result_mismatch");
+ }
+ else {
+  const canonical:CanonicalReport={reportId:report.id,runId:x.runId,version:report.version,basis:report.basis,outcome:report.outcome,blocks:report.blocks,claimIds:report.claim_ids,limitations:report.limitations,sourceAccessSummary:report.source_access_summary,routeMode:report.route_mode};
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(true);
+  await pool.query("DELETE FROM counterevidence_checks WHERE run_id=$1",[x.runId]);
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(false);
+  expect((await counterevidenceLimitations(pool,{...x,briefRevision:1}))[0]).toContain("required counterevidence check cannot be restored");
+ }
+}));
+it("W05 counterevidence limited publication fails closed when required proof is lost, even with a warning",async()=>runCase(async x=>{
+ const c=await scopedReportCase(x);
+ await pool.query("UPDATE runs SET counterevidence_required_revision=1 WHERE id=$1",[x.runId]);
+ expect(await publishReport(pool,c.publication)).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+ expect(await publishReport(pool,{...c.publication,report:{...c.report,limitations:["Some requested questions remain unresolved."]}})).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+ expect((await pool.query("SELECT 1 FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ const limitations=await counterevidenceLimitations(pool,{...x,briefRevision:1});
+ expect(limitations).toHaveLength(1);
+ expect(await publishReport(pool,{...c.publication,report:{...c.report,limitations}})).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+ expect((await pool.query("SELECT 1 FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));
+it.each(["cancel","delete"])("W05 counterevidence rejects late source content after %s",async(action)=>runCase(async x=>{
+ const c=await counterevidenceCase(x);globalThis.fetch=counterevidenceTransport();
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>{
+  if(action==="delete")await withTx(pool,db=>deleteAccount(db,x.accountId));else await cancelRun(pool,x.runId);
+  return readControl(url,c.output.assertions[0]!.text);
+ });
+ await expect(executeCounterevidence(pool,c.config,x.session,c.args)).rejects.toThrow(LostWorkerLease);
+ expect((await pool.query("SELECT 1 FROM counterevidence_checks WHERE run_id=$1 AND state='checked'",[x.runId])).rowCount).toBe(0);
+ expect((await pool.query("SELECT 1 FROM extraction_receipts WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ if(action==="delete")expect((await pool.query("SELECT 1 FROM counterevidence_checks WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+}));
+it("W05 counterevidence cannot replace its real result with an optimistic stored flag",async()=>runCase(async x=>{
+ const c=await counterevidenceCase(x);globalThis.fetch=counterevidenceTransport();vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,c.output.assertions[0]!.text.replace("restored","did not restore")));
+ await executeCounterevidence(pool,c.config,x.session,c.args);
+ await pool.query("UPDATE counterevidence_checks SET outcome='no_counterevidence_found_in_inspected_evidence',result='[]' WHERE run_id=$1",[x.runId]);
+ await expect(counterevidenceLimitations(pool,c.args)).rejects.toThrow("stored_challenge_result_mismatch");
+}));
+it("W05 counterevidence retains an unknown support outcome without another model send",async()=>runCase(async x=>{
+ const c=await counterevidenceCase(x);let models=0;
+ globalThis.fetch=vi.fn(async(_input,init)=>{
+  const body=JSON.parse(String(init?.body));if(body.plugins?.length)return searchReply(true,"https://example.org/counterevidence");models++;
+  return new Response(JSON.stringify({id:"unknown-support",model:"openai/gpt-4o-mini",provider:"OpenAI",choices:[{finish_reason:"stop",message:{content:"{}"}}]}));
+ }) as typeof fetch;
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,c.output.assertions[0]!.text));
+ expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"outcome_unknown"});
+ expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"outcome_unknown"});expect(models).toBe(1);
+ expect((await pool.query("SELECT state FROM provider_intents WHERE run_id=$1 AND state='outcome-unknown'",[x.runId])).rows).toHaveLength(1);
+}));
+it("W05 counterevidence race cannot double-send its search and shares the three-query ceiling",async()=>runCase(async x=>{
+ const c=await counterevidenceCase(x);let entered!:()=>void,release!:()=>void;
+ const started=new Promise<void>(r=>entered=r),waiting=new Promise<void>(r=>release=r);
+ const normal=counterevidenceTransport();let searches=0;
+ globalThis.fetch=vi.fn(async(input,init)=>{
+  if(JSON.parse(String(init?.body)).plugins?.length){searches++;entered();await waiting;}return normal(input,init);
+ }) as typeof fetch;
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,c.output.assertions[0]!.text));
+ const first=executeCounterevidence(pool,c.config,x.session,c.args);await started;
+ try {expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"outcome_unknown"});}finally{release();}
+ expect(await first).toMatchObject({kind:"challenge",outcome:"no_counterevidence_found_in_inspected_evidence"});expect(searches).toBe(1);
+ globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
+ const searchArgs={...c.args,proposal:{rationale:"Boundary control",action:{type:"search" as const,query:"coral",questionKeys:["q1"],publicQueryBasis:span}}};
+ expect(await performPublicSearch(pool,c.config,x.session,searchArgs)).toMatchObject({kind:"search"});
+ expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"kelp"}}})).toMatchObject({kind:"search"});
+ expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"restoration"}}})).toEqual({kind:"blocked",reason:"discovery_query_limit"});
+}));
+it("W05 counterevidence disabled legacy run needs no proof, but an event alone cannot satisfy an admitted check",async()=>runCase(async x=>{
+ expect(await counterevidenceLimitations(pool,{...x,briefRevision:1})).toEqual([]);
+ const c=await counterevidenceCase(x);
+ expect(await executeCounterevidence(pool,{...c.config,structuredChallengeEnabled:false},x.session,c.args)).toEqual({kind:"not_applicable",reason:"counterevidence_disabled"});
+ expect(await counterevidenceLimitations(pool,c.args)).toEqual([]);
+ await x.session.write(db=>emitEvent(db,{runId:x.runId,accountId:x.accountId,type:"counterevidence_checked",phase:"researching",summary:"Test-only optimistic event without execution",payload:{outcome:"no_counterevidence_found_in_inspected_evidence"}}));
+ expect((await counterevidenceLimitations(pool,c.args))[0]).toContain("required counterevidence check cannot be restored");
+ await pool.query("UPDATE runs SET counterevidence_required_revision=1 WHERE id=$1",[x.runId]);
+ expect((await counterevidenceLimitations(pool,c.args))[0]).toContain("required counterevidence check cannot be restored");
+ await expect(executeCounterevidence(pool,c.config,x.session,c.args)).rejects.toThrow("required_challenge_proof_missing");
+}));

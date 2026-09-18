@@ -22,7 +22,7 @@ export type ReportBlock = {
   citationIds: string[];
 };
 
-export type AttachmentDraft = { id?: string; filename: string; mime: string; text: string };
+export type AttachmentDraft = { id?: string; filename: string; mime: string } & ({ text: string; bytes?: never } | { bytes: Uint8Array; text?: never });
 
 export type UiState = {
   tab: "research" | "library" | "settings";

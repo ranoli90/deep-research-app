@@ -109,3 +109,12 @@ it("W03 failed revocation-marker storage still attempts credential and private-c
   expect(await cache.getItem("deep.ui.v2")).toBeNull();
   expect((await createSessionStorage(cache, credentials).hydrate()).token).toBeNull();
 });
+
+it("W04/W07 selected binary documents never enter persisted device snapshots", async () => {
+  const cache = memoryStore(), credentials = memoryStore(), store = createSessionStorage(cache, credentials);
+  await store.activate({ accountId: "a", token: "a" });
+  await store.persist({ token: "a", state: { ...privateState("draft"), attachments: [{ filename: "private-file.pdf", mime: "application/pdf", bytes: new Uint8Array([77, 88, 99]) }] } });
+  const raw = await cache.getItem("deep.ui.v2");
+  expect(raw).not.toContain("private-file.pdf"); expect(raw).not.toContain("bytes");
+  expect((await store.hydrate()).state.attachments).toEqual([]);
+});

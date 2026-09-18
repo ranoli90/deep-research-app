@@ -1,0 +1,17 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (127 tests | 119 skipped) 10480ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: contradictory  864ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: supportive  670ms
+   ✓ W05 counterevidence execution > executes search, read and exact original-target support: qualified  654ms
+   ✓ W05 counterevidence execution > preserves unknown search reservation and does not resend on replay  362ms
+   ✓ W05 counterevidence execution > rejects changed target revision and foreign owner before a new request  532ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=true  3085ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=false  4116ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed | 119 skipped (127)
+   Start at  17:57:16
+   Duration  11.85s (transform 779ms, setup 0ms, collect 1.15s, tests 10.48s, environment 0ms, prepare 73ms)
+

@@ -1,3 +1,4 @@
+import { counterevidenceLimitations } from "../modules/counterevidence.js";
 import { executeCalculatedCoverage } from "./calculated-coverage.js";
 import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
@@ -57,7 +58,8 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;
-    const complete=coverage.complete&&!compiled.unresolved.length;
+    const challengeLimitations=await counterevidenceLimitations(db,args);
+    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length;
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");
     const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
@@ -68,7 +70,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
       // Completion requires the separately executed coverage review and intact final assertions.
-      limitations:complete?[]:["Some requested questions remain unresolved."],
+      limitations:complete?[]:["Some requested questions remain unresolved.",...challengeLimitations],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};
     const result=await publishReport(db,{report,accountId:args.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
     return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,coverageIntentId:reviewed.intentId,unresolvedStatements:compiled.unresolved};

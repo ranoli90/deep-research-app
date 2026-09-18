@@ -1,0 +1,55 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/report-export.unit.test.ts (7 tests | 1 failed) 17ms
+   × W07 V6-F18 export bibliography > preserves required counterevidence limitations in shared Markdown as escaped text 13ms
+     → expected 'Café wetlands cover 20 hectares.\n\n[…' to contain '## Limitations'
+   ✓ W07 V6-F18 export bibliography > resolves repeated references once, retains full identities and PDF locators, and avoids prefix collisions 1ms
+   ✓ W07 V6-F18 export bibliography > marks absent evidence unavailable and does not invent a bibliography for uncited text 0ms
+   ✓ W07 V6-F18 export bibliography > does not export executable, private or credentialed locator javascript:alert(1) 0ms
+   ✓ W07 V6-F18 export bibliography > does not export executable, private or credentialed locator data:text/html,secret 0ms
+   ✓ W07 V6-F18 export bibliography > does not export executable, private or credentialed locator attachment://private/file 0ms
+   ✓ W07 V6-F18 export bibliography > does not export executable, private or credentialed locator https://user:password@example.org/file 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/report-export.unit.test.ts > W07 V6-F18 export bibliography > preserves required counterevidence limitations in shared Markdown as escaped text
+AssertionError: expected 'Café wetlands cover 20 hectares.\n\n[…' to contain '## Limitations'
+
+- Expected
++ Received
+
+- ## Limitations
++ Café wetlands cover 20 hectares.
++
++ [^source-1] [^source-2]
++
++ > 20 hectares
++
++ [^source-1]
++
++ ## Sources
++
++ [^source-1]: Café wetland study — Research Institute. [Open source](<https://example.org/study?edition=2>). Retrieved: 2026-09-17T12:00:00.000Z. Access: partial\-text; coverage: partial. Passage locator: \{"kind":"page","block":"page:3:block:2"\}. Extraction: docling\-parse. Source version: bbbbbbbb-1111-4000-8000-000000000001; passage: aaaaaaaa-1111-4000-8000-000000000001.
++
++ [^source-2]: Source unavailable. Passage: aaaaaaaa\-1111\-4000\-8000\-000000000002.
+
+ ❯ test/report-export.unit.test.ts:19:16
+     17|       '<script>untrusted</script> [link](javascript:evil)',
+     18|     ]);
+     19|     expect(md).toContain("## Limitations");
+       |                ^
+     20|     expect(md).toContain('Counterevidence check for “Wetlands cover 20…
+     21|     expect(md).toContain('This conclusion remains unresolved');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  18:29:49
+   Duration  732ms (transform 351ms, setup 0ms, collect 487ms, tests 17ms, environment 0ms, prepare 74ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts

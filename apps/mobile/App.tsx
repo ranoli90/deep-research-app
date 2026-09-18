@@ -1,3 +1,5 @@
+import { AttachmentPanel } from "./src/AttachmentPanel";
+import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
@@ -76,6 +78,9 @@ function AppInner() {
   const [token, setToken] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const submitting = useRef(false);
+  const pickingDocument = useRef(false);
+  const [documentPending, setDocumentPending] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const signingIn = useRef<Promise<string> | null>(null);
   const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
@@ -187,6 +192,7 @@ function AppInner() {
 
   function clearPanels() {
     refreshing.current.clear();
+    setUploadStatus(null);
     setCorrection(""); setClarifyAnswer(""); setAttachText(""); setAttachName("note.txt");
     setFlagNote(""); setFlagOpen(false); setFlagStatus("idle"); setFlagInclude(false);
     setRestoreMessage(null); setProcessors([]); setPrivacyFlows(""); setDeletionVsSub("");
@@ -276,7 +282,7 @@ function AppInner() {
     });
     let mounted = true;
     const hydration = api.capture();
-    void hydrateOnLaunch(sessionStorage).then(async ({ token: t, accountId, state: saved }) => {
+    void Promise.resolve().then(clearDocumentPickerCache).then(() => hydrateOnLaunch(sessionStorage)).then(async ({ token: t, accountId, state: saved }) => {
       if (!hydration.current()) return;
       api.activateSession(t);
       const restored = api.capture();
@@ -301,7 +307,7 @@ function AppInner() {
       }
       requestAnimationFrame(() => { if (restored.current()) restoreReadingPosition(s.report?.blocks, s.readingAnchor); });
       restored.release();
-    }).catch(() => setState((s) => ({ ...s, error: "Secure session storage is unavailable. Sign in again when device storage is available." })))
+    }).catch(() => setState((s) => ({ ...s, error: "Device session storage or temporary-file cleanup is unavailable. Try again when device storage is available." })))
       .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -342,8 +348,22 @@ function AppInner() {
     });
   }, [state.tab, token]);
 
+  async function onPickDocument() {
+    if (!hydrated || pickingDocument.current || submitting.current) return;
+    if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
+    if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
+    const guard = api.capture();
+    pickingDocument.current = true; setDocumentPending(true);
+    try {
+      const file = await pickDocument(guard.current);
+      if (file && guard.current()) setState(s => guard.current() ? attachFile(s, file) : s);
+    } catch (error) {
+      if (guard.current() && !isSupersededRequest(error)) setState(s => guard.current() ? { ...s, error: (error as Error).message } : s);
+    } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
+  }
+
   async function onSend() {
-    if (!hydrated || submitting.current) return;
+    if (!hydrated || submitting.current || pickingDocument.current) return;
     const gate = canSubmit(state);
     if (!gate.ok) {
       const tab = submitPrerequisite(state);
@@ -356,10 +376,12 @@ function AppInner() {
       stopPolling();
       const t = token ?? (await ensureSession());
       const ids: string[] = [];
-      for (const file of state.attachments) {
-        const up = await api.attach(t, file.filename, file.mime, file.text);
+      for (const [index, file] of state.attachments.entries()) {
+        setUploadStatus(`Uploading document ${index + 1} of ${state.attachments.length}…`);
+        const up = file.bytes ? await api.attachBytes(t, file.filename, file.mime, file.bytes) : await api.attach(t, file.filename, file.mime, file.text);
         ids.push(up.attachmentId);
       }
+      setUploadStatus("Starting research…");
       const created = await api.createRun(t, state.draft.trim(), state.routeMode, newId(), ids);
       api.selectRun(created.runId);
       setViewState((s) => {
@@ -403,8 +425,8 @@ function AppInner() {
 
           return next;
         });
-      } else setViewState((s) => ({ ...s, error: (e as Error).message, status: "failed" }));
-    } finally { submitting.current = false; }
+      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally { submitting.current = false; setUploadStatus(null); }
   }
 
   async function onCancel() {
@@ -913,27 +935,11 @@ function AppInner() {
         ) : null}
 
         {state.tab === "research" && !state.source && !keyboardOpen && (showAttach || !state.report) ? (
-          <View style={styles.attachRow}>
-            <TextInput
-              value={attachName}
-              onChangeText={setAttachName}
-              style={styles.input}
-              allowFontScaling
-              maxFontSizeMultiplier={2}
-              accessibilityLabel="Attachment filename"
-            />
-            <TextInput
-              value={attachText}
-              onChangeText={setAttachText}
-              placeholder="Paste a text or Markdown note"
-              placeholderTextColor={theme.muted}
-              allowFontScaling
-              maxFontSizeMultiplier={2}
-              style={styles.input}
-              accessibilityLabel="Attachment text"
-            />
-            <Pressable
-              onPress={() => {
+          <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
+            pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
+            onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
+            onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
+            onAttachNote={() => {
                 setState((s) =>
                   attachFile(s, {
                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
@@ -943,13 +949,7 @@ function AppInner() {
                 );
                 setAttachText("");
                 setShowAttach(false);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Attach pasted note"
-            >
-              <Text style={styles.link}>Attach note ({state.attachments.length}/3)</Text>
-            </Pressable>
-          </View>
+              }} />
         ) : null}
         {state.tab === "research" && !state.source && !keyboardOpen && state.report && !showAttach ? (
           <Pressable
@@ -983,7 +983,8 @@ function AppInner() {
             accessibilityLabel="Research question"
           />
           <Pressable
-            disabled={!hydrated}
+            disabled={!hydrated || documentPending || uploadStatus !== null}
+            accessibilityState={{ disabled: !hydrated || documentPending || uploadStatus !== null }}
             onPress={onSend}
             style={styles.sendBtn}
             accessibilityRole="button"

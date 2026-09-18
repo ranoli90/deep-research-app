@@ -82,7 +82,7 @@
   {
     "command": "pnpm typecheck",
     "status": "implemented_application_command",
-    "scope": "workspace TypeScript check",
+    "scope": "Configured workspace TypeScript checks; design retains pre-existing || true, so this is not exhaustive design typecheck proof",
     "network": false,
     "paid": false,
     "implementation": "package.json#typecheck"
@@ -202,7 +202,7 @@
   {
     "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
     "status": "implemented_application_command",
-    "scope": "Real local PostgreSQL structured worker, model/public-search admission/replay/consent/deletion, extraction/support/coverage, calculation planning/execution/proof-aware publication; fabricated provider transport, no paid calls",
+    "scope": "Real local PostgreSQL structured worker, model/public-search admission/replay/consent/deletion, extraction/support/coverage, calculation planning/execution/proof-aware publication; fabricated provider transport, no paid calls; bounded counterevidence target/replay/privacy/required-proof controls. Run serially against shared test database.",
     "network": false,
     "paid": false,
     "implementation": "apps/backend/test/model-gateway.integration.test.ts"
@@ -238,5 +238,69 @@
     "network": true,
     "paid": false,
     "implementation": "apps/mobile/package.json#start"
+  },
+  {
+    "command": "pnpm --filter @deep/backend typecheck",
+    "status": "implemented_application_command",
+    "scope": "Backend static TypeScript checks",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json#typecheck"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test",
+    "status": "implemented_application_command",
+    "scope": "Mobile deterministic unit controls, no native execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#test"
+  },
+  {
+    "command": "pnpm --filter @deep/research-core exec vitest run test/p1-p2.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused pure report/citation/export controls",
+    "network": false,
+    "paid": false,
+    "implementation": "packages/research-core/test/p1-p2.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Focused pure Markdown bibliography controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/report-export.unit.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local PostgreSQL report/export controls; run serially against shared database",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/p3-remaining.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t counterevidence",
+    "status": "implemented_application_command",
+    "scope": "Selected local PostgreSQL counterevidence controls; deselected tests are not passes; shared database requires serial execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/model-gateway.integration.test.ts"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-document-bundle",
+    "status": "implemented_application_command",
+    "scope": "Integrated Android JavaScript export only, not native build or device acceptance",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#bundle:android"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t E09",
+    "status": "implemented_application_command",
+    "scope": "Focused owned Markdown bibliography and limitation retention; real local PostgreSQL, no paid providers",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/p3-remaining.integration.test.ts"
   }
 ]

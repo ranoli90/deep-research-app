@@ -13,7 +13,6 @@ import {
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
-  blocksToMarkdown,
   extractConstraints,
   impactForCorrection,
   inferOutputPreference,
@@ -25,6 +24,7 @@ import type pg from "pg";
 import { createHash } from "node:crypto";
 import type { AppConfig } from "../platform/config.js";
 import { withTx } from "../platform/db.js";
+import { exportReportForAccount } from "../modules/report-export.js";
 import { logError } from "../platform/log.js";
 import {
   accountFromBearer,
@@ -538,10 +538,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get("/v1/reports/:id/export", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
-    if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
-    const blocks = report.blocks as Parameters<typeof blocksToMarkdown>[0];
-    const md = blocksToMarkdown(blocks);
+    const md = await exportReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    if (md === null) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
     return { format: "markdown", markdown: md };
   });
 

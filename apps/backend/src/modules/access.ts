@@ -113,6 +113,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
       AND storage_ptr <> '' AND storage_ptr NOT LIKE 'db:%' ON CONFLICT DO NOTHING`, [accountId]);
   await db.query("DELETE FROM run_evidence_membership WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM research_change_sets WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM counterevidence_checks WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM source_read_operations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM search_operations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM calculated_report_coverage WHERE account_id=$1", [accountId]);

@@ -1,0 +1,16 @@
+
+> @deep/mobile@0.1.0 bundle:android /home/oranolio/Desktop/Deep/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-v6-mobile-document-bundle
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓▓▓▓▓░░░░░░░░░░ 38.5% (216/348)
+Android Bundled 4134ms apps/mobile/index.ts (631 modules)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (631/631)
+
+› android bundles (1):
+_expo/static/js/android/index-cd97d1b5b9f214b15869382432ab48f3.hbc (2.09 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-v6-mobile-document-bundle

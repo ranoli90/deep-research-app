@@ -401,7 +401,7 @@ describe("V2-03 gold-evidence diagnostic", () => {
 });
 
 describe("E09 markdown export", () => {
-  it("emits tables, fenced code, unicode, and 8-char citation prefixes", () => {
+  it("emits tables, fenced code, unicode, and explicit unavailable labels when citation metadata is absent", () => {
     const md = blocksToMarkdown([
       {
         id: "answer",
@@ -429,9 +429,18 @@ describe("E09 markdown export", () => {
     expect(md).toMatch(/\| Vendor \| Price \|/);
     expect(md).toMatch(/\| Vendor C \| 70 EUR \|/);
     expect(md).toMatch(/```\nVendor C  70 EUR\n```/);
-    expect(md).toMatch(/\[aaaaaaaa\]/);
-    expect(md).toMatch(/\[bbbbbbbb\]/);
+    expect(md).toContain("Source unavailable (passage: aaaaaaaa-1111-4000-8000-000000000001).");
+    expect(md).toContain("Source unavailable (passage: bbbbbbbb-1111-4000-8000-000000000002).");
+    expect(md).not.toMatch(/\[[0-9a-f]{8}\]/);
     expect(md).not.toMatch(/pdf/i);
+  });
+  it("escapes an unavailable citation identity instead of interpreting it as markup", () => {
+    const md = blocksToMarkdown([{ id: "answer", kind: "text", text: "Saved finding", claimIds: [],
+      citationIds: ["<img src=x> [fake](javascript:evil)"] }]);
+    expect(md).toContain("Source unavailable (passage:");
+    expect(md).not.toContain("<img");
+    expect(md).not.toContain("[fake]");
+    expect(md).toContain("&#60;img");
   });
 });
 
