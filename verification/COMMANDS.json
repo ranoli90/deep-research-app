@@ -1464,5 +1464,21 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/model-gateway.integration.test.ts -t 'keeps supported synthesis'",
+    "scope": "W01/W09 deterministic UUID collision regression; exact canonical text and caveats, real PostgreSQL;135other cases explicitly deselected",
+    "implementation": "apps/backend/package.json",
+    "status": "implemented_application_command",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "python3 verification/v6/current-continuation/record.py",
+    "scope": "W09 copies terminal logs and traces losslessly into compressed evidence; pending command never inferred successful",
+    "implementation": "verification/v6/current-continuation/record.py",
+    "status": "implemented_application_command",
+    "network": false,
+    "paid": false
   }
 ]

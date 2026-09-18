@@ -1,0 +1,21 @@
+{
+  "reviewPin": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+  "startHead": "4d818feb1dcf8808b38c980ac2f2f204977e2d7b",
+  "ancestorCommandExit": 0,
+  "originalProbeModules": [
+    {
+      "file": "support.ts",
+      "kitGitBlob": "7c797bacf82daa696656bc87c7b3e1bca5577f72",
+      "reviewedGitBlob": "7c797bacf82daa696656bc87c7b3e1bca5577f72",
+      "matches": true
+    },
+    {
+      "file": "citations.ts",
+      "kitGitBlob": "536524e9db59f0b43898245f78a6516f906032cb",
+      "reviewedGitBlob": "536524e9db59f0b43898245f78a6516f906032cb",
+      "matches": true
+    }
+  ],
+  "probeExecution": "Original snapshot not rerun: Node20 lacks stripTypeScriptTypes; current production regressions run through existing Vitest tests instead",
+  "zipSha256": "d7113650d9299893a6857d79142401f4bc5a8ca3987697b74c9dfed692c8496f"
+}

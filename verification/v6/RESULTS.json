@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Phone fixes and evidence committed as7fb6d387040edf57bb4694e488b62f4ff1cc0156;206mobile tests/types pass. Push/merge to main now explicitly user-authorized; paid/deploy gates unchanged.",
+  "workingTree": "ADR054 runtime643e203 plus strengthened numeric publication regression47c3c1a; final425PostgreSQL/51actualextraction and verify157/149/206/6 pass. See current-continuation/RESULTS.json for retained failures, current source hashes and scoped limitations; W01-W09 incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6345,5 +6345,6 @@
   "artifactCapacityEvidence": "verification/v6/artifact-upload-limit/RESULTS.json",
   "frozenPdfIntegratedEvidence": "verification/v6/frozen-pdf-integrated/RESULTS.json",
   "frozenPdfCleanCheckoutEvidence": "verification/v6/clean-frozen-pdf/RESULTS.json",
-  "physicalUnlockedEvidence": "verification/v6/physical-unlocked/RESULTS.json"
+  "physicalUnlockedEvidence": "verification/v6/physical-unlocked/RESULTS.json",
+  "currentContinuation": "current-continuation/RESULTS.json"
 }

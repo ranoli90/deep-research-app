@@ -1,0 +1,160 @@
+{
+  "reviewBase": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
+  "startHead": "4d818feb1dcf8808b38c980ac2f2f204977e2d7b",
+  "kitSha256": "d7113650d9299893a6857d79142401f4bc5a8ca3987697b74c9dfed692c8496f",
+  "method": "Current production-path regression recheck plus bounded source inspection; primary agent only, no independent adjudication.",
+  "findings": [
+    {
+      "id": "V6-F01",
+      "reviewedTitle": "Citation checking accepts opposite and insufficiently supported claims",
+      "recheckTest": "apps/backend/test/v6-publication.integration.test.ts",
+      "currentDisposition": "Publication rejects negated/numeric/overstrong/missing/unmapped/wrong-owner/version claims with controls; semantic accuracy remains bounded.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F02",
+      "reviewedTitle": "Production candidate logic is restricted to fixture names",
+      "recheckTest": "apps/backend/test/model-gateway.integration.test.ts",
+      "currentDisposition": "Structured production extraction replaces fixture-name matching; fabricated responses do not validate semantic eligibility.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F03",
+      "reviewedTitle": "Verify and related actions are mostly event labels",
+      "recheckTest": "apps/backend/test/requested-verification.integration.test.ts",
+      "currentDisposition": "Durable support, verification, scope comparison and arithmetic results are required, not progress events.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F04",
+      "reviewedTitle": "Task coverage is inferred from source presence",
+      "recheckTest": "apps/backend/test/model-gateway.integration.test.ts",
+      "currentDisposition": "Persisted criterion/final-report coverage gates replace source-count completion; model coverage quality remains unproved.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F05",
+      "reviewedTitle": "Live synthesis remains a deterministic scenario composer",
+      "recheckTest": "apps/backend/test/model-gateway.integration.test.ts",
+      "currentDisposition": "Production structured writer/gateway is isolated from historical fixture composition; useful live synthesis remains unproved.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F06",
+      "reviewedTitle": "Fetched HTML is truncated and mislabeled as complete evidence",
+      "recheckTest": "apps/backend/test/html.extraction.test.ts",
+      "currentDisposition": "Existing selected isolated HTML parser; this change adds exact saved HTML ingestion/evaluation. Large-context and imperfect extraction limits remain.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F07",
+      "reviewedTitle": "PDF attachment feature does not parse real PDF bytes",
+      "recheckTest": "apps/backend/test/document-flow.extraction.test.ts",
+      "currentDisposition": "Actual binary PDF ingestion and isolated page/geometry extraction; OCR/layout limitations remain.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F08",
+      "reviewedTitle": "Correction reuse is a flag rather than demonstrated evidence reuse",
+      "recheckTest": "apps/backend/test/correction-rediscovery.integration.test.ts",
+      "currentDisposition": "Immutable authorized membership and conservative recomputation; no claim of selective inference savings or real-model agreement.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F09",
+      "reviewedTitle": "Live spending admission is non-atomic and estimated cost is called confirmed",
+      "recheckTest": "apps/backend/test/v6-execution.integration.test.ts",
+      "currentDisposition": "Atomic scoped reservation, attempts and real-receipt-shaped local controls; no new actual paid receipts or enforceable provider-cap certification.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F10",
+      "reviewedTitle": "Accepted run and queue admission have a crash gap",
+      "recheckTest": "apps/backend/test/admission-recovery.integration.test.ts",
+      "currentDisposition": "Atomic admission/outbox and stable retry/withdrawal controls; no external exactly-once claim.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F11",
+      "reviewedTitle": "Leases and terminal mutations are not fully fenced",
+      "recheckTest": "apps/backend/test/lease-clock.integration.test.ts",
+      "currentDisposition": "Unique-attempt current-clock lease/fence checks and stale mutation controls; unknown outcomes remain held.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F12",
+      "reviewedTitle": "Network fetch protections are incomplete",
+      "recheckTest": "apps/backend/test/pinned-http.integration.test.ts",
+      "currentDisposition": "Pinned socket and bounded transport controls; no hosted network penetration claim.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F13",
+      "reviewedTitle": "Deletion does not cover all private data paths",
+      "recheckTest": "apps/backend/test/v6-deletion.integration.test.ts",
+      "currentDisposition": "Original/derived account content purging and stale-worker gates; external backups/processor deletion remain separate.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F14",
+      "reviewedTitle": "Production identity and cross-object ownership are incomplete",
+      "recheckTest": "apps/backend/test/v6-identity.integration.test.ts",
+      "currentDisposition": "Configured identity verification and owned cross-object admission; hosted sign-in remains unproved.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F15",
+      "reviewedTitle": "Model admission trusts an overly broad proposal shape",
+      "recheckTest": "apps/backend/test/controller-admission.integration.test.ts",
+      "currentDisposition": "Strict action/basis/source gates and transformed-action admission controls.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F16",
+      "reviewedTitle": "Benchmark measures fixture machinery rather than independent quality",
+      "recheckTest": "apps/backend/test/eval-live.extraction.test.ts",
+      "currentDisposition": "Matched production-path evaluator with frozen PDF/HTML; current local transports fabricated, real-model scoring/human adjudication absent.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F17",
+      "reviewedTitle": "Mobile secret storage and in-flight account isolation need strengthening",
+      "recheckTest": "apps/mobile/test/auth-recovery.test.ts",
+      "currentDisposition": "Secure account storage and request/session generations rechecked by unit suite; historical physical evidence not rerun.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F18",
+      "reviewedTitle": "Shared Markdown loses usable evidence references",
+      "recheckTest": "apps/backend/test/report-export.unit.test.ts",
+      "currentDisposition": "Canonical bibliography/source locators and export ownership; no recipient delivery claim.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    },
+    {
+      "id": "V6-F19",
+      "reviewedTitle": "Canonical documentation overstates or contradicts current state",
+      "recheckTest": "apps/backend/test/governance.test.ts",
+      "currentDisposition": "Current command registry/types/boundaries and doc validators; corrected obsolete root unavailable-command statement. Hosted CI unrun.",
+      "evidence": "RESULTS.json; baseline-verify.log.gz; baseline-integration.log.gz (retained timeout); focused-integration.log.gz; integration-complete.log.gz; extraction.log.gz",
+      "closure": "bounded local controls only; not full finding closure"
+    }
+  ]
+}

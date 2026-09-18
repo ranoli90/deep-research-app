@@ -1,0 +1,636 @@
+{
+  "evidenceClass": "production_api_worker_actual_html_extraction_fabricated_transports",
+  "actualPaidCalls": 0,
+  "actualProviderSpendMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "journeys": [
+    {
+      "kind": "frozen_pdf_four_run",
+      "runs": [
+        {
+          "stepId": "MC-D01:1:A1:original",
+          "runId": "7e148b1a-6c2d-4858-95f1-cd681c148c4e",
+          "reportId": "ca87ae5f-5caf-4948-b038-742c5f2f754e",
+          "outcome": "completed",
+          "wallMs": 3941.111051,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 2,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "docling-parse-7.20.0/geometry-v1"
+          ],
+          "sourceDigests": [
+            "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "ca87ae5f-5caf-4948-b038-742c5f2f754e",
+            "runId": "7e148b1a-6c2d-4858-95f1-cd681c148c4e",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Ardent does not support underwater recording.",
+                "claimIds": [
+                  "bb982052-2a2c-4ab9-a84d-f5048ce118f9"
+                ],
+                "citationIds": [
+                  "cd891fd7-36c1-413b-ac60-62ff604873a9"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.pdf",
+                "sourceId": "b17c9d91-6656-4bc8-bd0f-161f1d2c50cc",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://04cd1166-a112-47f5-9683-c7bed0eeb255"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:B:original",
+          "runId": "ccae800a-eee1-424f-a9c1-e4e3ac47252f",
+          "reportId": "1947e11c-86c2-42ad-8bed-62239aedd565",
+          "outcome": "completed",
+          "wallMs": 3939.067685000002,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 2,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "docling-parse-7.20.0/geometry-v1"
+          ],
+          "sourceDigests": [
+            "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "1947e11c-86c2-42ad-8bed-62239aedd565",
+            "runId": "ccae800a-eee1-424f-a9c1-e4e3ac47252f",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Ardent does not support underwater recording.",
+                "claimIds": [
+                  "50ad275b-3723-4f13-bf6e-031edf77c56d"
+                ],
+                "citationIds": [
+                  "54b113e7-3a4e-4a30-a235-09643cb95b3e"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.pdf",
+                "sourceId": "ad06bcc8-6e78-4881-9be2-97484ded9273",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://7a0f3c91-ee78-46ed-990f-5b874902147f"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:B:correction",
+          "runId": "997af6bc-c6c6-4651-ad48-737f74b3dc5c",
+          "reportId": "bd4fbe00-74b4-4275-b98c-a0ad10c0e710",
+          "outcome": "completed",
+          "wallMs": 2597.465849,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 2,
+          "reusedPassageCount": 2,
+          "extractorVersions": [
+            "docling-parse-7.20.0/geometry-v1"
+          ],
+          "sourceDigests": [
+            "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "bd4fbe00-74b4-4275-b98c-a0ad10c0e710",
+            "runId": "997af6bc-c6c6-4651-ad48-737f74b3dc5c",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Ardent supports offline recording only on firmware 4.2.",
+                "claimIds": [
+                  "b7bb628a-dd3c-49fc-82e8-d198a54ae180"
+                ],
+                "citationIds": [
+                  "54b113e7-3a4e-4a30-a235-09643cb95b3e"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.pdf",
+                "sourceId": "ad06bcc8-6e78-4881-9be2-97484ded9273",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://7a0f3c91-ee78-46ed-990f-5b874902147f"
+              }
+            ],
+            "changeSummary": {
+              "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+              "comparison": {
+                "version": "report-changes.v1",
+                "parentReportId": "1947e11c-86c2-42ad-8bed-62239aedd565",
+                "addedCriterionIds": [],
+                "reportStateChanged": false,
+                "removedCriterionIds": [],
+                "unchangedAssertions": 0,
+                "addedClaimRevisionIds": [
+                  "12e47faa-df59-428a-80e0-2c626ad00d4a"
+                ],
+                "removedClaimRevisionIds": [
+                  "4e016541-f38b-48a8-b7fd-a469468148a7"
+                ],
+                "newlyCitedSourceVersionIds": [],
+                "reusedCitedSourceVersionIds": [
+                  "3942a4c8-7090-49a3-b0bf-a19aea4c64a9"
+                ]
+              },
+              "newlyFeasible": [],
+              "evidenceUpdated": false,
+              "newlyInfeasible": [],
+              "conclusionChanged": true
+            },
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "runId": "e5e8e979-88d9-43f9-802b-e39b1c636e81",
+          "reportId": "a0a85502-9874-4850-840e-746472436612",
+          "outcome": "completed",
+          "wallMs": 3925.732025999998,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 2,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "docling-parse-7.20.0/geometry-v1"
+          ],
+          "sourceDigests": [
+            "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "a0a85502-9874-4850-840e-746472436612",
+            "runId": "e5e8e979-88d9-43f9-802b-e39b1c636e81",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Ardent supports offline recording only on firmware 4.2.",
+                "claimIds": [
+                  "74c7cd34-a5c3-414e-b9b7-e556db77099e"
+                ],
+                "citationIds": [
+                  "2378d72b-758d-4c6d-a3ba-9fd59727c047"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.pdf",
+                "sourceId": "9566f575-0a2f-4ab4-937c-7e6a4639db98",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://ca4e8cec-57bf-45cd-9981-09f943c1ca60"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        }
+      ]
+    },
+    {
+      "kind": "frozen_html_four_run",
+      "runs": [
+        {
+          "stepId": "MC-D01:1:A1:original",
+          "runId": "c252c60c-8738-4d3f-ba85-988ccc6e594a",
+          "reportId": "0c8e44cd-e4a1-4ab4-8685-69345916c49a",
+          "outcome": "completed",
+          "wallMs": 3355.476738999998,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 3,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "trafilatura-2.2.0/structure-v4"
+          ],
+          "sourceDigests": [
+            "3da6b19388464cf9eb3bd54a6114041f87ede05b88529be049ea21b6a9c42ac3"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "0c8e44cd-e4a1-4ab4-8685-69345916c49a",
+            "runId": "c252c60c-8738-4d3f-ba85-988ccc6e594a",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Device609d094378894c4e8f4d1906185b7c6f does not support underwater recording.",
+                "claimIds": [
+                  "f292f537-faf2-470b-ac77-ec18359a51ab"
+                ],
+                "citationIds": [
+                  "153e5ac1-0c10-498b-8567-e674213b797b"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.html",
+                "sourceId": "2499ceb1-655e-44b8-96ac-b442707978ba",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://32e02767-9a22-406a-b69c-81f4a9732996"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:B:original",
+          "runId": "1e507057-691e-4a07-8b77-768a849410d5",
+          "reportId": "2748f18b-fffd-41bf-8427-dceb135e4ee8",
+          "outcome": "completed",
+          "wallMs": 3359.7343720000063,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 3,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "trafilatura-2.2.0/structure-v4"
+          ],
+          "sourceDigests": [
+            "3da6b19388464cf9eb3bd54a6114041f87ede05b88529be049ea21b6a9c42ac3"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "2748f18b-fffd-41bf-8427-dceb135e4ee8",
+            "runId": "1e507057-691e-4a07-8b77-768a849410d5",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Device609d094378894c4e8f4d1906185b7c6f does not support underwater recording.",
+                "claimIds": [
+                  "f43f0dca-b727-4df5-9ac8-994f91065511"
+                ],
+                "citationIds": [
+                  "ed0a1964-3700-4e31-9037-cc57f54665cf"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.html",
+                "sourceId": "ccd6cc8e-d82d-4672-88ab-c48fe9e2bc74",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://255cc9cd-3643-4ff7-9ce1-f4cf2ea9a008"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:B:correction",
+          "runId": "6ef474d2-d056-4f38-aa36-9b2af30aefd0",
+          "reportId": "ade08717-0c79-4e70-97c4-1af8870b0fe2",
+          "outcome": "completed",
+          "wallMs": 2679.6821350000027,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 3,
+          "reusedPassageCount": 3,
+          "extractorVersions": [
+            "trafilatura-2.2.0/structure-v4"
+          ],
+          "sourceDigests": [
+            "3da6b19388464cf9eb3bd54a6114041f87ede05b88529be049ea21b6a9c42ac3"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "ade08717-0c79-4e70-97c4-1af8870b0fe2",
+            "runId": "6ef474d2-d056-4f38-aa36-9b2af30aefd0",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Device609d094378894c4e8f4d1906185b7c6f supports offline recording only on firmware 4.2.",
+                "claimIds": [
+                  "9be78eee-22f4-404e-a276-d6d7ec5ee96c"
+                ],
+                "citationIds": [
+                  "058017f0-d807-4ae8-a442-395bc146c84e"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.html",
+                "sourceId": "ccd6cc8e-d82d-4672-88ab-c48fe9e2bc74",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://255cc9cd-3643-4ff7-9ce1-f4cf2ea9a008"
+              }
+            ],
+            "changeSummary": {
+              "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+              "comparison": {
+                "version": "report-changes.v1",
+                "parentReportId": "2748f18b-fffd-41bf-8427-dceb135e4ee8",
+                "addedCriterionIds": [],
+                "reportStateChanged": false,
+                "removedCriterionIds": [],
+                "unchangedAssertions": 0,
+                "addedClaimRevisionIds": [
+                  "4d174bee-49ce-4b34-a175-98519e8e1e5f"
+                ],
+                "removedClaimRevisionIds": [
+                  "7798651a-447b-42ec-8e9b-86eb7f33e68a"
+                ],
+                "newlyCitedSourceVersionIds": [],
+                "reusedCitedSourceVersionIds": [
+                  "165590fd-796e-439f-abab-ea8a877d1afe"
+                ]
+              },
+              "newlyFeasible": [],
+              "evidenceUpdated": false,
+              "newlyInfeasible": [],
+              "conclusionChanged": true
+            },
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        },
+        {
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "runId": "9ab36fbc-7232-4f0a-93b0-5eaf575288b4",
+          "reportId": "8e93f02e-3a96-4db4-a4e3-170b9e0640b6",
+          "outcome": "completed",
+          "wallMs": 3356.095042999994,
+          "fabricatedAttemptCount": 7,
+          "syntheticLedger": {
+            "confirmedMicro": 7,
+            "heldMicro": 0,
+            "unknownIntents": 0
+          },
+          "passageCount": 3,
+          "reusedPassageCount": 0,
+          "extractorVersions": [
+            "trafilatura-2.2.0/structure-v4"
+          ],
+          "sourceDigests": [
+            "3da6b19388464cf9eb3bd54a6114041f87ede05b88529be049ea21b6a9c42ac3"
+          ],
+          "supportResults": 2,
+          "report": {
+            "reportId": "8e93f02e-3a96-4db4-a4e3-170b9e0640b6",
+            "runId": "9ab36fbc-7232-4f0a-93b0-5eaf575288b4",
+            "version": 1,
+            "outcome": "completed",
+            "blocks": [
+              {
+                "id": "heading_0",
+                "kind": "heading",
+                "text": "Evidence",
+                "claimIds": [],
+                "citationIds": []
+              },
+              {
+                "id": "paragraph_0_0",
+                "kind": "text",
+                "text": "Device609d094378894c4e8f4d1906185b7c6f supports offline recording only on firmware 4.2.",
+                "claimIds": [
+                  "7a325a80-7279-4808-8923-ecc395f69091"
+                ],
+                "citationIds": [
+                  "4335734b-88a1-4b3a-8b53-8de2932b4ddf"
+                ]
+              }
+            ],
+            "limitations": [],
+            "sourceAccessSummary": [
+              {
+                "title": "document.html",
+                "sourceId": "0ca2c83c-2baf-44e3-bb5c-7c3ef3b7a6a0",
+                "accessLevel": "partial-text",
+                "originCluster": "attachment://0b4ec17e-34ca-4eb1-a63e-e751e5649171"
+              }
+            ],
+            "changeSummary": null,
+            "routeMode": "controlled-research",
+            "labeledDemo": false
+          }
+        }
+      ]
+    }
+  ],
+  "officialDocuments": [
+    {
+      "sourceId": "rfc9112",
+      "runId": "664e3f5e-a597-4657-b561-229667b24091",
+      "outcome": "failed",
+      "reportId": null,
+      "passageCount": 46,
+      "reason": [
+        "no_relevant_assertions"
+      ],
+      "digest": [
+        "b260bba790c2da55a7e0795f356fcd9b70743686c55250f0ef1cc993c4d1abac"
+      ],
+      "decisivePassages": []
+    },
+    {
+      "sourceId": "tmp117",
+      "runId": "6be4050e-11c0-49c5-aa00-887d7e62cf58",
+      "outcome": "failed",
+      "reportId": null,
+      "passageCount": 50,
+      "reason": [
+        "no_relevant_assertions"
+      ],
+      "digest": [
+        "b33614678dd46e7997f813ccefb118796dcbcc97c9ba264806703ee453a3d555"
+      ],
+      "decisivePassages": []
+    },
+    {
+      "sourceId": "esp32",
+      "runId": "cd128bb2-1074-4ae2-8be2-01d0af629282",
+      "outcome": "failed",
+      "reportId": null,
+      "passageCount": 78,
+      "reason": [
+        "model_context_exceeds_policy"
+      ],
+      "digest": [
+        "a7917e6b47528c9dcab06837a49d452e582751335797db879f1cf2d17cd29adf"
+      ],
+      "decisivePassages": []
+    },
+    {
+      "sourceId": "sqlite-wal",
+      "runId": "9551f3ed-7a31-4305-a4d3-3da46e16df79",
+      "outcome": "failed",
+      "reportId": null,
+      "passageCount": 75,
+      "reason": [
+        "no_relevant_assertions"
+      ],
+      "digest": [
+        "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e"
+      ],
+      "decisivePassages": [
+        {
+          "id": "2dea9d10-da26-4fc7-bd49-30daa622aee1",
+          "source_version_id": "04d78700-dd77-4ca1-9068-079e1dd5964d",
+          "content_hash": "69368ff1fc197ecbe94cb84e0acb9670e588ba1210da8cfbb28cf5000208418e",
+          "exact_text": "But there are also disadvantages:\nOrdered list:\n[item 1] All processes using a database must be on the same host computer;\nWAL does not work over a network filesystem. This is because WAL requires\nall processes to share a small amount of memory and processes on\nseparate host machines obviously cannot share memory with each other.\n[item 2] Transactions that involve changes against multiple ATTACHed\ndatabases are atomic for each individual database, but are not\natomic across all databases as a set.\n[item 3] It is not possible to change the page_size after entering WAL\nmode, either on an empty database or by using VACUUM or by restoring\nfrom a backup using the backup API. You must be in a rollback journal\nmode to change the page size.\n[item 4] [struck-through: It is not possible to open read-only WAL databases. The opening process must have write privileges for \"-shm\" wal-index shared memory file associated with the database, if that file exists, or else write access on the directory containing the database file if the \"-shm\" file does not exist.]\nBeginning with version 3.22.0 (2018-01-22), a read-only\nWAL-mode database file can be opened if\nthe -shm and -wal files\nalready exist or those files can be created or the\ndatabase is immutable.\n[item 5] WAL might be very slightly slower (perhaps 1% or 2% slower)\nthan the traditional rollback-journal approach\nin applications that do mostly reads and seldom write.\n[item 6] There is an additional quasi-persistent \"-wal\" file and\n\"-shm\" shared memory file associated with each\ndatabase, which can make SQLite less appealing for use as an\napplication file-format.\n[item 7] There is the extra operation of checkpointing which, though automatic\nby default, is still something that application developers need to\nbe mindful of.\n[item 8] [struck-through: WAL works best with smaller transactions. WAL does not work well for very large transactions. For transactions larger than about 100 megabytes, traditional rollback journal modes will likely be faster. For transactions in excess of a gigabyte, WAL mode may fail with an I/O or disk-full error. It is recommended that one of the rollback journal modes be used for transactions larger than a few dozen megabytes.]\nBeginning with version 3.11.0 (2016-02-15),\nWAL mode works as efficiently with\nlarge transactions as does rollback mode.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "list:3",
+            "normalization": "extractor-output-v1"
+          },
+          "extraction_method": "trafilatura-2.2.0/structure-v4",
+          "access_level": "partial-text",
+          "source_digest": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e"
+        },
+        {
+          "id": "3e7dc6ea-d251-4fb2-883a-ff25cfc65e4d",
+          "source_version_id": "04d78700-dd77-4ca1-9068-079e1dd5964d",
+          "content_hash": "ed0a35cf6ce78c2330c4d90d74479afcf19d5a34e1220eae0c5b59b08221fedd",
+          "exact_text": "Writers merely append new content to the end of the WAL file. Because writers do nothing that would interfere with the actions of readers, writers and readers can run at the same time. However, since there is only one WAL file, there can only be one writer at a time.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:10",
+            "normalization": "extractor-output-v1"
+          },
+          "extraction_method": "trafilatura-2.2.0/structure-v4",
+          "access_level": "partial-text",
+          "source_digest": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e"
+        }
+      ]
+    }
+  ]
+}
