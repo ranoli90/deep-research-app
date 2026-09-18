@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Physical journey completed; ADR053 mobile fixes uncommitted overd19b62a,206mobile/types pass. Paid/independent/hosted gates remain unpassed.",
+  "workingTree": "Phone fixes and evidence committed as7fb6d387040edf57bb4694e488b62f4ff1cc0156;206mobile tests/types pass. Push/merge to main now explicitly user-authorized; paid/deploy gates unchanged.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6336,8 +6336,8 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "d19de6bb277be24b87f7b09324698e3a058ff60e",
-  "latestEvidencePacket": "verification/v6/frozen-pdf-integrated/RESULTS.json",
+  "latestReviewedImplementationCommit": "7fb6d387040edf57bb4694e488b62f4ff1cc0156",
+  "latestEvidencePacket": "verification/v6/physical-unlocked/RESULTS.json",
   "nativeDebugEvidence": "verification/v6/native-current-emulator/BUILD_RESULTS.json",
   "nativeJourneyEvidence": "verification/v6/native-current-emulator/JOURNEY_ASSERTIONS.json",
   "nativeFixCleanCheckoutEvidence": "verification/v6/clean-native-fixes/RESULTS.json",
