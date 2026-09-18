@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Reviewed frozen-PDF/8MiB working tree over1d54ea0:424PG,47actual extraction/API,verify157/142/200/6 and final backend types pass. Previous native659c335 evidence retained. Milestone incomplete.",
+  "workingTree": "Frozen-PDF/8MiB implementation committed asd19de6bb277be24b87f7b09324698e3a058ff60e;424PG,47actual extraction/API,verify157/142/200/6 and final backend types pass. Native659c335 evidence retained; milestone incomplete.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6336,12 +6336,13 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "659c335cacc4762983661a7dfa52ce9a64f642a4",
+  "latestReviewedImplementationCommit": "d19de6bb277be24b87f7b09324698e3a058ff60e",
   "latestEvidencePacket": "verification/v6/frozen-pdf-integrated/RESULTS.json",
   "nativeDebugEvidence": "verification/v6/native-current-emulator/BUILD_RESULTS.json",
   "nativeJourneyEvidence": "verification/v6/native-current-emulator/JOURNEY_ASSERTIONS.json",
   "nativeFixCleanCheckoutEvidence": "verification/v6/clean-native-fixes/RESULTS.json",
   "frozenPdfEvidence": "verification/v6/frozen-pdf-evaluator/RESULTS.json",
   "artifactCapacityEvidence": "verification/v6/artifact-upload-limit/RESULTS.json",
-  "frozenPdfIntegratedEvidence": "verification/v6/frozen-pdf-integrated/RESULTS.json"
+  "frozenPdfIntegratedEvidence": "verification/v6/frozen-pdf-integrated/RESULTS.json",
+  "frozenPdfCleanCheckoutEvidence": "verification/v6/clean-frozen-pdf/RESULTS.json"
 }

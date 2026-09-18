@@ -1,0 +1,45 @@
+{
+  "requirementIds": [
+    "W04",
+    "W08",
+    "W09"
+  ],
+  "implementationCommit": "d19de6bb277be24b87f7b09324698e3a058ff60e",
+  "checkout": "/tmp/deep-clean-frozen-final",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "platform": "local Linux x86_64"
+  },
+  "commands": [
+    {
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "sha256": "da109edfc6ad5ac8e9ed5abc98ddd9ae6d7af9597bbb9eff2ce07d1aa8652932"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "sha256": "cb31a109698fafaa99b34c2c766ee3015eaac79203c7775f0b8cd7d86a94d8f0"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "validate-review.log",
+      "scope": "Final root checkpoint metadata only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "validate-handoff.log",
+      "scope": "Final root checkpoint metadata only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    }
+  ],
+  "scope": "Exact detached commit;157core/142backend/200mobile/6governance, configured types/boundaries; final git status clean. No repeat DB/native/export/paid calls for backend-only changes.",
+  "paidCalls": 0
+}

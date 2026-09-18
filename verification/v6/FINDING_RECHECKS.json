@@ -1,5 +1,5 @@
 {
-  "scope": "Cumulative bounded recheck through committed659c335 plus reviewed frozen-PDF/8MiB working tree over1d54ea0. Original19findings and failures retained; live semantic, wider native and hosted gates remain unpassed.",
+  "scope": "Cumulative bounded recheck through implementationd19de6bb277be24b87f7b09324698e3a058ff60e. Original19findings and failures retained; real-model semantic, wider native and hosted gates remain unpassed.",
   "findings": [
     {
       "id": "V6-F01",

@@ -1,0 +1,74 @@
+
+> deep-research-mobile@0.1.0 verify /tmp/deep-clean-frozen-final
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /tmp/deep-clean-frozen-final
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /tmp/deep-clean-frozen-final
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /tmp/deep-clean-frozen-final/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-clean-frozen-final/packages/research-core
+
+
+ Test Files  15 passed (15)
+      Tests  157 passed (157)
+   Start at  06:24:11
+   Duration  1.92s (transform 1.11s, setup 0ms, import 2.07s, tests 692ms, environment 2ms)
+
+
+> @deep/backend@0.1.0 test:unit /tmp/deep-clean-frozen-final/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-clean-frozen-final/apps/backend
+
+
+ Test Files  21 passed (21)
+      Tests  142 passed (142)
+   Start at  06:24:14
+   Duration  5.04s (transform 1.74s, setup 0ms, import 5.12s, tests 5.68s, environment 3ms)
+
+
+> @deep/mobile@0.1.0 test /tmp/deep-clean-frozen-final/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-clean-frozen-final/apps/mobile
+
+
+ Test Files  21 passed (21)
+      Tests  200 passed (200)
+   Start at  06:24:20
+   Duration  2.41s (transform 1.04s, setup 0ms, import 2.34s, tests 872ms, environment 3ms)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /tmp/deep-clean-frozen-final/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-clean-frozen-final/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  06:24:24
+   Duration  1.88s (transform 136ms, setup 0ms, import 737ms, tests 983ms, environment 0ms)
+
