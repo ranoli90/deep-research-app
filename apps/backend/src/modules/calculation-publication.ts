@@ -1,16 +1,17 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { createHash } from "node:crypto";
 import { CALCULATION_REPORT_VERSION,calculationReportText,type StoredClaim } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { persistEvidenceCalculation } from "./evidence-calculations.js";
 import { loadSupportContext } from "./scoped-support.js";
-const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
 const stable=(value:unknown):string=>JSON.stringify(value,(_key,item:unknown)=>item&&typeof item==="object"&&!Array.isArray(item)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item);
 const digest=(s:string)=>createHash("sha256").update(s).digest("hex");
 type Basis={accountId:string;runId:string;briefRevision:number;evidenceRevision:number};
 
 /** Caller holds account/run fence. No stored result alone authorizes a report claim. */
 export async function prepareCalculationClaim(db:Queryable,args:Basis&{calculationId:string},requireStored=false) {
+ const versions=await runModelVersions(db,args.runId);
  const row=(await db.query(`SELECT * FROM evidence_calculations WHERE id=$1 AND account_id=$2 AND run_id=$3
   AND brief_revision=$4 AND evidence_revision=$5`,[args.calculationId,args.accountId,args.runId,args.briefRevision,args.evidenceRevision])).rows[0];
  if(!row)throw new Error("calculation_publication_basis_mismatch");

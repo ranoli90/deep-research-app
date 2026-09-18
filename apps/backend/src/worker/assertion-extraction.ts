@@ -1,9 +1,9 @@
+import {runModelVersions} from "../modules/run-model-policy.js";
 import { loadAssertionEvidence } from "../modules/assertion-evidence.js";
 import type pg from "pg";
 import type { ResearchModelOutput } from "@deep/contracts";
 import type { AppConfig } from "../platform/config.js";
 import type { FencedSession } from "./fenced-session.js";
-import { TASK_MODEL_VERSIONS } from "./research-task.js";
 import { performModelOperation } from "./model-gateway.js";
 
 type Outcome = { kind:"extraction"; intentId:string; taskId:string; evidenceRevision:number; reused:boolean;
@@ -14,7 +14,7 @@ type Outcome = { kind:"extraction"; intentId:string; taskId:string; evidenceRevi
 export async function extractEvidenceAssertions(pool:pg.Pool, config:AppConfig, session:FencedSession, args:{
   runId:string; accountId:string; fence:number; briefRevision:number; taskId:string; passageIds:string[]; selectionId?:string;
 }):Promise<Outcome> {
-  const basis = await session.write((db) => loadAssertionEvidence(db,args,TASK_MODEL_VERSIONS));
+  const basis = await session.write(async (db) => loadAssertionEvidence(db,args,await runModelVersions(db,args.runId)));
   if (basis.kind === "blocked") return { kind:"blocked",reason:basis.blocked };
   const result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions" });
   if (result.kind !== "result") return result;

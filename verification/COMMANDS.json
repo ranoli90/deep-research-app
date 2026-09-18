@@ -1848,5 +1848,29 @@
     "network": true,
     "paid": false,
     "scope": "Read-only old-ledger fingerprint, new reservations and current-key usage after authorized diagnostic"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/zdr-route/reconcile-rejections.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/zdr-route/reconcile-rejections.mts",
+    "network": true,
+    "paid": false,
+    "scope": "One-use operator reconciliation of exactly three completed plugin-free HTTP404 rejections; exact request/credential/zero-current-usage proof, original receipts retained; no model call"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/zdr-route/prepare.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/zdr-route/prepare.mts",
+    "network": true,
+    "paid": false,
+    "scope": "Renew disclosed consent and register new Azure comparison in the same capped account/ledger; no model call"
+  },
+  {
+    "command": "python3 verification/v6/zdr-route/run-paid.py",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/zdr-route/run-paid.py",
+    "network": true,
+    "paid": true,
+    "scope": "Fresh MC-D01 comparison on disclosed Azure ZDR route, same $0.40 aggregate cap, preserved prior failures, no retry of old actions"
   }
 ]

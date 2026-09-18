@@ -21,7 +21,7 @@ async function caseWithRun(test: (x: Awaited<ReturnType<typeof setup>>) => Promi
   const x = await setup();
   try { await test(x); } finally { await deleteAccount(pool, x.accountId); }
 }
-async function setup() {
+async function setup(modelPolicyId: "openrouter-openai-mini-text-v1" | "openrouter-azure-mini-zdr-text-v1" = "openrouter-openai-mini-text-v1") {
   const accountId = await withTx(pool, async db => {
     const s = await createDevSession(db); await grantConsent(db, s.accountId); return s.accountId;
   });
@@ -34,7 +34,7 @@ async function setup() {
       attachmentIds: [], sourceRestrictions: [], nonGoals: [], constraints: [], assumptions: [], budgetPolicyId: "default",
       consentPolicyVersion: CONSENT_POLICY_VERSION, revision: 1 }, accountId);
     await insertRun(db, { id: runId, accountId, conversationId, briefId, routeMode: "controlled-research", briefRevision: 1,
-      consentEpoch: 1, idempotencyKey: crypto.randomUUID(), budgetMicro: 100_000 });
+      consentEpoch: 1, idempotencyKey: crypto.randomUUID(), budgetMicro: 100_000, modelPolicyId });
     await reserveAllowance(db, accountId, runId, 100_000);
   });
   const fence = (await claimLease(pool, runId, crypto.randomUUID(), 60_000))!;
@@ -193,3 +193,14 @@ for (const variant of ["shared-key", "shared-project", "legacy-key"] as const) {
     }
   })));
 }
+
+it.each([false,true])("W02 Azure text admission reconciles its exact structured or independent discovery provider: discovery=%s", async discovery => {
+ const x=await setup("openrouter-azure-mini-zdr-text-v1");
+ try {
+  if(discovery) await pool.query("UPDATE provider_intents SET route='openrouter:openai/gpt-4o-mini:public-discovery.v1' WHERE id=$1",[x.intentId]);
+  const provider=discovery?"OpenAI":"Azure";
+  await expect(reconcileProviderIntent(pool,x.config,x.intentId,async()=>({kind:"receipt",receipt:{...x.receipt,provider:discovery?"Azure":"OpenAI"}}),signal())).rejects.toThrow("receipt_route_or_cost_mismatch");
+  expect((await measureRunCost(pool,x.runId,x.accountId))?.heldProviderMicro).toBe(20_000);
+  expect(await reconcileProviderIntent(pool,x.config,x.intentId,async()=>({kind:"receipt",receipt:{...x.receipt,provider}}),signal())).toMatchObject({kind:"reconciled",actualMicro:1234});
+ } finally {await deleteAccount(pool,x.accountId);}
+});

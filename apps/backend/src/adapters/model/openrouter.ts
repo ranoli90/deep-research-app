@@ -6,7 +6,7 @@ import { ResearchModelOutputs, CALCULATED_REPORT_SCHEMA_VERSION, CALCULATION_PLA
 import { ModelContextSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
 import { costToMicro } from "./usage.js";
 import { MODEL_PROMPT_VERSION, modelPrompt } from "./prompts.js";
-import { STRUCTURED_MODEL_POLICY as policy } from "./policy.js";
+import { modelPolicy,STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
 
 const Envelope = z.object({
   id: z.string().max(300).optional(), model: z.string().max(300), provider: z.string().max(300).optional(),
@@ -19,13 +19,14 @@ const Envelope = z.object({
 });
 
 /** Canonical schemas generate the provider contract; local validation remains mandatory. */
-export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown): PreparedModelRequest<K> {
+export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id): PreparedModelRequest<K> {
+  const policy=modelPolicy(policyId);
   const contextText = JSON.stringify(ModelContextSchema.parse(context));
   if (!contextText || Buffer.byteLength(contextText) > 240_000) throw new Error("model_context_too_large");
   const schema = zodToJsonSchema(ResearchModelOutputs[operation], { $refStrategy: "none" });
   const body = JSON.stringify({
-    model: policy.model, max_tokens: policy.outputTokens, temperature: 0, stream: false, plugins: [],
-    provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny",
+    model: policy.model, [policy.provider === "azure" ? "max_completion_tokens" : "max_tokens"]: policy.outputTokens, temperature: 0, stream: false, plugins: [],
+    provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny", ...(policy.provider === "azure" ? {zdr:true} : {}),
       max_price: { prompt: policy.promptMicroPerMillion / 1_000_000, completion: policy.completionMicroPerMillion / 1_000_000, request: 0 } },
     response_format: { type: "json_schema", json_schema: { name: `research_${operation}_v1`, strict: true, schema } },
     messages: [{ role: "system", content: modelPrompt(operation) }, { role: "user", content: contextText }],
@@ -40,6 +41,7 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
 export async function executeModelRequest<K extends ResearchModelOperation>(request: PreparedModelRequest<K>, args: {
   apiKey: string; signal: AbortSignal; deadlineMs?: number;
 }): Promise<ModelResult<K>> {
+  const policy=modelPolicy(request.policyId);
   const receipt: ModelReceipt = { requestedModel: policy.model, reportedModel: null, reportedProvider: null,
     providerId: null, httpStatus: null, startedAt: new Date().toISOString(), finishedAt: "", actualMicro: null,
     promptTokens: null, completionTokens: null, rawCost: null, responseDigest: null };

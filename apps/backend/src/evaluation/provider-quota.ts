@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 const amount = z.number().finite().nonnegative();
-const responseSchema = z.object({data:z.object({limit:amount.nullable(),limit_remaining:amount.nullable(),usage:amount})});
-export type ProviderQuota = {version:"openrouter-key-quota.v1";checkedAt:string;limitUsd:number|null;remainingUsd:number|null;usageUsd:number};
+const responseSchema = z.object({data:z.object({limit:amount.nullable(),limit_remaining:amount.nullable(),usage:amount,usage_daily:amount.optional()})});
+export type ProviderQuota = {version:"openrouter-key-quota.v1";checkedAt:string;limitUsd:number|null;remainingUsd:number|null;usageUsd:number;usageDailyUsd:number|null};
 /** Read-only provider capacity, not a per-generation receipt or authority to release local holds. */
 export async function readProviderQuota(apiKey:string,transport:typeof fetch=fetch):Promise<ProviderQuota> {
  if(!apiKey.trim())throw Error("provider_quota_unavailable");
@@ -13,7 +13,7 @@ export async function readProviderQuota(apiKey:string,transport:typeof fetch=fet
   try {while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;if(bytes>65536){await reader.cancel();throw Error();}chunks.push(part.value);}} finally {reader.releaseLock();}
   const {data}=responseSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
   if((data.limit===null)!==(data.limit_remaining===null)||data.limit!==null&&data.limit_remaining!>data.limit)throw Error();
-  return {version:"openrouter-key-quota.v1",checkedAt:new Date().toISOString(),limitUsd:data.limit,remainingUsd:data.limit_remaining,usageUsd:data.usage};
+  return {version:"openrouter-key-quota.v1",checkedAt:new Date().toISOString(),limitUsd:data.limit,remainingUsd:data.limit_remaining,usageUsd:data.usage,usageDailyUsd:data.usage_daily??null};
  }catch{throw Error("provider_quota_unavailable");}
 }
 export function requireProviderCapacity(quota:ProviderQuota,budgetMicro:number):void {

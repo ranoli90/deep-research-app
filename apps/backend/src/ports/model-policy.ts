@@ -19,3 +19,17 @@ export const STRUCTURED_CALL_RESERVE_MICRO = Math.ceil(
   (STRUCTURED_MODEL_POLICY.contextTokens * STRUCTURED_MODEL_POLICY.promptMicroPerMillion +
    STRUCTURED_MODEL_POLICY.outputTokens * STRUCTURED_MODEL_POLICY.completionMicroPerMillion) / 1_000_000,
 );
+
+export const AZURE_ZDR_MODEL_POLICY = {
+  ...STRUCTURED_MODEL_POLICY,
+  id: "openrouter-azure-mini-zdr-text-v1",
+  provider: "azure",
+  providerName: "Azure",
+  observedAt: "2026-09-18",
+} as const;
+export type ModelPolicyId = typeof STRUCTURED_MODEL_POLICY.id | typeof AZURE_ZDR_MODEL_POLICY.id;
+export function modelPolicy(id:unknown = STRUCTURED_MODEL_POLICY.id) {
+  if (id === STRUCTURED_MODEL_POLICY.id) return STRUCTURED_MODEL_POLICY;
+  if (id === AZURE_ZDR_MODEL_POLICY.id) return AZURE_ZDR_MODEL_POLICY;
+  throw new Error("unsupported_model_policy");
+}

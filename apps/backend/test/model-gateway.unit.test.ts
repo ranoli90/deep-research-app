@@ -77,3 +77,17 @@ it("bounds HTTP error bodies and keeps unknown spend",async()=>{
  globalThis.fetch=vi.fn(async()=>new Response("x".repeat(65537),{status:404}));
  expect(await executeModelRequest(request(),{apiKey:"test",signal:new AbortController().signal})).toMatchObject({status:"permanent_failure",reason:"provider_http_404",receipt:{actualMicro:null,responseDigest:null}});
 });
+
+it("preserves the exact legacy request digest and pins an explicit Azure ZDR request",async()=>{
+ const legacy=prepareModelRequest("review_coverage",context);
+ expect(legacy.digest).toBe("3b996ebffddecd4b7154edd5817dc234a76333c7253b15df18a3e91f567dae98");
+ const azure=prepareModelRequest("review_coverage",context,"openrouter-azure-mini-zdr-text-v1");
+ const body=JSON.parse(azure.body);
+ expect(body.provider).toEqual({only:["azure"],allow_fallbacks:false,require_parameters:true,data_collection:"deny",zdr:true,max_price:{prompt:0.15,completion:0.6,request:0}});
+ expect(body.max_completion_tokens).toBe(4096);expect(body).not.toHaveProperty("max_tokens");expect(azure.digest).not.toBe(legacy.digest);
+ globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify(response(undefined,{provider:"Azure"}))));
+ expect(await executeModelRequest(azure,{apiKey:"nonbillable",signal:new AbortController().signal})).toMatchObject({status:"succeeded",receipt:{reportedProvider:"Azure"}});
+ globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify(response(undefined,{provider:"OpenAI"}))));
+ expect(await executeModelRequest(azure,{apiKey:"nonbillable",signal:new AbortController().signal})).toMatchObject({status:"permanent_failure",reason:"provider_route_mismatch"});
+ expect(()=>prepareModelRequest("brief",context,"unregistered-policy")).toThrow("unsupported_model_policy");
+});

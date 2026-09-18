@@ -1,3 +1,4 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { z } from "zod";
 import { ResearchModelOutputs,type CanonicalReport } from "@deep/contracts";
 import { resolveScopedSupport,requestedVerificationOutcome,UNRESOLVED_SECTION,type StoredClaim } from "@deep/research-core";
@@ -6,7 +7,7 @@ import { getRun,getBrief } from "./runs.js";
 import { loadVerification,verificationDigest } from "./requested-verification.js";
 import { MODEL_CONTEXT_MAX_PASSAGES,ModelContextSchema,ModelReceiptSchema } from "../ports/model.js";
 import { modelInputManifest,loadModelOperation,validateOwnedModelContext } from "./model-operations.js";
-import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { RESEARCH_MODEL_SCHEMA_VERSION } from "@deep/contracts";
 
 export async function verificationContext(db:Queryable,args:{runId:string;accountId:string;briefRevision:number}){
@@ -46,7 +47,7 @@ export async function restoreVerificationCheck(db:Queryable,args:{runId:string;a
  if(!id)throw new Error("required_verification_result_missing");
  const execution=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
   AND operation='assess_support' AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,
-  [id,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY.id])).rows[0];
+  [id,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,(await runModelVersions(db,args.runId)).policyId])).rows[0];
  if(!execution)throw new Error("required_verification_result_missing");
  const result=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.assess_support,receipt:ModelReceiptSchema}).strict().parse(
   await loadModelOperation(db,id,args.runId,args.accountId,execution.request_digest,basis.context));

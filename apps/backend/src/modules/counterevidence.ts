@@ -1,3 +1,4 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { prepareEvidenceSelection,usesEvidenceSelection } from "./evidence-selections.js";
 import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { createHash } from "node:crypto";
@@ -6,13 +7,12 @@ import { COUNTEREVIDENCE_VERSION,CounterevidenceActionSchema,CounterevidenceOutc
 import { counterevidenceOutcome,counterevidenceQuestion,counterevidenceSearch,resolveScopedSupport,SCOPED_SUPPORT_VERSION,selectCounterevidenceAction } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema } from "../ports/model.js";
-import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { loadSupportContext,persistScopedSupport,type SupportArgs } from "./scoped-support.js";
 import { loadAssertionEvidence } from "./assertion-evidence.js";
 import { loadModelOperation,modelInputManifest } from "./model-operations.js";
 import { getRun } from "./runs.js";
 import { DISCOVERY_POLICY,SearchResultSchema,publicSearchDigest } from "../ports/search.js";
-const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
 const canonical=(v:unknown):unknown=>Array.isArray(v)?v.map(canonical):v&&typeof v==="object"?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,canonical(x)])):v;
 export const counterevidenceDigest=(v:unknown)=>createHash("sha256").update(JSON.stringify(canonical(v))).digest("hex");
 const Target=z.object({claimId:z.string().uuid(),claimRevisionId:z.string().uuid(),assertion:ResearchModelOutputs.extract_assertions.shape.assertions.element,initialResult:z.unknown()}).strict();
@@ -31,6 +31,7 @@ export async function getCounterevidence(db:Queryable,args:{runId:string;account
 }
 /** Persist original targets before any evidence-changing action. Never recover them from re-extraction. */
 export async function prepareCounterevidence(db:Queryable,args:SupportArgs&{supportIntentId:string}) {
+ const versions=await runModelVersions(db,args.runId);
  const prior=await getCounterevidence(db,args);if(prior){await validateTargets(db,prior);return prior;}
  const required=await db.query("SELECT 1 FROM runs WHERE id=$1 AND account_id=$2 AND counterevidence_required_revision=$3",[args.runId,args.accountId,args.briefRevision]);
  if(required.rowCount)throw new Error("required_challenge_proof_missing");
@@ -47,6 +48,7 @@ export async function prepareCounterevidence(db:Queryable,args:SupportArgs&{supp
  const saved=await getCounterevidence(db,args);if(!saved)throw new Error("challenge_missing");await validateTargets(db,saved);return saved;
 }
 async function validateTargets(db:Queryable,row:SavedCounterevidence) {
+ const versions=await runModelVersions(db,row.run_id);
  const targets=Targets.parse(row.targets),action=CounterevidenceActionSchema.parse(row.action);
  if(action.question!==counterevidenceQuestion(targets.map(t=>t.assertion.text))||row.version!==COUNTEREVIDENCE_VERSION||counterevidenceDigest(targets)!==row.targets_digest||JSON.stringify(action.claimKeys)!==JSON.stringify(targets.map(t=>t.assertion.key)))throw new Error("challenge_target_digest_mismatch");
  const task=(await db.query("SELECT criterion_ids,question_ids FROM research_tasks WHERE id=$1 AND account_id=$2 AND run_id=$3 AND brief_revision=$4",[row.task_id,row.account_id,row.run_id,row.brief_revision])).rows[0];
@@ -68,7 +70,7 @@ async function validateTargets(db:Queryable,row:SavedCounterevidence) {
  }
  // Restore both original model receipts and the original selected evidence without pretending the old run revision is current.
  const extraction=(await db.query(`SELECT * FROM model_operation_results WHERE intent_id=$1 AND account_id=$2 AND run_id=$3 AND brief_revision=$4 AND evidence_revision=$5
- AND operation='extract_assertions' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,[row.extraction_intent_id,row.account_id,row.run_id,row.brief_revision,row.original_evidence_revision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY.id])).rows[0];
+ AND operation='extract_assertions' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,[row.extraction_intent_id,row.account_id,row.run_id,row.brief_revision,row.original_evidence_revision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,versions.policyId])).rows[0];
  if(!extraction)throw new Error("challenge_original_extraction_unavailable");
  const original=await loadAssertionEvidence(db,{runId:row.run_id,accountId:row.account_id,briefRevision:row.brief_revision,taskId:row.task_id,
   selectionId:z.object({evidenceSelection:EvidenceSelectionContextSchema.optional()}).parse(extraction.input_manifest).evidenceSelection?.id,
@@ -78,7 +80,7 @@ async function validateTargets(db:Queryable,row:SavedCounterevidence) {
  const parsedExtraction=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.extract_assertions,receipt:ModelReceiptSchema}).strict().parse(await loadModelOperation(db,row.extraction_intent_id,row.run_id,row.account_id,extraction.request_digest,original.context));
  const originalContext={...original.context,assertions:parsedExtraction.output.assertions};
  const support=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND account_id=$2 AND run_id=$3 AND brief_revision=$4 AND evidence_revision=$5
- AND operation='assess_support' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,[row.initial_support_intent_id,row.account_id,row.run_id,row.brief_revision,row.original_evidence_revision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY.id])).rows[0];
+ AND operation='assess_support' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,[row.initial_support_intent_id,row.account_id,row.run_id,row.brief_revision,row.original_evidence_revision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,versions.policyId])).rows[0];
  if(!support)throw new Error("challenge_original_support_unavailable");
  const parsedSupport=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.assess_support,receipt:ModelReceiptSchema}).strict().parse(await loadModelOperation(db,row.initial_support_intent_id,row.run_id,row.account_id,support.request_digest,originalContext));
  if(parsedExtraction.receipt.actualMicro===null||parsedSupport.receipt.actualMicro===null)throw new Error("challenge_initial_receipt_unknown");
@@ -93,6 +95,7 @@ async function validateTargets(db:Queryable,row:SavedCounterevidence) {
  return targets;
 }
 export async function counterevidenceContext(db:Queryable,args:{runId:string;accountId:string;briefRevision:number}) {
+ const versions=await runModelVersions(db,args.runId);
  const row=await getCounterevidence(db,args);if(!row)throw new Error("challenge_missing");
  const targets=await validateTargets(db,row);
  const selection=await usesEvidenceSelection(db,args)?await prepareEvidenceSelection(db,{...args,requiredIds:targets.flatMap(t=>t.assertion.evidence.map(e=>e.passageId))}):null;
@@ -107,6 +110,7 @@ export async function counterevidenceContext(db:Queryable,args:{runId:string;acc
  return {...basis,row,targets,context:{...basis.context,assertions:targets.map(t=>t.assertion)}};
 }
 export async function persistCounterevidenceResult(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;modelIntentId:string},requireStored=false) {
+ const versions=await runModelVersions(db,args.runId);
  const basis=await counterevidenceContext(db,args);if(basis.kind!=="basis")throw new Error(basis.reason);
  const row=basis.row;
  if(!row.search_intent_id||!["read","checked"].includes(row.state))throw new Error("challenge_has_no_executed_search");
@@ -127,7 +131,7 @@ export async function persistCounterevidenceResult(db:Queryable,args:{runId:stri
  if(searched.data.hits.some(h=>!readLocators.includes(h.locator)))throw new Error("challenge_uninspected_search_result");
  const model=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND account_id=$2 AND run_id=$3
  AND brief_revision=$4 AND evidence_revision=$5 AND operation='assess_support' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,
- [args.modelIntentId,args.accountId,args.runId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY.id])).rows[0];
+ [args.modelIntentId,args.accountId,args.runId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,versions.policyId])).rows[0];
  if(!model)throw new Error("challenge_support_execution_unavailable");
  const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,model.request_digest,basis.context);
  const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.assess_support,receipt:ModelReceiptSchema}).strict().parse(raw);

@@ -1,3 +1,4 @@
+import {runModelVersions} from "../modules/run-model-policy.js";
 import { evidenceSelectionLimitations } from "../modules/evidence-selections.js";
 import { counterevidenceLimitations } from "../modules/counterevidence.js";
 import { executeCalculatedCoverage } from "./calculated-coverage.js";
@@ -12,7 +13,6 @@ import { recordResearchDraft } from "../modules/research-drafts.js";
 import { getRun } from "../modules/runs.js";
 import { publishReport } from "../modules/reports.js";
 import type { FencedSession } from "./fenced-session.js";
-import { TASK_MODEL_VERSIONS } from "./research-task.js";
 import { performModelOperation } from "./model-gateway.js";
 import { executeCoverageReview } from "./research-coverage.js";
 import { persistResearchCoverage } from "../modules/research-coverage.js";
@@ -21,10 +21,10 @@ import { executeAssertionSupport } from "./support-execution.js";
 type WriterArgs=SupportArgs&{fence:number;sourceSupportIntentId:string;calculationPlanIntentId?:string};
 export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:FencedSession,args:WriterArgs) {
   if(args.calculationPlanIntentId) {
-    const old=await session.write(db=>db.query("SELECT 1 FROM run_actions WHERE run_id=$1 AND brief_revision=$2 AND kind='write_report' LIMIT 1",[args.runId,args.briefRevision]));
+    const old=await session.write(async db=>db.query("SELECT 1 FROM run_actions WHERE run_id=$1 AND brief_revision=$2 AND kind='write_report' LIMIT 1",[args.runId,args.briefRevision]));
     if(old.rowCount)args={...args,calculationPlanIntentId:undefined};
   }
-  const basis=await session.write((db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},TASK_MODEL_VERSIONS));
+  const basis=await session.write(async (db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},await runModelVersions(db,args.runId)));
   const result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
@@ -35,7 +35,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
       return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
     throw error;
   }
-  await session.write((db)=>recordResearchDraft(db,{...args,writerIntentId:result.intentId},TASK_MODEL_VERSIONS));
+  await session.write(async (db)=>recordResearchDraft(db,{...args,writerIntentId:result.intentId},await runModelVersions(db,args.runId)));
   return {kind:"draft" as const,writerIntentId:result.intentId,reused:result.reused,calculated:Boolean(args.calculationPlanIntentId)};
 }
 
@@ -49,13 +49,13 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
   const reviewed=await (draft.calculated?executeCalculatedCoverage:executeCoverageReview)(pool,config,session,{...target,supportIntentId:support.intentId});
   if(reviewed.kind!=="coverage")return reviewed;
   return session.write(async(db)=>{
-    const calculated=draft.calculated?await persistCalculatedCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true):null;
+    const calculated=draft.calculated?await persistCalculatedCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},await runModelVersions(db,args.runId),true):null;
     const validated=calculated??await (async()=>{
-      const restored=await restoreWriterDraft(db,target,TASK_MODEL_VERSIONS);
-      const basis=await loadSupportContext(db,target,TASK_MODEL_VERSIONS);
-      const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},TASK_MODEL_VERSIONS,true);
+      const restored=await restoreWriterDraft(db,target,await runModelVersions(db,args.runId));
+      const basis=await loadSupportContext(db,target,await runModelVersions(db,args.runId));
+      const checks=await persistScopedSupport(db,{...target,...basis,modelIntentId:support.intentId},await runModelVersions(db,args.runId),true);
       const statements=draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys);
-      const coverage=await persistResearchCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},TASK_MODEL_VERSIONS,true);
+      const coverage=await persistResearchCoverage(db,{...target,supportIntentId:support.intentId,modelIntentId:reviewed.intentId},await runModelVersions(db,args.runId),true);
       return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;

@@ -27,3 +27,9 @@ it("retains a bounded public error for opaque failures and absent credentials",a
  await expect(readProviderQuota("",transport)).rejects.toThrow(/^provider_quota_unavailable$/);expect(transport).not.toHaveBeenCalled();
  await expect(readProviderQuota("nonbillable-test-key",transport)).rejects.toThrow(/^provider_quota_unavailable$/);
 });
+
+it("distinguishes reported zero daily usage from absent daily metadata",async()=>{
+ expect((await readProviderQuota("nonbillable-test-key",reply({limit:5,limit_remaining:5,usage:0,usage_daily:0}))).usageDailyUsd).toBe(0);
+ expect((await readProviderQuota("nonbillable-test-key",reply({limit:5,limit_remaining:5,usage:0}))).usageDailyUsd).toBeNull();
+ await expect(readProviderQuota("nonbillable-test-key",reply({limit:5,limit_remaining:5,usage:0,usage_daily:-1}))).rejects.toThrow("provider_quota_unavailable");
+});

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type pg from "pg";
-import { STRUCTURED_MODEL_POLICY,STRUCTURED_CALL_RESERVE_MICRO } from "./ports/model-policy.js";
+import { STRUCTURED_MODEL_POLICY,STRUCTURED_CALL_RESERVE_MICRO,modelPolicy } from "./ports/model-policy.js";
 import PgBoss from "pg-boss";
 import { authorize,registeredPlan,sha256 } from "./evaluation/authorization.js";
 import { runMatched,stepsFor } from "./evaluation/runner.js";
@@ -40,14 +40,14 @@ async function main(){
   const completeSourcePaths=(await Promise.all(["apps/backend/src","apps/backend/extraction","apps/backend/migrations","packages/contracts/src","packages/research-core/src"].map(sourceFiles))).flat().sort();
   const completeSourceHashes=await Promise.all(completeSourcePaths.map(async path=>({path,sha256:sha256(await readFile(resolve(root,path)))})));
   const sourceStatus=execFileSync("git",["status","--porcelain=v1","--untracked-files=all","--","apps/backend/src","apps/backend/extraction","apps/backend/migrations","packages/contracts/src","packages/research-core/src"],{cwd:root,encoding:"utf8"});
-  await journal({event:"environment",sourceTreeDigest:sha256(JSON.stringify(completeSourceHashes)),sourceFiles:completeSourceHashes,sourceTreeDirty:!!sourceStatus.trim(),sourceStatusHash:sha256(sourceStatus),modelPolicy:STRUCTURED_MODEL_POLICY,perCallReserveMicro:STRUCTURED_CALL_RESERVE_MICRO,operatorAttestationOnly:true,commit:execFileSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).trim(),node:process.version,authorizationHash:sha256(raw),sourceHashes:await Promise.all(pins.map(async path=>({path,sha256:sha256(await readFile(resolve(root,path)))}))),providerCapCertification:"not established by this runner; application caps and receipt/unknown accounting only"});
+  await journal({event:"environment",sourceTreeDigest:sha256(JSON.stringify(completeSourceHashes)),sourceFiles:completeSourceHashes,sourceTreeDirty:!!sourceStatus.trim(),sourceStatusHash:sha256(sourceStatus),modelPolicy:modelPolicy(process.env.STRUCTURED_MODEL_POLICY_ID),perCallReserveMicro:STRUCTURED_CALL_RESERVE_MICRO,operatorAttestationOnly:true,commit:execFileSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).trim(),node:process.version,authorizationHash:sha256(raw),sourceHashes:await Promise.all(pins.map(async path=>({path,sha256:sha256(await readFile(resolve(root,path)))}))),providerCapCertification:"not established by this runner; application caps and receipt/unknown accounting only"});
   await journal({event:"registered_scope",steps:stepsFor(plan),unselectedTaskIds:plan.unselectedTaskIds,expectedSelectedSteps:stepsFor(plan).length});
   if(plan.tasks.every(task=>!!task.unavailableReason)){
    const never=async():Promise<never>=>{throw new Error("unsupported_source_mode");};enteredRunner=true;await runMatched(plan,{exposure:never,admit:never,execute:never},journal);process.exitCode=2;return;
   }
   const documents=await loadFrozenDocuments(plan,resolve(root,"verification/v6/matched-corpus/raw"));
   const config={...loadConfig(),...(grant.sourceMode==="frozen_supplied_document"?{structuredDiscoveryEnabled:false,liveRetrievalEnabled:false,structuredChallengeEnabled:false}:{})};if(!token)throw new Error("dedicated_existing_session_required");
-  await journal({event:"effective_configuration",config:{openRouterModel:config.openRouterModel,structuredModelEnabled:config.structuredModelEnabled,structuredDiscoveryEnabled:config.structuredDiscoveryEnabled,liveRetrievalEnabled:config.liveRetrievalEnabled,fixtureRouteAllowed:config.fixtureRouteAllowed,leaseMs:config.leaseMs,strategyArms:["iterative-baseline.v1","criterion-adaptive.v1"],challengeEnabled:!!config.structuredChallengeEnabled,projectCapMicro:Math.min(config.liveSpendCapMicro,grant.budgetMicro),keyCapMicro:Math.min(config.liveKeySpendCapMicro??0,grant.budgetMicro),consentPolicyVersion:config.consentPolicyVersion}});
+  await journal({event:"effective_configuration",config:{openRouterModel:config.openRouterModel,modelPolicyId:config.structuredModelPolicyId,structuredModelEnabled:config.structuredModelEnabled,structuredDiscoveryEnabled:config.structuredDiscoveryEnabled,liveRetrievalEnabled:config.liveRetrievalEnabled,fixtureRouteAllowed:config.fixtureRouteAllowed,leaseMs:config.leaseMs,strategyArms:["iterative-baseline.v1","criterion-adaptive.v1"],challengeEnabled:!!config.structuredChallengeEnabled,projectCapMicro:Math.min(config.liveSpendCapMicro,grant.budgetMicro),keyCapMicro:Math.min(config.liveKeySpendCapMicro??0,grant.budgetMicro),consentPolicyVersion:config.consentPolicyVersion}});
   const quota=await readProviderQuota(config.openRouterApiKey??"");
   await journal({event:"provider_quota_preflight",quota,budgetMicro:grant.budgetMicro,scope:"Forward capacity only; no historical intent settlement or release"});
   requireProviderCapacity(quota,grant.budgetMicro);

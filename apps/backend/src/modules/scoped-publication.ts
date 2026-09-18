@@ -1,7 +1,8 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { verificationPublicationClaims } from "./verification-proof.js";
 import { SCOPED_SUPPORT_VERSION, type StoredClaim } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { MODEL_PROMPT_VERSION, STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { loadSupportContext, persistScopedSupport } from "./scoped-support.js";
 
 /** Publication re-executes stored checks against current owned data. Caller prose is not authority. */
@@ -18,7 +19,7 @@ export async function scopedPublicationClaims(db:Queryable,args:{runId:string;ac
     WHERE e.claim_id::text=ANY($1::text[]) AND s.account_id=$2 AND s.run_id=$3 AND s.brief_revision=$4
       AND s.evidence_revision=$5 AND s.checker_version=$6`,
     [ids,args.accountId,args.runId,args.briefRevision,args.evidenceRevision,SCOPED_SUPPORT_VERSION])).rows;
-  const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
+  const versions=await runModelVersions(db,args.runId);
   for(const operation of operations) {
     const basisArgs={...args,taskId:operation.task_id,extractionIntentId:operation.extraction_intent_id};
     const basis=await loadSupportContext(db,basisArgs,versions);

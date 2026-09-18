@@ -1,3 +1,4 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { evidenceSelectionLimitations } from "./evidence-selections.js";
 import { verificationReportMatches } from "./verification-proof.js";
 import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
@@ -5,7 +6,7 @@ import { calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
 import { compileCheckedDraft,draftStatements,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { persistResearchCoverage } from "./research-coverage.js";
 import { loadSupportContext,persistScopedSupport,restoreWriterDraft } from "./scoped-support.js";
 
@@ -31,7 +32,7 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
     WHERE c.run_id=$1 AND c.account_id=$2 AND c.brief_revision=$3 AND c.evidence_revision=$4
       AND c.checker_version=$5 AND c.support_checker_version=$6 ORDER BY c.model_intent_id`,
     [report.runId,accountId,report.basis.briefRevision,report.basis.evidenceRevision,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION])).rows;
-  const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
+  const versions=await runModelVersions(db,report.runId);
   if(await calculatedCompletionCovered(db,accountId,report,versions))return true;
   for(const row of rows) {
     const args={runId:report.runId,accountId,briefRevision:report.basis.briefRevision,taskId:row.task_id,

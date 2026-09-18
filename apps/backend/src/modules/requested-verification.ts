@@ -1,3 +1,4 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { EvidenceSelectionProofError } from "./evidence-selections.js";
 import { MODEL_CONTEXT_MAX_PASSAGES } from "../ports/model.js";
 import { createHash } from "node:crypto";
@@ -14,7 +15,6 @@ import { inheritRunEvidence } from "./run-evidence.js";
 import { loadSupportContext,persistScopedSupport } from "./scoped-support.js";
 import { MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
 import { counterevidenceDigest } from "./counterevidence.js";
-const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
 
 type VerificationTargetFailure =
  | "required_verification_target_missing" | "verification_target_schema_invalid" | "verification_target_record_invalid"
@@ -46,6 +46,7 @@ export const verificationDigest=counterevidenceDigest;
 export const requestedVerificationDigest=(parentRunId:string,request:RequestedVerificationRequest)=>createHash("sha256").update(JSON.stringify({parentRunId,...RequestedVerificationRequestSchema.parse(request)})).digest("hex");
 function reject(message:string,statusCode:number):never{throw Object.assign(new Error(message),{statusCode});}
 export async function captureVerificationTarget(db:Queryable,args:{accountId:string;parentRunId:string;reportId:string;reportVersion:number;claimId:string}){
+ const versions=await runModelVersions(db,args.parentRunId);
  const report=(await db.query("SELECT id FROM reports WHERE id=$1 AND run_id=$2 AND account_id=$3 AND version=$4 AND redacted_at IS NULL AND $5=ANY(claim_ids)",[args.reportId,args.parentRunId,args.accountId,args.reportVersion,args.claimId])).rows[0];
  if(!report)throw new VerificationTargetError("verification_report_or_claim_unavailable",409);
  const parent=await getRun(db,args.parentRunId);if(!parent||parent.account_id!==args.accountId)throw new VerificationTargetError("verification_parent_unavailable",404);

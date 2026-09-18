@@ -4,11 +4,12 @@ import { withTx, type Queryable } from "../platform/db.js";
 import type { AppConfig } from "../platform/config.js";
 import { GenerationReceiptSchema, type GenerationLookup } from "../ports/provider-receipt.js";
 import { costToMicro } from "../ports/provider-cost.js";
-import { STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { STRUCTURED_MODEL_POLICY,modelPolicy } from "../ports/model-policy.js";
+import { DISCOVERY_POLICY } from "../ports/search.js";
 import { updateIntentState } from "./billing.js";
 
 type Intent = { id: string; run_id: string; account_id: string; route: string; scope_key: string;
-  provider_key_scope: string | null; receipt: unknown; confirmed_micro: string | null };
+  provider_key_scope: string | null; model_policy_id:string; receipt: unknown; confirmed_micro: string | null };
 function providerId(receipt: unknown): string | null {
   if (!receipt || typeof receipt !== "object" || !("providerId" in receipt)) return null;
   const value = receipt.providerId;
@@ -16,7 +17,7 @@ function providerId(receipt: unknown): string | null {
 }
 const keyScope = (key: string) => createHash("sha256").update(`openrouter:${key.trim()}`).digest("hex");
 async function getIntent(db: Queryable, id: string): Promise<Intent | undefined> {
-  return (await db.query<Intent>(`SELECT i.id,i.run_id,r.account_id,i.route,i.scope_key,i.provider_key_scope,i.receipt,
+  return (await db.query<Intent>(`SELECT i.id,i.run_id,r.account_id,i.route,i.scope_key,i.provider_key_scope,i.receipt,r.model_policy_id,
     i.confirmed_micro::text FROM provider_intents i JOIN runs r ON r.id=i.run_id WHERE i.id=$1`, [id])).rows[0];
 }
 function lookupBasis(intent: Intent | undefined, config: AppConfig) {
@@ -35,7 +36,9 @@ export async function reconcileProviderIntent(pool: pg.Pool, config: AppConfig, 
   const result = await lookup({ providerId: id, apiKey: config.openRouterApiKey!, signal });
   if (result.kind !== "receipt") return result;
   const receipt = GenerationReceiptSchema.parse(result.receipt);
-  if (receipt.providerId !== id || receipt.model !== STRUCTURED_MODEL_POLICY.model || receipt.provider !== STRUCTURED_MODEL_POLICY.providerName ||
+  const policy = before.route === `openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`
+    ? STRUCTURED_MODEL_POLICY : modelPolicy(before.model_policy_id);
+  if (receipt.providerId !== id || receipt.model !== STRUCTURED_MODEL_POLICY.model || receipt.provider !== policy.providerName ||
       costToMicro(receipt.rawCost) !== receipt.actualMicro) throw new Error("receipt_route_or_cost_mismatch");
   return withTx(pool, async db => {
     await db.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [before.account_id]);

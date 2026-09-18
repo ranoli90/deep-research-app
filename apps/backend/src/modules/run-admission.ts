@@ -1,3 +1,4 @@
+import type {ModelPolicyId} from "../ports/model-policy.js";
 import type { ResearchStrategy } from "../ports/research-strategy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
@@ -12,7 +13,7 @@ import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertC
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
 
 /** Account -> conversation -> run -> allowance is the admission lock order. No external I/O. */
-export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy } = {}) {
+export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId } = {}) {
   const digest = createHash("sha256").update(JSON.stringify({ ...input, attachmentIds: [...input.attachmentIds].sort() })).digest("hex");
   return withTx(pool, async (db) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
@@ -52,7 +53,7 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     const runId = crypto.randomUUID();
     await insertRun(db, { id: runId, accountId, conversationId, briefId: brief.id, parentRunId: input.parentRunId,
       routeMode: input.routeMode, briefRevision: brief.revision, consentEpoch: consent.epoch, idempotencyKey: key,
-      budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy });
+      budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy, modelPolicyId: options.modelPolicyId });
     await db.query("UPDATE runs SET request_digest = $2 WHERE id = $1", [runId, digest]);
     await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",

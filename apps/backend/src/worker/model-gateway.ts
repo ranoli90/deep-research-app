@@ -1,3 +1,4 @@
+import {runModelPolicy} from "../modules/run-model-policy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
@@ -24,9 +25,11 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   operation: K; context: unknown;
 }): Promise<Outcome<K>> {
   if (!config.structuredModelEnabled || !config.liveRouteEnabled || config.openRouterModel !== STRUCTURED_MODEL_POLICY.model) return { kind: "blocked", reason: "structured_model_policy_unavailable" };
+  let policy:Awaited<ReturnType<typeof runModelPolicy>>;
+  try { policy=await session.write(db=>runModelPolicy(db,args.runId)); } catch(error) { if(error instanceof Error&&error.message==="unsupported_model_policy")return {kind:"blocked",reason:"unsupported_model_policy"};throw error; }
   const context = ModelContextSchema.parse(args.context);
   let prepared: ReturnType<typeof prepareModelRequest<K>>;
-  try { prepared = prepareModelRequest(args.operation, context); }
+  try { prepared = prepareModelRequest(args.operation, context,policy.id); }
   catch(error) {
     if(error instanceof Error && ["model_context_too_large","model_context_exceeds_policy"].includes(error.message))
       return {kind:"blocked",reason:error.message};

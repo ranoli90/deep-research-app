@@ -1,3 +1,9 @@
+## Azure ZDR route implementation checkpoint — 2026-09-18
+
+ADR059 implements immutable per-run structured provider policy, explicit Azure ZDR configuration and renewed processor disclosure. Legacy request bytes and correction inheritance are preserved. Local gateway21/21, policy PostgreSQL3/3 and selected actual PDF/HTML correction4/4 controls pass; model transport in these controls is fabricated. Initial unit/type failures are retained under verification/v6/zdr-route. Broad real PostgreSQL verification is running; no Azure live success is claimed yet.
+
+Next executable task: finish verification, reconcile only the three documented completed404 rejections if all explicit evidence conditions hold, then run a fresh registered MC-D01 comparison under the existing $0.40 cap. User monetary authority already exists. Original legacy ledger remains unchanged. Public-discovery routing and W01–W09 semantic acceptance remain incomplete; W10 release gates remain separate. Rollback disables new Azure admission while preserving admitted policy readers, privacy/publication controls, receipts and holds.
+
 ## Accounting repair verified; ZDR route incompatibility identified — 2026-09-18
 
 The prior historical-estimate impasse is superseded by ADR058: the user authorized the repair, original financial rows are fingerprint-verified unchanged, and the new explicitly capped evaluation period uses actual current-key capacity without double-counting history. No receipt export from the user is needed to establish this new period. Current source/check artifacts: verification/v6/forward-accounting/RESULTS.json. Final verify166core/168backend/206mobile/6governance/types/boundaries and136real-PostgreSQL gateway controls pass. The actual live comparison was attempted, not passed:1of4registered steps executed and failed before extraction/report;3steps including correction remain unrun.

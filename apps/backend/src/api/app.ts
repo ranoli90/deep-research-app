@@ -175,7 +175,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const idempotencyKey = String(req.headers["idempotency-key"] ?? crypto.randomUUID());
     try {
-      const created = await admitRun(pool, a.accountId, idempotencyKey, input, { strategy: config.structuredStrategy });
+      const created = await admitRun(pool, a.accountId, idempotencyKey, input, { strategy: config.structuredStrategy, modelPolicyId: config.structuredModelPolicyId });
       await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {

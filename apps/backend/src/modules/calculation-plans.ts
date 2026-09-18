@@ -1,15 +1,16 @@
+import {runModelVersions} from "./run-model-policy.js";
 import { z } from "zod";
 import { CALCULATION_PLANNING_SCHEMA_VERSION,ResearchModelOutputs } from "@deep/contracts";
 import { validateModelBindings } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { CALCULATION_PLANNING_PROMPT_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY } from "../ports/model-policy.js";
+import { CALCULATION_PLANNING_PROMPT_VERSION,MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { ModelReceiptSchema,type ModelContext } from "../ports/model.js";
 import { loadModelOperation } from "./model-operations.js";
 import { loadSupportContext,persistScopedSupport,type SupportArgs } from "./scoped-support.js";
 import { persistEvidenceCalculation } from "./evidence-calculations.js";
 import { prepareCalculationClaim } from "./calculation-publication.js";
-const versions={promptVersion:MODEL_PROMPT_VERSION,policyId:STRUCTURED_MODEL_POLICY.id};
 export async function restoreCalculationPlan(db:Queryable,args:SupportArgs&{supportIntentId:string;planIntentId:string},requireStored=true) {
+ const versions=await runModelVersions(db,args.runId);
  const basis=await loadSupportContext(db,args,versions);
  const checks=await persistScopedSupport(db,{...args,...basis,modelIntentId:args.supportIntentId},versions,true);
  const context={...basis.context,approvedClaimKeys:checks.filter(c=>c.decision==="supported").map(c=>c.claimKey).sort()};

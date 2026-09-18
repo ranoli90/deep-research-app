@@ -1,3 +1,4 @@
+import {runModelVersions} from "../modules/run-model-policy.js";
 import { z } from "zod";
 import { ResearchModelOutputs } from "@deep/contracts";
 import type { AppConfig } from "../platform/config.js";
@@ -6,7 +7,6 @@ import { bumpEvidence,emitEvent } from "../modules/runs.js";
 import { insertExtractedVersion } from "../modules/evidence.js";
 import * as reader from "../adapters/retrieval/read-source.js";
 import type { FencedSession } from "./fenced-session.js";
-import { TASK_MODEL_VERSIONS } from "./research-task.js";
 const READER_VERSION="source-read.v1";
 
 /** A strict source handle resolves to an owned URL; provider/source text cannot expand network authority. */
@@ -16,7 +16,7 @@ export async function executeSourceRead(config:AppConfig,session:FencedSession,a
  if(!parsed.success||parsed.data.action.type!=="fetch"||!z.string().uuid().safeParse(parsed.data.action.sourceHandle).success)return {kind:"blocked" as const,reason:"invalid_read_action"};
  const action=parsed.data.action;
  const admitted=await session.write(async(db)=>{
-  const task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,TASK_MODEL_VERSIONS);
+  const task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId));
   if(!task||task.id!==args.taskId||task.planningStatus!=="ready"||action.questionKeys.some((key)=>!task.questionIds[key]))throw new Error("read_task_mismatch");
   const source=(await db.query("SELECT canonical_locator FROM sources WHERE id=$1 AND account_id=$2 AND run_id=$3",[action.sourceHandle,args.accountId,args.runId])).rows[0];
   if(!source)throw new Error("read_source_owner_mismatch");
