@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Native-found request/progress fixes reviewed in working tree over0fc5bf9; exact commit metadata follows. W01-W09 incomplete; frozenPDF evaluator safe local work remains; no paid authorization.",
+  "workingTree": "Native fixes committed as659c335 with exact cleanproof. W01-W09 incomplete; frozenPDF evaluator safe local work active in isolatedcheckout, no paid authority.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6336,8 +6336,9 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "latestReviewedImplementationCommit": "659c335cacc4762983661a7dfa52ce9a64f642a4",
   "latestEvidencePacket": "verification/v6/native-current-emulator/RESULTS.json",
   "nativeDebugEvidence": "verification/v6/native-current-emulator/BUILD_RESULTS.json",
-  "nativeJourneyEvidence": "verification/v6/native-current-emulator/JOURNEY_ASSERTIONS.json"
+  "nativeJourneyEvidence": "verification/v6/native-current-emulator/JOURNEY_ASSERTIONS.json",
+  "nativeFixCleanCheckoutEvidence": "verification/v6/clean-native-fixes/RESULTS.json"
 }

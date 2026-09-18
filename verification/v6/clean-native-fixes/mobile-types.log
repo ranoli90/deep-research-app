@@ -1,0 +1,4 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-clean-659c335/apps/mobile
+> tsc -p tsconfig.json --noEmit
+

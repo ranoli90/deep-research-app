@@ -1,5 +1,5 @@
 {
-  "scope": "Cumulative bounded recheck through implementation ce2f889253185455ec1cef5dc85920e10ce3b816. Original review pin and all19 findings retained. 422 local PostgreSQL/39actual extraction/186mobile and157core/132backend controls are distinct from unpassed live semantic/native/hosted gates; milestone incomplete.",
+  "scope": "Cumulative bounded recheck through implementation 659c335cacc4762983661a7dfa52ce9a64f642a4. Original19findings retained. Current native debug/emulator and exact cleanproof are scoped separately from unpassed real-model/physical/iOS/hosted gates.",
   "findings": [
     {
       "id": "V6-F01",
@@ -139,6 +139,7 @@
   "nativeFollowup": {
     "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
     "artifact": "verification/v6/native-current-emulator/RESULTS.json",
-    "scope": "Actual debug APK/emulator, actual synthetic PDF/API/worker, fabricated model. Source deletion header and terminal progress regressions repaired. Physical/iOS/hosted-auth/semantic gates remain."
+    "scope": "Actual debug APK/emulator, actual synthetic PDF/API/worker, fabricated model. Source deletion header and terminal progress regressions repaired. Physical/iOS/hosted-auth/semantic gates remain.",
+    "implementationCommit": "659c335cacc4762983661a7dfa52ce9a64f642a4"
   }
 }

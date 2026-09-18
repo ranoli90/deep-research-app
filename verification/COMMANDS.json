@@ -1232,5 +1232,21 @@
     "network": false,
     "paid": false,
     "implementation": "verification/v6/native-current-emulator/cleanup.mts"
+  },
+  {
+    "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+    "status": "implemented_application_command",
+    "scope": "W09 exact native-fix clean checkout; offline local verification only, no buildservice",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-native-fixes-export",
+    "status": "implemented_application_command",
+    "scope": "W09 exact native-fix clean checkout; offline local verification only, no buildservice",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]
