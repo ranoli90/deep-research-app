@@ -1,0 +1,13 @@
+{
+  "question": "Does Solace support offline recording on firmware 4.2?",
+  "passages": [
+    {"id": "h1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p01-heading", "locatorDigest": "h1", "digest": "h1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Offline recording policy"},
+    {"id": "t1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p02-table", "locatorDigest": "t1", "digest": "t1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Capability | Firmware 4.1 | Firmware 4.2"},
+    {"id": "p-early", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p03-paragraph", "locatorDigest": "pe", "digest": "pe", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Solace supports cloud sync in every published edition."},
+    {"id": "p-late", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p90-paragraph", "locatorDigest": "pl", "digest": "pl", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Solace supports offline recording on firmware 4.2."},
+    {"id": "q1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p91-paragraph", "locatorDigest": "q1", "digest": "q1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Only on firmware 4.2; regional restrictions apply."},
+    {"id": "e1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p92-paragraph", "locatorDigest": "e1", "digest": "e1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Not valid underwater. Except when the marine kit is installed."},
+    {"id": "f1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p93-footnote", "locatorDigest": "f1", "digest": "f1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "[1] Effective 2026-03-01. See version matrix footnote."},
+    {"id": "c1", "sourceId": "doc", "sourceVersionId": "v1", "locator": "p94-paragraph", "locatorDigest": "c1", "digest": "c1", "accessLevel": "partial-text", "title": "Solace firmware guide", "text": "Solace does not support offline recording on firmware 4.1."}
+  ]
+}

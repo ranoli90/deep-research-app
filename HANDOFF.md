@@ -1,3 +1,7 @@
+## Session B retrieval/evidence — 2026-09-18
+
+Do not merge this branch to `main`. Session C owns integration. Branch `grok-v7/retrieval-evidence`, worktree `/home/oranolio/Desktop/deep-v7-retrieval`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Migration is **044** (not 042) so it does not clash with C’s `042_model_portfolio.sql` or A’s `043_model_portfolio.sql`. ADR is **062**. See `SESSION_HANDOFF.md` for files, tests, OSS decisions, rollback and Session C instructions. Private-term approval UX is not built here.
+
 ## User-authorized GitHub main checkpoint — 2026-09-18
 
 The user explicitly requested merging all outstanding code into GitHub main and continuing work. All20 commits ahead of origin/main4d818fe belong to this continuation; the older evidence branch is already an ancestor. No deployment workflow is triggered by push (verification is manual-only). This checkpoint includes the actual provider failures and local successes; it is not a release approval or a claim of passing all checks.

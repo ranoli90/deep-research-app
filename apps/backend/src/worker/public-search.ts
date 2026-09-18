@@ -12,29 +12,39 @@ import { updateIntentState } from "../modules/billing.js";
 import { DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
 import { liveWebSearch,publicSearchDigest } from "../adapters/retrieval/live-web.js";
 import type { FencedSession } from "./fenced-session.js";
+import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
+import type { SourceClass } from "@deep/research-core";
 
 /** One public query per logical action, independent of unrelated evidence arrival. No private source projection. */
-export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:FencedSession,args:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;proposal:unknown}) {
+export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:FencedSession,args:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;proposal:unknown;sourceClass?:SourceClass}) {
  if(!config.structuredDiscoveryEnabled||!config.structuredModelEnabled||!config.liveRouteEnabled||config.openRouterModel!==DISCOVERY_POLICY.model)
   return {kind:"blocked" as const,reason:"structured_discovery_disabled"};
  const transformed=CounterevidenceSearchSchema.safeParse(args.proposal);
  const parsed=transformed.success?transformed:ResearchModelOutputs.propose_action.safeParse(args.proposal);
  if(!parsed.success||parsed.data.action.type!=="search")return {kind:"blocked" as const,reason:"invalid_search_action"};
  const proposal={...parsed.data,action:{...parsed.data.action,query:parsed.data.action.query.trim()}};
- const validate=()=>session.write(async(db)=>{
+ const authorize=()=>session.write(async(db)=>{
   const run=await getRun(db,args.runId);if(!run||run.account_id!==args.accountId)throw new Error("search_owner_mismatch");
   const brief=await getBrief(db,run.brief_id),task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId));
   if(!task||task.id!==args.taskId)throw new Error("search_task_mismatch");
   if(task.planningStatus!=="ready")throw new Error("search_task_requires_clarification");
-  // Explicit private/public query approval for mixed document tasks remains a separate unfinished capability.
-  if(brief.attachmentIds.length)throw new Error("document_search_requires_public_query_approval");
+  if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId})))throw new Error("document_search_requires_public_query_approval");
   if(transformed.success&&(!config.structuredChallengeEnabled||proposal.action.query!==`${proposal.action.publicQueryBasis.quote.trim()} ${COUNTEREVIDENCE_SUFFIX}`))throw new Error("invalid_counterevidence_query_transform");
   const validatedProposal=transformed.success?{...proposal,action:{type:"search" as const,query:proposal.action.publicQueryBasis.quote.trim(),questionKeys:proposal.action.questionKeys,publicQueryBasis:proposal.action.publicQueryBasis}}:proposal;
   const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion),task:task.specification});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
+  const canaries=await loadPrivateCanaries(db,args.accountId);
+  const documentText=await loadPrivateDocumentText(db,args.accountId);
+  const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId});
+  const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:validatedProposal.action.query,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass});
+  if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":"unapproved_public_query_terms");
+  if(auth.kind==="permission_required")throw new Error("document_search_requires_public_query_approval");
+  if(canaries.some((c)=>c&&auth.query.toLowerCase().includes(c.toLowerCase())))throw new Error("private_query_blocked");
+  return {query:auth.query,auth,question:brief.originalQuestion};
  });
- await validate();
- const bodyDigest=publicSearchDigest(proposal.action.query);
+ const prepared=await authorize();
+ const searchQuery=transformed.success?proposal.action.query:prepared.query;
+ const bodyDigest=publicSearchDigest(searchQuery);
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:DISCOVERY_POLICY.id,briefRevision:args.briefRevision})).digest("hex");
  let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;
  try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
@@ -54,11 +64,15 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
    throw new Error("invalid_saved_search");
   return finish(result.data,true);
  }
- const result=SearchResultSchema.parse(await liveWebSearch(proposal.action.query,config,session.signal,45_000,true));
+ const result=SearchResultSchema.parse(await liveWebSearch(searchQuery,config,session.signal,45_000,true));
  await withTx(pool,async(db)=>{await updateIntentState(db,attempt.intentId,result.receipt.actualMicro===undefined?"outcome-unknown":"confirmed",result.receipt.actualMicro);
   await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1",[attempt.intentId,JSON.stringify(result.receipt)]);});
- await validate();
- await session.write(async (db)=>db.query(`INSERT INTO search_operations(intent_id,account_id,run_id,task_id,brief_revision,policy_id,request_digest,result)
-  VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[attempt.intentId,args.accountId,args.runId,args.taskId,args.briefRevision,DISCOVERY_POLICY.id,digest,JSON.stringify(result)]));
+ await authorize();
+ await session.write(async (db)=>{
+  await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:proposal.action.query,authorization:{...prepared.auth,query:searchQuery}});
+  await persistFreshnessPolicy(db,{accountId:args.accountId,runId:args.runId,question:prepared.question});
+  await db.query(`INSERT INTO search_operations(intent_id,account_id,run_id,task_id,brief_revision,policy_id,request_digest,result)
+  VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[attempt.intentId,args.accountId,args.runId,args.taskId,args.briefRevision,DISCOVERY_POLICY.id,digest,JSON.stringify(result)]);
+ });
  return finish(result,false);
 }

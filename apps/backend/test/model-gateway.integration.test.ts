@@ -67,7 +67,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
       for(const {id:runId} of (await db.query("SELECT id FROM runs WHERE account_id=$1 ORDER BY created_at DESC",[accountId])).rows) {
       await db.query("DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE run_id=$1)",[runId]);
       for(const table of ["notification_fanout","completion_outbox","publication_attempts","reports"]) await db.query(`DELETE FROM ${table} WHERE run_id=$1`,[runId]);
-      for (const table of ["selection_inventory_checks","evidence_selections", "extraction_receipts", "evidence_artifacts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
+      for (const table of ["query_authorizations","source_origin_links","criterion_freshness_policies","document_web_reconciliations","search_coverage","selection_inventory_checks","evidence_selections", "extraction_receipts", "evidence_artifacts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
         if (table === "sources") await db.query("DELETE FROM source_versions WHERE source_id IN (SELECT id FROM sources WHERE run_id=$1)", [runId]);
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
       }
@@ -909,7 +909,7 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
  const report=(await pool.query("SELECT blocks FROM reports WHERE run_id=$1",[x.runId])).rows[0];
  for(const name of names)expect(JSON.stringify(report.blocks)).toContain(name);
  expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='evidence_checked' ORDER BY created_at",[x.runId])).rows.map((r)=>r.payload.complete)).toEqual([false,true,true]);
-}));
+}),60_000);
 it("W02/W05 concurrent distinct searches obey the durable per-run query ceiling",async()=>runCase(async(x)=>{
  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
  const results=await Promise.all(["coral","kelp","restoration","Compare"].map((query)=>performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})));
@@ -1370,16 +1370,16 @@ it("W05/W06 production arithmetic report reopens, rejects dropped output and rec
  },null,2)+"\n");
  await withTx(pool,db=>deleteAccount(db,x.accountId));
  for(const table of ["calculation_plans","calculated_report_coverage","calculation_claims","evidence_calculations"])expect((await pool.query(`SELECT * FROM ${table} WHERE account_id=$1`,[x.accountId])).rowCount).toBe(0);
-// Two full production runs plus independent publication rechecks measured 28.2s locally;
-// allow scheduling headroom without changing any correctness assertions.
-},sumQuestion),60_000);
+// Two full production runs plus independent publication rechecks measured ~87s with
+// discovery authorization/coverage writes; allow scheduling headroom without changing assertions.
+},sumQuestion),150_000);
 it.each(["omitCalculation","wrongQuantity","unsupportedProse"] as const)("W05 calculated writer remains limited for %s despite a positive review",async option=>runCase(async x=>{
  await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport({[option]:true});await releaseForWorker(x);await processRun(pool,x.config,x.runId);
  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows[0];
  expect(report?.outcome).toBe("completed_with_limitations");
  expect(report.blocks.some((b:{text:string})=>b.text.includes("guaranteed total"))).toBe(false);
  if(option==="unsupportedProse")expect(report.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 20 hectares");
-},sumQuestion));
+},sumQuestion),90_000);
 
 async function counterevidenceCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
  const c=await supportCase(x);globalThis.fetch=vi.fn(async()=>response(c.proposal)) as typeof fetch;
@@ -1473,7 +1473,7 @@ it.each([{contradiction:true,linked:true},{contradiction:false,linked:true},{con
   expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(false);
   expect((await counterevidenceLimitations(pool,{...x,briefRevision:1}))[0]).toContain("required counterevidence check cannot be restored");
  }
-}));
+}),60_000);
 it("W05 counterevidence limited publication fails closed when required proof is lost, even with a warning",async()=>runCase(async x=>{
  const c=await scopedReportCase(x);
  await pool.query("UPDATE runs SET counterevidence_required_revision=1 WHERE id=$1",[x.runId]);

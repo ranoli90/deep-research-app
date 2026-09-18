@@ -2,6 +2,7 @@ import type { Queryable } from "../platform/db.js";
 import { DISCOVERY_POLICY,SearchResultSchema } from "../ports/search.js";
 import { insertSource,insertVersionAndPassage } from "./evidence.js";
 import { bumpEvidence } from "./runs.js";
+import { persistSourceOrigins } from "./retrieval-intelligence.js";
 /** Adopt only an owned persisted successful search, never caller-supplied hits. Caller holds its fence. */
 export async function adoptSearchSources(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;taskId:string;intentId:string}) {
  const row=(await db.query(`SELECT s.result,(s.result->'receipt'=i.receipt AND i.run_id=s.run_id AND i.request_digest=s.request_digest) AS valid
@@ -17,5 +18,6 @@ export async function adoptSearchSources(db:Queryable,args:{runId:string;account
   if(hit.snippet)await insertVersionAndPassage(db,{...args,sourceId:id,locator:hit.locator,text:hit.snippet,accessLevel:"snippet",extractionMethod:"search-snippet"});
  }
  if(changed)await bumpEvidence(db,args.runId);
+ await persistSourceOrigins(db,{accountId:args.accountId,runId:args.runId});
  return sourceIds;
 }

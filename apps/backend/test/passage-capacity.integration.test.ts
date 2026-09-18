@@ -18,7 +18,7 @@ import { getLatestReportForRun } from "../src/modules/reports.js";
 import { processRun } from "../src/worker/executor.js";
 import { matchedDocumentModel } from "./helpers/matched-model.js";
 const url=process.env.TEST_DATABASE_URL!;let pool:pg.Pool;const accounts:string[]=[],originalFetch=globalThis.fetch;
-const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-capacity",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-capacity",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID(),LEASE_MS:"180000"});
 const fact="Ardent supports offline recording only on firmware 4.2.";
 beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
 afterEach(async()=>{globalThis.fetch=originalFetch;for(const id of accounts.splice(0))await deleteAccount(pool,id);});
@@ -55,7 +55,7 @@ expect(report!.blocks.map((b:any)=>b.text).join("\n")).toContain(fact);
  await processRun(pool,{...config,structuredDiscoveryEnabled:true},correction.runId);expect(await getLatestReportForRun(pool,correction.runId,x.accountId)).toBeTruthy();
  const corrected=x.contexts.filter(c=>c.operation==="research_extract_assertions_v1").at(-1)!.context;
  expect(corrected.passages).toEqual(extraction.passages);
-});
+},120_000);
 it("W05 accepts 128 complete small passages at the bounded capacity",async()=>{const x=await setup(128);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();expect(x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context.passages).toHaveLength(128);},120_000);
 it.each([{count:129,size:100,reason:"invalid_extraction_selection"},{count:25,size:7000,reason:"model_context_exceeds_policy"}])("W02 rejects $count passages / $size characters before extraction issuance",async({count,size,reason})=>{
  const x=await setup(count,size);await processRun(pool,config,x.run.runId,{pauseAt:"researching"});

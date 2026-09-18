@@ -1,3 +1,9 @@
+## Session B retrieval/evidence lane — 2026-09-18
+
+Lane `grok-v7/retrieval-evidence` (worktree `/home/oranolio/Desktop/deep-v7-retrieval`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`) implements provenance-aware query expansion, source-type planning, evidence-value breadth, structural neighbor selection, origin clustering, criterion freshness and document/web reconciliation (ADR062, migration044). Mixed-document public search remains blocked without explicit approval. No new npm/Python dependency. Neural rerankers, full Docling/ML, OCR and Playwright/Crawl4AI are not adopted.
+
+Verified deterministic: research-core 198/198 twice; focused PostgreSQL `retrieval-evidence.integration.test.ts` 3/3 twice on isolated `deep_research_session_b_20260918`. Live provider, native Android and merge to `main` are unrun and owned by other lanes. W01–W09 semantic acceptance remains incomplete.
+
 ## User-authorized GitHub main checkpoint — 2026-09-18
 
 The user explicitly requested merging all outstanding code into GitHub main and continuing work. All20 commits ahead of origin/main4d818fe belong to this continuation; the older evidence branch is already an ancestor. No deployment workflow is triggered by push (verification is manual-only). This checkpoint includes the actual provider failures and local successes; it is not a release approval or a claim of passing all checks.

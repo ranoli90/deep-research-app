@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-18 — Session B retrieval/evidence (this lane)
+
+- Worktree `/home/oranolio/Desktop/deep-v7-retrieval` on `grok-v7/retrieval-evidence` from `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Shared `main` checkout was not edited.
+- Implemented query provenance/expansion, source-type planning, adaptive breadth, structural selection neighbors, independence clustering, freshness, document/web reconciliation; migration044; worker public-search authorization. Review cycle wired clustered independence, document-only private terms, worker reconciliation, and source-class fallbacks.
+- Deterministic: `pnpm --filter @deep/research-core test` 198/198 (twice). Focused PostgreSQL `test/retrieval-evidence.integration.test.ts` 3/3 twice on `deep_research_session_b_20260918`.
+- OSS: BM25 reranker experiment not adopted; full Docling/OCR/Playwright not installed in extraction runtime; no new dependency.
+- Not run in this lane: full `pnpm test:integration` matrix still pending at this ledger line if later; live OpenRouter; native Android; merge to main.
+
 ## 2026-09-16 — first application implementation session
 
 - Workspace started with kit ZIP + review copies only; no git, no app source.

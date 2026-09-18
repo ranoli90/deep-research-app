@@ -23,7 +23,59 @@ function cost(passages:SelectionPassage[]):number {
 }
 const ordered=(input:readonly SelectionPassage[])=>[...input].sort((a,b)=>compare(a.sourceId,b.sourceId)||compare(a.sourceVersionId,b.sourceVersionId)||natural(a.locator,b.locator)||compare(a.digest,b.digest)||compare(a.id,b.id));
 const fits=(ps:SelectionPassage[])=>ps.length<=EVIDENCE_SELECTION_LIMITS.passages&&new Set(ps.map(p=>p.sourceId)).size<=EVIDENCE_SELECTION_LIMITS.sources&&ps.every(p=>p.text.length<=24_000)&&cost(ps)<=EVIDENCE_SELECTION_LIMITS.serializedBytes;
-const bundleFor=(passages:SelectionPassage[],i:number)=>(passages[i]!.locator?[i-1,i,i+1]:passages.map((_,j)=>j)).filter(j=>j>=0&&j<passages.length&&passages[j]!.sourceVersionId===passages[i]!.sourceVersionId&&passages[j]!.sourceId===passages[i]!.sourceId);
+const sameSource=(a:SelectionPassage,b:SelectionPassage)=>a.sourceVersionId===b.sourceVersionId&&a.sourceId===b.sourceId;
+function locatorKind(locator:string):string {
+ if(/heading/i.test(locator))return "heading";
+ if(/table/i.test(locator))return "table";
+ if(/footnote/i.test(locator))return "footnote";
+ const m=locator.match(/^([a-z]+)/i);return (m?.[1]??"").toLowerCase();
+}
+function structuralNeighborIndexes(passages:SelectionPassage[],i:number):number[] {
+ const anchor=passages[i]!;
+ if(!anchor.locator)return [];
+ const out=new Set<number>();
+ let heading=-1;
+ for(let j=i;j>=0;j--) {
+  if(!sameSource(passages[j]!,anchor))break;
+  if(locatorKind(passages[j]!.locator)==="heading"){heading=j;break;}
+ }
+ if(heading>=0)out.add(heading);
+ const tableFrom=heading>=0?heading:Math.max(0,i-8);
+ for(let j=i;j>=tableFrom;j--) {
+  if(!sameSource(passages[j]!,anchor))break;
+  if(locatorKind(passages[j]!.locator)==="table"){out.add(j);break;}
+ }
+ for(let j=i;j<passages.length&&j<=i+6;j++) {
+  if(!sameSource(passages[j]!,anchor))break;
+  if(locatorKind(passages[j]!.locator)==="footnote")out.add(j);
+ }
+ return [...out];
+}
+const adjacent=(passages:SelectionPassage[],i:number)=>passages[i]!.locator?[i-1,i,i+1]:passages.map((_,j)=>j);
+const bundleFor=(passages:SelectionPassage[],i:number)=>[...new Set([...adjacent(passages,i),...structuralNeighborIndexes(passages,i)])].filter(j=>j>=0&&j<passages.length&&sameSource(passages[j]!,passages[i]!));
+
+export function structuralContextIds(input:readonly SelectionPassage[],anchorIds:readonly string[]):string[] {
+ const passages=ordered(input);
+ const wanted=new Set(anchorIds);
+ const ids:string[]=[];
+ for(let i=0;i<passages.length;i++) {
+  if(!wanted.has(passages[i]!.id))continue;
+  for(const j of structuralNeighborIndexes(passages,i))ids.push(passages[j]!.id);
+ }
+ return [...new Set(ids)];
+}
+
+/** Criterion-aware ranking that still emits the whole-passage identity/omission contract. */
+export function selectCriterionAwarePassages(question:string,input:readonly SelectionPassage[],requiredIds:readonly string[]=[]):EvidenceSelection {
+ const first=selectWholePassages(question,input,requiredIds);
+ if(first.kind!=="selected")return first;
+ const extra=structuralContextIds(input,first.passageIds);
+ if(!extra.length)return first;
+ const merged=[...new Set([...requiredIds,...first.passageIds,...extra])];
+ const withContext=selectWholePassages(question,input,merged);
+ if(withContext.kind==="blocked")return first;
+ return withContext;
+}
 
 export function selectWholePassages(question:string,input:readonly SelectionPassage[],requiredIds:readonly string[]=[]):EvidenceSelection {
  if(input.length>EVIDENCE_SELECTION_LIMITS.candidates||input.reduce((n,p)=>n+new TextEncoder().encode(p.text).length,0)>EVIDENCE_SELECTION_LIMITS.candidateTextBytes)return {kind:"blocked",reason:"selection_candidate_limit"};
