@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-09-18T16:51:02.022826+00:00",
+  "generationRequests": 0,
+  "results": [
+    {
+      "endpoint": "GET /api/v1/key",
+      "status": 200,
+      "data": {
+        "limit": 5,
+        "limit_remaining": 4.7859228,
+        "usage": 0.2140772,
+        "usage_daily": 0,
+        "usage_monthly": 0.2140772
+      }
+    },
+    {
+      "endpoint": "GET /api/v1/credits",
+      "status": 403
+    },
+    {
+      "endpoint": "GET /api/v1/activity?date=2026-09-16",
+      "status": 403
+    },
+    {
+      "endpoint": "GET /api/v1/activity?date=2026-09-17",
+      "status": 403
+    }
+  ],
+  "commit": "670218bb067a1eb0e19479f62a97bb4accb8b376",
+  "requirementIds": [
+    "W08"
+  ],
+  "command": "Inline Python urllib read-only lookup of fixed OpenRouter key/credits/activity endpoints, project .env credential, redirects denied, 15s timeout, 1MiB response cap; numeric usage fields only retained",
+  "exitCode": 0,
+  "scope": "Key usage received; account credits and historical activity denied HTTP403. No model generation, cost reconciliation or hold release.",
+  "documentation": [
+    "https://openrouter.ai/docs/api/api-reference/credits/get-credits",
+    "https://openrouter.ai/docs/api/api-reference/analytics/get-user-activity-grouped-by-endpoint"
+  ],
+  "interpretation": "The configured inference key can read its own usage. Account credit/activity endpoints require a management key per official documentation. No alternative credentials used."
+}

@@ -1,5 +1,9 @@
 [
   {
+    "path": "API_ACCOUNT_LOOKUP.json",
+    "sha256": "665c8f5b8bf5ce0618463ed634e8b9ca5ea3dfda4d494f19dad91952e6fb72bc"
+  },
+  {
     "path": "AUTHORIZATION.json",
     "sha256": "a6dd590dd53fce6a7b691489e96afac4b49998a16b8cb415d2a54c4e0e0d554f"
   },
