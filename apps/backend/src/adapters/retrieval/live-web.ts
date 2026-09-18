@@ -2,8 +2,7 @@ import { pinnedSearchBody,publicSearchDigest } from "../../ports/search.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { AppConfig } from "../../platform/config.js";
-import { DISCOVERY_POLICY,type SearchResult } from "../../ports/search.js";
-import { STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
+import { DISCOVERY_POLICY,discoveryPolicy,discoveryModelPolicy,type SearchResult } from "../../ports/search.js";
 type SearchHit=SearchResult["hits"][number];
 import { costToMicro } from "../model/usage.js";
 
@@ -13,9 +12,10 @@ export type LiveSearchResult=SearchResult;
  * Live discovery via OpenRouter web plugin. Hits are snippets/URLs only.
  * Full text requires a later safeFetch of http(s) locators. Isolated from fixture catalog.
  */
-export async function liveWebSearch(query: string, config: AppConfig, signal?: AbortSignal, deadlineMs=45_000, pinned=false): Promise<LiveSearchResult> {
+export async function liveWebSearch(query: string, config: AppConfig, signal?: AbortSignal, deadlineMs=45_000, pinned=false, policyId:string=DISCOVERY_POLICY.id): Promise<LiveSearchResult> {
+  const policy=discoveryPolicy(policyId),provider=discoveryModelPolicy(policy.id);
   const correlationId = crypto.randomUUID();
-  const body = pinned ? pinnedSearchBody(query) : {
+  const body = pinned ? pinnedSearchBody(query,policy.id) : {
     model: config.openRouterModel,
     max_tokens: 1024,
     plugins: [{ id: "web", max_results: 3 }],
@@ -29,7 +29,7 @@ export async function liveWebSearch(query: string, config: AppConfig, signal?: A
   const digest = createHash("sha256").update(pinned?JSON.stringify(body):JSON.stringify({ q: query, model: config.openRouterModel })).digest("hex");
   const receipt: LiveSearchResult["receipt"] = {
     correlationId,
-    route: pinned?`openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`:`openrouter:${config.openRouterModel}:web`,
+    route: pinned?`openrouter:${policy.model}:${policy.id}`:`openrouter:${config.openRouterModel}:web`,
     requestDigest: digest,
     state: "issued",
   };
@@ -63,7 +63,7 @@ export async function liveWebSearch(query: string, config: AppConfig, signal?: A
     receipt.providerId=metadata.data.id;
     receipt.actualMicro=costToMicro(metadata.data.usage?.cost);
     receipt.rawCost=receipt.actualMicro===undefined?undefined:String(metadata.data.usage!.cost);
-    if(pinned&&(metadata.data.model!==DISCOVERY_POLICY.model||metadata.data.provider!==STRUCTURED_MODEL_POLICY.providerName))return fail("search_provider_mismatch");
+    if(pinned&&(metadata.data.model!==policy.model||metadata.data.provider!==provider.providerName))return fail("search_provider_mismatch");
     if(metadata.data.model&&metadata.data.model!==config.openRouterModel)return fail("search_model_mismatch");
     const parsed=SearchEnvelope.safeParse(value);if(!parsed.success)return fail("invalid_search_output");
     const choice=parsed.data.choices[0]!;

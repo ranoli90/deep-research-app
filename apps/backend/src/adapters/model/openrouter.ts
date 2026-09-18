@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { ResearchModelOutputs, CALCULATED_REPORT_SCHEMA_VERSION, CALCULATION_PLANNING_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { ModelContextSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
+import { ModelContextSchema, ModelDiagnosticFieldSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
 import { costToMicro } from "./usage.js";
 import { MODEL_PROMPT_VERSION, modelPrompt } from "./prompts.js";
 import { modelPolicy,STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
@@ -123,7 +123,16 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
     let output: unknown;
     try { output = JSON.parse(choice.message.content ?? ""); } catch { return fail("invalid_output", "invalid_output_json"); }
     const checked = ResearchModelOutputs[request.operation].safeParse(output);
-    if (!checked.success) return fail("invalid_output", "output_schema_mismatch");
+    if (!checked.success) return finish({ status: "invalid_output", reason: "output_schema_mismatch", receipt,
+      diagnostics: { version: "model-validation-diagnostics.v1", stage: "output_schema",
+        issues: checked.error.issues.slice(0,16).map(issue => ({ code: issue.code,
+          path: issue.path.slice(0,12).map(part => {
+            if (typeof part === "number" && Number.isSafeInteger(part) && part >= 0 && part <= 1_000_000) return part;
+            const field = ModelDiagnosticFieldSchema.safeParse(part);
+            return field.success ? field.data : "other";
+          }),
+        })), truncated: checked.error.issues.length > 16 || checked.error.issues.some(issue => issue.path.length > 12),
+      } });
     return finish({ status: "succeeded", output: checked.data as ResearchModelOutput<K>, receipt });
   } catch { return fail("outcome_unknown", "provider_transport_outcome_unknown"); }
   finally {

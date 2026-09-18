@@ -5,6 +5,7 @@ import { ProfilePanel } from "./src/ProfilePanel";
 import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
 import { submitSourceDeletion } from "./src/source-deletion-flow";
+import { createSourceFocus } from "./src/source-focus";
 import { createReadingRestoration } from "./src/reading-position";
 import { nativeDocumentDigest } from "./src/native-document-digest";
 import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from "./src/admission-retry";
@@ -16,6 +17,7 @@ import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
+  findNodeHandle,
   ActivityIndicator,
   AppState,
   BackHandler,
@@ -42,7 +44,7 @@ import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededReq
 import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
 import {
-  androidBack,
+  handleAndroidBack,
   applySnapshot,
   researchActivity,
   attachFile,
@@ -167,6 +169,18 @@ function AppInner() {
     }
   }
   const readerView = readerGeneration.current;
+  const sourceFocus = useRef(createSourceFocus<View>(callback => requestAnimationFrame(callback), node => {
+    const tag = findNodeHandle(node);
+    if (tag !== null) AccessibilityInfo.setAccessibilityFocus(tag);
+  }));
+  const focusGeneration = sourceFocus.current.view(token ?? "", state.report?.reportId ?? "", JSON.stringify([readerView, state.tab, state.source?.passageId]));
+  function closeSource() {
+    sourceFocus.current.close();
+    api.closeSource();
+    setViewState(s => ({ ...s, source: null }));
+  }
+  const closeSourceRef = useRef(closeSource); closeSourceRef.current = closeSource;
+  useEffect(() => () => sourceFocus.current.clear(), []);
   function restoreReadingPosition() {
     const result = reading.current.take(readerView);
     if (result.kind !== "ready") return;
@@ -360,13 +374,7 @@ function AppInner() {
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       api.closeSource();
-      let consumed = false;
-      setState((s) => {
-        const r = androidBack(s);
-        consumed = r.consumed;
-        return r.next;
-      });
-      return consumed;
+      return handleAndroidBack(latestUi.current, update => setViewState(update), () => closeSourceRef.current());
     });
     void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (v) setState((s) => ({ ...s, reducedMotion: true }));
@@ -609,6 +617,7 @@ function AppInner() {
         return;
       }
       if (state.report) persistAnchor(state.report.reportId, blockId);
+      sourceFocus.current.open(JSON.stringify([blockId, id]));
       const src = readSourceDetail(await api.source(t, id));
       setViewState((s) => ({ ...s, source: src, tab: "research" }));
       AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
@@ -1008,6 +1017,11 @@ function AppInner() {
                     block={b}
                     styles={styles}
                     onOpenSource={(id) => void onOpenSource(id, b.id)}
+                    onCitationRef={(id, node) => {
+                      const guard = api.captureView();
+                      sourceFocus.current.register(focusGeneration, JSON.stringify([b.id, id]), node, guard.current);
+                      guard.release();
+                    }}
                     onLayoutY={(y) => {
                       reading.current.measureBlock(readerView, b.id, y);
                       restoreReadingPosition();
@@ -1174,7 +1188,8 @@ function AppInner() {
         ) : null}
 
         {state.source ? (
-          <SourceSheet source={state.source} styles={styles}
+          <SourceSheet key={JSON.stringify([token, state.report?.reportId, state.source.passageId])} source={state.source} styles={styles}
+            canFocus={() => Boolean(token && state.run && api.currentRun(token, state.run.runId) && latestUi.current.tab === "research" && latestUi.current.source?.passageId === state.source?.passageId && latestUi.current.report?.reportId === state.report?.reportId)}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
             onOpenOriginal={(url) => {
@@ -1183,10 +1198,7 @@ function AppInner() {
                 if (guard.current()) setViewState(s => ({ ...s, error: "Could not open the original source." }));
               }).finally(() => guard.release());
             }}
-            onClose={() => {
-              api.closeSource();
-              setState(s => ({ ...s, source: null }));
-            }} />
+            onClose={closeSource} />
         ) : null}
 
         {state.tab === "library" && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
@@ -1402,11 +1414,13 @@ function ReportBlockView({
   block,
   styles,
   onOpenSource,
+  onCitationRef,
   onLayoutY,
 }: {
   block: ReportBlock;
   styles: ReturnType<typeof makeStyles>;
   onOpenSource: (id: string) => void;
+  onCitationRef?: (id: string, node: View | null) => void;
   onLayoutY?: (y: number) => void;
 }) {
   const text = breakLongTokens(block.text);
@@ -1460,6 +1474,7 @@ function ReportBlockView({
         {block.citationIds.map((id) => (
           <Pressable
             key={id}
+            ref={node => onCitationRef?.(id, node)}
             onPress={() => onOpenSource(id)}
             accessibilityRole="button"
             accessibilityLabel={`Open source ${id.slice(0, 8)}`}

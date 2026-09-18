@@ -105,6 +105,19 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     const row = await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1", [x.runId]);
     expect(row.rows[0].result.output).toBeUndefined();
   }));
+  it("persists reason-only schema diagnostics and replays rejection without another provider call", async () => runCase(async (x) => {
+    const secret="private-rejected-objective-never-retain";
+    globalThis.fetch=vi.fn(async()=>response({...brief,objective:{[secret]:secret}})) as typeof fetch;
+    const first=await performModelOperation(pool,x.config,x.session,operation(x));
+    expect(first).toMatchObject({kind:"result",reused:false,result:{status:"invalid_output",reason:"output_schema_mismatch",
+      diagnostics:{version:"model-validation-diagnostics.v1",stage:"output_schema",issues:[{code:"invalid_type",path:["objective"]}],truncated:false}}});
+    const replay=await performModelOperation(pool,x.config,x.session,operation(x));
+    expect(replay).toMatchObject({kind:"result",reused:true,result:{status:"invalid_output",reason:"output_schema_mismatch"}});
+    if(first.kind==="result"&&replay.kind==="result")expect(replay.result).toEqual(first.result);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const stored=(await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1",[x.runId])).rows[0].result;
+    expect(stored.output).toBeUndefined();expect(JSON.stringify(stored)).not.toContain(secret);
+  }));
   it("revalidates evidence basis and never reuses an older revision's result", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
     await performModelOperation(pool, x.config, x.session, operation(x));

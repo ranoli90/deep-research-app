@@ -53,3 +53,57 @@ it("unsupported document tasks remain individually unrun while supported frozen 
  p.tasks=[{...p.tasks[0]!,sources:[{id:"pdf",file:"document.pdf",mime:"application/pdf",sha256:"0".repeat(64)}]},{...p.tasks[0]!,id:"MC-D02",index:1,unavailableReason:"frozen_source_mime_unsupported"}];
  const result=await runMatched(p,d,async e=>{events.push(e)});expect(result).toEqual({expectedSteps:8,recordedResults:4,halted:null});expect(events.filter(e=>e.event==="unrun")).toHaveLength(4);expect(events.filter(e=>e.event==="unrun").every(e=>e.reason==="frozen_source_mime_unsupported")).toBe(true);expect(d.admit).toHaveBeenCalledTimes(4);
 });
+
+const heldIntent=()=>({intentId:"33333333-3333-4333-8333-333333333333",runId:"44444444-4444-4444-8444-444444444444",requestDigest:"1".repeat(64),receiptDigest:"2".repeat(64),questionDigest:sha256("previous unrelated question"),reservedMicro:21658,policyId:"openrouter-azure-mini-zdr-text-v1"});
+function continuationPlan(){
+ const registeredProtocol=JSON.stringify({...JSON.parse(protocol),heldIntentContinuation:"held-intent-continuation.v1"});
+ const g={...grant(),protocolSha256:sha256(registeredProtocol),heldIntentContinuation:{version:"held-intent-continuation.v1" as const,intents:[heldIntent()]}};
+ return registeredPlan(g,{protocol:registeredProtocol,freeze,tasks,sources});
+}
+const preservedExposure=()=>({confirmedMicro:539,heldMicro:21658,unknownIntents:1,preservedHeldMicro:21658,preservedUnknownIntents:1});
+it("explicit registered held-intent continuation permits independent steps while retaining full exposure in the journal",async()=>{
+ const p=continuationPlan(),d=driver(),events:Record<string,unknown>[]=[];d.exposure=vi.fn(async()=>preservedExposure());
+ const result=await runMatched(p,d,async event=>{events.push(event)});
+ expect(result).toEqual({expectedSteps:4,recordedResults:4,halted:null});expect(d.admit).toHaveBeenCalledTimes(4);
+ expect(events.filter(e=>e.event==="attempt").map(e=>e.exposure)).toEqual(Array.from({length:4},preservedExposure));
+ expect(p.authorization.heldIntentContinuation!.intents).toEqual([heldIntent()]);
+});
+it.each([
+ {label:"missing hold",exposure:{confirmedMicro:539,heldMicro:0,unknownIntents:0,preservedHeldMicro:0,preservedUnknownIntents:0}},
+ {label:"unattested hold",exposure:{confirmedMicro:539,heldMicro:21658,unknownIntents:1}},
+ {label:"wrong attested amount",exposure:{...preservedExposure(),preservedHeldMicro:21657}},
+ {label:"wrong attested count",exposure:{...preservedExposure(),preservedUnknownIntents:0}},
+ {label:"extra hold",exposure:{...preservedExposure(),heldMicro:21659,unknownIntents:2}},
+ {label:"invalid attestation",exposure:{...preservedExposure(),preservedHeldMicro:NaN}},
+])("continuation rejects $label without changing any denominator",async({exposure})=>{
+ const d=driver(),events:Record<string,unknown>[]=[];d.exposure=async()=>exposure;
+ const result=await runMatched(continuationPlan(),d,async event=>{events.push(event)});
+ expect(result.recordedResults).toBe(0);expect(result.halted).toBe("prior_unknown_exposure");
+ expect(d.admit).not.toHaveBeenCalled();expect(events.filter(e=>e.event==="unrun")).toHaveLength(4);
+});
+it("continuation charges retained reserves against the cap before every independent admission",async()=>{
+ const p=continuationPlan(),d=driver();p.authorization.budgetMicro=122196;d.exposure=async()=>preservedExposure();
+ expect(await runMatched(p,d,async()=>{})).toEqual({expectedSteps:4,recordedResults:0,halted:"budget_unrun"});expect(d.admit).not.toHaveBeenCalled();
+ p.authorization.budgetMicro=122197;
+ expect(await runMatched(p,d,async()=>{})).toEqual({expectedSteps:4,recordedResults:4,halted:null});
+});
+it("a newly unknown outcome still stops a continuation and preserves every remaining slot",async()=>{
+ const d=driver(),events:Record<string,unknown>[]=[];d.exposure=async()=>preservedExposure();
+ d.execute=vi.fn(async()=>({...receipt(),reportId:null,cost:{confirmedMicro:0,heldMicro:21658,unknownIntents:1}}));
+ expect(await runMatched(continuationPlan(),d,async event=>{events.push(event)})).toEqual({expectedSteps:4,recordedResults:1,halted:"unknown_or_incomplete_run"});
+ expect(d.admit).toHaveBeenCalledOnce();expect(events.filter(e=>e.event==="unrun")).toHaveLength(3);
+});
+it("continuation authorization rejects duplicate held intents rather than double-counting authority",()=>{
+ const p=continuationPlan();p.authorization.heldIntentContinuation!.intents.push(heldIntent());
+ const raw=JSON.stringify(p.authorization);
+ expect(()=>authorize(raw,{execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:sha256(raw)})).toThrow("duplicate_held_intent");
+});
+it.each(["original","changed"])("continuation cannot select a held %s question as original or correction",question=>{
+ const p=continuationPlan();p.authorization.heldIntentContinuation!.intents[0]!.questionDigest=sha256(question);
+ const registeredProtocol=JSON.stringify({...JSON.parse(protocol),heldIntentContinuation:"held-intent-continuation.v1"});
+ expect(()=>registeredPlan(p.authorization,{protocol:registeredProtocol,freeze,tasks,sources})).toThrow("unknown_question_retry_forbidden");
+});
+it("an authorization cannot opt into continuation if its hash-pinned protocol does not register it",()=>{
+ const p=continuationPlan();p.authorization.protocolSha256=sha256(protocol);
+ expect(()=>registeredPlan(p.authorization,{protocol,freeze,tasks,sources})).toThrow("continuation_not_registered");
+});

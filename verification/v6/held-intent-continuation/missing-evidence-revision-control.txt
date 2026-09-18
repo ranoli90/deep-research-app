@@ -1,0 +1,35 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/held-intent-continuation.integration.test.ts (3 tests | 1 failed | 2 skipped) 871ms
+   × W02 rejects stale revisions, mismatched logical actions, changed receipts, and nonterminal or reconciled rows 476ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/held-intent-continuation.integration.test.ts > W02 rejects stale revisions, mismatched logical actions, changed receipts, and nonterminal or reconciled rows
+AssertionError: promise resolved "{ preservedHeldMicro: 21658, …(1) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "preservedHeldMicro": 21658,
++   "preservedUnknownIntents": 1,
+  }
+
+ ❯ test/held-intent-continuation.integration.test.ts:79:171
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 skipped (3)
+   Start at  12:20:53
+   Duration  5.48s (transform 3.36s, setup 0ms, import 4.24s, tests 871ms, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts -t stale revisions

@@ -1,3 +1,4 @@
+import { preservedHeldExposure } from "./held-intent-continuation.js";
 import { restoreEvidenceSelection } from "../modules/evidence-selections.js";
 import type pg from "pg";
 import type PgBoss from "pg-boss";
@@ -7,7 +8,7 @@ import { processRun } from "../worker/executor.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import { getRun,getBrief } from "../modules/runs.js";
 import type { AppConfig } from "../platform/config.js";
-import {sha256,type Authorization } from "./authorization.js";
+import {sha256,evaluationQuestionDigest,type Authorization } from "./authorization.js";
 import type { Driver,Exposure,Journal } from "./runner.js";
 import {stepKey} from "./runner.js";
 import type {FrozenDocuments} from "./frozen-documents.js";
@@ -33,9 +34,10 @@ export async function productionDriver(pool:pg.Pool,boss:PgBoss,config:AppConfig
     COUNT(*) FILTER(WHERE p.confirmed_micro IS NULL)::int unknown
     FROM provider_intents p LEFT JOIN runs r ON r.id=p.run_id WHERE p.route LIKE 'openrouter:%'
     AND(r.account_id=$1 OR p.scope_key=$2 OR p.provider_key_scope=$3 OR p.provider_key_scope IS NULL)`,[grant.accountId,grant.budgetScope,keyScope]);
-   return {confirmedMicro:Number(q.rows[0].confirmed),heldMicro:Number(q.rows[0].held),unknownIntents:Number(q.rows[0].unknown)};
+   return {confirmedMicro:Number(q.rows[0].confirmed),heldMicro:Number(q.rows[0].held),unknownIntents:Number(q.rows[0].unknown),...await preservedHeldExposure(pool,grant,keyScope)};
   },
   async admit(step,parent){
+   if(grant.heldIntentContinuation?.intents.some(i=>i.questionDigest===evaluationQuestionDigest(step.question)))throw Error("unknown_question_retry_forbidden");
    const app=apps[step.arm];
    const attachmentIds:string[]=[];
    if(grant.sourceMode==="frozen_supplied_document"){

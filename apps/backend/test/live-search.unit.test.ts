@@ -1,12 +1,41 @@
 import { afterEach,describe,it,expect,vi } from "vitest";
 import { liveWebSearch } from "../src/adapters/retrieval/live-web.js";
 import { loadConfig } from "../src/platform/config.js";
+import {DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,discoveryPolicyForModel,pinnedSearchBody,publicSearchDigest} from "../src/ports/search.js";
+import {STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY} from "../src/ports/model-policy.js";
 const original=globalThis.fetch;afterEach(()=>{globalThis.fetch=original;});
 const config=loadConfig({DATABASE_URL:"postgres://localhost/test",OPENROUTER_API_KEY:"test-only",LIVE_SPEND_CAP_MICRO:"1000000"});
 const citation={type:"url_citation",url_citation:{url:"https://example.org/source",title:"Source",content:"A qualified excerpt."}};
 const envelope={id:"test",model:config.openRouterModel,usage:{cost:"0.000002"},choices:[{finish_reason:"stop",message:{annotations:[citation]}}]};
 function transport(value:unknown=envelope){globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify(value),{status:200})) as typeof fetch;}
 describe("W02/W05 bounded search transport",()=>{
+ it("preserves legacy discovery bytes for every existing admitted model policy",()=>{
+  const query="Compare coral and kelp restoration.";
+  for(const policy of [STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_EXACT_QUOTE_POLICY]){
+   expect(discoveryPolicyForModel(policy.id)).toEqual(DISCOVERY_POLICY);
+   expect(publicSearchDigest(query,discoveryPolicyForModel(policy.id).id)).toBe("9fef15d94afec88128678cb3073ab7151e955d7df384dd8fa1f54582dc308c8b");
+  }
+  expect(()=>discoveryPolicyForModel("unknown-policy")).toThrow("unsupported_model_policy");
+ });
+ it("pins new discovery to Azure ZDR with unchanged public plugin and reserve",async()=>{
+  const policy=discoveryPolicyForModel(AZURE_ZDR_DISCOVERY_POLICY.id),body=pinnedSearchBody("restoration",policy.id);
+  expect(policy).toEqual(AZURE_DISCOVERY_POLICY);expect(DISCOVERY_RESERVE_MICRO).toBe(28658);
+  expect(body).toMatchObject({max_completion_tokens:1024,provider:{only:["azure"],zdr:true,allow_fallbacks:false,require_parameters:true,data_collection:"deny",max_price:{prompt:0.15,completion:0.6,request:0}},plugins:[{id:"web",engine:"exa",mode:"auto",max_results:3}]});
+  expect(body).not.toHaveProperty("max_tokens");expect(body.messages.at(-1)?.content).toBe("restoration");
+  expect(publicSearchDigest("restoration",policy.id)).not.toBe(publicSearchDigest("restoration"));
+  transport({...envelope,provider:"Azure"});
+  const result=await liveWebSearch("restoration",config,undefined,45000,true,policy.id);
+  expect(result.receipt).toMatchObject({state:"confirmed",actualMicro:2,route:`openrouter:${policy.model}:${policy.id}`,requestDigest:publicSearchDigest("restoration",policy.id)});
+  expect(JSON.parse(String(vi.mocked(fetch).mock.calls[0]![1]!.body))).toEqual(body);
+ });
+ it.each(["OpenAI",undefined,"azure/swedencentral"])("rejects drift or missing Azure provider identity: %s",async provider=>{
+  transport({...envelope,provider});
+  const result=await liveWebSearch("restoration",config,undefined,45000,true,AZURE_DISCOVERY_POLICY.id);
+  expect(result).toMatchObject({hits:[],receipt:{state:"failed",actualMicro:2,failureReason:"search_provider_mismatch"}});expect(fetch).toHaveBeenCalledTimes(1);
+ });
+ it("rejects unregistered discovery policy before dispatch",async()=>{
+  transport();await expect(liveWebSearch("restoration",config,undefined,45000,true,"unknown-policy")).rejects.toThrow("unsupported_discovery_policy");expect(fetch).not.toHaveBeenCalled();
+ });
  it("accepts bounded citations with actual cost and forbids redirects",async()=>{
   transport();const r=await liveWebSearch("restoration",config);expect(r.receipt).toMatchObject({state:"confirmed",actualMicro:2,responseDigest:expect.stringMatching(/^[a-f0-9]{64}$/)});
   expect(r.hits[0]).toMatchObject({locator:"https://example.org/source",snippet:"A qualified excerpt.",originCluster:"https://example.org"});

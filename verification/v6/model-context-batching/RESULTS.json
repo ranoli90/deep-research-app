@@ -1,0 +1,72 @@
+{
+  "requirements": [
+    "W01",
+    "W02",
+    "W03",
+    "W05",
+    "W06"
+  ],
+  "commit": "66df5455de86129db0305f3c96dc3dbf1a13b7e3",
+  "revisionScope": "Uncommitted bounded patch on recorded commit; other agents edited gateway/mobile concurrently. Final frozen-source suite remains root responsibility.",
+  "evidenceClass": "Real local PostgreSQL and production worker with synthetic evidence and fabricated model transport; no paid call, no live semantic-quality claim.",
+  "environment": {
+    "node": "v20.20.2",
+    "python": "3.12.3",
+    "database": "deep_context_batching_20260918 on local port55432",
+    "runtime": "Vitest4.1.11"
+  },
+  "sourceSha256": {
+    "apps/backend/src/modules/model-operations.ts": "e275539f1d87439b5b495d2aa3089064ad19a714d4d5b29f8256c05234757405",
+    "apps/backend/test/model-context.integration.test.ts": "e92db409cd742aa086167dc864ac1a121818eada82d0da6a8b5fa792cd94a907",
+    "apps/backend/test/append-document.integration.test.ts": "b3d0af4204495a4558986993696fdaf0b2b2ecd5e8615f9540801d9c6c949886"
+  },
+  "results": [
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_context_batching_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts",
+      "artifact": "baseline.txt",
+      "exitCode": 1,
+      "result": "Expected regression: 25passages +1source issued28queries;231.273859ms observed. Every negative binding assertion completed before query-count assertion failed."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_context_batching_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts test/passage-capacity.integration.test.ts",
+      "artifact": "focused.txt",
+      "exitCode": 1,
+      "childExitCode": 130,
+      "result": "Correlated JSON aggregate candidate interrupted with SIGINT after prolonged execution; not a completed suite. Candidate diff preserved as rejected-correlated.patch. PostgreSQL observed active in source aggregate; planner/JIT cause not proven."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_context_batching_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts test/passage-capacity.integration.test.ts -t 'batches complete|sends all 25'",
+      "artifact": "focused-bulk.txt",
+      "exitCode": 0,
+      "result": "2passed,16notselected;28.86s total. Original25-passage report/replay/requested-verification/correction assertions and30s timeout unchanged. New context regression proves4queries and all exact-binding controls."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_context_batching_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/append-document.integration.test.ts -t 'unrelated blocked account'",
+      "artifact": "barrier-baseline.txt",
+      "exitCode": 1,
+      "result": "New ordering regression fails original helper: unrelated blocked account falsely satisfies target barrier.11notselected."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_context_batching_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts test/append-document.integration.test.ts",
+      "artifact": "barrier-and-context.txt",
+      "exitCode": 0,
+      "result": "13/13passed;9.54s. Exact blocker PID barrier plus unchanged withdrawal/deletion rejection and no-child assertions."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "types-final.txt",
+      "exitCode": 0,
+      "result": "Backend configured TypeScript check passed."
+    }
+  ],
+  "changes": [
+    "Replace per-passage/source authorization round trips with bounded bulk retrieval and exact per-input matching; retained authorized view, tenant/run/version/digest/text/access and duplicate-match checks. No caching or authority change.",
+    "Bind PostgreSQL race-test barrier to actual blocking backend PID; unrelated waiters cannot establish operation order. No source-deletion/admission runtime change."
+  ],
+  "limitations": [
+    "Earlier full serial suite456passed/2failed with one unhandled rejection remains preserved under zdr-route/integration-serial.txt.",
+    "End-to-end latency reduction has not been established by controlled repeated benchmarking. Query-count reduction28to4 is deterministic.",
+    "Bulk candidate focused journey passed; entire capacity/full gateway suite deferred to root final integrated verification."
+  ],
+  "rollback": "Revert batching to former per-row validation if regression occurs; preserve all ownership/deletion checks. Keep exact blocker test synchronization, no weaker timeout/assertions."
+}

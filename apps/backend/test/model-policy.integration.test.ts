@@ -40,7 +40,7 @@ it.each([STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY])("replays unknown $prov
   expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1",[r.runId])).rows).toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
  }finally{session.stop();await cancelRun(pool,r.runId);}
 });
-it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-quote-v2"] as const)("preserves strict legacy spans and audits exact quote coordinate resolution: %s",async policyId=>{
+it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-quote-v2","openrouter-azure-mini-zdr-discovery-v3"] as const)("preserves strict legacy spans and audits exact quote coordinate resolution: %s",async policyId=>{
  const a=await account(),question="Explain coral bleaching.";
  const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policyId});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
@@ -51,7 +51,7 @@ it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-qu
  const send=vi.fn(async()=>new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Azure",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]})));globalThis.fetch=send;
  const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
  try{
-  const resolved=policyId.endsWith("v2"),first=await performModelOperation(pool,config,session,args);
+  const resolved=policyId!=="openrouter-azure-mini-zdr-text-v1",first=await performModelOperation(pool,config,session,args);
   expect(first).toMatchObject({kind:"result",reused:false,result:{status:resolved?"succeeded":"invalid_output"}});
   if(first.kind==="result"&&first.result.status==="succeeded")expect(first.result.output.objectiveProvenance).toEqual({quote:question,start:0,end:question.length});
   expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",reused:true,result:{status:resolved?"succeeded":"invalid_output"}});

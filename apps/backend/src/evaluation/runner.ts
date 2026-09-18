@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { DEFAULT_RUN_BUDGET_MICRO } from "@deep/contracts";
 import type { RegisteredPlan,FrozenSource } from "./authorization.js";
 export type Step={id:string;taskId:string;repeat:number;arm:"A1"|"B";kind:"original"|"correction"|"full_rerun";question:string;parentStepId?:string;idempotencyKey:string;sources?:FrozenSource[];unavailableReason?:string};
-export type Exposure={confirmedMicro:number;heldMicro:number;unknownIntents:number};
+export type Exposure={confirmedMicro:number;heldMicro:number;unknownIntents:number;preservedHeldMicro?:number;preservedUnknownIntents?:number};
 export type ExecutionReceipt={runId:string;briefRevision:number;lifecycle:string;outcome:string|null;reportId:string|null;executionError?:"worker_execution_unconfirmed";cost:Exposure;trace:unknown};
 export type Driver={exposure():Promise<Exposure>;admit(step:Step,parent?:ExecutionReceipt):Promise<{runId:string}>;execute(runId:string):Promise<ExecutionReceipt>};
 export type Journal=(record:Record<string,unknown>)=>Promise<void>;
@@ -29,8 +29,11 @@ export async function runMatched(plan:RegisteredPlan,driver:Driver,journal:Journ
   let exposure:Exposure;
   try{exposure=await driver.exposure();}catch{halted="exposure_unavailable";await journal({event:"unrun",stepId:step.id,reason:halted});continue;}
   if(![exposure.confirmedMicro,exposure.heldMicro,exposure.unknownIntents].every(n=>Number.isSafeInteger(n)&&n>=0)){halted="invalid_exposure_receipt";await journal({event:"unrun",stepId:step.id,reason:halted});continue;}
-  if(exposure.heldMicro||exposure.unknownIntents)halted="prior_unknown_exposure";
-  else if(exposure.confirmedMicro+DEFAULT_RUN_BUDGET_MICRO>plan.authorization.budgetMicro)halted="budget_unrun";
+  const preserved=plan.authorization.heldIntentContinuation?.intents;
+  const expectedHeld=preserved?.reduce((sum,item)=>sum+item.reservedMicro,0)??0;
+  const matchesPreserved=preserved&&Number.isSafeInteger(expectedHeld)&&exposure.preservedHeldMicro===expectedHeld&&exposure.preservedUnknownIntents===preserved.length&&exposure.heldMicro===expectedHeld&&exposure.unknownIntents===preserved.length;
+  if((preserved||exposure.heldMicro||exposure.unknownIntents)&&!matchesPreserved)halted="prior_unknown_exposure";
+  else if(!Number.isSafeInteger(exposure.confirmedMicro+exposure.heldMicro+DEFAULT_RUN_BUDGET_MICRO)||exposure.confirmedMicro+exposure.heldMicro+DEFAULT_RUN_BUDGET_MICRO>plan.authorization.budgetMicro)halted="budget_unrun";
   if(halted){await journal({event:"unrun",stepId:step.id,reason:halted,exposure});continue;}
   const startedAt=new Date().toISOString(),started=performance.now();await journal({event:"attempt",step,startedAt,exposure});
   // Exposure and durable journaling can outlast approval. Check at the admission boundary,

@@ -5,7 +5,7 @@ import type { AppConfig } from "../platform/config.js";
 import { GenerationReceiptSchema, type GenerationLookup } from "../ports/provider-receipt.js";
 import { costToMicro } from "../ports/provider-cost.js";
 import { STRUCTURED_MODEL_POLICY,modelPolicy } from "../ports/model-policy.js";
-import { DISCOVERY_POLICY } from "../ports/search.js";
+import { DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,discoveryModelPolicy } from "../ports/search.js";
 import { updateIntentState } from "./billing.js";
 
 type Intent = { id: string; run_id: string; account_id: string; route: string; scope_key: string;
@@ -36,8 +36,8 @@ export async function reconcileProviderIntent(pool: pg.Pool, config: AppConfig, 
   const result = await lookup({ providerId: id, apiKey: config.openRouterApiKey!, signal });
   if (result.kind !== "receipt") return result;
   const receipt = GenerationReceiptSchema.parse(result.receipt);
-  const policy = before.route === `openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`
-    ? STRUCTURED_MODEL_POLICY : modelPolicy(before.model_policy_id);
+  const searchPolicy=[DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY].find(p=>before.route===`openrouter:${p.model}:${p.id}`);
+  const policy = searchPolicy ? discoveryModelPolicy(searchPolicy.id) : modelPolicy(before.model_policy_id);
   if (receipt.providerId !== id || receipt.model !== STRUCTURED_MODEL_POLICY.model || receipt.provider !== policy.providerName ||
       costToMicro(receipt.rawCost) !== receipt.actualMicro) throw new Error("receipt_route_or_cost_mismatch");
   return withTx(pool, async db => {

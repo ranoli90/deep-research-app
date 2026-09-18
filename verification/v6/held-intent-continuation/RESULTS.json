@@ -1,0 +1,53 @@
+{
+  "requirements": [
+    "W02",
+    "W03",
+    "W08"
+  ],
+  "commit": "66df5455de86129db0305f3c96dc3dbf1a13b7e3",
+  "scope": "Uncommitted continuation helper and regression; real local PostgreSQL with production gateway reservation, synthetic unknown transport, production cancellation. No live network/model calls.",
+  "database": "deep_held_continuation_20260918, localhost55432",
+  "sourceSha256": {
+    "apps/backend/src/evaluation/held-intent-continuation.ts": "94a00d01f83645616419794a6c7ebd6fff58a866dac7a8b2fc1e4e62b66d96de",
+    "apps/backend/test/held-intent-continuation.integration.test.ts": "b3611dca5afe9dcd0586d6835d175f81be41997fa4f879b0d4c3a3da504c1f2d"
+  },
+  "commands": [
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_held_continuation_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts",
+      "artifact": "postgres.txt",
+      "exitCode": 1,
+      "result": "Initial fixture failed2/3 because its active worker lease correctly prevented cancellation worker acquisition; run remained cancelling. Retained fixture failure, no runtime assertion weakened."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_held_continuation_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts",
+      "artifact": "postgres-fixed-setup.txt",
+      "exitCode": 0,
+      "result": "3/3passed after fixture released only its owned lease and asserted terminal lifecycle. Intent/reservation/model-result snapshots unchanged after all successful/rejected checks."
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_held_continuation_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts -t 'stale revisions'",
+      "artifact": "missing-evidence-revision-control.txt",
+      "exitCode": 1,
+      "result": "Negative control temporarily removed only model/run evidence-revision equality. Mutated run revision then incorrectly passed held snapshot validation. Tightened helper restored byte-for-byte from passing version."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "types-final.txt",
+      "exitCode": 0,
+      "result": "Configured backend TypeScript check passed."
+    }
+  ],
+  "coverage": [
+    "exact account,key,scope,run,policy,request/receipt/question digest and reservation",
+    "duplicate intent and insufficient remaining total allowance",
+    "unchanged ledger and exactly one synthetic unknown transport invocation",
+    "nonterminal/confirmed/altered receipt status rejected",
+    "model/run/action brief and evidence revisions, action kind/digest/logical identity restored",
+    "owned active account and owned current brief required"
+  ],
+  "limitations": [
+    "No paid provider reconciliation or claim of zero cost for unknown calls. Unknown holds remain reserved.",
+    "No full evaluator/API registered trial in this packet. Root coordinates final combined suite."
+  ],
+  "rollback": "Disable continuation grants while retaining original unknown provider intents/reservations; never settle, release, erase or resend them."
+}

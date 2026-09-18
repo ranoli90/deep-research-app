@@ -180,3 +180,9 @@ ADR058 forward-period evaluation: provider GET /key remaining quota is capacity 
 ## ZDR route continuation — 2026-09-18
 
 Consent2026-09-18.1 discloses OpenAI or Microsoft Azure via OpenRouter. Explicit server-selected Azure structured-text policy requires ZDR=true and data_collection=deny. Current configuration cannot retarget an admitted run. Operator HTTP404 reconciliation, if executed, is separately recorded and cannot invent generation receipts or release network-unknown outcomes; see ADR059.
+
+ADR061 evaluator-only continuation preserves exact terminal unknown liabilities in the same account/key/scope. Its strict immutable allowlist is read-only evidence, never a settlement mechanism. The same aggregate cap must cover confirmed spend plus all holds plus the next full run reserve. Missing/extra/mismatched liabilities fail closed; repeated held questions are forbidden and new unknown outcomes stop execution. Rollback disables continuation admission without changing holds.
+
+ADR062 public discovery: explicit new immutable v3 policy routes generation to Azure with ZDR=true, fallback disabled and data collection denied. Existing disclosed Exa search is a separate processor; do not describe its retention as covered by generation-provider ZDR. Public-question-only search projection and28658micro reserve remain enforced. Old run/request identities and unknown holds remain unchanged.
+
+Consent2026-09-18.2 clarifies OpenAI/Azure generation during public discovery as well as structured text; approved public query/results and the separate Exa processor are explicitly described. New work requires renewed consent. Existing financial holds/receipts remain intact.

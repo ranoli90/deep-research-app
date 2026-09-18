@@ -58,16 +58,27 @@ it("W07 actual settings advertises append only when configured, and enabled API 
  const enabled=await buildApp({pool,boss,config:loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-append-api",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000"})});
  try{expect((await enabled.inject({method:"GET",url:"/v1/settings",headers})).json().appendDocumentsAllowed).toBe(true);const response=await enabled.inject({method:"POST",url:`/v1/runs/${x.parent.runId}/corrections`,headers,payload:x.input});expect(response.statusCode).toBe(200);expect(response.json()).toMatchObject({parentRunId:x.parent.runId,fullRerun:true});expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[response.json().runId])).rowCount).toBe(0);}finally{await enabled.close();}
 });
-async function waitForBlockedAccount(){for(let i=0;i<100;i++){const blocked=await pool.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%accounts%FOR UPDATE%'");if(blocked.rowCount)return;await new Promise(r=>setTimeout(r,10));}throw Error("account_lock_barrier_timeout");}
+async function waitForBlockedAccount(blockerPid:number){for(let i=0;i<100;i++){const blocked=await pool.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%accounts%FOR UPDATE%' AND $1=ANY(pg_blocking_pids(pid))",[blockerPid]);if(blocked.rowCount)return;await new Promise(r=>setTimeout(r,10));}throw Error("account_lock_barrier_timeout");}
+it("W03 an unrelated blocked account cannot satisfy the deletion ordering barrier",async()=>{
+ const first=await owner(),second=await owner(),holder=await pool.connect(),unrelated=await pool.connect(),waiter=await pool.connect();
+ let waiting:Promise<unknown>|undefined;
+ try{
+  await holder.query("BEGIN");await holder.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[first.accountId]);
+  await unrelated.query("BEGIN");await unrelated.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[second.accountId]);
+  waiting=waiter.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[first.accountId]);
+  await waitForBlockedAccount((await holder.query("SELECT pg_backend_pid() AS pid")).rows[0].pid);
+  await expect(waitForBlockedAccount((await unrelated.query("SELECT pg_backend_pid() AS pid")).rows[0].pid)).rejects.toThrow("account_lock_barrier_timeout");
+ }finally{await holder.query("ROLLBACK");await waiting;await unrelated.query("ROLLBACK");holder.release();unrelated.release();waiter.release();}
+});
 it("W02 real account-lock barrier lets withdrawal win before delayed append admission",async()=>{
  const x=await setup(),lock=await pool.connect();await lock.query("BEGIN");await lock.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[x.accountId]);
  let resolved:ReturnType<typeof resolveResearchCorrection>,admitted:ReturnType<typeof admitResearchCorrection>;
- try{resolved=resolveResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await waitForBlockedAccount();admitted=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admitted).rejects.toThrow("idempotency_withdrawn");await lock.query("COMMIT");expect(await resolved).toEqual({status:"withdrawn"});await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
+ try{resolved=resolveResearchCorrection(pool,x.accountId,x.parent.runId,x.input);await waitForBlockedAccount((await lock.query("SELECT pg_backend_pid() AS pid")).rows[0].pid);admitted=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admitted).rejects.toThrow("idempotency_withdrawn");await lock.query("COMMIT");expect(await resolved).toEqual({status:"withdrawn"});await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
  expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[x.parent.runId])).rowCount).toBe(0);
 });
 it("W03 deletion winning the account lock prevents a waiting append from reviving the document",async()=>{
  const x=await setup(),sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.parent.runId,locator:`attachment://${x.old[0]}`,title:"Prior",publisher:"Synthetic",originCluster:"synthetic"}),lock=await pool.connect();await lock.query("BEGIN");await lock.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE",[x.accountId]);
- try{const deletion=deleteSourceForAccount(pool,x.accountId,sourceId);await waitForBlockedAccount();const admission=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admission).rejects.toThrow("correction_parent_unavailable");await lock.query("COMMIT");await deletion;await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
+ try{const deletion=deleteSourceForAccount(pool,x.accountId,sourceId);await waitForBlockedAccount((await lock.query("SELECT pg_backend_pid() AS pid")).rows[0].pid);const admission=admitResearchCorrection(pool,x.accountId,x.parent.runId,x.input);const rejected=expect(admission).rejects.toThrow("correction_parent_unavailable");await lock.query("COMMIT");await deletion;await rejected;}finally{await lock.query("ROLLBACK");lock.release();}
  expect((await pool.query("SELECT 1 FROM runs WHERE parent_run_id=$1",[x.parent.runId])).rowCount).toBe(0);
 });
 it("W06 missing immutable parent basis fails before parsing or fresh model spending even without a change-set",async()=>{

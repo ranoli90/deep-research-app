@@ -180,6 +180,16 @@ export function androidBack(state: UiState): { consumed: boolean; next: UiState 
   return { consumed: false, next: state };
 }
 
+/** Decide synchronously; React may defer the state updater until after Back returns. */
+export function handleAndroidBack(state: UiState, update: (updater: (previous: UiState) => UiState) => void, closeSource: () => void): boolean {
+  if (state.source) { closeSource(); return true; }
+  if (state.tab !== "research") {
+    update(previous => androidBack(previous).next);
+    return true;
+  }
+  return false;
+}
+
 export function logout(state: UiState): UiState {
   return { ...emptyState(), routeMode: state.routeMode };
 }

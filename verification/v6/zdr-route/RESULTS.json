@@ -1,21 +1,26 @@
 {
-  "status": "checkpoint_serial_verification_running",
+  "status": "serial_verification_failed",
   "runtimeCommit": "f12c2fc70c57f9413a4d017a8806724c4f6820a0",
   "recordedAt": "2026-09-18T18:00:37.471328+00:00",
   "completed": {
     "verify": "173core/170backend/206mobile/6governance/types/boundaries passed",
     "focusedPostgres": "20/20 passed",
     "actualExtraction": "6selected passed,11notselected; fabricated model responses",
-    "live": "2of4steps attempted; no report;0.0005388USD confirmed;21658micro timeout hold"
+    "live": "2of4steps attempted; no report;0.0005388USD confirmed;21658micro timeout hold",
+    "serialPostgres": "456passed/2failed,33files,1unhandled rejection;1086.36s"
   },
   "failuresPreserved": [
     "integration.txt",
     "timeout-recheck.txt",
     "gateway-unit.txt",
     "types-tests.txt",
-    "verify.txt"
+    "verify.txt",
+    "integration-serial.txt"
   ],
-  "activeCommand": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_zdr_span_20260918 NODE_OPTIONS=--require=/home/oranolio/Desktop/Deep/verification/v6/zdr-route/query-profile.cjs pnpm test:integration",
-  "activeEvidence": "integration-serial-checkpoint.txt is a partial log, not a passed result",
-  "milestoneComplete": false
+  "milestoneComplete": false,
+  "serialFailures": [
+    "25-passage journey exceeded unchanged30s limit",
+    "append deletion race ordering false positive; unrelated blocked query"
+  ],
+  "followup": "Bounded query batching and exact blocker synchronization implemented with focused regressions; final integrated suite recorded separately."
 }

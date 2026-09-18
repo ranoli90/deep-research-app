@@ -1,4 +1,4 @@
-import {runModelVersions} from "./run-model-policy.js";
+import {runModelVersions,runModelPolicy} from "./run-model-policy.js";
 import { prepareEvidenceSelection,usesEvidenceSelection } from "./evidence-selections.js";
 import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { createHash } from "node:crypto";
@@ -12,7 +12,7 @@ import { loadSupportContext,persistScopedSupport,type SupportArgs } from "./scop
 import { loadAssertionEvidence } from "./assertion-evidence.js";
 import { loadModelOperation,modelInputManifest } from "./model-operations.js";
 import { getRun } from "./runs.js";
-import { DISCOVERY_POLICY,SearchResultSchema,publicSearchDigest } from "../ports/search.js";
+import { discoveryPolicyForModel,SearchResultSchema,publicSearchDigest } from "../ports/search.js";
 const canonical=(v:unknown):unknown=>Array.isArray(v)?v.map(canonical):v&&typeof v==="object"?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,canonical(x)])):v;
 export const counterevidenceDigest=(v:unknown)=>createHash("sha256").update(JSON.stringify(canonical(v))).digest("hex");
 const Target=z.object({claimId:z.string().uuid(),claimRevisionId:z.string().uuid(),assertion:ResearchModelOutputs.extract_assertions.shape.assertions.element,initialResult:z.unknown()}).strict();
@@ -113,14 +113,15 @@ export async function persistCounterevidenceResult(db:Queryable,args:{runId:stri
  const versions=await runModelVersions(db,args.runId);
  const basis=await counterevidenceContext(db,args);if(basis.kind!=="basis")throw new Error(basis.reason);
  const row=basis.row;
+ const policy=discoveryPolicyForModel((await runModelPolicy(db,args.runId)).id);
  if(!row.search_intent_id||!["read","checked"].includes(row.state))throw new Error("challenge_has_no_executed_search");
  const search=(await db.query(`SELECT s.result,s.request_digest,(s.result->'receipt'=i.receipt AND i.run_id=s.run_id AND i.request_digest=s.request_digest) AS valid
- FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id WHERE s.intent_id=$1 AND s.account_id=$2 AND s.run_id=$3 AND s.task_id=$4 AND s.brief_revision=$5 AND s.policy_id=$6`,[row.search_intent_id,args.accountId,args.runId,row.task_id,args.briefRevision,DISCOVERY_POLICY.id])).rows[0];
+ FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id WHERE s.intent_id=$1 AND s.account_id=$2 AND s.run_id=$3 AND s.task_id=$4 AND s.brief_revision=$5 AND s.policy_id=$6`,[row.search_intent_id,args.accountId,args.runId,row.task_id,args.briefRevision,policy.id])).rows[0];
  const query=counterevidenceSearch(basis.context.question,CounterevidenceActionSchema.parse(row.action).questionKeys);
  if(!query)throw new Error("challenge_public_query_unavailable");
- const bodyDigest=publicSearchDigest(query.action.query),requestDigest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:DISCOVERY_POLICY.id,briefRevision:args.briefRevision})).digest("hex");
+ const bodyDigest=publicSearchDigest(query.action.query,policy.id),requestDigest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:policy.id,briefRevision:args.briefRevision})).digest("hex");
  const searched=SearchResultSchema.safeParse(search?.result);
- if(!search?.valid||search.request_digest!==requestDigest||!searched.success||searched.data.receipt.requestDigest!==bodyDigest||searched.data.receipt.state!=="confirmed"||searched.data.receipt.actualMicro===undefined||searched.data.receipt.route!==`openrouter:${DISCOVERY_POLICY.model}:${DISCOVERY_POLICY.id}`)throw new Error("challenge_search_receipt_unavailable");
+ if(!search?.valid||search.request_digest!==requestDigest||!searched.success||searched.data.receipt.requestDigest!==bodyDigest||searched.data.receipt.state!=="confirmed"||searched.data.receipt.actualMicro===undefined||searched.data.receipt.route!==`openrouter:${policy.model}:${policy.id}`)throw new Error("challenge_search_receipt_unavailable");
  const reads=z.array(z.object({operationId:z.string().uuid(),sourceVersionId:z.string().uuid(),readable:z.boolean()}).strict()).min(1).max(3).parse(row.read_operations);
  if(!reads.some(r=>r.readable))throw new Error("challenge_readable_evidence_unavailable");
  const readLocators:string[]=[];

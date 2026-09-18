@@ -1,0 +1,6 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 130: vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts test/passage-capacity.integration.test.ts

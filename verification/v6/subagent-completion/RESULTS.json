@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-09-18T18:23:30.553867+00:00",
+  "baseCommit": "66df5455de86129db0305f3c96dc3dbf1a13b7e3",
+  "scope": "Working-tree subagent controls, not final frozen suite or paid semantic evidence",
+  "requirements": [
+    "W02",
+    "W03",
+    "W05",
+    "W07",
+    "W08",
+    "W09"
+  ],
+  "intermediateVerify": {
+    "command": "pnpm verify",
+    "exitCode": 0,
+    "result": "173core/192backend/216mobile/types/boundaries; source changed during type phase, final frozen repeat required"
+  },
+  "mobile": {
+    "tests": 216,
+    "nativeExecuted": false
+  },
+  "focusedPostgres": {
+    "discoverySpanDiagnostics": 6,
+    "heldIntent": 3,
+    "appendContext": 13
+  },
+  "paidGenerationRequests": 0,
+  "limitations": [
+    "Final frozen PostgreSQL pending",
+    "Actual report/correction not yet live-proven",
+    "No native screenreader or hosted verification"
+  ]
+}

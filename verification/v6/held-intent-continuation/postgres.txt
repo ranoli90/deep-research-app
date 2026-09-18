@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/held-intent-continuation.integration.test.ts (3 tests | 2 failed) 4166ms
+   × W02 admits only exact terminal unknown snapshots and never settles, releases, or resends the hold 614ms
+   × W02 rejects altered grant, key, budget and every bound snapshot field without changing financial state 460ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/held-intent-continuation.integration.test.ts > W02 admits only exact terminal unknown snapshots and never settles, releases, or resends the hold
+Error: held_intent_snapshot_mismatch
+ ❯ preservedHeldExposure src/evaluation/held-intent-continuation.ts:23:815
+
+ ❯ test/held-intent-continuation.integration.test.ts:42:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/held-intent-continuation.integration.test.ts > W02 rejects altered grant, key, budget and every bound snapshot field without changing financial state
+AssertionError: expected [Function] to throw error including 'held_intent_budget_unavailable' but got 'held_intent_snapshot_mismatch'
+
+Expected: "held_intent_budget_unavailable"
+Received: "held_intent_snapshot_mismatch"
+
+ ❯ test/held-intent-continuation.integration.test.ts:56:115
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  12:19:38
+   Duration  11.35s (transform 5.18s, setup 0ms, import 6.64s, tests 4.17s, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts

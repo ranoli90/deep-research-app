@@ -1,0 +1,11 @@
+{
+  "RESULTS.json": "2a5bb300e864e3397bcf0f4c1fef86f19e2024be9a0ae05cc4e1dc2b03f4bf78",
+  "barrier-and-context.txt": "bf6ef5b75f962898f23f83270145a18e4b567f8e559a21c20afece9d6edb079b",
+  "barrier-baseline.txt": "eb82dd7607db894521d2dd5d9ece64623abe908cae300f4c2b80a4c208929c33",
+  "baseline.txt": "33a68d4b055aa08ccce7d3f173ad8bac5b562415839eb3dc03c7bef486f822d4",
+  "focused-bulk.txt": "5291ad982c5cc725650b4d3e5b831839eb2221cd4b4ebec0bd2a7ef6a356ab5d",
+  "focused.txt": "c70346b5d5e83d469d1d7f7360c908bbbb339489d0ab0c019346d19567791ac4",
+  "rejected-correlated.patch": "614bdd41cccb324a28e175870f83299ffd7aa82590d736c463bc7a2a7f43a659",
+  "types-final.txt": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+  "types.txt": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+}

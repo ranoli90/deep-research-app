@@ -5,11 +5,11 @@ import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { AZURE_ZDR_EXACT_QUOTE_POLICY } from "../ports/model-policy.js";
+import { AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
 import { emitEvent } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
-import { ModelContextSchema, ModelReceiptSchema, type ModelResult } from "../ports/model.js";
+import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelResult } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
 import { STRUCTURED_MODEL_POLICY, STRUCTURED_CALL_RESERVE_MICRO } from "../adapters/model/policy.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
@@ -19,7 +19,7 @@ import { loadModelOperation, saveModelOperation, validateOwnedModelContext } fro
 type Outcome<K extends ResearchModelOperation> = { kind: "result"; intentId: string; reused: boolean; result: ModelResult<K> }
   | { kind: "blocked"; reason: string } | { kind: "pending"; intentId: string };
 const Cached = z.object({ status: z.enum(["succeeded","refused","invalid_output","transient_failure","permanent_failure","outcome_unknown"]),
-  output: z.unknown().optional(), reason: z.string().optional(), receipt: ModelReceiptSchema }).strict();
+  output: z.unknown().optional(), reason: z.string().optional(), receipt: ModelReceiptSchema, diagnostics: ModelValidationDiagnosticsSchema.optional() }).strict();
 
 /** All model operations share this durable, fenced path. Provider transport never owns permissions. */
 export async function performModelOperation<K extends ResearchModelOperation>(pool: pg.Pool, config: AppConfig, session: FencedSession, args: {
@@ -61,7 +61,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   });
   let resolvedSpans: SpanResolution[] = [];
   if (result.status === "succeeded") {
-    if (policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id) {
+    if (policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id || policy.id === AZURE_ZDR_DISCOVERY_POLICY.id) {
       const resolved = resolveModelSpans(args.operation, result.output, context);
       result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
     }

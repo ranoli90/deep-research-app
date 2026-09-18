@@ -1,23 +1,29 @@
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import React, { useRef, useState } from "react";
+import { AccessibilityInfo, findNodeHandle, Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { publicSourceUrl, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
 import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
 import { breakLongTokens } from "./report-layout";
 
-type Props = { source: SourceDetail; onClose(): void; onOpenOriginal(url: string): void;
+type Props = { source: SourceDetail; canFocus?(): boolean; onClose(): void; onOpenOriginal(url: string): void;
   onDelete?(target: SourceDeletionTarget): void; deletionPending?: boolean; deletionError?: string | null;
   offline?: boolean; admissionPending?: boolean;
   styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
     kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
-export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
+export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
   deletionError, offline = false, admissionPending = false }: Props) {
+  const heading = useRef<Text>(null);
+  const focusedPassage = useRef<string | null>(null);
   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
   const target = sourceDeletionTarget(source);
   const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
   const confirming = sameSourceDeletionTarget(confirmation, target);
   const url = publicSourceUrl(source.locator);
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-    <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
+    <Text ref={heading} onLayout={() => {
+      if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
+      const tag = findNodeHandle(heading.current);
+      if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
+    }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
     <Text style={styles.kicker}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
       <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>

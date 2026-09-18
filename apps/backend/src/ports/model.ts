@@ -34,10 +34,28 @@ export const ModelReceiptSchema = z.object({
   responseDigest: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
 }).strict();
 export type ModelReceipt = z.infer<typeof ModelReceiptSchema>;
+/** Fixed structural names only: never retain validation messages, values, or unknown object keys. */
+export const ModelDiagnosticFieldSchema = z.enum([
+  "objective", "objectiveProvenance", "intendedOutput", "criteria", "questions", "assumptions", "openAmbiguities", "explicitExclusions",
+  "key", "description", "field", "operator", "value", "unit", "importance", "scope", "provenance", "group", "groupOperator", "unresolvedAlternatives",
+  "start", "end", "quote", "text", "criterionKeys", "evidenceStandard", "reversible", "consequence", "question", "whyMaterial",
+  "candidates", "assertions", "label", "evidence", "passageId", "candidateKey", "quantities", "currency", "billingPeriod", "qualifier", "limitations",
+  "assessments", "claimKey", "status", "rationale", "missingEvidence", "action", "type", "query", "questionKeys", "publicQueryBasis", "sourceHandle", "claimKeys",
+  "entity", "plan", "version", "geography", "time", "population", "title", "sections", "heading", "paragraphs", "unresolvedQuestionKeys",
+  "questionKey", "assertionKeys", "reason", "omittedRequirements", "calculations", "calculationKeys", "inputs", "quantityIndex", "other",
+]);
+export const ModelValidationDiagnosticsSchema = z.object({
+  version: z.literal("model-validation-diagnostics.v1"), stage: z.literal("output_schema"),
+  issues: z.array(z.object({ code: z.nativeEnum(z.ZodIssueCode),
+    path: z.array(z.union([ModelDiagnosticFieldSchema, z.number().int().nonnegative().max(1_000_000)])).max(12),
+  }).strict()).max(16),
+  truncated: z.boolean(),
+}).strict();
+export type ModelValidationDiagnostics = z.infer<typeof ModelValidationDiagnosticsSchema>;
 export type ModelResult<K extends ResearchModelOperation> =
   | { status: "succeeded"; output: ResearchModelOutput<K>; receipt: ModelReceipt }
   | { status: "refused" | "invalid_output" | "transient_failure" | "permanent_failure" | "outcome_unknown";
-      reason: string; receipt: ModelReceipt };
+      reason: string; receipt: ModelReceipt; diagnostics?: ModelValidationDiagnostics };
 export type PreparedModelRequest<K extends ResearchModelOperation> = {
   operation: K; body: string; digest: string; schemaVersion: string; promptVersion: string; policyId: string;
 };

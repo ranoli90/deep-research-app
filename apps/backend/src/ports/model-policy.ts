@@ -28,10 +28,12 @@ export const AZURE_ZDR_MODEL_POLICY = {
   observedAt: "2026-09-18",
 } as const;
 export const AZURE_ZDR_EXACT_QUOTE_POLICY = { ...AZURE_ZDR_MODEL_POLICY, id: "openrouter-azure-mini-zdr-exact-quote-v2" } as const;
-export type ModelPolicyId = typeof STRUCTURED_MODEL_POLICY.id | typeof AZURE_ZDR_MODEL_POLICY.id | typeof AZURE_ZDR_EXACT_QUOTE_POLICY.id;
+export const AZURE_ZDR_DISCOVERY_POLICY = { ...AZURE_ZDR_EXACT_QUOTE_POLICY, id: "openrouter-azure-mini-zdr-discovery-v3" } as const;
+export type ModelPolicyId = typeof STRUCTURED_MODEL_POLICY.id | typeof AZURE_ZDR_MODEL_POLICY.id | typeof AZURE_ZDR_EXACT_QUOTE_POLICY.id | typeof AZURE_ZDR_DISCOVERY_POLICY.id;
 export function modelPolicy(id:unknown = STRUCTURED_MODEL_POLICY.id) {
   if (id === STRUCTURED_MODEL_POLICY.id) return STRUCTURED_MODEL_POLICY;
   if (id === AZURE_ZDR_MODEL_POLICY.id) return AZURE_ZDR_MODEL_POLICY;
   if (id === AZURE_ZDR_EXACT_QUOTE_POLICY.id) return AZURE_ZDR_EXACT_QUOTE_POLICY;
+  if (id === AZURE_ZDR_DISCOVERY_POLICY.id) return AZURE_ZDR_DISCOVERY_POLICY;
   throw new Error("unsupported_model_policy");
 }

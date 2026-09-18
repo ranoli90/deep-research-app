@@ -66,5 +66,6 @@
     "wall-clock measurements",
     "adjudicator identity/status and explicit missing measurements"
   ],
-  "executionBoundary": "Actual registered MC-D01 attempts are recorded in verification/v6/forward-accounting and verification/v6/zdr-route. No real-model report or correction succeeded. The current unknown request retains its reservation and gates further paid comparisons. Local matched controls use actual extraction and fabricated model transports. No semantic score or human adjudication is established."
+  "executionBoundary": "Earlier MC-D01 failures remain recorded with no real-model report/correction. Default evaluation still stops on prior unknown exposure. An explicit versioned continuation may preserve exact terminal unknown-intent snapshots in the same account/key/scope, include all reserves in the unchanged cap, and attempt only distinct registered questions. It cannot resend or settle the old request; any new unknown stops the comparison. Local fabricated-model controls are not semantic scores or human adjudication.",
+  "heldIntentContinuation": "held-intent-continuation.v1"
 }

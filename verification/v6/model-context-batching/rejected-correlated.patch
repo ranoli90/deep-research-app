@@ -1,0 +1,43 @@
+diff --git a/apps/backend/src/modules/model-operations.ts b/apps/backend/src/modules/model-operations.ts
+index d20cca6..c7e2af6 100644
+--- a/apps/backend/src/modules/model-operations.ts
++++ b/apps/backend/src/modules/model-operations.ts
+@@ -27,17 +27,28 @@ export async function validateOwnedModelContext(db: Queryable, args: {
+   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
+   for (const p of args.context.passages) {
+     if (createHash("sha256").update(p.text).digest("hex") !== p.digest) throw new Error("model_evidence_digest_mismatch");
+-    const row = await db.query(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+-      JOIN sources s ON s.id=v.source_id
+-      WHERE p.id=$1 AND p.account_id=$2 AND p.run_id=$3 AND p.source_version_id=$4 AND p.content_hash=$5 AND p.exact_text=$6
+-      AND v.account_id=$2 AND s.account_id=$2 AND v.access_level=$7`,
+-      [p.id, args.accountId, args.runId, p.sourceVersionId, p.digest, p.text, p.accessLevel]);
+-    if (row.rowCount !== 1) throw new Error("model_evidence_owner_or_version_mismatch");
+   }
+-  for (const source of args.context.sources) {
+-    const row = await db.query("SELECT s.id FROM sources s WHERE s.id::text=$1 AND s.account_id=$2 AND s.title=$4 AND (s.run_id=$3 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$3 AND p.account_id=$2 AND v.source_id=s.id))",
+-      [source.handle, args.accountId, args.runId, source.title]);
+-    if (row.rowCount !== 1) throw new Error("model_source_owner_mismatch");
++  // Validate every input row (including duplicates) against the same authorized view.
++  // Batching removes network round trips, not ownership or exact-binding checks.
++  if (args.context.passages.length) {
++    const matched = await db.query<{ count: number }>(`SELECT count(*)::int AS count
++      FROM jsonb_to_recordset($1::jsonb) AS input(id uuid, "sourceVersionId" uuid, digest text, text text, "accessLevel" text)
++      WHERE (SELECT count(*) FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
++        JOIN sources s ON s.id=v.source_id
++        WHERE p.id=input.id AND p.account_id=$2 AND p.run_id=$3 AND p.source_version_id=input."sourceVersionId"
++          AND p.content_hash=input.digest AND p.exact_text=input.text
++          AND v.account_id=$2 AND s.account_id=$2 AND v.access_level=input."accessLevel")=1`,
++      [JSON.stringify(args.context.passages), args.accountId, args.runId]);
++    if (matched.rows[0]?.count !== args.context.passages.length) throw new Error("model_evidence_owner_or_version_mismatch");
++  }
++  if (args.context.sources.length) {
++    const matched = await db.query<{ count: number }>(`SELECT count(*)::int AS count
++      FROM jsonb_to_recordset($1::jsonb) AS input(handle text, title text)
++      WHERE (SELECT count(*) FROM sources s WHERE s.id::text=input.handle AND s.account_id=$2 AND s.title=input.title
++        AND (s.run_id=$3 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
++          WHERE p.run_id=$3 AND p.account_id=$2 AND v.source_id=s.id)))=1`,
++      [JSON.stringify(args.context.sources), args.accountId, args.runId]);
++    if (matched.rows[0]?.count !== args.context.sources.length) throw new Error("model_source_owner_mismatch");
+   }
+ }
+ export async function saveModelOperation<K extends ResearchModelOperation>(db: Queryable, args: {

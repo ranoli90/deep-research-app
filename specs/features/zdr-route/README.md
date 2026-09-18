@@ -11,3 +11,7 @@ Tests: old bytes/replay, new Azure request pin and mismatched-provider rejection
 Rollback: disable new Azure admission; retain both immutable policy readers, consent and financial records. Never reinterpret an admitted run's policy or remove privacy gates.
 
 Live follow-on (ADR060): first Azure response failed exact-span validation; new opt-in v2 policy adds deterministic unique-exact coordinate resolution with an audit event and unchanged post-transform validation. No source text or authority is changed. The second live request timed out and retains its reserve.
+
+Internal rejection diagnostics now retain only versioned allowlisted schema paths/codes, never rejected values or free-text messages. This changes internal result metadata, not prompts, provider request identity or public reports. Negative redaction and replay controls protect it. Rollback may omit optional diagnostics without accepting invalid output.
+
+ADR062 extends only a new immutable v3 policy to Azure public discovery, retaining prior text/search identities. No new processor, dependency, schema migration or price ceiling. Search remains limited to the public question; Exa is separately disclosed and not covered by a generation-provider ZDR claim. Evidence must distinguish frozen supplied-document trials from actual search/read trials.

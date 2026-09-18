@@ -1904,5 +1904,45 @@
     "network": false,
     "paid": false,
     "scope": "Selected real HTML/PDF original/correction/replay through all admitted text policies; actual parser, fabricated model transports"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/independent-continuation/prepare.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/independent-continuation/prepare.mts",
+    "network": true,
+    "paid": false,
+    "scope": "Read-only quota and exact terminal unknown snapshot; register independent MC-D03 in same account/key/scope and existing $0.40 aggregate cap, no generation"
+  },
+  {
+    "command": "python3 verification/v6/independent-continuation/run-paid.py",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/independent-continuation/run-paid.py",
+    "network": true,
+    "paid": true,
+    "scope": "Registered MC-D03 original/correction/full-rerun through production API/worker using frozen public Python documentation; old timeout held, same aggregate cap, no retry"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-context.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/model-context.integration.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Nonbillable bounded regression; local PostgreSQL for integration, fabricated provider transports only"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/held-intent-continuation.integration.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Nonbillable bounded regression; local PostgreSQL for integration, fabricated provider transports only"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/eval-live.unit.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Nonbillable bounded regression; local PostgreSQL for integration, fabricated provider transports only"
   }
 ]

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { executeModelRequest, prepareModelRequest } from "../src/adapters/model/openrouter.js";
 import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
+import { ModelValidationDiagnosticsSchema } from "../src/ports/model.js";
 const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; });
 const context = { question: "Explain coral bleaching", task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [], draft: null };
@@ -36,6 +37,26 @@ describe("W05 structured model transport without fallback", () => {
   });
   it("does not treat missing cost as a confirmed reservation amount", async () => {
     expect(await call(response(undefined, { usage: {} }))).toMatchObject({ status: "succeeded", receipt: { actualMicro: null, rawCost: null } });
+  });
+  it("records bounded schema coordinates without rejected values, messages, or unknown keys", async () => {
+    const secret = "private-source-token-do-not-retain";
+    const result = await call(response(JSON.stringify({questions:[{questionKey:"q1",status:secret,assertionKeys:[],reason:"test",[secret]:secret}],omittedRequirements:[]})));
+    expect(result).toMatchObject({status:"invalid_output",reason:"output_schema_mismatch",receipt:{actualMicro:2},
+      diagnostics:{version:"model-validation-diagnostics.v1",stage:"output_schema",truncated:false,
+        issues:[{code:"invalid_enum_value",path:["questions",0,"status"]},{code:"unrecognized_keys",path:["questions",0]}]}});
+    expect(JSON.stringify(result)).not.toContain(secret);
+    expect(result).not.toHaveProperty("output");
+    if(result.status!=="succeeded")expect(ModelValidationDiagnosticsSchema.safeParse(result.diagnostics).success).toBe(true);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+  it("caps stored schema issues while preserving an explicit truncation marker", async () => {
+    const result = await call(response(JSON.stringify({questions:Array.from({length:24},()=>({})),omittedRequirements:[]})));
+    expect(result).toMatchObject({status:"invalid_output",reason:"output_schema_mismatch",diagnostics:{truncated:true}});
+    if(result.status!=="succeeded")expect(result.diagnostics?.issues).toHaveLength(16);
+  });
+  it("rejects arbitrary diagnostic fields and leaves successful output free of diagnostics", async () => {
+    expect(ModelValidationDiagnosticsSchema.safeParse({version:"model-validation-diagnostics.v1",stage:"output_schema",issues:[{code:"invalid_type",path:["private-content"]}],truncated:false}).success).toBe(false);
+    expect(await call(response())).not.toHaveProperty("diagnostics");
   });
   it.each([{ model: "unexpected/model" }, { provider: "Different Provider" }])("rejects route drift %s", async (extra) => {
     expect(await call(response(undefined, extra))).toMatchObject({ status: "permanent_failure", reason: "provider_route_mismatch", receipt: { actualMicro: 2 } });

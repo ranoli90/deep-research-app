@@ -137,3 +137,5 @@ ADR058 adds actual provider-key capacity preflight to eval:live and a durable qu
 ## ZDR route continuation — 2026-09-18
 
 ADR059 adds a disclosed Azure-ZDR structured route. Both comparison arms must use the same persisted policy. Retain the previous registered404 failure (one attempted, three unrun) and two diagnostic failures. Local PDF/HTML correction controls use fabricated model transport; actual parser execution does not establish semantic success. Fresh live artifacts belong in verification/v6/zdr-route, with original receipts and all failures retained.
+
+ADR061 registered continuation: model-protocol.json explicitly supports held-intent-continuation.v1. A new grant may name exact prior terminal unknown-intent snapshots while retaining all reservations and the same aggregate cap. Only distinct registered original/corrected questions may execute; all failures, unselected tasks and unrun repeats remain in the denominator. New unknown outcomes stop immediately. This is neither retry nor reconciliation, and does not turn the failed MC-D01 attempt into a success.
