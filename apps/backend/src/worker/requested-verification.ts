@@ -5,7 +5,7 @@ import type { AppConfig } from "../platform/config.js";
 import type { FencedSession } from "./fenced-session.js";
 import { getRun,getBrief,emitEvent,markTerminal,setPhase } from "../modules/runs.js";
 import { settleRun } from "../modules/billing.js";
-import { loadVerification } from "../modules/requested-verification.js";
+import { loadVerification,VerificationTargetError } from "../modules/requested-verification.js";
 import { verificationContext,restoreVerificationCheck,verificationReportContent } from "../modules/verification-proof.js";
 import { modelInputManifest } from "../modules/model-operations.js";
 import { insertSource } from "../modules/evidence.js";
@@ -23,7 +23,7 @@ export async function processRequestedVerification(pool:pg.Pool,config:AppConfig
   await markTerminal(db,args.runId,"failed");await settleRun(db,args.accountId,args.runId,0);
  });
  let saved;
- try{saved=await session.write(db=>loadVerification(db,args));}catch(error){if(error instanceof Error&&error.message.startsWith("required_verification_"))return fail(error.message);throw error;}
+ try{saved=await session.write(db=>loadVerification(db,args));}catch(error){if(error instanceof VerificationTargetError)return fail(error.reason);throw error;}
  await session.write(db=>setPhase(db,args.runId,"researching"));
  if(saved.evidence_policy==="refresh_sources"){
   const run=(await getRun(pool,args.runId))!,brief=await getBrief(pool,run.brief_id);

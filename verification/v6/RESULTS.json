@@ -6280,5 +6280,7 @@
   "profilePanelEvidence": "verification/v6/profile-panel/RESULTS.json",
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
-  "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json"
+  "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
+  "latestReviewedImplementationCommit": "ece80f4d7be60843963e383b3707083547f61042",
+  "latestEvidencePacket": "verification/v6/dependency-vitest-integrated/RESULTS.json"
 }

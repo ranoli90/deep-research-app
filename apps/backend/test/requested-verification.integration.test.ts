@@ -1,3 +1,5 @@
+import * as verificationModule from "../src/modules/requested-verification.js";
+import { LostWorkerLease } from "../src/worker/fenced-session.js";
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import type PgBoss from "pg-boss";
@@ -244,3 +246,43 @@ it("W05 finite repeated verification lineage reaches an explicit admission ceili
  await expect(admitRequestedVerification(pool,config,x.accountId,parentId,{...x.request,reportId:report.id,reportVersion:report.version,claimId:report.claim_ids[0],idempotencyKey:crypto.randomUUID()})).rejects.toThrow("verification_lineage_limit");
  expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=$1",[x.accountId])).rows[0].n).toBe(before);
 },120000);
+
+for(const corruption of ["digest","schema","original","row"] as const)it(`W05 deterministic verification ${corruption} corruption terminates visibly before new issuance`,async()=>{
+ const x=await setup(),child=await admitRequestedVerification(pool,config,x.accountId,x.parent.runId,x.request),before=x.model.calls.length;
+ if(corruption==="digest")await pool.query("UPDATE requested_verifications SET target_digest=$2 WHERE run_id=$1",[child.runId,"0".repeat(64)]);
+ else if(corruption==="schema")await pool.query("UPDATE requested_verifications SET target=jsonb_set(target,'{assertion,scope,entity}','123'::jsonb) WHERE run_id=$1",[child.runId]);
+ else if(corruption==="original")await pool.query("UPDATE sources SET title='Synthetic changed original title' WHERE run_id=$1",[x.parent.runId]);
+ else await pool.query("UPDATE requested_verifications SET source_map='{}'::jsonb WHERE run_id=$1",[child.runId]);
+ await processRun(pool,config,child.runId);
+ expect((await getRun(pool,child.runId))?.terminal_outcome).toBe("failed");expect(x.model.calls.length).toBe(before);
+ const stored=(await pool.query("SELECT state,result FROM requested_verifications WHERE run_id=$1",[child.runId])).rows[0];
+ expect(stored.state).toBe("blocked");expect(stored.result.outcome).toBe("blocked");
+ expect(stored.result.reason).toBe(({digest:"verification_target_digest_changed",schema:"verification_target_schema_invalid",original:"verification_original_target_changed",row:"verification_target_record_invalid"})[corruption]);
+ expect(JSON.stringify(stored.result)).not.toContain(x.request.note);expect(JSON.stringify(stored.result)).not.toContain(text);
+ expect((await pool.query("SELECT verification_required_revision FROM runs WHERE id=$1",[child.runId])).rows[0].verification_required_revision).toBe(child.briefRevision);
+ expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+ expect(await getLatestReportForRun(pool,child.runId,x.accountId)).toBeNull();
+});
+for(const unknown of [false,true])it(`W02 verification corruption retains existing ${unknown?"unknown and confirmed":"confirmed"} financial liabilities`,async()=>{
+ const x=await setup(),child=await admitRequestedVerification(pool,config,x.accountId,x.parent.runId,x.request),before=x.model.calls.length;
+ const intent=async(confirmed:number|null)=>pool.query(`INSERT INTO provider_intents(id,run_id,correlation_id,route,request_digest,reserved_max_micro,state,confirmed_micro,provider_key_scope,scope_key)
+ VALUES($1,$2,$3,'openrouter:synthetic-corruption',$4,20,$5,$6,$7,$8)`,[crypto.randomUUID(),child.runId,crypto.randomUUID(),"f".repeat(64),confirmed===null?"outcome-unknown":"confirmed",confirmed,crypto.randomUUID(),crypto.randomUUID()]);
+ await intent(7);if(unknown)await intent(null);
+ const initial=(await pool.query("SELECT id,confirmed_micro,reserved_max_micro,state FROM provider_intents WHERE run_id=$1 ORDER BY id",[child.runId])).rows;
+ await pool.query("UPDATE requested_verifications SET target_digest=$2 WHERE run_id=$1",[child.runId,"0".repeat(64)]);
+ await processRun(pool,config,child.runId);
+ expect((await getRun(pool,child.runId))?.terminal_outcome).toBe("failed");expect(x.model.calls.length).toBe(before);
+ expect((await pool.query("SELECT id,confirmed_micro,reserved_max_micro,state FROM provider_intents WHERE run_id=$1 ORDER BY id",[child.runId])).rows).toEqual(initial);
+ const reservation=(await pool.query("SELECT state,settled_micro FROM reservations WHERE run_id=$1",[child.runId])).rows[0];
+ expect(reservation.state).toBe(unknown?"reserved":"settled");if(!unknown)expect(Number(reservation.settled_micro)).toBe(7);
+ expect(await getLatestReportForRun(pool,child.runId,x.accountId)).toBeNull();
+});
+for(const failure of ["transient","lease","untyped_lookalike"] as const)it(`W02 verification corruption handling does not classify ${failure} errors as terminal target corruption`,async()=>{
+ const x=await setup(),child=await admitRequestedVerification(pool,config,x.accountId,x.parent.runId,x.request),before=x.model.calls.length;
+ const error=failure==="lease"?new LostWorkerLease():failure==="transient"?Object.assign(new Error("synthetic transient database outage"),{code:"08006"}):new Error("verification_target_digest_changed");
+ vi.spyOn(verificationModule,"loadVerification").mockRejectedValueOnce(error);
+ if(failure==="lease")await processRun(pool,config,child.runId);else await expect(processRun(pool,config,child.runId)).rejects.toBe(error);
+ expect((await getRun(pool,child.runId))?.lifecycle).not.toBe("terminal");expect(x.model.calls.length).toBe(before);
+ expect((await pool.query("SELECT state,result FROM requested_verifications WHERE run_id=$1",[child.runId])).rows[0]).toEqual({state:"queued",result:null});
+ expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[child.runId])).rowCount).toBe(0);
+});

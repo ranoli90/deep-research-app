@@ -1,0 +1,75 @@
+{
+  "files": [
+    {
+      "path": "verification/v6/verification-corruption/HANDOFF.md",
+      "sha256": "161f39037662ff2893c8145659fcee7e778e789a02b70a4a85c79f68c2af996f"
+    },
+    {
+      "path": "verification/v6/verification-corruption/RESULTS.json",
+      "sha256": "eb5e47e903d8aaec4aff29b47c5dbcf7c676e67b88c6f5b150a131f625d82d95"
+    },
+    {
+      "path": "verification/v6/verification-corruption/SETUP.json",
+      "sha256": "321923cf096bc4117b196232d9d6613bb421e4653cd350e32f7c5960e9b336d5"
+    },
+    {
+      "path": "verification/v6/verification-corruption/boundaries.log",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "path": "verification/v6/verification-corruption/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/verification-corruption/integration-before.log",
+      "sha256": "81442eca77a85e9f5faeab83b2815de8a1e678b3315e5177b32293180265f8c6"
+    },
+    {
+      "path": "verification/v6/verification-corruption/integration-final.log",
+      "sha256": "fb3fcc2c7ac00e33f4ff6f87824ce6560c5ba42848b92d5fa785b51485088863"
+    },
+    {
+      "path": "verification/v6/verification-corruption/setup-0.log",
+      "sha256": "1d5ea4fd88ef74264d1b2856c0266810a023d7b75bd395f16ba432717bac8de4"
+    },
+    {
+      "path": "verification/v6/verification-corruption/setup-1.log",
+      "sha256": "5d067219b650b24842babc4e6e76e7fb9fb7c27bba471ef4803d20ba0d65d6eb"
+    },
+    {
+      "path": "verification/v6/verification-corruption/setup-2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/v6/verification-corruption/setup-3.log",
+      "sha256": "878327109fabfc54288a302deda456d966667083818a6f2d4ff0e0b1ba1436b4"
+    },
+    {
+      "path": "verification/v6/verification-corruption/source.patch",
+      "sha256": "c3438eaac07db6bd37ccfcc97512719c2a7c4d4ff837ed76c47c9c7a7e22669a"
+    },
+    {
+      "path": "verification/v6/verification-corruption/typecheck-final.log",
+      "sha256": "0ba23a91bf1fa9a3ffd95e4c651005a6c13c461e8f9d4c6178d8e1bed1656f31"
+    },
+    {
+      "path": "verification/v6/verification-corruption/typecheck-tests-before.log",
+      "sha256": "0ba23a91bf1fa9a3ffd95e4c651005a6c13c461e8f9d4c6178d8e1bed1656f31"
+    },
+    {
+      "path": "apps/backend/src/modules/requested-verification.ts",
+      "clone": "/tmp/deep-verification-corruption-hwb5yv23/repo",
+      "sha256": "a6ccbae2f83ec045164754364e9e6275f28c19898fc622fb55423d18803446cc"
+    },
+    {
+      "path": "apps/backend/src/worker/requested-verification.ts",
+      "clone": "/tmp/deep-verification-corruption-hwb5yv23/repo",
+      "sha256": "349949b944ca3e24cb291e90bf7eeaf90262e5f7ac7127bf4a655674ee030af0"
+    },
+    {
+      "path": "apps/backend/test/requested-verification.integration.test.ts",
+      "clone": "/tmp/deep-verification-corruption-hwb5yv23/repo",
+      "sha256": "2869432b6c6e3049f42ce6cbe205ff77807aa8a994b9b4d561765e6f060d7bb7"
+    }
+  ]
+}

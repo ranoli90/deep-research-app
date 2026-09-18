@@ -1008,5 +1008,13 @@
     "paid": false,
     "implementation": "package.json",
     "artifact": "verification/v6/dependency-vitest-integrated/extraction.log"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_vitest4_v6_20260917 pnpm --filter @deep/backend test:integration test/requested-verification.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "35 requested-verification controls including typed corruption and retained liabilities; local PostgreSQL/fabricated transports",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
   }
 ]
