@@ -1,7 +1,7 @@
 {
   "task": "W02 mutation-basis lease-clock audit",
   "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
-  "target": "uncommitted working tree; primary integrates",
+  "target": "Reviewed implementation checkpoint eb133e86ac9d8fc7a16be54088fc872c1c3fa63d",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -104,5 +104,6 @@
     "command": "pnpm --filter @deep/backend exec node --input-type=module -e 'import pg from \"pg\";const p=new pg.Pool({connectionString:\"postgres://deep:deep_local_dev_only@127.0.0.1:55432/postgres\"});try{await p.query(\"CREATE DATABASE deep_research_lease_clock_v6\");console.log(\"created dedicated lease-clock database\")}finally{await p.end()}'"
   },
   "rollback": "Retain wall-clock expiry and fence checks; disable affected scheduling on regression. Never revert to transaction-start lease authorization. Financial settlement after expiry/deletion remains allowed under existing receipt rules.",
-  "issuanceScope": "Lease validity is checked again after action/intent INSERTs before the issuance transaction returns. This is local durable authorization evidence, not external exactly-once delivery or a guarantee against arbitrary process pauses between transaction commit and transport."
+  "issuanceScope": "Lease validity is checked again after action/intent INSERTs before the issuance transaction returns. This is local durable authorization evidence, not external exactly-once delivery or a guarantee against arbitrary process pauses between transaction commit and transport.",
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d"
 }

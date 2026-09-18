@@ -67,8 +67,9 @@
     },
     {
       "path": "verification/v6/lease-clock/RESULTS.json",
-      "sha256": "0d8b44f3dbfc896c454035680a25bddb9aa649d5930a6a4f60c23ef47c334a06",
-      "bytes": 7258
+      "sha256": "b4ee3130725d358c8563c1d63feb12484c1ef6ea92f42f8e191c5024e6d50d90",
+      "bytes": 7359
     }
-  ]
+  ],
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d"
 }

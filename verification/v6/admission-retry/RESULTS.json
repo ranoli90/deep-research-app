@@ -6,7 +6,7 @@
     "W09"
   ],
   "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
-  "revisionScope": "Uncommitted integrated checkpoint; exact source hashes recorded at checkpoint",
+  "revisionScope": "Integrated source committed; subsequent metadata identifies actual implementation revision.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -130,5 +130,6 @@
     "Metro exited7 during package replacement due missing temporary watch path; authoritative terminal confirmed before restarting. Early final adapter probes hit absent/stale target/module, retained; later module-ready/terminal results provide proof.",
     "Current standalone/iOS native dependency resolution, production identity, wider lifecycle and semantic quality remain unverified."
   ],
-  "rollback": "ADR031: disable new scheduling only; preserve journal readers/cleanup, upload dedup/tombstones, withdrawal veto, account/consent/budget gates and unknown holds. Missing native hashing blocks document submission without JS fallback."
+  "rollback": "ADR031: disable new scheduling only; preserve journal readers/cleanup, upload dedup/tombstones, withdrawal veto, account/consent/budget gates and unknown holds. Missing native hashing blocks document submission without JS fallback.",
+  "implementationCommit": "eb133e86ac9d8fc7a16be54088fc872c1c3fa63d"
 }
