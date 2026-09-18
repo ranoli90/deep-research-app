@@ -76,6 +76,17 @@ it("malformed or expired live-semantic grants fail closed with zero provider cal
  await expect(executeLiveSemanticEval({rawAuthorization:JSON.stringify({...g,approvalId:"22222222-2222-4222-8222-222222222222"}),flags,driver:{providerCall}})).rejects.toThrow();
  expect(providerCall).not.toHaveBeenCalled();
 });
+it("live semantic execution cannot expand beyond the granted task classes",async()=>{
+ const {executeLiveSemanticEval,sha256:liveSha}=await import("../src/evaluation/live-semantic.js");
+ const providerCall=vi.fn(async()=>null);
+ const g={version:"live-semantic-authorization.v1" as const,approvalId:id,approvalReference:"unit-control-not-authorization",issuedAt:new Date(Date.now()-1000).toISOString(),expiresAt:new Date(Date.now()+600000).toISOString(),taskClasses:["one_sentence_purchase_comparison"] as const,budgetMicro:400000,budgetScope:"evaluation:unit",policyId:"openrouter-azure-mini-zdr-text-v1",exclusiveDatabaseAcknowledged:true as const,maxAttempts:6};
+ const raw=JSON.stringify(g),flags={execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:liveSha(raw)};
+ await expect(executeLiveSemanticEval({rawAuthorization:raw,flags,driver:{providerCall},taskClasses:["unknown_is_correct"]})).rejects.toThrow("unregistered_task_class");
+ expect(providerCall).not.toHaveBeenCalled();
+ const ok=await executeLiveSemanticEval({rawAuthorization:raw,flags,driver:{providerCall},taskClasses:["unknown_is_correct","one_sentence_purchase_comparison"]});
+ expect(ok.executed).toEqual(["one_sentence_purchase_comparison"]);
+ expect(providerCall).toHaveBeenCalledOnce();
+});
 it("credentials alone cannot authorize the live-semantic CLI",{timeout:60_000},()=>{
  const r=spawnSync(process.execPath,["--import","tsx","src/eval-live-semantic.ts"],{encoding:"utf8",env:{...process.env,OPENROUTER_API_KEY:"sentinel-private-key",LIVE_SPEND_CAP_MICRO:"1000000"}});
  expect(r.status).toBe(2);

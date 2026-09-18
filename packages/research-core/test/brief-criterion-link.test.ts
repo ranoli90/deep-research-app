@@ -24,6 +24,7 @@ it("links orphaned brief criteria to questions without rewriting the original qu
   const resolved = resolveModelSpans("brief", raw, { question, passages: [] });
   const repaired = repairBriefCriterionLinks(resolved.output);
   expect(repaired.linked).toEqual([{ criterionKey: "local_ai", questionKey: "linked_local_ai", attachedToExisting: false }]);
+  expect(repaired.output.questions.find((q) => q.key === "linked_local_ai")?.text).toBe("running AI");
   expect(repaired.output.objective).toBe(question);
   expect(validateModelBindings("brief", repaired.output, {
     question, task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [],
@@ -45,4 +46,22 @@ it("does not invent a second question when every criterion is already referenced
   const repaired = repairBriefCriterionLinks(raw);
   expect(repaired.linked).toEqual([]);
   expect(repaired.output.questions).toHaveLength(1);
+});
+
+it("does not emit a 25th question when the brief is already at the schema cap", () => {
+  const questions = Array.from({ length: 24 }, (_, i) => ({
+    key: `q${i}`, text: question, criterionKeys: ["budget"],
+    importance: "critical" as const, evidenceStandard: "current prices",
+  }));
+  const repaired = repairBriefCriterionLinks({
+    objective: question,
+    objectiveProvenance: { quote: question, start: 0, end: question.length },
+    intendedOutput: "recommendation",
+    criteria: [criterion("budget", "under 2k", 26, 34), criterion("local_ai", "running AI")],
+    questions,
+    assumptions: [], openAmbiguities: [], explicitExclusions: [],
+  });
+  expect(repaired.output.questions).toHaveLength(24);
+  expect(repaired.linked[0]?.attachedToExisting).toBe(true);
+  expect(repaired.output.questions[0]?.criterionKeys).toContain("local_ai");
 });

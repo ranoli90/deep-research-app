@@ -21,6 +21,15 @@
 - Fix: exact-quote-v2 already repairs unique exact quotes; add `repairBriefCriterionLinks` on v2 briefs; tighten the brief prompt to require exact question slices and every criterion key on a question. v1 stays unrepaired.
 - Re-ran previously failing classes as new logical requests (new prompt/digest) on isolated DB `deep_research_session_a_live_eval_fix`. All five attempts succeeded: purchase 508µ, technical 588µ, correction 437µ+368µ, unknown-lot-code 481µ. Halted=null. Did not retry the earlier freshness unknown hold.
 - Tests: research-core brief-criterion-link 2/2; model-policy integration 7/7 including orphan-criterion v2 repair.
+
+## 2026-09-18 — Session A review cycle (A-only)
+
+- Did not edit Session B or C worktrees.
+- Privacy: delete `model_portfolio_resolutions` on account and source deletion.
+- Compiler: word-boundary geography (Indiana ≠ India); skip `not Germany`; ceiling budget before incidental USD; `under $2000`; merge known+extracted constraints; currency assumption is budget-specific; derived irreversible requirements persist as assumptions.
+- Governor: remaining-budget admission; escalation applies ZDR/privacy and stops when no compatible higher tier.
+- Eval: grant class allowlist; lease null fail-closed; invalid model output is not stored on failure rows.
+- Tests: intent-compiler 11, governor 11, eval-live 20, gateway 24, policy 8, p1-p2 25, criterion-link 3.
 - Not merged to `main`.
 
 ## 2026-09-16 — first application implementation session

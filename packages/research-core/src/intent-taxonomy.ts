@@ -14,7 +14,7 @@ export function inferTaskFamily(question: string): TaskFamily {
     && /\b(rate|price|score|population|number|who is|what is the)\b/i.test(q)) {
     return "current_fact";
   }
-  if (/\b(best|cheapest|under|budget|buy|purchase|laptop|phone|recommend)\b/i.test(q)
+  if (/\b(buy|purchase|laptop|phone|notebook|recommend|cheapest|best)\b/i.test(q)
     && !/\b(tax|law|filing)\b/i.test(q)) {
     return "underspecified_purchase";
   }

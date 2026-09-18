@@ -4,7 +4,7 @@ import { mkdir, open, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CreateRunRequestSchema } from "@deep/contracts";
 import { compileResearchIntent } from "@deep/research-core";
-import { AZURE_ZDR_MODEL_POLICY, STRUCTURED_CALL_RESERVE_MICRO, modelPolicy } from "./ports/model-policy.js";
+import { STRUCTURED_CALL_RESERVE_MICRO, modelPolicy } from "./ports/model-policy.js";
 import { createPool, migrate } from "./platform/db.js";
 import { loadConfig } from "./platform/config.js";
 import { createDevSession, grantConsent } from "./modules/access.js";
@@ -139,12 +139,14 @@ async function main() {
           originalQuestion: intent.originalQuestion,
           hardConstraints: intent.hardConstraints,
           clarificationAsk: intent.clarificationDecision.ask,
+          documentGroundedOwnedPassage: false,
         });
         const admitted = await admitRun(pool, session.accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({
           question, routeMode: "controlled-research",
         }), { modelPolicyId: policy.id });
         const owner = crypto.randomUUID();
-        const fence = (await claimLease(pool, admitted.runId, owner, 30_000))!;
+        const fence = await claimLease(pool, admitted.runId, owner, 30_000);
+        if (fence == null) throw new Error("lease_unavailable");
         const fenced = fencedSession(pool, {
           runId: admitted.runId, accountId: session.accountId, owner, fence, briefRevision: 1, leaseMs: 30_000,
         });
@@ -203,8 +205,9 @@ async function main() {
       note: "Live brief operations only; not a full source-backed report journey and not a routing superiority claim.",
     });
     if (halted) process.exitCode = 2;
-  } catch {
-    await journal({ event: "fatal", reason: "evaluation_stopped_unconfirmed_or_unavailable", semanticScores: null, superiorityClaim: false });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message.slice(0, 200) : "evaluation_stopped_unconfirmed_or_unavailable";
+    await journal({ event: "fatal", reason, semanticScores: null, superiorityClaim: false });
     process.exitCode = 2;
   } finally {
     await journalTail;

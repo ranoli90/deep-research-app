@@ -34,7 +34,8 @@ export function repairBriefCriterionLinks(output: ResearchModelOutput<"brief">):
   for (const criterion of data.criteria) {
     if (covered.has(criterion.key)) continue;
     const existing = data.questions.find((q) => q.criterionKeys.length < 24);
-    if (existing && data.questions.length >= 24) {
+    if (data.questions.length >= 24) {
+      if (!existing) continue;
       existing.criterionKeys.push(criterion.key);
       covered.add(criterion.key);
       linked.push({ criterionKey: criterion.key, questionKey: existing.key, attachedToExisting: true });
@@ -42,9 +43,10 @@ export function repairBriefCriterionLinks(output: ResearchModelOutput<"brief">):
     }
     const key = questionKey(criterion.key, usedQuestionKeys);
     usedQuestionKeys.add(key);
+    const quoted = criterion.provenance.quote.trim();
     data.questions.push({
       key,
-      text: criterion.description.slice(0, 4000),
+      text: (quoted || criterion.description).slice(0, 4000),
       criterionKeys: [criterion.key],
       importance: criterion.importance === "hard" ? "critical" : "useful",
       evidenceStandard: "Primary evidence, or record the answer as unknown if none exists.",

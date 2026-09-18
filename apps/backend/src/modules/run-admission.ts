@@ -51,7 +51,16 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
       attachmentIds: input.attachmentIds, sourceRestrictions: [],
       nonGoals: intent.exclusions.map((e) => e.text),
       constraints: [...intent.hardConstraints, ...intent.softPreferences].map(({ statedInQuestion: _stated, ...constraint }) => constraint),
-      assumptions: intent.assumptions,
+      assumptions: [
+        ...intent.assumptions,
+        ...intent.derivedResearchRequirements.filter((d) => !d.reversible).map((d) => ({
+          id: d.id,
+          value: d.text,
+          reversibility: "consequential" as const,
+          impact: d.because,
+          userConfirmationState: "unconfirmed" as const,
+        })),
+      ],
       freshnessRequirements: intent.freshnessRequirements.summary,
       desiredOutcome: intent.expectedOutput.summary,
       budgetPolicyId: "default", consentPolicyVersion: CONSENT_POLICY_VERSION, revision: currentRevision + 1,

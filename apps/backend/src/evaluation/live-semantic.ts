@@ -62,11 +62,14 @@ export async function executeLiveSemanticEval(args: {
   now?: number;
 }): Promise<{ authorization: LiveSemanticAuthorization; executed: LiveSemanticTaskClass[]; providerCalls: number }> {
   const grant = authorizeLiveSemantic(args.rawAuthorization, args.flags, args.now);
-  const classes = args.taskClasses ?? grant.taskClasses;
+  const allowed = new Set(grant.taskClasses);
+  const classes = (args.taskClasses ?? grant.taskClasses).filter((taskClass) => allowed.has(taskClass));
+  if (!classes.length) throw new Error("unregistered_task_class");
   let providerCalls = 0;
   const executed: LiveSemanticTaskClass[] = [];
+  const clock = args.now ?? Date.now();
   for (const taskClass of classes) {
-    if (Date.now() >= Date.parse(grant.expiresAt)) throw new Error("approval_expired_or_mismatched");
+    if (clock >= Date.parse(grant.expiresAt)) throw new Error("approval_expired_or_mismatched");
     await args.driver.providerCall(taskClass);
     providerCalls += 1;
     executed.push(taskClass);

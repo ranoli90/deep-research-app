@@ -10,7 +10,7 @@ import type {
   ResearchIntent,
 } from "@deep/contracts";
 import { RESEARCH_INTENT_COMPILER_VERSION } from "@deep/contracts";
-import { extractConstraints } from "./brief.js";
+import { extractConstraints, parseBudgetCeiling } from "./brief.js";
 import { evaluateClarificationValue } from "./clarification-value.js";
 import { inferTaskFamily } from "./intent-taxonomy.js";
 import { provenanceFromOrigin } from "./provenance.js";
@@ -30,28 +30,6 @@ function asIntentConstraint(c: import("@deep/contracts").Constraint, stated: boo
     ...c,
     provenance: c.provenance ?? provenanceFromOrigin(c.origin),
     statedInQuestion: stated,
-  };
-}
-
-function parseCompactBudget(question: string): IntentConstraint | null {
-  const compact = question.match(/\b(?:under|below|at most|less than|<=)\s*(\$|€|£)?\s*(\d+(?:[.,]\d+)?)\s*([kK])\b/);
-  if (!compact) return null;
-  const raw = Number(compact[2]!.replace(",", ""));
-  if (!Number.isFinite(raw)) return null;
-  const value = String(Math.round(raw * 1000));
-  const symbol = compact[1];
-  const units = symbol === "$" ? "USD" : symbol === "€" ? "EUR" : symbol === "£" ? "GBP" : undefined;
-  return {
-    id: "budget",
-    field: "budget",
-    operator: "lte",
-    value,
-    ...(units ? { units } : {}),
-    origin: "explicit",
-    importance: "hard",
-    explanation: `Question names budget ceiling ${compact[0]}`,
-    provenance: provenanceFromOrigin("explicit"),
-    statedInQuestion: true,
   };
 }
 
@@ -97,7 +75,11 @@ function expectedOutputFor(family: ResearchIntent["taskFamily"], question: strin
     return { kind: "current_fact", summary: "The current value with dated primary evidence.", statedInQuestion: true };
   }
   if (family === "technical_comparison") {
-    return { kind: "compatibility", summary: "Compatibility or difference under the named versions, with primary documentation.", statedInQuestion: true };
+    return {
+      kind: statedComparison ? "comparison" : "compatibility",
+      summary: "Compatibility or difference under the named versions, with primary documentation.",
+      statedInQuestion: statedComparison || /\bcompatib|works with\b/i.test(question),
+    };
   }
   if (family === "open_ended_research") {
     return { kind: "explanation", summary: "An evidence-backed explanation of the asked phenomenon, with uncertainty preserved.", statedInQuestion: true };
@@ -106,7 +88,11 @@ function expectedOutputFor(family: ResearchIntent["taskFamily"], question: strin
 }
 
 function freshnessFor(family: ResearchIntent["taskFamily"], question: string): FreshnessRequirement {
-  const stated = /\b(current|latest|as of now|today|right now|this week|as of\b)\b/i.test(question);
+  const datedAsOf = /\bas of\s+(?!now\b)/i.test(question);
+  const stated = /\b(current|latest|as of now|today|right now|this week)\b/i.test(question);
+  if (datedAsOf && !stated) {
+    return { required: true, summary: "Honor the stated as-of date; do not substitute a different snapshot.", statedInQuestion: true };
+  }
   if (family === "current_fact" || stated) {
     return { required: true, summary: "Requires dated, current primary evidence; stale snapshots are insufficient.", statedInQuestion: stated };
   }
@@ -130,7 +116,12 @@ export function compileResearchIntent(
   const originalQuestion = freezeQuestion(question);
   const family = inferTaskFamily(originalQuestion);
   const extracted = extractConstraints(originalQuestion);
-  const known = options.knownConstraints ?? extracted;
+  const merged = [...extracted];
+  for (const extra of options.knownConstraints ?? []) {
+    const idx = merged.findIndex((row) => row.field === extra.field && row.operator === extra.operator);
+    if (idx >= 0) merged[idx] = extra;
+    else merged.push(extra);
+  }
   const hard: IntentConstraint[] = [];
   const soft: IntentConstraint[] = [];
   const seen = new Set<string>();
@@ -143,9 +134,11 @@ export function compileResearchIntent(
     else hard.push(c);
   };
 
-  for (const c of known) consider(asIntentConstraint(c, extracted.some((e) => e.id === c.id)));
-  const compact = parseCompactBudget(originalQuestion);
-  if (compact && !hard.some((c) => c.field === "budget")) consider(compact);
+  for (const c of merged) {
+    consider(asIntentConstraint(c, extracted.some((e) => e.field === c.field && String(e.value) === String(c.value))));
+  }
+  const compact = parseBudgetCeiling(originalQuestion);
+  if (compact && !hard.some((c) => c.field === "budget")) consider(asIntentConstraint(compact, true));
 
   if (/\bbest\b/i.test(originalQuestion) && !soft.some((c) => c.field === "preference")) {
     consider({
@@ -208,7 +201,7 @@ export function compileResearchIntent(
         defaultHandling: "branch",
       });
     }
-    if (hard.some((c) => c.field === "budget") && !hard.some((c) => c.units)) {
+    if (hard.some((c) => c.field === "budget" && !c.units)) {
       assumptions.push({
         id: "assume-budget-currency",
         value: "The compact budget (for example “2k”) is 2000 currency units; market currency was not named.",
@@ -232,7 +225,7 @@ export function compileResearchIntent(
     }
   }
 
-  if (family === "legal_jurisdiction" && !known.some((c) => c.field === "geography")) {
+  if (family === "legal_jurisdiction" && !merged.some((c) => c.field === "geography")) {
     ambiguities.push({
       id: "jurisdiction",
       unknown: "Applicable jurisdiction",

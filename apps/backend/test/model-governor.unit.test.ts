@@ -98,6 +98,19 @@ describe("portfolio admission and cheap-first routing", () => {
     expect(decision.policyId).toBeNull();
   });
 
+  it("refuses routing when remaining budget cannot cover the attempt reserve", () => {
+    const decision = resolveOperationRoute({
+      portfolio: catalog,
+      operation: "brief",
+      operationClass: "structured",
+      privacy: { zdrRequired: false, dataCollection: "deny" },
+      structuredOutputRequired: true,
+      remainingBudgetMicro: 10,
+      attemptReserveMicro: 21_658,
+    });
+    expect(decision).toMatchObject({ admitted: false, reason: "attempt_budget_exhausted", policyId: null, fallbackUsed: false });
+  });
+
   it("selects the cheaper admitted route when privacy allows", () => {
     const decision = resolveOperationRoute({
       portfolio: catalog,
@@ -135,6 +148,30 @@ describe("bounded escalation and unknown holds", () => {
       currentPolicyId: "test-strong-v1",
     });
     expect(stopped).toMatchObject({ action: "stop", retry: false, escalate: false, reason: "escalation_depth_exhausted" });
+  });
+
+  it("does not escalate to a privacy-incompatible higher tier and stops when none exist", () => {
+    const none = nextAttemptDecision({
+      outcome: "invalid_output",
+      trigger: "schema_validation_failure",
+      currentDepth: 0,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: PRODUCTION_PORTFOLIO_V1,
+      currentPolicyId: "openrouter-azure-mini-zdr-text-v1",
+    });
+    expect(none).toMatchObject({ action: "stop", retry: false, escalate: false, reason: "no_registered_higher_tier" });
+    const leak = nextAttemptDecision({
+      outcome: "invalid_output",
+      trigger: "schema_validation_failure",
+      currentDepth: 0,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: { ...catalog, candidates: [zdrRoute, { ...stronger, zdr: false, policyId: "test-open-strong-v1" }] },
+      currentPolicyId: "test-zdr-v1",
+    });
+    expect(leak.escalate).toBe(false);
+    expect(leak).toMatchObject({ action: "stop", reason: "no_registered_higher_tier" });
   });
 
   it("does not retry or escalate an unknown provider outcome", () => {
