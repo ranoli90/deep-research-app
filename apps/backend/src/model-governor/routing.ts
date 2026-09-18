@@ -87,6 +87,23 @@ function admitCandidate(candidate: RouteCapabilities, input: RoutingInput): stri
 export function resolveOperationRoute(input: RoutingInput): RouteDecision {
   const portfolio = input.portfolio ?? PRODUCTION_PORTFOLIO_V1;
   const fanout = Math.min(input.requestedFanout ?? 1, portfolio.maxFanout, MAX_DEFAULT_FANOUT);
+  if (input.remainingBudgetMicro < input.attemptReserveMicro) {
+    return {
+      admitted: false,
+      reason: "attempt_budget_exhausted",
+      policyId: null,
+      model: null,
+      provider: null,
+      providerName: null,
+      rejectedCheaperIncompatible: [],
+      fanout,
+      escalationEligible: false,
+      escalationDepth: 0,
+      cacheSessionId: null,
+      reuseCache: false,
+      fallbackUsed: false,
+    };
+  }
   const rejectedCheaperIncompatible: string[] = [];
   const rejections: string[] = [];
   const eligible: RouteCapabilities[] = [];
@@ -202,17 +219,15 @@ export function nextAttemptDecision(args: {
   }
   const portfolio = args.portfolio ?? PRODUCTION_PORTFOLIO_V1;
   const current = portfolio.candidates.find((c) => c.policyId === args.currentPolicyId) ?? capabilitiesFor(args.currentPolicyId);
+  const privacy = { zdrRequired: current.zdr, dataCollection: current.dataCollection };
   const stronger = portfolio.candidates
-    .filter((c) => c.available && c.tier > current.tier && c.structuredOutput)
+    .filter((c) => c.available && c.tier > current.tier && c.structuredOutput && privacyOk(c, privacy))
     .sort((a, b) => a.tier - b.tier || price(a) - price(b))[0];
   if (!stronger) {
     return {
-      action: "escalate",
+      action: "stop",
       retry: false,
-      escalate: true,
-      trigger: args.trigger,
-      depth: args.currentDepth + 1,
-      nextPolicyId: null,
+      escalate: false,
       reason: "no_registered_higher_tier",
     };
   }

@@ -1,3 +1,7 @@
+## Integration merge A — 2026-09-18
+
+Merged final Session A tip `8abcffd` onto the C-integrated branch. Cheap-first admission, live leftover, owned grounding, and AGENTS contract from A are in. Main ADR061/062 numbering remains; A/C worker-local ADR061/062 stay ADR063/064.
+
 ## Integration merge C — 2026-09-18
 
 Branch `grok-v8/research-beta-integration` starts at current `main` `8a7b1a9` and merges Session C `0a694f9`. Main-only held-intent continuation, discovery-v3, model diagnostics, deletion-race, and source-focus/Android Back remain. Worker-local ADR numbers on C (intent/portfolio as ADR061, Library chrome as ADR062) are canonicalized here as ADR063 and ADR064 so they do not collide with main ADR061/062.
@@ -41,10 +45,13 @@ Worker branch `grok-v7/product-integration` (not `main`). Independent design cri
 ## Session C product integration — 2026-09-18
 
 Worker branch `grok-v7/product-integration` (not `main`). Session A including bounded live-semantic receipts is merged here; Session B is not. Native evidence is an EAS-installed APK against the labeled fixture API. A's live briefs are not product-quality Research Beta. Not App Store/Play ready. See `SESSION_HANDOFF.md`.
+## Session A agent contract — 2026-09-18
+
+Root `AGENTS.md` (and scoped backend/core/mobile/evals files) now bind future work to the consumer product bar, applied-not-recorded gates, owned evidence, and finishing independent items instead of listing them.
 
 ## Session A intelligence governor — 2026-09-18
 
-Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Bounded live semantic briefs were executed under a current user grant; the freshness unknown hold was not retried. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass. No product-quality or routing-superiority claim.
+Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Cheap-first admission now stamps new runs and fail-closes when no route is admitted; live reserves keep writing/verification leftover; document-grounded eval uses an owned passage; portfolio migration is `043_model_portfolio.sql`. Bounded live semantic briefs were executed under a current user grant; the freshness unknown hold was not retried. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass. No product-quality or routing-superiority claim.
 
 ## User-authorized GitHub main checkpoint — 2026-09-18
 

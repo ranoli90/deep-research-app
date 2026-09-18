@@ -2,6 +2,69 @@ import type { Assumption, Constraint, ResearchBrief } from "@deep/contracts";
 import { evaluateClarificationValue, clarificationPrompts } from "./clarification-value.js";
 import { provenanceFromOrigin } from "./provenance.js";
 
+function parseBudgetNumber(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(trimmed)) return Number(trimmed.replace(/,/g, ""));
+  if (/^\d+,\d{1,2}$/.test(trimmed)) return Number(trimmed.replace(",", "."));
+  const n = Number(trimmed.replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function unitsFromSymbol(symbol: string | undefined): string | undefined {
+  if (symbol === "$" || /^usd$/i.test(symbol ?? "")) return "USD";
+  if (symbol === "€" || /^eur$/i.test(symbol ?? "")) return "EUR";
+  if (symbol === "£" || /^gbp$/i.test(symbol ?? "")) return "GBP";
+  return undefined;
+}
+
+/** Prefer an explicit ceiling ("under 2k" / "under $2000") over an incidental later price. */
+export function parseBudgetCeiling(question: string): Constraint | null {
+  const compact = question.match(/\b(?:under|below|at most|less than|<=)\s*(\$|€|£)?\s*(\d+(?:[.,]\d+)?)\s*[kK]\b(?:\s*(USD|EUR|GBP))?/i);
+  if (compact) {
+    const n = parseBudgetNumber(compact[2]!);
+    if (n == null) return null;
+    const units = unitsFromSymbol(compact[1] ?? compact[3]);
+    return {
+      id: "budget", field: "budget", operator: "lte", value: String(Math.round(n * 1000)),
+      ...(units ? { units } : {}), origin: "explicit", importance: "hard",
+      explanation: `Question names budget ceiling ${compact[0]}`,
+      provenance: provenanceFromOrigin("explicit"),
+    };
+  }
+  const prefixed = question.match(/\b(?:under|below|at most|less than|<=)\s*(\$|€|£)\s*(\d+(?:[.,]\d+)?)\b/i);
+  if (prefixed) {
+    const n = parseBudgetNumber(prefixed[2]!);
+    if (n == null) return null;
+    return {
+      id: "budget", field: "budget", operator: "lte", value: String(n),
+      units: unitsFromSymbol(prefixed[1]), origin: "explicit", importance: "hard",
+      explanation: `Question names budget ceiling ${prefixed[0]}`,
+      provenance: provenanceFromOrigin("explicit"),
+    };
+  }
+  const suffixed = question.match(/\b(?:under|below|at most|less than|<=)\s*(\d+(?:[.,]\d+)?)\s*(EUR|USD|GBP|€|\$)/i);
+  if (suffixed) {
+    const n = parseBudgetNumber(suffixed[1]!);
+    if (n == null) return null;
+    return {
+      id: "budget", field: "budget", operator: "lte", value: String(n),
+      units: unitsFromSymbol(suffixed[2]), origin: "explicit", importance: "hard",
+      explanation: `Question names budget ceiling ${suffixed[0]}`,
+      provenance: provenanceFromOrigin("explicit"),
+    };
+  }
+  const money = question.match(/(\d+(?:[.,]\d+)?)\s*(EUR|USD|GBP|€|\$)/i);
+  if (!money) return null;
+  const n = parseBudgetNumber(money[1]!);
+  if (n == null) return null;
+  return {
+    id: "budget", field: "budget", operator: "lte", value: String(n),
+    units: unitsFromSymbol(money[2]), origin: "explicit", importance: "hard",
+    explanation: `Question names budget ${money[0]}`,
+    provenance: provenanceFromOrigin("explicit"),
+  };
+}
+
 const COUNTRIES = [
   "germany",
   "france",
@@ -27,55 +90,24 @@ export function extractConstraints(question: string): Constraint[] {
   const lower = question.toLowerCase();
 
   for (const country of COUNTRIES) {
-    if (lower.includes(country)) {
-      constraints.push({
-        id: `geo-${country.replace(/\s+/g, "-")}`,
-        field: "geography",
-        operator: "eq",
-        value: country,
-        origin: "explicit",
-        importance: "hard",
-        explanation: `Question names geography: ${country}`,
-        provenance: provenanceFromOrigin("explicit"),
-      });
-      break;
-    }
-  }
-
-  const money = question.match(/(\d+(?:[.,]\d+)?)\s*(EUR|USD|GBP|€|\$)/i);
-  if (money) {
+    const token = country.replace(/\s+/g, "\\s+");
+    if (!new RegExp(`\\b${token}\\b`, "i").test(question)) continue;
+    if (new RegExp(`\\bnot(?:\\s+in)?\\s+${token}\\b`, "i").test(question)) continue;
     constraints.push({
-      id: "budget",
-      field: "budget",
-      operator: "lte",
-      value: money[1]!.replace(",", ""),
-      units: money[2]!.replace("€", "EUR").replace("$", "USD"),
+      id: `geo-${country.replace(/\s+/g, "-")}`,
+      field: "geography",
+      operator: "eq",
+      value: country,
       origin: "explicit",
       importance: "hard",
-      explanation: `Question names budget ${money[0]}`,
+      explanation: `Question names geography: ${country}`,
       provenance: provenanceFromOrigin("explicit"),
     });
-  } else {
-    const compact = question.match(/\b(?:under|below|at most|less than|<=)\s*(\$|€|£)?\s*(\d+(?:[.,]\d+)?)\s*[kK]\b/);
-    if (compact) {
-      const raw = Number(compact[2]!.replace(",", ""));
-      if (Number.isFinite(raw)) {
-        const symbol = compact[1];
-        const units = symbol === "$" ? "USD" : symbol === "€" ? "EUR" : symbol === "£" ? "GBP" : undefined;
-        constraints.push({
-          id: "budget",
-          field: "budget",
-          operator: "lte",
-          value: String(Math.round(raw * 1000)),
-          ...(units ? { units } : {}),
-          origin: "explicit",
-          importance: "hard",
-          explanation: `Question names budget ceiling ${compact[0]}`,
-          provenance: provenanceFromOrigin("explicit"),
-        });
-      }
-    }
+    break;
   }
+
+  const ceiling = parseBudgetCeiling(question);
+  if (ceiling) constraints.push(ceiling);
 
   const iso = question.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
   const asOf = question.match(/\bas of\s+([A-Za-z]+ \d{4}|\d{4}-\d{2}-\d{2}|\d{4})\b/i);

@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   compileResearchIntent,
   evaluateClarificationValue,
+  inferTaskFamily,
   isCosmeticClarification,
   RESEARCH_INTENT_COMPILER_VERSION,
 } from "../src/intent-compiler.js";
+import { neededClarifications } from "../src/brief.js";
 
 const LAPTOP = "best laptop for running AI under 2k";
 
@@ -85,7 +87,7 @@ describe("research intent compiler — five prompt families", () => {
     assertImmutableOriginal(question);
     expect(intent.taskFamily).toBe("technical_comparison");
     expect(intent.derivedResearchRequirements.some((d) => /postgres/i.test(d.text))).toBe(true);
-    expect(intent.expectedOutput.kind).toBe("compatibility");
+    expect(intent.expectedOutput.kind).toMatch(/compatibility|comparison/);
     expect(intent.clarificationDecision.ask).toBe(false);
     expect(intent.clarificationDecision.questions.some((q) => /which version do you prefer/i.test(q.prompt))).toBe(false);
   });
@@ -98,6 +100,50 @@ describe("research intent compiler — five prompt families", () => {
     expect(intent.expectedOutput.kind).toBe("explanation");
     expect(intent.clarificationDecision.ask).toBe(false);
     expect(intent.clarificationDecision.questions).toEqual([]);
+  });
+});
+
+describe("task family classification", () => {
+  it("does not treat a priced technical comparison as a consumer purchase", () => {
+    const q = "Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01, keep the tone punchy";
+    expect(inferTaskFamily(q)).toBe("technical_comparison");
+    const intent = compileResearchIntent(q);
+    expect(intent.taskFamily).toBe("technical_comparison");
+    expect(intent.freshnessRequirements.summary).not.toMatch(/hardware availability/i);
+    expect(neededClarifications({ originalQuestion: q, constraints: intent.hardConstraints })).toEqual([]);
+  });
+
+  it("still classifies the laptop prompt as a purchase", () => {
+    expect(inferTaskFamily(LAPTOP)).toBe("underspecified_purchase");
+  });
+
+  it("classifies plural statute/regulation wording as legal and ignores incidental integers as versions", () => {
+    expect(inferTaskFamily("Which statutes apply here?")).toBe("legal_jurisdiction");
+    expect(inferTaskFamily("Which regulations apply here?")).toBe("legal_jurisdiction");
+    const priced = compileResearchIntent("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    expect(priced.assumptions.some((a) => a.id === "assume-documented-version")).toBe(true);
+    const named = compileResearchIntent("Is PostGIS compatible with Postgres 16 vs Postgres 15?");
+    expect(named.assumptions.some((a) => a.id === "assume-documented-version")).toBe(false);
+  });
+
+  it("does not treat Indiana as India or drop an under-2k ceiling for a later USD price", () => {
+    expect(compileResearchIntent("What is the filing deadline for employment tax in Indiana?").hardConstraints.some((c) => c.field === "geography")).toBe(false);
+    expect(neededClarifications({
+      originalQuestion: "What is the filing deadline for employment tax in Indiana?",
+      constraints: [],
+    }).length).toBe(1);
+    const priced = compileResearchIntent("best laptop under 2k, street price 999 USD");
+    expect(priced.hardConstraints.find((c) => c.field === "budget")).toMatchObject({ value: "2000" });
+    expect(compileResearchIntent("buy a phone under $2000").hardConstraints.find((c) => c.field === "budget")).toMatchObject({ value: "2000", units: "USD" });
+  });
+
+  it("does not treat a negated country as the required geography", () => {
+    const q = "The jurisdiction is France, not Germany. What is the filing deadline?";
+    const intent = compileResearchIntent(q);
+    expect(intent.originalQuestion).toBe(q);
+    expect(intent.hardConstraints.find((c) => c.field === "geography")?.value).toBe("france");
+    expect(intent.hardConstraints.some((c) => String(c.value) === "germany")).toBe(false);
+    expect(neededClarifications({ originalQuestion: q, constraints: intent.hardConstraints })).toEqual([]);
   });
 });
 

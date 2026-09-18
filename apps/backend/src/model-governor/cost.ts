@@ -1,6 +1,13 @@
 import { writingReserve } from "@deep/research-core";
 import type { OperationClass } from "./portfolio.js";
 
+export function operationClassFor(kind: string): OperationClass {
+  if (kind === "search" || kind === "fetch") return "exploration";
+  if (kind === "write_report" || kind === "write_calculated_report") return "writing";
+  if (kind === "assess_support" || kind === "review_coverage" || kind === "review_calculated_coverage") return "verification";
+  return "structured";
+}
+
 export type HierarchicalBudget = {
   accountRemainingMicro: number;
   runRemainingMicro: number;
@@ -31,7 +38,9 @@ export function reserveOperationBudget(args: {
   if (args.hierarchy.accountRemainingMicro < attempt) return { ok: false, reason: "account_budget_exhausted" };
   if (args.hierarchy.runRemainingMicro < attempt) return { ok: false, reason: "run_budget_exhausted" };
   const remaining = args.hierarchy.runRemainingMicro;
-  if (args.operationClass === "exploration" && remaining - attempt < writing + verification) {
+  const protectWritingVerification =
+    args.operationClass === "exploration" || args.operationClass === "structured";
+  if (protectWritingVerification && remaining - attempt < writing + verification) {
     return { ok: false, reason: "verification_writing_reserve" };
   }
   return { ok: true, attemptMicro: attempt, reservedVerificationMicro: verification, reservedWritingMicro: writing };

@@ -4,6 +4,10 @@ import { authorize as authorizeMatched } from "./authorization.js";
 
 export const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 
+export const DOCUMENT_GROUNDED_PASSAGE = "WAL does not work over a network filesystem.";
+export const DOCUMENT_GROUNDED_QUESTION =
+  "Can SQLite WAL support one shared database on a network filesystem and two simultaneous writers?";
+
 export const LIVE_SEMANTIC_TASK_CLASSES = [
   "one_sentence_purchase_comparison",
   "technical_compatibility_conflict",
@@ -62,11 +66,14 @@ export async function executeLiveSemanticEval(args: {
   now?: number;
 }): Promise<{ authorization: LiveSemanticAuthorization; executed: LiveSemanticTaskClass[]; providerCalls: number }> {
   const grant = authorizeLiveSemantic(args.rawAuthorization, args.flags, args.now);
-  const classes = args.taskClasses ?? grant.taskClasses;
+  const allowed = new Set(grant.taskClasses);
+  const classes = (args.taskClasses ?? grant.taskClasses).filter((taskClass) => allowed.has(taskClass));
+  if (!classes.length) throw new Error("unregistered_task_class");
   let providerCalls = 0;
   const executed: LiveSemanticTaskClass[] = [];
+  const clock = args.now ?? Date.now();
   for (const taskClass of classes) {
-    if (Date.now() >= Date.parse(grant.expiresAt)) throw new Error("approval_expired_or_mismatched");
+    if (clock >= Date.parse(grant.expiresAt)) throw new Error("approval_expired_or_mismatched");
     await args.driver.providerCall(taskClass);
     providerCalls += 1;
     executed.push(taskClass);

@@ -92,5 +92,63 @@
       "cacheWriteTokens": 0
     }
   ],
-  "note": "Bounded live briefs through performModelOperation. Not a full source-backed report+correction+rerun journey. Unknown hold retained."
+  "note": "Bounded live briefs through performModelOperation. Not a full source-backed report+correction+rerun journey. Unknown hold retained.",
+  "fixRun": {
+    "policy": "openrouter-azure-mini-zdr-exact-quote-v2",
+    "halted": null,
+    "confirmedMicro": 2382,
+    "results": [
+      {
+        "file": "run-fix-receipts.jsonl",
+        "taskClass": "one_sentence_purchase_comparison",
+        "status": "succeeded",
+        "reason": null,
+        "httpStatus": 200,
+        "actualMicro": 508,
+        "reportedProvider": "Azure",
+        "providerId": "gen-1789762454-2QibmDXCZF2q9DSGOIWb"
+      },
+      {
+        "file": "run-fix-receipts.jsonl",
+        "taskClass": "technical_compatibility_conflict",
+        "status": "succeeded",
+        "reason": null,
+        "httpStatus": 200,
+        "actualMicro": 588,
+        "reportedProvider": "Azure",
+        "providerId": "gen-1789762467-HEZONZJGHqCwgEaDcXNv"
+      },
+      {
+        "file": "run-fix-receipts.jsonl",
+        "taskClass": "correction",
+        "status": "succeeded",
+        "reason": null,
+        "httpStatus": 200,
+        "actualMicro": 437,
+        "reportedProvider": "Azure",
+        "providerId": "gen-1789762507-Ts9zQge9MUqzxM77xDAM"
+      },
+      {
+        "file": "run-fix-receipts.jsonl",
+        "taskClass": "correction",
+        "status": "succeeded",
+        "reason": null,
+        "httpStatus": 200,
+        "actualMicro": 368,
+        "reportedProvider": "Azure",
+        "providerId": "gen-1789762516-rLGDAlBb8AIvKGUyHgsW"
+      },
+      {
+        "file": "run-fix-receipts.jsonl",
+        "taskClass": "unknown_is_correct",
+        "status": "succeeded",
+        "reason": null,
+        "httpStatus": 200,
+        "actualMicro": 481,
+        "reportedProvider": "Azure",
+        "providerId": "gen-1789762522-u8ktHiskCoACyTjr4RE4"
+      }
+    ],
+    "note": "After span repair + criterion-question linking + brief prompt. Previously failing classes succeeded. Freshness unknown from earlier ledger remains unretried."
+  }
 }

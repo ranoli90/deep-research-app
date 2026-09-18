@@ -49,6 +49,19 @@
 - Mobile domain UX + Vitest. Session A merged at `8bae4c3`. Session B not merged.
 - EAS device APK `4a142400-ddac-41be-a7a7-8115c448f0d6` installed on 10.0.0.167:43417. Host Gradle not used. Two fixture journeys recorded. First APK failed cleartext; plugin repair verified in the installed APK.
 - No live OpenRouter spend in this lane. Not merged to `main`.
+## 2026-09-18 — Stronger AGENTS contract
+
+- Root `AGENTS.md` adds the product bar (one-sentence questions, no cosmetic interview, intelligence on the server), applied-not-recorded, fail-closed routing, owned evidence, evidence-class honesty, parallel-lane isolation, and “fix findings in the same assignment.”
+- Scoped backend/core/mobile/evals files add the same bar in their layer. Independent work is still completed, not listed.
+
+## 2026-09-18 — Session A finish remaining governor work
+
+- AGENTS: finishing with a backlog / “honest limitations” list of independent work is not a valid completion.
+- New runs stamp the cheap-first admitted `model_policy_id` and fail closed when no route is admitted. Explicit eval pins stay only if that policy is privacy-admitted. Parents still inherit.
+- `reserveLiveAttempt` enforces writing/verification leftover for exploration and structured kinds.
+- Live `document_grounded_check` inserts an owned passage after admission and does not inline the source sentence in the question.
+- Portfolio audit migration numbered `043_model_portfolio.sql` so it does not collide with Session B’s uncommitted 042.
+- Not merged to `main`. Did not edit Session B or C worktrees.
 
 ## 2026-09-18 — Session A intelligence governor (isolated branch)
 
@@ -64,6 +77,22 @@
 - Run1 Azure v1: purchase and technical compatibility HTTP 200 with confirmed 418µ and 447µ, both `invalid_exact_span`. Freshness HTTP 200 `outcome_unknown` held; no retry; remaining classes unrun on that ledger.
 - Run3 Azure exact-quote-v2 on a new isolated DB (does not retry the held intent): document-grounded succeeded 455µ; correction original succeeded 458µ; corrected question `criterion_without_question` 384µ; unknown-is-correct `criterion_without_question` 452µ. Halted=null.
 - Confirmed new spend 2614µ plus the unresolved freshness reservation. Receipts: `verification/v7/live-semantic/`. No superiority claim. Not a full report+correction+rerun journey.
+
+## 2026-09-18 — Fix failing live briefs
+
+- Root cause: v1 left wrong UTF-16 offsets invalid; models also emitted criteria with no question binding (`criterion_without_question`).
+- Fix: exact-quote-v2 already repairs unique exact quotes; add `repairBriefCriterionLinks` on v2 briefs; tighten the brief prompt to require exact question slices and every criterion key on a question. v1 stays unrepaired.
+- Re-ran previously failing classes as new logical requests (new prompt/digest) on isolated DB `deep_research_session_a_live_eval_fix`. All five attempts succeeded: purchase 508µ, technical 588µ, correction 437µ+368µ, unknown-lot-code 481µ. Halted=null. Did not retry the earlier freshness unknown hold.
+- Tests: research-core brief-criterion-link 2/2; model-policy integration 7/7 including orphan-criterion v2 repair.
+
+## 2026-09-18 — Session A review cycle (A-only)
+
+- Did not edit Session B or C worktrees.
+- Privacy: delete `model_portfolio_resolutions` on account and source deletion.
+- Compiler: word-boundary geography (Indiana ≠ India); skip `not Germany`; ceiling budget before incidental USD; `under $2000`; merge known+extracted constraints; currency assumption is budget-specific; derived irreversible requirements persist as assumptions.
+- Governor: remaining-budget admission; escalation applies ZDR/privacy and stops when no compatible higher tier.
+- Eval: grant class allowlist; lease null fail-closed; invalid model output is not stored on failure rows.
+- Tests: intent-compiler 11, governor 11, eval-live 20, gateway 24, policy 8, p1-p2 25, criterion-link 3.
 - Not merged to `main`.
 
 ## 2026-09-16 — first application implementation session

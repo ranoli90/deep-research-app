@@ -4,17 +4,19 @@ import { mkdir, open, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CreateRunRequestSchema } from "@deep/contracts";
 import { compileResearchIntent } from "@deep/research-core";
-import { AZURE_ZDR_MODEL_POLICY, STRUCTURED_CALL_RESERVE_MICRO, modelPolicy } from "./ports/model-policy.js";
+import { STRUCTURED_CALL_RESERVE_MICRO, modelPolicy } from "./ports/model-policy.js";
 import { createPool, migrate } from "./platform/db.js";
 import { loadConfig } from "./platform/config.js";
 import { createDevSession, grantConsent } from "./modules/access.js";
 import { admitRun } from "./modules/run-admission.js";
 import { claimLease, cancelRun } from "./modules/runs.js";
+import { insertSource, insertVersionAndPassage } from "./modules/evidence.js";
 import { fencedSession } from "./worker/fenced-session.js";
 import { performModelOperation } from "./worker/model-gateway.js";
 import { readProviderQuota, requireProviderCapacity } from "./evaluation/provider-quota.js";
 import {
-  LIVE_SEMANTIC_TASK_CLASSES,
+  DOCUMENT_GROUNDED_PASSAGE,
+  DOCUMENT_GROUNDED_QUESTION,
   authorizeLiveSemantic,
   sha256,
   type LiveSemanticTaskClass,
@@ -22,17 +24,11 @@ import {
 import { nextAttemptDecision } from "./model-governor/index.js";
 import type { ModelContext } from "./ports/model.js";
 
-const PASSAGE = "WAL does not work over a network filesystem.";
-const PASSAGE_ID = "11111111-1111-4111-8111-111111111111";
-const SOURCE_VERSION_ID = "22222222-2222-4222-8222-222222222222";
-
 const TASKS: Record<LiveSemanticTaskClass, { question: string; correctedQuestion?: string; grounded?: boolean }> = {
   one_sentence_purchase_comparison: { question: "best laptop for running AI under 2k" },
   technical_compatibility_conflict: { question: "Is PostGIS compatible with Postgres 16 vs Postgres 15?" },
   freshness_sensitive_fact: { question: "What is the current US federal funds rate?" },
-  document_grounded_check: {
-    question: "Given this exact source sentence: WAL does not work over a network filesystem. Can SQLite WAL support one shared database on a network filesystem and two simultaneous writers?",
-  },
+  document_grounded_check: { question: DOCUMENT_GROUNDED_QUESTION, grounded: true },
   correction: {
     question: "What is the filing deadline for employment tax in Germany?",
     correctedQuestion: "The jurisdiction is France, not Germany. What is the filing deadline?",
@@ -42,15 +38,23 @@ const TASKS: Record<LiveSemanticTaskClass, { question: string; correctedQuestion
   },
 };
 
-function contextFor(question: string, grounded: boolean | undefined): ModelContext {
-  const passages = grounded ? [{
-    id: PASSAGE_ID,
-    sourceVersionId: SOURCE_VERSION_ID,
-    digest: createHash("sha256").update(PASSAGE).digest("hex"),
+function contextFor(question: string, owned?: { passageId: string; sourceVersionId: string; sourceId: string }): ModelContext {
+  const passages = owned ? [{
+    id: owned.passageId,
+    sourceVersionId: owned.sourceVersionId,
+    digest: createHash("sha256").update(DOCUMENT_GROUNDED_PASSAGE).digest("hex"),
     accessLevel: "full-text" as const,
-    text: PASSAGE,
+    text: DOCUMENT_GROUNDED_PASSAGE,
   }] : [];
-  return { question, task: null, passages, sources: grounded ? [{ handle: "sqlite-wal", title: "SQLite WAL" }] : [], assertions: [], approvedClaimKeys: [], draft: null };
+  return {
+    question,
+    task: null,
+    passages,
+    sources: owned ? [{ handle: owned.sourceId, title: "SQLite WAL" }] : [],
+    assertions: [],
+    approvedClaimKeys: [],
+    draft: null,
+  };
 }
 
 async function main() {
@@ -133,18 +137,40 @@ async function main() {
         if (Date.now() >= Date.parse(grant.expiresAt)) { halted = "approval_expired"; break; }
         if (confirmedMicro + STRUCTURED_CALL_RESERVE_MICRO > grant.budgetMicro) { halted = "budget_unrun"; break; }
         const intent = compileResearchIntent(question);
+        const admitted = await admitRun(pool, session.accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({
+          question, routeMode: "controlled-research",
+        }), { modelPolicyId: policy.id });
+        let owned: { passageId: string; sourceVersionId: string; sourceId: string } | undefined;
+        if (spec.grounded) {
+          const sourceId = await insertSource(pool, {
+            accountId: session.accountId,
+            runId: admitted.runId,
+            locator: "https://sqlite.org/wal.html",
+            title: "SQLite WAL",
+            publisher: "SQLite",
+            originCluster: "sqlite.org",
+          });
+          const passage = await insertVersionAndPassage(pool, {
+            sourceId,
+            accountId: session.accountId,
+            runId: admitted.runId,
+            locator: "https://sqlite.org/wal.html",
+            text: DOCUMENT_GROUNDED_PASSAGE,
+            accessLevel: "full-text",
+          });
+          owned = { passageId: passage.passageId, sourceVersionId: passage.versionId, sourceId };
+        }
         await journal({
           event: "intent",
           taskClass,
           originalQuestion: intent.originalQuestion,
           hardConstraints: intent.hardConstraints,
           clarificationAsk: intent.clarificationDecision.ask,
+          documentGroundedOwnedPassage: Boolean(owned),
         });
-        const admitted = await admitRun(pool, session.accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({
-          question, routeMode: "controlled-research",
-        }), { modelPolicyId: policy.id });
         const owner = crypto.randomUUID();
-        const fence = (await claimLease(pool, admitted.runId, owner, 30_000))!;
+        const fence = await claimLease(pool, admitted.runId, owner, 30_000);
+        if (fence == null) throw new Error("lease_unavailable");
         const fenced = fencedSession(pool, {
           runId: admitted.runId, accountId: session.accountId, owner, fence, briefRevision: 1, leaseMs: 30_000,
         });
@@ -153,7 +179,7 @@ async function main() {
         try {
           const outcome = await performModelOperation(pool, config, fenced, {
             runId: admitted.runId, accountId: session.accountId, fence, briefRevision: 1, evidenceRevision: 0,
-            operation: "brief", context: contextFor(question, false),
+            operation: "brief", context: contextFor(question, owned),
           });
           const result = outcome.kind === "result" ? outcome.result : { status: "blocked", reason: outcome.kind === "blocked" ? outcome.reason : "pending", receipt: null };
           const receipt = "receipt" in result ? result.receipt : null;
@@ -203,8 +229,9 @@ async function main() {
       note: "Live brief operations only; not a full source-backed report journey and not a routing superiority claim.",
     });
     if (halted) process.exitCode = 2;
-  } catch {
-    await journal({ event: "fatal", reason: "evaluation_stopped_unconfirmed_or_unavailable", semanticScores: null, superiorityClaim: false });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message.slice(0, 200) : "evaluation_stopped_unconfirmed_or_unavailable";
+    await journal({ event: "fatal", reason, semanticScores: null, superiorityClaim: false });
     process.exitCode = 2;
   } finally {
     await journalTail;

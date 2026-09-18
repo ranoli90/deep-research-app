@@ -1,3 +1,7 @@
+## Integration merge A — 2026-09-18
+
+Lane: Research Beta integration. Final Session A `8abcffd` merged after Session C. Portfolio migration from A is `043_model_portfolio.sql` (C had `042`); canonicalization is next. Session B not yet merged.
+
 ## Integration merge C — 2026-09-18
 
 Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from `main@8a7b1a9`. Session C `0a694f9` merged as product/UI baseline. Main-only correctness is preserved. Not yet merged: final Session A tip `8abcffd`, Session B `e0b00df`. Duplicate portfolio migrations not yet canonicalized.
@@ -115,16 +119,19 @@ Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `
 **Verified deterministic:** `@deep/mobile` Vitest including domain mapping tests. **Verified native:** EAS APK `4a142400-ddac-41be-a7a7-8115c448f0d6` on 10.0.0.167:43417, two fixture no-file journeys. **Verified live provider:** Session A's bounded Azure briefs (`verification/v7/live-semantic/`); not a full source-backed report+correction. **Product-quality verified:** no. **Blocked external:** Session B handoff commit.
 
 Rollback: revert this branch; disable the local-dev cleartext plugin for any HTTPS-only build; Session A rollback remains disable portfolio/intent at admission.
+## Session A agent contract — 2026-09-18
+
+Root and scoped `AGENTS.md` now require: finish independent work instead of listing it; apply gates on the live path rather than only recording them; compile one-sentence questions without cosmetic interviews; keep fixture/live/native/hosted evidence distinct; edit only the assigned worktree.
 
 ## Session A intelligence governor — isolated branch checkpoint — 2026-09-18
 
 Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
 
-**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing with ZDR/structured-output admission; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing reserves; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `042_model_portfolio.sql` (worker-local ADR061; canonical ADR063).
+**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing applied on new runs (explicit pins remain privacy-admitted; parents inherit); fail-closed when no route is admitted; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing leftover enforced on live `reserveLiveAttempt` for exploration and structured; document-grounded live eval uses an owned passage; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `043_model_portfolio.sql` (final A schema; will be canonicalized to a single `042_model_portfolio.sql` on this integration branch).
 
 **Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
 
-**Verified live provider:** bounded Azure briefs for the six Session A task classes via `pnpm eval:live-semantic` (`verification/v7/live-semantic/RESULTS.json`). Two schema-invalid briefs with confirmed receipts, one `outcome_unknown` hold without retry, then remaining classes on a new isolated ledger using exact-quote-v2 (one grounded success, original correction success, corrected/unknown schema-invalid with receipts). **Product-quality verified:** no. **Unverified:** native/mobile Research Beta journey (Session C). No routing superiority claim.
+**Verified live provider:** bounded Azure briefs via `pnpm eval:live-semantic`. After v2 span repair, criterion-question linking, and a stricter brief prompt, the previously failing classes succeeded on a new logical request (purchase, technical comparison, Germany/France correction, unknown-lot-code) with confirmed receipts in `verification/v7/live-semantic/run-fix-receipts.jsonl`. Earlier `invalid_exact_span` / `criterion_without_question` receipts and the freshness `outcome_unknown` hold are retained and were not retried. **Product-quality verified:** no (these are briefs, not source-backed reports). No routing superiority claim.
 
 Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
 
