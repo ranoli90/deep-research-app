@@ -5,7 +5,7 @@ Lane: Product/UI + Integration
 Worktree: `/home/oranolio/Desktop/deep-v7-product`  
 Branch: `grok-v7/product-integration`  
 Base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`  
-Final SHA: see `git rev-parse HEAD` on this branch after the merge commit.
+Final SHA: `e62d2551a5955b9330151d232b2e26bc4ef07a15` (this pin commit follows).
 
 ## Worker SHAs
 
