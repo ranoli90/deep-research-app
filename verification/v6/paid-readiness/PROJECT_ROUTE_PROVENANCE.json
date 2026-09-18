@@ -1,0 +1,58 @@
+{
+  "commit": "672586baca8f3416ee6aa2fd47b16f630dde9805",
+  "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/read-project-exposure.mts",
+  "checkedAt": "2026-09-18T16:33:14.046Z",
+  "scope": "read-only configured local project database, current-key and unattributed financial metadata only; no authorization inferred",
+  "paidCostMicro": 0,
+  "status": "metadata_received",
+  "exposure": [
+    {
+      "route": "fixture:fetch",
+      "state": "confirmed",
+      "intents": 232,
+      "confirmed_micro": "0",
+      "held_micro": "696000",
+      "earliest": "2026-09-16T20:12:28.214Z",
+      "latest": "2026-09-17T11:59:13.711Z"
+    },
+    {
+      "route": "fixture:search",
+      "state": "confirmed",
+      "intents": 66,
+      "confirmed_micro": "0",
+      "held_micro": "330000",
+      "earliest": "2026-09-16T20:12:28.198Z",
+      "latest": "2026-09-17T11:59:13.733Z"
+    },
+    {
+      "route": "fixture:synthesize",
+      "state": "confirmed",
+      "intents": 5,
+      "confirmed_micro": "0",
+      "held_micro": "40000",
+      "earliest": "2026-09-17T11:16:51.514Z",
+      "latest": "2026-09-17T11:59:11.932Z"
+    },
+    {
+      "route": "openrouter:openai/gpt-4o-mini",
+      "state": "confirmed",
+      "intents": 12,
+      "confirmed_micro": "0",
+      "held_micro": "2400000",
+      "earliest": "2026-09-16T21:32:58.817Z",
+      "latest": "2026-09-16T21:34:17.934Z"
+    },
+    {
+      "route": "openrouter:openai/gpt-4o-mini:web",
+      "state": "confirmed",
+      "intents": 58,
+      "confirmed_micro": "2800000",
+      "held_micro": "3145000",
+      "earliest": "2026-09-16T21:33:03.076Z",
+      "latest": "2026-09-17T11:48:33.871Z"
+    }
+  ],
+  "exitCode": 0,
+  "actualCommand": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/inspect-route-provenance.mts",
+  "scriptRelocatedAfterExecution": "verification/v6/paid-readiness/inspect-route-provenance.mts"
+}

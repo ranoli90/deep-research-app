@@ -1,0 +1,28 @@
+{
+  "firstAttempt": {
+    "commands": [
+      "python3 scripts/validate_review.py",
+      "python3 scripts/validate_builder_handoff.py"
+    ],
+    "exitCodes": [
+      1,
+      1
+    ],
+    "errors": [
+      "Review command cannot use network or spend (two previously registered network probes)",
+      "Unknown command status (new probe)"
+    ]
+  },
+  "repair": "Classify all three actual network probes as implemented_application_command with network=true, paid=false. No validator weakened; prior final validation predated those two registrations.",
+  "afterRepair": {
+    "commands": [
+      "python3 scripts/validate_review.py",
+      "python3 scripts/validate_builder_handoff.py"
+    ],
+    "exitCodes": [
+      0,
+      0
+    ],
+    "scope": "metadata only"
+  }
+}

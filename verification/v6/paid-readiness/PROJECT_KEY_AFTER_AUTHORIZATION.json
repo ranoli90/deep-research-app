@@ -1,0 +1,27 @@
+{
+  "requirementIds": [
+    "W08"
+  ],
+  "commit": "672586baca8f3416ee6aa2fd47b16f630dde9805",
+  "command": "python3 verification/v6/bounded-recovery/read-project-key.py",
+  "checkedAt": "2026-09-18T16:33:44.134014+00:00",
+  "endpoint": "GET https://openrouter.ai/api/v1/key",
+  "documentation": "https://openrouter.ai/docs/api/api-reference/api-keys/get-current-key",
+  "credentialSource": "project .env, value omitted",
+  "generationRequests": 0,
+  "paidCostMicro": 0,
+  "authorizationGranted": true,
+  "remainingUserApprovedAllowance": 0.4,
+  "scope": "Read-only current project-key metadata; provider key capacity does not grant user monetary authority.",
+  "httpStatus": 200,
+  "keyQuotaUSD": {
+    "limit": 5,
+    "limit_remaining": 4.7859228,
+    "usage": 0.2140772,
+    "usage_daily": 0,
+    "usage_monthly": 0.2140772
+  },
+  "status": "metadata_received",
+  "exitCode": 0,
+  "commandNote": "Executed read-project-key.py through an inline Python transform changing output path, authorizationGranted and the 0.40 operator cap. Original script was not modified."
+}

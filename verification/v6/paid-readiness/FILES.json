@@ -1,0 +1,22 @@
+[
+  {
+    "path": "AUTHORIZATION.json",
+    "sha256": "a6dd590dd53fce6a7b691489e96afac4b49998a16b8cb415d2a54c4e0e0d554f"
+  },
+  {
+    "path": "PROJECT_KEY_AFTER_AUTHORIZATION.json",
+    "sha256": "7ccd429f1ec6c9eb117cc981314458b04ae866e1f5d7573b0fba84d0b3ba3a7a"
+  },
+  {
+    "path": "PROJECT_ROUTE_PROVENANCE.json",
+    "sha256": "6301f5fbb0d82cbfa632f273645e2bf3ecdb728236b2d68a42e362afc69d0a90"
+  },
+  {
+    "path": "REGISTRY_CHECKS.json",
+    "sha256": "0541c6b05508e6146e7781ef257e492b7ec9df96053c57ba37dd94d7ac0b54f0"
+  },
+  {
+    "path": "inspect-route-provenance.mts",
+    "sha256": "c580305dd38c6207f42e56a27afa429fdbb8cee9dc8d5a3be06e4ea9f205eadc"
+  }
+]

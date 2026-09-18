@@ -1,0 +1,17 @@
+{
+  "requirementIds": [
+    "W08"
+  ],
+  "version": "user-spend-authorization-record.v1",
+  "recordedAt": "2026-09-18T16:35:05.275130+00:00",
+  "source": "Current user message in this session",
+  "userInstruction": "you can spend money on its fine - there is plently of balnce on open router",
+  "authorized": true,
+  "initialOperatorCapMicro": 400000,
+  "scope": "First registered non-sensitive MC-D01 frozen SQLite comparison, A1/B original, B correction, A1 full rerun",
+  "paidGenerationCalls": 0,
+  "confirmedNewCostMicro": 0,
+  "legacyUnknownsReleased": false,
+  "deploymentAuthorized": false,
+  "status": "Authorized; existing ledger provenance unresolved. No additional monetary permission needed for this cap."
+}

@@ -1,0 +1,40 @@
+{
+  "requirementIds": [
+    "W09"
+  ],
+  "commit": "672586baca8f3416ee6aa2fd47b16f630dde9805",
+  "runtimeCommit": "abdfee1ee623b563a0164def7e73ff94fb56d4f6",
+  "checkout": "/tmp/deep-clean-recovery-672586b",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux x86_64"
+  },
+  "commands": [
+    {
+      "command": "git worktree add --detach /tmp/deep-clean-recovery-672586b 672586baca8f3416ee6aa2fd47b16f630dde9805",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "tool output only; 772 packages added, no downloads, 1.9s"
+    },
+    {
+      "command": "pnpm verify > /tmp/deep-clean-recovery-672586b-verify.log 2>&1",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "sha256": "143ed6aacf9737feb7d520f23b2d30e02dbcfe7e12acdc04856ed8c4f7aea1cd"
+    }
+  ],
+  "counts": {
+    "core": 166,
+    "backend": 149,
+    "mobile": 206,
+    "governance": 6
+  },
+  "configuredTypesAndBoundaries": "pass",
+  "finalWorktreeClean": true,
+  "paidCalls": 0,
+  "scope": "Clean offline installed checkout; no credential file copied, no PostgreSQL/native/hosted/semantic claims."
+}

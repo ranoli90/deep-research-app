@@ -1,0 +1,14 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "4722ad2912f410d51e186e6f5b013edddf5196be3f848f5793ff997320877646"
+  },
+  {
+    "path": "status-final.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "verify.log",
+    "sha256": "143ed6aacf9737feb7d520f23b2d30e02dbcfe7e12acdc04856ed8c4f7aea1cd"
+  }
+]

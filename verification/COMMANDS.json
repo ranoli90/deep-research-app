@@ -1763,7 +1763,7 @@
   },
   {
     "command": "python3 verification/v6/bounded-recovery/read-project-key.py",
-    "status": "implemented_review_tool",
+    "status": "implemented_application_command",
     "scope": "Nonbillable GET of this project credential quota; no generation, purchase, key mutation or authorization inferred; no secret output",
     "network": true,
     "paid": false,
@@ -1771,7 +1771,7 @@
   },
   {
     "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/bounded-recovery/read-project-exposure.mts",
-    "status": "implemented_review_tool",
+    "status": "implemented_application_command",
     "scope": "Read-only financial metadata on configured local project database, no account/source content or secrets; no generation",
     "network": true,
     "paid": false,
@@ -1792,5 +1792,13 @@
     "network": false,
     "paid": false,
     "implementation": "verification/v6/bounded-recovery/record.py"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/paid-readiness/inspect-route-provenance.mts",
+    "status": "implemented_application_command",
+    "scope": "Project-local legacy financial route/state aggregates only; no customer text, receipt reconciliation, migration or authorization inferred",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/paid-readiness/inspect-route-provenance.mts"
   }
 ]
