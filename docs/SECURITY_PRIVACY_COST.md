@@ -148,3 +148,5 @@ W09 PostCSS remediation (ADR038): scoped Expo Metro config override resolvesPost
 W09 Vitest remediation (ADR041): test-only Vitest/mocker4.1.11 removes two moderate findings without adapting assertions, tests or runner configuration. Full393 PostgreSQL and17 actual extraction controls pass. Current audit retains1moderate/2high (uuid/image-size), exit1. Experimental Metro/UUID graphs are separate and do not describe root security. No processor, native dependency or paid authority change.
 
 ADR042 target corruption emits only bounded reasons, never target/note content. Confirmed provider liabilities settle from original intents; unknown liabilities retain reservations. Only explicit deterministic validation errors terminate as blocked; transient database and lease failures remain recoverable. Required publication markers survive.
+
+Current UUID repair (ADR043) removes the remaining moderate JS advisory through scoped xcode>uuid11.1.1. Actual Node/Xcode compatibility controls pass; current audit intentionally remains exit1 with2high image-size advisories. Metro stays0.83.3 pending native runtime compatibility. No standalone native-security or release claim.

@@ -1,0 +1,11 @@
+{
+  "overrides": {
+    "@expo/metro-config>postcss": "8.5.28",
+    "xcode>uuid": "11.1.1"
+  },
+  "expoMetro": "54.2.0",
+  "actualExpoMetro": "0.83.3",
+  "xcode": "3.0.1",
+  "uuidEntry": "/home/oranolio/Desktop/Deep/node_modules/uuid/dist/cjs/index.js",
+  "uuid": "11.1.1"
+}
