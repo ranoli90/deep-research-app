@@ -1,3 +1,15 @@
+## Session C product integration — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented:** one-sentence composer; researching-this brief from persisted intent/brief flags; truthful semantic activity trail; editorial report; evidence sheet with named uncertainty; conversational corrections/library/settings; EAS device APK (no host Gradle).
+
+**Integrated:** Session A `8bae4c3` (handoff named `4c10e2c`). **Not integrated:** Session B (no final committed SHA; worktree still dirty on `66df545`).
+
+**Verified deterministic:** `@deep/mobile` Vitest 229 including domain mapping tests. **Verified native:** EAS APK `4a142400-ddac-41be-a7a7-8115c448f0d6` on 10.0.0.167:43417, two fixture no-file journeys. **Verified live provider:** none. **Product-quality verified:** fixture UX only. **Blocked external:** Session B handoff commit; live semantic six-class protocol.
+
+Rollback: revert this branch; disable the local-dev cleartext plugin for any HTTPS-only build; Session A rollback remains disable portfolio/intent at admission.
+
 ## Session A intelligence governor — isolated branch checkpoint — 2026-09-18
 
 Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.

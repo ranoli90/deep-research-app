@@ -1,58 +1,40 @@
-# SESSION_HANDOFF — Session A Research Intelligence + Model Governor
+# Session C handoff — Product/UI + Integration
 
-- lane: Session A (intelligence/planning/model-governance)
-- branch: `grok-v7/intelligence-governor`
-- worktree: `/home/oranolio/Desktop/deep-v7-intelligence`
-- base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`
-- final SHA: `4c10e2cecde5dd6a73e241033c57647e5e1e5061`
-- not merged to `main`
+Date: 2026-09-18  
+Lane: Product/UI + Integration  
+Worktree: `/home/oranolio/Desktop/deep-v7-product`  
+Branch: `grok-v7/product-integration`  
+Base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`  
+Final SHA: record with `git rev-parse HEAD` after this commit.
 
-## Acceptance map
+## Worker SHAs
 
-| Acceptance item | Status | Evidence |
-|---|---|---|
-| one-sentence intent/clarification deterministic tests | Verified deterministic | `packages/research-core/test/intent-compiler.test.ts`; consumer `packages/research-core/scripts/compile-intent-consumer.ts` |
-| immutable portfolio policy and operation routing | Verified deterministic | `apps/backend/src/model-governor/`; `apps/backend/test/model-governor.unit.test.ts` |
-| privacy/ZDR and structured-output are admission criteria | Verified deterministic | cheaper ZDR-incompatible route rejected; unstructured candidate rejected |
-| cheap-first + bounded escalation | Verified deterministic | `resolveOperationRoute`, `nextAttemptDecision` depth 2 |
-| actual receipts/cost/cache fields attributed | Verified deterministic | `apps/backend/test/model-gateway.unit.test.ts` cache-read/write + missing cost stays null |
-| no blind retry on unknown outcomes | Verified deterministic | governor hold + existing gateway reuse; PostgreSQL replay 1 fetch |
-| candidate portfolio evaluation runner | Verified deterministic | `runPortfolioEvaluation` dated records, `superiorityClaim: false` |
-| live semantic evaluation under explicit authorization | Blocked external | fail-closed unit path verified; live protocol not executed (no current grant in this lane) |
-| no claim dynamic routing is better until measured | Implemented | eval report and docs forbid the claim |
-| canonical docs and handoff | Implemented | STATUS, HANDOFF, ADR061, EVALUATION, ENGINE_CONTRACTS, AGENTS, SESSION_HANDOFF |
+- Session A merged: `8bae4c3cbdcf49bd70237a211773df0631f1e48f` (handoff named implementation `4c10e2cecde5dd6a73e241033c57647e5e1e5061`). Merge commit `e79af35`. Conflicts: none.
+- Session B merged: none. Retrieval worktree remains at `66df545` with uncommitted files and no final SHA.
 
-## Files / migrations / dependencies
+## Architecture
 
-- Added: research-core intent compiler/clarification; contracts `research-intent.ts`; `apps/backend/src/model-governor/**`; `evaluation/portfolio-eval.ts`; `evaluation/live-semantic.ts`; `modules/model-portfolio.ts`; `migrations/042_model_portfolio.sql`; tests and `specs/features/intelligence-governor/README.md`
-- Modified: `brief.ts` (compact-k budget + clarification-value), `run-admission.ts`, `model-gateway.ts`, `openrouter.ts`, `ports/model.ts`, canonical docs
-- Dependencies: none
-- Did not edit: `apps/mobile/**`, retrieval/extraction adapters, `structured-research.ts`
+Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `ResearchBriefCard`, `ReportView`, `LibraryList`, evidence/uncertainty/correction copy). Backend public run/event/report APIs are consumed; no new spend/privacy gates. Session A intent assumptions appear on the researching-this card when the persisted brief has them. Clarification is blocking only on `awaiting_input` or `materialClarification`.
 
-## Deterministic tests
+## Android
 
-Recorded in implementer scratch after the lane checkpoint.
-- `pnpm --filter @deep/research-core test` — 18 files, 180 tests, exit 0
-- `pnpm --filter @deep/backend test:unit` (maxWorkers=1) — 25 files, 185 tests, exit 0
-- focused `TEST_DATABASE_URL=.../deep_research_session_a_governor pnpm --filter @deep/backend test:integration test/model-policy.integration.test.ts` — 6 tests, exit 0
-- `python3 scripts/validate_review.py` — ok, exit 0
-- `pnpm eval:live` without grant — fail-closed, exit 2, zero paid calls
+- Path: EAS cloud APK (`--profile device`), Expo token, not host Gradle.
+- Installed build: `4a142400-ddac-41be-a7a7-8115c448f0d6` (commit `369bc5b`).
+- Device: `10.0.0.167:43417` 25098RA98G, `adb reverse tcp:8787`.
+- First APK failed sign-in (cleartext). Manifest plugin sets `usesCleartextTraffic=true`. Shell curl had already succeeded.
+- Two fixture journeys: laptop under $2000 with correction; close/reopen; `should I move to Texas`.
+- Live OpenRouter: not run.
 
-## Live / provider / native
+## Tests
 
-- Live semantic protocol: Blocked external (explicit current approval not presented to this lane; fail-closed path issues zero provider calls)
-- Native: Unverified (Session C)
-- Failed attempts retained: Docker daemon socket permission denied when starting compose; used already-listening Postgres with new DB `deep_research_session_a_governor`
+- `pnpm --filter @deep/mobile test` and `typecheck` after the UX and A merge.
+- Session A `test/model-governor.unit.test.ts` and `test/portfolio-eval.unit.test.ts` after merge.
+- `pnpm verify` after Session B is not claimed here.
 
-## Interface assumptions for other lanes
+## Research Beta honesty
 
-- Session B: consume `compileResearchIntent` / `neededClarifications`; do not rewrite `structured-research.ts` here
-- Session C: original question remains `brief.originalQuestion`; clarification prompts are the consequential list only; do not merge this branch to main from Session A
+Fixture one-sentence UX, activity-from-events, editorial report, source sheet, correction, library, and settings are implemented and device-checked. Live semantic quality, Session B retrieval intelligence, iOS, hosted auth, purchases, and store release remain incomplete. Do not merge this branch to `main` until B hands off and the integration gate is re-run.
 
 ## Rollback
 
-Disable new portfolio admissions and intent compilation at `admitRun`. Keep `modelPolicy()` readers, migration 041/042 rows, unknown holds, deletion and publication gates. Optional cache receipt fields remain readable as null on old rows.
-
-## Unresolved
-
-Live six-class semantic quality, and Research Beta mobile journey, remain outside this lane.
+Revert `grok-v7/product-integration`. For HTTPS-only builds omit `./plugins/with-cleartext.js`. Session A rollback remains disable new portfolio/intent admission.

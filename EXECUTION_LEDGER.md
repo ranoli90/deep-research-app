@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-18 — Session C product integration (isolated branch)
+
+- Worktree `/home/oranolio/Desktop/deep-v7-product`, branch `grok-v7/product-integration`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`.
+- Mobile domain UX + Vitest. Session A merged at `8bae4c3`. Session B not merged.
+- EAS device APK `4a142400-ddac-41be-a7a7-8115c448f0d6` installed on 10.0.0.167:43417. Host Gradle not used. Two fixture journeys recorded. First APK failed cleartext; plugin repair verified in the installed APK.
+- No live OpenRouter spend in this lane. Not merged to `main`.
+
 ## 2026-09-18 — Session A intelligence governor (isolated branch)
 
 - Worktree `/home/oranolio/Desktop/deep-v7-intelligence`, branch `grok-v7/intelligence-governor`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Shared `main` checkout was not switched or cleaned.

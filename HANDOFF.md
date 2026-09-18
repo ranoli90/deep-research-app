@@ -1,3 +1,7 @@
+## Session C product integration — 2026-09-18
+
+Worker branch `grok-v7/product-integration` (not `main`). Session A is merged here; Session B is not. Native evidence is an EAS-installed APK against the labeled fixture API, not a live OpenRouter semantic pass and not App Store/Play readiness. See `SESSION_HANDOFF.md`.
+
 ## Session A intelligence governor — 2026-09-18
 
 Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Live semantic quality is blocked without a current explicit authorization. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass.
