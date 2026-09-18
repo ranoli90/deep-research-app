@@ -18,7 +18,7 @@
 | actual receipts/cost/cache fields attributed | Verified deterministic | `apps/backend/test/model-gateway.unit.test.ts` cache-read/write + missing cost stays null |
 | no blind retry on unknown outcomes | Verified deterministic | governor hold + existing gateway reuse; PostgreSQL replay 1 fetch |
 | candidate portfolio evaluation runner | Verified deterministic | `runPortfolioEvaluation` dated records, `superiorityClaim: false` |
-| live semantic evaluation under explicit authorization | Blocked external | fail-closed unit path verified; live protocol not executed (no current grant in this lane) |
+| live semantic evaluation under explicit authorization | Verified live provider (bounded briefs; not product-quality) | `pnpm eval:live-semantic` Azure receipts in `verification/v7/live-semantic/`; freshness `outcome_unknown` held without retry; no superiority claim |
 | no claim dynamic routing is better until measured | Implemented | eval report and docs forbid the claim |
 | canonical docs and handoff | Implemented | STATUS, HANDOFF, ADR061, EVALUATION, ENGINE_CONTRACTS, AGENTS, SESSION_HANDOFF |
 
@@ -40,7 +40,7 @@ Recorded in implementer scratch after the lane checkpoint.
 
 ## Live / provider / native
 
-- Live semantic protocol: Blocked external (explicit current approval not presented to this lane; fail-closed path issues zero provider calls)
+- Live semantic protocol: Verified live provider on bounded briefs (`verification/v7/live-semantic/RESULTS.json`). Confirmed spend 865µ + 1749µ USD. Freshness class remains `outcome_unknown` with no retry. Not a full source-backed report journey and not product-quality verified.
 - Native: Unverified (Session C)
 - Failed attempts retained: Docker daemon socket permission denied when starting compose; used already-listening Postgres with new DB `deep_research_session_a_governor`
 

@@ -1,0 +1,96 @@
+{
+  "lane": "session-a-intelligence-governor",
+  "branch": "grok-v7/intelligence-governor",
+  "policyFirst": "openrouter-azure-mini-zdr-text-v1",
+  "policyContinuation": "openrouter-azure-mini-zdr-exact-quote-v2",
+  "budgetMicroEachGrant": 400000,
+  "superiorityClaim": false,
+  "freshnessUnknownHeldWithoutRetry": true,
+  "results": [
+    {
+      "file": "run1-receipts.jsonl",
+      "taskClass": "one_sentence_purchase_comparison",
+      "status": "invalid_output",
+      "reason": "invalid_exact_span",
+      "httpStatus": 200,
+      "actualMicro": 418,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760292-BRf8WBWC6DpWClbYJZko",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    {
+      "file": "run1-receipts.jsonl",
+      "taskClass": "technical_compatibility_conflict",
+      "status": "invalid_output",
+      "reason": "invalid_exact_span",
+      "httpStatus": 200,
+      "actualMicro": 447,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760343-xdsPLfn86ASykCYniv4w",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    {
+      "file": "run1-receipts.jsonl",
+      "taskClass": "freshness_sensitive_fact",
+      "status": "outcome_unknown",
+      "reason": "provider_transport_outcome_unknown",
+      "httpStatus": 200,
+      "actualMicro": null,
+      "reportedProvider": null,
+      "providerId": null,
+      "cacheReadTokens": null,
+      "cacheWriteTokens": null
+    },
+    {
+      "file": "run3-receipts.jsonl",
+      "taskClass": "document_grounded_check",
+      "status": "succeeded",
+      "reason": null,
+      "httpStatus": 200,
+      "actualMicro": 455,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760603-WEjp9pAGw4pDlPcg56kf",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    {
+      "file": "run3-receipts.jsonl",
+      "taskClass": "correction",
+      "status": "succeeded",
+      "reason": null,
+      "httpStatus": 200,
+      "actualMicro": 458,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760708-qKTqtOe3SWKuSTWWe6i4",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    {
+      "file": "run3-receipts.jsonl",
+      "taskClass": "correction",
+      "status": "invalid_output",
+      "reason": "criterion_without_question",
+      "httpStatus": 200,
+      "actualMicro": 384,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760734-vqHG3lh7pjwmKXJzz8xg",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    },
+    {
+      "file": "run3-receipts.jsonl",
+      "taskClass": "unknown_is_correct",
+      "status": "invalid_output",
+      "reason": "criterion_without_question",
+      "httpStatus": 200,
+      "actualMicro": 452,
+      "reportedProvider": "Azure",
+      "providerId": "gen-1789760763-Wb308Ax1vhgIq4G8wdzM",
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  ],
+  "note": "Bounded live briefs through performModelOperation. Not a full source-backed report+correction+rerun journey. Unknown hold retained."
+}

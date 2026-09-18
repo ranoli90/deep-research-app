@@ -7,6 +7,13 @@
 - Deterministic: `pnpm --filter @deep/research-core test` 180 passed; backend governor/gateway/eval unit tests passed; `tsc` contracts/core/backend passed.
 - Isolated PostgreSQL: `TEST_DATABASE_URL=.../deep_research_session_a_governor` `test/model-policy.integration.test.ts` 6 passed. Docker socket was permission-denied; used already-listening local Postgres with a new database.
 - Live semantic protocol not executed; `eval:live` remains fail-closed without explicit current approval. No paid calls from this lane.
+
+## 2026-09-18 — Session A live semantic briefs under current user grant
+
+- User granted spend to finish the blocked live-semantic classes. Ran `pnpm eval:live-semantic` through shipped `performModelOperation` on isolated Postgres ledgers.
+- Run1 Azure v1: purchase and technical compatibility HTTP 200 with confirmed 418µ and 447µ, both `invalid_exact_span`. Freshness HTTP 200 `outcome_unknown` held; no retry; remaining classes unrun on that ledger.
+- Run3 Azure exact-quote-v2 on a new isolated DB (does not retry the held intent): document-grounded succeeded 455µ; correction original succeeded 458µ; corrected question `criterion_without_question` 384µ; unknown-is-correct `criterion_without_question` 452µ. Halted=null.
+- Confirmed new spend 2614µ plus the unresolved freshness reservation. Receipts: `verification/v7/live-semantic/`. No superiority claim. Not a full report+correction+rerun journey.
 - Not merged to `main`.
 
 ## 2026-09-16 — first application implementation session
