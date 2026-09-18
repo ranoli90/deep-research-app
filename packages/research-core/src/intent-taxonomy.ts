@@ -3,7 +3,7 @@ import type { TaskFamily } from "@deep/contracts";
 /** Deterministic family label for one-sentence questions. Never rewrites the question. */
 export function inferTaskFamily(question: string): TaskFamily {
   const q = question.toLowerCase();
-  if (/\b(tax|filing deadline|employment law|which law applies|legal status|jurisdiction|statute|regulation)\b/i.test(q)) {
+  if (/\b(tax|filing deadline|employment law|which law applies|legal status|jurisdiction|statutes?|regulations?)\b/i.test(q)) {
     return "legal_jurisdiction";
   }
   if (/\b(compatib|works with|support(s|ed)?\s+(postgres|python|node|ios|android)|vs\.?|versus)\b/i.test(q)

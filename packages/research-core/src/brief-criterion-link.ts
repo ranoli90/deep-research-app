@@ -33,14 +33,7 @@ export function repairBriefCriterionLinks(output: ResearchModelOutput<"brief">):
   const linked: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
   for (const criterion of data.criteria) {
     if (covered.has(criterion.key)) continue;
-    const existing = data.questions.find((q) => q.criterionKeys.length < 24);
-    if (data.questions.length >= 24) {
-      if (!existing) continue;
-      existing.criterionKeys.push(criterion.key);
-      covered.add(criterion.key);
-      linked.push({ criterionKey: criterion.key, questionKey: existing.key, attachedToExisting: true });
-      continue;
-    }
+    if (data.questions.length >= 24) continue;
     const key = questionKey(criterion.key, usedQuestionKeys);
     usedQuestionKeys.add(key);
     const quoted = criterion.provenance.quote.trim();

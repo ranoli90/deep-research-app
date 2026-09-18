@@ -117,6 +117,15 @@ describe("task family classification", () => {
     expect(inferTaskFamily(LAPTOP)).toBe("underspecified_purchase");
   });
 
+  it("classifies plural statute/regulation wording as legal and ignores incidental integers as versions", () => {
+    expect(inferTaskFamily("Which statutes apply here?")).toBe("legal_jurisdiction");
+    expect(inferTaskFamily("Which regulations apply here?")).toBe("legal_jurisdiction");
+    const priced = compileResearchIntent("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    expect(priced.assumptions.some((a) => a.id === "assume-documented-version")).toBe(true);
+    const named = compileResearchIntent("Is PostGIS compatible with Postgres 16 vs Postgres 15?");
+    expect(named.assumptions.some((a) => a.id === "assume-documented-version")).toBe(false);
+  });
+
   it("does not treat Indiana as India or drop an under-2k ceiling for a later USD price", () => {
     expect(compileResearchIntent("What is the filing deadline for employment tax in Indiana?").hardConstraints.some((c) => c.field === "geography")).toBe(false);
     expect(neededClarifications({

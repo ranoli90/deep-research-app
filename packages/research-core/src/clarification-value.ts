@@ -26,7 +26,7 @@ function hasField(constraints: Constraint[], field: string): boolean {
 
 function legalNeedsJurisdiction(question: string, constraints: Constraint[]): boolean {
   const q = question.toLowerCase();
-  const legal = /\b(tax|employment law|filing|legal status|which law applies|statute|regulation|jurisdiction)\b/i.test(q);
+  const legal = /\b(tax|employment law|filing|legal status|which law applies|statutes?|regulations?|jurisdiction)\b/i.test(q);
   if (!legal) return false;
   if (hasField(constraints, "geography")) return false;
   if (/\b(germany|france|usa|united states|uk|united kingdom|canada|japan|india|australia)\b/i.test(q)) return false;

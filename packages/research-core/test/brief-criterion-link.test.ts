@@ -62,6 +62,9 @@ it("does not emit a 25th question when the brief is already at the schema cap", 
     assumptions: [], openAmbiguities: [], explicitExclusions: [],
   });
   expect(repaired.output.questions).toHaveLength(24);
-  expect(repaired.linked[0]?.attachedToExisting).toBe(true);
-  expect(repaired.output.questions[0]?.criterionKeys).toContain("local_ai");
+  expect(repaired.linked).toEqual([]);
+  expect(repaired.output.questions.every((q) => !q.criterionKeys.includes("local_ai"))).toBe(true);
+  expect(validateModelBindings("brief", repaired.output, {
+    question, task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [],
+  })).toEqual(expect.arrayContaining(["criterion_without_question"]));
 });

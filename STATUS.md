@@ -2,7 +2,7 @@
 
 Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
 
-**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing with ZDR/structured-output admission; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing reserves; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `042_model_portfolio.sql`.
+**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing applied on new runs (explicit pins remain privacy-admitted; parents inherit); fail-closed when no route is admitted; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing leftover enforced on live `reserveLiveAttempt` for exploration and structured; document-grounded live eval uses an owned passage; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `043_model_portfolio.sql`.
 
 **Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
 

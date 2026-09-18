@@ -76,6 +76,11 @@ it("malformed or expired live-semantic grants fail closed with zero provider cal
  await expect(executeLiveSemanticEval({rawAuthorization:JSON.stringify({...g,approvalId:"22222222-2222-4222-8222-222222222222"}),flags,driver:{providerCall}})).rejects.toThrow();
  expect(providerCall).not.toHaveBeenCalled();
 });
+it("document_grounded question does not inline the owned passage text",async()=>{
+ const {DOCUMENT_GROUNDED_QUESTION,DOCUMENT_GROUNDED_PASSAGE}=await import("../src/evaluation/live-semantic.js");
+ expect(DOCUMENT_GROUNDED_QUESTION.includes(DOCUMENT_GROUNDED_PASSAGE)).toBe(false);
+ expect(DOCUMENT_GROUNDED_QUESTION).toMatch(/SQLite WAL/);
+});
 it("live semantic execution cannot expand beyond the granted task classes",async()=>{
  const {executeLiveSemanticEval,sha256:liveSha}=await import("../src/evaluation/live-semantic.js");
  const providerCall=vi.fn(async()=>null);

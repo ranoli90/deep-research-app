@@ -14,7 +14,7 @@
 | one-sentence intent/clarification deterministic tests | Verified deterministic | `packages/research-core/test/intent-compiler.test.ts`; consumer `packages/research-core/scripts/compile-intent-consumer.ts` |
 | immutable portfolio policy and operation routing | Verified deterministic | `apps/backend/src/model-governor/`; `apps/backend/test/model-governor.unit.test.ts` |
 | privacy/ZDR and structured-output are admission criteria | Verified deterministic | cheaper ZDR-incompatible route rejected; unstructured candidate rejected |
-| cheap-first + bounded escalation | Verified deterministic | `resolveOperationRoute`, `nextAttemptDecision` depth 2 |
+| cheap-first + bounded escalation | Verified deterministic | `chooseAdmittedRunPolicy` stamps new runs; `nextAttemptDecision` depth 2; leftover on live reserves |
 | actual receipts/cost/cache fields attributed | Verified deterministic | `apps/backend/test/model-gateway.unit.test.ts` cache-read/write + missing cost stays null |
 | no blind retry on unknown outcomes | Verified deterministic | governor hold + existing gateway reuse; PostgreSQL replay 1 fetch |
 | candidate portfolio evaluation runner | Verified deterministic | `runPortfolioEvaluation` dated records, `superiorityClaim: false` |
@@ -24,7 +24,7 @@
 
 ## Files / migrations / dependencies
 
-- Added: research-core intent compiler/clarification; contracts `research-intent.ts`; `apps/backend/src/model-governor/**`; `evaluation/portfolio-eval.ts`; `evaluation/live-semantic.ts`; `modules/model-portfolio.ts`; `migrations/042_model_portfolio.sql`; tests and `specs/features/intelligence-governor/README.md`
+- Added: research-core intent compiler/clarification; contracts `research-intent.ts`; `apps/backend/src/model-governor/**`; `evaluation/portfolio-eval.ts`; `evaluation/live-semantic.ts`; `modules/model-portfolio.ts`; `migrations/043_model_portfolio.sql`; tests and `specs/features/intelligence-governor/README.md`
 - Modified: `brief.ts` (compact-k budget + clarification-value), `run-admission.ts`, `model-gateway.ts`, `openrouter.ts`, `ports/model.ts`, canonical docs
 - Dependencies: none
 - Did not edit: `apps/mobile/**`, retrieval/extraction adapters, `structured-research.ts`
@@ -51,8 +51,8 @@ Recorded in implementer scratch after the lane checkpoint.
 
 ## Rollback
 
-Disable new portfolio admissions and intent compilation at `admitRun`. Keep `modelPolicy()` readers, migration 041/042 rows, unknown holds, deletion and publication gates. Optional cache receipt fields remain readable as null on old rows.
+Disable new portfolio admissions and intent compilation at `admitRun`. Keep `modelPolicy()` readers, migration 041/043 rows, unknown holds, deletion and publication gates. Optional cache receipt fields remain readable as null on old rows.
 
-## Unresolved
+## External to this lane
 
-Live six-class semantic quality, and Research Beta mobile journey, remain outside this lane.
+Full source-backed report journeys (Session B) and Research Beta mobile (Session C) are other worktrees. No superiority claim.

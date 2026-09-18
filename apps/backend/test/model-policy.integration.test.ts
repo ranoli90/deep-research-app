@@ -5,6 +5,7 @@ import {createPool,migrate,withTx} from "../src/platform/db.js";
 import {createDevSession,grantConsent} from "../src/modules/access.js";
 import {admitRun} from "../src/modules/run-admission.js";
 import {getRun,claimLease,cancelRun} from "../src/modules/runs.js";
+import {reserveLiveAttempt} from "../src/modules/live-spend.js";
 import {runModelVersions} from "../src/modules/run-model-policy.js";
 import {performModelOperation} from "../src/worker/model-gateway.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
@@ -87,6 +88,20 @@ it("v2 brief repair links orphaned criteria and keeps v1 strict",async()=>{
   expect(events).toHaveLength(1);
   expect(events[0].payload.linked).toEqual([{criterionKey:"local_ai",questionKey:"linked_local_ai",attachedToExisting:false}]);
  }finally{session.stop();await cancelRun(pool,r.runId);}
+});
+it("applies cheap-first policy on unpinned new runs and fail-closes leftover structured spend",async()=>{
+ const a=await account();
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Policy cheap first",routeMode:"controlled-research"}));
+ expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
+ expect((await pool.query("SELECT admission,resolved_policy_id FROM model_portfolio_resolutions WHERE run_id=$1",[r.runId])).rows[0]).toEqual({
+  admission:"cheap_first_admitted",resolved_policy_id:STRUCTURED_MODEL_POLICY.id,
+ });
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ await expect(reserveLiveAttempt(pool,config,{runId:r.runId,fence,briefRevision:1,kind:"brief",route:"openrouter:test",requestDigest:"leftover-structured",reserveMicro:80_000,logicalKey:"leftover-structured"})).rejects.toThrow("verification_writing_reserve");
+ const writing=await reserveLiveAttempt(pool,config,{runId:r.runId,fence,briefRevision:1,kind:"write_report",route:"openrouter:test",requestDigest:"leftover-writing",reserveMicro:80_000,logicalKey:"leftover-writing"});
+ expect(writing.issue).toBe(true);
+ await cancelRun(pool,r.runId);
 });
 it("records immutable portfolio resolutions and still replays historical policy identity",async()=>{
  const a=await account();

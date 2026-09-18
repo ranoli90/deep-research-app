@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AZURE_ZDR_EXACT_QUOTE_POLICY,
   AZURE_ZDR_MODEL_POLICY,
   STRUCTURED_MODEL_POLICY,
   modelPolicy,
@@ -7,7 +8,9 @@ import {
 import {
   PRODUCTION_PORTFOLIO_V1,
   cacheSessionPolicy,
+  chooseAdmittedRunPolicy,
   nextAttemptDecision,
+  operationClassFor,
   replayPolicyIdentity,
   reserveOperationBudget,
   resolveOperationRoute,
@@ -224,6 +227,16 @@ describe("hierarchical reserves and cache stickiness", () => {
       runBudgetMicro: 100_000,
     });
     expect(blocked).toMatchObject({ ok: false, reason: "verification_writing_reserve" });
+    expect(operationClassFor("search")).toBe("exploration");
+    expect(operationClassFor("brief")).toBe("structured");
+    expect(operationClassFor("write_report")).toBe("writing");
+    const structured = reserveOperationBudget({
+      hierarchy: { accountRemainingMicro: 100_000, runRemainingMicro: 30_000, reservedVerificationMicro: 0, reservedWritingMicro: 0 },
+      operationClass: "structured",
+      attemptReserveMicro: 21_658,
+      runBudgetMicro: 100_000,
+    });
+    expect(structured).toMatchObject({ ok: false, reason: "verification_writing_reserve" });
     const writing = reserveOperationBudget({
       hierarchy: { accountRemainingMicro: 100_000, runRemainingMicro: 30_000, reservedVerificationMicro: 0, reservedWritingMicro: 0 },
       operationClass: "writing",
@@ -239,5 +252,50 @@ describe("hierarchical reserves and cache stickiness", () => {
     const escalate = cacheSessionPolicy({ runId: "run-1", lastPolicyId: "test-zdr-v1", nextPolicyId: "test-strong-v1", qualityEscalation: true });
     expect(escalate.reuseCache).toBe(false);
     expect(escalate.reason).toBe("intentional_quality_transition");
+  });
+});
+
+describe("cheap-first run admission", () => {
+  it("applies the cheap-first route on new runs and fail-closes when none is admitted", () => {
+    const chosen = chooseAdmittedRunPolicy({
+      runId: "run-new",
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    });
+    expect(chosen).toMatchObject({ policyId: STRUCTURED_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    const zdr = chooseAdmittedRunPolicy({
+      runId: "run-zdr",
+      zdrRequired: true,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    });
+    expect(zdr).toMatchObject({ policyId: AZURE_ZDR_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    const pinned = chooseAdmittedRunPolicy({
+      runId: "run-pin",
+      requestedPolicyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    });
+    expect(pinned).toMatchObject({ policyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id, admission: "pinned_run_policy" });
+    const inherited = chooseAdmittedRunPolicy({
+      runId: "run-child",
+      parentPolicyId: AZURE_ZDR_MODEL_POLICY.id,
+      requestedPolicyId: STRUCTURED_MODEL_POLICY.id,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    });
+    expect(inherited).toMatchObject({ policyId: AZURE_ZDR_MODEL_POLICY.id, admission: "inherited_parent_policy" });
+    expect(() => chooseAdmittedRunPolicy({
+      runId: "run-broke",
+      remainingBudgetMicro: 10,
+      attemptReserveMicro: 21_658,
+    })).toThrow("attempt_budget_exhausted");
+    expect(() => chooseAdmittedRunPolicy({
+      runId: "run-pin-zdr",
+      requestedPolicyId: STRUCTURED_MODEL_POLICY.id,
+      zdrRequired: true,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    })).toThrow("zdr_incompatible_unavailable");
   });
 });

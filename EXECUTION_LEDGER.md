@@ -1,5 +1,14 @@
 # Execution ledger
 
+## 2026-09-18 — Session A finish remaining governor work
+
+- AGENTS: finishing with a backlog / “honest limitations” list of independent work is not a valid completion.
+- New runs stamp the cheap-first admitted `model_policy_id` and fail closed when no route is admitted. Explicit eval pins stay only if that policy is privacy-admitted. Parents still inherit.
+- `reserveLiveAttempt` enforces writing/verification leftover for exploration and structured kinds.
+- Live `document_grounded_check` inserts an owned passage after admission and does not inline the source sentence in the question.
+- Portfolio audit migration numbered `043_model_portfolio.sql` so it does not collide with Session B’s uncommitted 042.
+- Not merged to `main`. Did not edit Session B or C worktrees.
+
 ## 2026-09-18 — Session A intelligence governor (isolated branch)
 
 - Worktree `/home/oranolio/Desktop/deep-v7-intelligence`, branch `grok-v7/intelligence-governor`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Shared `main` checkout was not switched or cleaned.

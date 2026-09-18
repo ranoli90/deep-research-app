@@ -2,7 +2,7 @@ import {runModelPolicy} from "../modules/run-model-policy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
-import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation } from "@deep/contracts";
+import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { AZURE_ZDR_EXACT_QUOTE_POLICY } from "../ports/model-policy.js";
@@ -77,8 +77,8 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       const resolved = resolveModelSpans(args.operation, result.output, context);
       result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
       if (args.operation === "brief") {
-        const linked = repairBriefCriterionLinks(result.output);
-        result = { ...result, output: linked.output }; linkedCriteria = linked.linked;
+        const linked = repairBriefCriterionLinks(result.output as ResearchModelOutput<"brief">);
+        result = { ...result, output: linked.output as typeof result.output }; linkedCriteria = linked.linked;
       }
     }
     const errors = validateModelBindings(args.operation, result.output, context);

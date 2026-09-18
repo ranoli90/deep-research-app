@@ -9,13 +9,13 @@ import { currentConsent } from "./access.js";
 import { reserveAllowance } from "./billing.js";
 import { admissionKeyHash } from "./admission-recovery.js";
 import { recordPortfolioResolution } from "./model-portfolio.js";
-import { PRODUCTION_PORTFOLIO_V1, resolveOperationRoute } from "../model-governor/index.js";
+import { PRODUCTION_PORTFOLIO_V1, chooseAdmittedRunPolicy } from "../model-governor/index.js";
 import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertConversation, insertRun } from "./runs.js";
 
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
 
 /** Account -> conversation -> run -> allowance is the admission lock order. No external I/O. */
-export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId } = {}) {
+export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId; zdrRequired?: boolean } = {}) {
   const digest = createHash("sha256").update(JSON.stringify({ ...input, attachmentIds: [...input.attachmentIds].sort() })).digest("hex");
   return withTx(pool, async (db) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
@@ -68,33 +68,32 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     };
     await insertBrief(db, brief, accountId);
     const runId = crypto.randomUUID();
-    await insertRun(db, { id: runId, accountId, conversationId, briefId: brief.id, parentRunId: input.parentRunId,
-      routeMode: input.routeMode, briefRevision: brief.revision, consentEpoch: consent.epoch, idempotencyKey: key,
-      budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy, modelPolicyId: options.modelPolicyId });
-    await db.query("UPDATE runs SET request_digest = $2 WHERE id = $1", [runId, digest]);
-    const stamped = String((await db.query("SELECT model_policy_id FROM runs WHERE id=$1", [runId])).rows[0].model_policy_id);
-    const policy = modelPolicy(stamped);
-    const route = resolveOperationRoute({
-      operation: "run",
-      operationClass: "structured",
-      privacy: { zdrRequired: policy.provider === "azure", dataCollection: "deny" },
-      structuredOutputRequired: true,
+    const chosen = chooseAdmittedRunPolicy({
+      runId,
+      parentPolicyId: parent?.model_policy_id,
+      requestedPolicyId: options.modelPolicyId,
+      zdrRequired: options.zdrRequired,
       remainingBudgetMicro: DEFAULT_RUN_BUDGET_MICRO,
       attemptReserveMicro: STRUCTURED_CALL_RESERVE_MICRO,
-      runId,
     });
+    await insertRun(db, { id: runId, accountId, conversationId, briefId: brief.id, parentRunId: input.parentRunId,
+      routeMode: input.routeMode, briefRevision: brief.revision, consentEpoch: consent.epoch, idempotencyKey: key,
+      budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy, modelPolicyId: chosen.policyId });
+    await db.query("UPDATE runs SET request_digest = $2 WHERE id = $1", [runId, digest]);
+    const stamped = modelPolicy(String((await db.query("SELECT model_policy_id FROM runs WHERE id=$1", [runId])).rows[0].model_policy_id));
+    if (stamped.id !== chosen.policyId) reject("model_policy_mismatch");
     await recordPortfolioResolution(db, {
       id: crypto.randomUUID(),
       runId,
       accountId,
       portfolioId: PRODUCTION_PORTFOLIO_V1.id,
       operation: "run",
-      resolvedPolicyId: policy.id,
-      admission: route.admitted ? "pinned_run_policy" : "governor_unavailable_run_policy_pinned",
+      resolvedPolicyId: chosen.policyId,
+      admission: chosen.admission,
       escalationDepth: 0,
       escalationTrigger: null,
-      cacheSessionId: route.cacheSessionId,
-      reason: `${route.reason};pinned=${policy.id}`,
+      cacheSessionId: chosen.cacheSessionId,
+      reason: chosen.reason,
     });
     await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",

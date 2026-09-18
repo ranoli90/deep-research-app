@@ -6,6 +6,7 @@ import type pg from "pg";
 import { withTx } from "../platform/db.js";
 import { getRun } from "./runs.js";
 import { currentConsent } from "./access.js";
+import { operationClassFor, reserveOperationBudget } from "../model-governor/index.js";
 
 /** Sum issued/confirmed/unknown live-provider reservations. Unknown is not treated as zero. */
 export async function liveSpendUsedMicro(db: Queryable, scope = "project"): Promise<number> {
@@ -93,6 +94,18 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if (!canIssueLiveCall({ capMicro: runCap, usedMicro: used, estimatedMicro: args.reserveMicro }).ok) {
       throw new Error("run_spend_cap_exhausted");
     }
+    const leftover = reserveOperationBudget({
+      hierarchy: {
+        accountRemainingMicro: Math.max(0, config.liveSpendCapMicro - await liveSpendUsedMicro(db, config.liveBudgetScope)),
+        runRemainingMicro: Math.max(0, runCap - used),
+        reservedVerificationMicro: 0,
+        reservedWritingMicro: 0,
+      },
+      operationClass: operationClassFor(args.kind),
+      attemptReserveMicro: args.reserveMicro,
+      runBudgetMicro: run.budget_micro,
+    });
+    if (!leftover.ok) throw new Error(leftover.reason);
     if (!config.openRouterApiKey?.trim()) throw new Error("missing_provider_key");
     const keyScope = createHash("sha256").update(`openrouter:${config.openRouterApiKey.trim()}`).digest("hex");
     // Unbound legacy receipt mutations take this lock exclusively because they affect every key.

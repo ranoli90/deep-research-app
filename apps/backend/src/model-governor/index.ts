@@ -27,6 +27,11 @@ export {
 export {
   reserveOperationBudget,
   actualOrUnconfirmed,
+  operationClassFor,
   type HierarchicalBudget,
   type BudgetDecision,
 } from "./cost.js";
+export {
+  chooseAdmittedRunPolicy,
+  type RunPolicyChoice,
+} from "./admission.js";

@@ -57,6 +57,7 @@ import { getPassageForAccount } from "../modules/evidence.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
+import { modelPolicy } from "../ports/model-policy.js";
 import { z } from "zod";
 import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
 import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
@@ -175,7 +176,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const idempotencyKey = String(req.headers["idempotency-key"] ?? crypto.randomUUID());
     try {
-      const created = await admitRun(pool, a.accountId, idempotencyKey, input, { strategy: config.structuredStrategy, modelPolicyId: config.structuredModelPolicyId });
+      const created = await admitRun(pool, a.accountId, idempotencyKey, input, {
+        strategy: config.structuredStrategy,
+        zdrRequired: config.structuredModelPolicyId ? modelPolicy(config.structuredModelPolicyId).provider === "azure" : false,
+      });
       await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {
@@ -195,8 +199,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       if (code === "permission_denied" || code === "consent_required") {
         return reply.code(403).send(err(code, "Run inputs are not authorized for this account and consent.", correlationId));
       }
-      if (code === "allowance_exhausted") {
+      if (code === "allowance_exhausted" || code === "attempt_budget_exhausted") {
         return reply.code(402).send(err("allowance_exhausted", "Not enough remaining allowance.", correlationId));
+      }
+      if (code === "no_admitted_route" || code === "zdr_incompatible_unavailable" || code === "structured_output_required" || code === "candidate_unavailable" || code === "privacy_incompatible_unavailable" || code === "model_policy_mismatch") {
+        return reply.code(403).send(err(code, "No privacy-admitted model route is available for this run.", correlationId));
       }
       logError("create_run_failed", { correlationId, err: String(e) });
       return reply.code(500).send(err("internal_failure", "Could not accept the run.", correlationId));

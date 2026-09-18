@@ -46,10 +46,12 @@ function namedProducts(question: string): string[] {
 
 function namedVersions(question: string): string[] {
   const found: string[] = [];
-  const re = /\b(v?\d+(?:\.\d+){0,2})\b/g;
+  const withoutDates = question.replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ");
+  const re =
+    /\b(v\d+(?:\.\d+){0,2}|(?:postgres(?:ql)?|postgis|mysql|sqlite|python|node(?:\.?js)?|ios|android)\s+\d+(?:\.\d+){0,2}|\d+\.\d+(?:\.\d+)?)\b/gi;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(question))) {
-    const token = m[1]!;
+  while ((m = re.exec(withoutDates))) {
+    const token = m[1]!.replace(/^(postgres(?:ql)?|postgis|mysql|sqlite|python|node(?:\.?js)?|ios|android)\s+/i, "");
     if (/^20\d{2}/.test(token)) continue;
     if (!found.includes(token)) found.push(token);
   }

@@ -16,6 +16,8 @@ The user’s active assignment governs review versus implementation. A build pro
 ## Working protocol
 Inspect before editing; preserve unrelated/user changes. Establish one complete observable behavior and its failure states. Add the regression before or with the fix. Run the appropriate real checks. Reproduce the defect when feasible; otherwise label it unverified.
 
+Do not finish an assignment with a backlog, “honest limitations,” “not yet done,” or “out of scope for later” list of work that can be completed in this repository. Complete that work. A true external blocker (missing credential, denied platform, or another session’s exclusive worktree) is recorded only after every independent item is implemented and tested. Do not convert unfinished engineering into documentation.
+
 New dependencies, new services, shared abstractions, migrations, public schemas, prompts and model routes require the impact checklist in `docs/CODEBASE_GOVERNANCE.md`. A longer prompt or a new directory is not a completed feature. Avoid generic utility sinks and placeholder providers.
 
 Never make checks green by deleting assertions, broadening accepted errors, weakening types, masking exceptions, silently skipping tests or replacing live paths with fixtures. Test changes that reduce protection need explicit review with evidence. A failed check remains failed until fixed or openly accepted by the authorized owner.
@@ -34,7 +36,7 @@ For every result record task/requirement IDs, actual commit or `not-a-repository
 No secrets in clients, logs, test data, documentation or commits. Use only this project’s authorized accounts and credentials. No unsafe source access, private-to-public query leakage, cross-user cache reuse, silent processor changes or uncontrolled spend. Privacy deletion overrides archival version retention. Keep safety/authorization gates fail-closed on rollback.
 
 ## Handoff
-Update `STATUS.md`, `EXECUTION_LEDGER.md`, relevant ADRs and `HANDOFF.md`. Record failures and next executable steps, not promises of background work. Do not overwrite a working codebase merely to resemble this layout.
+Update `STATUS.md`, `EXECUTION_LEDGER.md`, relevant ADRs and `HANDOFF.md`. Record executed results and true external blockers, not a queue of remaining implementation. Do not overwrite a working codebase merely to resemble this layout.
 
 ## Revision 3 execution and evidence boundary
 First checkpoint is P0; its canonical gates are in `IMPLEMENTATION_PLAN.md` and `verification/P0_ACCEPTANCE.json`. Local PostgreSQL/queue can prove local database correctness without cloud provisioning. Live/native/hosted checks remain distinct. Do not postpone minimum governance, consent, authorization, budget, deletion or accessibility controls as “later polish.” A blocked requirement is truthfully reported, not marked passed and not a reason to abandon independent work. The external review under `reviews/independent_prebuild/` is preserved evidence; `docs/PREBUILD_RECONCILIATION.md` explains modified/rejected wording. Never infer external exactly-once delivery from a local idempotency key.

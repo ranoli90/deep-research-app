@@ -4,6 +4,10 @@ import { authorize as authorizeMatched } from "./authorization.js";
 
 export const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 
+export const DOCUMENT_GROUNDED_PASSAGE = "WAL does not work over a network filesystem.";
+export const DOCUMENT_GROUNDED_QUESTION =
+  "Can SQLite WAL support one shared database on a network filesystem and two simultaneous writers?";
+
 export const LIVE_SEMANTIC_TASK_CLASSES = [
   "one_sentence_purchase_comparison",
   "technical_compatibility_conflict",
