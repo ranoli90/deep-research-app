@@ -1,0 +1,4 @@
+
+> @deep/backend@0.1.0 typecheck /tmp/deep-frozen-eval-0fc/apps/backend
+> tsc -p tsconfig.json --noEmit
+

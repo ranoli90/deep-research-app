@@ -55,5 +55,6 @@
   ],
   "milestoneStatus": "incomplete; no perfection, production readiness, human or competitor superiority claim",
   "paidCalls": 0,
-  "paidAllowance": "unknown"
+  "paidAllowance": "unknown",
+  "historicalScope": "Exact ce2f889 review retained; native/frozen-mode absence statements are superseded by native-current-emulator/RESULTS.json and frozen-pdf-integrated/RESULTS.json. Real-model/external gates remain unpassed."
 }

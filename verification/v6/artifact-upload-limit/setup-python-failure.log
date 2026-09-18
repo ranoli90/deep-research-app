@@ -1,0 +1,1 @@
+Initial setup attempt: python3 import psycopg; exit1: ModuleNotFoundError: No module named 'psycopg'. No DB connection or mutation. Switched to installed node pg without installing dependencies.

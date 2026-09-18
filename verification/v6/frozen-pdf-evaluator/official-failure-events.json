@@ -1,0 +1,207 @@
+{
+  "evidenceClass": "read_only_actual_retained_local_pg_events",
+  "database": "deep_eval_control_b5d4a71c7f8f469999d1502c32b03b4f",
+  "documents": [
+    {
+      "sourceId": "rfc9112",
+      "runId": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+      "events": [
+        {
+          "id": "3842a74c-ef5a-4dc3-9ffa-8684628dd2cb",
+          "run_id": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+          "account_id": "c5e987a6-54af-4a07-af11-faade99efcf9",
+          "sequence": "1",
+          "type": "accepted",
+          "public_summary": "Research accepted. Closing the app will not stop the server job.",
+          "phase": "preparing",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:30.696Z"
+        },
+        {
+          "id": "f2a4b9fa-97ef-4af6-8e05-1e07e99e7fd1",
+          "run_id": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+          "account_id": "c5e987a6-54af-4a07-af11-faade99efcf9",
+          "sequence": "2",
+          "type": "attachment_processing",
+          "public_summary": "Reading the uploaded file.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:30.771Z"
+        },
+        {
+          "id": "03067da6-52e7-4b75-af92-f4ec9cc9798e",
+          "run_id": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+          "account_id": "c5e987a6-54af-4a07-af11-faade99efcf9",
+          "sequence": "3",
+          "type": "attachment_processed",
+          "public_summary": "The file was partially read; extraction limitations remain.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:32.883Z"
+        },
+        {
+          "id": "90dc93e6-1448-4df4-88d6-e420758449a3",
+          "run_id": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+          "account_id": "c5e987a6-54af-4a07-af11-faade99efcf9",
+          "sequence": "4",
+          "type": "criteria_prepared",
+          "public_summary": "Research questions and criteria are ready.",
+          "phase": "researching",
+          "payload": {
+            "taskId": "a8b03ce5-5095-42ce-8de4-455bd9779a04",
+            "strategy": "iterative-baseline.v1",
+            "briefRevision": 1
+          },
+          "created_at": "2026-09-18T12:00:33.042Z"
+        },
+        {
+          "id": "0e50e420-3ebe-47c8-b082-5cdd60467b1a",
+          "run_id": "a7b08e3c-ad18-4cf3-88dd-381c0944a043",
+          "account_id": "c5e987a6-54af-4a07-af11-faade99efcf9",
+          "sequence": "5",
+          "type": "research_unresolved",
+          "public_summary": "Research could not complete with the available evidence and processing allowance.",
+          "phase": "researching",
+          "payload": {
+            "reason": "no_relevant_assertions"
+          },
+          "created_at": "2026-09-18T12:00:33.403Z"
+        }
+      ]
+    },
+    {
+      "sourceId": "tmp117",
+      "runId": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+      "events": [
+        {
+          "id": "0e985883-4e95-42d4-bbc2-646781075e09",
+          "run_id": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+          "account_id": "7f64f2b3-abbf-499c-913a-b67166068fa9",
+          "sequence": "1",
+          "type": "accepted",
+          "public_summary": "Research accepted. Closing the app will not stop the server job.",
+          "phase": "preparing",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:35.279Z"
+        },
+        {
+          "id": "f35cc7c3-3549-4cb5-b45b-f87a4e444ef7",
+          "run_id": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+          "account_id": "7f64f2b3-abbf-499c-913a-b67166068fa9",
+          "sequence": "2",
+          "type": "attachment_processing",
+          "public_summary": "Reading the uploaded file.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:35.361Z"
+        },
+        {
+          "id": "051766b8-5abe-4d8a-b741-5908566d3bb3",
+          "run_id": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+          "account_id": "7f64f2b3-abbf-499c-913a-b67166068fa9",
+          "sequence": "3",
+          "type": "attachment_processed",
+          "public_summary": "The file was partially read; extraction limitations remain.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:37.674Z"
+        },
+        {
+          "id": "933cc2c8-8ac7-460f-92f8-f223782e79af",
+          "run_id": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+          "account_id": "7f64f2b3-abbf-499c-913a-b67166068fa9",
+          "sequence": "4",
+          "type": "criteria_prepared",
+          "public_summary": "Research questions and criteria are ready.",
+          "phase": "researching",
+          "payload": {
+            "taskId": "c9a72d43-c7a7-428e-9a2b-91a516a7caad",
+            "strategy": "iterative-baseline.v1",
+            "briefRevision": 1
+          },
+          "created_at": "2026-09-18T12:00:37.860Z"
+        },
+        {
+          "id": "41f2a08b-abaa-414a-bc42-fb8f257bf629",
+          "run_id": "2dc07d99-2394-4377-bffa-2b17a47096ca",
+          "account_id": "7f64f2b3-abbf-499c-913a-b67166068fa9",
+          "sequence": "5",
+          "type": "research_unresolved",
+          "public_summary": "Research could not complete with the available evidence and processing allowance.",
+          "phase": "researching",
+          "payload": {
+            "reason": "no_relevant_assertions"
+          },
+          "created_at": "2026-09-18T12:00:38.258Z"
+        }
+      ]
+    },
+    {
+      "sourceId": "esp32",
+      "runId": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+      "events": [
+        {
+          "id": "41b6e315-32f5-495a-b29a-e2edc8fdd540",
+          "run_id": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+          "account_id": "894bba52-a1e6-4798-abb5-caa99c5f8871",
+          "sequence": "1",
+          "type": "accepted",
+          "public_summary": "Research accepted. Closing the app will not stop the server job.",
+          "phase": "preparing",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:43.370Z"
+        },
+        {
+          "id": "1759c9ff-0fdd-4269-ba5f-b0b1b4b8045f",
+          "run_id": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+          "account_id": "894bba52-a1e6-4798-abb5-caa99c5f8871",
+          "sequence": "2",
+          "type": "attachment_processing",
+          "public_summary": "Reading the uploaded file.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:43.453Z"
+        },
+        {
+          "id": "d384b1a0-ce0c-4140-b62b-9417441cdae0",
+          "run_id": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+          "account_id": "894bba52-a1e6-4798-abb5-caa99c5f8871",
+          "sequence": "3",
+          "type": "attachment_processed",
+          "public_summary": "The file was partially read; extraction limitations remain.",
+          "phase": "researching",
+          "payload": {},
+          "created_at": "2026-09-18T12:00:46.507Z"
+        },
+        {
+          "id": "e64a3dba-6b1f-4503-a8ad-0993d350cbdb",
+          "run_id": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+          "account_id": "894bba52-a1e6-4798-abb5-caa99c5f8871",
+          "sequence": "4",
+          "type": "criteria_prepared",
+          "public_summary": "Research questions and criteria are ready.",
+          "phase": "researching",
+          "payload": {
+            "taskId": "d9c391c2-455b-4e68-a144-932c1e403953",
+            "strategy": "iterative-baseline.v1",
+            "briefRevision": 1
+          },
+          "created_at": "2026-09-18T12:00:46.785Z"
+        },
+        {
+          "id": "90ce9da3-d84b-4b9e-ae63-91d4983fe686",
+          "run_id": "3c61919c-f421-40e7-be55-7e3c95f26ed0",
+          "account_id": "894bba52-a1e6-4798-abb5-caa99c5f8871",
+          "sequence": "5",
+          "type": "research_unresolved",
+          "public_summary": "Research could not complete with the available evidence and processing allowance.",
+          "phase": "researching",
+          "payload": {
+            "reason": "model_context_exceeds_policy"
+          },
+          "created_at": "2026-09-18T12:00:46.817Z"
+        }
+      ]
+    }
+  ]
+}

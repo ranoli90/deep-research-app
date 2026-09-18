@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+evaluation control database (retained): deep_eval_control_9c52ced94d1340aa92272df0638fff53
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 8 skipped (10)
+   Start at  06:17:45
+   Duration  2.93s (transform 819ms, setup 0ms, import 1.15s, tests 1.63s, environment 0ms)
+

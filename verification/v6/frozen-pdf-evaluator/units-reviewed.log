@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /tmp/deep-frozen-eval-0fc/apps/backend
+
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  05:54:16
+   Duration  1.30s (transform 413ms, setup 0ms, import 608ms, tests 879ms, environment 0ms)
+

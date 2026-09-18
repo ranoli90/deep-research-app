@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /tmp/deep-frozen-eval-0fc/apps/backend
+
+evaluation control database (retained): deep_eval_control_f64fce00479a40769873a6b4f9fbda2f
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  05:50:30
+   Duration  27.90s (transform 827ms, setup 0ms, import 1.15s, tests 26.60s, environment 0ms)
+

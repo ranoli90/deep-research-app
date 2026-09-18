@@ -1248,5 +1248,69 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_artifact_cap_v6 pnpm --filter @deep/backend test:integration test/artifact-size.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 isolated retained local PostgreSQL evidence artifact8MiB boundary/replay/ownership regression; no truncation of standard/native/history databases",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/eval-live.unit.test.ts test/frozen-documents.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W08 frozen PDF evaluator local controls; fabricated model transports, actual parser; extraction creates and retains dedicated random database, no semantic score",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W08 frozen PDF evaluator local controls; fabricated model transports, actual parser; extraction creates and retains dedicated random database, no semantic score",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"registered official frozen PDFs\"",
+    "status": "implemented_application_command",
+    "scope": "W08 evaluator owned event trace and exact observed official PDF failure reasons; actual local PG/parser, fabricated nonbillable models; dedicated retained random DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "node verification/v6/frozen-pdf-integrated/setup.mjs",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/frozen-pdf-integrated/setup.mjs"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 pnpm test:integration",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W08/W09 combined local frozenPDF/8MiB checkpoint; fresh retained database; synthetic providers, actual parsers; serial DB execution",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t \"retains legitimate unavailable public read receipt\"",
+    "status": "implemented_application_command",
+    "scope": "W08 evaluator strict failed-read receipt regression; creates fresh retained random DB; actual parser and fabricated transport, serial DB slot",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
   }
 ]

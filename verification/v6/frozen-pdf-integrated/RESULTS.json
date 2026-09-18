@@ -1,0 +1,92 @@
+{
+  "requirementIds": [
+    "W03",
+    "W04",
+    "W08",
+    "W09"
+  ],
+  "baseCommit": "1d54ea090cd01891a97ea1078204ba71137d0052",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "4.1.11",
+    "postgres": "local127.0.0.1:55432/deep_research_frozen_integrated_20260918",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime",
+    "evaluatorDatabase": "deep_eval_control_53f93869affc4544aadf002f64617b8a"
+  },
+  "paidCalls": 0,
+  "paidAllowance": "unknown; no execution authorization",
+  "results": [
+    {
+      "command": "node verification/v6/frozen-pdf-integrated/setup.mjs",
+      "exitCode": 0,
+      "artifact": "setup.log",
+      "sha256": "49bdbbfd7a049dc7fca3a5557cdfd3c5d16544a512f51b149dc0efc9b0e3b21f",
+      "scope": "Fresh dedicated retained PostgreSQL database; refuses existing database"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "sha256": "995bb6954c421fdd126f453a6dc2c8d66f78ee4e01af0ae69047e6198fa5831f",
+      "scope": "157core/142backend/200mobile/6governance and configured types/boundaries; before final evaluator failure-trace repair"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 pnpm test:integration",
+      "exitCode": 0,
+      "artifact": "integration.log",
+      "sha256": "e0cf04dcebb2d2ced2cee46c78dfdf74402faabcd11d7512f28f69f6faa217d5",
+      "scope": "424/424,30files,401.33s; real local PostgreSQL and fabricated providers; before evaluator-only failure-trace repair"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_frozen_integrated_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "artifact": "extraction.log",
+      "sha256": "25563564d289ba50e4241fb06fdef982f3df271f106de5da037eb818d1d5adac",
+      "scope": "47/47,8files,136.65s; final actual isolated extraction/API/worker with fabricated provider transport"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-typecheck-final.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "scope": "Final evaluator source and tests"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "validate-review.log",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d",
+      "scope": "Canonical document integrity only"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "validate-handoff.log",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
+      "scope": "Canonical handoff integrity only"
+    }
+  ],
+  "focusedEvidence": [
+    "../artifact-upload-limit/RESULTS.json",
+    "../frozen-pdf-evaluator/RESULTS.json"
+  ],
+  "limits": [
+    "Official RFC9112/TMP117 actual46/50passages but no_relevant_assertions with fabricated transport; ESP32 actual78passages fails model_context_exceeds_policy. No useful real-model report or semantic quality claim.",
+    "Frozen HTML explicitly unrun; OCR/layout and larger-document context remain local partial capabilities.",
+    "Synthetic Android native journey/build remains659c335/ce2f889 evidence; no native repeat for backend-only changes.",
+    "Earlier failure logs retained; source hashes identify tested revisions."
+  ],
+  "rollback": "Disable new evaluation/upload scheduling while retaining admitted8MiB artifacts, immutable extraction/proof readers, required proof obligations, ownership/deletion/settlement and unknown holds.",
+  "traceArtifacts": [
+    "eval-runner-controls.json.gz",
+    "matched-pipeline-controls.json.gz"
+  ],
+  "sourceDiffCheck": {
+    "command": "git diff --check -- '*.ts' '*.sql' '*.md' '*.json'",
+    "exitCode": 0,
+    "artifact": "source-diff-check.log"
+  }
+}
