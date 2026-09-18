@@ -56,7 +56,8 @@ import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertCh
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { z } from "zod";
-import { storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
+import { resolveAdmission } from "../modules/admission-recovery.js";
+import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { accountForIdentity } from "../modules/identity.js";
@@ -127,6 +128,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return { granted: true, consentEpoch: r.epoch, policyVersion: CONSENT_POLICY_VERSION, processors: r.processors };
   });
 
+  app.post("/v1/run-requests/resolve", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const input = z.object({ idempotencyKey: z.string().uuid() }).strict().safeParse(req.body);
+    if (!input.success) return reply.code(400).send(err("invalid_input", "Saved request key required.", crypto.randomUUID()));
+    const resolved = await resolveAdmission(pool, a.accountId, input.data.idempotencyKey);
+    if (!resolved) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    return resolved;
+  });
+
   app.post("/v1/runs", async (req, reply) => {
     const correlationId = crypto.randomUUID();
     const a = await auth(req as never);
@@ -176,7 +187,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       };
     } catch (e) {
       const code = (e as { code?: string }).code;
-      if (code === "idempotency_conflict" || code === "stale_revision") {
+      if (code === "idempotency_conflict" || code === "stale_revision" || code === "idempotency_withdrawn") {
         return reply.code(409).send(err(code, "Request conflicts with the accepted revision or idempotency key.", correlationId));
       }
       if (code === "permission_denied" || code === "consent_required") {
@@ -565,9 +576,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const bytes = Buffer.from(text, "utf8");
     try { validateAttachmentBytes(bytes, mime, filename); }
     catch { return reply.code(400).send(err("invalid_input", "Invalid file name, text or size.", crypto.randomUUID())); }
-    const id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes, extractedText: text });
+    const key = z.string().uuid().optional().safeParse(req.headers["idempotency-key"]);
+    if (!key.success) return reply.code(400).send(err("invalid_input", "Upload request key must be a UUID.", crypto.randomUUID()));
+    let id: string | null;
+    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes, extractedText: text, idempotencyKey: key.data }); }
+    catch (error) {
+      if (error instanceof AttachmentUploadConflict) return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      throw error;
+    }
     if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { attachmentId: id, processingState: "extracted", coverage: "complete" };
+    const receipt = await attachmentUploadReceipt(pool, a.accountId, id);
+    if (!receipt) return reply.code(404).send(err("permission_denied", "File is unavailable.", crypto.randomUUID()));
+    return receipt;
   });
 
   app.post("/v1/attachments/bytes", { bodyLimit: MAX_ATTACHMENT_BYTES }, async (req, reply) => {
@@ -579,9 +599,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     let filename: string;
     try { filename = decodeURIComponent(encodedName); validateAttachmentBytes(req.body, mime, filename); }
     catch { return reply.code(400).send(err("invalid_input", "Unsupported or invalid file bytes, name or size.", crypto.randomUUID())); }
-    const id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes: req.body });
+    const key = z.string().uuid().optional().safeParse(req.headers["idempotency-key"]);
+    if (!key.success) return reply.code(400).send(err("invalid_input", "Upload request key must be a UUID.", crypto.randomUUID()));
+    let id: string | null;
+    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes: req.body, idempotencyKey: key.data }); }
+    catch (error) {
+      if (error instanceof AttachmentUploadConflict) return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      throw error;
+    }
     if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return reply.code(201).send({ attachmentId: id, processingState: "stored", coverage: "not-read" });
+    const receipt = await attachmentUploadReceipt(pool, a.accountId, id);
+    if (!receipt) return reply.code(404).send(err("permission_denied", "File is unavailable.", crypto.randomUUID()));
+    return reply.code(201).send(receipt);
   });
 
   app.get("/v1/attachments/:id", async (req, reply) => {

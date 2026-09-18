@@ -1,0 +1,14 @@
+
+> @deep/mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+src/admission-retry.ts(27,3): error TS2322: Type '{ bytes?: Uint8Array<ArrayBuffer> | undefined; id?: string | undefined; filename: string; mime: string; text: string; } | { bytes: Uint8Array<ArrayBufferLike>; id?: string | undefined; filename: string; mime: string; text?: undefined; }' is not assignable to type 'AttachmentDraft'.
+  Type '{ bytes?: Uint8Array<ArrayBuffer> | undefined; id?: string; filename: string; mime: string; text: string; }' is not assignable to type 'AttachmentDraft'.
+    Type '{ bytes?: Uint8Array<ArrayBuffer> | undefined; id?: string; filename: string; mime: string; text: string; }' is not assignable to type '{ id?: string | undefined; filename: string; mime: string; } & { text: string; bytes?: undefined; }'.
+      Type '{ bytes?: Uint8Array<ArrayBuffer> | undefined; id?: string; filename: string; mime: string; text: string; }' is not assignable to type '{ text: string; bytes?: undefined; }'.
+        Types of property 'bytes' are incompatible.
+          Type 'Uint8Array<ArrayBuffer> | undefined' is not assignable to type 'undefined'.
+            Type 'Uint8Array<ArrayBuffer>' is not assignable to type 'undefined'.
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

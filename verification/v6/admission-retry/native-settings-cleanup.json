@@ -1,0 +1,208 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Live research route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Live research route",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "No run was accepted. The saved request is withdrawn; you can edit and send again.",
+      "label": "",
+      "bounds": "[0,375][1080,566]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Settings",
+      "bounds": "[0,566][1080,2223]",
+      "class": "android.widget.ScrollView",
+      "checked": "false"
+    },
+    {
+      "text": "Processors: App-owned research worker (this service). Optional OpenRouter model gateway when live route is enabled. OpenAI via OpenRouter for structured text operations when enabled. Exa via OpenRouter for public search queries when structured discovery is enabled. Optional retrieval/fetch of public URLs when live retrieval is enabled",
+      "label": "Processor disclosures",
+      "bounds": "[45,566][1035,92]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "This app cannot see a provider's internal searches.",
+      "label": "",
+      "bounds": "[45,566][1035,250]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Questions, optional attachments, and retrieved public pages are processed by the app-owned worker. The live route may send prompts to OpenRouter; structured text operations use OpenAI through OpenRouter. Structured discovery sends approved public queries to Exa via OpenRouter. Private attachment text is not copied into public search queries.",
+      "label": "Privacy data flows",
+      "bounds": "[45,566][1035,794]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Deleting the app account cancels in-flight research and removes derived text. Cancelling a store subscription is a separate store action and does not by itself delete the account.",
+      "label": "Deletion versus subscription",
+      "bounds": "[45,817][1035,1089]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Restore purchases",
+      "bounds": "[45,1089][1035,1195]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Restore purchases",
+      "label": "",
+      "bounds": "[45,1089][1035,1195]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.",
+      "label": "",
+      "bounds": "[45,1217][1035,1421]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Notifications: optional. The app works if permission is denied; reopen to refresh.",
+      "label": "",
+      "bounds": "[45,1444][1035,1580]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Revoke AI processing consent",
+      "bounds": "[45,1580][1035,1686]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Revoke consent (stops new research)",
+      "label": "",
+      "bounds": "[45,1580][1035,1686]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Drafts and reports are saved on this device while signed in. Signing out clears this account\u2019s saved content.",
+      "label": "",
+      "bounds": "[45,1708][1035,1912]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Log out and clear saved drafts and reports",
+      "bounds": "[45,1913][1035,2019]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Log out and clear saved content",
+      "label": "",
+      "bounds": "[45,1913][1035,2019]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open web deletion page",
+      "bounds": "[45,2018][1035,2123]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Open web deletion page",
+      "label": "",
+      "bounds": "[45,2018][1035,2123]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Delete account and derived data",
+      "bounds": "[45,2124][1035,2223]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Delete account and derived research",
+      "label": "",
+      "bounds": "[45,2124][1035,2223]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2347]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][353,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2347]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    }
+  ]
+}

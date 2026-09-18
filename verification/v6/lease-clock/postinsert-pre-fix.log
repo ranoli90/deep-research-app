@@ -1,0 +1,48 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/lease-clock.integration.test.ts (12 tests | 1 failed) 12810ms
+   ✓ W02 rejects expired semantic mutation after account lock wait  1194ms
+   ✓ W02 rejects expired terminal mutation after account lock wait  1138ms
+   ✓ W02 rejects provider issuance when lease expires waiting for account lock  1156ms
+   ✓ W02 rejects provider issuance when lease expires waiting for legacy lock  1153ms
+   ✓ W02 rejects provider issuance when lease expires waiting for key lock  1156ms
+   ✓ W02 rejects provider issuance when lease expires waiting for project lock  1147ms
+   ✓ W02 rolls back semantic mutation whose transaction callback outlives its lease  1137ms
+   ✓ W02 rolls back terminal mutation whose transaction callback outlives its lease  1135ms
+   ✓ W02 permits current fenced writes and provider reservation 40ms
+   ✓ W02 renewal cannot revive a lease after waiting for its row lock  1150ms
+   ✓ W02 a newly claimed lease starts after its run lock wait  1138ms
+   × W02 rolls back provider issuance if the intent INSERT lock wait outlives its lease 1158ms
+     → expected { value: { …(2) } } to deeply equal { Object (error) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/lease-clock.integration.test.ts > W02 rolls back provider issuance if the intent INSERT lock wait outlives its lease
+AssertionError: expected { value: { …(2) } } to deeply equal { Object (error) }
+
+- Expected
++ Received
+
+  {
+-   "error": "stale_or_unauthorized_attempt",
++   "value": {
++     "intentId": "7ada57da-55b2-4cd0-9753-bc4fe775a4ac",
++     "issue": true,
++   },
+  }
+
+ ❯ test/lease-clock.integration.test.ts:108:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  20:56:14
+   Duration  13.60s (transform 391ms, setup 0ms, collect 585ms, tests 12.81s, environment 0ms, prepare 69ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/lease-clock.integration.test.ts

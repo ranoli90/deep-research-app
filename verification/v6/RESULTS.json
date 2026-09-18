@@ -6202,6 +6202,28 @@
       "artifact": "correction-draft/RESULTS.json",
       "exitCode": 0,
       "scope": "84mobile controls/typecheck/AndroidJS; actual native correction recovery, fabricated model transport only"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W03",
+        "W07",
+        "W09"
+      ],
+      "command": "See admission-retry/RESULTS.json",
+      "artifact": "admission-retry/RESULTS.json",
+      "exitCode": 0,
+      "scope": "Typed local controls/native retry and hashing measurements; failures and externally gated evidence preserved"
+    },
+    {
+      "requirementIds": [
+        "W02",
+        "W09"
+      ],
+      "command": "See lease-clock/RESULTS.json",
+      "artifact": "lease-clock/RESULTS.json",
+      "exitCode": 0,
+      "scope": "12realPG expired-authority regressions with broader affected checks; local mutation/issuance only"
     }
   ],
   "unresolved": [

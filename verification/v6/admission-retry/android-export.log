@@ -1,0 +1,15 @@
+
+> @deep/mobile@0.1.0 bundle:android /home/oranolio/Desktop/Deep/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-v6-admission-retry-bundle
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (634/636)
+Android Bundled 4535ms apps/mobile/index.ts (640 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-ccbb46d3e2a5406fe441f491398ebaf3.hbc (2.17 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-v6-admission-retry-bundle

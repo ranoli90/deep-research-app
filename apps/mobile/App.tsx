@@ -1,3 +1,5 @@
+import { nativeDocumentDigest } from "./src/native-document-digest";
+import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from "./src/admission-retry";
 import { SourceSheet } from "./src/SourceSheet";
 import { readSourceDetail } from "./src/source-view";
 import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from "./src/correction-draft";
@@ -80,6 +82,7 @@ function AppInner() {
   }, []);
   const [token, setToken] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
   const submitting = useRef(false);
   const pickingDocument = useRef(false);
   const [documentPending, setDocumentPending] = useState(false);
@@ -143,7 +146,7 @@ function AppInner() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || submitting.current) return;
     const guard = api.capture();
     void persistSession(sessionStorage, { token, state }).catch(() => {
       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
@@ -174,6 +177,7 @@ function AppInner() {
   async function startSession() {
     if (token) return token;
     if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
+    if (!storageReady) throw new Error("Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.");
     let guard: ReturnType<typeof api.capture> | undefined;
     try {
       const s = await api.session();
@@ -323,6 +327,7 @@ function AppInner() {
         }
       }
       if (!restored.current()) { restored.release(); return; }
+      setStorageReady(true);
       setToken((previous) => restored.current() ? t : previous);
       setState((previous) => restored.current() ? s : previous);
       if (t && s.run?.runId) {
@@ -392,56 +397,42 @@ function AppInner() {
 
   async function onSend() {
     if (!hydrated || submitting.current || pickingDocument.current) return;
-    const gate = canSubmit(state);
+    if (!storageReady) return;
+    const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
     if (!gate.ok) {
       const tab = submitPrerequisite(state);
       setViewState((s) => ({ ...s, error: gate.reason ?? "Cannot send", tab }));
       return;
     }
+    const accountGuard = api.capture();
     try {
       submitting.current = true;
+      setUploadStatus("Preparing saved request…");
       api.selectRun(null);
       stopPolling();
       const t = token ?? (await ensureSession());
-      const ids: string[] = [];
-      for (const [index, file] of state.attachments.entries()) {
-        setUploadStatus(`Uploading document ${index + 1} of ${state.attachments.length}…`);
-        const up = file.bytes ? await api.attachBytes(t, file.filename, file.mime, file.bytes) : await api.attach(t, file.filename, file.mime, file.text);
-        ids.push(up.attachmentId);
-      }
-      setUploadStatus("Starting research…");
-      const created = await api.createRun(t, state.draft.trim(), state.routeMode, newId(), ids);
-      api.selectRun(created.runId);
-      setViewState((s) => {
-        const next = {
-          ...s,
-          status: "progress" as const,
-          error: null,
-          attachments: [],
-          report: null,
-          previousReport: s.report
-            ? { reportId: s.report.reportId, blocks: s.report.blocks }
-            : s.previousReport,
-          run: {
-            runId: created.runId,
-            lifecycle: created.lifecycle,
-            phase: created.phase,
-            outcome: null,
-            reportId: null,
-            labeledDemo: created.labeledDemo,
+      if (state.pendingAdmission) { await api.sessionInfo(t); setState(s => ({ ...s, offline: false })); }
+      const guard = api.captureView();
+      let created;
+      try {
+        const pending = state.pendingAdmission ?? await prepareAdmission(state.draft, state.routeMode, state.attachments, newId, nativeDocumentDigest, guard.current);
+        created = await submitAdmission(pending, state.attachments, {
+          digest: nativeDocumentDigest,
+          current: guard.current,
+          progress: setUploadStatus,
+          save: async draft => {
+            await sessionStorage.saveAdmission(t, draft);
+            if (!guard.current()) throw new SupersededRequest();
+            setState(s => ({ ...s, pendingAdmission: draft, attachments: s.pendingAdmission ? s.attachments : s.attachments.map((f,i) => ({ ...f, id: draft.uploads[i]?.key })) }));
           },
-        };
-
-        return next;
-      });
-      setShowAttach(false);
-      AccessibilityInfo.announceForAccessibility(
-        "Research in progress. Cancel is available. Closing the app will not stop the job.",
-      );
-      await refreshRun(t, created.runId);
-      startPolling(t, created.runId);
+          upload: (file, key) => file.bytes ? api.attachBytes(t, file.filename, file.mime, file.bytes, key) : api.attach(t, file.filename, file.mime, file.text, key),
+          admit: (draft, ids) => api.createRun(t, draft.question, draft.routeMode, draft.key, ids),
+        });
+        if (!guard.current()) throw new SupersededRequest();
+      } finally { guard.release(); }
+      await adoptAdmission(t, created);
     } catch (e) {
-      if (isSupersededRequest(e)) return;
+      if (!accountGuard.current() || isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
         setViewState((s) => {
@@ -454,7 +445,59 @@ function AppInner() {
           return next;
         });
       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
-    } finally { submitting.current = false; setUploadStatus(null); }
+    } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
+  }
+
+  async function adoptAdmission(t: string, created: AdmittedRun) {
+      const guard = api.captureView();
+      try {
+      const next: UiState = {
+          ...state,
+          pendingAdmission: null,
+          status: "progress" as const,
+          error: null,
+          attachments: [],
+          report: null,
+          previousReport: state.report
+            ? { reportId: state.report.reportId, blocks: state.report.blocks }
+            : state.previousReport,
+          run: {
+            runId: created.runId,
+            lifecycle: created.lifecycle,
+            phase: created.phase,
+            outcome: null,
+            reportId: null,
+            labeledDemo: created.labeledDemo,
+          },
+      };
+      await sessionStorage.finishAdmission(t, next);
+      if (!guard.current()) throw new SupersededRequest();
+      api.selectRun(created.runId);
+      setViewState(next);
+      setShowAttach(false);
+      AccessibilityInfo.announceForAccessibility(
+        "Research in progress. Cancel is available. Closing the app will not stop the job.",
+      );
+      await refreshRun(t, created.runId);
+      startPolling(t, created.runId);
+      } finally { guard.release(); }
+  }
+
+  async function resolvePendingAdmission() {
+    if (!token || !state.pendingAdmission || submitting.current || !storageReady) return;
+    const guard = api.captureView(); submitting.current = true; setUploadStatus("Checking saved request…");
+    try {
+      const result = await api.resolveRunRequest(token, state.pendingAdmission.key);
+      if (!guard.current()) throw new SupersededRequest();
+      if (result.status === "accepted") await adoptAdmission(token, readAdmittedRun(result.run));
+      else if (result.status === "withdrawn") {
+        await sessionStorage.saveAdmission(token, null);
+        if (!guard.current()) throw new SupersededRequest();
+        setState(s => ({ ...s, pendingAdmission: null, offline: false, error: "No run was accepted. The saved request is withdrawn; you can edit and send again." }));
+      } else throw new Error("The saved request could not be resolved. Retry checking it.");
+    } catch (error) {
+      if (guard.current() && !isSupersededRequest(error)) setState(s => ({ ...s, error: (error as Error).message }));
+    } finally { guard.release(); submitting.current = false; setUploadStatus(null); }
   }
 
   async function onCancel() {
@@ -649,7 +692,12 @@ function AppInner() {
             onScrollEndDrag={() => saveVisibleReadingPosition()}
             onMomentumScrollEnd={() => saveVisibleReadingPosition()}
           >
-            {!state.run && !state.report ? (
+            {state.pendingAdmission ? <View style={styles.card} accessibilityLabel="Saved research request">
+              <Text style={styles.bodyText}>Request awaiting confirmation. Retry keeps the same question and documents.</Text>
+              {state.pendingAdmission.uploads.some(u => !u.attachmentId) ? <Text style={styles.bodyText}>Select the original files again: {state.pendingAdmission.uploads.filter(u => !u.attachmentId).map(u => u.filename).join(", ")}</Text> : null}
+              <Pressable disabled={uploadStatus !== null} accessibilityRole="button" accessibilityLabel="Check or withdraw saved research request" onPress={() => void resolvePendingAdmission()}><Text style={styles.link}>Check or withdraw saved request</Text></Pressable>
+            </View> : null}
+            {!state.run && !state.report && !state.pendingAdmission ? (
               <Text style={styles.welcome}>
                 Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.
               </Text>
@@ -932,7 +980,7 @@ function AppInner() {
                 setRestoreMessage(e instanceof Error ? e.message : "Restore is unavailable until a store sandbox is connected.");
               }
             }}
-            onMode={(routeMode) => setState((s) => ({ ...s, routeMode }))}
+            onMode={(routeMode) => setState((s) => s.pendingAdmission ? { ...s, error: "Check or withdraw the saved request before changing research mode." } : { ...s, routeMode })}
             onDelete={async () => {
               if (!token) return;
               try {
@@ -949,7 +997,7 @@ function AppInner() {
             onLogout={() => {
               stopPolling();
               api.activateSession(null); clearPanels();
-              void logoutLocal(sessionStorage).catch(() => setState((s) => ({ ...s, error: "Device cleanup failed. Retry signing out." })));
+              void logoutLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => setState((s) => ({ ...s, error: "Device cleanup failed. Retry signing out." })));
               setToken(null);
               setState((s) => logoutState(s));
             }}
@@ -964,7 +1012,7 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" && !state.source && !keyboardOpen && (showAttach || !state.report) ? (
+        {state.tab === "research" && !state.source && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
@@ -995,7 +1043,7 @@ function AppInner() {
         {state.tab === "research" && !state.source ? (
         <View style={styles.composerWrap}>
           <TextInput
-            editable={hydrated}
+            editable={hydrated && !state.pendingAdmission && uploadStatus === null}
             value={state.draft}
             onChangeText={(draft) => {
               setState((s) => {
@@ -1021,7 +1069,7 @@ function AppInner() {
             accessibilityLabel="Start research"
             hitSlop={12}
           >
-            <Text style={styles.send}>Send</Text>
+            <Text style={styles.send}>{state.pendingAdmission ? "Retry" : "Send"}</Text>
           </Pressable>
         </View>
         ) : null}

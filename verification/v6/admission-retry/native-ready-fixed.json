@@ -1,0 +1,131 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Live research route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Live research route",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,375][1080,1994]",
+      "class": "android.widget.ScrollView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Saved research request",
+      "bounds": "[45,420][1035,758]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Request awaiting confirmation. Retry keeps the same question and documents.",
+      "label": "",
+      "bounds": "[92,467][988,603]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Check or withdraw saved research request",
+      "bounds": "[93,604][987,710]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Check or withdraw saved request",
+      "label": "",
+      "bounds": "[93,604][987,710]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "What does the Ardent field note say about underwater recording?",
+      "label": "Research question",
+      "bounds": "[22,2019][860,2200]",
+      "class": "android.widget.EditText",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[861,2094][1058,2200]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Retry",
+      "label": "",
+      "bounds": "[906,2116][1013,2177]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2348]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][354,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2348]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    }
+  ]
+}

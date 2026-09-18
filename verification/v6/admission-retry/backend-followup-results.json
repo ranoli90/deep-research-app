@@ -1,0 +1,86 @@
+{
+  "requirements": [
+    "W02",
+    "W03",
+    "W07"
+  ],
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T02:30:49.417298+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "local PostgreSQL 127.0.0.1:55432/deep_research_test"
+  },
+  "results": [
+    {
+      "command": "pnpm --filter @deep/backend test:unit",
+      "exitCode": 1,
+      "scope": "113 passed / 1 failed: deadline lost",
+      "artifact": "backend-units.log",
+      "sha256": "c27b99027935f580932da7e2d862c854f6c161c0cfb98fb33b11a362fc02d858"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/generation-receipt.unit.test.ts",
+      "exitCode": 0,
+      "scope": "10/10 isolated historical recheck; did not explain initial failure",
+      "artifact": "generation-receipt-recheck.log",
+      "sha256": "cc4a7cb558d158e3c047e2c8c932e447a4db6e750535c64ac0422f920aa0df9c"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/generation-receipt.unit.test.ts",
+      "exitCode": 1,
+      "scope": "9 passed / 2 failed, including forced-GC lost deadline; pre-fix regression",
+      "artifact": "receipt-gc-regression-before.log",
+      "sha256": "468b357ca20b00b814f28db1bdf7de8f48454498a30f947e417d56cbf1575547"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit",
+      "exitCode": 0,
+      "scope": "115/115 after timer fix, before additional caller cancellation test",
+      "artifact": "backend-units-final.log",
+      "sha256": "8b6f39de02f3bd3fa60ae9692b3907135782b71f150dcfdddb840cc901f72331"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/generation-receipt.unit.test.ts",
+      "exitCode": 0,
+      "scope": "12/12 final transport tests including GC and post-issuance caller cancellation",
+      "artifact": "receipt-gc-final.log",
+      "sha256": "6218892224c707be850d8ecb986919e92557e71b896afe48f5cc793776eca097"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "configured backend TypeScript",
+      "artifact": "receipt-gc-types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:integration test/v6-upload.integration.test.ts test/controller-admission.integration.test.ts test/attachment-retry.integration.test.ts test/admission-recovery.integration.test.ts",
+      "exitCode": 0,
+      "scope": "24/24,4files,9.00s; local PG; controller tests historical diagnostics",
+      "artifact": "backend-focused-integration.log",
+      "sha256": "4fbbf06a64113904563d8f073e7161c32ca8ef75f594de03486bc7d239498483"
+    }
+  ],
+  "impact": {
+    "receiptFix": "Explicit owned referenced timer and AbortController replace transient AbortSignal.any timeout source; deadline remains <=10s; caller abort propagated; timer/listener cleaned in finally; no financial settlement changes, live network calls or new backend dependency. Forced-GC subprocess regression reproduces lost deadline before change.",
+    "fingerprintReview": "Reviewed primary mobile SHA256 fingerprint binding using pinned @noble/hashes2.4.0 pure JavaScript. Protected journal stores exact content hash, never bytes; digest match rejects changed same-name content even if original upload never reached server and identifies duplicate names after restart. No native module dependency added. Native execution and complete mobile test results belong to primary receipts.",
+    "rollback": "Preserve upload/withdrawal replay vetoes and opaque key tombstones. Do not restore transient timeout lifecycle that loses deadlines; retain bounded timing/caller cancellation and unknown holds."
+  },
+  "files": [
+    {
+      "path": "apps/backend/src/adapters/model/generation-receipt.ts",
+      "sha256": "5f82e29a7a27e40e30671d7d063842ffeb8a0cdd1d2aa662e07fa8a8d5ec95db"
+    },
+    {
+      "path": "apps/backend/test/generation-receipt.unit.test.ts",
+      "sha256": "bbeee1795025e39c0f564db5c01be0b62292c42425d4162dae58458fdbc3908b"
+    },
+    {
+      "path": "apps/mobile/src/admission-retry.ts",
+      "sha256": "a127252ab84fad8dc0459e13182869227e7c42296d79d2224299a823ae37afdb"
+    }
+  ]
+}

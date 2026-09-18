@@ -15,13 +15,20 @@ export async function lookupGenerationReceipt(args: { providerId: string; apiKey
       /[\x00-\x1f\x7f]/.test(args.providerId) || !Number.isSafeInteger(deadline) || deadline < 1 || deadline > 10_000)
     return unavailable("invalid_receipt_lookup");
   if (args.signal.aborted) return unavailable("receipt_lookup_cancelled");
-  const signal = AbortSignal.any([args.signal, AbortSignal.timeout(deadline)]);
+  // Own the deadline timer: Node 20 can collect a transient timeout signal used
+  // only through AbortSignal.any, losing the deadline while fetch never settles.
+  const controller = new AbortController();
+  const forwardAbort = () => controller.abort(args.signal.reason);
+  args.signal.addEventListener("abort", forwardAbort, { once: true });
+  const timer = setTimeout(() => controller.abort(), deadline);
+  const signal = controller.signal;
   let onAbort: (() => void) | undefined;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
     const aborted = new Promise<never>((_, reject) => {
       onAbort = () => reject(new Error("receipt_lookup_aborted"));
-      signal.addEventListener("abort", onAbort, { once: true });
+      if (signal.aborted) onAbort();
+      else signal.addEventListener("abort", onAbort, { once: true });
     });
     const url = new URL("https://openrouter.ai/api/v1/generation");
     url.searchParams.set("id", args.providerId);
@@ -51,6 +58,8 @@ export async function lookupGenerationReceipt(args: { providerId: string; apiKey
       retrievedAt: new Date().toISOString(), responseDigest: createHash("sha256").update(raw).digest("hex") } };
   } catch { return unavailable("receipt_lookup_unavailable"); }
   finally {
+    clearTimeout(timer);
+    args.signal.removeEventListener("abort", forwardAbort);
     if (onAbort) signal.removeEventListener("abort", onAbort);
     if (reader) void reader.cancel().catch(() => undefined);
   }

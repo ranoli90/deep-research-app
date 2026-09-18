@@ -1,0 +1,22 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/lease-clock.integration.test.ts (11 tests) 11661ms
+   ✓ W02 rejects expired semantic mutation after account lock wait  1193ms
+   ✓ W02 rejects expired terminal mutation after account lock wait  1142ms
+   ✓ W02 rejects provider issuance when lease expires waiting for account lock  1154ms
+   ✓ W02 rejects provider issuance when lease expires waiting for legacy lock  1154ms
+   ✓ W02 rejects provider issuance when lease expires waiting for key lock  1155ms
+   ✓ W02 rejects provider issuance when lease expires waiting for project lock  1147ms
+   ✓ W02 rolls back semantic mutation whose transaction callback outlives its lease  1136ms
+   ✓ W02 rolls back terminal mutation whose transaction callback outlives its lease  1135ms
+   ✓ W02 renewal cannot revive a lease after waiting for its row lock  1150ms
+   ✓ W02 a newly claimed lease starts after its run lock wait  1139ms
+ ✓ test/provider-reconciliation.integration.test.ts (13 tests) 1113ms
+ ✓ test/v6-execution.integration.test.ts (22 tests) 1243ms
+
+ Test Files  3 passed (3)
+      Tests  46 passed (46)
+   Start at  20:43:03
+   Duration  15.60s (transform 482ms, setup 0ms, collect 978ms, tests 14.02s, environment 1ms, prepare 198ms)
+

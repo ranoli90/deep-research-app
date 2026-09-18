@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { lookupGenerationReceipt } from "../src/adapters/model/generation-receipt.js";
 
 const original = globalThis.fetch;
@@ -35,10 +37,34 @@ describe("W02 actual generation receipt transport controls", () => {
     globalThis.fetch = vi.fn(() => new Promise<Response>(() => undefined));
     expect((await lookupGenerationReceipt({ ...args(), deadlineMs: 10 })).kind).toBe("unavailable");
   });
+  it("keeps its deadline alive through garbage collection while a transport never resolves", async () => {
+    const { stdout } = await promisify(execFile)(process.execPath, ["--expose-gc", "--import", "tsx", "--input-type=module", "-e", `
+      import { lookupGenerationReceipt } from './src/adapters/model/generation-receipt.ts';
+      globalThis.fetch = () => new Promise(() => {});
+      const collector = setInterval(() => globalThis.gc(), 1);
+      let observer;
+      try {
+        const result = await Promise.race([
+          lookupGenerationReceipt({providerId:'gc-control',apiKey:'nonbillable-test',signal:new AbortController().signal,deadlineMs:30}),
+          new Promise(resolve => { observer = setTimeout(() => resolve({kind:'test-deadline-lost'}), 300); })
+        ]);
+        console.log(JSON.stringify(result));
+      } finally { clearInterval(collector); clearTimeout(observer); }
+    `], { cwd: new URL("..", import.meta.url), timeout: 3000 });
+    expect(JSON.parse(stdout)).toEqual({ kind: "unavailable", reason: "receipt_lookup_unavailable" });
+  });
   it("does not fetch for canceled or invalid arguments", async () => {
     globalThis.fetch = vi.fn();
     expect((await lookupGenerationReceipt({ ...args(), signal: AbortSignal.abort() })).kind).toBe("unavailable");
     expect((await lookupGenerationReceipt({ ...args(), providerId: "\nsecret" })).kind).toBe("unavailable");
     expect(fetch).not.toHaveBeenCalled();
+  });
+  it("forwards caller cancellation after issuance even when transport ignores abort", async () => {
+    const controller = new AbortController();
+    globalThis.fetch = vi.fn(() => new Promise<Response>(() => undefined));
+    const pending = lookupGenerationReceipt({ ...args(), signal: controller.signal });
+    controller.abort();
+    expect(await pending).toEqual({ kind: "unavailable", reason: "receipt_lookup_unavailable" });
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
   });
 });

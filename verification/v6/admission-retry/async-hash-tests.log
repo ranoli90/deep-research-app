@@ -1,0 +1,15 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts admission-retry
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/admission-retry.test.ts (12 tests) 1306ms
+   ✓ W02/W07 durable admission retry > rejects same-named replacement bytes even if the first upload never reached the server  1219ms
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  20:38:35
+   Duration  1.69s (transform 135ms, setup 0ms, collect 162ms, tests 1.31s, environment 0ms, prepare 68ms)
+

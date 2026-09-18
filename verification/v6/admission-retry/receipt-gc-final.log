@@ -1,0 +1,15 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/generation-receipt.unit.test.ts (12 tests) 501ms
+   ✓ W02 actual generation receipt transport controls > keeps its deadline alive through garbage collection while a transport never resolves  436ms
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  20:29:49
+   Duration  1.00s (transform 117ms, setup 0ms, collect 125ms, tests 501ms, environment 0ms, prepare 110ms)
+

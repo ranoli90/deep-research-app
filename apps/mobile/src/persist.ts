@@ -1,4 +1,5 @@
 import { emptyState, restoreAfterReopen, type UiState } from "./state";
+import { readAdmissionDraft, type AdmissionDraft } from "./admission-retry";
 import { parseCorrectionDraft } from "./correction-draft";
 
 export type KeyValueStore = {
@@ -9,6 +10,7 @@ export type KeyValueStore = {
 export type LocalSession = { accountId: string; token: string };
 export type PersistedSession = { token: string | null; state: UiState };
 const SESSION_KEY = "deep.session.v2", REVOKED_KEY = "deep.session.revoked", GUEST_KEY = "deep.draft.guest";
+const ADMISSION_KEY = "deep.admission.v1";
 const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
@@ -73,6 +75,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           await cache.setItem(REVOKED_KEY, "1");
           if (previous?.accountId !== session.accountId) {
             await cache.removeItem(SNAPSHOT_KEY);
+            await cache.removeItem(ADMISSION_KEY);
             await credentials.removeItem(SESSION_KEY);
           }
           await cache.removeItem(GUEST_KEY);
@@ -83,6 +86,30 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (version === epoch) { epoch++; current = null; }
           throw error;
         }
+      });
+    },
+    saveAdmission(token: string, draft: AdmissionDraft | null): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving request."));
+      const payload = draft ? JSON.stringify({ accountId: owner.accountId, draft: readAdmissionDraft(draft) }) : null;
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving request.");
+        if (payload === null) await cache.removeItem(ADMISSION_KEY);
+        else await cache.setItem(ADMISSION_KEY, payload);
+        if (version !== epoch) throw new Error("Session changed while saving request.");
+      });
+    },
+    finishAdmission(token: string, state: UiState): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming request."));
+      ++persistSequence;
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming request.");
+        await cache.setItem(SNAPSHOT_KEY, payload);
+        if (version !== epoch) throw new Error("Session changed while confirming request.");
+        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
+        await cache.removeItem(ADMISSION_KEY);
       });
     },
     persist(session: PersistedSession): Promise<void> {
@@ -127,12 +154,21 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
         current = session;
         if (!session) {
           await cache.removeItem(SNAPSHOT_KEY);
+          await cache.removeItem(ADMISSION_KEY);
           let draft = "";
           try { const value: unknown = JSON.parse(await cache.getItem(GUEST_KEY) ?? '""'); if (typeof value === "string") draft = value; } catch { /* invalid guest draft */ }
           if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
           return { token: null, accountId: null, state: { ...emptyState(), draft } };
         }
         const state = parseState(await cache.getItem(SNAPSHOT_KEY), session.accountId) ?? { ...emptyState(), signedIn: true };
+        const pending = await cache.getItem(ADMISSION_KEY);
+        if (pending !== null) {
+          const envelope: unknown = JSON.parse(pending);
+          if (!record(envelope) || envelope.accountId !== session.accountId) throw new Error("Saved request ownership is invalid.");
+          state.pendingAdmission = readAdmissionDraft(envelope.draft);
+          state.draft = state.pendingAdmission.question;
+          state.routeMode = state.pendingAdmission.routeMode;
+        }
         if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
         return { token: session.token, accountId: session.accountId, state: restoreAfterReopen(state) };
       });
@@ -144,7 +180,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
         lastPersisted = null;
         // A durable denial marker prevents a failed keychain deletion from restoring this account on next launch.
         const marker = await Promise.allSettled([cache.setItem(REVOKED_KEY, "1")]);
-        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), removeLegacy()];
+        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), removeLegacy()];
         const results = await Promise.allSettled(tasks);
         if ([...marker, ...results].some((r) => r.status === "rejected")) throw new Error("Could not finish clearing this device's session. Retry before signing in.");
       });

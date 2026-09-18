@@ -1,0 +1,15 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts test/attachment-retry.integration.test.ts test/v6-upload.integration.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/attachment-retry.integration.test.ts (9 tests) 702ms
+ ✓ test/v6-upload.integration.test.ts (2 tests) 257ms
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  20:47:50
+   Duration  2.50s (transform 589ms, setup 0ms, collect 1.16s, tests 959ms, environment 0ms, prepare 133ms)
+

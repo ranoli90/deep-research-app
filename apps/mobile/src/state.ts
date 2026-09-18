@@ -1,3 +1,4 @@
+import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
 import type { CorrectionDraft } from "./correction-draft";
 export type RouteMode = "fixture" | "controlled-research";
@@ -30,6 +31,7 @@ export type UiState = {
   tab: "research" | "library" | "settings";
   draft: string;
   correctionDraft: CorrectionDraft | null;
+  pendingAdmission: AdmissionDraft | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -59,6 +61,7 @@ export function emptyState(): UiState {
     tab: "research",
     draft: "",
     correctionDraft: null,
+    pendingAdmission: null,
     consentGranted: false,
     signedIn: false,
     offline: false,
@@ -156,6 +159,15 @@ export function attachFile(state: UiState, file: AttachmentDraft): UiState {
   }
   if (!["text/plain", "text/markdown", "application/pdf"].includes(file.mime)) {
     return { ...state, error: "Only text, Markdown, and PDF are supported." };
+  }
+  if (state.pendingAdmission) {
+    const target = state.pendingAdmission.uploads.find(u => !u.attachmentId && u.filename === file.filename && u.mime === file.mime &&
+      u.kind === (file.bytes ? "bytes" : "text"));
+    if (!target) return { ...state, error: "Select the exact original bytes for an unconfirmed document from the saved request. Other content cannot replace it." };
+    // Reselection is bound by the asynchronous digest check at submission.
+    // Names alone cannot identify a duplicate-named upload slot.
+    const { id: _previousId, ...unbound } = file;
+    file = unbound;
   }
   return { ...state, attachments: [...state.attachments, file], error: null };
 }

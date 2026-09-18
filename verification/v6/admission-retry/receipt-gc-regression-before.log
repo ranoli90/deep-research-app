@@ -1,0 +1,69 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/generation-receipt.unit.test.ts (11 tests | 2 failed) 5659ms
+   ✓ W02 actual generation receipt transport controls > uses only fixed GET metadata and retains exact cost without provider content 26ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > does not settle malformed or mismatched metadata 1ms
+   ✓ W02 actual generation receipt transport controls > 404 is unresolved, never evidence of zero cost 1ms
+   ✓ W02 actual generation receipt transport controls > bounds body bytes and rejects invalid UTF-8 2ms
+   × W02 actual generation receipt transport controls > times out even if transport ignores cancellation 5006ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+   × W02 actual generation receipt transport controls > keeps its deadline alive through garbage collection while a transport never resolves 617ms
+     → expected { kind: 'test-deadline-lost' } to deeply equal { kind: 'unavailable', …(1) }
+   ✓ W02 actual generation receipt transport controls > does not fetch for canceled or invalid arguments 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/generation-receipt.unit.test.ts > W02 actual generation receipt transport controls > times out even if transport ignores cancellation
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/generation-receipt.unit.test.ts:36:3
+     34|     expect((await lookupGenerationReceipt(args())).kind).toBe("unavail…
+     35|   });
+     36|   it("times out even if transport ignores cancellation", async () => {
+       |   ^
+     37|     globalThis.fetch = vi.fn(() => new Promise<Response>(() => undefin…
+     38|     expect((await lookupGenerationReceipt({ ...args(), deadlineMs: 10 …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/generation-receipt.unit.test.ts > W02 actual generation receipt transport controls > keeps its deadline alive through garbage collection while a transport never resolves
+AssertionError: expected { kind: 'test-deadline-lost' } to deeply equal { kind: 'unavailable', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "kind": "unavailable",
+-   "reason": "receipt_lookup_unavailable",
++   "kind": "test-deadline-lost",
+  }
+
+ ❯ test/generation-receipt.unit.test.ts:54:32
+     52|       } finally { clearInterval(collector); clearTimeout(observer); }
+     53|     `], { cwd: new URL("..", import.meta.url), timeout: 3000 });
+     54|     expect(JSON.parse(stdout)).toEqual({ kind: "unavailable", reason: …
+       |                                ^
+     55|   });
+     56|   it("does not fetch for canceled or invalid arguments", async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  20:29:01
+   Duration  6.01s (transform 102ms, setup 0ms, collect 113ms, tests 5.66s, environment 0ms, prepare 70ms)
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:unit: `vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts`
+Exit status 1

@@ -1,0 +1,12 @@
+{
+  "evidenceClass": "programmatic_owned_session_upload_setup_for_native_admission_retry",
+  "accountId": "7d02f014-26be-43d3-869d-77e9aa61cb49",
+  "admissionKey": "4c3a19cc-6e4b-431b-bba1-1d6604b4aab8",
+  "attachmentId": "fd7b0f7b-6ff4-4c21-a7de-7dbe94f35f0b",
+  "inputBytes": 1211,
+  "inputSha256": "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd",
+  "actualParser": false,
+  "modelTransport": "fabricated",
+  "paidCalls": 0,
+  "nativeSignInAndUploadRepeated": false
+}

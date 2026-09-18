@@ -161,12 +161,12 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
   if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
   const run = await getRun(db, runId, { forUpdate: true });
   if (!run || run.lifecycle === "terminal") return null;
-  const existing = await db.query<{ fence: string; owner: string; expires_at: Date }>(
-    `SELECT fence, owner, expires_at FROM run_leases WHERE run_id = $1`,
+  const existing = await db.query<{ fence: string; owner: string; active: boolean }>(
+    `SELECT fence, owner, expires_at > clock_timestamp() AS active FROM run_leases WHERE run_id = $1 FOR UPDATE`,
     [runId],
   );
   const held = existing.rows[0];
-  if (held && new Date(held.expires_at).getTime() > Date.now()) {
+  if (held?.active) {
     return null;
   }
   const fence = run.worker_lease_fence + 1;
@@ -180,7 +180,7 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
   );
   await db.query(
     `INSERT INTO run_leases (run_id, fence, owner, expires_at)
-     VALUES ($1,$2,$3, now() + ($4 || ' milliseconds')::interval)
+     VALUES ($1,$2,$3, clock_timestamp() + ($4 || ' milliseconds')::interval)
      ON CONFLICT (run_id) DO UPDATE SET fence = EXCLUDED.fence, owner = EXCLUDED.owner, expires_at = EXCLUDED.expires_at`,
     [runId, fence, owner, String(leaseMs)],
   );
@@ -188,9 +188,15 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
 }
 
 export async function renewLease(db: Queryable, runId: string, owner: string, fence: number, leaseMs: number): Promise<boolean> {
-  const result = await db.query(`UPDATE run_leases l SET expires_at = now() + ($4 * interval '1 millisecond')
+  if (db instanceof pg.Pool) return withTx(db, (client) => renewLease(client, runId, owner, fence, leaseMs));
+  if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
+  // Acquire both rows before checking wall-clock expiry. A single UPDATE can
+  // evaluate its predicate before blocking on another transaction's row lock.
+  await getRun(db, runId, { forUpdate: true });
+  await db.query("SELECT run_id FROM run_leases WHERE run_id = $1 FOR UPDATE", [runId]);
+  const result = await db.query(`UPDATE run_leases l SET expires_at = clock_timestamp() + ($4 * interval '1 millisecond')
     FROM runs r WHERE l.run_id = $1 AND r.id = l.run_id AND l.owner = $2 AND l.fence = $3
-      AND r.worker_lease_fence = $3 AND r.lifecycle <> 'terminal' AND l.expires_at > now()`,
+      AND r.worker_lease_fence = $3 AND r.lifecycle <> 'terminal' AND l.expires_at > clock_timestamp()`,
     [runId, owner, fence, leaseMs]);
   return result.rowCount === 1;
 }

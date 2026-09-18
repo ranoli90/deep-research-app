@@ -1,0 +1,58 @@
+{
+  "requirements": [
+    "W03",
+    "W07"
+  ],
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T02:20:56.203213+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "local PostgreSQL 127.0.0.1:55432/deep_research_test"
+  },
+  "scope": "Real local PostgreSQL/API injection; synthetic file bytes; no actual extraction, device, provider or paid calls. Source tombstone shape regression uses direct SQL; account deletion uses actual domain operation.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/backend test:integration test/attachment-retry.integration.test.ts",
+      "exitCode": 0,
+      "tests": 7,
+      "durationSeconds": 2.98,
+      "artifact": "attachment-retry-integration.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-types.log"
+    }
+  ],
+  "files": [
+    {
+      "path": "apps/backend/src/modules/attachments.ts",
+      "sha256": "f2682a6b905cd1fd779f0775bc693a498fcd52dddb9618d880170b88abd99012"
+    },
+    {
+      "path": "apps/backend/src/api/app.ts",
+      "sha256": "e2e3f5396c99ef5e821de5396c6b1a04188d79186dab34c684e3beb93ce94ce8"
+    },
+    {
+      "path": "apps/backend/migrations/034_attachment_upload_keys.sql",
+      "sha256": "0de7da50205d1abb637eb577e1d84d2af94533d6bee2f3d8aafdc95eb91d8eaf"
+    },
+    {
+      "path": "apps/backend/test/attachment-retry.integration.test.ts",
+      "sha256": "63b17ed4812a1baba48c6d97f1a710a67cec5aa9d0bd7e1707bc0c2ceac1e084"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "attachment-retry-integration.log",
+      "sha256": "97b0c831ccbba43a5cd085978a0356a89e3d044d97e1d0159f359c7fcc2dcbc5"
+    },
+    {
+      "path": "backend-types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ]
+}

@@ -70,9 +70,9 @@ export const api = {
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
   sessionInfo: (token: string) => req("/v1/session", { token }) as Promise<{ accountId: string; authMode: string }>,
   consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
-  attachBytes: (token: string, filename: string, mime: string, bytes: Uint8Array) =>
+  attachBytes: (token: string, filename: string, mime: string, bytes: Uint8Array, key?: string) =>
     req("/v1/attachments/bytes", { method: "POST", token, scope: "view",
-      headers: { "content-type": "application/octet-stream", "x-document-mime": mime, "x-file-name": encodeURIComponent(filename) },
+      headers: { "content-type": "application/octet-stream", "x-document-mime": mime, "x-file-name": encodeURIComponent(filename), ...(key ? { "idempotency-key": key } : {}) },
       body: new Uint8Array(bytes).buffer }),
   createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = []) =>
     req("/v1/runs", {
@@ -82,8 +82,9 @@ export const api = {
       headers: { "idempotency-key": idempotencyKey },
       body: JSON.stringify({ question, routeMode, attachmentIds }),
     }),
-  attach: (token: string, filename: string, mime: string, text: string) =>
-    req("/v1/attachments", { method: "POST", token, scope: "view", body: JSON.stringify({ filename, mime, text }) }),
+  resolveRunRequest: (token: string, idempotencyKey: string) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey }) }),
+  attach: (token: string, filename: string, mime: string, text: string, key?: string) =>
+    req("/v1/attachments", { method: "POST", token, scope: "view", headers: key ? { "idempotency-key": key } : {}, body: JSON.stringify({ filename, mime, text }) }),
   continueRun: (token: string, id: string, geography: string) =>
     req(`/v1/runs/${id}/continue`, { method: "POST", token, scope: "view", runId: id, body: JSON.stringify({ geography }) }),
   getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token, scope: "view", runId: id }),

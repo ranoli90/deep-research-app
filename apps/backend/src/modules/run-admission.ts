@@ -6,6 +6,7 @@ import { extractConstraints, inferOutputPreference } from "@deep/research-core";
 import { withTx } from "../platform/db.js";
 import { currentConsent } from "./access.js";
 import { reserveAllowance } from "./billing.js";
+import { admissionKeyHash } from "./admission-recovery.js";
 import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertConversation, insertRun } from "./runs.js";
 
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
@@ -16,6 +17,8 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
   return withTx(pool, async (db) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
     if (!account.rows[0] || account.rows[0].deleted_at) reject("permission_denied");
+    if ((await db.query("SELECT 1 FROM admission_withdrawals WHERE account_id=$1 AND key_hash=$2", [accountId,admissionKeyHash(key)])).rowCount)
+      reject("idempotency_withdrawn");
     const consent = await currentConsent(db, accountId);
     if (!consent || consent.revoked || input.consentPolicyVersion !== CONSENT_POLICY_VERSION || (input.routeMode === "controlled-research" && consent.policyVersion !== CONSENT_POLICY_VERSION)) reject("consent_required");
     const existing = await findRunByIdempotency(db, accountId, key);

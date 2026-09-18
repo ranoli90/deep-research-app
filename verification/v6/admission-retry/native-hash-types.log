@@ -1,0 +1,12 @@
+
+> @deep/mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+src/native-document-digest.ts(9,75): error TS2345: Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'BufferSource'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

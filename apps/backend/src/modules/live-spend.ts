@@ -62,7 +62,7 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     const account = await db.query("SELECT deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [identity.account_id]);
     const run = await getRun(db, args.runId, { forUpdate: true });
     const consent = await currentConsent(db, identity.account_id);
-    const lease = await db.query("SELECT fence FROM run_leases WHERE run_id = $1 AND expires_at > now()", [args.runId]);
+    const lease = await db.query("SELECT fence FROM run_leases WHERE run_id = $1 AND expires_at > clock_timestamp()", [args.runId]);
     if (!run || account.rows[0]?.deleted_at || !consent || consent.revoked || consent.epoch !== run.consent_epoch ||
         (args.requiredConsentPolicy !== undefined && consent.policyVersion !== args.requiredConsentPolicy) ||
         run.lifecycle !== "running" || run.cancellation_epoch !== 0 || run.worker_lease_fence !== args.fence ||
@@ -110,12 +110,20 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     const scope = config.liveBudgetScope ?? "project";
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-budget:${scope}`]);
     await assertLiveCallAllowed(db, config, args.reserveMicro);
+    // Budget locks can wait beyond the lease checked above. Account/run rows
+    // remain locked, but time still advances: revalidate at the issuance boundary.
+    const currentLease = await db.query("SELECT 1 FROM run_leases WHERE run_id = $1 AND fence = $2 AND expires_at > clock_timestamp()", [args.runId, args.fence]);
+    if (currentLease.rowCount !== 1) throw new Error("stale_or_unauthorized_attempt");
     const actionId = crypto.randomUUID();
     const intentId = crypto.randomUUID();
     await db.query(`INSERT INTO run_actions (id, run_id, brief_revision, logical_key, kind, request_digest)
       VALUES ($1,$2,$3,$4,$5,$6)`, [actionId, args.runId, args.briefRevision, args.logicalKey, args.kind, args.requestDigest]);
     await db.query(`INSERT INTO provider_intents (id, run_id, correlation_id, route, request_digest, reserved_max_micro, state, action_id, scope_key, provider_key_scope)
       VALUES ($1,$2,$8,$3,$4,$5,'issued',$6,$7,$9)`, [intentId, args.runId, args.route, args.requestDigest, args.reserveMicro, actionId, scope, intentId, keyScope]);
+    // INSERTs can themselves block. Roll back the entire action/intent if the
+    // lease expired during that wait; no caller may dispatch from this attempt.
+    const finalLease = await db.query("SELECT 1 FROM run_leases WHERE run_id = $1 AND fence = $2 AND expires_at > clock_timestamp()", [args.runId, args.fence]);
+    if (finalLease.rowCount !== 1) throw new Error("stale_or_unauthorized_attempt");
     return { intentId, issue: true };
   });
 }

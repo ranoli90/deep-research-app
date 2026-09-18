@@ -1,0 +1,134 @@
+{
+  "requirementIds": [
+    "W02",
+    "W03",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "c10109a80df7121d31186977297cf87cf7fe82a9",
+  "revisionScope": "Uncommitted integrated checkpoint; exact source hashes recorded at checkpoint",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "native": "REDMI Note15 5G Android16 ExpoGo54.0.8; standalone unchanged",
+    "databases": [
+      "deep_research_test",
+      "deep_research_lease_clock_v6",
+      "deep_research_native_v6"
+    ]
+  },
+  "results": [
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify-final.log",
+      "scope": "148core/116backend/93mobile/6governance; before final native-hash/receipt metadata refinements"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "mobile-tests-final-native.log",
+      "scope": "97mobile tests after native hashing adapter; final behavioral mobile suite"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "native-hash-types-final.log",
+      "scope": "Final mobile TypeScript"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-admission-retry-bundle",
+      "exitCode": 0,
+      "artifact": "android-export-final.log",
+      "scope": "642modules/2.14MB Android JavaScript; not signed/native build"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "dependency-audit-final.json",
+      "scope": "5moderate/4high existing advisories; Vitest/mocker newly reported on unchanged versions; no clean security claim"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify-integrated-final.log",
+      "scope": "Final integrated checkpoint: 148 core/116 backend/97 mobile/6 governance; configured types and boundaries pass."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types-integrated-final.log",
+      "scope": "Final mobile source including preserved selection after withdrawal."
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-admission-retry-bundle",
+      "exitCode": 0,
+      "artifact": "android-export-integrated-final.log",
+      "scope": "Final integrated Android JS export:642modules/2.14MB, not native build."
+    }
+  ],
+  "componentReceipts": [
+    "attachment-retry-results.json",
+    "admission-recovery-results.json",
+    "backend-followup-results.json",
+    "native-hash-upload-receipt-results.json"
+  ],
+  "native": {
+    "evidenceClass": "actual ExpoGo UI/local API/worker/PDF extraction; fabricated models only",
+    "setup": "Programmatic owned synthetic account, consent, upload and protected journal. Native sign-in/upload not repeated.",
+    "commands": [
+      "node verification/v6/admission-retry/native-seed.cjs",
+      "NATIVE_LOSE_ADMISSION_REPLY=until-resume EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts"
+    ],
+    "unknownOutcome": {
+      "artifacts": [
+        "native-api-unknown.log",
+        "native-unknown-pending.json",
+        "native-unknown-restored.json",
+        "native-retry-completed.json",
+        "native-database-proof-final.json"
+      ],
+      "result": "Unknown request retained after cold restart; resumed Retry reaches original completed run with exact same key, one run/one attachment. Journey preceded final hash-adapter replacement; journal behavior unchanged and final adapter measured separately."
+    },
+    "withdrawal": {
+      "artifacts": [
+        "native-withdraw-completed.json",
+        "native-withdraw-database-proof.json"
+      ],
+      "result": "Explicit Check or withdraw clears pending journal, preserves editable question; zero runs, one withdrawal."
+    },
+    "hash": {
+      "pureJs8MiBMs": 48695,
+      "nativeModule8MiBMs": 16,
+      "integratedFirstLazyLoadMs": 1681,
+      "integratedWarmMs": 119,
+      "digest": "db45b72366326280ebd9bb3740418edc8d224a89161745972775491488e475cd",
+      "artifacts": [
+        "native-digest-observation.json",
+        "native-crypto-max-probe-final.json",
+        "native-digest-adapter-terminal.json",
+        "native-digest-warm-result.json",
+        "native-cancel-final-result.json"
+      ],
+      "cancellation": "SupersededRequest before native digest call; calls0",
+      "limit": "SDK54 native call synchronous behind Promise, guard yields before/after; not interruptible native work or device-wide benchmark"
+    },
+    "paidCalls": 0,
+    "fabricatedModelCalls": 14,
+    "cleanup": "Both harnesses gracefully stopped and deleted only their created accounts; native logout/final hydrate shows no credential/report/pending journal and empty draft; Metro and reverse mappings stopped."
+  },
+  "failuresAndLimits": [
+    "Backend receipt unit deadline failed, then forcedGC regression reproduced; owned timer fixed without changing bounds. See backend-followup-results.",
+    "Initial async/native typing failures and unsupported pnpm remove flag retained; implementation/type-safe copy fixed, assertions unchanged.",
+    "Initial native seed attempted before own Expo target readiness; failed account subsequently cleaned by harness.",
+    "Native notice layout broke horizontal composer; failed screenshot retained and notice moved into scrollable conversation.",
+    "Initial dropped response transparently retried by Android; stronger all-replies-held case required for unknown outcome proof.",
+    "Initial read-only DB query used nonexistent outcome column; corrected to terminal_outcome, failure receipt retained.",
+    "8MiB synchronous JS digest observation exceeded10second probe deadline; chunked JS completed48.695s. Replaced with measured native adapter.",
+    "Initial raw native digest probe used wrong arity; corrected using official wrapper signature. No application fallback.",
+    "Metro exited7 during package replacement due missing temporary watch path; authoritative terminal confirmed before restarting. Early final adapter probes hit absent/stale target/module, retained; later module-ready/terminal results provide proof.",
+    "Current standalone/iOS native dependency resolution, production identity, wider lifecycle and semantic quality remain unverified."
+  ],
+  "rollback": "ADR031: disable new scheduling only; preserve journal readers/cleanup, upload dedup/tombstones, withdrawal veto, account/consent/budget gates and unknown holds. Missing native hashing blocks document submission without JS fallback."
+}

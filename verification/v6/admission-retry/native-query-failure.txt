@@ -1,0 +1,1 @@
+Terminal native database evidence query failed exit1: PostgreSQL42703 column "outcome" does not exist on runs. Corrected read-only query to terminal_outcome; native-database-proof-final.json exit0. This note reconstructs stderr from terminal, not raw stdout. Initial failed stdout remains native-database-proof.json.

@@ -37,7 +37,14 @@ globalThis.fetch = async (input, init) => {
 };
 const app = await buildApp({ pool, boss, config });
 const sessions = new Map<string, string>();
+let loseAdmissionReply = ["1", "until-resume"].includes(process.env.NATIVE_LOSE_ADMISSION_REPLY ?? "");
+process.on("SIGUSR1", () => { loseAdmissionReply = false; console.info(JSON.stringify({event:"native_control_admission_replies_resumed"})); });
 app.addHook("onSend", async (request, _reply, payload) => {
+  if (loseAdmissionReply && request.url === "/v1/runs" && _reply.statusCode < 300) {
+    if (process.env.NATIVE_LOSE_ADMISSION_REPLY !== "until-resume") loseAdmissionReply = false;
+    console.info(JSON.stringify({ event: "native_control_admission_reply_lost", paidCalls: 0 }));
+    _reply.hijack(); _reply.raw.destroy(); return payload;
+  }
   if (request.url === "/v1/dev/session" && typeof payload === "string") {
     const session = JSON.parse(payload);
     if (session.accountId && session.token) sessions.set(session.accountId, session.token);

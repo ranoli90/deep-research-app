@@ -1,0 +1,74 @@
+{
+  "files": [
+    {
+      "path": "verification/v6/lease-clock/affected-isolated.log",
+      "sha256": "2df43bf4a38199d0772dba8089da8c66086c54d8b60165737ec8c689b762518c",
+      "bytes": 1283
+    },
+    {
+      "path": "verification/v6/lease-clock/affected.log",
+      "sha256": "2df397fee5a85f6d28bdafbef4c816b862d29bb35caf4fd700cc511ad0d27dfe",
+      "bytes": 5700
+    },
+    {
+      "path": "verification/v6/lease-clock/database-setup.log",
+      "sha256": "e34cd23cbd729a12cd342a2c86814cff41e07cbb56f68e0f5df3cd9fe9a3d6c2",
+      "bytes": 39
+    },
+    {
+      "path": "verification/v6/lease-clock/focused.log",
+      "sha256": "809689febb7a0e90eb826d4ea694f4295ba05e717d7496fd26522f3ab7cf1523",
+      "bytes": 803
+    },
+    {
+      "path": "verification/v6/lease-clock/gateway-deletion.log",
+      "sha256": "aef445113e5b94f0118e16fec37fd25a8c704bd1fab9c47df5d3fdd2651784b5",
+      "bytes": 9513
+    },
+    {
+      "path": "verification/v6/lease-clock/postinsert-final.log",
+      "sha256": "d4fe037e22a07e9f24237acb02ae4c4f62401c39952a37a576a4a1a43188c161",
+      "bytes": 1247
+    },
+    {
+      "path": "verification/v6/lease-clock/postinsert-pre-fix.log",
+      "sha256": "7d11f1ec679517988e34f1772e5cb65dd32cf1ebf14eefd41d2de6dd21f68995",
+      "bytes": 2210
+    },
+    {
+      "path": "verification/v6/lease-clock/postinsert-types.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "bytes": 107
+    },
+    {
+      "path": "verification/v6/lease-clock/pre-fix-isolated-budget.log",
+      "sha256": "617964ca190de6ea39a05ce0fd73bb762eb3e681404dcb0775a902c681e47e9f",
+      "bytes": 3273
+    },
+    {
+      "path": "verification/v6/lease-clock/pre-fix.log",
+      "sha256": "bb7d9340437f8d8bb66faefb24d00c91195ac9d74b5c925fb0791f5e467ab8ff",
+      "bytes": 4053
+    },
+    {
+      "path": "verification/v6/lease-clock/renewal-pre-fix-corrected-harness.log",
+      "sha256": "ed4ee34a5fb42f3b51ed83608e59defb0282e8774223f986319919f6b6ee0d3a",
+      "bytes": 3231
+    },
+    {
+      "path": "verification/v6/lease-clock/renewal-pre-fix.log",
+      "sha256": "e54a475df2e822a67f62bbaad3bf40d53e2653c022fc956c24f559867f9854b5",
+      "bytes": 56
+    },
+    {
+      "path": "verification/v6/lease-clock/typecheck.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166",
+      "bytes": 107
+    },
+    {
+      "path": "verification/v6/lease-clock/RESULTS.json",
+      "sha256": "0d8b44f3dbfc896c454035680a25bddb9aa649d5930a6a4f60c23ef47c334a06",
+      "bytes": 7258
+    }
+  ]
+}

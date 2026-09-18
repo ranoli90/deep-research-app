@@ -1,6 +1,6 @@
 import type { KeyValueStore } from "./persist";
 
-const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest"]);
+const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest", "deep.admission.v1"]);
 const MAX_LENGTH = 2_000_000, CHUNK_BYTES = 1600, MAX_CHUNKS = 8192;
 type Manifest = { version: 1; active: 0 | 1 | null; counts: [number, number] };
 function manifest(raw: string | null): Manifest {

@@ -17,6 +17,7 @@
     "@deep/design": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "~54.0.0",
+    "expo-crypto": "15.0.9",
     "expo-document-picker": "14.0.8",
     "expo-file-system": "19.0.24",
     "expo-secure-store": "15.0.8",
