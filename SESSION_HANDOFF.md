@@ -4,7 +4,7 @@ Assigned lane: Session B (retrieval, query intelligence, source strategy, eviden
 Worktree: `/home/oranolio/Desktop/deep-v7-retrieval`
 Branch: `grok-v7/retrieval-evidence`
 Base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`
-Final SHA: see last commit on this branch (not merged to `main`).
+Final SHA: `bf9f95233767a95a2256c35138b7889d06461e74` (not merged to `main`).
 
 ## Implemented requirements
 
