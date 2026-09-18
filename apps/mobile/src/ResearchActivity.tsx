@@ -10,6 +10,8 @@ type Styles = {
   card: StyleProp<ViewStyle>;
   kicker: StyleProp<TextStyle>;
   bodyText: StyleProp<TextStyle>;
+  activityNow: StyleProp<TextStyle>;
+  activityItem: StyleProp<ViewStyle>;
   link: StyleProp<TextStyle>;
   row: StyleProp<ViewStyle>;
 };
@@ -43,12 +45,12 @@ export function ResearchActivity({
     <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
       <Pressable onPress={onToggle} accessibilityRole="button" accessibilityLabel={expanded ? "Collapse research activity" : "Expand research activity"}>
         <Text style={styles.kicker}>{inProgress ? "Researching" : "Research trail"}</Text>
-        <Text style={styles.bodyText}>{inProgress ? current : collapsed.summary}</Text>
+        <Text style={inProgress ? styles.activityNow : styles.bodyText}>{inProgress ? current : collapsed.summary}</Text>
       </Pressable>
       {inProgress && !reducedMotion && visible.length === 0 ? <ActivityIndicator accessibilityLabel="In progress" /> : null}
-      {expanded ? visible.map((event) => (
-        <View key={event.sequence} accessibilityLabel={`Activity ${event.sequence}`}>
-          <Text style={styles.bodyText}>{event.label}</Text>
+      {expanded ? visible.map((event, index) => (
+        <View key={event.sequence} style={styles.activityItem} accessibilityLabel={`Activity ${event.sequence}`}>
+          <Text style={index === visible.length - 1 && inProgress ? styles.activityNow : styles.bodyText}>{event.label}</Text>
           {event.detail ? <Text style={styles.kicker}>{event.detail}</Text> : null}
         </View>
       )) : null}

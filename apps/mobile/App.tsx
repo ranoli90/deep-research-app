@@ -954,9 +954,12 @@ function AppInner() {
               <Pressable disabled={uploadStatus !== null} accessibilityRole="button" accessibilityLabel="Check or withdraw saved research request" onPress={() => void resolvePendingAdmission()}><Text style={styles.link}>Check or withdraw saved request</Text></Pressable>
             </View> : null}
             {!state.run && !state.report && !state.pendingAdmission ? (
-              <Text style={styles.welcome}>
-                Ask anything. One sentence is enough. Files are optional.
-              </Text>
+              <View style={styles.emptyHero} accessibilityLabel="Empty research">
+                <Text style={styles.welcomeDisplay}>What do you want to know?</Text>
+                <Text style={styles.welcome}>
+                  Ask anything. One sentence is enough. Files are optional.
+                </Text>
+              </View>
             ) : null}
 
             {activity.inProgress || state.events.length > 0 ? (
@@ -1306,17 +1309,6 @@ function AppInner() {
                 setShowAttach(false);
               }} />
         ) : null}
-        {state.tab === "research" && !state.source && !keyboardOpen && state.report && !showAttach ? (
-          <Pressable
-            onPress={() => setShowAttach(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Show attachment fields"
-            style={styles.attachRow}
-          >
-            <Text style={styles.link}>Attach a file ({state.attachments.length}/3)</Text>
-          </Pressable>
-        ) : null}
-
         {state.tab === "research" && !state.source ? (
         <ResearchComposer
           draft={state.draft}
@@ -1341,7 +1333,8 @@ function AppInner() {
               accessibilityLabel={tab === "research" ? "Research" : "Library"}
               style={styles.tab}
             >
-              <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab}</Text>
+              <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab === "research" ? "Research" : "Library"}</Text>
+              {state.tab === tab ? <View style={styles.tabMark} /> : null}
             </Pressable>
           ))}
         </View>
@@ -1353,42 +1346,53 @@ function AppInner() {
 function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg },
-    header: { paddingHorizontal: space.md, paddingVertical: space.sm, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 },
+    header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xs, flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 },
     wordmark: { ...typeTokens.title, color: theme.ink, flexShrink: 1 },
     link: { color: theme.accent, fontSize: 16, paddingVertical: 8 },
-    banner: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
-    bannerLive: { backgroundColor: theme.accentMuted, padding: space.sm, marginHorizontal: space.md, borderRadius: 8 },
-    bannerText: { color: theme.ink, fontSize: 13 },
-    error: { color: theme.danger, padding: space.md },
-    body: { flex: 1, padding: space.md },
+    banner: { alignSelf: "flex-start", backgroundColor: theme.accentMuted, paddingHorizontal: 12, paddingVertical: 6, marginHorizontal: space.lg, borderRadius: 999 },
+    bannerLive: { alignSelf: "flex-start", backgroundColor: theme.accentMuted, paddingHorizontal: 12, paddingVertical: 6, marginHorizontal: space.lg, borderRadius: 999 },
+    bannerText: { color: theme.ink, fontSize: 12, fontWeight: "500" },
+    error: { color: theme.danger, paddingHorizontal: space.lg, paddingVertical: space.sm },
+    body: { flex: 1, paddingHorizontal: space.lg },
+    emptyHero: { paddingTop: 72, paddingBottom: space.xl, paddingRight: space.lg },
+    welcomeDisplay: { ...typeTokens.display, color: theme.ink, marginBottom: space.sm },
     welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
-    card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, overflow: "hidden" },
-    sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, padding: space.md, marginBottom: space.md, maxWidth: "100%" },
+    card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 20, padding: space.lg, marginBottom: space.md, overflow: "hidden" },
+    sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 24, padding: space.lg, marginHorizontal: space.md, marginBottom: space.md, maxWidth: "100%" },
     sheetBody: { flex: 1, maxHeight: "100%" },
     bounded: { width: "100%", maxWidth: "100%" },
     outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
-    outlineItem: { ...typeTokens.caption, color: theme.muted, marginBottom: 2 },
+    outlineItem: { ...typeTokens.body, color: theme.muted, marginBottom: 4 },
     tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: theme.line },
-    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 6, paddingRight: 12 },
-    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 6, paddingRight: 12, textTransform: "uppercase" },
+    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 8, paddingRight: 12 },
+    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 8, paddingRight: 12, textTransform: "uppercase" },
     code: { fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 13, color: theme.ink, paddingVertical: 8 },
-    quote: { ...typeTokens.body, color: theme.ink, fontStyle: "italic", paddingLeft: space.sm, borderLeftWidth: 2, borderLeftColor: theme.line },
-    citeRow: { flexDirection: "row", flexWrap: "wrap" },
-    citeLink: { paddingRight: 16 },
-    kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 6 },
+    quote: { ...typeTokens.body, color: theme.ink, fontStyle: "italic", paddingLeft: space.md, borderLeftWidth: 2, borderLeftColor: theme.accent },
+    citeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
+    citeLink: { paddingRight: 0 },
+    citeChip: { backgroundColor: theme.accentMuted, overflow: "hidden", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, fontSize: 13 },
+    answerText: { ...typeTokens.title, color: theme.ink, flexShrink: 1, fontWeight: "500" },
+    kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 8 },
     title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
     bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },
+    activityNow: { ...typeTokens.body, color: theme.ink, fontWeight: "600", flexShrink: 1 },
+    activityItem: { marginTop: space.sm, paddingTop: space.sm, borderTopWidth: 1, borderTopColor: theme.line },
     caveat: { ...typeTokens.body, color: theme.caveat, marginTop: 8 },
     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    composerWrap: { flexDirection: "row", alignItems: "flex-end", padding: space.sm, borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.surface },
-    composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, padding: space.sm },
-    sendBtn: { paddingHorizontal: space.md, paddingVertical: space.sm },
-    send: { color: theme.accent, fontWeight: "600", fontSize: 16 },
-    tabs: { flexDirection: "row", borderTopWidth: 1, borderColor: theme.line },
-    tab: { flex: 1, alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
-    tabOn: { color: theme.ink, fontWeight: "600", textTransform: "capitalize", textAlign: "center" },
-    tabOff: { color: theme.muted, textTransform: "capitalize", textAlign: "center" },
-    input: { borderWidth: 1, borderColor: theme.line, borderRadius: 8, padding: space.sm, color: theme.ink, marginBottom: 8 },
+    composerDock: { paddingHorizontal: space.md, paddingTop: space.sm, paddingBottom: space.xs, backgroundColor: theme.bg },
+    composerWrap: { flexDirection: "row", alignItems: "flex-end", paddingLeft: 6, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.surface, borderRadius: 28 },
+    composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, paddingHorizontal: space.sm, paddingVertical: 10 },
+    sendBtn: { backgroundColor: theme.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999 },
+    sendBtnOff: { backgroundColor: theme.line, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999 },
+    send: { color: theme.surface, fontWeight: "600", fontSize: 15 },
+    sendOff: { color: theme.muted, fontWeight: "600", fontSize: 15 },
+    attachMark: { color: theme.ink, fontSize: 22, lineHeight: 26, width: 36, textAlign: "center", paddingVertical: 8 },
+    tabs: { flexDirection: "row", borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.bg },
+    tab: { flex: 1, alignItems: "center", paddingTop: 12, paddingBottom: 10, paddingHorizontal: 4 },
+    tabOn: { color: theme.ink, fontWeight: "600", textAlign: "center", fontSize: 15 },
+    tabOff: { color: theme.muted, textAlign: "center", fontSize: 15 },
+    tabMark: { marginTop: 6, height: 3, width: 28, borderRadius: 999, backgroundColor: theme.accent },
+    input: { borderWidth: 1, borderColor: theme.line, borderRadius: 14, padding: space.sm, color: theme.ink, marginBottom: 8, backgroundColor: theme.surface },
     attachRow: { paddingHorizontal: space.md, paddingTop: space.sm },
   });
 }

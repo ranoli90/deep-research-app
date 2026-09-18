@@ -29,13 +29,13 @@ export const color = {
 } as const;
 
 export const type = {
-  display: { fontSize: 28, lineHeight: 34, fontWeight: "600" as const },
-  title: { fontSize: 20, lineHeight: 26, fontWeight: "600" as const },
-  body: { fontSize: 16, lineHeight: 24, fontWeight: "400" as const },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: "400" as const },
+  display: { fontSize: 32, lineHeight: 38, fontWeight: "600" as const, letterSpacing: -0.4 },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: "600" as const, letterSpacing: -0.2 },
+  body: { fontSize: 17, lineHeight: 26, fontWeight: "400" as const },
+  caption: { fontSize: 13, lineHeight: 18, fontWeight: "500" as const, letterSpacing: 0.2 },
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
-export const radius = { sm: 8, md: 14, lg: 20 } as const;
+export const radius = { sm: 10, md: 16, lg: 24, pill: 28 } as const;
 /** Durations in ms. Skip decorative motion when reduced-motion is on. */
 export const motion = { fast: 160, base: 240, slow: 400 } as const;

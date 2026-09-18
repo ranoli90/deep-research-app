@@ -1,11 +1,14 @@
 import { Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 type Styles = {
+  composerDock: StyleProp<ViewStyle>;
   composerWrap: StyleProp<ViewStyle>;
   composer: StyleProp<TextStyle>;
   sendBtn: StyleProp<ViewStyle>;
+  sendBtnOff: StyleProp<ViewStyle>;
   send: StyleProp<TextStyle>;
-  link: StyleProp<TextStyle>;
+  sendOff: StyleProp<TextStyle>;
+  attachMark: StyleProp<TextStyle>;
 };
 
 export function ResearchComposer({
@@ -30,33 +33,35 @@ export function ResearchComposer({
   styles: Styles;
 }) {
   return (
-    <View style={styles.composerWrap}>
-      <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Show attachment fields" hitSlop={8}>
-        <Text style={styles.link}>Attach</Text>
-      </Pressable>
-      <TextInput
-        editable={editable}
-        value={draft}
-        onChangeText={onChange}
-        placeholder="What should I research?"
-        placeholderTextColor={muted}
-        style={styles.composer}
-        multiline
-        allowFontScaling
-        maxFontSizeMultiplier={2}
-        accessibilityLabel="Research question"
-      />
-      <Pressable
-        disabled={sendDisabled}
-        accessibilityState={{ disabled: sendDisabled }}
-        onPress={onSend}
-        style={styles.sendBtn}
-        accessibilityRole="button"
-        accessibilityLabel="Start research"
-        hitSlop={12}
-      >
-        <Text style={styles.send}>{pendingAdmission ? "Retry" : "Research"}</Text>
-      </Pressable>
+    <View style={styles.composerDock}>
+      <View style={styles.composerWrap}>
+        <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Show attachment fields" hitSlop={8}>
+          <Text style={styles.attachMark}>+</Text>
+        </Pressable>
+        <TextInput
+          editable={editable}
+          value={draft}
+          onChangeText={onChange}
+          placeholder="What should I research?"
+          placeholderTextColor={muted}
+          style={styles.composer}
+          multiline
+          allowFontScaling
+          maxFontSizeMultiplier={2}
+          accessibilityLabel="Research question"
+        />
+        <Pressable
+          disabled={sendDisabled}
+          accessibilityState={{ disabled: sendDisabled }}
+          onPress={onSend}
+          style={sendDisabled ? styles.sendBtnOff : styles.sendBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Start research"
+          hitSlop={12}
+        >
+          <Text style={sendDisabled ? styles.sendOff : styles.send}>{pendingAdmission ? "Retry" : "Research"}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

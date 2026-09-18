@@ -24,6 +24,8 @@ export type ReportStyles = {
   caveat: StyleProp<TextStyle>;
   citeRow: StyleProp<ViewStyle>;
   citeLink: StyleProp<TextStyle>;
+  citeChip: StyleProp<TextStyle>;
+  answerText: StyleProp<TextStyle>;
 };
 
 export function ReportBlockView({
@@ -31,11 +33,13 @@ export function ReportBlockView({
   styles,
   onOpenSource,
   onLayoutY,
+  emphasizeAnswer = false,
 }: {
   block: ReportBlock;
   styles: ReportStyles;
   onOpenSource: (id: string) => void;
   onLayoutY?: (y: number) => void;
+  emphasizeAnswer?: boolean;
 }) {
   const text = breakLongTokens(block.text);
   const uncertainty = uncertaintyFromBlock(block);
@@ -76,7 +80,7 @@ export function ReportBlockView({
   } else if (block.kind === "quote") {
     body = <Text selectable style={styles.quote}>{text}</Text>;
   } else {
-    body = <Text selectable style={block.kind === "caveat" ? styles.caveat : styles.bodyText}>{text}</Text>;
+    body = <Text selectable style={block.kind === "caveat" ? styles.caveat : emphasizeAnswer ? styles.answerText : styles.bodyText}>{text}</Text>;
   }
   return (
     <View
@@ -95,7 +99,7 @@ export function ReportBlockView({
             accessibilityLabel={`Open source ${id.slice(0, 8)}`}
             hitSlop={8}
           >
-            <Text style={[styles.link, styles.citeLink]}>Source {id.slice(0, 8)}</Text>
+            <Text style={[styles.link, styles.citeLink, styles.citeChip]}>Source {id.slice(0, 8)}</Text>
           </Pressable>
         ))}
       </View>
@@ -139,6 +143,7 @@ export function ReportSections({
               styles={styles}
               onOpenSource={(id) => onOpenSource(id, b.id)}
               onLayoutY={(y) => onLayoutY(b.id, y)}
+              emphasizeAnswer={section.id === "answer"}
             />
           ))}
         </View>
