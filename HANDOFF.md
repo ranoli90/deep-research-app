@@ -4,11 +4,11 @@ Active user goal: complete unblocked V6 W01–W09, preserve the application and 
 
 ## Authoritative starting point
 
-Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Last implementation `e22598840b7d0df7da34549fdc6bb38b23111f6f`; metadata HEAD `1448c7ded0d5302231aea9966f9104b0c2dfef3e`. Preserve the two user ZIPs, which are untracked. V6 staged under `/tmp/deep-v6-staging`; review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Actual current worktree and process state take precedence over this checkpoint.
+Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Reviewed checkpoint implementation `002e2d6f27e4bcf111cdc48f028a688f55c99713`; prior base `1448c7ded0d5302231aea9966f9104b0c2dfef3e`. Preserve the two user ZIPs, which are untracked. V6 staged under `/tmp/deep-v6-staging`; review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`. Actual current worktree and process state take precedence over this checkpoint.
 
 Read STATUS for packet-level finished/remaining scope; ARCHITECTURE and ENGINE_CONTRACTS for current behavior. Original V3 build prompts and historical fixture/adaptive benchmark notes are not a new authorization or proof of production research quality.
 
-## Current uncommitted work
+## Reviewed checkpoint work
 
 - Root: native binary document selection via SDK-pinned `expo-document-picker14.0.8` and `expo-file-system19.0.24`, transient account-owned bytes, cache-copy cleanup, binary API transport, attachment panel split, upload status and no invented failed-run status on admission rejection. Mobile61 tests/typecheck pass. Real Android selection/upload/digest/consent/deletion evidence exists; integrated JS export passed (631 modules,2.09MB), not a native build. Current code does not persist selected bytes or resume interrupted uploads.
 - Export agent: owned single-snapshot Markdown bibliography using authorized run membership, exact locators/access/version identities, safe public links and explicit unavailable sources. Current and previous report Share use this endpoint.6 unit/25 core/51 focused integration pass; initial expectation failure retained. No commit.
@@ -48,3 +48,5 @@ Terminal results supersede pending language above: combined `pnpm verify` exited
 Extraction receipt: `verification/v6/checkpoint-review/extraction.log`, exit0,14/14,37.76s. Review found limited-outcome publication skipped required counterevidence checks; repair/regression passed before checkpoint finalization. Mobile review found preexisting source-return anchor, source-locator presentation, stable submission identity, content-cache protection and correction-draft gaps; these remain executable local work. No paid call, hosted change, push or deployment.
 
 Checkpoint review final: limited publication now independently revalidates target proof/warnings, and missing required records reject every publication outcome. Crash recovery recognizes a saved challenge search before its pointer commits. Reproduced failures are retained;17 focused PostgreSQL controls pass (119 unrelated cases deselected), plus final backend types. Markdown export now retains escaped report limitations;7 units and1 focused E09 PostgreSQL case pass (50 unrelated cases deselected). These checks supplement preserved305 integration/combined verify and14 actual extraction passes; no whole-suite total is inferred for the final repair. Evidence: `verification/v6/checkpoint-review/`. No paid calls.
+
+Active follow-on ownership: mobile agent source inspection/reading anchors; matched-evaluation agent persisted A1/B and same production pipeline harness (migration031); deletion agent source-specific purge/dependent invalidation (migration032 reserved); primary receipt/accounting recovery (migration033 reserved), integration and canonical docs. All shared PostgreSQL suites require primary serialization.

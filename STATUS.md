@@ -2,7 +2,7 @@
 
 The authorized V6 W01–W09 internal milestone remains **incomplete**. The application is real; green local controls do not prove general live research quality or release readiness. Production uses the structured pipeline and does not import fixture catalogs. Historical controller/fixture results remain diagnostics.
 
-Last committed implementation: `e22598840b7d0df7da34549fdc6bb38b23111f6f` (calculated reports and corrected arithmetic); checkpoint metadata `1448c7d`. The current working tree adds native binary documents, usable Markdown bibliography, bounded counterevidence execution and canonical reconciliation. Preserved combined verification and the new actual extraction rerun passed; these changes remain uncommitted after checkpoint review repaired the reproduced partial-publication gap.
+Current reviewed implementation: `002e2d6f27e4bcf111cdc48f028a688f55c99713` (native documents, bibliography/limitations, bounded counterevidence and publication/replay repairs). W01–W09 follow-on source reading, matched evaluation and deletion/accounting work is now active. Preserved combined verification and actual extraction receipts are recorded below; no native-build or semantic-quality upgrade is implied.
 
 ## Current verified components and remaining work
 
