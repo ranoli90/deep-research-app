@@ -1,3 +1,9 @@
+## Blocked checkpoint — 2026-09-18
+
+Goal remains incomplete. Three consecutive turns retained the same financial-provenance blocker after explicit spending authorization. The latest read-only check on709fb2d7df28bbf28649a117d69a856a06caa41b confirms unchanged legacy OpenRouter estimates; see verification/v6/paid-readiness/PROJECT_ROUTE_RECHECK.json. No current process is being awaited, no generation was sent, no hold released and no old action resent. The first two turns completed independent clean-checkout verification and canonical-plan reconciliation; further status/fixture repetition does not prove the missing real-model journey.
+
+Resume input: the location of the project ledger or provider receipt export that reconciles the historical entries, without credentials in chat. The $0.40 initial registered comparison already has user authority; do not ask for that permission again. Next executable work is provenance reconciliation followed by MC-D01 through the registered production API/worker baseline/adaptive original/correction/full-rerun evaluator, retaining every failure and actual cost. Broader unfamiliar-task and live-discovery evidence remains required afterward. W10 hosted/native/release gates remain distinct. This checkpoint does not claim all W01–W09 acceptance is satisfied. Existing runtime/source, unknown holds, rollback controls and three user ZIPs are preserved.
+
 ## Current paid-test authorization and clean checkout — 2026-09-18
 
 The user explicitly authorized OpenRouter spending in this session. The first registered MC-D01 public saved-SQLite original/correction/full-rerun comparison is capped by the operator at $0.40; further monetary permission is not required for that cap. This supersedes earlier statements that current spending authorization was absent. No paid generation has occurred in this continuation; new confirmed cost is $0.

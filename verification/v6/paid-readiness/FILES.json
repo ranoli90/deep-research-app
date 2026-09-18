@@ -12,6 +12,10 @@
     "sha256": "6301f5fbb0d82cbfa632f273645e2bf3ecdb728236b2d68a42e362afc69d0a90"
   },
   {
+    "path": "PROJECT_ROUTE_RECHECK.json",
+    "sha256": "e5f666978e90b15392a1356e3129845e2086ad88148634a42760f4efa36c0727"
+  },
+  {
     "path": "REGISTRY_CHECKS.json",
     "sha256": "0541c6b05508e6146e7781ef257e492b7ec9df96053c57ba37dd94d7ac0b54f0"
   },
