@@ -1,3 +1,7 @@
+## Integration merge C — 2026-09-18
+
+Branch `grok-v8/research-beta-integration` starts at current `main` `8a7b1a9` and merges Session C `0a694f9`. Main-only held-intent continuation, discovery-v3, model diagnostics, deletion-race, and source-focus/Android Back remain. Worker-local ADR numbers on C (intent/portfolio as ADR061, Library chrome as ADR062) are canonicalized here as ADR063 and ADR064 so they do not collide with main ADR061/062.
+
 ## Subagent implementation checkpoint — 2026-09-18
 
 GitHub main already contains66df545 and all previously outstanding commits. User-authorized subagents completed bounded database authorization batching, exact deletion-race synchronization, mobile source focus/Android Back repairs, redacted schema diagnostics, and immutable Azure discovery-v3 routing. Root added explicit registered continuation for a distinct task while the earlier timeout remains held (ADR061/062). Consent2026-09-18.2 clarifies discovery generation and requires renewal. No new paid call has occurred yet.
@@ -5,6 +9,42 @@ GitHub main already contains66df545 and all previously outstanding commits. User
 Intermediate combined verify passes173core/192backend/216mobile plus configured types/boundaries. Focused actual PostgreSQL:13append/context,3held-intent,6discovery/span/diagnostic cases pass; selected25-passage journey passes unchanged. Prior frozen f12c2fc suite finished456pass/2fail with one unhandled rejection; failures and repairs are preserved. Final frozen combined PostgreSQL and renewed-source verification remain next, not yet passed.
 
 The $0.40 aggregate OpenRouter cap still includes539micro accounted confirmed cost and21658micro retained unknown reserve. Next registered task is MC-D03 using public Python documentation, same account/key/scope, distinct from the timed-out SQLite question. Any new unknown stops the run. Useful real-model report/correction and broader heldout quality remain unproved; W10 native/hosted/release gates stay separate. Rollback disables new continuation/v3 admission while retaining all historical policy readers, privacy/publication checks, receipts and holds.
+
+## Session C visual overhaul — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. No bottom tabs; Library/New research/Settings in the header; searching stream; quiet/send/stop composer; Add sources sheet; empty-home chips; flush-left answer with `[n]` citations. Mobile 259 tests + typecheck. Native rebuild of this SHA is the EAS device APK. Session B not merged.
+
+## Session C continue-thread composer — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Post-report composer: `Ask anything` + send icon (not Update), New chat pencil (not text link); corrections still via composer. Mobile 259 tests + typecheck pass. Native rebuild separate. Session B not merged.
+
+## Session C follow-up chips — questions above composer — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Suggested next asks: max 3 above the composer (not under the answer), question copy from unresolved/caveats/limitations, ≤42 label / ≤160 prompt, keyboard-visible, no multi-kilobyte draft dumps. Spec `MOBILE_SCREEN_STATES.md` §8; module `apps/mobile/src/follow-ups.ts`; focused Vitest pass. Session B not merged.
+
+## Session C calm Profile + ADR062 chrome — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Implemented: no bottom tabs; Menu + Profile → Library full-screen; calm Profile (avatar/account, appearance, privacy, quiet demo switch, sign out). Mobile typecheck + Vitest pass on this tree. Native rebuild not claimed. Wide drawer / swipe polish remain open. Canonical: `specs/MOBILE_SCREEN_STATES.md`, ADR062. Session B not merged.
+
+## Session C Library navigation spec (ADR062) — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Specified Library without a bottom tab: Menu + Profile → Library; phone full-screen / wide left drawer; row title/status/version/time; search/share/swipe; dark/light tokens; New research vs resume. Chrome landed in the calm-Profile pass above. Canonical: `specs/MOBILE_SCREEN_STATES.md`, `docs/adr/DECISIONS.md` ADR062. Session B not merged.
+
+## Session C engineer review cycle — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Independent Microsoft-style reviews (correctness, RN, SDET, security, privacy, a11y, Android, state, contracts, reliability, perf, product, adversarial, integration, quality) were applied. Session B remains uncommitted and is not merged. Mobile tests/typecheck pass. Native rebuild of this pass is separate. See `SESSION_HANDOFF.md`.
+
+## Session C design-review craft pass — 2026-09-18
+
+Worker branch `grok-v7/product-integration` (not `main`). Independent design critiques (HIG, motion, type, competitive, density, thinking states, empty state, skeptical user, power shopper, anti-slop, dopamine, follow-ups, a11y, Android QA, brand) were turned into product: continue-composer, numbered citations, collapsed activity, quote-first sources, follow-up chips from the report only. Mobile 236 tests + typecheck pass. This pass is not device-reverified. Session B is not merged. See `SESSION_HANDOFF.md`.
+
+## Session C product integration — 2026-09-18
+
+Worker branch `grok-v7/product-integration` (not `main`). Session A including bounded live-semantic receipts is merged here; Session B is not. Native evidence is an EAS-installed APK against the labeled fixture API. A's live briefs are not product-quality Research Beta. Not App Store/Play ready. See `SESSION_HANDOFF.md`.
+
+## Session A intelligence governor — 2026-09-18
+
+Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Bounded live semantic briefs were executed under a current user grant; the freshness unknown hold was not retried. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass. No product-quality or routing-superiority claim.
 
 ## User-authorized GitHub main checkpoint — 2026-09-18
 

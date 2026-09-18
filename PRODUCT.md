@@ -32,7 +32,7 @@ At completion, put the answer first, then why it meets the task, disqualifying c
 On return, restore stable reading position, source context and latest report status. Let the user inspect an older version while clearly identifying stale conclusions. Privacy deletion may remove affected content from older versions; version history is not an exemption from deletion.
 
 ## Launch scope
-Native iPhone and Android, English interface, Research and Library, profile Settings, sign-in/consent, URLs and supported text/PDF attachments, durable runs, saved reports, citation sheet, cancellation, one-claim challenge, corrected-task rerun, native sharing of Markdown/text, redacted diagnostics and deletion.
+Native iPhone and Android, English interface, Research as the primary surface with Library reachable from Menu/Profile (not a required bottom tab), profile Settings, sign-in/consent, URLs and supported text/PDF attachments, durable runs, saved reports, citation sheet, cancellation, one-claim challenge, corrected-task rerun, native sharing of Markdown/text, redacted diagnostics and deletion.
 
 Start with technically supported digital PDFs/text/Markdown. Additional formats and reliable table/visual extraction are gated by extraction tests. Do not advertise full-document understanding when only text or an abstract was accessed. PDF export is optional until native/export evidence is tested; no dead export button.
 

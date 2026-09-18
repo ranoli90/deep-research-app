@@ -1,5 +1,71 @@
 # Execution ledger
 
+## 2026-09-18 — Session C visual overhaul (consumer chrome)
+
+- Removed bottom Research/Library tabs. Header: Library, Deep/question, New research, avatar Settings. Android back: keyboard → attach → source → tab; never cancel.
+- Searching: live sentence, themed shimmer, elapsed, domain pills only from opened/read public URLs, Sample prefix on fixture trails. Composer quiet ring / teal ↑ / Stop / Retry. Plus = Files + Paste note, stays mounted.
+- Empty home: “What do you want to know?” + chips. After answer: no Outline/Concise/Correction card/previous-version twin; `[n]` chips; follow-ups as questions.
+- Adversarial reviews (visual, lifecycle, truthfulness) then re-review; remaining majors fixed.
+- `pnpm --filter @deep/mobile typecheck` + `test` 259 passed. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C error/offline/empty-progress one-liners
+
+- Competitors: single line + Retry + keep composer. Replaced banners/Sample-answers chip/empty-progress card with four one-liners: `You're offline.` / `Research failed.` / `Research cancelled.` / `Waiting for the server.`
+- Helper `apps/mobile/src/research-status.ts`; App status row; ResearchActivity returns null with zero events; Sample label remains on demo reports only.
+- Spec: `MOBILE_SCREEN_STATES.md` §5 + Failures chrome. Mobile Vitest 259 + typecheck; validate_review ok. No native rebuild. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C continue-thread composer (Ask anything + send icon)
+
+- After a finished report, composer matched ChatGPT/Grok continue-thread: `Ask anything` placeholder, arrow-up send icon (not Update pill), pencil New chat (not New research text). Correction still uses the dock composer.
+- `pnpm --filter @deep/mobile typecheck` and `test` 259 pass. No live spend. Session B not merged. Native rebuild separate.
+
+## 2026-09-18 — Session C dark chrome tokens
+
+- Specified `composer` / `thinking` / `userBubble` / `stop` under `color.light` and `color.dark` in `packages/design`. Dark: warm raised pill `#1F1C19`, teal send `#7EC4BC`, quiet stop chip — not DeepSeek `#0F0F0F`, ChatGPT green, or Grok black-circle stop.
+- Wired into mobile composer, activity trail, question bubble, Stop control. Spec note in `MOBILE_SCREEN_STATES.md`.
+- `@deep/design` + `@deep/mobile` typecheck; `pnpm --filter @deep/mobile test` 259 passed. No native rebuild. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C Library navigation spec (ADR062)
+
+- Product decision: Library is not a bottom tab. Entry from header Menu (primary) and Profile → Library (secondary). Phone full-screen; wide optional left drawer. Row: title, Ready/Researching/…, version, time. Search, share, swipe. Dark/light via design tokens. New research clears local focus; open row resumes; server jobs and history untouched.
+- Canonical updates: `specs/MOBILE_SCREEN_STATES.md`, ADR062 in `docs/adr/DECISIONS.md`, `PRODUCT.md`, root/`apps/mobile` AGENTS, research-beta-ux packet, STATUS/HANDOFF. No mobile chrome code change in this step; tab-bar removal is next.
+- No live spend. Session B not merged.
+
+## 2026-09-18 — Session C engineer review cycle
+
+- Fifteen independent reviews of the craft pass. Session B remains dirty at `66df545` with uncommitted `042_retrieval_intelligence.sql` (clash with C/A `042_model_portfolio.sql`) — not merged.
+- Fixed continue-composer fallthrough, New research, event mixing, library invented progress, keyboard/attach, Android KAV+insets, citation/follow-up/activity truthfulness, and tests.
+- `pnpm --filter @deep/mobile test` and `typecheck` pass. No live spend. No B merge.
+
+## 2026-09-18 — Session C design-review craft pass
+
+- Independent reviewers (HIG, motion, type, competitive, density, thinking, empty-state, skeptical user, power shopper, anti-slop, dopamine, follow-ups, a11y, Android QA, brand) agreed the app still leaked demo/dev chrome, ALL-CAPS trail details, UUID citations, leftover new-run composer after a report, carded answers, and no useful follow-ups.
+- Implemented those gaps on `grok-v7/product-integration` without inventing APIs or merging Session B. Follow-up chips are copied from unresolved/caveat/limitation text only.
+- `pnpm --filter @deep/mobile test` 236 passed; `pnpm --filter @deep/mobile typecheck` exit 0. No new native install for this pass. No live spend.
+
+## 2026-09-18 — Session C product integration (isolated branch)
+
+- Worktree `/home/oranolio/Desktop/deep-v7-product`, branch `grok-v7/product-integration`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`.
+- Mobile domain UX + Vitest. Session A merged at `8bae4c3`. Session B not merged.
+- EAS device APK `4a142400-ddac-41be-a7a7-8115c448f0d6` installed on 10.0.0.167:43417. Host Gradle not used. Two fixture journeys recorded. First APK failed cleartext; plugin repair verified in the installed APK.
+- No live OpenRouter spend in this lane. Not merged to `main`.
+
+## 2026-09-18 — Session A intelligence governor (isolated branch)
+
+- Worktree `/home/oranolio/Desktop/deep-v7-intelligence`, branch `grok-v7/intelligence-governor`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Shared `main` checkout was not switched or cleaned.
+- Added intent compiler/clarification-value, model governor, optional receipt cache fields, migration 042, portfolio eval runner, live-semantic fail-closed wrapper.
+- Deterministic: `pnpm --filter @deep/research-core test` 180 passed; backend governor/gateway/eval unit tests passed; `tsc` contracts/core/backend passed.
+- Isolated PostgreSQL: `TEST_DATABASE_URL=.../deep_research_session_a_governor` `test/model-policy.integration.test.ts` 6 passed. Docker socket was permission-denied; used already-listening local Postgres with a new database.
+- Live semantic protocol not executed; `eval:live` remains fail-closed without explicit current approval. No paid calls from this lane.
+
+## 2026-09-18 — Session A live semantic briefs under current user grant
+
+- User granted spend to finish the blocked live-semantic classes. Ran `pnpm eval:live-semantic` through shipped `performModelOperation` on isolated Postgres ledgers.
+- Run1 Azure v1: purchase and technical compatibility HTTP 200 with confirmed 418µ and 447µ, both `invalid_exact_span`. Freshness HTTP 200 `outcome_unknown` held; no retry; remaining classes unrun on that ledger.
+- Run3 Azure exact-quote-v2 on a new isolated DB (does not retry the held intent): document-grounded succeeded 455µ; correction original succeeded 458µ; corrected question `criterion_without_question` 384µ; unknown-is-correct `criterion_without_question` 452µ. Halted=null.
+- Confirmed new spend 2614µ plus the unresolved freshness reservation. Receipts: `verification/v7/live-semantic/`. No superiority claim. Not a full report+correction+rerun journey.
+- Not merged to `main`.
+
 ## 2026-09-16 — first application implementation session
 
 - Workspace started with kit ZIP + review copies only; no git, no app source.

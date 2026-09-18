@@ -17,7 +17,16 @@ export type RunSnapshot = {
   outcome: string | null;
   reportId: string | null;
   labeledDemo: boolean;
-  brief?: { originalQuestion: string; constraints: { field: string; value: string }[]; revision: number };
+  brief?: {
+    originalQuestion: string;
+    constraints: { field: string; value: string; origin?: string; importance?: string }[];
+    revision: number;
+    desiredOutcome?: string;
+    geography?: string;
+    freshnessRequirements?: string;
+    materialClarification?: boolean;
+    assumptions?: { value: string; reversibility?: string; userConfirmationState?: string; impact?: string }[];
+  };
 };
 
 export type ReportBlock = {
@@ -53,7 +62,7 @@ export type UiState = {
     changeSummary?: { evidenceUpdated: boolean; conclusionChanged: boolean; newlyFeasible?: string[]; newlyInfeasible?: string[]; notes: string } | null;
   } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
-  events: { sequence: number; type: string; publicSummary: string }[];
+  events: { sequence: number; type: string; publicSummary: string; phase?: string; createdAt?: string }[];
   source: SourceDetail | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
   attachments: AttachmentDraft[];
@@ -111,11 +120,11 @@ export function researchActivity(state: Pick<UiState, "run" | "report" | "pendin
   if (!run) return { inProgress: false, terminalNotice: null };
   if (run.contentInvalidated === true) return { inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." };
   if (run.lifecycle !== "terminal") return {
-    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling"].includes(run.lifecycle), terminalNotice: null,
+    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling", "awaiting_input"].includes(run.lifecycle), terminalNotice: null,
   };
-  const noReport = state.report ? "" : " No report is available.";
-  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: `Research was cancelled.${noReport}` };
-  if (run.outcome === "failed") return { inProgress: false, terminalNotice: `Research failed.${noReport}` };
+  // Failed/cancelled one-liners are owned by researchStatusLine; keep a notice only when no report exists.
+  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: state.report ? null : "Research cancelled." };
+  if (run.outcome === "failed") return { inProgress: false, terminalNotice: state.report ? null : "Research failed." };
   return { inProgress: false, terminalNotice: state.report ? null : "Research has ended. No report is available." };
 }
 
@@ -129,6 +138,42 @@ export function restoreAfterReopen(saved: UiState): UiState {
     source: null,
     status,
     error: saved.offline ? "Offline. Saved draft and last report remain on this device." : null,
+  };
+}
+
+/** After a report, the composer continues this research instead of starting a leftover new run. */
+export function composerFollowsReport(state: Pick<UiState, "report" | "run" | "status" | "pendingContentInvalidation" | "pendingAdmission">): boolean {
+  if (!state.report || state.pendingContentInvalidation || state.pendingAdmission) return false;
+  if (state.run?.contentInvalidated === true) return false;
+  if (state.run?.lifecycle !== "terminal") return false;
+  return state.status === "completed" || state.status === "partial";
+}
+
+export function startNewResearch(state: UiState): { ok: true; next: UiState } | { ok: false; reason: string } {
+  if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting new research." };
+  if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting new research." };
+  if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting new research." };
+  if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting new research." };
+  if (state.pendingAdmission) return { ok: false, reason: "Check or withdraw the saved request before starting new research." };
+  return {
+    ok: true,
+    next: {
+      ...state,
+      tab: "research",
+      draft: "",
+      run: null,
+      report: null,
+      previousReport: null,
+      events: [],
+      source: null,
+      readingAnchor: null,
+      correctionDraft: null,
+      attachments: [],
+      clarification: [],
+      flagSent: false,
+      error: null,
+      status: "empty",
+    },
   };
 }
 
@@ -229,19 +274,25 @@ export function expireLocalSession(state: UiState): UiState {
 
 /** Library tap must switch to Research and bind the run before the first poll tick. */
 export function openLibraryItem(state: UiState, runId: string): UiState {
+  const same = state.run?.runId === runId;
   return {
     ...state,
     tab: "research",
     source: null,
     error: null,
-    status: "progress",
+    status: same ? state.status : "loading",
+    draft: same || !state.run ? state.draft : "",
+    report: same ? state.report : null,
+    previousReport: same ? state.previousReport : null,
+    events: same ? state.events : [],
+    readingAnchor: same ? state.readingAnchor : null,
     run: {
       runId,
-      lifecycle: "running",
-      phase: state.run?.runId === runId ? state.run.phase : "researching",
-      outcome: null,
-      reportId: state.run?.runId === runId ? state.run.reportId : null,
-      labeledDemo: state.routeMode === "fixture",
+      lifecycle: same ? state.run!.lifecycle : "loading",
+      phase: same ? state.run!.phase : "loading",
+      outcome: same ? state.run!.outcome : null,
+      reportId: same ? state.run!.reportId : null,
+      labeledDemo: same ? state.run!.labeledDemo : false,
     },
   };
 }

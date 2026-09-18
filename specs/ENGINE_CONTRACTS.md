@@ -378,3 +378,10 @@ W05 authorization query batching: validateOwnedModelContext restores bounded cur
 W05 model-validation-diagnostics.v1 records only bounded fixed structural field names, schema issue codes and numeric indices on output-schema rejection. Unknown keys become `other`; values, rejected prose and validation messages are not retained. Existing rejection reason, paid receipt, cached replay and publication denial remain unchanged.
 
 ADR062: only new openrouter-azure-mini-zdr-discovery-v3 runs select public-discovery-azure-zdr.v2. Existing OpenAI/Azure-v1/exact-quote-v2 discovery identities remain unchanged. All search/challenge/adoption/receipt bindings derive from immutable run policy; Azure generation requires ZDR/no fallback, while existing public-query projection and separately disclosed Exa plugin remain unchanged. Search-provider ZDR is not asserted.
+
+### Research intent compiler and model portfolio (ADR063)
+
+`compileResearchIntent` is a pure research-core function. The original question string is copied and never rewritten. Hard constraints and soft preferences stay distinct; non-blocking unknowns become explicit assumptions or branches. `neededClarifications` asks only consequential questions (jurisdiction/safety), not cosmetic ranking or tone. Session B/C should consume this contract rather than re-extract meaning from model prose.
+
+`research-portfolio.v1` admits registered model policies by privacy/ZDR and structured-output capability, cheap-first, fanout 1. Escalation is a new admitted attempt with a recorded trigger and a depth/budget bound, never a second dispatch of an unknown intent. Migration042 stores an immutable routing audit; `runs.model_policy_id` remains the replay identity. Optional receipt `cacheReadTokens`/`cacheWriteTokens` are attributed when the provider envelope includes them; missing `actualMicro` stays null. Portfolio eval records are dated and must not claim dynamic routing is better until measured. Live semantic task classes exist behind the existing explicit-authorization runner.
+

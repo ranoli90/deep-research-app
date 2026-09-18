@@ -10,7 +10,7 @@ const grant=():Authorization=>({version:"matched-evaluation-authorization.v1",ap
 const plan=(g=grant())=>registeredPlan(g,{protocol,freeze,tasks,sources});
 const receipt=(runId=id):ExecutionReceipt=>({runId,briefRevision:1,lifecycle:"terminal",outcome:"completed",reportId:id,cost:{confirmedMicro:1,heldMicro:0,unknownIntents:0},trace:{}});
 const driver=():Driver=>({exposure:vi.fn(async()=>({confirmedMicro:0,heldMicro:0,unknownIntents:0})),admit:vi.fn(async()=>({runId:id})),execute:vi.fn(async()=>receipt())});
-it("credentials and positive environment budget alone cannot authorize CLI execution",()=>{const r=spawnSync(process.execPath,["--import","tsx","src/eval-live.ts"],{encoding:"utf8",env:{...process.env,OPENROUTER_API_KEY:"sentinel-private-key",LIVE_SPEND_CAP_MICRO:"1000000"}});expect(r.status).toBe(2);expect(r.stderr).toContain("explicit current approval");expect(r.stdout+r.stderr).not.toContain("sentinel-private-key");});
+it("credentials and positive environment budget alone cannot authorize CLI execution",{timeout:60_000},()=>{const r=spawnSync(process.execPath,["--import","tsx","src/eval-live.ts"],{encoding:"utf8",env:{...process.env,OPENROUTER_API_KEY:"sentinel-private-key",LIVE_SPEND_CAP_MICRO:"1000000"}});expect(r.status).toBe(2);expect(r.stderr).toContain("explicit current approval");expect(r.stdout+r.stderr).not.toContain("sentinel-private-key");});
 it("requires matching explicit operator attestation, current grant and digest",()=>{const g=grant(),raw=JSON.stringify(g),flags={execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:sha256(raw)};expect(authorize(raw,flags)).toEqual(g);expect(()=>authorize(raw,{...flags,execute:false})).toThrow();expect(()=>authorize(raw,{...flags,operatorConfirmsUserApproval:false})).toThrow();expect(()=>authorize(raw,{...flags,sha256:"0".repeat(64)})).toThrow();expect(()=>authorize(raw,flags,Date.now()+86400000)).toThrow();});
 it("verifies frozen registration and projects questions without evaluator references",()=>{const p=plan();expect(JSON.stringify(p.tasks)).not.toContain("NEVER_GENERATOR_GOLD");expect(p.unselectedTaskIds).toEqual(["MC-D02"]);expect(()=>registeredPlan(grant(),{protocol,freeze,tasks:tasks+" ",sources})).toThrow("registration_hash_mismatch");});
 it("includes all registered repeats and alternates arm order",()=>{const steps=stepsFor(plan({...grant(),taskIds:["MC-D01","MC-D02"]}));expect(steps).toHaveLength(16);expect(steps.slice(0,2).map(s=>s.arm)).toEqual(["A1","B"]);expect(steps.slice(4,6).map(s=>s.arm)).toEqual(["B","A1"]);expect(steps.slice(8,10).map(s=>s.arm)).toEqual(["A1","B"]);expect(new Set(steps.map(s=>s.idempotencyKey)).size).toBe(16);});
@@ -46,6 +46,41 @@ it("expiry after admission permits recording admitted completion but prevents th
   expect(d.admit).toHaveBeenCalledOnce();expect(d.execute).toHaveBeenCalledOnce();
   expect(events.filter(e=>e.event==="result")).toHaveLength(1);expect(events.filter(e=>e.event==="unrun")).toHaveLength(3);
  }finally{clock.mockRestore();}
+});
+
+it("live semantic path fail-closes without explicit current approval and issues zero provider calls",async()=>{
+ const {authorizeLiveSemantic,executeLiveSemanticEval,LIVE_SEMANTIC_TASK_CLASSES}=await import("../src/evaluation/live-semantic.js");
+ const providerCall=vi.fn(async()=>{throw new Error("must_not_call_provider");});
+ const flags={execute:false,operatorConfirmsUserApproval:false,approvalId:id,sha256:"0".repeat(64)};
+ expect(()=>authorizeLiveSemantic("{}",flags)).toThrow("explicit_current_approval_required");
+ await expect(executeLiveSemanticEval({rawAuthorization:"{}",flags,driver:{providerCall}})).rejects.toThrow("explicit_current_approval_required");
+ expect(providerCall).not.toHaveBeenCalled();
+ expect(LIVE_SEMANTIC_TASK_CLASSES).toEqual([
+  "one_sentence_purchase_comparison",
+  "technical_compatibility_conflict",
+  "freshness_sensitive_fact",
+  "document_grounded_check",
+  "correction",
+  "unknown_is_correct",
+ ]);
+});
+it("malformed or expired live-semantic grants fail closed with zero provider calls",async()=>{
+ const {executeLiveSemanticEval,sha256:liveSha}=await import("../src/evaluation/live-semantic.js");
+ const providerCall=vi.fn(async()=>null);
+ const g={version:"live-semantic-authorization.v1" as const,approvalId:id,approvalReference:"unit-control-not-authorization",issuedAt:new Date(Date.now()-1000).toISOString(),expiresAt:new Date(Date.now()+600000).toISOString(),taskClasses:["one_sentence_purchase_comparison"] as const,budgetMicro:400000,budgetScope:"evaluation:unit",policyId:"openrouter-azure-mini-zdr-text-v1",exclusiveDatabaseAcknowledged:true as const,maxAttempts:6};
+ const raw=JSON.stringify(g),flags={execute:true,operatorConfirmsUserApproval:true,approvalId:id,sha256:liveSha(raw)};
+ await expect(executeLiveSemanticEval({rawAuthorization:"{not-json",flags,driver:{providerCall}})).rejects.toThrow();
+ expect(providerCall).not.toHaveBeenCalled();
+ await expect(executeLiveSemanticEval({rawAuthorization:raw,flags,driver:{providerCall},now:Date.now()+86400000})).rejects.toThrow();
+ expect(providerCall).not.toHaveBeenCalled();
+ await expect(executeLiveSemanticEval({rawAuthorization:JSON.stringify({...g,approvalId:"22222222-2222-4222-8222-222222222222"}),flags,driver:{providerCall}})).rejects.toThrow();
+ expect(providerCall).not.toHaveBeenCalled();
+});
+it("credentials alone cannot authorize the live-semantic CLI",{timeout:60_000},()=>{
+ const r=spawnSync(process.execPath,["--import","tsx","src/eval-live-semantic.ts"],{encoding:"utf8",env:{...process.env,OPENROUTER_API_KEY:"sentinel-private-key",LIVE_SPEND_CAP_MICRO:"1000000"}});
+ expect(r.status).toBe(2);
+ expect(r.stderr).toContain("explicit current approval");
+ expect(r.stdout+r.stderr).not.toContain("sentinel-private-key");
 });
 
 it("unsupported document tasks remain individually unrun while supported frozen slots execute",async()=>{

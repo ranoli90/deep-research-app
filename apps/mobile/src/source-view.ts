@@ -29,11 +29,27 @@ export function readSourceDetail(value: unknown): SourceDetail {
   }
   return value as SourceDetail;
 }
+export function sourceDomain(value: string | undefined): string | null {
+  const url = publicSourceUrl(value);
+  if (!url) return null;
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return null; }
+}
+
+function isPublicHostname(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, "").replace(/\.+$/, "").toLowerCase();
+  if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
+  if (host.includes(":")) return false;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return false;
+  return true;
+}
+
 export function publicSourceUrl(value: string | undefined): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password ? url.href : null;
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return null;
+    if (!isPublicHostname(url.hostname)) return null;
+    return url.href;
   } catch { return null; }
 }
 export function sourceLocation(source: SourceDetail): string {

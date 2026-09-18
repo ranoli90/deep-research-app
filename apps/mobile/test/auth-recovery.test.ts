@@ -19,7 +19,7 @@ function appFunction(name: string, bindings: Record<string, unknown>): (...args:
 function recovery(clear: () => Promise<void>) {
   let state: UiState = { ...emptyState(), signedIn: true, draft: "private" }, ready = true, current = true;
   const release = vi.fn();
-  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), setToken: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
+  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), setToken: vi.fn(), setAccountId: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
   return { run: appFunction("onAuthFailure", bindings), state: () => state, ready: () => ready, supersede: () => { current = false; }, release };
 }
 it("W03 expired-session cleanup blocks sign-in while pending and restores it only after durable success", async () => {

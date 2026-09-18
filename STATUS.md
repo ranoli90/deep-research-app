@@ -1,3 +1,7 @@
+## Integration merge C — 2026-09-18
+
+Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from `main@8a7b1a9`. Session C `0a694f9` merged as product/UI baseline. Main-only correctness is preserved. Not yet merged: final Session A tip `8abcffd`, Session B `e0b00df`. Duplicate portfolio migrations not yet canonicalized.
+
 ## Subagent implementation checkpoint — 2026-09-18
 
 GitHub main already contains66df545 and all previously outstanding commits. User-authorized subagents completed bounded database authorization batching, exact deletion-race synchronization, mobile source focus/Android Back repairs, redacted schema diagnostics, and immutable Azure discovery-v3 routing. Root added explicit registered continuation for a distinct task while the earlier timeout remains held (ADR061/062). Consent2026-09-18.2 clarifies discovery generation and requires renewal. No new paid call has occurred yet.
@@ -5,6 +9,124 @@ GitHub main already contains66df545 and all previously outstanding commits. User
 Intermediate combined verify passes173core/192backend/216mobile plus configured types/boundaries. Focused actual PostgreSQL:13append/context,3held-intent,6discovery/span/diagnostic cases pass; selected25-passage journey passes unchanged. Prior frozen f12c2fc suite finished456pass/2fail with one unhandled rejection; failures and repairs are preserved. Final frozen combined PostgreSQL and renewed-source verification remain next, not yet passed.
 
 The $0.40 aggregate OpenRouter cap still includes539micro accounted confirmed cost and21658micro retained unknown reserve. Next registered task is MC-D03 using public Python documentation, same account/key/scope, distinct from the timed-out SQLite question. Any new unknown stops the run. Useful real-model report/correction and broader heldout quality remain unproved; W10 native/hosted/release gates stay separate. Rollback disables new continuation/v3 admission while retaining all historical policy readers, privacy/publication checks, receipts and holds.
+
+## Session C visual overhaul (tabs/search/plus/header) — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Implemented:** Research is the only home. No bottom tabs. Header: Library glyph, “Deep” / truncated question, New research pencil, avatar → Settings. Searching is a live sentence + 4-dot shimmer + elapsed, not a bordered Researching card. Composer: quiet ring when empty, teal ↑ when text, Stop while running, Retry when pending. Plus opens Add sources (Files + Paste note). Empty home is only “What do you want to know?” plus example chips. After answer: flush-left body, `[n]` citations, follow-up questions, no Concise/Detailed, no always-on Correction card, no previous-version twin. Adversarial review cycle applied (visual, RN lifecycle, truthfulness) and re-run; remaining majors fixed (Back/source order, source counts, continue-thread attachments).
+
+**Verified deterministic:** `pnpm --filter @deep/mobile typecheck` exit 0; `pnpm --filter @deep/mobile test` 259 passed. **Native for this pass:** EAS device APK in progress after this commit.
+
+Rollback: revert the visual-overhaul commit on this branch.
+
+## Session C error/offline/empty-progress one-liners — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified + implemented:** offline / failed research / cancelled / waiting for server are one status line each (Retry when applicable); composer stays mounted; no Sample-answers chip banner and no status card for empty progress. Canonical: `specs/MOBILE_SCREEN_STATES.md` §5 + Failures chrome; helper `apps/mobile/src/research-status.ts`.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 259 passed; typecheck exit 0; `validate_review.py` ok. **Native for this pass:** no.
+
+Rollback: restore Sample-answers banner, offline caveat paragraph, and ResearchActivity card for zero-event waiting.
+
+## Session C continue-thread composer — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Fixed Update vs Research leftover after a report:** continue-thread composer uses placeholder `Ask anything`, circular up-arrow send (not an Update pill), and header New chat as a pencil (`create-outline`) instead of a “New research” text link. Corrections still submit through that composer (`composerContinues` → `onCorrect`). Fresh empty research keeps `What should I research?` + Research pill. Mobile typecheck + 259 Vitest pass. Native rebuild of this pass: no.
+
+Rollback: restore Update/`Add a detail or correction…`/`New research` text chrome on the continue path.
+
+## Session C follow-up chips — questions above composer — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified and implemented:** suggested next asks sit in the composer dock above the field (not under the answer), max 3, question copy from unresolved/caveats/limitations, labels ≤42 / prompts ≤160, stay visible with the keyboard, never dump multi-kilobyte caveat text into the draft. Canonical: `specs/MOBILE_SCREEN_STATES.md` §8; `apps/mobile/src/follow-ups.ts`. Focused Vitest `test/follow-ups.test.ts` covers the contract.
+
+Rollback: revert the follow-up module/App draft-fill/spec hunks; prior truncated-caveat chips return.
+
+## Session C live source appearance — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified + implemented (truthful):** During search — Grok-style activity lines; domain pills only when a public event `publicSummary` already contains a safe `http(s)` URL; no inventing hosts; no third-party favicon CDN (`faviconUri` stays null until owned icon bytes exist). After search — numbered citation chips (no UUIDs); quote-first source sheet unchanged. Canonical: `specs/MOBILE_SCREEN_STATES.md` §§4 and 7; helper `apps/mobile/src/live-source-appearance.ts`; wired in `ResearchActivity`.
+
+**Verified deterministic:** focused `@deep/mobile` Vitest (`live-source-appearance`, `citation-chips`, `research-activity`, `source-sheet-evidence`) + typecheck exit 0. **Native for this pass:** no. Public events still omit payload locators, so pills stay empty on current fixture/live summaries unless a URL is literally in `publicSummary`.
+
+Rollback: remove pills helper/wiring and §4/§7 live-source paragraphs; numbered chips and quote-first sheet remain.
+
+## Session C calm Profile + ADR062 chrome — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Implemented:** No bottom tabs. Research is primary; Library is full-screen from header **Menu** and **Profile → Saved reports**; Done/Android back return to Research. Calm Profile: avatar/account, Appearance (system/light/dark, AsyncStorage), Privacy (consent switch + disclosures/deletion), quiet Demo mode switch, Sign out. Purchases/push remain unavailable. Canonical: `specs/MOBILE_SCREEN_STATES.md` Navigation + Profile paragraph; ADR064. Wide left-drawer Library and swipe Share/Delete polish remain open.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 259 passed; typecheck exit 0. **Native for this pass:** no.
+
+Rollback: restore two-tab chrome and the jargon Settings scroll; keep deletion confirmation and route identities.
+
+## Session C Library navigation spec — ADR064 — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified (chrome now landed above):** Library survives without a bottom tab. Research is the sole primary destination. Library opens full-screen on phone (left drawer/pane on wide layouts) from header Menu and from Profile → Library. Rows: title, status Ready/Researching/…, version, time; search, share, swipe; dark/light via design tokens. New research clears local focus from Research or Library chrome without cancelling server jobs or deleting history. Canonical: `specs/MOBILE_SCREEN_STATES.md` Navigation + §9; ADR064.
+
+Rollback: revert the ADR064/doc commit; prior two-tab chrome remains until implementation lands.
+
+## Session C dark chrome tokens — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`. Not merged to `main`.
+
+**Specified dark (and matching light) chrome tokens** in `packages/design`: `composer`, `thinking`, `userBubble`, `stop`. Dark keeps cream/ink/teal calm contrast — warm raised composer pill `#1F1C19` + teal send `#7EC4BC`, not DeepSeek `#0F0F0F`, ChatGPT green, or a Grok black-circle stop. Wired into composer pill, activity trail, question bubble, and Stop chip. Spec note in `MOBILE_SCREEN_STATES.md`.
+
+**Verified deterministic:** `@deep/design` typecheck; `@deep/mobile` typecheck; focused Vitest including `design-chrome-tokens`. **Verified native for this pass:** no. **Product-quality verified:** no.
+
+Rollback: revert the chrome-token commit on this branch.
+
+## Session C engineer review cycle — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Fixed from aggressive client review:** composer continue no longer falls through to a leftover new run; New research exists; parent/child events no longer mix; library open no longer invents `running`; attach panel stays mounted with the keyboard; Android IME no longer double-resizes; quote-first source “Cited in”; numbered citations deduped; follow-ups stay visible and do not replace the whole question on `replace_question` without the original question; activity elapsed is not invented as `0s`; failed trails are not labeled complete.
+
+**Verified deterministic:** `@deep/mobile` Vitest + typecheck on this pass. **Verified native for this pass:** pending EAS rebuild. **Not integrated:** Session B (uncommitted at `66df545`, migration 042 clash). **Product-quality verified:** no.
+
+Rollback: revert the review-cycle commit on this branch.
+
+## Session C design-review craft pass — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented from independent design critiques:** collapsed truthful activity with elapsed pulse; sentence-case trail (no ALL-CAPS details); numbered citation chips instead of UUID stubs; un-carded answer-first report; composer continues a finished report instead of leftover new-run; 1–3 follow-up chips from unresolved/caveats/limitations only; quote-first source sheet; Sample labeling; Share report; hide tabs while typing; 44pt hits; table cells do not shrink; home-indicator padding on the dock.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 236 passed; `pnpm --filter @deep/mobile typecheck` exit 0. **Verified native for this pass:** no — still on the earlier EAS APK `4a142400` at commit `369bc5b`. **Not integrated:** Session B. **Product-quality verified:** no.
+
+Rollback: revert the craft commit on this branch.
+
+## Session C product integration — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented:** one-sentence composer; researching-this brief from persisted intent/brief flags; truthful semantic activity trail; editorial report; evidence sheet with named uncertainty; conversational corrections/library/settings; EAS device APK (no host Gradle).
+
+**Integrated:** Session A `1155204` / `e9af55c` (plus earlier `8bae4c3` / `4c10e2c`). **Not integrated:** Session B (no final committed SHA; worktree still dirty on `66df545`).
+
+**Verified deterministic:** `@deep/mobile` Vitest including domain mapping tests. **Verified native:** EAS APK `4a142400-ddac-41be-a7a7-8115c448f0d6` on 10.0.0.167:43417, two fixture no-file journeys. **Verified live provider:** Session A's bounded Azure briefs (`verification/v7/live-semantic/`); not a full source-backed report+correction. **Product-quality verified:** no. **Blocked external:** Session B handoff commit.
+
+Rollback: revert this branch; disable the local-dev cleartext plugin for any HTTPS-only build; Session A rollback remains disable portfolio/intent at admission.
+
+## Session A intelligence governor — isolated branch checkpoint — 2026-09-18
+
+Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented:** one-sentence intent compiler + clarification-value; versioned `research-portfolio.v1` cheap-first routing with ZDR/structured-output admission; bounded escalation; unknown-outcome hold; optional cache token receipt fields; hierarchical verification/writing reserves; dated portfolio eval runner with no superiority claim; live semantic task-class gate on the existing fail-closed authorization path; additive migration `042_model_portfolio.sql` (worker-local ADR061; canonical ADR063).
+
+**Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
+
+**Verified live provider:** bounded Azure briefs for the six Session A task classes via `pnpm eval:live-semantic` (`verification/v7/live-semantic/RESULTS.json`). Two schema-invalid briefs with confirmed receipts, one `outcome_unknown` hold without retry, then remaining classes on a new isolated ledger using exact-quote-v2 (one grounded success, original correction success, corrected/unknown schema-invalid with receipts). **Product-quality verified:** no. **Unverified:** native/mobile Research Beta journey (Session C). No routing superiority claim.
+
+Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
 
 ## User-authorized GitHub main checkpoint — 2026-09-18
 

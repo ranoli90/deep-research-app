@@ -2,10 +2,12 @@
 
 Root AGENTS.md applies; these rules cannot weaken it.
 
-**Current status:** Expo app in this directory implements Research/Library/Settings, composer, progress, report, and source sheet. Native device evidence is a separate P0-N gate.
+**Current status:** Expo app in this directory implements Research as the only home (no bottom tabs), Library from the header, Settings from the avatar, searching stream, quiet/send/stop composer, Add sources sheet, flush-left report, and source sheet. Wide left-drawer Library polish remains open. Native device evidence is a separate P0-N gate.
 
 Import only public contracts and design/client code. Never call model providers with developer secrets. Screens contain presentation, not orchestration or billing policy. Test keyboard/safe areas/back behavior, large text, source-sheet return, offline/reconnect and process death. Read specs/MOBILE_SCREEN_STATES.md. Actual iOS/Android evidence is required; browser previews do not substitute.
 
 Use verification/COMMANDS.json to distinguish available and proposed checks. Update the owning canonical spec with behavior changes, not a duplicate local handbook.
 
 Revision 3: build usable accessible P0 composer/reader and lifecycle recovery before decorative P3 breadth. Source selection and account authorization apply to incoming links even after logout; an in-flight remote alert cannot be recalled by claiming client-side deduplication.
+
+Session C finish rule: do not stop with a leftover-work list. Complete remaining product work this lane can ship (composer, activity, report, evidence, corrections, library, settings, tests, device journey). Disclose only true external blockers (uncommitted Session B, live spend, iOS/store) after that independent work is exhausted. Native claims still require native evidence.

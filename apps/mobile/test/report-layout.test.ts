@@ -34,15 +34,21 @@ describe("M04 report layout", () => {
   });
 
   it("App.tsx renders table and code inside nested horizontal ScrollViews", () => {
-    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    const src = [
+      readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8"),
+    ].join("\n");
     expect(src).toMatch(/nestedScrollEnabled/);
     expect(src).toMatch(/block\.kind === "table"/);
     expect(src).toMatch(/block\.kind === "code"/);
     expect(src).toMatch(/citeRow/);
+    expect(src).toMatch(/citationIndex/);
+    expect(src).not.toMatch(/id\.slice\(0,\s*8\)/);
     expect(src).toMatch(/breakLongTokens/);
     expect(readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8")).toMatch(/styles\.sheetBody/);
     expect(src).toMatch(/accessibilityLabel="Change summary"/);
-    expect(src).toMatch(/Share previous report as Markdown/);
+    expect(src).not.toMatch(/Share previous report/);
+    expect(src).not.toMatch(/Previous report version/);
   });
 
   it("M08 change summary keeps a follow-up note without claiming a new conclusion", () => {

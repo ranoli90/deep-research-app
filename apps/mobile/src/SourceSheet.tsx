@@ -1,16 +1,19 @@
 import React, { useRef, useState } from "react";
 import { AccessibilityInfo, findNodeHandle, Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import { publicSourceUrl, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
+import { publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
 import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
 import { breakLongTokens } from "./report-layout";
+import { uncertaintyFromSource, uncertaintyLabel } from "./uncertainty";
 
 type Props = { source: SourceDetail; canFocus?(): boolean; onClose(): void; onOpenOriginal(url: string): void;
   onDelete?(target: SourceDeletionTarget): void; deletionPending?: boolean; deletionError?: string | null;
   offline?: boolean; admissionPending?: boolean;
+  relatedClaim?: string | null;
+  onChallenge?(): void; onVerify?(): void;
   styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
-    kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
+    kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle>; quote?: StyleProp<TextStyle> } };
 export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
-  deletionError, offline = false, admissionPending = false }: Props) {
+  deletionError, offline = false, admissionPending = false, relatedClaim, onChallenge, onVerify }: Props) {
   const heading = useRef<Text>(null);
   const focusedPassage = useRef<string | null>(null);
   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
@@ -18,17 +21,26 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
   const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
   const confirming = sameSourceDeletionTarget(confirmation, target);
   const url = publicSourceUrl(source.locator);
+  const domain = sourceDomain(source.locator);
+  const quality = uncertaintyFromSource(source);
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
     <Text ref={heading} onLayout={() => {
       if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
       const tag = findNodeHandle(heading.current);
       if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
     }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
-    <Text style={styles.kicker}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
+      <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
+      <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Cited in: {relatedClaim}</Text> : null}
+      {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion" hitSlop={12}>
+        <Text style={styles.link}>Challenge this conclusion</Text>
+      </Pressable> : null}
+      {onVerify ? <Pressable onPress={onVerify} accessibilityRole="button" accessibilityLabel="Request targeted verification" hitSlop={12}>
+        <Text style={styles.link}>Verify this conclusion</Text>
+      </Pressable> : null}
       <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
       <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
-      <Text selectable style={styles.bodyText}>{source.exactText}</Text>
       {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
         <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
         {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
@@ -41,7 +53,7 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
         {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
       </View> : null}
       <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
-      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser">
+      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
         <Text style={styles.link}>Open original source</Text>
       </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
       {onDelete ? <View>
@@ -58,6 +70,6 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
           onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.link}>Delete this source</Text></Pressable>}
       </View> : null}
     </ScrollView>
-    <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet"><Text style={styles.link}>Close</Text></Pressable>
+    <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet" hitSlop={12}><Text style={styles.link}>Close</Text></Pressable>
   </View>;
 }
