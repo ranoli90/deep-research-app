@@ -12,6 +12,13 @@
         "EXPO_PUBLIC_API_URL": "https://example.invalid"
       }
     },
+    "device": {
+      "extends": "preview",
+      "android": { "buildType": "apk", "credentialsSource": "remote" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://127.0.0.1:8787"
+      }
+    },
     "production": {
       "android": { "buildType": "app-bundle" },
       "ios": {},
