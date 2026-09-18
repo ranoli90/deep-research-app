@@ -89,14 +89,16 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !api\.currentRun\(t, runId\)\) return s;/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
-    expect(src).toMatch(/Processor disclosures/);
+    const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
+    expect(src).toMatch(/<ProfilePanel/);
+    expect(profile).toMatch(/Processor disclosures/);
     expect(src).toMatch(/Report generated output/);
     expect(src).toMatch(/Include report excerpt/);
     expect(src).toMatch(/Submit generated-output report/);
-    expect(src).toMatch(/Restore purchases/);
+    expect(profile).toMatch(/Restore purchases/);
     expect(src).toMatch(/api\.restorePurchases/);
-    expect(src).toMatch(/Privacy data flows/);
-    expect(src).toMatch(/Open web deletion page/);
+    expect(profile).toMatch(/Privacy data flows/);
+    expect(profile).toMatch(/Open web deletion page/);
     expect(src).toMatch(/state\.report \|\| state\.status === "completed"/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
@@ -111,6 +113,8 @@ describe("P0-N native state mapping", () => {
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
+    const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
+    expect(profile).toContain('accessibilityLabel="Settings"');
     const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8") + readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8");
     for (const label of [
       'accessibilityLabel="Research question"',
@@ -122,7 +126,6 @@ describe("P0-N native state mapping", () => {
       'accessibilityLabel="Source sheet"',
       'accessibilityLabel="Close source sheet"',
       'accessibilityLabel="Saved reports"',
-      'accessibilityLabel="Settings"',
       'accessibilityLabel="Correction"',
     ]) {
       expect(src).toContain(label);

@@ -886,5 +886,13 @@
     "network": false,
     "paid": false,
     "implementation": "package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-profile-panel-bundle",
+    "status": "implemented_application_command",
+    "scope": "648modules/2.18MB Android JS export, not native build or device acceptance.",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]

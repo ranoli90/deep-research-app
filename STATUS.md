@@ -77,3 +77,5 @@ Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116back
 Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Exact fresh-checkout verification passed and is recorded separately in verification/v6/clean-requested-verification/RESULTS.json; prior integration/extraction tests ran against the reviewed working tree.
 
 Exact detached f88091a clean-checkout proof passed offline frozen install (zero downloads), verify148core/116backend/132mobile/6governance, explicit mobiletypes and647module2.17MB AndroidJS export; final checkout clean. No new DB/native/hosted claim. Configured design typecheck is unsuppressed since5f10a84; older suppression caveats are historical.
+
+W07 profile presentation extracted into ProfilePanel without moving authentication/consent/deletion authority.136mobile tests,types and648module2.18MB AndroidJS export pass; failure receipts retained. Native accessibility remains unverified. Evidence verification/v6/profile-panel/RESULTS.json.

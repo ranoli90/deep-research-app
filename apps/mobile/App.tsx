@@ -1,3 +1,4 @@
+import { ProfilePanel } from "./src/ProfilePanel";
 import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
 import { submitSourceDeletion } from "./src/source-deletion-flow";
@@ -12,7 +13,6 @@ import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
-  Alert,
   ActivityIndicator,
   AppState,
   BackHandler,
@@ -1054,13 +1054,14 @@ function AppInner() {
           />
         ) : null}
         {state.tab === "settings" ? (
-          <Settings
+          <ProfilePanel
             styles={styles}
             processors={processors}
             privacyFlows={privacyFlows}
             deletionVsSub={deletionVsSub}
             restoreMessage={restoreMessage}
             state={state}
+            onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
             onConsent={grantConsent}
             onSignIn={() => { void ensureSession().catch(() => undefined); }}
             onRestore={async () => {
@@ -1244,83 +1245,6 @@ function Library({
   );
 }
 
-function Settings({
-  styles,
-  state,
-  processors,
-  privacyFlows,
-  deletionVsSub,
-  restoreMessage,
-  onConsent,
-  onSignIn,
-  onMode,
-  onRestore,
-  onDelete,
-  onLogout,
-  onRevoke,
-}: {
-  styles: ReturnType<typeof makeStyles>;
-  state: UiState;
-  processors: string[];
-  privacyFlows: string;
-  deletionVsSub: string;
-  restoreMessage: string | null;
-  onConsent: () => void;
-  onSignIn: () => void;
-  onMode: (m: UiState["routeMode"]) => void;
-  onRestore: () => void;
-  onDelete: () => void;
-  onLogout: () => void;
-  onRevoke: () => void;
-}) {
-  return (
-    <ScrollView style={styles.body} accessibilityLabel="Settings">
-      <Text style={styles.title} accessibilityRole="header">Settings</Text>
-      <Text style={styles.bodyText}>Account, appearance, privacy, and usage. Purchases and push stay unavailable until those integrations are enabled.</Text>
-      <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in development session">
-        <Text style={styles.link}>{state.signedIn ? "Signed in (development)" : "Sign in (development)"}</Text>
-      </Pressable>
-      <Pressable onPress={onConsent} accessibilityRole="button" accessibilityLabel="Grant AI processing consent">
-        <Text style={styles.link}>{state.consentGranted ? "Consent granted" : "Grant AI processing consent"}</Text>
-      </Pressable>
-      <Pressable onPress={() => onMode(state.routeMode === "fixture" ? "controlled-research" : "fixture")} accessibilityRole="button" accessibilityLabel="Toggle demo or live route">
-        <Text style={styles.link}>Route: {state.routeMode}</Text>
-      </Pressable>
-      <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
-      <Text style={styles.bodyText} accessibilityLabel="Processor disclosures">
-        Processors: {processors.length ? processors.join(". ") : state.signedIn ? "Loading processor list." : "Sign in to see processor disclosures."}
-      </Text>
-      <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
-      {privacyFlows ? <Text style={styles.bodyText} accessibilityLabel="Privacy data flows">{privacyFlows}</Text> : null}
-      {deletionVsSub ? <Text style={styles.caveat} accessibilityLabel="Deletion versus subscription">{deletionVsSub}</Text> : null}
-      <Pressable onPress={onRestore} accessibilityRole="button" accessibilityLabel="Restore purchases">
-        <Text style={styles.link}>Restore purchases</Text>
-      </Pressable>
-      {restoreMessage ? <Text style={styles.caveat} accessibilityLabel="Restore result">{restoreMessage}</Text> : null}
-      <Text style={styles.caveat}>Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.</Text>
-      <Text style={styles.caveat}>Notifications: optional. The app works if permission is denied; reopen to refresh.</Text>
-      <Pressable onPress={onRevoke} accessibilityRole="button" accessibilityLabel="Revoke AI processing consent">
-        <Text style={styles.link}>Revoke consent (stops new research)</Text>
-      </Pressable>
-      <Text style={styles.caveat}>Drafts and reports are saved on this device while signed in. Signing out clears this account’s saved content.</Text>
-      <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear saved drafts and reports">
-        <Text style={styles.link}>Log out and clear saved content</Text>
-      </Pressable>
-      <Pressable
-        onPress={() => void Linking.openURL(deletionPageUrl)}
-        accessibilityRole="button"
-        accessibilityLabel="Open web deletion page"
-      >
-        <Text style={styles.link}>Open web deletion page</Text>
-      </Pressable>
-      <Pressable onPress={() => Alert.alert("Delete account and research?", "This removes saved research and cancels active runs. Store subscriptions are managed separately.", [
-        { text: "Cancel", style: "cancel" }, { text: "Delete account", style: "destructive", onPress: onDelete },
-      ])} accessibilityRole="button" accessibilityLabel="Delete account and derived data">
-        <Text style={styles.error}>Delete account and derived research</Text>
-      </Pressable>
-    </ScrollView>
-  );
-}
 
 function ReportBlockView({
   block,
