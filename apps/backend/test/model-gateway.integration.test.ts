@@ -26,7 +26,7 @@ import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
-import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, type StoredClaim } from "@deep/research-core";
+import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, UNRESOLVED_SECTION, type StoredClaim } from "@deep/research-core";
 import { claimLease,getRun,cancelRun,emitEvent } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -539,7 +539,10 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(revision).toMatchObject({type:"inference",support_status:"inference"});
     expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   }));
-  it("keeps supported synthesis while blocking a made-up heading, paragraph and limitation",async()=>runCase(async(x)=>{
+  it("keeps supported synthesis while blocking a made-up heading, paragraph and limitation",async()=>{
+    const uuid=crypto.randomUUID.bind(crypto);
+    vi.spyOn(crypto,"randomUUID").mockImplementation(()=>`${uuid().slice(0,-3)}999` as ReturnType<typeof crypto.randomUUID>);
+    await runCase(async(x)=>{
     const c=await writerCase(x);
     c.draft.sections[0]!.heading="Restoration improved by 999 percent";
     c.draft.sections[0]!.paragraphs.push({text:"Restoration lasted 999 years.",claimKeys:["area"]});
@@ -549,10 +552,19 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(result).toMatchObject({kind:"publication",accepted:true,unresolvedStatements:["heading_0","paragraph_0_1","limitation_0"]});
     if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
     const report=await getReportForAccount(pool,result.reportId,x.accountId);
-    expect(JSON.stringify(report.blocks)).not.toContain("999");
+    // Assert every published statement, not random identity digits. Exact text
+    // also rejects unsupported numbers other than the injected 999 sentinel.
+    expect(report.blocks.map((b:{id:string;kind:string;text:string})=>({id:b.id,kind:b.kind,text:b.text}))).toEqual([
+      {id:"heading_0",kind:"caveat",text:UNRESOLVED_SECTION},
+      {id:"paragraph_0_0",kind:"text",text:c.draft.sections[0]!.paragraphs[0]!.text},
+      {id:"paragraph_0_1",kind:"caveat",text:UNRESOLVED_SECTION},
+      {id:"limitation_0",kind:"caveat",text:UNRESOLVED_SECTION},
+    ]);
+    expect(report.blocks[1].claimIds[0]).toMatch(/999$/);
     expect(report.blocks.filter((b:{kind:string})=>b.kind==="caveat")).toHaveLength(3);
     expect(report.blocks[1].text).toBe(c.draft.sections[0]!.paragraphs[0]!.text);
-  }));
+    });
+  });
   it("reuses a durable draft after restart without another writer request",async()=>runCase(async(x)=>{
     const c=await writerCase(x);
     globalThis.fetch=optimisticWriterTransport(c.draft);
