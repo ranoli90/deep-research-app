@@ -4,7 +4,7 @@
 - branch: `grok-v7/intelligence-governor`
 - worktree: `/home/oranolio/Desktop/deep-v7-intelligence`
 - base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`
-- final SHA: pending lane commit on this branch (updated immediately after)
+- final SHA: `4c10e2cecde5dd6a73e241033c57647e5e1e5061`
 - not merged to `main`
 
 ## Acceptance map
