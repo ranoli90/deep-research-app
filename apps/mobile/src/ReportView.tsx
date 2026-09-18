@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { space } from "@deep/design";
 import { breakLongTokens, parseTable } from "./report-layout";
+import { citationChipLabel } from "./citation-chips";
 import { editorialSections } from "./report-hierarchy";
 import { uncertaintyFromBlock, uncertaintyLabel } from "./uncertainty";
 import type { ReportBlock } from "./state";
@@ -34,12 +35,14 @@ export function ReportBlockView({
   onOpenSource,
   onLayoutY,
   emphasizeAnswer = false,
+  citationIndex = {},
 }: {
   block: ReportBlock;
   styles: ReportStyles;
   onOpenSource: (id: string) => void;
   onLayoutY?: (y: number) => void;
   emphasizeAnswer?: boolean;
+  citationIndex?: Record<string, number>;
 }) {
   const text = breakLongTokens(block.text);
   const uncertainty = uncertaintyFromBlock(block);
@@ -56,7 +59,7 @@ export function ReportBlockView({
                   <Text
                     key={`${block.id}-c${i}-${j}`}
                     selectable
-                    style={i === 0 ? styles.tableHead : styles.tableCell}
+                    style={[i === 0 ? styles.tableHead : styles.tableCell, { flexShrink: 0 }]}
                   >
                     {cell}
                   </Text>
@@ -91,17 +94,21 @@ export function ReportBlockView({
       {uncertainty ? <Text style={styles.kicker}>{uncertaintyLabel(uncertainty)}</Text> : null}
       {body}
       <View style={styles.citeRow}>
-        {block.citationIds.map((id) => (
-          <Pressable
-            key={id}
-            onPress={() => onOpenSource(id)}
-            accessibilityRole="button"
-            accessibilityLabel={`Open source ${id.slice(0, 8)}`}
-            hitSlop={8}
-          >
-            <Text style={[styles.link, styles.citeLink, styles.citeChip]}>Source {id.slice(0, 8)}</Text>
-          </Pressable>
-        ))}
+        {block.citationIds.map((id) => {
+          const index = citationIndex[id];
+          if (index == null) return null;
+          return (
+            <Pressable
+              key={id}
+              onPress={() => onOpenSource(id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open source ${index}`}
+              hitSlop={12}
+            >
+              <Text style={[styles.link, styles.citeLink, styles.citeChip]}>{citationChipLabel(index)}</Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -113,12 +120,14 @@ export function ReportSections({
   styles,
   onOpenSource,
   onLayoutY,
+  citationIndex = {},
 }: {
   blocks: ReportBlock[];
   detailed: boolean;
   styles: ReportStyles;
   onOpenSource: (id: string, blockId: string) => void;
   onLayoutY: (blockId: string, y: number) => void;
+  citationIndex?: Record<string, number>;
 }) {
   const sections = editorialSections(blocks);
   return (
@@ -144,6 +153,7 @@ export function ReportSections({
               onOpenSource={(id) => onOpenSource(id, b.id)}
               onLayoutY={(y) => onLayoutY(b.id, y)}
               emphasizeAnswer={section.id === "answer"}
+              citationIndex={citationIndex}
             />
           ))}
         </View>

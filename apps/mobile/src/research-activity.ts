@@ -20,7 +20,7 @@ const PRIVATE_TYPES = new Set([
 ]);
 
 const TYPE_LABELS: Record<string, string> = {
-  accepted: "Understanding your priorities",
+  accepted: "Starting research",
   attachment_processing: "Reading your document",
   attachment_processed: "Finished reading your document",
   clarify: "Need one detail before continuing",
@@ -74,17 +74,31 @@ function sourceCount(events: ResearchEvent[]): number {
   return 0;
 }
 
-function elapsedLabel(events: ResearchEvent[]): string | null {
-  const stamps = events
+function eventTimes(events: ResearchEvent[]): number[] {
+  return events
     .map((e) => (e.createdAt ? Date.parse(e.createdAt) : Number.NaN))
     .filter((n) => Number.isFinite(n));
-  if (stamps.length < 2) return null;
-  const ms = Math.max(0, Math.max(...stamps) - Math.min(...stamps));
-  const seconds = Math.round(ms / 1000);
+}
+
+export function formatElapsed(ms: number): string {
+  const seconds = Math.max(0, Math.round(ms / 1000));
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.floor(seconds / 60);
   const rem = seconds % 60;
   return rem === 0 ? `${minutes}m` : `${minutes}m ${rem}s`;
+}
+
+function elapsedLabel(events: ResearchEvent[]): string | null {
+  const stamps = eventTimes(events);
+  if (stamps.length < 2) return null;
+  return formatElapsed(Math.max(0, Math.max(...stamps) - Math.min(...stamps)));
+}
+
+/** Elapsed from the first recorded event to now. Never invents work. */
+export function runningElapsedLabel(events: ResearchEvent[], nowMs: number): string | null {
+  const stamps = eventTimes(events);
+  if (stamps.length === 0 || !Number.isFinite(nowMs)) return null;
+  return formatElapsed(nowMs - Math.min(...stamps));
 }
 
 export function collapseResearchActivity(args: {

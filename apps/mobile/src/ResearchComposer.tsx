@@ -17,6 +17,9 @@ export function ResearchComposer({
   editable,
   sendDisabled,
   pendingAdmission,
+  placeholder = "What should I research?",
+  sendLabel,
+  sendAccessLabel = "Start research",
   onChange,
   onSend,
   onAttach,
@@ -27,22 +30,26 @@ export function ResearchComposer({
   editable: boolean;
   sendDisabled: boolean;
   pendingAdmission: boolean;
+  placeholder?: string;
+  sendLabel?: string;
+  sendAccessLabel?: string;
   onChange(value: string): void;
   onSend(): void;
   onAttach(): void;
   styles: Styles;
 }) {
+  const action = sendLabel ?? (pendingAdmission ? "Retry" : "Research");
   return (
     <View style={styles.composerDock}>
       <View style={styles.composerWrap}>
-        <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Show attachment fields" hitSlop={8}>
+        <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Show attachment fields" hitSlop={12} style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
           <Text style={styles.attachMark}>+</Text>
         </Pressable>
         <TextInput
           editable={editable}
           value={draft}
           onChangeText={onChange}
-          placeholder="What should I research?"
+          placeholder={placeholder}
           placeholderTextColor={muted}
           style={styles.composer}
           multiline
@@ -56,10 +63,10 @@ export function ResearchComposer({
           onPress={onSend}
           style={sendDisabled ? styles.sendBtnOff : styles.sendBtn}
           accessibilityRole="button"
-          accessibilityLabel="Start research"
+          accessibilityLabel={sendAccessLabel}
           hitSlop={12}
         >
-          <Text style={sendDisabled ? styles.sendOff : styles.send}>{pendingAdmission ? "Retry" : "Research"}</Text>
+          <Text style={sendDisabled ? styles.sendOff : styles.send}>{action}</Text>
         </Pressable>
       </View>
     </View>

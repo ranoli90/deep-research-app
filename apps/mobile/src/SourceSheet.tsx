@@ -11,7 +11,7 @@ type Props = { source: SourceDetail; onClose(): void; onOpenOriginal(url: string
   relatedClaim?: string | null;
   onChallenge?(): void; onVerify?(): void;
   styles: { sheet: StyleProp<ViewStyle>; sheetBody: StyleProp<ViewStyle>; title: StyleProp<TextStyle>;
-    kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle> } };
+    kicker: StyleProp<TextStyle>; bodyText: StyleProp<TextStyle>; link: StyleProp<TextStyle>; quote?: StyleProp<TextStyle> } };
 export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
   deletionError, offline = false, admissionPending = false, relatedClaim, onChallenge, onVerify }: Props) {
   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
@@ -22,12 +22,19 @@ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete,
   const domain = sourceDomain(source.locator);
   const quality = uncertaintyFromSource(source);
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-    <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
-    <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
+      <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
+      <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
+      <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Supports: {relatedClaim}</Text> : null}
+      {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion" hitSlop={12}>
+        <Text style={styles.link}>Challenge this conclusion</Text>
+      </Pressable> : null}
+      {onVerify ? <Pressable onPress={onVerify} accessibilityRole="button" accessibilityLabel="Request targeted verification" hitSlop={12}>
+        <Text style={styles.link}>Verify this conclusion</Text>
+      </Pressable> : null}
       <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
       <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
-      <Text selectable style={styles.bodyText}>{source.exactText}</Text>
       {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
         <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
         {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
@@ -40,16 +47,9 @@ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete,
         {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
       </View> : null}
       <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
-      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Supports: {relatedClaim}</Text> : null}
-      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser">
+      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
         <Text style={styles.link}>Open original source</Text>
       </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
-      {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion">
-        <Text style={styles.link}>Challenge this conclusion</Text>
-      </Pressable> : null}
-      {onVerify ? <Pressable onPress={onVerify} accessibilityRole="button" accessibilityLabel="Request targeted verification">
-        <Text style={styles.link}>Verify this conclusion</Text>
-      </Pressable> : null}
       {onDelete ? <View>
         {deletionError ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{deletionError}</Text> : null}
         {unavailable ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{unavailable}</Text> : null}
@@ -64,6 +64,6 @@ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete,
           onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.link}>Delete this source</Text></Pressable>}
       </View> : null}
     </ScrollView>
-    <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet"><Text style={styles.link}>Close</Text></Pressable>
+    <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close source sheet" hitSlop={12}><Text style={styles.link}>Close</Text></Pressable>
   </View>;
 }

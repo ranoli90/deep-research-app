@@ -141,6 +141,14 @@ export function restoreAfterReopen(saved: UiState): UiState {
   };
 }
 
+/** After a report, the composer continues this research instead of starting a leftover new run. */
+export function composerFollowsReport(state: Pick<UiState, "report" | "run" | "status" | "pendingContentInvalidation">): boolean {
+  if (!state.report || state.pendingContentInvalidation) return false;
+  if (state.run?.contentInvalidated === true) return false;
+  if (state.run?.lifecycle !== "terminal") return false;
+  return state.status === "completed" || state.status === "partial";
+}
+
 export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };

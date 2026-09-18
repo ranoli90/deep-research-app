@@ -14,7 +14,7 @@ Final SHA: `e62d2551a5955b9330151d232b2e26bc4ef07a15` (this pin commit follows).
 
 ## Architecture
 
-Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `ResearchBriefCard`, `ReportView`, `LibraryList`, evidence/uncertainty/correction copy). Backend public run/event/report APIs are consumed; no new spend/privacy gates. Session A intent assumptions appear on the researching-this card when the persisted brief has them. Clarification is blocking only on `awaiting_input` or `materialClarification`.
+Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `ResearchBriefCard`, `ReportView`, `LibraryList`, evidence/uncertainty/correction copy). After a finished report the composer continues that research (`composerFollowsReport`) instead of starting a leftover new run. Citations are numbered in first-appearance order. Follow-up chips copy unresolved/caveat/limitation text only. Activity stays collapsed with a truthful current line and elapsed time. Backend public run/event/report APIs are consumed; no new spend/privacy gates. Session A intent assumptions appear on the researching-this card when the persisted brief has them. Clarification is blocking only on `awaiting_input` or `materialClarification`.
 
 ## Android
 
@@ -26,7 +26,7 @@ Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `
 
 ## Tests
 
-- `pnpm --filter @deep/mobile test` and `typecheck` after the UX and A merge.
+- `pnpm --filter @deep/mobile test` 236 passed and `typecheck` after the design-review craft pass. The earlier EAS APK does not include this pass.
 - Session A `test/model-governor.unit.test.ts` and `test/portfolio-eval.unit.test.ts` after merge.
 - Session A live semantic: bounded Azure briefs in `verification/v7/live-semantic/RESULTS.json`. Confirmed spend recorded there. Freshness `outcome_unknown` held without retry. Not a full source-backed report+correction journey and not product-quality verified.
 - `pnpm verify` after Session B is not claimed here.

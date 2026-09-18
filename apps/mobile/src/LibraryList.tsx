@@ -66,8 +66,8 @@ export function LibraryList({
               {copy.updated ? <Text style={styles.kicker}>Updated {copy.updated}</Text> : null}
             </Pressable>
             {it.report_id ? (
-              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`}>
-                <Text style={styles.link}>Share Markdown</Text>
+              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12}>
+                <Text style={styles.link}>Share report</Text>
               </Pressable>
             ) : (
               <Text style={styles.kicker}>Resume from Library when you are ready.</Text>

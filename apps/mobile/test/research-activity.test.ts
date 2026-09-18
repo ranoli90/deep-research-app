@@ -3,13 +3,14 @@ import {
   collapseResearchActivity,
   currentActivityLine,
   labelResearchEvent,
+  runningElapsedLabel,
   visibleResearchEvents,
 } from "../src/research-activity";
 
 describe("research activity from persisted events", () => {
   it("maps admitted event types to semantic labels and ignores private reasoning", () => {
     expect(labelResearchEvent({ sequence: 1, type: "accepted", publicSummary: "Research accepted." })).toEqual({
-      label: "Understanding your priorities",
+      label: "Starting research",
       detail: "Research accepted.",
     });
     expect(labelResearchEvent({ sequence: 2, type: "searched", publicSummary: "Searched: laptops under 2000" })?.label).toBe("Searching");
@@ -44,5 +45,14 @@ describe("research activity from persisted events", () => {
     const events = [{ sequence: 1, type: "accepted", publicSummary: "accepted" }];
     expect(collapseResearchActivity({ events, outcome: "completed" }).summary).toBe("Research complete");
     expect(collapseResearchActivity({ events: [...events, { sequence: 2, type: "cancelled", publicSummary: "stopped" }], outcome: "cancelled" }).summary).toBe("Stopped");
+  });
+
+  it("shows elapsed time while running from the first recorded event", () => {
+    const events = [
+      { sequence: 1, type: "accepted", publicSummary: "accepted", createdAt: "2026-09-18T12:00:00.000Z" },
+      { sequence: 2, type: "searched", publicSummary: "pricing", createdAt: "2026-09-18T12:00:08.000Z" },
+    ];
+    expect(runningElapsedLabel(events, Date.parse("2026-09-18T12:00:12.000Z"))).toBe("12s");
+    expect(runningElapsedLabel([], Date.now())).toBeNull();
   });
 });

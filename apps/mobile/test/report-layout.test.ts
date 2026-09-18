@@ -42,10 +42,12 @@ describe("M04 report layout", () => {
     expect(src).toMatch(/block\.kind === "table"/);
     expect(src).toMatch(/block\.kind === "code"/);
     expect(src).toMatch(/citeRow/);
+    expect(src).toMatch(/citationIndex/);
+    expect(src).not.toMatch(/id\.slice\(0,\s*8\)/);
     expect(src).toMatch(/breakLongTokens/);
     expect(readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8")).toMatch(/styles\.sheetBody/);
     expect(src).toMatch(/accessibilityLabel="Change summary"/);
-    expect(src).toMatch(/Share previous report as Markdown/);
+    expect(src).toMatch(/Share previous report/);
   });
 
   it("M08 change summary keeps a follow-up note without claiming a new conclusion", () => {

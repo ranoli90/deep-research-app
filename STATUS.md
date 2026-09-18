@@ -1,3 +1,13 @@
+## Session C design-review craft pass — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.
+
+**Implemented from independent design critiques:** collapsed truthful activity with elapsed pulse; sentence-case trail (no ALL-CAPS details); numbered citation chips instead of UUID stubs; un-carded answer-first report; composer continues a finished report instead of leftover new-run; 1–3 follow-up chips from unresolved/caveats/limitations only; quote-first source sheet; Sample labeling; Share report; hide tabs while typing; 44pt hits; table cells do not shrink; home-indicator padding on the dock.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 236 passed; `pnpm --filter @deep/mobile typecheck` exit 0. **Verified native for this pass:** no — still on the earlier EAS APK `4a142400` at commit `369bc5b`. **Not integrated:** Session B. **Product-quality verified:** no.
+
+Rollback: revert the craft commit on this branch.
+
 ## Session C product integration — isolated branch checkpoint — 2026-09-18
 
 Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.

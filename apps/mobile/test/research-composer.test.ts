@@ -6,11 +6,13 @@ describe("one-sentence composer copy", () => {
   it("keeps a simple empty state and an obvious research action", () => {
     const composer = readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8");
     const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
-    expect(composer).toContain('placeholder="What should I research?"');
-    expect(composer).toContain('accessibilityLabel="Start research"');
-    expect(composer).toContain("{pendingAdmission ? \"Retry\" : \"Research\"}");
+    expect(composer).toContain('placeholder = "What should I research?"');
+    expect(composer).toContain('sendAccessLabel = "Start research"');
+    expect(composer).toContain('sendLabel ?? (pendingAdmission ? "Retry" : "Research")');
     expect(app).toContain("Ask anything. One sentence is enough. Files are optional.");
     expect(app).toContain("<ResearchComposer");
+    expect(app).toContain("Add a detail or correction…");
+    expect(app).toContain("composerContinues");
     expect(app).not.toMatch(/Ask a comparison with hard constraints/);
   });
 });

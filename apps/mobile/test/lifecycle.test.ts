@@ -131,7 +131,6 @@ describe("P0-N native state mapping", () => {
     ].join("\n");
     for (const label of [
       'accessibilityLabel="Research question"',
-      'accessibilityLabel="Start research"',
       'accessibilityLabel="Research progress"',
       'accessibilityLabel="Cancel research"',
       'accessibilityLabel="In progress"',
@@ -143,6 +142,7 @@ describe("P0-N native state mapping", () => {
     ]) {
       expect(src).toContain(label);
     }
+    expect(src).toContain("Start research");
     expect(src).toMatch(/tab === "research" \? "Research"/);
     expect(src).toMatch(/accessibilityLabel=\{tab === "research" \? "Research" : "Library"\}/);
     expect(src).toContain('(["research", "library"] as const).map');

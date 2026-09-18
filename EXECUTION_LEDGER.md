@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-18 — Session C design-review craft pass
+
+- Independent reviewers (HIG, motion, type, competitive, density, thinking, empty-state, skeptical user, power shopper, anti-slop, dopamine, follow-ups, a11y, Android QA, brand) agreed the app still leaked demo/dev chrome, ALL-CAPS trail details, UUID citations, leftover new-run composer after a report, carded answers, and no useful follow-ups.
+- Implemented those gaps on `grok-v7/product-integration` without inventing APIs or merging Session B. Follow-up chips are copied from unresolved/caveat/limitation text only.
+- `pnpm --filter @deep/mobile test` 236 passed; `pnpm --filter @deep/mobile typecheck` exit 0. No new native install for this pass. No live spend.
+
 ## 2026-09-18 — Session C product integration (isolated branch)
 
 - Worktree `/home/oranolio/Desktop/deep-v7-product`, branch `grok-v7/product-integration`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`.

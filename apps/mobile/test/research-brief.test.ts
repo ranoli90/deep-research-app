@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSubmit, emptyState } from "../src/state";
+import { canSubmit, composerFollowsReport, emptyState } from "../src/state";
 import { researchBriefView } from "../src/research-brief";
 
 describe("one-sentence composer and researching-this brief", () => {
@@ -92,5 +92,27 @@ describe("one-sentence composer and researching-this brief", () => {
       lifecycle: "queued",
       brief: { originalQuestion: "q", revision: 1, constraints: [{ field: "budget", value: "2000", origin: "assumed" }] },
     }).show).toBe(false);
+  });
+});
+
+describe("composer continues a finished report", () => {
+  it("treats a completed report as a correction, not a leftover new run", () => {
+    const finished = {
+      ...emptyState(),
+      status: "completed" as const,
+      report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true },
+      run: {
+        runId: "run-1",
+        lifecycle: "terminal",
+        phase: "done",
+        outcome: "completed",
+        reportId: "r",
+        labeledDemo: true,
+      },
+    };
+    expect(composerFollowsReport(finished)).toBe(true);
+    expect(composerFollowsReport({ ...finished, status: "progress", run: { ...finished.run!, lifecycle: "running" } })).toBe(false);
+    expect(composerFollowsReport({ ...finished, report: null })).toBe(false);
+    expect(composerFollowsReport({ ...finished, pendingContentInvalidation: "gone" })).toBe(false);
   });
 });

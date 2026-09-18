@@ -19,6 +19,8 @@ import { ReportSections } from "./src/ReportView";
 import { LibraryList } from "./src/LibraryList";
 import { researchBriefView } from "./src/research-brief";
 import { humanChangeSummary, versionComparisonCopy } from "./src/correction-copy";
+import { citationNumbers } from "./src/citation-chips";
+import { followUpSuggestions } from "./src/follow-ups";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -52,6 +54,7 @@ import {
   researchActivity,
   attachFile,
   canSubmit,
+  composerFollowsReport,
   conciseBlocks,
   emptyState,
   expireLocalSession,
@@ -111,7 +114,7 @@ function AppInner() {
   const signingIn = useRef<Promise<string> | null>(null);
   const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
-  const [activityExpanded, setActivityExpanded] = useState(true);
+  const [activityExpanded, setActivityExpanded] = useState(false);
   const [sourceClaim, setSourceClaim] = useState<string | null>(null);
   const [briefProceeded, setBriefProceeded] = useState(false);
   const savedCorrection = activeCorrectionDraft(state);
@@ -160,11 +163,10 @@ function AppInner() {
   const readerGeneration = useRef(0);
   const activity = researchActivity(state);
   useEffect(() => {
-    if (activity.inProgress) setActivityExpanded(true);
-    else if (state.status === "completed" || state.status === "partial" || state.status === "cancelled" || state.status === "failed") {
+    if (state.status === "completed" || state.status === "partial" || state.status === "cancelled" || state.status === "failed") {
       setActivityExpanded(false);
     }
-  }, [activity.inProgress, state.status]);
+  }, [state.status]);
   useEffect(() => {
     setBriefProceeded(false);
   }, [state.run?.runId, state.run?.brief?.revision]);
@@ -177,6 +179,11 @@ function AppInner() {
   });
   const blocks: ReportBlock[] = state.report
     ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
+  const citeIndex = citationNumbers(state.report?.blocks ?? []);
+  const composerContinues = composerFollowsReport(state);
+  const followUps = composerContinues && state.report
+    ? followUpSuggestions({ blocks: state.report.blocks, limitations: state.report.limitations })
+    : [];
   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
   // Identity stays in memory. Protected snapshots contain only report/block IDs.
   const readerKey = JSON.stringify([token, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
@@ -547,6 +554,7 @@ function AppInner() {
           pendingAdmission: null,
           status: "progress" as const,
           error: null,
+          draft: "",
           attachments: [],
           report: null,
           previousReport: state.report
@@ -723,9 +731,9 @@ function AppInner() {
     } finally { guard.release(); setUploadStatus(null); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
   }
 
-  async function onCorrect() {
+  async function onCorrect(submitted?: string) {
     if (!token || !state.run || state.pendingContentInvalidation || redactingContent.current || correctionAttempt.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments) return;
-    const text = correction.trim();
+    const text = (submitted ?? correction).trim();
     if (!text) {
       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
       return;
@@ -745,6 +753,7 @@ function AppInner() {
           ...s,
           status: "progress" as const,
           correctionDraft: null,
+          draft: "",
           error: null,
           previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
           run: {
@@ -896,13 +905,9 @@ function AppInner() {
         </View>
         {state.routeMode === "fixture" ? (
           <View style={styles.banner} accessibilityLabel="Demo fixture route">
-            <Text style={styles.bannerText}>Demo route — labeled fixture, not live research</Text>
+            <Text style={styles.bannerText}>Sample answers</Text>
           </View>
-        ) : (
-          <View style={styles.bannerLive} accessibilityLabel="Live research route">
-            <Text style={styles.bannerText}>Live research route</Text>
-          </View>
-        )}
+        ) : null}
         {state.pendingContentInvalidation ? <View style={styles.card} accessibilityLabel="Deleted source cleanup">
           <Text style={styles.body}>A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.</Text>
           <Pressable accessibilityRole="button" onPress={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}><Text style={styles.link}>Retry device cleanup</Text></Pressable>
@@ -1001,13 +1006,13 @@ function AppInner() {
             ) : null}
 
             {state.report ? (
-              <View style={styles.card} accessibilityLabel="Research report" onLayout={(event) => {
+              <View style={styles.reportBody} accessibilityLabel="Research report" onLayout={(event) => {
                 reading.current.measureCard(readerView, event.nativeEvent.layout.y);
                 restoreReadingPosition();
               }}>
                 <View style={styles.row}>
-                  <Text style={styles.kicker}>{state.report.labeledDemo ? "Fixture report" : "Live report"}</Text>
-                  <Pressable onPress={() => setDetailed((d) => !d)} accessibilityRole="button" accessibilityLabel={detailed ? "Show concise view" : "Show detailed view"}>
+                  {state.report.labeledDemo ? <Text style={styles.kicker}>Sample</Text> : <View />}
+                  <Pressable onPress={() => setDetailed((d) => !d)} accessibilityRole="button" accessibilityLabel={detailed ? "Show concise view" : "Show detailed view"} hitSlop={12}>
                     <Text style={styles.link}>{detailed ? "Concise" : "Detailed"}</Text>
                   </Pressable>
                 </View>
@@ -1015,6 +1020,7 @@ function AppInner() {
                   blocks={blocks}
                   detailed={detailed}
                   styles={styles}
+                  citationIndex={citeIndex}
                   onOpenSource={(id, blockId) => {
                     const block = blocks.find((item) => item.id === blockId);
                     setSourceClaim(block?.text.slice(0, 180) ?? null);
@@ -1035,8 +1041,8 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
-                <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report as Markdown">
-                  <Text style={styles.link}>Share Markdown</Text>
+                <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report" hitSlop={12}>
+                  <Text style={styles.link}>Share report</Text>
                 </Pressable>
                 {!state.report.labeledDemo ? <View>
                   <Text style={styles.bodyText}>Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.</Text>
@@ -1142,9 +1148,10 @@ function AppInner() {
                 <Pressable
                   onPress={() => void onShare(state.previousReport?.reportId)}
                   accessibilityRole="button"
-                  accessibilityLabel="Share previous report as Markdown"
+                  accessibilityLabel="Share previous report"
+                  hitSlop={12}
                 >
-                  <Text style={styles.link}>Share previous Markdown</Text>
+                  <Text style={styles.link}>Share previous report</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -1178,22 +1185,28 @@ function AppInner() {
                   <Text style={styles.body}>Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.</Text>
                 </>:null}
                 {correctionReady&&Number.isSafeInteger(state.run.correctionReserveMicro)&&state.run.correctionReserveMicro!>=0?<Text style={styles.body}>Reserves US${(state.run.correctionReserveMicro!/1_000_000).toFixed(2)} of research allowance. Your earlier report remains available.</Text>:null}
-                <TextInput
-                  value={correction}
-                  onChangeText={setCorrection}
-                  placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
-                  multiline
-                  maxLength={20_000}
-                  editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!=="unavailable"}
-                  placeholderTextColor={theme.muted}
-                  style={styles.input}
-                  allowFontScaling
-                  maxFontSizeMultiplier={2}
-                  accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
-                />
-                <Pressable onPress={onCorrect} disabled={correctionPending||!!state.pendingCorrectionDocuments||!correctionReady} accessibilityState={{disabled:correctionPending||!!state.pendingCorrectionDocuments||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
-                  <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
-                </Pressable>
+                {composerContinues ? (
+                  <Text style={styles.bodyText}>Use the composer below to add a detail or correction.</Text>
+                ) : (
+                  <>
+                    <TextInput
+                      value={correction}
+                      onChangeText={setCorrection}
+                      placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
+                      multiline
+                      maxLength={20_000}
+                      editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!=="unavailable"}
+                      placeholderTextColor={theme.muted}
+                      style={styles.input}
+                      allowFontScaling
+                      maxFontSizeMultiplier={2}
+                      accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
+                    />
+                    <Pressable onPress={() => void onCorrect()} disabled={correctionPending||!!state.pendingCorrectionDocuments||!correctionReady} accessibilityState={{disabled:correctionPending||!!state.pendingCorrectionDocuments||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
+                      <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
+                    </Pressable>
+                  </>
+                )}
               </View>
             ) : null}
           </ScrollView>
@@ -1309,6 +1322,22 @@ function AppInner() {
                 setShowAttach(false);
               }} />
         ) : null}
+        {state.tab === "research" && !state.source && followUps.length > 0 && !keyboardOpen ? (
+          <View style={styles.followRow} accessibilityLabel="Suggested follow-ups">
+            {followUps.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() => setState((s) => ({ ...s, draft: item.prompt }))}
+                accessibilityRole="button"
+                accessibilityLabel={`Follow up: ${item.label}`}
+                hitSlop={8}
+                style={styles.followChipHit}
+              >
+                <Text style={styles.followChip}>{item.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         {state.tab === "research" && !state.source ? (
         <ResearchComposer
           draft={state.draft}
@@ -1316,14 +1345,21 @@ function AppInner() {
           editable={hydrated && !verificationBusy && !sourceDeleteBusy && !state.pendingAdmission && uploadStatus === null}
           sendDisabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion}
           pendingAdmission={!!state.pendingAdmission}
+          placeholder={composerContinues ? (correctionMode === "replace_question" ? "Revise the question…" : "Add a detail or correction…") : "What should I research?"}
+          sendLabel={composerContinues ? "Update" : undefined}
+          sendAccessLabel={composerContinues ? "Update research" : "Start research"}
           onChange={(draft) => setState((s) => ({ ...s, draft }))}
-          onSend={() => void onSend()}
+          onSend={() => { if (composerContinues) void onCorrect(state.draft); else void onSend(); }}
           onAttach={() => setShowAttach(true)}
-          styles={styles}
+          styles={{
+            ...styles,
+            composerDock: [styles.composerDock, { paddingBottom: keyboardOpen ? Math.max(space.xs, insets.bottom) : space.xs }],
+          }}
         />
         ) : null}
 
-        <View style={styles.tabs} accessibilityRole="tablist">
+        {!keyboardOpen ? (
+        <View style={[styles.tabs, { paddingBottom: Math.max(10, insets.bottom) }]} accessibilityRole="tablist">
           {(["research", "library"] as const).map((tab) => (
             <Pressable
               key={tab}
@@ -1332,12 +1368,14 @@ function AppInner() {
               accessibilityState={{ selected: state.tab === tab }}
               accessibilityLabel={tab === "research" ? "Research" : "Library"}
               style={styles.tab}
+              hitSlop={8}
             >
               <Text style={state.tab === tab ? styles.tabOn : styles.tabOff}>{tab === "research" ? "Research" : "Library"}</Text>
               {state.tab === tab ? <View style={styles.tabMark} /> : null}
             </Pressable>
           ))}
         </View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -1358,21 +1396,23 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     welcomeDisplay: { ...typeTokens.display, color: theme.ink, marginBottom: space.sm },
     welcome: { ...typeTokens.body, color: theme.muted, marginBottom: space.md },
     card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 20, padding: space.lg, marginBottom: space.md, overflow: "hidden" },
+    reportBody: { marginBottom: space.md, paddingTop: space.sm },
     sheet: { flex: 1, backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 24, padding: space.lg, marginHorizontal: space.md, marginBottom: space.md, maxWidth: "100%" },
     sheetBody: { flex: 1, maxHeight: "100%" },
     bounded: { width: "100%", maxWidth: "100%" },
     outline: { marginBottom: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: theme.line },
     outlineItem: { ...typeTokens.body, color: theme.muted, marginBottom: 4 },
     tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: theme.line },
-    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 8, paddingRight: 12 },
-    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 8, paddingRight: 12, textTransform: "uppercase" },
+    tableCell: { ...typeTokens.body, color: theme.ink, minWidth: 96, paddingVertical: 8, paddingRight: 12, flexShrink: 0 },
+    tableHead: { ...typeTokens.caption, color: theme.muted, minWidth: 96, paddingVertical: 8, paddingRight: 12, textTransform: "uppercase", flexShrink: 0 },
     code: { fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 13, color: theme.ink, paddingVertical: 8 },
     quote: { ...typeTokens.body, color: theme.ink, fontStyle: "italic", paddingLeft: space.md, borderLeftWidth: 2, borderLeftColor: theme.accent },
     citeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
     citeLink: { paddingRight: 0 },
-    citeChip: { backgroundColor: theme.accentMuted, overflow: "hidden", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, fontSize: 13 },
-    answerText: { ...typeTokens.title, color: theme.ink, flexShrink: 1, fontWeight: "500" },
-    kicker: { ...typeTokens.caption, color: theme.muted, textTransform: "uppercase", marginBottom: 8 },
+    citeChip: { backgroundColor: theme.accentMuted, overflow: "hidden", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, fontSize: 13, minHeight: 32 },
+    answerText: { ...typeTokens.display, color: theme.ink, flexShrink: 1, fontWeight: "600" },
+    kicker: { ...typeTokens.caption, color: theme.muted, marginBottom: 8 },
+    activityDetail: { ...typeTokens.caption, color: theme.muted, marginTop: 4 },
     title: { ...typeTokens.title, color: theme.ink, marginBottom: 8 },
     bodyText: { ...typeTokens.body, color: theme.ink, flexShrink: 1 },
     activityNow: { ...typeTokens.body, color: theme.ink, fontWeight: "600", flexShrink: 1 },
@@ -1382,13 +1422,16 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     composerDock: { paddingHorizontal: space.md, paddingTop: space.sm, paddingBottom: space.xs, backgroundColor: theme.bg },
     composerWrap: { flexDirection: "row", alignItems: "flex-end", paddingLeft: 6, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.surface, borderRadius: 28 },
     composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.ink, paddingHorizontal: space.sm, paddingVertical: 10 },
-    sendBtn: { backgroundColor: theme.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999 },
-    sendBtnOff: { backgroundColor: theme.line, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999 },
+    sendBtn: { backgroundColor: theme.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
+    sendBtnOff: { backgroundColor: theme.line, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
     send: { color: theme.surface, fontWeight: "600", fontSize: 15 },
     sendOff: { color: theme.muted, fontWeight: "600", fontSize: 15 },
-    attachMark: { color: theme.ink, fontSize: 22, lineHeight: 26, width: 36, textAlign: "center", paddingVertical: 8 },
+    attachMark: { color: theme.ink, fontSize: 22, lineHeight: 26, width: 44, textAlign: "center" },
+    followRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: space.md, paddingBottom: space.sm },
+    followChipHit: { minHeight: 44, justifyContent: "center" },
+    followChip: { backgroundColor: theme.accentMuted, color: theme.ink, overflow: "hidden", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, fontSize: 14 },
     tabs: { flexDirection: "row", borderTopWidth: 1, borderColor: theme.line, backgroundColor: theme.bg },
-    tab: { flex: 1, alignItems: "center", paddingTop: 12, paddingBottom: 10, paddingHorizontal: 4 },
+    tab: { flex: 1, alignItems: "center", paddingTop: 12, paddingBottom: 10, paddingHorizontal: 4, minHeight: 44 },
     tabOn: { color: theme.ink, fontWeight: "600", textAlign: "center", fontSize: 15 },
     tabOff: { color: theme.muted, textAlign: "center", fontSize: 15 },
     tabMark: { marginTop: 6, height: 3, width: 28, borderRadius: 999, backgroundColor: theme.accent },
