@@ -1,7 +1,27 @@
-# Ranked implementation plan — five coherent programs
-Owner role: engineering/product lead. Status: proposed future implementation; review does not authorize paid builds or deployment. Reviewed: 2026-09-16.
+# Implementation plan — active W01–W09 milestone and P0–P4 product programs
+Owner role: engineering/product lead. Status: application implementation underway; internal research-quality milestone incomplete. Reviewed: 2026-09-18. Active user authorization governs spending; deployment and release are separate.
 
-Priority is a judgment based on task harm, dependency structure, evidence quality and reversibility—not a fabricated weighted score. No program is currently implemented in an identified application repository.
+Priority is a judgment based on task harm, dependency structure, evidence quality and reversibility—not a fabricated weighted score. The application exists in this repository. STATUS.md and immutable verification packets establish implementation and executed evidence; the program descriptions below retain product requirements, not a claim that every gate is complete.
+
+## Current execution order — W01–W09
+
+Continue the current TypeScript/Expo/API/worker/PostgreSQL implementation. Do not restart from the historical P0 proposal or restore the old bounded controller to production. The V6 review was pinned to03fab6b9d6a04ce9fdaeb48636383757213f7242; recheck findings against current source before changing behavior. Adopted behavior belongs in the canonical contracts below; the staged kit is review input, not a second runtime specification.
+
+| Work | Canonical owner and remaining acceptance |
+|---|---|
+| W01 publication prerequisites | ENGINE_CONTRACTS and ACCEPTANCE_TESTS: retain claim/source/revision bindings, qualification/contradiction vetoes and material assertion coverage. Local regressions do not establish general semantic correctness. |
+| W02 durable execution and cost | ENGINE_CONTRACTS and SECURITY_PRIVACY_COST: preserve atomic admission/outbox/reservations, logical action/attempt identities, lease heartbeat/fences, actual receipts and unknown holds. Use real PostgreSQL races. |
+| W03 identity and privacy | SECURITY_PRIVACY_COST and MOBILE_SCREEN_STATES: ownership, consent, derived/raw deletion and account/request generations precede private-user exposure. Hosted identity and external retention need their own evidence. |
+| W04 source ingestion | ENGINE_CONTRACTS and backend extraction README: selected isolated HTML/digital-PDF parsers, immutable source bytes/locators, explicit partial/unavailable OCR/layout. Keep actual extraction separate from selected model context. |
+| W05 general research | ENGINE_CONTRACTS: versioned criteria, arbitrary scoped assertions, executed verification/comparison/calculation, evidence-linked support and generic synthesis. Next quality proof requires a useful unfamiliar question through the real model/API/worker. |
+| W06 corrections | ENGINE_CONTRACTS: typed revision changes, immutable authorized evidence reuse, invalidation and reopened discovery; conservative recomputation where dependencies are incomplete. Compare revised output with a corrected full rerun. |
+| W07 essential mobile journey | MOBILE_SCREEN_STATES: file/source/correction/reopen/account/share behavior against the canonical report; broader physical lifecycle/accessibility and iOS remain separately unproved. No broad redesign. |
+| W08 evaluation | EVALUATION and evals/matched-pipeline: same production extraction/writer/checker/tools in baseline and adaptive arms, registered references, all failures/cost/latency and selected repetitions. Historical bounded route is diagnostic only. |
+| W09 engineering checkpoint | CODEBASE_GOVERNANCE: clean locked checkout, command/evidence registry, canonical handoff, dependency/ownership checks and rollback. Hosted CI execution is distinct from local evidence. |
+
+W01–W04 have substantial local implementation/evidence; the full milestone remains incomplete. Current runtime evidence and exact commits are linked by STATUS.md, not inferred from this table. The next end-to-end proof is the registered MC-D01 public saved-SQLite original/correction/full-rerun comparison, followed by the remaining unfamiliar discovery/document tasks and their failures. User spending authorization is recorded in verification/v6/paid-readiness/AUTHORIZATION.json with an initial $0.40 operator cap. Historical unattributed cost estimates still require provenance; authorization is no longer missing. Preserve holds and do not evade them with a new database.
+
+W10 release gates remain separate: private-user exposure, hosted identity/storage/retention, wider native/iOS compatibility and accessibility, signing/store/push/purchase credentials, deployment authority and release acceptance. Missing release credentials do not block isolated backend/extraction work. No local suite establishes production readiness, human adjudication or competitive superiority.
 
 ## First implementation checkpoint — P0, not a polished shell
 The first implementation session targets **P0**: one live, consented research request through API and durable worker, accessed evidence in real PostgreSQL, a bounded cited report, cancellation including writing, native close/reopen and source inspection, and one correction with revision-safe publication. This is the first checkpoint, not a promise it fits one session and not permission to claim the entire launch is complete. If P0 is verified and authorized capacity remains, continue the ranked plan; otherwise leave a precise checkpoint.
@@ -18,7 +38,7 @@ A local installed PostgreSQL/queue instance, including Docker Compose when avail
 If a live or native gate is inaccessible, implement and test all unblocked P0 components and directly supporting work; retain the blocked gate and concrete missing input. Do not replace it with fake evidence or spend the blockage polishing an unrelated feature tree. The twelve smoke cases are necessary starting coverage, not sufficient evidence for all P0 invariants or public release. Parallel preparation of consented real-user tasks may begin now, but external recruitment/contact needs its own authorization.
 
 ## P0 — runnable, honest end-to-end baseline
-**Finding/evidence:** F02/F04/F09/F10/F14; C02–C05; source/cancellation requirements in the original plan. **Use cases:** JOB-1/2 and all return journeys. **Status:** specified only; repository/configuration inaccessible.
+**Finding/evidence:** F02/F04/F09/F10/F14; C02–C05; source/cancellation requirements in the original plan. **Use cases:** JOB-1/2 and all return journeys. **Status:** local application and durable execution implemented; current local/live/native evidence remains separately scoped in STATUS.md and verification/P0_ACCEPTANCE.json.
 **Root cause addressed:** app lifecycle and provider visibility cannot be proven from prompts. **Behavior:** question -> consent/auth -> atomic admission -> real bounded evidence retrieval -> saved cited report -> close/reopen -> source inspection -> explicit correction. Preserve partial work and truthful failure states.
 **Changes:** one backend codebase/API+worker, contracts, selected queue/storage/model/retrieval adapters, baseline evidence/report tables, simple native composer/reader. Implement publication fence, cancellation in writing and unknown-cost states immediately, not after visual polish.
 **Alternative:** hosted opaque report alone is useful as a baseline but cannot satisfy invented passage/tool visibility. No need to connect five providers.
@@ -27,7 +47,7 @@ If a live or native gate is inaccessible, implement and test all unblocked P0 co
 **Rollout:** local deterministic/database checks -> authorized capped live request and native lifecycle evidence -> later staged testing after relevant release/privacy gates. A live request is not authorization to invite real users. **Rollback:** disable live route, preserve accessible saved reports, keep auth/deletion/budget controls. **Priority/confidence:** launch blocker; high confidence in requirement, no implementation confidence claimed.
 
 ## P1 — decisive evidence and a bounded adaptive controller
-**Finding/evidence:** F01/F07/F08; C01/C10/C11 (C11 adjacent mode); S34–S35. **Use case:** JOB-1 primarily, JOB-2. **Status:** application-owned `selectAdaptiveAction` (`research-controller.v1`) is implemented as the fixture and live default; bounded chooser remains the comparison arm. Fixture 12-family A/B and one live adaptive smoke are recorded. G04/G05 competitor/human targets are not this status.
+**Finding/evidence:** F01/F07/F08; C01/C10/C11 (C11 adjacent mode); S34–S35. **Use case:** JOB-1 primarily, JOB-2. **Status:** production executes structured research with criterion-adaptive.v1; the registered comparator uses iterative-baseline.v1 through the same executor. `selectAdaptiveAction` and the bounded chooser belong only to historical diagnostics. Current real-model paired quality and G04/G05 competitor/human targets are unproved.
 **Root cause hypothesis:** missed decisive source/scope or undifferentiated retrieval, rather than insufficient words. **Behavior:** name the missing decision-changing fact, use an appropriate source route, preserve unknown eligibility and investigate consequential contradictory evidence.
 **Changes:** gaps, feasibility/selection scope, action outcomes, source families, bounded source-type escalation and independently written evaluation gold. No graph database or mandatory extra agents.
 **Alternatives:** better task briefing; fetch supplied source fully; inject gold evidence to distinguish model reasoning failure. Choose those simpler repairs when effective.
@@ -35,7 +55,7 @@ If a live or native gate is inaccessible, implement and test all unblocked P0 co
 **Verification:** A vs B at same model/tools; gold-evidence diagnostic; retrieval/critic ablations. **Rollout:** flag on declared task classes, compare against baseline; no silent claims of universal advantage. **Rollback:** baseline controller retains evidence checks. **Priority/confidence:** highest differentiation experiment; medium confidence, not established gain.
 
 ## P2 — correction-safe incremental research
-**Finding/evidence:** F05/F06; existing original follow-up requirements; C01/C16 repair burden; S01/S05/S07 establish competitive alternatives. **Use case:** RETURN. **Status:** versioning specified; selection-space invalidation and fences unimplemented.
+**Finding/evidence:** F05/F06; existing original follow-up requirements; C01/C16 repair burden; S01/S05/S07 establish competitive alternatives. **Use case:** RETURN. **Status:** typed corrections, immutable evidence membership, revision fences, required rediscovery and conservative recomputation are implemented with local controls. Real-model revised/full-rerun agreement remains unproved; selective reuse is not assumed when dependencies are incomplete.
 **Root cause hypothesis:** unnecessary reruns or retained stale assumptions waste repair work. **Behavior:** correct one fact, add a document or change a constraint; preserve safe evidence while revisiting newly feasible candidates and affected conclusions.
 **Changes:** typed relational dependencies/impact set, conservative fallback, epochs/fences, semantic change summary, privacy-aware historical versions. **Alternatives:** full bounded rerun is often simpler for tiny tasks and remains an intentional strategy.
 **Dependencies:** P0 revisions/evidence/ownership; P1 does not have to win before basic correctness fixes ship. **Benefit/tradeoff:** less repeat work; dependency management can itself cost more and miss implicit effects.
@@ -43,7 +63,7 @@ If a live or native gate is inaccessible, implement and test all unblocked P0 co
 **Rollout:** low-risk small change types first; shadow impact calculations only with user-consented test data; broaden when accurate. **Rollback:** conservative full bounded rerun, never restore deleted data. **Priority/confidence:** foundation for correctness; incremental savings medium-confidence hypothesis.
 
 ## P3 — native answer/evidence experience and account reliability
-**Finding/evidence:** original UX already strong; C03/C06/C07/C18; F14. **Use case:** every completed/partial report. **Status:** specified only.
+**Finding/evidence:** original UX already strong; C03/C06/C07/C18; F14. **Use case:** every completed/partial report. **Status:** native screens and source/correction/account flows exist with local controls and bounded Android evidence. Broader device/accessibility and iOS acceptance remain open.
 **Behavior:** answer-first reading with optional depth; open exact supporting passage; return to stable location; edit direction naturally; meaningful offline/failed/partial states; reliable account/purchase/notification behavior.
 **Changes:** canonical report blocks shared by views/exports, semantic bookmarks, accessible source sheet, foreground sync and notification bindings. No second generated summary contradicting the body. Match original light/dark design tokens and simple navigation.
 **Alternatives:** browser report viewer cheap but must pass native reading/selection/keyboard/accessibility tests; do not substitute web preview for both apps.
@@ -51,7 +71,7 @@ If a live or native gate is inaccessible, implement and test all unblocked P0 co
 **Acceptance:** original M cases + V2-11/12; G03/G07. **Verification:** real compact/large devices, text scaling, screen readers, offline/reconnect, source-sheet scroll return, delete/restore/account switch. **Rollout:** user test before animation polish. **Rollback:** safe prior renderer against same canonical blocks. **Priority/confidence:** launch foundation, medium confidence in relative UX benefit until tested.
 
 ## P4 — quality evidence, code health and commercial readiness
-**Finding/evidence:** F10/F12/F13 and S31/S33; C08/C09 tradeoffs. **Use case:** sustained delivery across all jobs. **Status:** review-data validator exists; application CI/evals/costs not implemented.
+**Finding/evidence:** F10/F12/F13 and S31/S33; C08/C09 tradeoffs. **Use case:** sustained delivery across all jobs. **Status:** local application checks, manual CI configuration, registered evaluator and scoped receipt accounting exist. Hosted CI execution, real-model paired evaluation and historical financial reconciliation remain open.
 **Behavior:** future code changes cannot silently weaken contracts, privacy or truthfulness; product allowance reflects measured economics.
 **Changes:** dependency/ownership checks, command/evidence manifest, schema drift checks, test weakening review, prompt/config eval gates, live cost accounting, provider route canaries, redacted operations and release checklist. Broad research benchmark only after realistic starter tasks are validated.
 **Alternatives:** more prose and agent roles without enforcement are insufficient; avoid buying an orchestration platform before the need exists.

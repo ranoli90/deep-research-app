@@ -756,3 +756,5 @@ Exact detached commit672586baca8f3416ee6aa2fd47b16f630dde9805 passes offline fro
 
 
 Final metadata validation initially failed: two previous network probes were labeled offline review tools and the new probe used an unsupported status. Registered all three as application commands with network=true, paid=false. Both unchanged validators then exit0. Exact failure retained in paid-readiness/REGISTRY_CHECKS.json; earlier validator passes predated the two old registrations.
+
+2026-09-18 W09 canonical-plan reconciliation: IMPLEMENTATION_PLAN.md still claimed no application existed, named the retired diagnostic controller as the live default, and labeled implemented correction/mobile/evaluation foundations unimplemented. Reconciled those statuses and the active W01–W09 execution order in the canonical plan; retained P0–P4 requirements and separated W10. No runtime or publication/budget policy changed. Both document validators exit0; evidence verification/v6/plan-reconciliation/RESULTS.json. This does not complete the milestone or resolve financial provenance. Rollback is documentation-only; do not restore diagnostic production routing.

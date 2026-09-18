@@ -1,0 +1,35 @@
+{
+  "requirementIds": [
+    "W09"
+  ],
+  "baseCommit": "f5f6aedca486332e9d22c938c1ee8b1435fb25c6",
+  "workingTree": "canonical plan reconciliation; no runtime changes",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux"
+  },
+  "checkedAt": "2026-09-18T16:37:57.594241+00:00",
+  "findings": [
+    "Canonical plan said no application existed",
+    "Retired diagnostic controller described as live default",
+    "Implemented correction/native/evaluation foundations described as unimplemented"
+  ],
+  "change": "Reconcile current W01\u2013W09 order into canonical IMPLEMENTATION_PLAN, retain P0\u2013P4 requirements and distinguish W10 gates. STATUS and evidence packets retain outcome ownership.",
+  "commands": [
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "review.txt",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "handoff.txt",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    }
+  ],
+  "paidCalls": 0,
+  "scope": "Document consistency only; no semantic quality or release evidence",
+  "rollback": "Revert documentation change only; never restore diagnostic fixture routing or remove runtime safety gates."
+}
