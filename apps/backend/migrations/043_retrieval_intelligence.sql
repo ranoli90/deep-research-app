@@ -1,5 +1,5 @@
 -- Provenance-aware public queries, origin clustering, freshness and document/web reconciliation.
--- Numbered 044 so Session C's 042_model_portfolio.sql and Session A's 043_model_portfolio.sql stay distinct.
+-- Canonical 043 after 042_model_portfolio.sql. Isolated worker DBs may still record historical 042_retrieval_intelligence or 044_retrieval_intelligence ids.
 -- Purged with account/source deletion. No provider/model/public API change.
 
 CREATE TABLE IF NOT EXISTS query_authorizations (
