@@ -108,7 +108,7 @@ describe("P0-N native state mapping", () => {
   });
 
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
-    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8") + readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8");
     for (const label of [
       'accessibilityLabel="Research question"',
       'accessibilityLabel="Start research"',

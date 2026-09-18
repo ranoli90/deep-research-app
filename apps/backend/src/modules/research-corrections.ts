@@ -19,6 +19,7 @@ export async function admitResearchCorrection(pool:pg.Pool,accountId:string,pare
   await lockActiveAccount(db,accountId);
   const parent=await getRun(db,parentRunId,{forUpdate:true});
   if(!parent||parent.account_id!==accountId||parent.route_mode!=="controlled-research")reject("correction_parent_unavailable",404);
+  if((await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,parentRunId])).rowCount)reject("correction_parent_unavailable",409);
   const consent=await currentConsent(db,accountId);
   if(!consent||consent.revoked||consent.policyVersion!==CONSENT_POLICY_VERSION)reject("consent_required",403);
   if(parent.brief_revision!==input.expectedBriefRevision)reject("stale_revision",409);

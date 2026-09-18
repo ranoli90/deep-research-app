@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/provider-reconciliation.integration.test.ts (8 tests) 1025ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  18:47:11
+   Duration  2.40s (transform 705ms, setup 0ms, collect 1.05s, tests 1.02s, environment 0ms, prepare 109ms)
+

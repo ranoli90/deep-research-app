@@ -1,0 +1,564 @@
+{
+  "version": "matched-real-tasks.v1",
+  "status": "registered_before_model_execution",
+  "selection": "Twelve distinct technical decisions, six development and six heldout; holdout concerns model evaluation, not document acquisition or extractor inspection. No extractor tuning from heldout outcomes is allowed without moving those cases to development and registering replacements.",
+  "humanAdjudication": null,
+  "qualityClaims": null,
+  "tasks": [
+    {
+      "id": "MC-D01",
+      "split": "development",
+      "family": "embedded_database_deployment",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Can SQLite WAL support one shared database on a network filesystem and two simultaneous writers? Distinguish reader/writer concurrency.",
+      "correctedQuestion": "Move all processes to one host and allow one writer: which objections remain?",
+      "sourceIds": [
+        "sqlite-wal"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Network-filesystem restriction",
+        "Single writer despite simultaneous readers",
+        "Changed-host and writer assumptions evaluated separately"
+      ],
+      "references": [
+        {
+          "sourceId": "sqlite-wal",
+          "publisherLocator": "#overview",
+          "exactSpan": "WAL does not work over a network filesystem.",
+          "interpretation": "Reject original network-filesystem requirement."
+        },
+        {
+          "sourceId": "sqlite-wal",
+          "publisherLocator": "#concurrency",
+          "exactSpan": "there can only be one writer at a time.",
+          "interpretation": "Read/write concurrency is not multi-writer concurrency."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-D02",
+      "split": "development",
+      "family": "transaction_isolation_comparison",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "In PostgreSQL17, compare Repeatable Read and Serializable for phantom reads and serialization anomalies. Does preventing phantoms imply serializability?",
+      "correctedQuestion": "The task now only requires no phantom reads, with transaction retries accepted. Re-evaluate Repeatable Read.",
+      "sourceIds": [
+        "postgres17-isolation"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Postgres-specific stronger Repeatable Read phantom guarantee",
+        "Serialization anomalies remain possible in Repeatable Read",
+        "Retry requirement not omitted"
+      ],
+      "references": [
+        {
+          "sourceId": "postgres17-isolation",
+          "publisherLocator": "#MVCC-ISOLEVEL-TABLE",
+          "exactSpan": "Allowed, but not in PG",
+          "interpretation": "Repeatable-read phantom column must stay paired with its row."
+        },
+        {
+          "sourceId": "postgres17-isolation",
+          "publisherLocator": "#XACT-REPEATABLE-READ",
+          "exactSpan": "must be prepared to retry transactions due to serialization failures.",
+          "interpretation": "Retries may be needed even with Repeatable Read."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-D03",
+      "split": "development",
+      "family": "language_library_eligibility",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "For Python3.13 choose among tomllib, the documented Tomli-W option and TOML Kit for reading, writing and preserving formatting while editing existing TOML.",
+      "correctedQuestion": "Drop writing and formatting preservation; require only standard-library parsing. Which option becomes sufficient?",
+      "sourceIds": [
+        "python313-tomllib"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "tomllib introduced3.11 and parses TOML1.0",
+        "No tomllib write capability",
+        "Documented alternatives distinguished; no uninspected external feature claims"
+      ],
+      "references": [
+        {
+          "sourceId": "python313-tomllib",
+          "publisherLocator": "#module-tomllib",
+          "exactSpan": "This module does not support writing TOML.",
+          "interpretation": "Do not infer writer from parser."
+        },
+        {
+          "sourceId": "python313-tomllib",
+          "publisherLocator": "#module-tomllib",
+          "exactSpan": "style-preserving TOML library with both read and write capability",
+          "interpretation": "The page describes TOML Kit; evidence scope is this documentation."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-D04",
+      "split": "development",
+      "family": "http_message_framing",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "May an HTTP/1.1 sender send Content-Length together with Transfer-Encoding? Distinguish sender requirements from a recipient handling such a message.",
+      "correctedQuestion": "Transfer-Encoding is absent; is the same prohibition still applicable to Content-Length?",
+      "sourceIds": [
+        "rfc9112"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "MUST NOT negation",
+        "Sender/recipient roles kept separate",
+        "No unconditional ban on Content-Length"
+      ],
+      "references": [
+        {
+          "sourceId": "rfc9112",
+          "publisherLocator": "section6.2;PDFpage18",
+          "exactSpan": "A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.",
+          "interpretation": "Prior parser-development case, intentionally not held-out."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-D05",
+      "split": "development",
+      "family": "sensor_spec_accuracy_resolution",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Does TMP117 resolution0.0078\u00b0C mean guaranteed accuracy\u00b10.0078\u00b0C? Evaluate a\u00b10.1\u00b0C requirement over-20\u00b0C to50\u00b0C using the supplied datasheet.",
+      "correctedQuestion": "Extend required range to-40\u00b0C to70\u00b0C while retaining\u00b10.1\u00b0C. Does documented maximum error still meet it?",
+      "sourceIds": [
+        "tmp117"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Resolution and accuracy are different quantities",
+        "\u00b10.1\u00b0C scoped-20..50",
+        "\u00b10.15\u00b0C scoped-40..70",
+        "Preserve two-column/table context and stated conditions"
+      ],
+      "references": [
+        {
+          "sourceId": "tmp117",
+          "publisherLocator": "PDFpage1 features;page6 electrical-characteristics table",
+          "exactSpan": "\u00b10.1 \u00b0C (maximum) from \u201320 \u00b0C to 50 \u00b0C",
+          "interpretation": "Narrow original range."
+        },
+        {
+          "sourceId": "tmp117",
+          "publisherLocator": "PDFpage1 features",
+          "exactSpan": "\u00b10.15 \u00b0C (maximum) from \u201340 \u00b0C to 70 \u00b0C",
+          "interpretation": "Wider range exceeds stated requirement."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-D06",
+      "split": "development",
+      "family": "json_numeric_interoperability",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Can JSON number9007199254740993 be assumed to preserve exact integer identity across implementations using IEEE754 binary64? State the interoperable integer range.",
+      "correctedQuestion": "The identifier is now9007199254740991. Re-evaluate the exact-interoperability claim.",
+      "sourceIds": [
+        "rfc8259"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Representation range vs JSON syntax distinction",
+        "2^53\u22121 bound",
+        "Exact integer calculation; no float-rounding oracle"
+      ],
+      "references": [
+        {
+          "sourceId": "rfc8259",
+          "publisherLocator": "#section-6",
+          "exactSpan": "[-(2**53)+1, (2**53)-1]",
+          "interpretation": "The RFC scopes agreement to this integer range."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": {
+        "expression": "2^53-1",
+        "exactResult": "9007199254740991",
+        "unit": "integer identifier",
+        "meaning": "interoperability bound, not a universal JSON grammar limit"
+      },
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H01",
+      "split": "heldout",
+      "family": "radio_band_eligibility",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Does the ESP32 Series datasheet establish Wi-Fi support for a5GHz-only access point? Use frequency units and the actual table, not product-name guesses.",
+      "correctedQuestion": "The network now permits2.4GHz operation. What hardware band conclusion changes, and what regional/configuration conditions remain?",
+      "sourceIds": [
+        "esp32"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "2412..2484MHz operating range",
+        "GHz/MHz conversion",
+        "Do not extrapolate other ESP32-family chips",
+        "Regional/configuration qualification"
+      ],
+      "references": [
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage53 table5-6",
+          "exactSpan": "2412",
+          "interpretation": "Lower bound MHz in operating-frequency row."
+        },
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage53 table5-6",
+          "exactSpan": "2484",
+          "interpretation": "Upper bound MHz in same row."
+        },
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage54 table5-6 note1",
+          "exactSpan": "frequency range allocated by regional regulatory authorities",
+          "interpretation": "Band capability does not waive operating restrictions."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H02",
+      "split": "heldout",
+      "family": "database_execution_mode_scope",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "For the captured DuckDB documentation, can independent in-process clients concurrently write the native database file? Compare this with the documented Quack alternative without hiding its maturity.",
+      "correctedQuestion": "Allow a client-server deployment and beta components. Re-evaluate the documented option without claiming in-process writes changed.",
+      "sourceIds": [
+        "duckdb-concurrency"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "In-process single-writer-process mode",
+        "Read-only multi-process distinction",
+        "Quack client-server beta as documented",
+        "Time/version pinned; no obsolete absolute impossibility"
+      ],
+      "references": [
+        {
+          "sourceId": "duckdb-concurrency",
+          "publisherLocator": "#single-process",
+          "exactSpan": "one process can both read and write to the database.",
+          "interpretation": "Single-process in-process mode."
+        },
+        {
+          "sourceId": "duckdb-concurrency",
+          "publisherLocator": "#multiple-processes",
+          "exactSpan": "Quack in beta stage as of DuckDB v1.5.2",
+          "interpretation": "Client-server alternative and maturity qualifier; captured document wording."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H03",
+      "split": "heldout",
+      "family": "columnar_null_storage",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "For a non-nested Parquet column containing1000NULL values, are1000payload null values stored? Explain definition levels and run-length encoding.",
+      "correctedQuestion": "The column is nested. Does the simple non-nested example alone establish its exact encoding?",
+      "sourceIds": [
+        "parquet-nulls"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Definition-level encoding",
+        "No NULL values in data payload",
+        "Non-nested scope explicit; nested exact result unknown from this page"
+      ],
+      "references": [
+        {
+          "sourceId": "parquet-nulls",
+          "publisherLocator": "#nulls",
+          "exactSpan": "NULL values are not encoded in the data.",
+          "interpretation": "Do not conflate logical row count and physical value payload."
+        },
+        {
+          "sourceId": "parquet-nulls",
+          "publisherLocator": "#nulls",
+          "exactSpan": "a non-nested schema",
+          "interpretation": "The1000-null example is explicitly scoped."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H04",
+      "split": "heldout",
+      "family": "api_schema_version_migration",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Compare OpenAPI3.0.3 and3.1.0 when describing a string that may also be null. Can one assume identical nullable/type semantics?",
+      "correctedQuestion": "The consumer is pinned to3.0.3 and the schema specifies type:string. What does nullable:true add and what can other constraints still forbid?",
+      "sourceIds": [
+        "openapi303",
+        "openapi310"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "3.0.3 null not a type",
+        "nullable true requires same-object explicit type",
+        "3.1.0 JSON Schema2020-12 basis",
+        "Other constraints retained; tooling support not inferred"
+      ],
+      "references": [
+        {
+          "sourceId": "openapi303",
+          "publisherLocator": "#data-types",
+          "exactSpan": "null is not supported as a type",
+          "interpretation": "3.0.3-specific restriction."
+        },
+        {
+          "sourceId": "openapi303",
+          "publisherLocator": "#schema-object",
+          "exactSpan": "only if type is explicitly defined within the same Schema Object.",
+          "interpretation": "Nullable prerequisite; strip markup only for text comparison."
+        },
+        {
+          "sourceId": "openapi310",
+          "publisherLocator": "#data-types",
+          "exactSpan": "JSON Schema Specification Draft 2020-12",
+          "interpretation": "3.1.0 basis; any concrete union example requires that vocabulary."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H05",
+      "split": "heldout",
+      "family": "http_cache_directive_scope",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "Does Cache-Control:private prohibit browser/private-cache storage, or only shared-cache storage? Compare with a no-store response.",
+      "correctedQuestion": "The response instead uses qualified private=\"Set-Cookie\". Can the shared cache store the remaining response under the RFC constraints?",
+      "sourceIds": [
+        "rfc9111"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Private vs shared cache roles",
+        "No-store both classes with documented exception caveat",
+        "Qualified field-list semantics",
+        "No privacy guarantee from directive"
+      ],
+      "references": [
+        {
+          "sourceId": "rfc9111",
+          "publisherLocator": "#section-5.2.2.7",
+          "exactSpan": "a private cache MAY store the response",
+          "interpretation": "Unqualified private is not no-store."
+        },
+        {
+          "sourceId": "rfc9111",
+          "publisherLocator": "#section-5.2.2.5",
+          "exactSpan": "This directive applies to both private and shared caches.",
+          "interpretation": "No-store scope; other constraints and must-understand caveat retained."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": null,
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    },
+    {
+      "id": "MC-H06",
+      "split": "heldout",
+      "family": "image_physical_unit_interpretation",
+      "taskOrigin": "researcher_authored_source_inspected_not_user_validated",
+      "question": "A PNG pHYs chunk has X=3780,Y=3780,unit=0. Can it establish96DPI? Explain physical units versus aspect ratio.",
+      "correctedQuestion": "Change unit to1 with the same numbers. Calculate DPI using1inch=0.0254metres and distinguish approximation from exact96.",
+      "sourceIds": [
+        "png3"
+      ],
+      "mode": "supplied_public_document_diagnostic; discovery trial separately requires uninjected source search",
+      "mandatoryCriteria": [
+        "Unit0 unknown means aspect ratio only",
+        "Unit1 metre",
+        "3780*0.0254=96.012pixels/inch",
+        "Viewer scaling not guaranteed"
+      ],
+      "references": [
+        {
+          "sourceId": "png3",
+          "publisherLocator": "#11pHYs",
+          "exactSpan": "the actual size of the pixels remains unspecified.",
+          "interpretation": "Unit0 cannot establish DPI."
+        },
+        {
+          "sourceId": "png3",
+          "publisherLocator": "#11pHYs",
+          "exactSpan": "unit is the metre",
+          "interpretation": "Unit1 binds density to metres."
+        }
+      ],
+      "criticalFailures": [
+        "Invented positive eligibility without evidence",
+        "Lost negation,version,unit or scope",
+        "Corrected answer retains superseded constraint"
+      ],
+      "allowedUncertainty": "Explicit source-access/extraction limits; unsupported extrapolations remain unknown",
+      "calculation": {
+        "expression": "3780*0.0254",
+        "exactResult": "96.012",
+        "unit": "pixels/inch",
+        "assumption": "User supplies exact inch-to-metre conversion; pHYs unit1; viewer may rescale"
+      },
+      "humanAdjudication": null,
+      "modelRun": null,
+      "qualityScore": null
+    }
+  ],
+  "fidelityChecks": [
+    {
+      "id": "PG-TABLE-ROW",
+      "sourceId": "postgres17-isolation",
+      "kind": "table_row",
+      "cells": [
+        "Repeatable read",
+        "Not possible",
+        "Not possible",
+        "Allowed, but not in PG",
+        "Possible"
+      ],
+      "meaning": "Preserve row-column alignment; a bag of table words is insufficient."
+    },
+    {
+      "id": "PNG-UNIT-ROW",
+      "sourceId": "png3",
+      "kind": "table_row",
+      "cells": [
+        "1",
+        "unit is the metre"
+      ],
+      "meaning": "Unit selector1 stays mapped to metres."
+    },
+    {
+      "id": "ESP-RADIO-ROW",
+      "sourceId": "esp32",
+      "kind": "same_line_order",
+      "locator": "page:53/block:0",
+      "tokens": [
+        "Operating frequency range",
+        "2412",
+        "2484",
+        "MHz"
+      ],
+      "meaning": "Frequency min/max/unit must remain on same extracted physical line; does not certify general PDF table inference."
+    },
+    {
+      "id": "TI-TWO-COLUMN",
+      "sourceId": "tmp117",
+      "kind": "same_block_span",
+      "locator": "page:1/block:0",
+      "span": "\u00b10.1 \u00b0C (maximum) from \u201320 \u00b0C to 50 \u00b0C",
+      "meaning": "Preserve scoped maximum accuracy without interleaving adjacent-column description."
+    }
+  ]
+}

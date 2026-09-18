@@ -1,3 +1,5 @@
+import { SourceSheet } from "./src/SourceSheet";
+import { readSourceDetail } from "./src/source-view";
 import { AttachmentPanel } from "./src/AttachmentPanel";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -28,7 +30,7 @@ import { SupersededRequest } from "./src/request-scope";
 import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
 import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
 import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
-import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-layout";
+import { breakLongTokens, formatChangeSummary, parseTable, readingOffset, readingScrollY, visibleReadingBlock } from "./src/report-layout";
 import {
   androidBack,
   applySnapshot,
@@ -108,16 +110,23 @@ function AppInner() {
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
   const conversationScroll = useRef<ScrollView>(null);
   const blockY = useRef<Record<string, number>>({});
+  const reportCardY = useRef<number | null>(null);
+  const scrollY = useRef(0);
+  const layoutReport = useRef<string | null>(null);
+  if (layoutReport.current !== (state.report?.reportId ?? null)) {
+    layoutReport.current = state.report?.reportId ?? null;
+    blockY.current = {}; reportCardY.current = null; scrollY.current = 0;
+  }
 
   function restoreReadingPosition(blocks: ReportBlock[] | undefined, saved: UiState["readingAnchor"]) {
-    if (!blocks?.length || !saved) return;
+    if (!blocks?.length || !saved || saved.reportId !== layoutReport.current || reportCardY.current === null) return;
     const { anchor, note } = restoreAnchor(saved, blocks);
     if (note) {
       setState((s) => ({ ...s, error: note }));
     }
     const y = anchor?.blockId != null ? blockY.current[anchor.blockId] : undefined;
     if (y != null) {
-      conversationScroll.current?.scrollTo({ y: Math.max(0, y - 8), animated: false });
+      conversationScroll.current?.scrollTo({ y: readingScrollY(reportCardY.current, y, anchor?.offset ?? 0), animated: false });
     }
   }
 
@@ -133,11 +142,17 @@ function AppInner() {
 
   const persistAnchor = useCallback((reportId: string, blockId: string) => {
     setState((s) => {
-      const next = { ...s, readingAnchor: { reportId, blockId, offset: 0 } };
+      const next = { ...s, readingAnchor: { reportId, blockId, offset: readingOffset(scrollY.current, reportCardY.current ?? 0, blockY.current[blockId] ?? 0) } };
 
       return next;
     });
   }, [setState]);
+
+  function saveVisibleReadingPosition() {
+    if (!state.report || state.source || reportCardY.current === null) return;
+    const blockId = visibleReadingBlock(blockY.current, reportCardY.current, scrollY.current);
+    if (blockId) persistAnchor(state.report.reportId, blockId);
+  }
 
   async function ensureSession() {
     if (signingIn.current) return signingIn.current;
@@ -439,15 +454,15 @@ function AppInner() {
     }
   }
 
-  async function onOpenSource(id: string) {
+  async function onOpenSource(id: string, blockId: string) {
     try {
       const t = token;
       if (!t) {
         setViewState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
         return;
       }
-      if (state.report) persistAnchor(state.report.reportId, "answer");
-      const src = await api.source(t, id);
+      if (state.report) persistAnchor(state.report.reportId, blockId);
+      const src = readSourceDetail(await api.source(t, id));
       setViewState((s) => ({ ...s, source: src, tab: "research" }));
       AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
     } catch (e) {
@@ -616,6 +631,10 @@ function AppInner() {
             contentContainerStyle={{ paddingBottom: 200 }}
             keyboardShouldPersistTaps="handled"
             accessibilityLabel="Research conversation"
+            scrollEventThrottle={100}
+            onScroll={(event) => { scrollY.current = event.nativeEvent.contentOffset.y; }}
+            onScrollEndDrag={() => saveVisibleReadingPosition()}
+            onMomentumScrollEnd={() => saveVisibleReadingPosition()}
           >
             {!state.run && !state.report ? (
               <Text style={styles.welcome}>
@@ -673,7 +692,10 @@ function AppInner() {
             ) : null}
 
             {state.report ? (
-              <View style={styles.card} accessibilityLabel="Research report">
+              <View style={styles.card} accessibilityLabel="Research report" onLayout={(event) => {
+                reportCardY.current = event.nativeEvent.layout.y;
+                restoreReadingPosition(state.report?.blocks, state.readingAnchor);
+              }}>
                 <View style={styles.row}>
                   <Text style={styles.kicker}>{state.report.labeledDemo ? "Fixture report" : "Live report"}</Text>
                   <Pressable onPress={() => setDetailed((d) => !d)} accessibilityRole="button" accessibilityLabel={detailed ? "Show concise view" : "Show detailed view"}>
@@ -695,11 +717,11 @@ function AppInner() {
                     key={b.id}
                     block={b}
                     styles={styles}
-                    onOpenSource={(id) => void onOpenSource(id)}
+                    onOpenSource={(id) => void onOpenSource(id, b.id)}
                     onLayoutY={(y) => {
                       blockY.current[b.id] = y;
                       if (!state.source && state.readingAnchor?.blockId === b.id) {
-                        conversationScroll.current?.scrollTo({ y: Math.max(0, y - 8), animated: false });
+                        restoreReadingPosition(state.report?.blocks, state.readingAnchor);
                       }
                     }}
                   />
@@ -840,29 +862,17 @@ function AppInner() {
         ) : null}
 
         {state.source ? (
-          <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
-            <Text style={styles.title} accessibilityRole="header">{breakLongTokens(state.source.title)}</Text>
-            <Text style={styles.kicker}>{state.source.accessLevel}</Text>
-            <ScrollView style={styles.sheetBody} nestedScrollEnabled>
-              {state.source.passageLocator?.block ? <Text selectable style={styles.bodyText}>{state.source.passageLocator.block}</Text> : null}
-              {state.source.warnings?.length ? <Text style={styles.bodyText}>Partial extraction: some document structure or content may be unread.</Text> : null}
-              <Text selectable style={styles.bodyText}>{breakLongTokens(state.source.exactText)}</Text>
-            </ScrollView>
-            <Pressable
-              onPress={() => {
-                api.closeSource();
-                setState((s) => {
-                  const next = { ...s, source: null };
-                  requestAnimationFrame(() => restoreReadingPosition(next.report?.blocks, next.readingAnchor));
-                  return next;
-                });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Close source sheet"
-            >
-              <Text style={styles.link}>Close</Text>
-            </Pressable>
-          </View>
+          <SourceSheet source={state.source} styles={styles}
+            onOpenOriginal={(url) => {
+              const guard = api.captureView();
+              void Linking.openURL(url).catch(() => {
+                if (guard.current()) setViewState(s => ({ ...s, error: "Could not open the original source." }));
+              }).finally(() => guard.release());
+            }}
+            onClose={() => {
+              api.closeSource();
+              setState(s => ({ ...s, source: null }));
+            }} />
         ) : null}
 
         {state.tab === "library" ? (

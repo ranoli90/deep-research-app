@@ -1,0 +1,553 @@
+{
+  "version": "matched-corpus.v1",
+  "timestamp": "2026-09-18T00:50:58.997Z",
+  "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "workingTree": "Uncommitted corpus registration",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "runtime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "paidCalls": 0,
+  "humanAdjudication": null,
+  "evidenceClass": "actual_offline_extraction_no_models",
+  "normalization": "NFKC,soft-hyphen removal,Unicode dash/minus canonicalization,physical hyphen linejoin and whitespace only; raw evidence unchanged",
+  "records": [
+    {
+      "id": "sqlite-wal",
+      "sha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+      "bytes": 42143,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 72,
+      "tableCount": 0,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "sqlite-wal",
+          "publisherLocator": "#overview",
+          "exactSpan": "WAL does not work over a network filesystem.",
+          "interpretation": "Reject original network-filesystem requirement.",
+          "locators": []
+        },
+        {
+          "sourceId": "sqlite-wal",
+          "publisherLocator": "#concurrency",
+          "exactSpan": "there can only be one writer at a time.",
+          "interpretation": "Read/write concurrency is not multi-writer concurrency.",
+          "locators": [
+            "block:10"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 1,
+      "wallMs": 1015.4696210000001
+    },
+    {
+      "id": "postgres17-isolation",
+      "sha256": "41eedd5ade136eda2e8fe6f211bff5e55b1165134211e1ddd52ca204f8c67587",
+      "bytes": 47686,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 64,
+      "tableCount": 3,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "postgres17-isolation",
+          "publisherLocator": "#MVCC-ISOLEVEL-TABLE",
+          "exactSpan": "Allowed, but not in PG",
+          "interpretation": "Repeatable-read phantom column must stay paired with its row.",
+          "locators": [
+            "table:1"
+          ]
+        },
+        {
+          "sourceId": "postgres17-isolation",
+          "publisherLocator": "#XACT-REPEATABLE-READ",
+          "exactSpan": "must be prepared to retry transactions due to serialization failures.",
+          "interpretation": "Retries may be needed even with Repeatable Read.",
+          "locators": [
+            "block:27",
+            "block:36"
+          ]
+        }
+      ],
+      "fidelity": [
+        {
+          "id": "PG-TABLE-ROW",
+          "sourceId": "postgres17-isolation",
+          "kind": "table_row",
+          "cells": [
+            "Repeatable read",
+            "Not possible",
+            "Not possible",
+            "Allowed, but not in PG",
+            "Possible"
+          ],
+          "meaning": "Preserve row-column alignment; a bag of table words is insufficient.",
+          "passed": true
+        }
+      ],
+      "missingReferences": 0,
+      "wallMs": 1084.6300449999999
+    },
+    {
+      "id": "python313-tomllib",
+      "sha256": "f12de52845acd79cd62a6d7c545cc3da0c47ead7adeade514a8c3ebfc6b53686",
+      "bytes": 26059,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 21,
+      "tableCount": 1,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "python313-tomllib",
+          "publisherLocator": "#module-tomllib",
+          "exactSpan": "This module does not support writing TOML.",
+          "interpretation": "Do not infer writer from parser.",
+          "locators": [
+            "block:3"
+          ]
+        },
+        {
+          "sourceId": "python313-tomllib",
+          "publisherLocator": "#module-tomllib",
+          "exactSpan": "style-preserving TOML library with both read and write capability",
+          "interpretation": "The page describes TOML Kit; evidence scope is this documentation.",
+          "locators": [
+            "block:9"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 915.7044769999998
+    },
+    {
+      "id": "rfc9112",
+      "sha256": "b260bba790c2da55a7e0795f356fcd9b70743686c55250f0ef1cc993c4d1abac",
+      "bytes": 649012,
+      "status": "partial",
+      "version": "docling-parse-7.20.0/geometry-v1",
+      "warnings": [
+        "pdf_layout_tables_and_ocr_unverified"
+      ],
+      "blockCount": 46,
+      "tableCount": 0,
+      "geometryCells": 2837,
+      "matches": [
+        {
+          "sourceId": "rfc9112",
+          "publisherLocator": "section6.2;PDFpage18",
+          "exactSpan": "A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.",
+          "interpretation": "Prior parser-development case, intentionally not held-out.",
+          "locators": [
+            "page:18/block:0"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 3375.189892
+    },
+    {
+      "id": "tmp117",
+      "sha256": "b33614678dd46e7997f813ccefb118796dcbcc97c9ba264806703ee453a3d555",
+      "bytes": 1718295,
+      "status": "partial",
+      "version": "docling-parse-7.20.0/geometry-v1",
+      "warnings": [
+        "pdf_layout_tables_and_ocr_unverified"
+      ],
+      "blockCount": 50,
+      "tableCount": 0,
+      "geometryCells": 4234,
+      "matches": [
+        {
+          "sourceId": "tmp117",
+          "publisherLocator": "PDFpage1 features;page6 electrical-characteristics table",
+          "exactSpan": "±0.1 °C (maximum) from –20 °C to 50 °C",
+          "interpretation": "Narrow original range.",
+          "locators": [
+            "page:1/block:0"
+          ]
+        },
+        {
+          "sourceId": "tmp117",
+          "publisherLocator": "PDFpage1 features",
+          "exactSpan": "±0.15 °C (maximum) from –40 °C to 70 °C",
+          "interpretation": "Wider range exceeds stated requirement.",
+          "locators": [
+            "page:1/block:0"
+          ]
+        }
+      ],
+      "fidelity": [
+        {
+          "id": "TI-TWO-COLUMN",
+          "sourceId": "tmp117",
+          "kind": "same_block_span",
+          "locator": "page:1/block:0",
+          "span": "±0.1 °C (maximum) from –20 °C to 50 °C",
+          "meaning": "Preserve scoped maximum accuracy without interleaving adjacent-column description.",
+          "passed": true
+        }
+      ],
+      "missingReferences": 0,
+      "wallMs": 3809.935818
+    },
+    {
+      "id": "rfc8259",
+      "sha256": "5302d6ccb6cf221817bdd1f8cd7221661d4519372e0ac0b4cf641e11e8037de7",
+      "bytes": 37946,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 1,
+      "tableCount": 0,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "rfc8259",
+          "publisherLocator": "#section-6",
+          "exactSpan": "[-(2**53)+1, (2**53)-1]",
+          "interpretation": "The RFC scopes agreement to this integer range.",
+          "locators": [
+            "block:0"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 975.9267209999998
+    },
+    {
+      "id": "esp32",
+      "sha256": "a7917e6b47528c9dcab06837a49d452e582751335797db879f1cf2d17cd29adf",
+      "bytes": 989523,
+      "status": "partial",
+      "version": "docling-parse-7.20.0/geometry-v1",
+      "warnings": [
+        "pdf_layout_tables_and_ocr_unverified"
+      ],
+      "blockCount": 78,
+      "tableCount": 0,
+      "geometryCells": 9046,
+      "matches": [
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage53 table5-6",
+          "exactSpan": "2412",
+          "interpretation": "Lower bound MHz in operating-frequency row.",
+          "locators": [
+            "page:53/block:0"
+          ]
+        },
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage53 table5-6",
+          "exactSpan": "2484",
+          "interpretation": "Upper bound MHz in same row.",
+          "locators": [
+            "page:53/block:0"
+          ]
+        },
+        {
+          "sourceId": "esp32",
+          "publisherLocator": "PDFpage54 table5-6 note1",
+          "exactSpan": "frequency range allocated by regional regulatory authorities",
+          "interpretation": "Band capability does not waive operating restrictions.",
+          "locators": [
+            "page:54/block:0"
+          ]
+        }
+      ],
+      "fidelity": [
+        {
+          "id": "ESP-RADIO-ROW",
+          "sourceId": "esp32",
+          "kind": "same_line_order",
+          "locator": "page:53/block:0",
+          "tokens": [
+            "Operating frequency range",
+            "2412",
+            "2484",
+            "MHz"
+          ],
+          "meaning": "Frequency min/max/unit must remain on same extracted physical line; does not certify general PDF table inference.",
+          "passed": true
+        }
+      ],
+      "missingReferences": 0,
+      "wallMs": 4925.543666000001
+    },
+    {
+      "id": "duckdb-concurrency",
+      "sha256": "b42eab31c3fcb781ab35eb4815c7b6bfa7c132336bc5e783803f698289a92342",
+      "bytes": 346645,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 17,
+      "tableCount": 0,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "duckdb-concurrency",
+          "publisherLocator": "#single-process",
+          "exactSpan": "one process can both read and write to the database.",
+          "interpretation": "Single-process in-process mode.",
+          "locators": [
+            "block:4"
+          ]
+        },
+        {
+          "sourceId": "duckdb-concurrency",
+          "publisherLocator": "#multiple-processes",
+          "exactSpan": "Quack in beta stage as of DuckDB v1.5.2",
+          "interpretation": "Client-server alternative and maturity qualifier; captured document wording.",
+          "locators": [
+            "block:9"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 1067.6415119999983
+    },
+    {
+      "id": "parquet-nulls",
+      "sha256": "a89f191a2d3e19bcf98d558184adc143c7f0b6ae1c2a4f9168a8ac1f4d07173e",
+      "bytes": 360420,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 2,
+      "tableCount": 0,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "parquet-nulls",
+          "publisherLocator": "#nulls",
+          "exactSpan": "NULL values are not encoded in the data.",
+          "interpretation": "Do not conflate logical row count and physical value payload.",
+          "locators": [
+            "block:1"
+          ]
+        },
+        {
+          "sourceId": "parquet-nulls",
+          "publisherLocator": "#nulls",
+          "exactSpan": "a non-nested schema",
+          "interpretation": "The1000-null example is explicitly scoped.",
+          "locators": [
+            "block:1"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 903.4976449999995
+    },
+    {
+      "id": "openapi310",
+      "sha256": "156788f23f0e3be376b9635f70451535e4280c3227747dbdd1dd6a0e50f61f1b",
+      "bytes": 408180,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 366,
+      "tableCount": 39,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "openapi310",
+          "publisherLocator": "#data-types",
+          "exactSpan": "JSON Schema Specification Draft 2020-12",
+          "interpretation": "3.1.0 basis; any concrete union example requires that vocabulary.",
+          "locators": [
+            "block:3",
+            "block:200",
+            "table:0",
+            "table:1",
+            "table:6",
+            "table:7",
+            "table:9",
+            "table:13",
+            "table:15",
+            "table:18",
+            "table:25",
+            "table:26"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 2354.2194149999996
+    },
+    {
+      "id": "openapi303",
+      "sha256": "aa44ce99fca57ea67e9943ab70305565dcf0ce97a516a56ff5bf758a19e7b4de",
+      "bytes": 400344,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 571,
+      "tableCount": 39,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "openapi303",
+          "publisherLocator": "#data-types",
+          "exactSpan": "null is not supported as a type",
+          "interpretation": "3.0.3-specific restriction.",
+          "locators": [
+            "block:37",
+            "table:0",
+            "table:15"
+          ]
+        },
+        {
+          "sourceId": "openapi303",
+          "publisherLocator": "#schema-object",
+          "exactSpan": "only if type is explicitly defined within the same Schema Object.",
+          "interpretation": "Nullable prerequisite; strip markup only for text comparison.",
+          "locators": [
+            "block:410",
+            "table:6",
+            "table:7",
+            "table:13",
+            "table:18",
+            "table:30"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 3364.5644409999986
+    },
+    {
+      "id": "rfc9111",
+      "sha256": "ce91ee9848d2b9ac46386b0f0cbd4bfd9c0cd1948ebc363834cadc7e0997f3d7",
+      "bytes": 232630,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 270,
+      "tableCount": 3,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "rfc9111",
+          "publisherLocator": "#section-5.2.2.7",
+          "exactSpan": "a private cache MAY store the response",
+          "interpretation": "Unqualified private is not no-store.",
+          "locators": [
+            "block:178",
+            "table:1",
+            "table:2"
+          ]
+        },
+        {
+          "sourceId": "rfc9111",
+          "publisherLocator": "#section-5.2.2.5",
+          "exactSpan": "This directive applies to both private and shared caches.",
+          "interpretation": "No-store scope; other constraints and must-understand caveat retained.",
+          "locators": [
+            "block:157",
+            "table:1",
+            "table:2"
+          ]
+        }
+      ],
+      "fidelity": [],
+      "missingReferences": 0,
+      "wallMs": 1364.3335679999982
+    },
+    {
+      "id": "png3",
+      "sha256": "a3ac82bb9eb8664b93961a2a9ff6def3d70e3a9f63d92721143c1f391d04edec",
+      "bytes": 656574,
+      "status": "partial",
+      "version": "trafilatura-2.2.0/structure-v1",
+      "warnings": [
+        "main_content_extraction_may_omit_regions",
+        "table_order_preserved_separately"
+      ],
+      "blockCount": 712,
+      "tableCount": 56,
+      "geometryCells": 0,
+      "matches": [
+        {
+          "sourceId": "png3",
+          "publisherLocator": "#11pHYs",
+          "exactSpan": "the actual size of the pixels remains unspecified.",
+          "interpretation": "Unit0 cannot establish DPI.",
+          "locators": [
+            "block:321",
+            "table:6"
+          ]
+        },
+        {
+          "sourceId": "png3",
+          "publisherLocator": "#11pHYs",
+          "exactSpan": "unit is the metre",
+          "interpretation": "Unit1 binds density to metres.",
+          "locators": [
+            "table:6",
+            "table:43"
+          ]
+        }
+      ],
+      "fidelity": [
+        {
+          "id": "PNG-UNIT-ROW",
+          "sourceId": "png3",
+          "kind": "table_row",
+          "cells": [
+            "1",
+            "unit is the metre"
+          ],
+          "meaning": "Unit selector1 stays mapped to metres.",
+          "passed": true
+        }
+      ],
+      "missingReferences": 0,
+      "wallMs": 2604.0588089999983
+    }
+  ],
+  "failures": 1
+}

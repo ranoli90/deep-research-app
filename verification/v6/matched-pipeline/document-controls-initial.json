@@ -1,0 +1,17 @@
+{
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the ABUFCR field note say about underwater recording?",
+      "sourceSha256": "5c10e549ea1160f3a621ccfeb0e9196566de83c4b5b146b873365111722fc8c7",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    }
+  ]
+}

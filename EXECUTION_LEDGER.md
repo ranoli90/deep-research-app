@@ -596,3 +596,19 @@ Checkpoint review final: limited publication now independently revalidates targe
 Source/doc staged diff check (excluding raw verification logs) passed. The unfiltered staged diff check flags trailing blank lines in preserved terminal logs; their exact bytes/hashes are intentionally retained rather than normalized. Document validators reran exit0 after canonical updates.
 
 Reviewed implementation committed as `002e2d6f27e4bcf111cdc48f028a688f55c99713`; no push/deployment. Both user ZIPs remain untracked and intact. Follow-on code starts from this checkpoint.
+
+## V6 follow-on local integration — 2026-09-17
+
+W02/W03/W04/W06/W07/W08/W09, metadata baseea03632642d8aca1a215cb4e3f1fd02a7c7f66c6 plus uncommitted changes. Node20.20.2/pnpm9.15.9/Python3.12.3; real local PostgreSQL and isolated actual extraction; fabricated provider responses only, paid0. Focused provider recovery13/13 exit0 (2.07s), transport10/10 exit0, backend typecheck exit0. Preserved failed earlier integration7/8 was test-probe self-contention; original source-deletion/strategy failures also retained. Source-deletion6PGcontrols, strategy1PGcontrol, matched3actual-extraction controls and mobile67unit/type/export evidence are linked through verification/v6/RESULTS.json and per-directory FILES.json.
+
+Source-inspected receipt review found undersized historical liability release and cross-account receipt/admission race; repaired with blocked insufficient holds and account/run→global(shared;exclusive for legacy unbound)→key→project locks. Actual DB barriers exercise three overlapping scopes; old semantic receipts remain unchanged. No production accounting repair or external metadata lookup executed.
+
+Native current Expo Go actual PDF/API/worker report→source→reopen→correction→share preview (14fabricated model calls/0paid), existing old standalone unchanged. Required page/geometry and bibliography observed; process-restart reading-position check not passed. Harness SIGTERM cleanup deleted1created account; API/Metro stopped, synthetic file and reverse mappings removed. Agent usage limits interrupted remaining reviews; source saved.
+
+Corpus frozen12tasks/13official documents before actual extraction. Acquisition first failed official redirect allowlist then corrected registered destination; source bytes reused by hash. Extraction retains1missing SQLite reference span. Neither narrow fidelity nor fabricated matched traces imply semantic superiority; B HTML latency slower than A1 remains evidence.
+
+Integrated verify exit0:148core/114backend/67mobile/6governance; configured typechecks and boundaries passed. Removed pre-existing design typecheck `|| true`; subsequent `pnpm typecheck` exit0 includes unsuppressed design check. Full integration first exit1 (201pass/127fail/1unhandled rejection): prior focused synthetic NULL-key overrun correctly blocked all keys. Fixed test cleanup to restore its unique dummy key after proving legacy-global behavior; production guard unchanged. Inspected and isolated exact retained synthetic intent9f3586b0-1634-4e81-b187-349f3ae2a4cc in standard test DB without changing financial amounts; receipt log preserved. Full integration rerun is required and running.
+
+Integrated PostgreSQL rerun terminal exit0:328/328,19files,313.52s; gateway136controls pass. Exact command pnpm test:integration, artifactverification/v6/follow-on/integration-final.log. Actual extraction starts afterward, serially. Preserved original matched document-controls.json as document-controls-pre-integrated.json before suite output replaces the current trace.
+
+Actual extraction terminal exit0:17/17,4files,93.40s; EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction; artifactverification/v6/follow-on/extraction.log. Final backend types exit0 after test isolation cleanup. No native/signed-build or live semantic claim follows from these controls.

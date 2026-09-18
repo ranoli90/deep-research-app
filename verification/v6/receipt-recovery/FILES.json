@@ -1,0 +1,42 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "20423de0c291449d4df4517f980c23a3e2f77a5e3845adc68f2edfbebf2db459"
+  },
+  {
+    "path": "help.log",
+    "sha256": "10cc30088cb69c1d967f4550ca288438a4625c28e320e033caa5fcc96c3747f7"
+  },
+  {
+    "path": "integration-final.log",
+    "sha256": "6069b5e1fdc54f77e5a4f03228ba991d7365088c3938e95ba58c05e139de8108"
+  },
+  {
+    "path": "integration-initial.log",
+    "sha256": "4b260ae5c28ec486e83e7734c1dcd8794125670b36fc97da2671276948ef8393"
+  },
+  {
+    "path": "integration-reviewed.log",
+    "sha256": "3c1feef12a450bec24d59869d88a45900e346a2addc3a11fe90d0da45ad6a407"
+  },
+  {
+    "path": "test-isolation-cleanup.log",
+    "sha256": "4d1015a08103314b523b86f44f24a864c1cf10ffc90aeef90c0b3c2b16222f4e"
+  },
+  {
+    "path": "transport-unit.log",
+    "sha256": "1bd68bf6509b8c1952135930ff0aaf40bf83a2ede1436e21ebff5bb3d5480330"
+  },
+  {
+    "path": "types-final.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "types-initial.log",
+    "sha256": "74055ba1fc59650899a34979258f2a7994b5b0c848f6feaf61e612061c240b58"
+  },
+  {
+    "path": "types-reviewed.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  }
+]

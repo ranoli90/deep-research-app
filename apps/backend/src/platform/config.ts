@@ -1,3 +1,4 @@
+import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
 
 export type AppConfig = {
@@ -13,6 +14,7 @@ export type AppConfig = {
   fixtureRouteAllowed: boolean;
   liveRouteEnabled: boolean;
   structuredModelEnabled?: boolean;
+  structuredStrategy?: ResearchStrategy;
   structuredDiscoveryEnabled?: boolean;
   structuredChallengeEnabled?: boolean;
   liveRetrievalEnabled: boolean;
@@ -23,7 +25,7 @@ export type AppConfig = {
   liveKeySpendCapMicro?: number;
   consentPolicyVersion: string;
   writingCancelWindowMs: number;
-  /** Live comparison arm. Default adaptive; baseline is the bounded chooser. */
+  /** Historical diagnostic chooser only; production uses persisted structuredStrategy. */
   liveControllerKind: "baseline" | "adaptive";
 };
 
@@ -66,6 +68,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     fixtureRouteAllowed,
     liveRouteEnabled,
     structuredModelEnabled: env.STRUCTURED_MODEL_ENABLED === "true",
+    structuredStrategy: researchStrategy(env.STRUCTURED_RESEARCH_STRATEGY),
     structuredDiscoveryEnabled: env.STRUCTURED_DISCOVERY_ENABLED === "true",
     structuredChallengeEnabled: env.STRUCTURED_CHALLENGE_ENABLED === "true",
     liveRetrievalEnabled: env.LIVE_RETRIEVAL_ENABLED === "true",

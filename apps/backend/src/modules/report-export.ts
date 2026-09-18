@@ -57,7 +57,7 @@ export async function exportReportForAccount(db: Queryable, reportId: string, ac
       )
     ) e),'[]'::jsonb) AS sources
     FROM reports r JOIN accounts a ON a.id=r.account_id
-    WHERE r.id=$1 AND r.account_id=$2 AND a.deleted_at IS NULL`, [reportId, accountId]);
+    WHERE r.id=$1 AND r.account_id=$2 AND a.deleted_at IS NULL AND r.redacted_at IS NULL`, [reportId, accountId]);
   if (!report.rows[0]) return null;
   const blocks = ReportBlockSchema.array().parse(report.rows[0].blocks);
   const limitations = CanonicalReportSchema.shape.limitations.parse(report.rows[0].limitations);

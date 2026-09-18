@@ -1,4 +1,5 @@
 import { admitResearchCorrection } from "../modules/research-corrections.js";
+import { deleteSourceForAccount } from "../modules/source-deletion.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
   CONSENT_POLICY_VERSION,
@@ -161,7 +162,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const idempotencyKey = String(req.headers["idempotency-key"] ?? crypto.randomUUID());
     try {
-      const created = await admitRun(pool, a.accountId, idempotencyKey, input);
+      const created = await admitRun(pool, a.accountId, idempotencyKey, input, { strategy: config.structuredStrategy });
       await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {
@@ -485,6 +486,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!row) return reply.code(404).send(err("permission_denied", "Source not found.", crypto.randomUUID()));
     return {
       passageId: row.id,
+      sourceId: row.source_id,
       title: row.title,
       locator: row.canonical_locator,
       publisher: row.publisher,
@@ -498,6 +500,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       warnings: row.quality_warnings,
       labeledDemo: row.route_mode === "fixture",
     };
+  });
+
+  app.delete("/v1/sources/:id", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const result = await deleteSourceForAccount(pool, a.accountId, (req.params as { id: string }).id);
+    try { await drainFileDeletions(pool, config.storageDir, a.accountId); }
+    catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
+    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [a.accountId]);
+    return { ...result, fileCleanupPending: pending.rowCount !== 0 };
   });
 
   app.get("/v1/library", async (req, reply) => {

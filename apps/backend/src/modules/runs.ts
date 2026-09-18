@@ -1,3 +1,4 @@
+import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
@@ -9,6 +10,7 @@ export type RunRow = {
   brief_id: string;
   parent_run_id: string | null;
   route_mode: string;
+  research_strategy: ResearchStrategy;
   lifecycle: Lifecycle;
   phase: Phase;
   terminal_outcome: TerminalOutcome | null;
@@ -31,6 +33,7 @@ function mapRun(r: Record<string, unknown>): RunRow {
     brief_id: String(r.brief_id),
     parent_run_id: r.parent_run_id ? String(r.parent_run_id) : null,
     route_mode: String(r.route_mode),
+    research_strategy: researchStrategy(r.research_strategy),
     lifecycle: r.lifecycle as Lifecycle,
     phase: r.phase as Phase,
     terminal_outcome: (r.terminal_outcome as TerminalOutcome) ?? null,
@@ -92,6 +95,7 @@ export async function insertRun(
     briefId: string;
     parentRunId?: string;
     routeMode: string;
+    researchStrategy?: ResearchStrategy;
     briefRevision: number;
     consentEpoch: number;
     idempotencyKey: string;
@@ -99,11 +103,15 @@ export async function insertRun(
   },
 ): Promise<void> {
   if (db instanceof pg.Pool) return withTx(db, (client) => insertRun(client, row));
+  const parent = row.parentRunId ? await getRun(db, row.parentRunId) : null;
+  if (row.parentRunId && (!parent || parent.account_id !== row.accountId)) throw new Error("permission_denied");
+  if (parent && (await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[row.accountId,parent.id])).rowCount) throw Object.assign(new Error("source_deleted"),{code:"permission_denied",statusCode:409});
+  const strategy = parent?.research_strategy ?? researchStrategy(row.researchStrategy);
   await db.query(
     `INSERT INTO runs (
       id, account_id, conversation_id, brief_id, parent_run_id, route_mode, lifecycle, phase,
-      brief_revision, consent_epoch, idempotency_key, budget_micro
-    ) VALUES ($1,$2,$3,$4,$5,$6,'queued','preparing',$7,$8,$9,$10)`,
+      brief_revision, consent_epoch, idempotency_key, budget_micro, research_strategy
+    ) VALUES ($1,$2,$3,$4,$5,$6,'queued','preparing',$7,$8,$9,$10,$11)`,
     [
       row.id,
       row.accountId,
@@ -115,6 +123,7 @@ export async function insertRun(
       row.consentEpoch,
       row.idempotencyKey,
       row.budgetMicro,
+      strategy,
     ],
   );
   await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1) ON CONFLICT DO NOTHING`, [row.id]);

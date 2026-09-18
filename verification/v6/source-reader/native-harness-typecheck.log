@@ -1,0 +1,5 @@
+
+> @deep/backend@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+exit_code=0

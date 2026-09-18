@@ -1,0 +1,79 @@
+{
+  "task": "V6-W01-W09",
+  "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "revisionScope": "Uncommitted follow-on working tree",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "postgres": "127.0.0.1:55432 deep_research_test",
+    "platform": "Linux"
+  },
+  "results": [
+    {
+      "artifact": "verify.log",
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "scope": "148core/114backend/67mobile/6governance; original masked design script at this run, replaced and separately verified below",
+      "sha256": "55ace392ea5e13b4661e8262dea24f51d7377c28f6c2dc53e9c9b462ba04130f"
+    },
+    {
+      "artifact": "typecheck-strict-design.log",
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Unsuppressed design check plus contracts/core/backend",
+      "sha256": "98eccaab333e86cada6d717934a66ab52a427f9ca2f49bb3a626e28bc09e2699"
+    },
+    {
+      "artifact": "integration.log",
+      "command": "pnpm test:integration",
+      "exitCode": 1,
+      "scope": "201pass/127fail and1unhandled rejection; retained synthetic NULL-key overrun contaminated shared standard DB",
+      "sha256": "5ecd5f350317159c53bbfb6c5d4c76bd3b2a46ce44ddcab34b315c14439fa601"
+    },
+    {
+      "artifact": "integration-final.log",
+      "command": "pnpm test:integration",
+      "exitCode": 0,
+      "scope": "328/328 across19files,313.52s; production guard unchanged, test key isolation repaired",
+      "sha256": "b2ec032e35742cccaf6101bd48dec277d62402c035c37203ebe942c84483efc8"
+    },
+    {
+      "artifact": "review-validator-tests.log",
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exitCode": 0,
+      "scope": "16/16 validator regression tests",
+      "sha256": "3cae12aad51b129a1dc35e7712f09fc3923be0c4ca7043470202c45a788b182a"
+    },
+    {
+      "artifact": "review-validator-final.log",
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "scope": "Review metadata integrity only",
+      "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+    },
+    {
+      "artifact": "handoff-validator-final.log",
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "scope": "Handoff document integrity only",
+      "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+    },
+    {
+      "artifact": "extraction.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "scope": "17/17 actual parser/API/worker controls,4files,93.40s; fabricated model/search transport",
+      "sha256": "bab83f2d3695700dce9ed7a8b37dab0b309a1a8c02e57c5166438def4b0e6d09"
+    },
+    {
+      "artifact": "backend-types-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Final test isolation cleanup types",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "paidCalls": 0,
+  "gates": "Milestone incomplete. Local combined verification complete; clean checkout and hosted CI not executed. Paid semantic quality and native release unproven."
+}

@@ -1,0 +1,124 @@
+{
+  "version": "matched-corpus.v1",
+  "acquisitionScope": "Public non-sensitive official documents; evaluator acquisition8MiB/document differs from production1.5MB public-fetch limit; original bytes are not model input until separately admitted",
+  "sources": [
+    {
+      "id": "sqlite-wal",
+      "url": "https://www.sqlite.org/wal.html",
+      "mime": "text/html",
+      "title": "SQLite WAL documentation",
+      "license": "SQLite public-domain project; page links publisher license; retain original notices",
+      "access": "public_document",
+      "file": "sqlite-wal.html"
+    },
+    {
+      "id": "postgres17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "mime": "text/html",
+      "title": "PostgreSQL17 transaction isolation",
+      "license": "PostgreSQL documentation copyright/license; retain original notices",
+      "access": "public_document",
+      "file": "postgres17-isolation.html"
+    },
+    {
+      "id": "python313-tomllib",
+      "url": "https://docs.python.org/3.13/library/tomllib.html",
+      "mime": "text/html",
+      "title": "Python3.13 tomllib",
+      "license": "PSF documentation license; retain original notices",
+      "access": "public_document",
+      "file": "python313-tomllib.html"
+    },
+    {
+      "id": "rfc9112",
+      "url": "https://www.rfc-editor.org/rfc/rfc9112.pdf",
+      "mime": "application/pdf",
+      "title": "RFC9112 HTTP/1.1",
+      "license": "IETF Trust BCP78 provisions; preserve complete original notice; not a code-license assertion",
+      "access": "public_document",
+      "file": "rfc9112.pdf"
+    },
+    {
+      "id": "tmp117",
+      "url": "https://www.ti.com/lit/ds/symlink/tmp117.pdf",
+      "mime": "application/pdf",
+      "title": "TI TMP117 datasheet RevD",
+      "license": "Copyright2022 Texas Instruments; evaluation copy only, no redistribution grant asserted",
+      "access": "public_document",
+      "file": "tmp117.pdf"
+    },
+    {
+      "id": "rfc8259",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
+      "mime": "text/html",
+      "title": "RFC8259 JSON",
+      "license": "IETF Trust BCP78 provisions; preserve complete original notice",
+      "access": "public_document",
+      "file": "rfc8259.html"
+    },
+    {
+      "id": "esp32",
+      "url": "https://documentation.espressif.com/esp32_datasheet_en.pdf",
+      "mime": "application/pdf",
+      "title": "Espressif ESP32 Series datasheet v5.3",
+      "license": "Espressif copyright; evaluation copy only, no redistribution grant asserted",
+      "access": "public_document",
+      "file": "esp32.pdf",
+      "discoveryUrl": "https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf"
+    },
+    {
+      "id": "duckdb-concurrency",
+      "url": "https://duckdb.org/docs/current/connect/concurrency",
+      "mime": "text/html",
+      "title": "DuckDB current concurrency",
+      "license": "DuckDB Foundation copyright; no document redistribution license assumed from engine license",
+      "access": "public_document",
+      "file": "duckdb-concurrency.html"
+    },
+    {
+      "id": "parquet-nulls",
+      "url": "https://parquet.apache.org/docs/file-format/nulls/",
+      "mime": "text/html",
+      "title": "Apache Parquet null encoding",
+      "license": "Apache Software Foundation site license link; original notices retained",
+      "access": "public_document",
+      "file": "parquet-nulls.html"
+    },
+    {
+      "id": "openapi310",
+      "url": "https://spec.openapis.org/oas/v3.1.0.html",
+      "mime": "text/html",
+      "title": "OpenAPI3.1.0",
+      "license": "Linux Foundation copyright; OpenAPI Specification Apache2.0 project; original notices retained",
+      "access": "public_document",
+      "file": "openapi310.html"
+    },
+    {
+      "id": "openapi303",
+      "url": "https://spec.openapis.org/oas/v3.0.3.html",
+      "mime": "text/html",
+      "title": "OpenAPI3.0.3",
+      "license": "Linux Foundation copyright; OpenAPI Specification Apache2.0 project; original notices retained",
+      "access": "public_document",
+      "file": "openapi303.html"
+    },
+    {
+      "id": "rfc9111",
+      "url": "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "mime": "text/html",
+      "title": "RFC9111 HTTP caching",
+      "license": "IETF Trust BCP78 provisions; preserve complete original notice",
+      "access": "public_document",
+      "file": "rfc9111.html"
+    },
+    {
+      "id": "png3",
+      "url": "https://www.w3.org/TR/png-3/",
+      "mime": "text/html",
+      "title": "PNG third edition",
+      "license": "W3C document license/copyright retained; no license inferred for other linked assets",
+      "access": "public_document",
+      "file": "png3.html"
+    }
+  ]
+}

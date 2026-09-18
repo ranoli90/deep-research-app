@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/source-deletion.integration.test.ts (6 tests) 4462ms
+   ✓ W03/W06 deletes owned source and reused descendants, preserving unrelated raw evidence and accounts  1476ms
+   ✓ W03 DELETE source is authenticated, owner-bound and idempotent; source reader returns its deletion handle  631ms
+   ✓ W03 deletes all extraction copies of one attachment and rejects a late parser result  557ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  18:44:47
+   Duration  11.34s (transform 3.75s, setup 0ms, collect 6.21s, tests 4.46s, environment 1ms, prepare 248ms)
+

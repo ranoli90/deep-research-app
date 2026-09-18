@@ -302,5 +302,157 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/test/p3-remaining.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/research-strategy.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Pure strategy choice controls; no network",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/research-strategy.unit.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/research-strategy.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Real local PostgreSQL persisted strategy/admission controls; serialize DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/research-strategy.integration.test.ts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/matched-pipeline.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Matched production workflow with actual parser and fabricated provider transports; serialize DB; not semantic quality",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/matched-pipeline.extraction.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local owned source deletion and dependent invalidation; serialize shared PostgreSQL",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/source-deletion.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Local PostgreSQL financial reconciliation with fabricated metadata lookup; serialize DB",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/provider-reconciliation.integration.test.ts"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/generation-receipt.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Nonbillable controlled generation receipt transport",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/generation-receipt.unit.test.ts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --help",
+    "status": "implemented_application_command",
+    "scope": "Operator help only; no database or network call",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --intent <intent-uuid>",
+    "status": "implemented_application_command",
+    "scope": "Read-only configured local financial metadata; no provider request",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --intent <intent-uuid> --apply",
+    "status": "implemented_application_command",
+    "scope": "Explicit operator financial lookup via fixed read-only provider generation endpoint; no paid completion/search; current project key must match recorded scope; not run live",
+    "network": true,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "pnpm exec tsx scripts/reconcile-provider.mts --repair-run <run-uuid> --account <account-uuid> --apply",
+    "status": "implemented_application_command",
+    "scope": "Explicit transactional repair of provably estimated historical accounting; known settlement basis required; never guesses/refunds unknown amounts",
+    "network": false,
+    "paid": false,
+    "implementation": "scripts/reconcile-provider.mts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+    "status": "implemented_application_command",
+    "scope": "Explicit test-only local API/production worker plus actual parser and fabricated provider responses; native-source-reader separate DB preserves tombstones; API loopback only; unexpected external fetch denied; no live quality or standalone build claim",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/native-source-reader.ts"
+  },
+  {
+    "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts acquire",
+    "status": "implemented_application_command",
+    "scope": "Bounded official public document fetch8MiB per file; no model or paid service; saved byte hashes",
+    "network": true,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm exec tsx evals/matched-pipeline/corpus.mts extract",
+    "status": "implemented_application_command",
+    "scope": "Existing isolated actual parser over frozen corpus; no database/provider; fidelity measured with retained failures",
+    "network": false,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "pnpm exec tsx evals/matched-pipeline/corpus.mts validate",
+    "status": "implemented_application_command",
+    "scope": "Frozen task/source/reference hashes and split integrity only; no quality claim",
+    "network": false,
+    "paid": false,
+    "implementation": "evals/matched-pipeline/corpus.mts"
+  },
+  {
+    "command": "pnpm install --frozen-lockfile",
+    "status": "implemented_application_command",
+    "scope": "Install JavaScript lockfile; dependency registry network only, no provider calls",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "pnpm install --offline --frozen-lockfile",
+    "status": "implemented_application_command",
+    "scope": "Clean checkout installation from existing local package store; fail if unavailable",
+    "network": false,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "npm install --global pnpm@9.15.9",
+    "status": "implemented_application_command",
+    "scope": "Explicit CI package-manager installation; network, no model calls",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "python3 -m venv /tmp/deep-v6-extraction-runtime",
+    "status": "implemented_application_command",
+    "scope": "Create isolated empty Python runtime; local only",
+    "network": false,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "/tmp/deep-v6-extraction-runtime/bin/python -m pip install --require-hashes --only-binary=:all: -r apps/backend/extraction/requirements.lock",
+    "status": "implemented_application_command",
+    "scope": "Install hash-locked actual parser dependencies; package registry network only",
+    "network": true,
+    "paid": false,
+    "implementation": ".github/workflows/verification.yml"
   }
 ]

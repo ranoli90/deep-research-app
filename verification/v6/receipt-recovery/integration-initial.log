@@ -1,0 +1,43 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/provider-reconciliation.integration.test.ts (8 tests | 1 failed) 1176ms
+   × W02 reconciles an actual lookup receipt after terminal cancellation without network locks or duplicate settlement 194ms
+     → could not obtain lock on row in relation "accounts"
+   ✓ W02 absent metadata and unavailable credential provenance retain unknown holds without a lookup 83ms
+   ✓ W02 deletion during lookup permits only minimal financial settlement 175ms
+   ✓ W02 mismatched generation, route and cost cannot settle a different intent 89ms
+   ✓ W02 confirmed overruns remain visible and block new issuance even with spare caps 116ms
+   ✓ W02 a generation receipt cannot be charged to two intents 125ms
+   ✓ W02 historical estimated settlement is atomically restored to unknown hold then reconciled by receipt 130ms
+   ✓ W02 missing historical settlement basis and owner mismatch cannot invent a refund 83ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/provider-reconciliation.integration.test.ts > W02 reconciles an actual lookup receipt after terminal cancellation without network locks or duplicate settlement
+error: could not obtain lock on row in relation "accounts"
+ ❯ ../../node_modules/pg/lib/client.js:694:17
+ ❯ test/provider-reconciliation.integration.test.ts:55:38
+     53|   expect((await measureRunCost(pool, x.runId, x.accountId))?.heldProvi…
+     54|   const lookup = async () => {
+     55|     await withTx(pool, async db => { await db.query("SELECT id FROM ac…
+       |                                      ^
+     56|       await db.query("SELECT id FROM runs WHERE id=$1 FOR UPDATE NOWAI…
+     57|     return { kind: "receipt" as const, receipt: x.receipt };
+ ❯ withTx src/platform/db.ts:33:20
+ ❯ lookup test/provider-reconciliation.integration.test.ts:55:5
+ ❯ reconcileProviderIntent src/modules/provider-reconciliation.ts:35:18
+ ❯ test/provider-reconciliation.integration.test.ts:59:20
+ ❯ caseWithRun test/provider-reconciliation.integration.test.ts:22:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  18:45:55
+   Duration  2.50s (transform 676ms, setup 0ms, collect 1.01s, tests 1.18s, environment 0ms, prepare 109ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/provider-reconciliation.integration.test.ts

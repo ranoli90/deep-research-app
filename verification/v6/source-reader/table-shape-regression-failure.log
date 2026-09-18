@@ -1,0 +1,42 @@
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ✓ test/journey.test.ts (15 tests) 28ms
+ ✓ test/lifecycle.test.ts (12 tests) 37ms
+ ✓ test/request-scope.test.ts (11 tests) 126ms
+ ❯ test/source-view.test.ts (6 tests | 1 failed) 35ms
+   ✓ preserves exact passage, ordered tables, warnings and geometry from the source response 8ms
+   ✓ rejects malformed source metadata instead of dropping material extraction limitations 6ms
+   ✓ only offers explicit HTTP(S) originals without credentials 2ms
+   ✓ restores a deep citation at the same scroll offset using card-relative block coordinates 1ms
+   ✓ a removed block resets stale within-block offset and explains the change 1ms
+   × accepts actual extractor cell objects without losing header, span or scope 14ms
+     → The source location is invalid.
+ ✓ test/session-storage.test.ts (10 tests) 25ms
+ ✓ test/document-input.test.ts (7 tests) 22ms
+ ✓ test/report-layout.test.ts (6 tests) 36ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/source-view.test.ts > accepts actual extractor cell objects without losing header, span or scope
+Error: The source location is invalid.
+ ❯ readSourceDetail src/source-view.ts:19:245
+
+ ❯ test/source-view.test.ts:32:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  1 failed | 66 passed (67)
+   Start at  18:35:52
+   Duration  2.32s (transform 934ms, setup 0ms, collect 1.90s, tests 309ms, environment 5ms, prepare 1.72s)
+
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1
+exit_code=1

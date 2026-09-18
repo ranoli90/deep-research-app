@@ -1,0 +1,58 @@
+{
+  "version": "matched-pipeline.v1",
+  "status": "local_control_protocol_not_live_quality_evaluation",
+  "arms": {
+    "A1": "iterative-baseline.v1: original query then fixed original-provenance criterion order while coverage incomplete",
+    "B": "criterion-adaptive.v1: original query then unresolved-criterion selection while coverage incomplete"
+  },
+  "shared": [
+    "production API",
+    "durable worker",
+    "safe source reader",
+    "actual offline extraction",
+    "model schemas/prompts/policy",
+    "scoped support",
+    "coverage",
+    "comparison/calculation",
+    "writer",
+    "publication gates",
+    "consent",
+    "search/spend limits"
+  ],
+  "correctionComparison": "B correction with explicit snapshot reuse versus a newly admitted A1 full rerun of the corrected question",
+  "registeredControls": [
+    {
+      "id": "MP-DOCUMENT-NEGATION",
+      "split": "development_control",
+      "source": "original synthetic two-page digital-scoped.pdf with same-length randomized entity",
+      "reference": "Page1 explicitly says the entity does not support underwater recording; scope remains document-specific."
+    },
+    {
+      "id": "MP-DOCUMENT-CORRECTION",
+      "split": "development_control",
+      "reference": "Changed question asks firmware: only firmware4.2; preserve exact source-version membership for B correction and re-extract A1 full rerun."
+    },
+    {
+      "id": "MP-DOCUMENT-UNAVAILABLE",
+      "split": "development_control",
+      "source": "original synthetic empty-page.pdf",
+      "reference": "No readable evidence must not create a successful invented report."
+    },
+    {
+      "id": "MP-ITERATIVE-HTML",
+      "split": "development_control",
+      "source": "Two original synthetic HTML documents with randomized entity; actual Trafilatura extraction",
+      "reference": "Both arms must discover and correctly cite export plus offline editing. A1 fixed plan takes original/export/offline queries; B unresolved-gap selection takes original/offline. This controlled query count is not quality superiority."
+    }
+  ],
+  "independence": "Researcher-authored control expectations are evaluator-only and absent from model context. Same-agent labels are not independent adjudication. No held-out quality claim.",
+  "humanAdjudication": null,
+  "liveModelQuality": null,
+  "remainingProtocol": "Before paid quality evaluation register twelve distinct researcher/user tasks (six development, six held-out), independently inspect decisive source references, freeze task/rubric hashes and select stochastic repeats. Current controls do not satisfy this dataset requirement.",
+  "metrics": {
+    "local": "Outcome, exact source/version/locator/support trace, observed wall time, model/extraction calls, recorded synthetic receipt and unknown-hold fields, correction identity reuse",
+    "semantic": "Support precision, material coverage, independent constraint correctness, decisive-evidence use, contradiction handling and actual user repair stay null until adjudicated."
+  },
+  "spend": "No paid requests authorized. Local harness replaces provider transport explicitly and never interprets synthetic receipts as actual provider expenditure.",
+  "failures": "Record attempted arm outcomes and unexpected failures before propagating test failure; never exclude a losing arm or silently retry. Do not assert superiority from local transport controls."
+}

@@ -40,7 +40,7 @@ describe("M04 report layout", () => {
     expect(src).toMatch(/block\.kind === "code"/);
     expect(src).toMatch(/citeRow/);
     expect(src).toMatch(/breakLongTokens/);
-    expect(src).toMatch(/styles\.sheetBody/);
+    expect(readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8")).toMatch(/styles\.sheetBody/);
     expect(src).toMatch(/accessibilityLabel="Change summary"/);
     expect(src).toMatch(/Share previous report as Markdown/);
   });

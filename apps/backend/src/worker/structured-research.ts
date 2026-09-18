@@ -3,7 +3,8 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch, nextCriterionSearch, DISCOVERY_PLANNER_VERSION } from "@deep/research-core";
+import { counterevidenceSearch } from "@deep/research-core";
+import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
 import { getRun,getBrief,emitEvent,setPhase,markTerminal } from "../modules/runs.js";
@@ -44,7 +45,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   await session.write(async(db)=>{
     await setPhase(db,args.runId,"researching");
     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"criteria_prepared",phase:"researching",
-      summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision}});
+      summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision,strategy:run.research_strategy}});
   });
   if(opts.pauseAt==="researching")return;
   const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
@@ -111,7 +112,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
       payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
     if(!review.coverage.complete&&config.structuredDiscoveryEnabled&&!brief.attachmentIds.length&&config.liveRetrievalEnabled) {
-      const next=nextCriterionSearch({question:brief.originalQuestion,task:prepared.task.specification,
+      const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries});
       if(next.kind==="search") {
         queries.push(next.proposal.action.query);
@@ -128,7 +129,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       }
       await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"discovery_exhausted",phase:"researching",
         summary:"Some criteria remain unresolved after the available public discovery actions.",
-        payload:{reason:next.reason,plannerVersion:DISCOVERY_PLANNER_VERSION,coverageIntentId:review.intentId,unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys}}));
+        payload:{reason:next.reason,plannerVersion:run.research_strategy,coverageIntentId:review.intentId,unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys}}));
     }
     if(!support.checks.some((c)=>c.decision==="supported"))return unresolved("no_supported_assertions");
     await session.write(async(db)=>{

@@ -1,3 +1,4 @@
+import type { SourceDetail } from "./source-view";
 export type RouteMode = "fixture" | "controlled-research";
 
 export type ScreenName = "research" | "library" | "settings" | "source";
@@ -41,7 +42,7 @@ export type UiState = {
   } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
   events: { sequence: number; type: string; publicSummary: string }[];
-  source: { passageId: string; title: string; exactText: string; accessLevel: string; passageLocator?: { block?: string }; warnings?: string[] } | null;
+  source: SourceDetail | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
   attachments: AttachmentDraft[];
   clarification: string[];
@@ -129,7 +130,7 @@ export function restoreAnchor(
 ): { anchor: UiState["readingAnchor"]; note?: string } {
   if (!saved) return { anchor: null };
   if (blocks.some((b) => b.id === saved.blockId)) return { anchor: saved };
-  return { anchor: { ...saved, blockId: blocks[0]?.id ?? saved.blockId }, note: "That section changed in the new version." };
+  return { anchor: { ...saved, blockId: blocks[0]?.id ?? saved.blockId, offset: 0 }, note: "That section changed in the new version." };
 }
 
 export function closeSourceSheet(state: UiState): UiState {

@@ -1,0 +1,13 @@
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done

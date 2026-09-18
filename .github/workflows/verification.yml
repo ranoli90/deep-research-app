@@ -1,0 +1,62 @@
+name: Local-contract verification
+# Hosted execution is explicit; this workflow never deploys or calls paid models.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deterministic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16.10-alpine
+        env:
+          POSTGRES_USER: deep
+          POSTGRES_PASSWORD: deep_local_dev_only
+          POSTGRES_DB: deep_research_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U deep -d deep_research_test"
+          --health-interval 3s --health-timeout 5s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test
+      EXPO_NO_DOTENV: "1"
+      EXPO_NO_TELEMETRY: "1"
+      EXPO_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.20.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked JavaScript packages
+        run: |
+          npm install --global pnpm@9.15.9
+          pnpm install --frozen-lockfile
+      - name: Documents, types, units and boundaries
+        run: |
+          python3 scripts/validate_review.py
+          python3 scripts/validate_builder_handoff.py
+          python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v
+          pnpm verify
+          pnpm --filter @deep/mobile typecheck
+      - name: PostgreSQL integration (serial)
+        run: pnpm test:integration
+      - name: Install isolated extraction runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          python3 -m venv /tmp/deep-v6-extraction-runtime
+          /tmp/deep-v6-extraction-runtime/bin/python -m pip install --require-hashes --only-binary=:all: -r apps/backend/extraction/requirements.lock
+      - name: Actual extraction (after integration)
+        env:
+          EXTRACTION_RUNTIME: /tmp/deep-v6-extraction-runtime
+        run: pnpm --filter @deep/backend test:extraction
+      - name: Android JavaScript export (not native build)
+        run: pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-bundle

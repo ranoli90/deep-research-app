@@ -6219,5 +6219,18 @@
     "checkedFiles": 28,
     "result": "All28 artifact hashes match preserved manifest; handoff draft is historical and its pending-results language is superseded by terminal logs."
   },
-  "reviewedCheckpointImplementationCommit": "002e2d6f27e4bcf111cdc48f028a688f55c99713"
+  "reviewedCheckpointImplementationCommit": "002e2d6f27e4bcf111cdc48f028a688f55c99713",
+  "followOnEvidence": {
+    "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+    "workingTree": "Reviewed uncommitted follow-on; verify148/114/67/6, PostgreSQL328/328, actual extraction17/17 pass. Strict design and final backend typechecks pass.",
+    "manifests": [
+      "receipt-recovery/FILES.json",
+      "source-reader/FILES.json",
+      "source-deletion/FILES.json",
+      "matched-pipeline/FILES.json",
+      "matched-corpus/FILES.json",
+      "follow-on/RESULTS.json"
+    ],
+    "limits": "Synthetic models are code controls, not semantic scores. Corpus13actual docs/12tasks:1SQLite reference missing; all failures preserved. Native process-restart anchor not passed. No paid authorization."
+  }
 }

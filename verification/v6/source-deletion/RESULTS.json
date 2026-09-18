@@ -1,0 +1,97 @@
+{
+  "requirements": [
+    "W03",
+    "W06",
+    "W02 financial hold preservation"
+  ],
+  "baseCommit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
+  "implementationBase": "002e2d6f27e4bcf111cdc48f028a688f55c99713",
+  "revision": "base HEAD plus shared uncommitted working tree; no subagent commit",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "database": "local PostgreSQL127.0.0.1:55432/deep_research_test"
+  },
+  "scope": "Real local PostgreSQL and API injection; synthetic source/attachment bytes, actual legacy file unlink, fabricated paused parser and model HTTP responses. No live model/search calls, native execution, external retention/backup claim, or human validation. Dedicated deletion suite removes only generated accounts; E09 retains its existing serial truncation setup.",
+  "results": [
+    {
+      "artifact": "verification/v6/source-deletion/typecheck-initial.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "result": "Concurrent strategy edit missing nextStrategySearch import; not source-deletion defect.",
+      "sha256": "885570066589f2446cc809175146d484061439a8c47237bc8b1a10dd8529f0d6"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/typecheck-second.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "result": "New test fixture extractor version was not in the canonical type; corrected to typed utf8-notes-v1.",
+      "sha256": "74055ba1fc59650899a34979258f2a7994b5b0c848f6feaf61e612061c240b58"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/typecheck-third.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "result": "Backend types after fixture repair.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/integration-initial.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+      "exitCode": 1,
+      "result": "5/6 pass; new seed reused one SQL parameter as UUID and text. Explicit casts repaired seed.",
+      "sha256": "df6d3696becdf51e04a5ed7c84dbb09e0e25708c003590e62a9a951c25dd2574"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/integration-second.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+      "exitCode": 1,
+      "result": "5/6 pass; redacted reports remained exportable. Production query fixed, assertion retained.",
+      "sha256": "047b4b3b89d2f463b0ef6e06fc9a669a1cc4a4d1309e91816f14e62e6d009b30"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/integration-third.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts",
+      "exitCode": 0,
+      "result": "6/6 pass;11.34s; final source privacy/ownership/reuse/stale response/receipt controls.",
+      "sha256": "ea8295b920f97c24baf9ad31b030dbf8938b112c1ad7a395d3af7cf1451a7bc8"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/export-integration.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/p3-remaining.integration.test.ts -t E09",
+      "exitCode": 0,
+      "result": "1 selected pass;50 deselected;12.84s. Positive owned export control preserved.",
+      "sha256": "ffb59e338477bde008b8aef88822b29de30a9d146f41788d9a4b2d30d805d70b"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/export-unit.log",
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/report-export.unit.test.ts",
+      "exitCode": 0,
+      "result": "7/7 pass;4.90s.",
+      "sha256": "55e78673bbd089f541a3bb65b19f42fa630b8ba1f1a4bc037734f80fd3972f69"
+    },
+    {
+      "artifact": "verification/v6/source-deletion/typecheck-final.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "result": "Final integrated backend typecheck.",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    }
+  ],
+  "sourceHashes": {
+    "apps/backend/src/modules/source-deletion.ts": "4a18f22b278d4d6d150bbbddd0f552184e864db1445716d7f31aa7b049c865e7",
+    "apps/backend/src/modules/evidence.ts": "65450a7aabd7bdae0886a7a57a9c1965b547ac5881d48d7680be084b4f235030",
+    "apps/backend/src/modules/report-export.ts": "9ac6d40655f18e824fcf8552fd8c311881705f4c5b2ca02e71e6a410bc7f0d7c",
+    "apps/backend/src/modules/research-corrections.ts": "8815bbcbd66b07a5bace7305c6e9d14dad239113cc0335388bba1e62ad683c3c",
+    "apps/backend/src/api/app.ts": "026b38b153481361ae5058134415c3d7e18478ee8235295355a705b2b2343dfb",
+    "apps/backend/test/source-deletion.integration.test.ts": "25fa4766f04baacd0182b1c04de6e52673c053738dcfa942fcd3b4511ff88ac2"
+  },
+  "rollback": "Disable DELETE source scheduling if needed; preserve source/run tombstones, admission rejects, terminal/fence invalidation, redacted export exclusion, receipt settlement/unknown holds, and durable legacy-file deletion. Deleted bytes/content must never be restored.",
+  "unverified": [
+    "Native source deletion UI and mobile cache invalidation",
+    "External processor retention/deletion",
+    "Backup restore/tombstone replay",
+    "Independent human privacy review"
+  ]
+}

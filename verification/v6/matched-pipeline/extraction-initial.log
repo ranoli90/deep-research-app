@@ -1,0 +1,49 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/matched-pipeline.extraction.test.ts (3 tests | 3 failed) 31377ms
+   × W08 matched A1/B production document, reopen, source and corrected B versus fresh A1 controls 6344ms
+     → column p.text does not exist
+   × W08 both arms retain inaccessible evidence failure with no invented report 2327ms
+     → column p.text does not exist
+   × W08 A1 and B both iterate through the same actual HTML extraction and checked writer 22349ms
+     → column p.text does not exist
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/matched-pipeline.extraction.test.ts > W08 matched A1/B production document, reopen, source and corrected B versus fresh A1 controls
+error: column p.text does not exist
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ execute test/matched-pipeline.extraction.test.ts:60:17
+
+ ❯ test/matched-pipeline.extraction.test.ts:73:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/matched-pipeline.extraction.test.ts > W08 both arms retain inaccessible evidence failure with no invented report
+error: column p.text does not exist
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ execute test/matched-pipeline.extraction.test.ts:60:17
+
+ ❯ test/matched-pipeline.extraction.test.ts:101:84
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/matched-pipeline.extraction.test.ts > W08 A1 and B both iterate through the same actual HTML extraction and checked writer
+error: column p.text does not exist
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ execute test/matched-pipeline.extraction.test.ts:60:17
+
+ ❯ test/matched-pipeline.extraction.test.ts:118:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  18:40:24
+   Duration  33.53s (transform 1.16s, setup 0ms, collect 1.88s, tests 31.38s, environment 0ms, prepare 88ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.extraction.config.ts test/matched-pipeline.extraction.test.ts

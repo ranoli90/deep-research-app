@@ -100,7 +100,7 @@ export async function updateIntentState(
   if (db instanceof pg.Pool) return withTx(db, (client) => updateIntentState(client, intentId, state, confirmedMicro));
   if (!["issued", "confirmed", "outcome-unknown", "failed"].includes(state)) throw new Error("invalid_provider_state");
   if (confirmedMicro != null && state !== "confirmed") throw new Error("invalid_provider_receipt_state");
-  const identity = await db.query<{ run_id: string; route: string; account_id: string | null }>(`SELECT i.run_id, i.route, r.account_id
+  const identity = await db.query<{ run_id: string; route: string; account_id: string | null; provider_key_scope: string | null; scope_key: string }>(`SELECT i.run_id, i.route, r.account_id, i.provider_key_scope, i.scope_key
     FROM provider_intents i LEFT JOIN runs r ON r.id = i.run_id WHERE i.id = $1`, [intentId]);
   const intent = identity.rows[0];
   if (!intent) throw new Error("conflicting_or_missing_provider_receipt");
@@ -113,6 +113,14 @@ export async function updateIntentState(
   }
   if (confirmedMicro != null) {
     if (!Number.isSafeInteger(confirmedMicro) || confirmedMicro < 0) throw new Error("invalid_provider_cost");
+    if (intent.route.startsWith("openrouter:")) {
+      // Legacy unbound receipts affect every key. Lock order matches issuance after account/run locks.
+      await db.query(intent.provider_key_scope === null
+        ? "SELECT pg_advisory_xact_lock(hashtextextended('provider-budget-legacy', 0))"
+        : "SELECT pg_advisory_xact_lock_shared(hashtextextended('provider-budget-legacy', 0))");
+      if (intent.provider_key_scope !== null) await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-key-budget:${intent.provider_key_scope}`]);
+      await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-budget:${intent.scope_key}`]);
+    }
     const result = await db.query(`UPDATE provider_intents SET state = $2, confirmed_micro = $3 WHERE id = $1
       AND (confirmed_micro IS NULL OR confirmed_micro = $3)`, [intentId, state, confirmedMicro]);
     if (result.rowCount !== 1) throw new Error("conflicting_or_missing_provider_receipt");

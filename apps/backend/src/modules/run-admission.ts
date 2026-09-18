@@ -1,3 +1,4 @@
+import type { ResearchStrategy } from "../ports/research-strategy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, type CreateRunRequest } from "@deep/contracts";
@@ -10,7 +11,7 @@ import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertC
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
 
 /** Account -> conversation -> run -> allowance is the admission lock order. No external I/O. */
-export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest) {
+export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy } = {}) {
   const digest = createHash("sha256").update(JSON.stringify({ ...input, attachmentIds: [...input.attachmentIds].sort() })).digest("hex");
   return withTx(pool, async (db) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
@@ -19,6 +20,7 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     if (!consent || consent.revoked || input.consentPolicyVersion !== CONSENT_POLICY_VERSION || (input.routeMode === "controlled-research" && consent.policyVersion !== CONSENT_POLICY_VERSION)) reject("consent_required");
     const existing = await findRunByIdempotency(db, accountId, key);
     if (existing) {
+      if ((await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,existing.id])).rowCount) reject("permission_denied");
       const saved = await db.query("SELECT request_digest FROM runs WHERE id = $1", [existing.id]);
       if (saved.rows[0].request_digest !== digest) reject("idempotency_conflict");
       return { runId: existing.id, brief: await getBrief(db, existing.brief_id), reused: true };
@@ -29,6 +31,7 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     }
     const parent = input.parentRunId ? await getRun(db, input.parentRunId) : null;
     if (input.parentRunId && (!parent || parent.account_id !== accountId)) reject("permission_denied");
+    if (parent && (await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion'",[accountId,parent.id])).rowCount) reject("permission_denied");
     if (parent && input.conversationId && parent.conversation_id !== input.conversationId) reject("permission_denied");
     const conversationId = input.conversationId ?? parent?.conversation_id ?? await insertConversation(db, accountId, input.question);
     const conversation = await db.query("SELECT id FROM conversations WHERE id = $1 AND account_id = $2 FOR UPDATE", [conversationId, accountId]);
@@ -46,7 +49,7 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     const runId = crypto.randomUUID();
     await insertRun(db, { id: runId, accountId, conversationId, briefId: brief.id, parentRunId: input.parentRunId,
       routeMode: input.routeMode, briefRevision: brief.revision, consentEpoch: consent.epoch, idempotencyKey: key,
-      budgetMicro: DEFAULT_RUN_BUDGET_MICRO });
+      budgetMicro: DEFAULT_RUN_BUDGET_MICRO, researchStrategy: options.strategy });
     await db.query("UPDATE runs SET request_digest = $2 WHERE id = $1", [runId, digest]);
     await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",

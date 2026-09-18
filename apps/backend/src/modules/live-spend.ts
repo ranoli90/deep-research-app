@@ -39,6 +39,9 @@ export function canIssueLiveCall(args: {
 }
 
 export async function assertLiveCallAllowed(db: Queryable, config: AppConfig, estimatedMicro = LIVE_CALL_RESERVE_MICRO) {
+  if ((await db.query(`SELECT 1 FROM provider_intents WHERE route LIKE 'openrouter:%'
+    AND scope_key=$1 AND confirmed_micro > reserved_max_micro LIMIT 1`, [config.liveBudgetScope ?? "project"])).rowCount)
+    throw new Error("provider_overrun_requires_review");
   const used = await liveSpendUsedMicro(db, config.liveBudgetScope);
   const gate = canIssueLiveCall({ capMicro: config.liveSpendCapMicro, usedMicro: used, estimatedMicro });
   if (!gate.ok) {
@@ -92,8 +95,13 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     }
     if (!config.openRouterApiKey?.trim()) throw new Error("missing_provider_key");
     const keyScope = createHash("sha256").update(`openrouter:${config.openRouterApiKey.trim()}`).digest("hex");
+    // Unbound legacy receipt mutations take this lock exclusively because they affect every key.
+    await db.query("SELECT pg_advisory_xact_lock_shared(hashtextextended('provider-budget-legacy', 0))");
     // Key lock precedes project lock for every issuer, including different accounts/projects.
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`provider-key-budget:${keyScope}`]);
+    if ((await db.query(`SELECT 1 FROM provider_intents WHERE route LIKE 'openrouter:%'
+      AND (provider_key_scope=$1 OR provider_key_scope IS NULL) AND confirmed_micro > reserved_max_micro LIMIT 1`, [keyScope])).rowCount)
+      throw new Error("provider_overrun_requires_review");
     const keyCosts = await db.query<{ used: string }>(`SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
       FROM provider_intents WHERE route LIKE 'openrouter:%' AND (provider_key_scope = $1 OR provider_key_scope IS NULL)`, [keyScope]);
     if (!canIssueLiveCall({ capMicro: config.liveKeySpendCapMicro ?? 0, usedMicro: Number(keyCosts.rows[0]?.used ?? 0), estimatedMicro: args.reserveMicro }).ok) {

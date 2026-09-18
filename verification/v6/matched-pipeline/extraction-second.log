@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/matched-pipeline.extraction.test.ts (3 tests) 67108ms
+   ✓ W08 matched A1/B production document, reopen, source and corrected B versus fresh A1 controls  20144ms
+   ✓ W08 both arms retain inaccessible evidence failure with no invented report  4474ms
+   ✓ W08 A1 and B both iterate through the same actual HTML extraction and checked writer  42007ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  18:41:30
+   Duration  69.21s (transform 1.08s, setup 0ms, collect 1.72s, tests 67.11s, environment 0ms, prepare 73ms)
+

@@ -9,6 +9,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit --pretty false src/index.ts || true"
+    "typecheck": "tsc --noEmit --pretty false src/index.ts"
   }
 }

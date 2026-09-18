@@ -1,0 +1,4 @@
+{"event":"native_control_ready","evidenceClass":"native_ui_actual_api_worker_pdf_fabricated_model","paidCalls":0,"database":"deep_research_native_v6","fixtureRoute":false}
+{"event":"native_control_run","runId":"0017697d-355f-4610-9a0d-8c5f23215d32","reports":[{"id":"f12a5492-ccfe-4e32-9b48-990836dff0d0","outcome":"completed"}],"fabricatedCalls":7,"paidCalls":0}
+{"event":"native_control_run","runId":"4a9caa90-6159-4e4f-8b29-1459e7c0dcb2","reports":[{"id":"3b984632-1738-4b5a-bca5-d7a1376de9c7","outcome":"completed"}],"fabricatedCalls":14,"paidCalls":0}
+{"event":"native_control_stopped","createdAccounts":1,"fabricatedCalls":14,"paidCalls":0}

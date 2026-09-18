@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"search","rationale":"Investigate an uncovered required question","step":0,"t":"2026-09-18T00:45:21.209Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":1,"t":"2026-09-18T00:45:21.444Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":2,"t":"2026-09-18T00:45:21.557Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"fetch","rationale":"Inspect an already-known source before another generic query","step":3,"t":"2026-09-18T00:45:21.655Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"challenge","rationale":"Disconfirm material conclusion: A primary source that directly contradicts this conclusion.","step":4,"t":"2026-09-18T00:45:21.781Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"challenge","rationale":"No counterexample found in accessed primary sources. This is not proof that the conclusion is true.","step":5,"t":"2026-09-18T00:45:21.881Z"}
+{"level":"info","event":"action","runId":"b23b3a62-fdbf-4c54-8a15-527e1f1af648","type":"synthesize","rationale":"decision_critical_gaps_resolved_or_unresolvable; high-impact claims supported or qualified; contradictions handled; remaining actions low expected value","step":6,"t":"2026-09-18T00:45:21.945Z"}
+ ✓ test/p3-remaining.integration.test.ts (51 tests | 50 skipped) 4605ms
+   ✓ remaining launch-scope IDs > E09 export citation anchors resolve to owned passages  3522ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 50 skipped (51)
+   Start at  18:45:10
+   Duration  12.84s (transform 4.52s, setup 0ms, collect 7.72s, tests 4.60s, environment 0ms, prepare 128ms)
+

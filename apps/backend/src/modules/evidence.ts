@@ -144,12 +144,13 @@ export async function loadEvidence(db: Queryable, runId: string): Promise<{
 
 export async function getPassageForAccount(db: Queryable, passageId: string, accountId: string) {
   const res = await db.query(
-    `SELECT p.*, s.title, s.canonical_locator, s.publisher, s.origin_cluster, v.access_level, v.quality_warnings, v.text_coverage, r.route_mode
+    `SELECT p.*, s.id AS source_id, s.title, s.canonical_locator, s.publisher, s.origin_cluster, v.access_level, v.quality_warnings, v.text_coverage, r.route_mode
      FROM passages p
      JOIN source_versions v ON v.id = p.source_version_id
      JOIN sources s ON s.id = v.source_id
      JOIN runs r ON r.id = p.run_id
-     WHERE p.id = $1 AND p.account_id = $2`,
+     WHERE p.id = $1 AND p.account_id = $2 AND s.account_id=$2 AND v.account_id=$2 AND r.account_id=$2
+       AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$2 AND t.object_kind='source' AND t.object_id=s.id)`,
     [passageId, accountId],
   );
   return res.rows[0] ?? null;
