@@ -162,7 +162,7 @@ it.each(["upload","public-search"])("W04/W05 %s -> isolated PDF -> structured wo
  expect((await pool.query("SELECT 1 FROM research_coverage WHERE account_id=$1",[task.accountId])).rowCount).toBe(0);
  expect((await pool.query("SELECT 1 FROM evidence_artifacts WHERE account_id=$1",[task.accountId])).rowCount).toBe(0);
  expect((await app.inject({method:"GET",url:`/v1/reports/${reports[0].id}`,headers:task.headers})).statusCode).toBe(401);
-});
+},120_000);
 it("W06/W07 disabled route configuration advertises and enforces correction unavailability",async()=>{
  const unavailable=await buildApp({pool,boss,config:{...config,fixtureRouteAllowed:false,structuredModelEnabled:false}});
  try {

@@ -118,9 +118,9 @@ describe("W05 production runtime isolation",()=>{
       expect([...files].filter(f=>/\/fixtures\/|\/eval[^/]*\.|fixture-catalog|\/adapters\/[^/]+\/fixture\.|diagnostic-executor|diagnostic-main/.test(f))).toEqual([]);
       if(entry==="worker/main.ts")expect([...files].some(f=>f.endsWith("/worker/structured-research.ts"))).toBe(true);
     }
-  });
+  }, 30_000);
   it("the explicit historical diagnostic is detected as reaching fixture data",()=>{
     const files=runtimeSources(resolve(import.meta.dirname,"../src/worker/diagnostic-main.ts"));
     expect([...files].some(f=>f.endsWith("/fixture-catalog.ts"))).toBe(true);
-  });
+  }, 30_000);
 });

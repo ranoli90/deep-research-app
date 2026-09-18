@@ -58,7 +58,13 @@ export function rejectPrivilegedProposal(proposal: {
 export function queryLeaksPrivate(query: string, privateCanaries: string[]): string | null {
   const q = query.toLowerCase();
   for (const c of privateCanaries) {
-    if (c && q.includes(c.toLowerCase())) return c;
+    if (!c) continue;
+    if (q.includes(c.toLowerCase())) return c;
+    const tokens = c.toLowerCase().match(/[a-z0-9]{4,}/g) ?? [];
+    for (const t of tokens) {
+      if (t === "canary") continue;
+      if (new RegExp(`(^|[^a-z0-9])${t}([^a-z0-9]|$)`).test(q)) return c;
+    }
   }
   return null;
 }

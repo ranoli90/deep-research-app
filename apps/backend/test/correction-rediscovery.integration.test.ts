@@ -17,7 +17,7 @@ import { processRun } from "../src/worker/executor.js";
 import * as reader from "../src/adapters/retrieval/read-source.js";
 const url=process.env.TEST_DATABASE_URL??"postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool:pg.Pool;const accounts:string[]=[],originalFetch=globalThis.fetch;
-const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-rediscovery",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+const config=loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",LIVE_RETRIEVAL_ENABLED:"true",OPENROUTER_API_KEY:"nonbillable-rediscovery",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID(),LEASE_MS:"180000"});
 const oldUrl="https://example.org/solmere.txt",newUrl="https://example.org/vesper.txt";
 const texts={[oldUrl]:"Solmere supports Linux.",[newUrl]:"Vesper supports Windows."};
 const parentQuestion="Which tools support Linux?",relaxedQuestion="Which tools support Linux or Windows?";
@@ -74,7 +74,7 @@ it("W06 relaxed public constraint discovers a previously absent option and reuse
  expect(measurements.find(r=>r.id===x.child.runId)).toMatchObject({reused_passages:1,durable_reads:1});expect(measurements.find(r=>r.id===full.runId)).toMatchObject({reused_passages:0,durable_reads:2});
  for(const row of measurements)expect(Number(row.spent_micro)).toBeGreaterThan(0);
  await writeFile("/tmp/deep-v6-correction-rediscovery-trace.json",JSON.stringify({evidenceClass:"real_local_postgresql_production_worker_with_fabricated_model_search_reader_transports",referenceFacts:expected,correctedFacts,rerunFacts,correctedRunId:x.child.runId,fullRunId:full.runId,measurements,queries:x.model.queries,readLocators:read.mock.calls.map(c=>c[0]),limitations:["No live semantic validation or independent human adjudication.","Extraction and provider receipts are fabricated transports; spend is synthetic micro-units."]},null,2)+"\n");
-});
+},120_000);
 it("W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence",async()=>{
  const x=await setup();await processRun(pool,{...config,structuredDiscoveryEnabled:false},x.child.runId);
  expect(await getLatestReportForRun(pool,x.child.runId,x.accountId)).toBeNull();

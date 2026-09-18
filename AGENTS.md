@@ -43,6 +43,8 @@ Never make checks green by deleting assertions, broadening accepted errors, weak
 
 For UI, layout, routing, or client state: exercise the flow as a user (type, submit, navigate). A screenshot is not verification. Check every screen that shares the changed state, including empty and error routes. When layout changed, check desktop and mobile viewports. Native claims still require native execution.
 
+A pure helper, table, or test that inserts the desired row is not a completed feature. The production worker must call the policy with real inputs (adopted sources, private document text, evaluated freshness, explicit approval). Extra fenced `session.write` calls inside the research loop deadlock with the lease renewer — persist alongside an existing emit. Isolated PostgreSQL suites use one `TEST_DATABASE_URL` per process.
+
 ## Research quality
 Preserve uncertainty. “Unknown” is a valid answer. Never fabricate citations, passages, tool receipts, progress, or fallback capabilities.
 

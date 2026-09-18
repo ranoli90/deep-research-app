@@ -1,0 +1,5 @@
+{
+  "decisive": ["p-late", "c1"],
+  "qualifiers": ["h1", "t1", "q1", "e1", "f1"],
+  "omittedUnassessed": ["p-early"]
+}

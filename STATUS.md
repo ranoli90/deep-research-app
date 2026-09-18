@@ -1,3 +1,7 @@
+## Integration merge B — 2026-09-18
+
+Lane: Research Beta integration. Session B `e0b00df` merged after C and final A. Retrieval intelligence will be canonicalized to `043_retrieval_intelligence.sql`.
+
 ## Integration merge A — 2026-09-18
 
 Lane: Research Beta integration. Final Session A `8abcffd` merged after Session C. Portfolio migration from A is `043_model_portfolio.sql` (C had `042`); canonicalization is next. Session B not yet merged.
@@ -134,6 +138,11 @@ Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-gover
 **Verified live provider:** bounded Azure briefs via `pnpm eval:live-semantic`. After v2 span repair, criterion-question linking, and a stricter brief prompt, the previously failing classes succeeded on a new logical request (purchase, technical comparison, Germany/France correction, unknown-lot-code) with confirmed receipts in `verification/v7/live-semantic/run-fix-receipts.jsonl`. Earlier `invalid_exact_span` / `criterion_without_question` receipts and the freshness `outcome_unknown` hold are retained and were not retried. **Product-quality verified:** no (these are briefs, not source-backed reports). No routing superiority claim.
 
 Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
+## Session B retrieval/evidence lane — 2026-09-18
+
+Lane `grok-v7/retrieval-evidence` (worktree `/home/oranolio/Desktop/deep-v7-retrieval`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`) implements provenance-aware query expansion, source-type planning, evidence-value breadth, structural neighbor selection, origin clustering, criterion freshness and document/web reconciliation (ADR062, migration044). Mixed-document public search remains blocked without explicit approval. No new npm/Python dependency. Neural rerankers, full Docling/ML, OCR and Playwright/Crawl4AI are not adopted.
+
+Verified deterministic: research-core 198/198 twice; focused PostgreSQL `retrieval-evidence.integration.test.ts` 3/3 twice on isolated `deep_research_session_b_20260918`. Live provider, native Android and merge to `main` are unrun and owned by other lanes. W01–W09 semantic acceptance remains incomplete.
 
 ## User-authorized GitHub main checkpoint — 2026-09-18
 

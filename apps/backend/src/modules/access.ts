@@ -113,6 +113,11 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
       AND storage_ptr <> '' AND storage_ptr NOT LIKE 'db:%' ON CONFLICT DO NOTHING`, [accountId]);
   await db.query("DELETE FROM selection_inventory_checks WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM evidence_selections WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM query_authorizations WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM source_origin_links WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM criterion_freshness_policies WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM document_web_reconciliations WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM search_coverage WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM run_evidence_membership WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM research_change_sets WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM requested_verifications WHERE account_id=$1", [accountId]);
@@ -152,7 +157,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query(`UPDATE provider_intents SET request_digest='[deleted]' WHERE run_id IN (SELECT id FROM runs WHERE account_id=$1)`, [accountId]);
   await db.query(`UPDATE run_actions SET request_digest='[deleted]',logical_key=id::text WHERE run_id IN (SELECT id FROM runs WHERE account_id=$1)`, [accountId]);
   await db.query(`UPDATE sources SET canonical_locator='[deleted]',original_locator='[deleted]',publisher=NULL,
-    title='[deleted]',language=NULL,origin_cluster=NULL,population=NULL,rights_class=NULL WHERE account_id=$1`, [accountId]);
+    title='[deleted]',language=NULL,origin_cluster=NULL,origin_relation=NULL,publication_date=NULL,population=NULL,rights_class=NULL WHERE account_id=$1`, [accountId]);
   await db.query(`UPDATE source_versions SET final_locator='[deleted]',content_hash=NULL,mime=NULL,
     quality_warnings='[]'::jsonb,text_coverage=NULL,artifact_ptr=NULL WHERE account_id=$1`, [accountId]);
   await db.query(

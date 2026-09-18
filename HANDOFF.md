@@ -1,3 +1,7 @@
+## Integration merge B — 2026-09-18
+
+Merged current Session B tip `e0b00df` (includes source-date/opening-class continuation beyond kit pin `d100b86`). Main versioned discovery-v3 policy is preserved; B query authorization, freshness persistence, and origin clustering are added. Worker-local ADR062 retrieval is canonicalized as ADR065.
+
 ## Integration merge A — 2026-09-18
 
 Merged final Session A tip `8abcffd` onto the C-integrated branch. Cheap-first admission, live leftover, owned grounding, and AGENTS contract from A are in. Main ADR061/062 numbering remains; A/C worker-local ADR061/062 stay ADR063/064.
@@ -52,6 +56,9 @@ Root `AGENTS.md` (and scoped backend/core/mobile/evals files) now bind future wo
 ## Session A intelligence governor — 2026-09-18
 
 Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Cheap-first admission now stamps new runs and fail-closes when no route is admitted; live reserves keep writing/verification leftover; document-grounded eval uses an owned passage; portfolio migration is `043_model_portfolio.sql`. Bounded live semantic briefs were executed under a current user grant; the freshness unknown hold was not retried. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass. No product-quality or routing-superiority claim.
+## Session B retrieval/evidence — 2026-09-18
+
+Do not merge this branch to `main`. Session C owns integration. Branch `grok-v7/retrieval-evidence`, worktree `/home/oranolio/Desktop/deep-v7-retrieval`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Migration is **044** (not 042) so it does not clash with C’s `042_model_portfolio.sql` or A’s `043_model_portfolio.sql`. ADR is **062**. See `SESSION_HANDOFF.md` for files, tests, OSS decisions, rollback and Session C instructions. Private-term approval UX is not built here.
 
 ## User-authorized GitHub main checkpoint — 2026-09-18
 
