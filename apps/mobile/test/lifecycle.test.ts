@@ -73,7 +73,9 @@ describe("P0-N native state mapping", () => {
     const next = openLibraryItem({ ...emptyState(), tab: "library" }, "run-library-1");
     expect(next.tab).toBe("research");
     expect(next.run?.runId).toBe("run-library-1");
-    expect(next.status).toBe("progress");
+    expect(next.status).toBe("loading");
+    expect(next.run?.lifecycle).toBe("loading");
+    expect(next.events).toEqual([]);
   });
 
   it("App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem", () => {

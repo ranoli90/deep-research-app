@@ -142,11 +142,39 @@ export function restoreAfterReopen(saved: UiState): UiState {
 }
 
 /** After a report, the composer continues this research instead of starting a leftover new run. */
-export function composerFollowsReport(state: Pick<UiState, "report" | "run" | "status" | "pendingContentInvalidation">): boolean {
-  if (!state.report || state.pendingContentInvalidation) return false;
+export function composerFollowsReport(state: Pick<UiState, "report" | "run" | "status" | "pendingContentInvalidation" | "pendingAdmission">): boolean {
+  if (!state.report || state.pendingContentInvalidation || state.pendingAdmission) return false;
   if (state.run?.contentInvalidated === true) return false;
   if (state.run?.lifecycle !== "terminal") return false;
   return state.status === "completed" || state.status === "partial";
+}
+
+export function startNewResearch(state: UiState): { ok: true; next: UiState } | { ok: false; reason: string } {
+  if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting new research." };
+  if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting new research." };
+  if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting new research." };
+  if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting new research." };
+  if (state.pendingAdmission) return { ok: false, reason: "Check or withdraw the saved request before starting new research." };
+  return {
+    ok: true,
+    next: {
+      ...state,
+      tab: "research",
+      draft: "",
+      run: null,
+      report: null,
+      previousReport: null,
+      events: [],
+      source: null,
+      readingAnchor: null,
+      correctionDraft: null,
+      attachments: [],
+      clarification: [],
+      flagSent: false,
+      error: null,
+      status: "empty",
+    },
+  };
 }
 
 export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
@@ -236,19 +264,25 @@ export function expireLocalSession(state: UiState): UiState {
 
 /** Library tap must switch to Research and bind the run before the first poll tick. */
 export function openLibraryItem(state: UiState, runId: string): UiState {
+  const same = state.run?.runId === runId;
   return {
     ...state,
     tab: "research",
     source: null,
     error: null,
-    status: "progress",
+    status: same ? state.status : "loading",
+    draft: same || !state.run ? state.draft : "",
+    report: same ? state.report : null,
+    previousReport: same ? state.previousReport : null,
+    events: same ? state.events : [],
+    readingAnchor: same ? state.readingAnchor : null,
     run: {
       runId,
-      lifecycle: "running",
-      phase: state.run?.runId === runId ? state.run.phase : "researching",
-      outcome: null,
-      reportId: state.run?.runId === runId ? state.run.reportId : null,
-      labeledDemo: state.routeMode === "fixture",
+      lifecycle: same ? state.run!.lifecycle : "loading",
+      phase: same ? state.run!.phase : "loading",
+      outcome: same ? state.run!.outcome : null,
+      reportId: same ? state.run!.reportId : null,
+      labeledDemo: same ? state.run!.labeledDemo : false,
     },
   };
 }

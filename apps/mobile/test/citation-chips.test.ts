@@ -22,5 +22,6 @@ describe("numbered citation chips", () => {
 
   it("does not invent numbers for blocks without citations", () => {
     expect(citationNumbers([block("answer", [])])).toEqual({});
+    expect(citationNumbers([block("answer", ["", "p-real"])])).toEqual({ "p-real": 1 });
   });
 });

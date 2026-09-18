@@ -9,3 +9,5 @@ Import only public contracts and design/client code. Never call model providers 
 Use verification/COMMANDS.json to distinguish available and proposed checks. Update the owning canonical spec with behavior changes, not a duplicate local handbook.
 
 Revision 3: build usable accessible P0 composer/reader and lifecycle recovery before decorative P3 breadth. Source selection and account authorization apply to incoming links even after logout; an in-flight remote alert cannot be recalled by claiming client-side deduplication.
+
+Session C finish rule: do not stop with a leftover-work list. Complete remaining product work this lane can ship (composer, activity, report, evidence, corrections, library, settings, tests, device journey). Disclose only true external blockers (uncommitted Session B, live spend, iOS/store) after that independent work is exhausted. Native claims still require native evidence.

@@ -5,7 +5,7 @@ Lane: Product/UI + Integration
 Worktree: `/home/oranolio/Desktop/deep-v7-product`  
 Branch: `grok-v7/product-integration`  
 Base SHA: `66df5455de86129db0305f3c96dc3dbf1a13b7e3`  
-Final SHA: `fa80a8c` (design-review craft pass; this pin follows).
+Final SHA: pending review-cycle commit (this pin follows). After fa80a8c craft pass.
 
 ## Worker SHAs
 

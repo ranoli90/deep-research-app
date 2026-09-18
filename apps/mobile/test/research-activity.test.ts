@@ -13,6 +13,7 @@ describe("research activity from persisted events", () => {
       label: "Starting research",
       detail: "Research accepted.",
     });
+    expect(labelResearchEvent({ sequence: 1, type: "accepted", publicSummary: "STARTING RESEARCH" })?.detail).toBeNull();
     expect(labelResearchEvent({ sequence: 2, type: "searched", publicSummary: "Searched: laptops under 2000" })?.label).toBe("Searching");
     expect(labelResearchEvent({ sequence: 3, type: "opened_source", publicSummary: "Opened manufacturer spec." })?.label).toBe("Reading a source");
     expect(labelResearchEvent({ sequence: 4, type: "disconfirm_search", publicSummary: "Looked for contrary pricing." })?.label).toBe("Checking a conflicting claim");
@@ -54,5 +55,11 @@ describe("research activity from persisted events", () => {
     ];
     expect(runningElapsedLabel(events, Date.parse("2026-09-18T12:00:12.000Z"))).toBe("12s");
     expect(runningElapsedLabel([], Date.now())).toBeNull();
+    expect(runningElapsedLabel(events, Date.parse("2026-09-18T11:59:00.000Z"))).toBeNull();
+  });
+
+  it("does not call a failed run complete", () => {
+    const events = [{ sequence: 1, type: "accepted", publicSummary: "accepted" }];
+    expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed");
   });
 });

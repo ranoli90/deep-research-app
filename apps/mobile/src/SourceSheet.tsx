@@ -26,7 +26,7 @@ export function SourceSheet({ source, styles, onClose, onOpenOriginal, onDelete,
       <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
       <Text style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
       <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
-      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Supports: {relatedClaim}</Text> : null}
+      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Cited in: {relatedClaim}</Text> : null}
       {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion" hitSlop={12}>
         <Text style={styles.link}>Challenge this conclusion</Text>
       </Pressable> : null}

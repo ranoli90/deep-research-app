@@ -1,8 +1,8 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { space } from "@deep/design";
 import { breakLongTokens, parseTable } from "./report-layout";
-import { citationChipLabel } from "./citation-chips";
+import { citationChipLabel, citationNumbers } from "./citation-chips";
 import { editorialSections } from "./report-hierarchy";
 import { uncertaintyFromBlock, uncertaintyLabel } from "./uncertainty";
 import type { ReportBlock } from "./state";
@@ -94,7 +94,7 @@ export function ReportBlockView({
       {uncertainty ? <Text style={styles.kicker}>{uncertaintyLabel(uncertainty)}</Text> : null}
       {body}
       <View style={styles.citeRow}>
-        {block.citationIds.map((id) => {
+        {[...new Set(block.citationIds.filter((id) => id.trim()))].map((id) => {
           const index = citationIndex[id];
           if (index == null) return null;
           return (
@@ -103,7 +103,7 @@ export function ReportBlockView({
               onPress={() => onOpenSource(id)}
               accessibilityRole="button"
               accessibilityLabel={`Open source ${index}`}
-              hitSlop={12}
+              style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
             >
               <Text style={[styles.link, styles.citeLink, styles.citeChip]}>{citationChipLabel(index)}</Text>
             </Pressable>
@@ -130,6 +130,7 @@ export function ReportSections({
   citationIndex?: Record<string, number>;
 }) {
   const sections = editorialSections(blocks);
+  const numbers = Object.keys(citationIndex).length > 0 ? citationIndex : citationNumbers(blocks);
   return (
     <>
       {detailed && sections.length > 1 ? (
@@ -143,8 +144,8 @@ export function ReportSections({
         </View>
       ) : null}
       {sections.map((section) => (
-        <View key={section.id} accessibilityLabel={section.title}>
-          <Text style={styles.kicker}>{section.title}</Text>
+        <Fragment key={section.id}>
+          <Text style={styles.title} accessibilityRole="header" accessibilityLabel={section.title}>{section.title}</Text>
           {section.blocks.map((b) => (
             <ReportBlockView
               key={b.id}
@@ -153,10 +154,10 @@ export function ReportSections({
               onOpenSource={(id) => onOpenSource(id, b.id)}
               onLayoutY={(y) => onLayoutY(b.id, y)}
               emphasizeAnswer={section.id === "answer"}
-              citationIndex={citationIndex}
+              citationIndex={numbers}
             />
           ))}
-        </View>
+        </Fragment>
       ))}
     </>
   );

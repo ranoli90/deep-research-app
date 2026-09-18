@@ -48,22 +48,28 @@ export function ResearchActivity({
   }, [inProgress, reducedMotion]);
   const visible = visibleResearchEvents(events);
   const collapsed = collapseResearchActivity({ events, lifecycle, outcome });
-  const current = currentActivityLine(events);
+  const current = visible.at(-1)?.label ?? currentActivityLine([]);
   const elapsed = inProgress ? runningElapsedLabel(events, nowMs) : null;
   const headline = inProgress
     ? (elapsed ? `${current} · ${elapsed}` : current)
     : collapsed.summary;
   if (!inProgress && visible.length === 0) return null;
   return (
-    <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
+    <View style={styles.card} accessibilityLabel="Research progress">
       <Pressable onPress={onToggle} accessibilityRole="button" accessibilityLabel={expanded ? "Collapse research activity" : "Expand research activity"} hitSlop={8}>
         <View style={styles.row}>
-          <Text style={styles.kicker}>{inProgress ? "Researching" : "Research trail"}</Text>
+          <Text style={styles.kicker}>{inProgress ? (lifecycle === "queued" ? "Queued" : "Researching") : "Research trail"}</Text>
           {inProgress && !reducedMotion ? <ActivityIndicator accessibilityLabel="In progress" /> : null}
         </View>
-        <Text style={inProgress ? styles.activityNow : styles.bodyText}>{headline}</Text>
+        <Text
+          style={inProgress ? styles.activityNow : styles.bodyText}
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={inProgress ? current : collapsed.summary}
+        >
+          {headline}
+        </Text>
       </Pressable>
-      {inProgress && reducedMotion && visible.length === 0 ? <ActivityIndicator accessibilityLabel="In progress" /> : null}
+      {inProgress && reducedMotion ? <Text style={styles.activityDetail ?? styles.bodyText} accessibilityLabel="In progress">In progress</Text> : null}
       {expanded ? visible.map((event, index) => (
         <View key={event.sequence} style={styles.activityItem} accessibilityLabel={`Activity ${event.sequence}`}>
           <Text style={index === visible.length - 1 && inProgress ? styles.activityNow : styles.bodyText}>{event.label}</Text>

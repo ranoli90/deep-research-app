@@ -4,11 +4,17 @@ import { createSessionStorage, memoryStore } from "../src/persist";
 import { emptyState, openLibraryItem, researchActivity, type UiState } from "../src/state";
 const runId = "592be93e-5060-4410-a802-af2ff6dfebfd";
 const tombstone = { runId, lifecycle: "terminal", phase: "writing", outcome: "cancelled", reportId: null, labeledDemo: false, contentInvalidated: true };
+it("library open does not invent in-progress research before the server snapshot", () => {
+  const opened = openLibraryItem({ ...emptyState(), signedIn: true }, runId);
+  expect(opened.run?.lifecycle).toBe("loading");
+  expect(researchActivity(opened).inProgress).toBe(false);
+});
+
 it("W03/W07 reopening an invalidated Library run persists terminal status instead of invented progress", async () => {
   const cache = memoryStore(), credentials = memoryStore(), store = createSessionStorage(cache, credentials);
   await store.activate({ accountId: "synthetic", token: "synthetic" });
   let state: UiState = openLibraryItem({ ...emptyState(), signedIn: true, draft: "Keep this independent draft" }, runId);
-  expect(state.status).toBe("progress");
+  expect(state.status).toBe("loading");
   await applyRemoteInvalidation(state, tombstone, {
     current: () => true,
     hide: () => { state = redactInvalidatedContent({ ...state, run: tombstone }, runId); },

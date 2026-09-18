@@ -33,7 +33,7 @@ export function followUpSuggestions(input: {
     out.push({
       id: item.id,
       label: shorten(item.text),
-      prompt: item.text,
+      prompt: item.text.slice(0, 20_000),
     });
     if (out.length === 3) break;
   }

@@ -13,6 +13,7 @@ it("source sheet shows passage, publisher, location, access, quality, and challe
   expect(src).toContain("sourceLocation(source)");
   expect(src).toContain("uncertaintyLabel(quality)");
   expect(src).toContain('accessibilityLabel="Related claim"');
+  expect(src).toContain("Cited in:");
   expect(src).toContain("Challenge this conclusion");
   expect(src).toContain("Request targeted verification");
   expect(src).toContain("Open original source");

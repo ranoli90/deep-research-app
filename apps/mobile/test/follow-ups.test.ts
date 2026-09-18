@@ -32,4 +32,18 @@ describe("follow-up chips from the report", () => {
       limitations: [],
     })).toEqual([]);
   });
+
+  it("dedupes the same unresolved text from caveats and limitations", () => {
+    const chips = followUpSuggestions({
+      blocks: [
+        block("unresolved-a", "text", "Warranty length is unresolved."),
+        block("contradiction-x", "caveat", "warranty length is unresolved."),
+      ],
+      limitations: ["Warranty length is unresolved.", "Thermals were not measured."],
+    });
+    expect(chips.map((c) => c.prompt)).toEqual([
+      "Warranty length is unresolved.",
+      "Thermals were not measured.",
+    ]);
+  });
 });

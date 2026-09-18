@@ -6,7 +6,7 @@ export function citationNumbers(blocks: ReportBlock[]): Record<string, number> {
   let n = 0;
   for (const block of blocks) {
     for (const id of block.citationIds) {
-      if (!id || out[id] != null) continue;
+      if (!id.trim() || out[id] != null) continue;
       n += 1;
       out[id] = n;
     }

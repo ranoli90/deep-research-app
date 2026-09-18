@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSubmit, composerFollowsReport, emptyState } from "../src/state";
+import { canSubmit, composerFollowsReport, emptyState, startNewResearch } from "../src/state";
 import { researchBriefView } from "../src/research-brief";
 
 describe("one-sentence composer and researching-this brief", () => {
@@ -114,5 +114,61 @@ describe("composer continues a finished report", () => {
     expect(composerFollowsReport({ ...finished, status: "progress", run: { ...finished.run!, lifecycle: "running" } })).toBe(false);
     expect(composerFollowsReport({ ...finished, report: null })).toBe(false);
     expect(composerFollowsReport({ ...finished, pendingContentInvalidation: "gone" })).toBe(false);
+    expect(composerFollowsReport({ ...finished, status: "partial" })).toBe(true);
+    expect(composerFollowsReport({ ...finished, status: "failed" })).toBe(false);
+    expect(composerFollowsReport({
+      ...finished,
+      pendingAdmission: {
+        version: "admission.v1",
+        key: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+        question: "q",
+        routeMode: "fixture",
+        uploads: [],
+      },
+    })).toBe(false);
+  });
+
+  it("starts a new research thread without dropping signed-in consent", () => {
+    const finished = {
+      ...emptyState(),
+      signedIn: true,
+      consentGranted: true,
+      draft: "leftover question",
+      status: "completed" as const,
+      report: { reportId: "r", blocks: [], limitations: [], labeledDemo: true },
+      run: {
+        runId: "run-1",
+        lifecycle: "terminal",
+        phase: "done",
+        outcome: "completed",
+        reportId: "r",
+        labeledDemo: true,
+      },
+      events: [{ sequence: 1, type: "accepted", publicSummary: "ok" }],
+    };
+    const result = startNewResearch(finished);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.next.report).toBeNull();
+    expect(result.next.run).toBeNull();
+    expect(result.next.draft).toBe("");
+    expect(result.next.events).toEqual([]);
+    expect(result.next.signedIn).toBe(true);
+    expect(result.next.consentGranted).toBe(true);
+    expect(result.next.status).toBe("empty");
+  });
+
+  it("does not start new research over a pending admission or deletion", () => {
+    expect(startNewResearch({
+      ...emptyState(),
+      pendingAdmission: {
+        version: "admission.v1",
+        key: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+        question: "q",
+        routeMode: "fixture",
+        uploads: [],
+      },
+    }).ok).toBe(false);
+    expect(startNewResearch({ ...emptyState(), pendingSourceDeletion: "src" }).ok).toBe(false);
   });
 });

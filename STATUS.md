@@ -1,3 +1,13 @@
+## Session C engineer review cycle — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Fixed from aggressive client review:** composer continue no longer falls through to a leftover new run; New research exists; parent/child events no longer mix; library open no longer invents `running`; attach panel stays mounted with the keyboard; Android IME no longer double-resizes; quote-first source “Cited in”; numbered citations deduped; follow-ups stay visible and do not replace the whole question on `replace_question` without the original question; activity elapsed is not invented as `0s`; failed trails are not labeled complete.
+
+**Verified deterministic:** `@deep/mobile` Vitest + typecheck on this pass. **Verified native for this pass:** pending EAS rebuild. **Not integrated:** Session B (uncommitted at `66df545`, migration 042 clash). **Product-quality verified:** no.
+
+Rollback: revert the review-cycle commit on this branch.
+
 ## Session C design-review craft pass — isolated branch checkpoint — 2026-09-18
 
 Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.

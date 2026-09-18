@@ -50,7 +50,7 @@ export function labelResearchEvent(event: ResearchEvent): { label: string; detai
   if (looksLikePrivateProse(summary)) return null;
   const mapped = TYPE_LABELS[event.type];
   if (mapped) {
-    const detail = summary && summary !== mapped ? summary : null;
+    const detail = summary && summary.toLowerCase() !== mapped.toLowerCase() ? summary : null;
     return { label: mapped, detail };
   }
   if (!summary) return null;
@@ -69,9 +69,8 @@ export function visibleResearchEvents(events: ResearchEvent[]): Array<ResearchEv
 }
 
 function sourceCount(events: ResearchEvent[]): number {
-  const opened = events.filter((e) => e.type === "opened_source").length;
-  if (opened > 0) return opened;
-  return 0;
+  const opened = events.filter((e) => e.type === "opened_source").map((e) => e.publicSummary.trim() || e.sequence);
+  return new Set(opened).size;
 }
 
 function eventTimes(events: ResearchEvent[]): number[] {
@@ -98,7 +97,9 @@ function elapsedLabel(events: ResearchEvent[]): string | null {
 export function runningElapsedLabel(events: ResearchEvent[], nowMs: number): string | null {
   const stamps = eventTimes(events);
   if (stamps.length === 0 || !Number.isFinite(nowMs)) return null;
-  return formatElapsed(nowMs - Math.min(...stamps));
+  const start = Math.min(...stamps);
+  if (nowMs < start) return null;
+  return formatElapsed(nowMs - start);
 }
 
 export function collapseResearchActivity(args: {
@@ -118,6 +119,8 @@ export function collapseResearchActivity(args: {
   const parts: string[] = [];
   if (args.outcome === "cancelled" || args.events.some((e) => e.type === "cancelled")) {
     parts.push("Stopped");
+  } else if (args.outcome === "failed") {
+    parts.push("Research failed");
   } else if (sources > 0) {
     parts.push(`Researched ${sources} source${sources === 1 ? "" : "s"}`);
   } else {

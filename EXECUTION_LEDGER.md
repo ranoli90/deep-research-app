@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-18 — Session C engineer review cycle
+
+- Fifteen independent reviews of the craft pass. Session B remains dirty at `66df545` with uncommitted `042_retrieval_intelligence.sql` (clash with C/A `042_model_portfolio.sql`) — not merged.
+- Fixed continue-composer fallthrough, New research, event mixing, library invented progress, keyboard/attach, Android KAV+insets, citation/follow-up/activity truthfulness, and tests.
+- `pnpm --filter @deep/mobile test` and `typecheck` pass. No live spend. No B merge.
+
 ## 2026-09-18 — Session C design-review craft pass
 
 - Independent reviewers (HIG, motion, type, competitive, density, thinking, empty-state, skeptical user, power shopper, anti-slop, dopamine, follow-ups, a11y, Android QA, brand) agreed the app still leaked demo/dev chrome, ALL-CAPS trail details, UUID citations, leftover new-run composer after a report, carded answers, and no useful follow-ups.

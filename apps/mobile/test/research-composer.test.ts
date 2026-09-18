@@ -13,6 +13,10 @@ describe("one-sentence composer copy", () => {
     expect(app).toContain("<ResearchComposer");
     expect(app).toContain("Add a detail or correction…");
     expect(app).toContain("composerContinues");
+    expect(app).toContain("Start new research");
+    expect(app).toContain("should I move to Texas");
+    expect(app).toMatch(/if \(composerContinues\) void onCorrect/);
+    expect(app).toMatch(/else if \(finishedReport\)/);
     expect(app).not.toMatch(/Ask a comparison with hard constraints/);
   });
 });
