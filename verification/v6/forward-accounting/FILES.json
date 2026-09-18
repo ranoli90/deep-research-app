@@ -1,0 +1,134 @@
+[
+  {
+    "path": "AUTHORIZATION.json",
+    "sha256": "4c1c55c942b86863d79885767434c408c0fc5fa12d627c4d267932036e7d924a"
+  },
+  {
+    "path": "ENDPOINT_VALIDATION.json",
+    "sha256": "4cd6ad839da2ba8c630c15ccc5c091040423fb8dc84ef46924c84e3f42170adc"
+  },
+  {
+    "path": "EXECUTION.json",
+    "sha256": "9e18cf73cf420ef3ee693465327d3ab176f8c8e5c1c68571bbc69540f6075140"
+  },
+  {
+    "path": "FINAL_LEDGER_CHECK.json",
+    "sha256": "a97b0d0f2688ff35c452c2e1ca1c7cd488276ff0ab1b2bb81ae7f317395b728a"
+  },
+  {
+    "path": "RESULTS.json",
+    "sha256": "da745e7bc9b314ed74ab71b8cca93ee8705afe515dc6609ac6c3da1071e89dc6"
+  },
+  {
+    "path": "ROUTE_DIAGNOSTIC.json",
+    "sha256": "ab3d341f24b2a81f2bf6915831edc229b75fac35f13633b2d30dd50e0ba98f7e"
+  },
+  {
+    "path": "ROUTE_METADATA.json",
+    "sha256": "526668b60fdf8e9b4fe5d9fe52d6eb97942461db31c0d8407488ddbdbab42fed"
+  },
+  {
+    "path": "SETUP.json",
+    "sha256": "e1b8fc126eb8512e88b19ffb963bf9aa080d359db61a4278e5b3665f9f8b22d8"
+  },
+  {
+    "path": "UPSTREAM_DIAGNOSTIC.json",
+    "sha256": "4227350dc208a2f8c594e6387b81aefe8b9abe94cde4c165962dfd94b7871e6a"
+  },
+  {
+    "path": "USER_ROUTE_METADATA.json",
+    "sha256": "dd71cba6f72bceb5a04fa6cf6fa9359601f243a7d271493ec60e10b7303a86a6"
+  },
+  {
+    "path": "ZDR_ENDPOINTS.json",
+    "sha256": "cdef3d38c0f09445be0d44a83ec4947dc777d28268a6880fe1aa56ea2eb9dc84"
+  },
+  {
+    "path": "diagnose-route.mts",
+    "sha256": "e09a5675da5c24839dbb6d792e392314ed9f457e061ac14d15f883dc76544a9d"
+  },
+  {
+    "path": "diagnose-upstream.mts",
+    "sha256": "3fb90b6db74cf916a6a8668e50ec207a614aa5772bc6f8a2cd6e33addf207d11"
+  },
+  {
+    "path": "diagnostic-tests.txt",
+    "sha256": "a7914d2320ef3c156534424972b2a31c9cedf30707776d3f3357310cee1d6419"
+  },
+  {
+    "path": "diagnostic-types.txt",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "evaluator-tests.txt",
+    "sha256": "ff4a2cbfc0b35d8c6d3e3a36d7e1fd8a6e7d725c0c748628889bcbc52a1f3373"
+  },
+  {
+    "path": "final-handoff.txt",
+    "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+  },
+  {
+    "path": "final-review.txt",
+    "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+  },
+  {
+    "path": "handoff.txt",
+    "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3"
+  },
+  {
+    "path": "integration.txt",
+    "sha256": "17523e4f404f2dd7103e38dcb80c44a6b0f1117b9797d554388253f35c53b871"
+  },
+  {
+    "path": "live/receipts.jsonl",
+    "sha256": "e5e0860309a8ca417a0cb3a2eb78279950f82efc412aea72720deaddb2d96b3b"
+  },
+  {
+    "path": "paid-launch.txt",
+    "sha256": "87c5c4f943bc84c37240ccc25ac884397828f83a7af5d8bbfbfd0718b6a1c1f5"
+  },
+  {
+    "path": "prepare.mts",
+    "sha256": "d5222854d149e7708d9cd0f7cde4698ab55e1fde15f14581d7dedaca56b03c98"
+  },
+  {
+    "path": "quota-tests.txt",
+    "sha256": "260b3fe1f049e37645b2a677866edbd5b4df6d93981572a23a36634a8602b718"
+  },
+  {
+    "path": "review.txt",
+    "sha256": "1ecf3453cf45287b348aece36a9dc17d36a1814eb2eaaf1bfcaec37ca061793d"
+  },
+  {
+    "path": "route-diagnostic-startup-failed.txt",
+    "sha256": "cb3e76f6462cc3b6a287ad2a8cb30b0718725c4e51d17ea44e0ca08da6010879"
+  },
+  {
+    "path": "route-diagnostic.txt",
+    "sha256": "10696d6e3cfb547336d0e84a022d7868f39d6543b5143170cd719004af6cb5e6"
+  },
+  {
+    "path": "run-paid.py",
+    "sha256": "16ce74fc1af0ffa5c04bb1fd4eea7856bf1a7c6b54e96f0a2e65ed20fb7afb9b"
+  },
+  {
+    "path": "setup.txt",
+    "sha256": "5f869c5ddd6b79ac4f4678e1b07a40bc67bb9af0e026274f85dd3a65a8b0302a"
+  },
+  {
+    "path": "types.txt",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "upstream-diagnostic.txt",
+    "sha256": "dd1ff83e966c6ca6677be486027df5c2d8e6ba09656c2ca19f8a06d9181b93d4"
+  },
+  {
+    "path": "verify-ledgers.mts",
+    "sha256": "1a7eba25bdfdced9391abacc63c1b648a6464cae6532a18c056874914440e736"
+  },
+  {
+    "path": "verify.txt",
+    "sha256": "c539f1199fd9c87f872efd102b43376ec1e724cff34c4fb9e63febd3b9d9b0cc"
+  }
+]

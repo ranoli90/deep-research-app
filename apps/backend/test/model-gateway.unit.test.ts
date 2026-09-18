@@ -63,6 +63,7 @@ describe("W05 structured model transport without fallback", () => {
 
 it.each([
  ["No endpoints found matching your data policy. private diagnostic", "data_policy"],
+ ["0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. ZDR violation (account settings): 1 endpoint excluded", "data_policy"],
  ["No endpoints found that support the requested parameters", "parameters"],
  ["No endpoints available at the requested price", "price"],
  ["No endpoints found for this model", "no_endpoints"],

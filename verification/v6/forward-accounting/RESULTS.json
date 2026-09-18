@@ -1,0 +1,125 @@
+{
+  "requirementIds": [
+    "W02",
+    "W08",
+    "W09"
+  ],
+  "runtimeCommits": [
+    "bd302c3176a6f1c64cc6a2830fc5dc2396ae5475",
+    "92b11deb556cf91267ebcf597229ece36eea3682"
+  ],
+  "finalSourceState": "Final routing-message grammar adds actual zero-endpoints form; exact final source hashes recorded below",
+  "commands": [
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/provider-quota.unit.test.ts",
+      "exitCode": 0,
+      "tests": 13,
+      "artifact": "quota-tests.txt"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/provider-quota.unit.test.ts test/eval-live.unit.test.ts",
+      "exitCode": 0,
+      "tests": 29,
+      "artifact": "evaluator-tests.txt"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "counts": {
+        "core": 166,
+        "backend": 168,
+        "mobile": 206,
+        "governance": 6
+      },
+      "artifact": "verify.txt"
+    },
+    {
+      "command": "python3 verification/v6/forward-accounting/run-paid.py",
+      "exitCode": 2,
+      "artifact": "EXECUTION.json",
+      "scope": "Actual authorized OpenRouter/API/worker attempt; provider404 stopped remaining3steps"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts",
+      "exitCode": 0,
+      "tests": 136,
+      "durationSeconds": 307.74,
+      "artifact": "integration.txt",
+      "scope": "Real local PostgreSQL gateway correctness, fabricated model transports; no paid calls"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "final-review.txt",
+      "scope": "Metadata only"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "final-handoff.txt",
+      "scope": "Metadata only"
+    }
+  ],
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux",
+    "database": "Local PostgreSQL, dedicated evaluated account/ledger; separate synthetic integration DB"
+  },
+  "benchmark": {
+    "task": "MC-D01",
+    "expectedSteps": 4,
+    "executedSteps": 1,
+    "successfulReports": 0,
+    "unrunSteps": 3,
+    "correction": "unrun",
+    "semanticScores": null,
+    "reason": "Pinned OpenAI endpoint excluded by account ZDR setting",
+    "diagnosticModelRequests": 2,
+    "allFailuresRetained": true
+  },
+  "finance": {
+    "checkedAt": "2026-09-18T17:07:36.373Z",
+    "historicalLedgerUnchanged": true,
+    "historicalDigest": "8a81b3dc83ca9f64fa67fa16021e7194762331e06150c2ffc9255cda007622f1",
+    "newExposure": {
+      "intents": 3,
+      "confirmed_micro": "0",
+      "held_micro": "64974",
+      "unknown": 3
+    },
+    "quota": {
+      "version": "openrouter-key-quota.v1",
+      "checkedAt": "2026-09-18T17:07:36.373Z",
+      "limitUsd": 5,
+      "remainingUsd": 4.7859228,
+      "usageUsd": 0.2140772
+    },
+    "scope": "Read-only preservation and financial evidence; unchanged aggregate usage is not an individual settlement."
+  },
+  "scope": "Accounting preflight repaired; complete unfamiliar research/correction milestone and release remain unproved. No native/hosted/deploy/push evidence added.",
+  "nextTask": "Implement a versioned, disclosed ZDR-compatible Azure route with historical request identity preservation, then rerun registered comparison under remaining authorized budget after handling these exact rejection records. Do not disable account ZDR or blindly resend unknown actions.",
+  "rollback": "Disable new evaluation admissions. Preserve historical and active ledgers, all reservations/receipts, account/privacy controls and publication gates.",
+  "sourceFiles": [
+    {
+      "path": "apps/backend/src/eval-live.ts",
+      "sha256": "7dfcf5472093b153ca38d29959f923b607db56b189da9d9fa975bd98ac3d3bae"
+    },
+    {
+      "path": "apps/backend/src/evaluation/provider-quota.ts",
+      "sha256": "59ded091d4a64164e862cbbe711f42d3619906e2e21bd73cb8dffbddc6fb6a21"
+    },
+    {
+      "path": "apps/backend/src/adapters/model/openrouter.ts",
+      "sha256": "fdc2c304a8722f48d444b09795a1421d5b14fbb0f6adc82ac94a6386f9d6f0bf"
+    },
+    {
+      "path": "apps/backend/test/provider-quota.unit.test.ts",
+      "sha256": "fc10fc484aa4f7b7ac7e494874f0db193eb1319ae72330420fd290f3f604614c"
+    },
+    {
+      "path": "apps/backend/test/model-gateway.unit.test.ts",
+      "sha256": "31ecd4c6860db1d158c9ec2c4041dd486fc6826f53f3bd6dce3506304f74aee8"
+    }
+  ]
+}

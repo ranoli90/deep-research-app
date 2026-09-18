@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-09-18T17:02:44.037763+00:00",
+  "purpose": "Endpoint validation only: empty messages and missing model; not an inference request",
+  "requestBody": {
+    "messages": []
+  },
+  "endpoint": "POST /api/v1/chat/completions",
+  "generationRequests": 0,
+  "status": 400,
+  "responseDigest": "b5bbc65acb4d37508f1b7a5dcb848d377a17a960223c47f646f4ae59e8346f13",
+  "error": "{'message': 'Input required: specify \"prompt\" or \"messages\"', 'code': 400}"
+}

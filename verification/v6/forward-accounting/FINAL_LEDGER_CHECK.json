@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-09-18T17:07:36.373Z",
+  "historicalLedgerUnchanged": true,
+  "historicalDigest": "8a81b3dc83ca9f64fa67fa16021e7194762331e06150c2ffc9255cda007622f1",
+  "newExposure": {
+    "intents": 3,
+    "confirmed_micro": "0",
+    "held_micro": "64974",
+    "unknown": 3
+  },
+  "quota": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:07:36.373Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772
+  },
+  "scope": "Read-only preservation and financial evidence; unchanged aggregate usage is not an individual settlement."
+}

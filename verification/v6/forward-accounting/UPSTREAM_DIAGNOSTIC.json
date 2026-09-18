@@ -1,0 +1,135 @@
+{
+  "commit": "92b11deb556cf91267ebcf597229ece36eea3682",
+  "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/diagnose-upstream.mts",
+  "scope": "One new route-diagnostic action under the existing $0.40 total cap; original unknown reservation retained. Not another attempt at the original research action, not benchmark quality.",
+  "startedAt": "2026-09-18T17:03:46.011Z",
+  "quotaBefore": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:03:46.434Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772
+  },
+  "priorIntents": [
+    {
+      "id": "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null
+    },
+    {
+      "id": "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null
+    }
+  ],
+  "runId": "f3084ba5-4974-4228-bd59-def29becbf34",
+  "upstreamError": {
+    "code": 404,
+    "message": "0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple reasons):\nZDR violation (account settings): 1 endpoint excluded; configurable at https://openrouter.ai/settings/privacy",
+    "provider": null,
+    "detail": {
+      "code": null,
+      "type": null,
+      "message": null
+    }
+  },
+  "operation": {
+    "kind": "result",
+    "intentId": "15061d78-0fb4-4b80-a3e8-23553a371e0f",
+    "reused": false,
+    "result": {
+      "status": "permanent_failure",
+      "reason": "provider_http_404",
+      "receipt": {
+        "requestedModel": "openai/gpt-4o-mini",
+        "reportedModel": null,
+        "reportedProvider": null,
+        "providerId": null,
+        "httpStatus": 404,
+        "startedAt": "2026-09-18T17:03:46.523Z",
+        "finishedAt": "2026-09-18T17:03:46.619Z",
+        "actualMicro": null,
+        "promptTokens": null,
+        "completionTokens": null,
+        "rawCost": null,
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d"
+      }
+    }
+  },
+  "quotaAfter": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:03:46.725Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772
+  },
+  "intentsAfter": [
+    {
+      "id": "15061d78-0fb4-4b80-a3e8-23553a371e0f",
+      "run_id": "f3084ba5-4974-4228-bd59-def29becbf34",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null,
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:03:46.523Z",
+        "finishedAt": "2026-09-18T17:03:46.619Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+      "run_id": "8ed115a4-5cc6-4203-9101-22f232d3e349",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null,
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T16:57:52.324Z",
+        "finishedAt": "2026-09-18T16:57:52.511Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": null,
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+      "run_id": "4d1c2183-761e-4462-be70-b2d5be22a4ff",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null,
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:02:00.280Z",
+        "finishedAt": "2026-09-18T17:02:00.498Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    }
+  ],
+  "finishedAt": "2026-09-18T17:03:46.726Z",
+  "exitCode": 0
+}

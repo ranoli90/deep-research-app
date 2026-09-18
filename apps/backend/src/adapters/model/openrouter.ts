@@ -80,8 +80,8 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
           try {
             const parsed = JSON.parse(raw.toString("utf8"));
             const message = typeof parsed?.error?.message === "string" ? parsed.error.message : "";
-            if (response.status === 404 && /^No endpoints (?:found|available)\b/i.test(message)) {
-              category = /data policy|privacy|training|guardrail/i.test(message) ? "_data_policy" :
+            if (response.status === 404 && /^(?:No endpoints (?:found|available)\b|0 endpoints out of \d+ requested are available\b)/i.test(message)) {
+              category = /data policy|privacy|training|guardrail|ZDR/i.test(message) ? "_data_policy" :
                 /price|pricing/i.test(message) ? "_price" :
                 /parameter|structured|json|tool use/i.test(message) ? "_parameters" : "_no_endpoints";
             }

@@ -1832,5 +1832,21 @@
     "network": true,
     "paid": true,
     "scope": "One separately reserved route-diagnostic action under existing user-authorized $0.40 aggregate cap, preserves first unknown, no retry or benchmark replacement"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/diagnose-upstream.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/forward-accounting/diagnose-upstream.mts",
+    "network": true,
+    "paid": true,
+    "scope": "One final separately reserved upstream-error diagnostic under existing $0.40 aggregate cap; fixed three total requests maximum, original holds retained, public question only, redacted error observation"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/verify-ledgers.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/forward-accounting/verify-ledgers.mts",
+    "network": true,
+    "paid": false,
+    "scope": "Read-only old-ledger fingerprint, new reservations and current-key usage after authorized diagnostic"
   }
 ]
