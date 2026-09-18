@@ -1,0 +1,12 @@
+Scope: all 6 workspace projects
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 125, reused 0, downloaded 0, added 0
+Progress: resolved 415, reused 0, downloaded 0, added 0
+Progress: resolved 656, reused 0, downloaded 0, added 0
+ WARN  4 deprecated subdependencies found: cron-parser@4.9.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2
+
+Progress: resolved 736, reused 0, downloaded 0, added 0
+Progress: resolved 736, reused 44, downloaded 0, added 0
+Packages: +3 -60
++++------------------------------------------------------------
+ ERR_PNPM_NO_OFFLINE_TARBALL  A package is missing from the store but cannot download it in offline mode. The missing package may be downloaded from https://registry.npmjs.org/uuid/-/uuid-11.1.1.tgz.

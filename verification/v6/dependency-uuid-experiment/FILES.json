@@ -1,0 +1,82 @@
+[
+  {
+    "path": "IMPACT-BEFORE-INSTALL.json",
+    "sha256": "e5c76fb4278fa6246be565b02e04942668d94ab5118430ca235b75cd8f35cb3a"
+  },
+  {
+    "path": "RESULTS.json",
+    "sha256": "9f7e1a30322c71316a8bf725151e8ce13ff29c8ee55474fa37be553a662b7c42"
+  },
+  {
+    "path": "android-export.log",
+    "sha256": "8a49f8a2228e3c0819dd08c411e1cc09fff99b749addd5fb6e3bfd97ce6b3c89"
+  },
+  {
+    "path": "audit.json",
+    "sha256": "e0cfe981d77dcb93adf513f36f9e909c08270e61c43a510810250994d07e472d"
+  },
+  {
+    "path": "base-lock.yaml",
+    "sha256": "2e26eaacc686ebbaea64fe51902251aabc37b5cc9a8ed08d8bc08ee4a3cf2a02"
+  },
+  {
+    "path": "base-package.json",
+    "sha256": "427094055a39a845f3ee518da6a6807eba52c596d8ff24deeb8b7d6986107aa9"
+  },
+  {
+    "path": "combined.patch",
+    "sha256": "096199a0cd9f2f442dbaa0f4efca0bb786d8e0b657eb6e208239b8ee9f4a8e8b"
+  },
+  {
+    "path": "expo-prebuild.pbxproj",
+    "sha256": "4d51dfa1eb24f48851c0f5d102c7735c3174142aee3a6da6b19152cc35846a62"
+  },
+  {
+    "path": "frozen-offline.log",
+    "sha256": "802eb917e93f925e9c5e23476c7e5fe463f0e163fdce23db1bf475334b6877ee"
+  },
+  {
+    "path": "install-offline.log",
+    "sha256": "8813f33f36b5bb6c26d625567ca45f0c20c2d84fa2470faf56af58785cf94eda"
+  },
+  {
+    "path": "install-registry.log",
+    "sha256": "a5d98ea642e864467b087f2d709c94c5640b256ce1709ba23f7dab558b783ae8"
+  },
+  {
+    "path": "ios-prebuild.log",
+    "sha256": "0bd470fd2d4d33ad5a142cd2f10238a2e39c1645a559d33a826bc8c6f7d688de"
+  },
+  {
+    "path": "mobile-typecheck.log",
+    "sha256": "319ec2ff5019e915d17b178bcbd523dce63bf19123835ec943e3b8cd93f58150"
+  },
+  {
+    "path": "roundtrip-initial-failure.stderr",
+    "sha256": "08dd307c53fa52b619a7097ad3ee29d519297002aa82945e221c0aa0ea8adec5"
+  },
+  {
+    "path": "roundtrip.cjs",
+    "sha256": "b99d8f4f4d9379ec9608cad75d296e07a3930cb1783367dd4a7529a3f0ed4a09"
+  },
+  {
+    "path": "roundtrip.json",
+    "sha256": "f55ca0287028fce34f6bc82c06fa8dca5ffe69026c1fc6a4612b4a9e0f62a331"
+  },
+  {
+    "path": "roundtrip.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "synthetic-roundtrip.pbxproj",
+    "sha256": "589366ca29668cb146f709b03cd86633187975981d1ff689906d9173380950fa"
+  },
+  {
+    "path": "uuid-only.patch",
+    "sha256": "e5423a40e5ab98185cdbeb29c9a50b1b8a9cd107c87e5dceb057f3eb3dc81437"
+  },
+  {
+    "path": "vendor-package-metadata.json",
+    "sha256": "79e7dfde02e649cb9503a82f4db6f3e38c2adea2fb110a1f44fa734ff2b6ade6"
+  }
+]

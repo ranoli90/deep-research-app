@@ -1,0 +1,100 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "workingTree": true,
+  "cwd": "/tmp/deep-v6-metro-6490546",
+  "recordedAt": "2026-09-18T04:08:33.593086+00:00",
+  "baseDependencies": "Previously reviewed PostCSS8.5.28 scopedoverride+Vitest4.1.11 exactdevpins",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "expo": "54.0.37",
+    "expoMetro": "54.2.0",
+    "metroFamily": "0.83.8",
+    "vitest": "4.1.11"
+  },
+  "results": [
+    {
+      "command": "pnpm install --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-offline.log",
+      "sha256": "11d4c67b01acbbc0cd529ad23d8231e8152f5b32b84ca99ac197421aa8acd0b1",
+      "scope": "Allcached; scriptsdisabled; no registrydownloads required"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "mobile-tests.log",
+      "sha256": "a9b5ecd6e53b06507468de2cc840db2063e3e58380e389fb2f0f3d7e9d7178a4",
+      "scope": "136/136in15files;3.53s; no test adaptations/skips"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-types.log",
+      "sha256": "319ec2ff5019e915d17b178bcbd523dce63bf19123835ec943e3b8cd93f58150",
+      "scope": "Configured mobiletypes"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-metro-android",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "sha256": "276a1298a02a2241cc29af8c4da24c561423f2befc803d61db61156eccbf76d3",
+      "scope": "648modules2.18MB,14.095sbundling; JS/Hermes export only, no native build or devicecompatibility"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json",
+      "sha256": "4d45e67e50894537195c4279e522488233a80bfe4763d875a5063f8512146add",
+      "scope": "One moderateUUID advisory remains; zero high. All image-size paths/advisories removed."
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-frozen-offline.log",
+      "sha256": "b55a58e23db4e75c5dc46bbe88ed23ff1d581a5c47f660494cfedc2b018c46e7",
+      "scope": "Frozen offline install passes; diffcheck clean"
+    }
+  ],
+  "patches": [
+    {
+      "path": "combined.patch",
+      "sha256": "a605e4e07f5542300ca533047033a2f152aa35b7372d5a7d613ec7824af8279f",
+      "scope": "All3dependency packets against committed6490546"
+    },
+    {
+      "path": "metro-only.patch",
+      "sha256": "ddc68d5cc357a5f5929df3f0b262af9b34a871b3579b4d28e40e15e66d51b566",
+      "scope": "Only14scoped Metrofamilyoverrides+lock against reviewedPostCSS/Vitest clone"
+    }
+  ],
+  "metroPatchBaseline": [
+    {
+      "path": "package.json",
+      "sha256": "c14cb21cbf9e613ea87514934866eccf87250923a0ffd373ff3ef99aebe794fe"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "187e36fc44dc1e46f48f94bb09feb226fa3cf95d74635ed73081621198158c45"
+    }
+  ],
+  "resolvedGraph": {
+    "artifact": "resolved-graph.json",
+    "sha256": "a2963b410dae9c2bfb620ed60406f190938d90404ca5bc9f42c3adb8d78351e3",
+    "assertion": "Each of14dependencies declared by @expo/metro resolves0.83.8; nested Metro dependencies also0.83.8; image-size unresolvable"
+  },
+  "impact": {
+    "edges": "@expo/metro54.2.0 declares fourteen0.83.3exactdependencies. Scoped @expo/metro>package overrides align all to0.83.8 instead of lone image-size or mixedcore changes. RN0.81.4-side Metroalready0.83.8. Expo wrapper/config/RN/native SDK pins unchanged.",
+    "compatibility": "Upstream same-patch-seriessecurityfix removes image-size and adds bounded vendoredparsers. Outside exactExpoSDK54 declarations, so localunit/type/export compatibility is observed only. No officialExpoSDKendorsement/nativeexecution/build claim. Primarynativebundleverification pending lockeddevice.",
+    "limitations": "No DB/provider/modelcalls, nativebuild/deviceexecution, hostedCI or dependencyinstall in root. Root adoption remains pending primary review. No test/config/source edits needed.",
+    "rollback": "Remove14scopedMetrooverrides+restorematchinglock, retain PostCSS/Vitest fixes and riskreceipts. Returns image-sizehighadvisories; do not suppress audit or claim clean.",
+    "remaining": "uuid7.0.3moderate throughxcode3.0.1 buildtool usesv4; do not turn this into a security-clean claim."
+  },
+  "sources": [
+    "https://github.com/react/metro/releases/tag/v0.83.8"
+  ],
+  "paidCalls": 0
+}

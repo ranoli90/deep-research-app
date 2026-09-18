@@ -1,0 +1,301 @@
+{
+  "task": "W01\u2013W09 bounded current milestone audit",
+  "commit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "method": "Read-only source and preserved receipt recheck. No tests, DB, dependency operations, provider/network calls or canonical edits. Not a fresh runtime verification.",
+  "input": "verification/v6/FINDING_RECHECKS.json plus staged V6 planning/02_IMPLEMENTATION_PLAN.md",
+  "conclusion": "Milestone remains incomplete. Most original concrete local defects have bounded repairs; semantic quality, external cost/identity/retention/native proof are not interchangeable with synthetic tests.",
+  "findings": [
+    {
+      "id": "V6-F01",
+      "status": "Partial semantic repair",
+      "remainingLocalOrReconciliation": "Retain contradiction/overreach/owner/version/final prose guards; add broader independently grounded negative cases without replacing successful paraphrases.",
+      "externalOrQualityGate": "Real-model entailment precision/recall and independent adjudication.",
+      "refs": [
+        "packages/research-core/src/scoped-support.ts",
+        "apps/backend/src/modules/scoped-publication.ts",
+        "apps/backend/test/model-gateway.integration.test.ts"
+      ]
+    },
+    {
+      "id": "V6-F02",
+      "status": "Fixture restriction removed from production; quality partial",
+      "remainingLocalOrReconciliation": "Arbitrary assertions/candidates and production fixture isolation exist. General candidate eligibility/discovery needs unfamiliar controlled task coverage.",
+      "externalOrQualityGate": "Real-model held-out generality.",
+      "refs": [
+        "apps/backend/src/worker/structured-research.ts",
+        "apps/backend/test/governance.test.ts",
+        "verification/v6/correction-rediscovery/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F03",
+      "status": "Substantive handlers implemented; quality partial",
+      "remainingLocalOrReconciliation": "Requested verification now restores immutable target and actual receipt, including negative citation links. Deterministic target corruption is not consistently terminalized; see nextTask.",
+      "externalOrQualityGate": "Meaningful real-model assessment/calculation applicability.",
+      "refs": [
+        "apps/backend/src/worker/requested-verification.ts",
+        "apps/backend/src/modules/verification-proof.ts",
+        "verification/v6/requested-verification/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F04",
+      "status": "Source-count coverage replaced; quality partial",
+      "remainingLocalOrReconciliation": "Owned scoped coverage and final compiled-report checking exist; preliminary source-only coverage can still cause avoidable arithmetic discovery.",
+      "externalOrQualityGate": "Real-model interpretation/criterion eligibility.",
+      "refs": [
+        "apps/backend/src/modules/publication-coverage.ts",
+        "apps/backend/src/modules/research-coverage.ts",
+        "apps/backend/src/worker/structured-research.ts"
+      ]
+    },
+    {
+      "id": "V6-F05",
+      "status": "Generic production writer exists; quality partial",
+      "remainingLocalOrReconciliation": "Retain localized uncertainty and exact arithmetic rendering; no scenario-composer production import.",
+      "externalOrQualityGate": "Useful unfamiliar-task live synthesis, independently assessed.",
+      "refs": [
+        "apps/backend/src/worker/research-writer.ts",
+        "apps/backend/test/governance.test.ts",
+        "verification/v6/requested-verification/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F06",
+      "status": "Real HTML extraction, known corpus miss",
+      "remainingLocalOrReconciliation": "Investigate saved SQLite exact-reference miss without fetching new data or rewriting evaluator gold. Partial-text labeling is already honest.",
+      "externalOrQualityGate": "Dynamic/blocked-web and wider independently annotated fidelity.",
+      "refs": [
+        "verification/v6/matched-corpus/extraction.json",
+        "verification/v6/matched-corpus/RESULTS.json",
+        "apps/backend/src/worker/source-reading.ts"
+      ]
+    },
+    {
+      "id": "V6-F07",
+      "status": "Binary digital PDF and native source path implemented; fidelity partial",
+      "remainingLocalOrReconciliation": "Broader columns/tables/local saved-document selection controls remain; OCR unavailable is not repaired by digital text parser.",
+      "externalOrQualityGate": "Standalone dependency resolution, wider real corpus/OCR and both-platform device acceptance.",
+      "refs": [
+        "verification/v6/source-reader/RESULTS.json",
+        "verification/v6/matched-corpus/RESULTS.json",
+        "apps/backend/src/worker/attachment-ingestion.ts"
+      ]
+    },
+    {
+      "id": "V6-F08",
+      "status": "Measured reuse plus span API and rediscovery repairs",
+      "remainingLocalOrReconciliation": "Prior ledger is stale: correction draft recovered; exact typed span API, snapshot/refresh and relaxed rediscovery now locally controlled. Semantic criterion patch UI/selective traversal and age/applicability freshness remain distinct.",
+      "externalOrQualityGate": "Independently evaluated correction/full-rerun agreement with real models.",
+      "refs": [
+        "packages/research-core/src/question-patch.ts",
+        "apps/backend/src/modules/research-corrections.ts",
+        "verification/v6/question-patch/RESULTS.json",
+        "verification/v6/correction-draft/RESULTS.json",
+        "verification/v6/correction-rediscovery/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F09",
+      "status": "Atomic reservations/receipt recovery implemented; provider bounds conditional",
+      "remainingLocalOrReconciliation": "Retain unknown holds and receipt-only financial mutation basis. Do not call application reserve math an invoice guarantee.",
+      "externalOrQualityGate": "Authorized live receipt reconciliation/historical application and provider-enforced model/plugin tariff limits.",
+      "refs": [
+        "apps/backend/src/ports/model-policy.ts",
+        "apps/backend/src/ports/search.ts",
+        "apps/backend/src/adapters/model/openrouter.ts",
+        "verification/v6/receipt-recovery/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F10",
+      "status": "Local transaction/outbox boundary repaired",
+      "remainingLocalOrReconciliation": "Atomic accepted child/reservation/outbox and mobile resolve/withdraw exist; bound requested-verification resolve rejects ordinary-run collision.",
+      "externalOrQualityGate": "Hosted queue/pooler behavior; no external exactly-once claim.",
+      "refs": [
+        "apps/backend/src/modules/admission-recovery.ts",
+        "verification/v6/admission-retry/RESULTS.json",
+        "verification/v6/requested-verification/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F11",
+      "status": "Lease/cancellation local defects repaired, audit remains scoped",
+      "remainingLocalOrReconciliation": "Prior ledger cancellation candidate is stale: actual concurrent cancel/event/deletion failures repaired and five controls passed. Post-lock/post-callback/post-insert wallclock guards exist.",
+      "externalOrQualityGate": "Hosted failover and exhaustive future mutation coverage.",
+      "refs": [
+        "verification/v6/lease-clock/RESULTS.json",
+        "verification/v6/cancellation-atomicity/RESULTS.json",
+        "apps/backend/src/worker/fenced-session.ts",
+        "apps/backend/src/modules/runs.ts"
+      ]
+    },
+    {
+      "id": "V6-F12",
+      "status": "Local network controls implemented; disclosure gap explicit",
+      "remainingLocalOrReconciliation": "Mixed private-document/public query approval flow remains absent and safely blocked; new explicit disclosure flow would require separate scoped design/controls.",
+      "externalOrQualityGate": "Deployment DNS/network/pooler environment and broader transport behavior.",
+      "refs": [
+        "apps/backend/src/worker/public-search.ts",
+        "apps/backend/src/ports/search.ts",
+        "verification/v6/FINDING_RECHECKS.json"
+      ]
+    },
+    {
+      "id": "V6-F13",
+      "status": "Local source/account purge implemented; native delete not passed",
+      "remainingLocalOrReconciliation": "Source tombstones, exact-key withdrawal vetoes, dependent purge and protected pending-deletion redaction are implemented. Native delete UI cannot be marked passed: device keyguard blocked control; synthetic cache cleanup remains pending unlock.",
+      "externalOrQualityGate": "External processor/backup retention; unlocked device deletion journey and wider lifecycle.",
+      "refs": [
+        "apps/backend/src/modules/source-deletion.ts",
+        "apps/mobile/src/source-deletion-flow.ts",
+        "verification/v6/source-deletion-replay/RESULTS.json",
+        "verification/v6/mobile-source-deletion/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F14",
+      "status": "Configured identity/ownership boundary partial",
+      "remainingLocalOrReconciliation": "Production identity adapter and zero-allowance mapping exist. Existing development sign-in is not production login UI.",
+      "externalOrQualityGate": "Hosted provider cryptography/revocation, production mobile login/refresh, provider identity deletion.",
+      "refs": [
+        "apps/backend/src/modules/identity.ts",
+        "apps/mobile/src/ProfilePanel.tsx",
+        "verification/v6/FINDING_RECHECKS.json"
+      ]
+    },
+    {
+      "id": "V6-F15",
+      "status": "Production closed operation boundaries implemented",
+      "remainingLocalOrReconciliation": "Strict span patch and requested-verification inputs add no tool/account/budget authority; preserve revalidation of executable actions.",
+      "externalOrQualityGate": "Real-model invalid-output behavior and broader semantic capability evidence.",
+      "refs": [
+        "packages/contracts/src/index.ts",
+        "packages/contracts/src/requested-verification.ts",
+        "apps/backend/src/modules/model-operations.ts",
+        "apps/backend/test/governance.test.ts"
+      ]
+    },
+    {
+      "id": "V6-F16",
+      "status": "Common-pipeline A1/B wiring exists; quality benchmark open",
+      "remainingLocalOrReconciliation": "Baseline and adaptive differ in refinement selection, sharing original API/worker/tools/writer/checker. Frozen twelve-task/thirteen-document corpus exists; retain failed extraction reference and slower adaptive control. Runner/wiring proof is not competent live quality proof.",
+      "externalOrQualityGate": "Current paid budget, actual model receipts/repetitions, independent adjudication; no superiority authorized.",
+      "refs": [
+        "apps/backend/src/ports/research-strategy.ts",
+        "evals/matched-pipeline/model-protocol.json",
+        "verification/v6/matched-pipeline/document-controls.json",
+        "verification/v6/matched-corpus/RESULTS.json"
+      ]
+    },
+    {
+      "id": "V6-F17",
+      "status": "Protected cache/request scopes implemented; native scope expanded",
+      "remainingLocalOrReconciliation": "Prior restart-position failure is superseded only for synthetic offline reader: actual cold restart now retains section7. No broader authenticated lifecycle inference. Profile extracted; truthful push/purchase gating remains.",
+      "externalOrQualityGate": "Unlocked authenticated account-switch/accessibility/reconnect, standalone/iOS, OS backup behavior.",
+      "refs": [
+        "verification/v6/reading-position/RESULTS.json",
+        "verification/v6/protected-content/RESULTS.json",
+        "verification/v6/profile-panel/RESULTS.json",
+        "apps/mobile/src/request-scope.ts"
+      ]
+    },
+    {
+      "id": "V6-F18",
+      "status": "Owned bibliography repaired; delivery gate remains",
+      "remainingLocalOrReconciliation": "Single owned digest-pinned export and real Android share preview exist. No delivery to recipient was attempted or authorized.",
+      "externalOrQualityGate": "Standalone/iOS sharing and actual recipient delivery where authorized.",
+      "refs": [
+        "apps/backend/src/modules/report-export.ts",
+        "verification/v6/source-reader/RESULTS.json",
+        "verification/v6/FINDING_RECHECKS.json"
+      ]
+    },
+    {
+      "id": "V6-F19",
+      "status": "Canonical/clean proof improving; stale ledger requires reconciliation",
+      "remainingLocalOrReconciliation": "5fbec3a includes newer span/rediscovery/PostCSS work than several canonical finding entries. Exact f88091a detached proof passed, not exact5fbec3a proof. Current Vitest4 full PG suite is pending and cannot inherit prior pass.",
+      "externalOrQualityGate": "Hosted CI remains unexecuted; native dependency/security release gate separate.",
+      "refs": [
+        "verification/v6/clean-requested-verification/RESULTS.json",
+        "verification/v6/dependency-postcss-integrated/RESULTS.json",
+        "verification/v6/FINDING_RECHECKS.json",
+        "verification/v6/dependency-vitest-integrated/audit.json"
+      ]
+    }
+  ],
+  "workPackets": [
+    {
+      "id": "W01",
+      "localNext": "Maintain negative guards; broaden source-grounded semantic edge cases.",
+      "externalOrQualityGate": "Real-model/independent semantic evidence.",
+      "findings": "F01,F04"
+    },
+    {
+      "id": "W02",
+      "localNext": "Finish scoped mutation audit; deterministic verification-proof corruption outcome is a small next control.",
+      "externalOrQualityGate": "Live cost reconciliation/provider invoice bounds and hosted failover.",
+      "findings": "F09\u2013F12,F15"
+    },
+    {
+      "id": "W03",
+      "localNext": "Local pending privacy/cache/race paths can be broadened; do not erase locked-device cleanup obligation.",
+      "externalOrQualityGate": "Unlocked native identity lifecycle, hosted/backup/processor deletion.",
+      "findings": "F13,F14,F17"
+    },
+    {
+      "id": "W04",
+      "localNext": "Trace retained SQLite extraction/reference miss using saved bytes; expand annotated table/column controls.",
+      "externalOrQualityGate": "OCR/wider fidelity and standalone native dependency proof.",
+      "findings": "F06,F07"
+    },
+    {
+      "id": "W05",
+      "localNext": "Terminal typed blocked outcome for malformed captured proof, zero fresh issuance, retained marker; do not catch lease/DB errors indiscriminately.",
+      "externalOrQualityGate": "Real-model unfamiliar-task quality and applicability.",
+      "findings": "F02\u2013F05,F15"
+    },
+    {
+      "id": "W06",
+      "localNext": "Span API complete within narrow accepted-input scope. Add version-change/freshness applicability controls only where distinct from current refresh tests; semantic criterion UI/selective traversal remain unimplemented.",
+      "externalOrQualityGate": "Independent corrected/full-rerun semantic agreement.",
+      "findings": "F08"
+    },
+    {
+      "id": "W07",
+      "localNext": "Further bounded account/accessibility reading controls; explicit unavailable features already disclosed.",
+      "externalOrQualityGate": "Current unlocked-device full journey, production sign-in, standalone/iOS.",
+      "findings": "F17,F18"
+    },
+    {
+      "id": "W08",
+      "localNext": "Keep fixed protocol and retained failures; any local runner work must label fabricated transports.",
+      "externalOrQualityGate": "New paid envelope and independent adjudication; historical balance is not authorization.",
+      "findings": "F16"
+    },
+    {
+      "id": "W09",
+      "localNext": "Reconcile identified stale finding sentences; exact next reviewed checkpoint clean proof after dependency source freeze resolves.",
+      "externalOrQualityGate": "Hosted CI dispatch/receipt and release dependency/native gates.",
+      "findings": "F19"
+    }
+  ],
+  "freshness": "reuse_snapshot pins historical authorized bytes/versions; refresh correction drops inherited membership and uses current discovery/reads; requested verification refresh_sources specifically rereads selected known sources. Attachment identical-byte extraction may reuse parser cache. These operational policies do not implement automatic age/TTL/as-of applicability or independently establish current factual truth. Existing fresh cited-version change-summary controls must not be repeated as novel evidence.",
+  "granularity": "Strict span API supports exact server SHA256, bounded UTF-16 insertion/removal, quote, Unicode, ownership/revision and full accepted replay identity; no semantic criterion editing UI or selective savings.",
+  "modelCost": "Text route pins provider/model/max_price, disables plugins/fallback, reserves full advertised context/output envelope. Search adds a fixed7000micro fee reserve and bounded plugin configuration. These are conditional controls; no current provider enforcement/invoice proof and no authorized live balance.",
+  "dependencyBoundary": "At5fbec3a committed Vitest remains3; PostCSS integrated audit3moderate/2high. Active uncommitted Vitest4 integrated audit shows1moderate/2high, exit1; its full PostgreSQL suite was pending when this audit was prepared. Do not attribute it to5fbec3a or declare clean security.",
+  "nextTask": {
+    "title": "Terminalize deterministic requested-verification target corruption before new issuance",
+    "classification": "Concrete source-inspection gap; not runtime-reproduced in this audit",
+    "source": [
+      "apps/backend/src/worker/requested-verification.ts:26",
+      "apps/backend/src/modules/requested-verification.ts:73",
+      "apps/backend/src/worker/run-lifecycle.ts:26",
+      "apps/backend/src/worker/runtime.ts:38"
+    ],
+    "basis": "Initial target load catches only required_verification_* errors. Digest mismatch/original-target mismatch and schema corruption escape, leave ordinary queue retry semantics and do not persist a typed blocked verification result. Current publication fails closed; no false publication bypass is asserted.",
+    "regression": "Admit genuine synthetic parent/child using existing nonbillable integration harness. Corrupt captured target digest, alter original target, or malformed target schema separately before processing. Assert failed child + bounded blocked reason + zero new provider intents + no report; required marker retained. Distinguish LostWorkerLease and transient PostgreSQL failures: preserve retry/fencing, not terminalize everything. Retain current replay/unknown-hold/deletion controls.",
+    "ownership": "worker/requested-verification.ts plus dedicated focused test; canonical ADR037 amendment/evidence. Run on granted isolated DB slot after frozen suite; no paid/model/network dependency.",
+    "rollback": "Disable scheduling on regression while keeping target/marker readers, publication veto, deletion and unknown financial holds."
+  }
+}

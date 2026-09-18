@@ -1,0 +1,4 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-v6-uuid-root-5fbec3a/apps/mobile
+> tsc -p tsconfig.json --noEmit
+

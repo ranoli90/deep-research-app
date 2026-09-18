@@ -1,0 +1,2495 @@
+{
+  "commit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "workingTree": "Uncommitted matched-pipeline implementation",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "versions": [
+    {
+      "path": "apps/backend/src/adapters/model/prompts.ts",
+      "sha256": "795c678c63074542241a45c38926d24ace51c9816833ae1697f3594395111470"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    },
+    {
+      "path": "packages/contracts/src/research-model.ts",
+      "sha256": "7317c13bc286b87635be2862c1bdabaf9e6e087842e076502d9b6905b28af3ab"
+    },
+    {
+      "path": "evals/matched-pipeline/protocol.json",
+      "sha256": "163f04c5e6937f9ee58f03f83ad4550b081ba1a77c412f003b7119e281c4e002"
+    }
+  ],
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the IVCWRO field note say about underwater recording?",
+      "sourceSha256": "8be850b8dc12a83054efdb468b3dd86eb49f734eb3611fa9f4131fcb20fa07bd",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    },
+    {
+      "label": "A1-original",
+      "runId": "4901418f-6893-40e6-8e1a-746f38cda2d8",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 3653.3968280000004,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "d94e5cab-ed4c-4e5b-b1cf-d90d60cfbb3f",
+        "runId": "4901418f-6893-40e6-8e1a-746f38cda2d8",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "IVCWRO does not support underwater recording.",
+            "claimIds": [
+              "23d28816-19d8-4433-961d-bcb2a4d056e1"
+            ],
+            "citationIds": [
+              "65a4f7ba-e7fe-42d0-ab92-55e22fc9b06e"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "8f74266f-c28a-4a03-a3c3-eb5c7b359822",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://4f8ed167-16ea-4af6-9598-fb7927e13499"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "41e1ee32-417c-4776-b428-38144761e771",
+          "source_version_id": "c6204eda-8cea-48e6-8429-86fdb7e7d516",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "65a4f7ba-e7fe-42d0-ab92-55e22fc9b06e",
+          "source_version_id": "c6204eda-8cea-48e6-8429-86fdb7e7d516",
+          "exact_text": "Field notes: IVCWRO sensor deployment\nIVCWRO supports offline recording only on firmware 4.2.\nIVCWRO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.4080000000001,
+                  748.616
+                ],
+                "text": "Field notes: IVCWRO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "IVCWRO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.10400000000016,
+                  712.616
+                ],
+                "text": "IVCWRO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "29477ecb-fb94-42e6-8f6d-f6c5683f5446",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "IVCWRO does not support underwater recording.",
+                "start": 94,
+                "passageId": "65a4f7ba-e7fe-42d0-ab92-55e22fc9b06e"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "274f0185-fe40-4eb4-8cb8-9829f959a049",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "IVCWRO does not support underwater recording.",
+                "start": 94,
+                "passageId": "65a4f7ba-e7fe-42d0-ab92-55e22fc9b06e"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "4901418f-6893-40e6-8e1a-746f38cda2d8",
+          "accountId": "5746243d-7146-454c-b243-4da23e9c268f",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-original",
+      "runId": "47500ad0-3f0b-4eba-a929-f20e2c143256",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 3521.8095269999994,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "6c8f6995-9333-4a15-bd7d-2d30ced9e30c",
+        "runId": "47500ad0-3f0b-4eba-a929-f20e2c143256",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "IVCWRO does not support underwater recording.",
+            "claimIds": [
+              "48054e29-37c2-4a76-b648-cec7258ff374"
+            ],
+            "citationIds": [
+              "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "a60cb01b-38f7-4b1e-9b73-f9a592cd3846",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://590082cf-682e-4bb0-8d70-03958ee68f5f"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "90cfcb3f-b740-4f07-830c-cb043bfe5019",
+          "source_version_id": "732c47e6-992c-4dc1-972e-1118aa353626",
+          "exact_text": "Field notes: IVCWRO sensor deployment\nIVCWRO supports offline recording only on firmware 4.2.\nIVCWRO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.4080000000001,
+                  748.616
+                ],
+                "text": "Field notes: IVCWRO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "IVCWRO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.10400000000016,
+                  712.616
+                ],
+                "text": "IVCWRO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "d7c33bab-8ea3-4f63-9815-56597f56d464",
+          "source_version_id": "732c47e6-992c-4dc1-972e-1118aa353626",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "41fdbb72-1514-4047-a749-8c5cc525880e",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "IVCWRO does not support underwater recording.",
+                "start": 94,
+                "passageId": "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "7d553f6c-76d5-45d2-92f1-29e7a63db146",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "IVCWRO does not support underwater recording.",
+                "start": 94,
+                "passageId": "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "47500ad0-3f0b-4eba-a929-f20e2c143256",
+          "accountId": "5746243d-7146-454c-b243-4da23e9c268f",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-correction",
+      "runId": "acf12e0b-725c-4eef-ba11-75492a638255",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 2535.491097,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 0,
+      "report": {
+        "reportId": "01e2e208-3669-49cc-87a5-2c117f06f039",
+        "runId": "acf12e0b-725c-4eef-ba11-75492a638255",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "IVCWRO supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "da461f02-fb72-4d65-a0ce-52b66bafbbdd"
+            ],
+            "citationIds": [
+              "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "a60cb01b-38f7-4b1e-9b73-f9a592cd3846",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://590082cf-682e-4bb0-8d70-03958ee68f5f"
+          }
+        ],
+        "changeSummary": {
+          "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+          "comparison": {
+            "version": "report-changes.v1",
+            "parentReportId": "6c8f6995-9333-4a15-bd7d-2d30ced9e30c",
+            "addedCriterionIds": [],
+            "reportStateChanged": false,
+            "removedCriterionIds": [],
+            "unchangedAssertions": 0,
+            "addedClaimRevisionIds": [
+              "bf188f05-3839-4ae8-b909-dc84416e51d4"
+            ],
+            "removedClaimRevisionIds": [
+              "7d553f6c-76d5-45d2-92f1-29e7a63db146"
+            ],
+            "newlyCitedSourceVersionIds": [],
+            "reusedCitedSourceVersionIds": [
+              "732c47e6-992c-4dc1-972e-1118aa353626"
+            ]
+          },
+          "newlyFeasible": [],
+          "evidenceUpdated": false,
+          "newlyInfeasible": [],
+          "conclusionChanged": true
+        },
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "90cfcb3f-b740-4f07-830c-cb043bfe5019",
+          "source_version_id": "732c47e6-992c-4dc1-972e-1118aa353626",
+          "exact_text": "Field notes: IVCWRO sensor deployment\nIVCWRO supports offline recording only on firmware 4.2.\nIVCWRO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.4080000000001,
+                  748.616
+                ],
+                "text": "Field notes: IVCWRO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "IVCWRO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.10400000000016,
+                  712.616
+                ],
+                "text": "IVCWRO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "d7c33bab-8ea3-4f63-9815-56597f56d464",
+          "source_version_id": "732c47e6-992c-4dc1-972e-1118aa353626",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "7dc08ecb-e511-45f8-a5e9-77d212e62ed8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "IVCWRO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "bf188f05-3839-4ae8-b909-dc84416e51d4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "IVCWRO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "90cfcb3f-b740-4f07-830c-cb043bfe5019"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "acf12e0b-725c-4eef-ba11-75492a638255",
+          "accountId": "5746243d-7146-454c-b243-4da23e9c268f",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-corrected-full-rerun",
+      "runId": "0c222e3b-1ad8-4d89-b665-5107d1450f81",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4067.7521990000005,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "ac6d2792-6646-4c1d-a97b-df95bbe2afbf",
+        "runId": "0c222e3b-1ad8-4d89-b665-5107d1450f81",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "IVCWRO supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "4aa8941d-5c50-4020-9ced-0d08c9d2109d"
+            ],
+            "citationIds": [
+              "1ede843f-bf06-4b64-ac30-e278c7a75f0a"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "900afaf3-5927-4119-87d1-de3f724fcadb",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://b1d01058-b4d9-4038-be52-f6c4367c1ea4"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "1ede843f-bf06-4b64-ac30-e278c7a75f0a",
+          "source_version_id": "b3741dd1-5fc5-46d0-b269-da17182c7b77",
+          "exact_text": "Field notes: IVCWRO sensor deployment\nIVCWRO supports offline recording only on firmware 4.2.\nIVCWRO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.4080000000001,
+                  748.616
+                ],
+                "text": "Field notes: IVCWRO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "IVCWRO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.10400000000016,
+                  712.616
+                ],
+                "text": "IVCWRO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "891c11ee-39f5-4635-9737-00e79c81022d",
+          "source_version_id": "b3741dd1-5fc5-46d0-b269-da17182c7b77",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "f6b2105f-c8b6-44b8-88db-67bf7c3f47dd",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "IVCWRO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "1ede843f-bf06-4b64-ac30-e278c7a75f0a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "6df5ed6e-062a-4e6b-8e43-40214d5283d4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "IVCWRO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "1ede843f-bf06-4b64-ac30-e278c7a75f0a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "0c222e3b-1ad8-4d89-b665-5107d1450f81",
+          "accountId": "5746243d-7146-454c-b243-4da23e9c268f",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-unavailable",
+      "runId": "b102036c-91b0-4ce5-ba94-6eb564aa0f92",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1716.7741830000014,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "b102036c-91b0-4ce5-ba94-6eb564aa0f92",
+          "accountId": "15e0f82b-aec6-4790-bf1e-1b865dbdf53a",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-unavailable",
+      "runId": "b39f4807-699d-48b1-aa32-8d6a65d9d84c",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1649.0742019999998,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "b39f4807-699d-48b1-aa32-8d6a65d9d84c",
+          "accountId": "15e0f82b-aec6-4790-bf1e-1b865dbdf53a",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-iterative-public",
+      "runId": "ccb5c4f5-17ad-4321-9ac6-134f26dfb0e2",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 11271.776168,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does PDKZHJV support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:export",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "7edaca21-38aa-43e9-ad08-53bb28ccdf1b",
+        "runId": "ccb5c4f5-17ad-4321-9ac6-134f26dfb0e2",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "PDKZHJV supports full export.",
+            "claimIds": [
+              "d175fc72-69aa-4eef-a190-37f1473e6f2d"
+            ],
+            "citationIds": [
+              "9e57e767-bf6d-4f34-a40b-e358c5102faf"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "PDKZHJV supports offline editing.",
+            "claimIds": [
+              "8ff99fe6-4e6f-40b9-bdb1-b9cc4adcb7e1"
+            ],
+            "citationIds": [
+              "85f34b51-2c00-4805-ba95-2204213a8a0d"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "053fd764-70de-4047-811d-35b48db5e376",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "452a2482-46c5-49dd-b4c5-2277e408f56e",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "438cfa72-863a-41eb-a793-2ab25f25af1d",
+          "source_version_id": "0d23f4c2-21f4-4566-8284-e0e30116e05c",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "85b9cc63-f8ec-4c1e-9132-acc268479c2a",
+          "source_version_id": "089b19c9-3a56-4a8a-b59d-e267d146f0b1",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "85f34b51-2c00-4805-ba95-2204213a8a0d",
+          "source_version_id": "089b19c9-3a56-4a8a-b59d-e267d146f0b1",
+          "exact_text": "PDKZHJV supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "9e57e767-bf6d-4f34-a40b-e358c5102faf",
+          "source_version_id": "0d23f4c2-21f4-4566-8284-e0e30116e05c",
+          "exact_text": "PDKZHJV supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "cbab9696-7360-4946-965b-3fac1791f564",
+          "source_version_id": "0d23f4c2-21f4-4566-8284-e0e30116e05c",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "fc0f0217-827f-491e-96c0-75db68183d7e",
+          "source_version_id": "089b19c9-3a56-4a8a-b59d-e267d146f0b1",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "2c2f50c0-a509-43c4-a495-a665eb8478aa",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "9e57e767-bf6d-4f34-a40b-e358c5102faf"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "64e301b9-b241-4762-ad9e-e53817531118",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "9e57e767-bf6d-4f34-a40b-e358c5102faf"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "f8536d65-b297-4bed-806a-6d8458b6ed5f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "PDKZHJV supports offline editing.",
+                "start": 0,
+                "passageId": "85f34b51-2c00-4805-ba95-2204213a8a0d"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "6ec3408a-930c-4e6b-992e-5f1e7be5caa4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "9e57e767-bf6d-4f34-a40b-e358c5102faf"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "73397750-84d1-4c0b-b6b9-b0557e6ab6f3",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "PDKZHJV supports offline editing.",
+                "start": 0,
+                "passageId": "85f34b51-2c00-4805-ba95-2204213a8a0d"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "ccb5c4f5-17ad-4321-9ac6-134f26dfb0e2",
+          "accountId": "03012e05-9974-4dbb-bdac-15ca172d8710",
+          "routeMode": "controlled-research",
+          "spentMicro": 19,
+          "confirmedProviderMicro": 19,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 19
+          },
+          "intentTotalMicro": 19,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-iterative-public",
+      "runId": "fbb99544-1e7f-4aa9-8331-a132dab5aca1",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 13513.415470999997,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does PDKZHJV support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "986fbd86-967f-470d-9804-ddb0c077f67b",
+        "runId": "fbb99544-1e7f-4aa9-8331-a132dab5aca1",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "PDKZHJV supports full export.",
+            "claimIds": [
+              "289d7666-74f8-4448-9434-ed7de51b79d5"
+            ],
+            "citationIds": [
+              "fb7861c1-e556-4301-b12a-a8998261af84"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "PDKZHJV supports offline editing.",
+            "claimIds": [
+              "5a8d5d65-cf4a-470b-8163-ee7a806f029b"
+            ],
+            "citationIds": [
+              "515173b3-58b3-404e-9a2d-c51930bebb1d"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "264f32ae-7c13-4f02-86d1-e7ee2551f64b",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "53dcbe5e-32a8-4cc3-882f-df513aa1b664",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "1d0755e6-80f5-41ad-a06a-6e21e50b9d73",
+          "source_version_id": "95b89236-0dce-4813-bb1a-35ed53d478b8",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "49230478-7c70-4db2-a0b9-033bc7432f2b",
+          "source_version_id": "048922b4-929b-49b7-8f27-7dab009a7032",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "515173b3-58b3-404e-9a2d-c51930bebb1d",
+          "source_version_id": "95b89236-0dce-4813-bb1a-35ed53d478b8",
+          "exact_text": "PDKZHJV supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "66ef7567-0b49-43f5-9d80-8250a1c6d0d2",
+          "source_version_id": "95b89236-0dce-4813-bb1a-35ed53d478b8",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "c4587440-40ac-4493-aeb9-a7a714aa839c",
+          "source_version_id": "048922b4-929b-49b7-8f27-7dab009a7032",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "fb7861c1-e556-4301-b12a-a8998261af84",
+          "source_version_id": "048922b4-929b-49b7-8f27-7dab009a7032",
+          "exact_text": "PDKZHJV supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "a097f395-4a65-4723-a35c-e31825abe5e2",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "fb7861c1-e556-4301-b12a-a8998261af84"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "bd6820a5-b0e9-4ce7-b487-15858fd9d919",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "fb7861c1-e556-4301-b12a-a8998261af84"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "d26e1285-5daf-4100-91c7-5de89e23d12b",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "PDKZHJV supports offline editing.",
+                "start": 0,
+                "passageId": "515173b3-58b3-404e-9a2d-c51930bebb1d"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "685f79a0-b905-4b4f-b0e5-9cf5ffd70495",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "PDKZHJV supports full export.",
+                "start": 0,
+                "passageId": "fb7861c1-e556-4301-b12a-a8998261af84"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c8ac99ca-805e-4c7c-bb7c-86a35adba87a",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "PDKZHJV supports offline editing.",
+                "start": 0,
+                "passageId": "515173b3-58b3-404e-9a2d-c51930bebb1d"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "fbb99544-1e7f-4aa9-8331-a132dab5aca1",
+          "accountId": "03012e05-9974-4dbb-bdac-15ca172d8710",
+          "routeMode": "controlled-research",
+          "spentMicro": 16,
+          "confirmedProviderMicro": 16,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 16
+          },
+          "intentTotalMicro": 16,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-09-18T04:02:25.907733+00:00",
+  "requirement": "W09",
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "isolation": "Fresh detached local clone /tmp/deep-v6-vitest-6490546; root source/package/lock untouched",
+  "changes": "Previously tested scoped PostCSS8.5.28 override plus exact Vitest4.1.11 in backend,mobile,research-core devDependencies; no other package declaration changes",
+  "reason": "Fix GHSA-82fw-gwwq-j7x9 affectingVitest/@vitest/mocker; maintainer states3.x not receiving fix",
+  "boundaries": "Development runner only. No production API, schema, prompt, native SDK, model/provider, DB or allowance changes. No service deployment or credentials. Registry downloads permitted; install scripts disabled.",
+  "risk": "Major runner release may change mock/reset semantics, type API or config; preserve all test assertions and report incompatibilities before adapting",
+  "validation": [
+    "pnpm verify",
+    "pnpm --filter @deep/mobile typecheck",
+    "pnpm audit --json",
+    "offline frozen installation after cache population"
+  ],
+  "rollback": "Restore three prior devDependency declarations plus matching lockfile; retain failed experiment/audit findings and do not label reverted vulnerable runner clean",
+  "vendorSources": [
+    "https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9",
+    "https://v4.vitest.dev/guide/migration"
+  ],
+  "paidCalls": 0
+}

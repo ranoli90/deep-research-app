@@ -1,0 +1,86 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "recordedAt": "2026-09-18T04:23:48.161904+00:00",
+  "baseCommit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "baseWorkingTreeChanges": "Reviewed exact Vitest4.1.11 pins in existing three test packages and matching root lock, copied before experiment. PostCSS8.5.28 already committed.",
+  "cwd": "/tmp/deep-v6-uuid-root-5fbec3a",
+  "candidate": "Only scoped xcode>uuid11.1.1 override and corresponding lock changes",
+  "patch": "uuid-only-root.patch; git apply --check against root passed; not applied",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux"
+  },
+  "receipts": [
+    {
+      "command": "pnpm install --offline --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-offline.log"
+    },
+    {
+      "command": "node verification/v6/dependency-uuid-root-candidate/roundtrip.cjs",
+      "exitCode": 0,
+      "artifact": "roundtrip.json"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 CI=1 pnpm --filter @deep/mobile exec expo prebuild --platform ios --no-install",
+      "exitCode": 0,
+      "artifact": "ios-prebuild.log"
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 1,
+      "artifact": "audit.json"
+    },
+    {
+      "command": "pnpm install --offline --ignore-scripts --frozen-lockfile",
+      "exitCode": 0,
+      "artifact": "frozen-offline.log"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-typecheck.log"
+    },
+    {
+      "command": "git apply --check verification/v6/dependency-uuid-root-candidate/uuid-only-root.patch",
+      "exitCode": 0,
+      "artifact": null
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "artifact": null
+    }
+  ],
+  "scope": "Actual Node CJS resolution; real xcode3 synthetic parse/edit/write/reparse with generated file/group retained;1000 uppercase24hex unique sampled UUIDs; v3/v5 malformed buffer RangeError; actual Expo iOS config-plugin prebuild, no installation/build.",
+  "resolution": {
+    "xcode": "3.0.1",
+    "uuid": "11.1.1",
+    "expoMetroWrapper": "54.2.0",
+    "actualExpoMetro": "0.83.3",
+    "experimentalMetroOverrides": false
+  },
+  "audit": {
+    "exitCode": 1,
+    "moderate": 0,
+    "high": 2,
+    "remaining": "image-size advisories retained; Metro repair unadopted pending native runtime validation"
+  },
+  "failures": "No new failed install/type/prebuild controls. Audit remains intentionally failed. Earlier isolated experiment offline tarball absence and synthetic missing-newline failure retained in ../dependency-uuid-experiment; not reclassified.",
+  "prebuildCleanup": "Generator rewrote mobile android/ios launch scripts; restored exactly those keys before final checks. Generated iOS directory remains only in disposable clone, excluded from patch.",
+  "limits": [
+    "Override11.1.1 lies outside xcode declared^7.0.3; explicit compatibility exception supported by actual API-path tests, not vendor endorsement.",
+    "No iOS/Android native build, device/UI acceptance or Metro native compatibility claim.",
+    "No DB/provider/API/network research requests, source/test edits, root dependency mutation or commits.",
+    "Unit/Android export not repeated for Node-only UUID edge; previous broader experiment export is separately labeled evidence."
+  ],
+  "rollback": "Remove only xcode>uuid override and matching lock modifications, retaining PostCSS/Vitest changes; track reintroduced moderate advisory explicitly.",
+  "sources": [
+    "https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq",
+    "https://registry.npmjs.org/uuid/11.1.1"
+  ],
+  "lockSha256": "37b90f600a7b1c35cf35dd2a66e1c47c9dac426ab4501ae31af77bcc20b0531e"
+}

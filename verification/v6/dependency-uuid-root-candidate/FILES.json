@@ -1,0 +1,70 @@
+[
+  {
+    "path": "IMPACT-BEFORE-INSTALL.json",
+    "sha256": "12c241a625fe4ce31798871b4836f45456c95dda4fbb8ee7bc4f67a17295db25"
+  },
+  {
+    "path": "RESULTS.json",
+    "sha256": "4a59c074e95552439521cd79c32a48fa94a949fb2486665e967488acf3bc59ee"
+  },
+  {
+    "path": "audit.json",
+    "sha256": "acc1bbf0c79eab4c7a21b8c7e29808cddfa927f2720cdee6ac8094051b42fe09"
+  },
+  {
+    "path": "base-lock.yaml",
+    "sha256": "187e36fc44dc1e46f48f94bb09feb226fa3cf95d74635ed73081621198158c45"
+  },
+  {
+    "path": "base-package.json",
+    "sha256": "c14cb21cbf9e613ea87514934866eccf87250923a0ffd373ff3ef99aebe794fe"
+  },
+  {
+    "path": "clone.log",
+    "sha256": "2543c986f83d6d24621dafbdecad08914d36630c4bd6f04836e9fd7d079ff022"
+  },
+  {
+    "path": "expo-prebuild.pbxproj",
+    "sha256": "4d51dfa1eb24f48851c0f5d102c7735c3174142aee3a6da6b19152cc35846a62"
+  },
+  {
+    "path": "frozen-offline.log",
+    "sha256": "64ac1d7fdabc2bf163a0a426223eb62916728b22ef61c684584559c8c316cba6"
+  },
+  {
+    "path": "install-offline.log",
+    "sha256": "b7d240be1428d5e9773645a207be8bdea44282b2fd1cf43ee611148306943b70"
+  },
+  {
+    "path": "ios-prebuild.log",
+    "sha256": "0bd470fd2d4d33ad5a142cd2f10238a2e39c1645a559d33a826bc8c6f7d688de"
+  },
+  {
+    "path": "mobile-typecheck.log",
+    "sha256": "73e6d686688228e937882f0a28c3221f0461538e4eb6fc87c9f86ccad1c01694"
+  },
+  {
+    "path": "resolved-graph.json",
+    "sha256": "e14ae3a0fb3e0bedf0a49df3cd5cf64f320c8456d686f4c48c9cdc7b1b570089"
+  },
+  {
+    "path": "roundtrip.cjs",
+    "sha256": "232ff599a113b17125c0f4950bfc9f0332b031c176233ae3c12e80e229b9d3fd"
+  },
+  {
+    "path": "roundtrip.json",
+    "sha256": "fc4d1bcf6d0501a6c2288a75b362676d962e974923457b6e6761c65bcc446e5a"
+  },
+  {
+    "path": "roundtrip.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "synthetic-roundtrip.pbxproj",
+    "sha256": "d025c0019843961fee961d3c0f30a55442415ffc4c6651f4b8dc4a3121cc0f1e"
+  },
+  {
+    "path": "uuid-only-root.patch",
+    "sha256": "39b685696a3e264333b7db6aa120144471871a853fecbc5ad0547b30a99d45f8"
+  }
+]

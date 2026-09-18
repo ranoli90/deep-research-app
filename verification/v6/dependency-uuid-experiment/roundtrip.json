@@ -1,0 +1,10 @@
+{
+  "xcode": "3.0.1",
+  "uuid": "11.1.1",
+  "resolvedUuid": "/tmp/deep-v6-metro-6490546/node_modules/uuid/dist/cjs/index.js",
+  "roundtrip": "pass",
+  "generatedIds": 1000,
+  "sampledUnique": 1000,
+  "invalidBufferV3V5": "RangeError",
+  "nativeBuild": false
+}

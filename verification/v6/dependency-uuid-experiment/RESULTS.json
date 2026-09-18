@@ -1,0 +1,99 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "recordedAt": "2026-09-18T04:17:06.679506+00:00",
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "cwd": "/tmp/deep-v6-metro-6490546",
+  "baseOverrides": [
+    "PostCSS8.5.28 scoped to @expo/metro-config",
+    "Vitest4.1.11 exact in existing three test packages",
+    "All fourteen @expo/metro dependencies coordinated to0.83.8"
+  ],
+  "candidate": "xcode>uuid exact11.1.1",
+  "filesChanged": [
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "patch": "uuid-only.patch (relative to explicit base dependency fixes); combined.patch contains all four experiments against6490546",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux; no native iOS/Android build"
+  },
+  "receipts": [
+    {
+      "command": "pnpm install --offline --ignore-scripts",
+      "exitCode": 1,
+      "artifact": "install-offline.log",
+      "scope": "Patched tarball absent; failure preserved."
+    },
+    {
+      "command": "pnpm install --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install-registry.log",
+      "scope": "One registry tarball downloaded; lifecycle scripts disabled."
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 CI=1 pnpm --filter @deep/mobile exec expo prebuild --platform ios --no-install",
+      "exitCode": 0,
+      "artifact": "ios-prebuild.log",
+      "scope": "Actual local config-plugin generation; no CocoaPods install or native build. Generator changed only android/ios launcher scripts; restored those two keys before patch/checks."
+    },
+    {
+      "command": "node verification/v6/dependency-uuid-experiment/roundtrip.cjs",
+      "exitCode": 1,
+      "artifact": "roundtrip-initial-failure.stderr",
+      "scope": "Initial synthetic fixture omitted final newline required by parser; retained failure, fixture corrected without weakening assertions."
+    },
+    {
+      "command": "node verification/v6/dependency-uuid-experiment/roundtrip.cjs",
+      "exitCode": 0,
+      "artifact": "roundtrip.json",
+      "scope": "Real xcode3 parse/edit/write/reparse; 1000 uppercase24hex unique sampled IDs, UUIDv4 format, v3/v5 invalid-buffer RangeErrors."
+    },
+    {
+      "command": "pnpm audit --json",
+      "exitCode": 0,
+      "artifact": "audit.json",
+      "scope": "Zero reported advisories in this experimental JavaScript graph; not exhaustive security validation."
+    },
+    {
+      "command": "pnpm install --offline --ignore-scripts --frozen-lockfile",
+      "exitCode": 0,
+      "artifact": "frozen-offline.log",
+      "scope": "Reproducible cached lock installation."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-typecheck.log",
+      "scope": "Configured mobile TypeScript check."
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-uuid-android",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "648 modules, 2.18 MB, 4961ms; JS export only."
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "artifact": null,
+      "scope": "No whitespace errors."
+    }
+  ],
+  "reachability": "Installed xcode3.0.1 lib/pbxProject.js:90 uses only require(uuid).v4() without buffer. Advisory describes v3/v5/v6 buffer bounds; no vulnerable API reachable through that call site found. Override is outside xcode declared ^7.0.3 and remains an explicitly reviewed compatibility exception. UUID11 publishes a Node CommonJS export and passes real xcode/plugin controls.",
+  "limits": [
+    "No root source/package/lock mutation, commits or DB tests.",
+    "No native build, installed app, iOS device or store acceptance.",
+    "Zero advisory count applies only to queried package graph and registry response.",
+    "Mobile unit suite already passed136/136 on same Metro base; not rerun solely for build-time UUID override."
+  ],
+  "rollback": "Remove only xcode>uuid override and matching lock entries; retain earlier reviewed dependency fixes. Restore and explicitly track UUID advisory if rolling back.",
+  "sources": [
+    "https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq",
+    "https://github.com/uuidjs/uuid/releases/tag/v11.1.1",
+    "https://registry.npmjs.org/uuid/11.1.1"
+  ]
+}

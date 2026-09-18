@@ -264,3 +264,11 @@ Impact checklist: one worker capability guard and production-path regressions; n
 Corrected and fresh full runs produce the same two explicit synthetic platform facts. Correction reuses1passage and reads1new source; full rerun reads2 and inherits0. Both make8provider attempts and record10synthetic micro-units, so no model-cost saving is claimed. Fabricated transports prove orchestration, not live semantic correctness or independent human adjudication. Evidence verification/v6/correction-rediscovery/ and question-patch/.
 
 Rollback disables new correction scheduling when required discovery is unavailable; retain recorded obligations, immutable membership, deletion and financial holds. Never restore old-only publication by ignoring reopen_discovery.
+
+## ADR041 — Upgrade the test runner with unchanged behavioral controls (2026-09-17)
+
+W09/V6-F19: pin the three existing Vitest declarations to4.1.11, which includes the advisory repair unavailable in the old3.x line. Retain all existing assertions, tests and runner configuration. The locked Vite/mocker graph changes only development tooling; no application processor, native module, public schema, migration, prompt or provider route changes. Node20.20.2 satisfies the resolved tooling requirements. No new services or spend.
+
+Impact and verification: isolated experiment followed by root frozen offline install, verify155/116/136/6, mobile types, full393 local PostgreSQL tests and17 actual parser/API controls pass. New synthetic database avoids erasing retained accounting evidence. Current audit exits1 with1moderate/2high; this is not a clean security claim. Evidence and earlier cache-miss failure: verification/v6/dependency-vitest-experiment/ and dependency-vitest-integrated/. JavaScript/runtime checks are not native or hosted CI evidence.
+
+Rollback restores the prior runner declarations and lock only if incompatibility is found, records its advisories as unresolved and retains every behavioral assertion and runtime gate. No test suppression, broad error acceptance or release waiver.

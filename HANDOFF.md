@@ -4,7 +4,7 @@ The authorized V6 W01–W09 goal remains active and incomplete. Continue the exi
 
 ## Current checkpoint
 
-Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Committed source `9d95ad50bfdd267a3d6b3b8d19246b9909927455`, metadata HEAD `7ccfe802e9695a48fe01b15cf676c3d07cc60a41`; requested-verification implementation is committed as `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Actual git state takes precedence. Original review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`; V6 staged in `/tmp/deep-v6-staging`. STATUS, canonical specs and ledger carry scope/history; agent handoffs are evidence, not alternative specifications.
+Repository `/home/oranolio/Desktop/Deep`, branch `codex/v6-evidence-milestone`. Latest committed implementation `5fbec3a` adds exact-span corrections, required rediscovery and scoped PostCSS; prior `6490546` profile extraction and `f88091a` requested verification. Actual git state takes precedence. Vitest4 is a verified working-tree dependency update:393 PostgreSQL and17 actual extraction controls pass. Both user ZIPs remain untracked. Original review pin `03fab6b9d6a04ce9fdaeb48636383757213f7242`; V6 staged in `/tmp/deep-v6-staging`. STATUS is the current scope map; ledger/evidence/git preserve historical checkpoints.
 
 Recent committed behavior includes protected snapshots, correction-draft recovery, exact upload/admission retry and withdrawal, native SHA256, current-clock lease fences, atomic cancellation/events, layout-aware reading restoration, source-deletion replay veto and durable mobile source-deletion redaction. Preserve all privacy, authorization, spend and publication gates. ADR029–036 and linked evidence record regressions and rollback.
 
@@ -12,7 +12,7 @@ Requested verification (ADR037) binds an owned report/version/claim and independ
 
 ## Evidence and environment
 
-Node20.20.2, pnpm9.15.9, Python3.12.3, Vitest3.2.7. Local PostgreSQL127.0.0.1:55432. Truncating suites run serially; isolated `deep_research_lease_clock_v6` is used for current controls. Do not erase retained synthetic liability in standard `deep_research_test`. Actual extraction runtime `/tmp/deep-v6-extraction-runtime`. No hidden live model requests.
+Node20.20.2, pnpm9.15.9, Python3.12.3, Vitest4.1.11. Local PostgreSQL127.0.0.1:55432. Truncating suites run serially; isolated `deep_research_lease_clock_v6` is used for current controls. Do not erase retained synthetic liability in standard `deep_research_test`. Actual extraction runtime `/tmp/deep-v6-extraction-runtime`. No hidden live model requests.
 
 Requested-verification packet: affected169/169, bound recovery28/28, requested/P3 combined73/73, final positive/negative citation4/4 pass across separate overlapping runs. See `verification/v6/requested-verification/RESULTS.json`. Primary integrated actual extraction17/17 passes in87.78s; Android JS647modules/2.17MB and mobile typecheck pass. Combined verify initially caught a stale diagnostic test that expected a fabricated verification narrative; failure is retained and regression now rejects that narrative. Final integrated outcome belongs to `verification/v6/requested-verification-integrated/RESULTS.json`, once recorded. Do not sum overlapping suites or call fabricated transports semantic validation. No native build is claimed.
 
@@ -26,9 +26,9 @@ Earlier ExpoGo proof includes picker/consent/binary SHA256/deletion, correction 
 
 ## Next executable work
 
-1. Finalize current verification checks, canonical metadata and reviewed source checkpoint; record actual implementation SHA afterward. Retain all failed receipts and intentionally force-add ignored evidence logs, never user ZIPs.
-2. Integrate tested scoped PostCSS override after active suites finish. Isolated experiment reduced5moderate/4high to3moderate/2high, still audit exit1; root audit remains unresolved until integrated. Metro/image-size, uuid and Vitest findings require separate bounded work; no clean security claim.
-3. Continue production relaxed-constraint rediscovery with actual newly eligible evidence and measured immutable reuse. Granular typed changes, freshness and selective traversal remain open; preserve conservative fallback.
+1. Commit verified Vitest4 dependency update, then complete exact clean-checkout proof. Record actual SHA; retain all failures and intentionally force-add evidence logs, never user ZIPs.
+2. PostCSS is committed in5fbec3a. Working-tree Vitest4 audit is1moderate/2high, exit1; isolated coordinated Metro repair passes JavaScript checks but exceeds Expo exact pins and lacks native bundle proof. UUID experiment remains separate. No clean security claim.
+3. Review typed stored-verification corruption repair and actual HTML list-fidelity defect; preserve conservative correction fallback. Exact-span changes and synthetic rediscovery are implemented; semantic criterion UI, freshness and selective traversal remain open.
 4. Continue W07 account/lifecycle/accessibility/reconnect/settings/refactor and current native source-delete/full journey after unlock. W08 real-model held-out repetitions and independent adjudication require current authorization/budget. Local fabricated models prove code behavior only.
 5. Finish current clean-checkout/CI configuration evidence, dependency findings, canonical reconciliation and full milestone audit. W10 hosted identity/retention/backups/abuse controls and signed Android/iOS/release remain separate external gates.
 
@@ -47,3 +47,5 @@ Profile presentation implementation committed as `6490546f51bdbf0267abfba36aae99
 W06 correction follow-on: exact-span input patches are implemented server-side (no granular semantic editor UI), with owned revision/hash/UTF16 quote checks and conservative recomputation. Required public rediscovery fails before any model work when disabled. Full gateway136pass; finalspan/rediscovery8pass; corrected/full synthetic facts agree with one source read avoided, identical synthetic model spend. W09 scoped PostCSS integration passes136mobile/types/JSexport; audit remains3moderate/2high. These are working-tree changes pending checkpoint; live/native gates unchanged.
 
 Final correction/PostCSS integrated verify exit0:155core/116backend/136mobile/6governance and configuredtypes/boundaries. Evidence verification/v6/correction-checkpoint/RESULTS.json. Actual extraction on these final changes remains for the next coordinated dependency checkpoint; older17/17 receipt is f88091a.
+
+Current terminal evidence: Vitest4.1.11 adoption over5fbec3a: full real local PostgreSQL393/393 (26files,397.62s), actual extraction17/17 (79.03s), verify155core/116backend/136mobile/6governance, mobiletypes and offline frozen install all exit0. No assertion/source/config adaptations. Audit remains exit1 with1moderate/2high. Exact commands/environment/hashes: verification/v6/dependency-vitest-integrated/RESULTS.json. Synthetic data/fabricated providers, paid0; no live/native/hosted/clean-checkout claim.

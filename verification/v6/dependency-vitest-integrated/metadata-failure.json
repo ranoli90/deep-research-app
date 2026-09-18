@@ -1,0 +1,6 @@
+{
+  "scope": "metadata validation only",
+  "failure": "Both document validators rejected two new command implementation pointers that were prose instead of file paths. Corrected pointers to package.json; no runtime/test change.",
+  "exitCode": 1,
+  "shellCaveat": "Enclosing shell continued to diff check and returned0; validator JSON ok:false retained here."
+}

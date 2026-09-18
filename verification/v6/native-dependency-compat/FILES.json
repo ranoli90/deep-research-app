@@ -1,0 +1,34 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "7ce60d3a71ef11622f1d1bb453ebab7080b23a8cda88a507e8167b237f0ebd9e"
+  },
+  {
+    "path": "launch.log",
+    "sha256": "9072b157f16533ac2c12b59f9c4799007f7bfcae63d759f42611a94e5d53e8fc"
+  },
+  {
+    "path": "listeners-after.log",
+    "sha256": "14f4ea5bdea2bd6f8d856ec28619243555e53de100d4bca155a751876e97a843"
+  },
+  {
+    "path": "metro.log",
+    "sha256": "966f50046754481cf6eddeb1120828dc56ebeb49cedfe2eaac2489bc1787d83a"
+  },
+  {
+    "path": "probe.cjs",
+    "sha256": "98d8126fb44fd2cf79c503a945a234edbaf5d92c0dc08a260afe7a7c4cc24daa"
+  },
+  {
+    "path": "probe.log",
+    "sha256": "8aafe6165d64d9f3d0bb8fad61d44049d2378b74bcf9d10d0efe77a6e575da1e"
+  },
+  {
+    "path": "reverses-after.log",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "path": "runtime-availability.json",
+    "sha256": "41ec67307ee59b8053d5752814f4b07bb9586d676e916d916b995bf9cfe74683"
+  }
+]
