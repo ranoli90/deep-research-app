@@ -1,0 +1,12 @@
+{
+  "command": "pnpm --filter @deep/backend typecheck",
+  "exitCode": 2,
+  "source": "Recorded tool terminal output; original run was not redirected to a log",
+  "errors": [
+    "test/correction-rediscovery.integration.test.ts(52,35): TS7006 b implicitly any",
+    "test/correction-rediscovery.integration.test.ts(53,36): TS7006 b implicitly any",
+    "test/correction-rediscovery.integration.test.ts(56,32): TS7006 id implicitly any",
+    "test/correction-rediscovery.integration.test.ts(57,32): TS7006 b implicitly any"
+  ],
+  "fix": "Explicit runtime projection callback types for database JSON report fields; no assertion removed."
+}

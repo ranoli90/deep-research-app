@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/correction-rediscovery.integration.test.ts (2 tests) 9155ms
+   ✓ W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading  6990ms
+   ✓ W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence  2056ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  21:54:52
+   Duration  10.35s (transform 660ms, setup 0ms, collect 1000ms, tests 9.15s, environment 0ms, prepare 66ms)
+

@@ -36,3 +36,5 @@ export * from "./calculation-report.js";
 
 export * from "./counterevidence.js";
 export { requestedVerificationOutcome } from "./requested-verification.js";
+
+export { applyQuestionPatch } from "./question-patch.js";

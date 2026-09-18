@@ -1,0 +1,13 @@
+W06 exact-span question correction impact checklist (before schema change)
+
+Goal: accept a narrowly identified edit of an owned parent question without inventing criterion equivalence. Add strict replace_question_span alongside replace_question; server derives the resulting question from exact original SHA256, UTF-16 start/end, quote and explicit replacement. Preserve conservative complete child recomputation, evidence snapshot/refresh policy and reopened discovery. This is granular accepted input editing, not a semantic criterion editor or selective-reuse quality claim.
+
+Ownership: contracts correction schema only; pure core question-patch helper/export/new units; backend research-corrections domain and new question-patch integration tests. No mobile, dependencies, migrations, source-reading, model prompts or existing-test edits. API already validates the shared correction request. Original parent revision/owner/account/consent and attachments remain checked under existing transaction locks; network is not involved. Backend computes original question SHA256 with existing node:crypto and passes that trusted digest into the pure helper, avoiding a vendor/Node dependency in core.
+
+Input rules: strict patch, exact digest and quote, bounded selected span (including explicit empty-span insertion), integer UTF-16 offsets, no boundary splitting a surrogate pair, well-formed replacement and resulting Unicode, non-whitespace result of at most20000UTF-16 code units. An empty quote binds insertion at equal start/end. Empty replacement is allowed to delete the selected span when the resulting question stays nonempty. No implicit append, model rewrite or normalization. Existing whole-question behavior remains unchanged.
+
+Idempotency binds the entire accepted patch plus original correctionText and expected revision. Store full patch and accepted correctionText in existing research_change_sets JSON; preserve prior question/report. Unknown dependency completeness retains full rerun, conservative rediscovery and no inherited support approval. No new allowance or live/spending authority. Local tests are synthetic DB/code controls, not semantic quality evidence.
+
+Rollback: disable new span acceptance if required, retain existing whole-question correction, stored accepted patches/change-set readers, child provenance, ownership/deletion, immutable evidence readers and financial holds. Never reinterpret a stored span against a changed parent or claim selective recomputation. Primary owns canonical ADR/spec/STATUS/HANDOFF/ledger/registry reconciliation.
+
+Execution coordination: no DB until primary grants exclusive slot; no unit/type processes while primary changes dependency tree. Failures and terminal receipts will be recorded here.

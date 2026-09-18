@@ -1,0 +1,43 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/correction-rediscovery.integration.test.ts (2 tests | 1 failed | 1 skipped) 5466ms
+   ↓ W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading
+   × W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence 5214ms
+     → expected [ { operation: 'brief' } ] to deeply equal []
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence
+AssertionError: expected [ { operation: 'brief' } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "operation": "brief",
++   },
++ ]
+
+ ❯ test/correction-rediscovery.integration.test.ts:84:115
+     82|  expect(x.model.queries).toEqual([]);
+     83|  expect((await pool.query("SELECT payload FROM run_events WHERE run_id…
+     84|  expect((await pool.query("SELECT operation FROM model_operation_resul…
+       |                                                                                                                   ^
+     85|  expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id…
+     86| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  22:03:23
+   Duration  8.85s (transform 1.86s, setup 0ms, collect 2.77s, tests 5.47s, environment 0ms, prepare 153ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts -t disabled required rediscovery
+exit_code=1

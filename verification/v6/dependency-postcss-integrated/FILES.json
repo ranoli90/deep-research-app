@@ -1,0 +1,38 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "aef8d2bbe49de5af6d5443e2b63d92ad0bda97eb936aa7491f22a5524193bad7"
+  },
+  {
+    "path": "android-export.log",
+    "sha256": "366cd07ba37aabe491b4356458d0e608a33a6cdd3062f4bde84881e6464ba0b0"
+  },
+  {
+    "path": "audit-exit.txt",
+    "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+  },
+  {
+    "path": "audit.json",
+    "sha256": "c287d30915107bc7f0c0da45e46ec52f759bf47ef86adec7fe32dd35a1cd0472"
+  },
+  {
+    "path": "install.log",
+    "sha256": "44c4df1d9cd274e9ef6b423445e0e23ce24bb0b61b29171a048bf37c038eb811"
+  },
+  {
+    "path": "mobile-tests.log",
+    "sha256": "4de060e2dbae1221cfd3691375eaf95d693d6cbde4868a09fa156c288c4cfcb0"
+  },
+  {
+    "path": "mobile-types.log",
+    "sha256": "70438f50ca40dafc014a4e2e1fa843e728aa5cc056d4af6ca55e6fba4998a0cf"
+  },
+  {
+    "path": "resolution.json",
+    "sha256": "9e9f3f22ef18155e8d4ce7913df88f3902f1d0720eb58958109583c070352c64"
+  },
+  {
+    "path": "upstream-review.json",
+    "sha256": "5442c22a0b0c95c71cdf3ad85db7b1f5a5ce1f26ccd074f4872b3afb36fdfb28"
+  }
+]

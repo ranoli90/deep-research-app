@@ -1,0 +1,14 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ✓ test/model-gateway.integration.test.ts (136 tests | 128 skipped) 38386ms
+   ✓ W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker  3579ms
+   ✓ W06 fresh cited versions change evidence without claiming changed assertion wording  3363ms
+   ✓ W06 missing parent publication cannot produce an unchanged comparison  1715ms
+   ✓ W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions  29269ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed | 128 skipped (136)
+   Start at  21:55:10
+   Duration  39.82s (transform 793ms, setup 0ms, collect 1.17s, tests 38.39s, environment 0ms, prepare 66ms)
+

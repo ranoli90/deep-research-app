@@ -1,0 +1,62 @@
+[
+  {
+    "path": "verification/v6/correction-checkpoint/RESULTS.json",
+    "sha256": "bec0264326ab80e13750b643fc9862c1ae80e499e0f2eed3447ef8316b2c8b28"
+  },
+  {
+    "path": "verification/v6/correction-checkpoint/handoff-validator.log",
+    "sha256": "843e7c908de3e7d516927da6b02a1337dfa98c54ed449f62a7e5417bf0a9e49b"
+  },
+  {
+    "path": "verification/v6/correction-checkpoint/metadata-assembly-failure.json",
+    "sha256": "bc4efc1a5610ac55fb4bad2d0d0c3338491b368069452e50f514fc52701a1e7c"
+  },
+  {
+    "path": "verification/v6/correction-checkpoint/review-validator.log",
+    "sha256": "eae03a954501edbfe266052fe452877209becdc565a5b279f502e8ad15904aea"
+  },
+  {
+    "path": "verification/v6/correction-checkpoint/verify.log",
+    "sha256": "5b861baf505426872195d3a4355076ef1b2fa1ccb318927b1f56a84144e1c7c4"
+  },
+  {
+    "path": "apps/backend/src/worker/structured-research.ts",
+    "sha256": "96fc5650dfb3bf243918a04d79a0336d1c86a2529bf03b5f60379ef05cc63362"
+  },
+  {
+    "path": "apps/backend/src/modules/research-corrections.ts",
+    "sha256": "ce546f8e348fdf20afeed2494f5ac0fab70cf8b5cd086726d15d098ce99ea161"
+  },
+  {
+    "path": "apps/backend/test/correction-rediscovery.integration.test.ts",
+    "sha256": "fc5cf1f5c1342b575f2a94873e13568db7d4e924bf2e45e097f4825900046ea4"
+  },
+  {
+    "path": "apps/backend/test/question-patch.integration.test.ts",
+    "sha256": "7810fa3f17c6ee87e1c38739bc228f217506669d9a74f8c4547d85079b41ffdd"
+  },
+  {
+    "path": "apps/backend/test/model-gateway.integration.test.ts",
+    "sha256": "42b8fc900ba3c110aa6b93aa9b9ed683b2f215d15a7530b46f2d0c0f85466725"
+  },
+  {
+    "path": "packages/contracts/src/index.ts",
+    "sha256": "ce4e732ddbb9220fc766934d663bc643db523ee043039e5e33beffb357454176"
+  },
+  {
+    "path": "packages/research-core/src/question-patch.ts",
+    "sha256": "7bac03795c15cf730ce52636e85ead55dfb97e32de94760501d45abddbd55634"
+  },
+  {
+    "path": "packages/research-core/test/question-patch.test.ts",
+    "sha256": "58611794ba0be82e0312c697b733d7877ed52d2e2001981a06f6d8fa7f961b6c"
+  },
+  {
+    "path": "package.json",
+    "sha256": "c14cb21cbf9e613ea87514934866eccf87250923a0ffd373ff3ef99aebe794fe"
+  },
+  {
+    "path": "pnpm-lock.yaml",
+    "sha256": "c87ad2f92a4f61be9010a8ac5799b4b44024006e3100ff9e2d254148c4728cc3"
+  }
+]

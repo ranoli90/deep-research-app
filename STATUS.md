@@ -79,3 +79,9 @@ Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfc
 Exact detached f88091a clean-checkout proof passed offline frozen install (zero downloads), verify148core/116backend/132mobile/6governance, explicit mobiletypes and647module2.17MB AndroidJS export; final checkout clean. No new DB/native/hosted claim. Configured design typecheck is unsuppressed since5f10a84; older suppression caveats are historical.
 
 W07 profile presentation extracted into ProfilePanel without moving authentication/consent/deletion authority.136mobile tests,types and648module2.18MB AndroidJS export pass; failure receipts retained. Native accessibility remains unverified. Evidence verification/v6/profile-panel/RESULTS.json.
+
+Profile presentation implementation committed as `6490546f51bdbf0267abfba36aae9924e904f61b`; source/runtime authority boundaries unchanged. No push or deployment.
+
+W06 correction follow-on: exact-span input patches are implemented server-side (no granular semantic editor UI), with owned revision/hash/UTF16 quote checks and conservative recomputation. Required public rediscovery fails before any model work when disabled. Full gateway136pass; finalspan/rediscovery8pass; corrected/full synthetic facts agree with one source read avoided, identical synthetic model spend. W09 scoped PostCSS integration passes136mobile/types/JSexport; audit remains3moderate/2high. These are working-tree changes pending checkpoint; live/native gates unchanged.
+
+Final correction/PostCSS integrated verify exit0:155core/116backend/136mobile/6governance and configuredtypes/boundaries. Evidence verification/v6/correction-checkpoint/RESULTS.json. Actual extraction on these final changes remains for the next coordinated dependency checkpoint; older17/17 receipt is f88091a.

@@ -1,0 +1,50 @@
+{
+  "requirements": [
+    "W02",
+    "W06",
+    "W09"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7",
+    "platform": "Linux",
+    "database": "deep_research_lease_clock_v6"
+  },
+  "results": [
+    {
+      "command": "pnpm verify",
+      "artifact": "verify.log",
+      "exitCode": 0,
+      "scope": "155core/116backend/136mobile/6governance; configured types/boundaries",
+      "sha256": "5b861baf505426872195d3a4355076ef1b2fa1ccb318927b1f56a84144e1c7c4"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "artifact": "review-validator.log",
+      "exitCode": 0,
+      "scope": "Document structure/consistency only; assembly failure separately retained",
+      "sha256": "eae03a954501edbfe266052fe452877209becdc565a5b279f502e8ad15904aea"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "artifact": "handoff-validator.log",
+      "exitCode": 0,
+      "scope": "Document structure/consistency only; assembly failure separately retained",
+      "sha256": "843e7c908de3e7d516927da6b02a1337dfa98c54ed449f62a7e5417bf0a9e49b"
+    }
+  ],
+  "related": [
+    "../correction-rediscovery/RESULTS.json",
+    "../question-patch/RESULTS.json",
+    "../dependency-postcss-integrated/RESULTS.json"
+  ],
+  "paidCalls": 0,
+  "limits": [
+    "No native/full semantic quality claim",
+    "Actual extraction17 belongs f88091a; new patch/guard requires current follow-on extraction receipt",
+    "Exact-span API is not semantic criterion editor UI"
+  ]
+}

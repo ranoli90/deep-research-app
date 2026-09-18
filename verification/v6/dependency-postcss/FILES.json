@@ -1,0 +1,38 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "77b0a7ee60f6d1f0749e55d15238af9152394ceffb0f5fee8a04b8ef8385bf94"
+  },
+  {
+    "path": "android-export.log",
+    "sha256": "e2d8673df8871e5abfa16b35196b84f607ac3c536c8f747a1ce2d08c0266e384"
+  },
+  {
+    "path": "audit.json",
+    "sha256": "c287d30915107bc7f0c0da45e46ec52f759bf47ef86adec7fe32dd35a1cd0472"
+  },
+  {
+    "path": "frozen-install.log",
+    "sha256": "5e0077e0796ca37f4efc6c02872dbdf568ed37fb80fd0d1a07ebb76f8ceccfda"
+  },
+  {
+    "path": "install.log",
+    "sha256": "95e6aa2985c37b34d1ed8e2f31da379502fe8a5f4951411cdeb593bf9ace35c5"
+  },
+  {
+    "path": "mobile-tests.log",
+    "sha256": "f36ddc529963acda92c2b49b2af38f2582a7b8a3420fd6f5c6755effe2e3f0e4"
+  },
+  {
+    "path": "mobile-types.log",
+    "sha256": "ae03c5fbca48841e3337edf0c891da883bb984c1106b7fee25a3114e52996ec3"
+  },
+  {
+    "path": "remediation.patch",
+    "sha256": "1f2be7213dc80415457a46224fc04e861077a605b953e89c5a33edb2381e30c0"
+  },
+  {
+    "path": "resolution.json",
+    "sha256": "b2df1b0a1dd80d88bd1bad0ee75b05498db89742c4b474bf5f1f67be3dcb3383"
+  }
+]

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type pg from "pg";
 import { CONSENT_POLICY_VERSION,DEFAULT_RUN_BUDGET_MICRO,ResearchCorrectionPatchSchema,type CorrectionRequest } from "@deep/contracts";
-import { extractConstraints,inferOutputPreference } from "@deep/research-core";
+import { applyQuestionPatch,extractConstraints,inferOutputPreference } from "@deep/research-core";
 import { withTx } from "../platform/db.js";
 import { currentConsent,lockActiveAccount } from "./access.js";
 import { reserveAllowance } from "./billing.js";
@@ -27,10 +27,13 @@ export async function admitResearchCorrection(pool:pg.Pool,accountId:string,pare
   if(existing)return {runId:existing.id,parentRunId,briefRevision:existing.brief_revision,fullRerun:true,reused:true};
   await db.query("SELECT id FROM conversations WHERE id=$1 AND account_id=$2 FOR UPDATE",[parent.conversation_id,accountId]);
   const old=await getBrief(db,parent.brief_id);
+  let question:string;
+  try{question=applyQuestionPatch(old.originalQuestion,createHash("sha256").update(old.originalQuestion).digest("hex"),patch);}
+  catch(error){if(error instanceof Error&&error.message.startsWith("question_patch_"))reject(error.message,409);throw error;}
   for(const id of old.attachmentIds)if(!(await db.query("SELECT 1 FROM attachments WHERE id=$1 AND account_id=$2 AND deleted_at IS NULL",[id,accountId])).rowCount)reject("attachment_unavailable",409);
   const revision=(await db.query("SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",[parent.conversation_id])).rows[0].revision as number;
-  const brief={...old,id:crypto.randomUUID(),revision,originalQuestion:patch.question,constraints:extractConstraints(patch.question),
-    assumptions:[],outputPreferences:inferOutputPreference(patch.question),consentPolicyVersion:CONSENT_POLICY_VERSION};
+  const brief={...old,id:crypto.randomUUID(),revision,originalQuestion:question,constraints:extractConstraints(question),
+    assumptions:[],outputPreferences:inferOutputPreference(question),consentPolicyVersion:CONSENT_POLICY_VERSION};
   await insertBrief(db,brief,accountId);
   const runId=crypto.randomUUID();
   await insertRun(db,{id:runId,accountId,conversationId:parent.conversation_id,briefId:brief.id,parentRunId,routeMode:parent.route_mode,briefRevision:revision,consentEpoch:consent.epoch,idempotencyKey:key,budgetMicro:DEFAULT_RUN_BUDGET_MICRO});

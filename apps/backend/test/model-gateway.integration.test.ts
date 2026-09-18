@@ -915,6 +915,13 @@ function revisedWorkerTransport() {
   return normal(input,init);
  }) as typeof fetch;
 }
+// Fabricated search transport; production gateway persists and checks its durable receipt.
+function correctionDiscovery(model:typeof fetch,locator:string):typeof fetch {
+ return vi.fn(async(input,init)=>{const body=JSON.parse(String(init?.body));return body.plugins?.length?searchReply(true,locator):model(input,init);}) as typeof fetch;
+}
+async function expectCorrectionSearch(runId:string){
+ expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[runId])).rows).toEqual([{confirmed_micro:"3"}]);
+}
 async function parentEvidence(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/correction",title:"Measured evidence",publisher:"Study",originCluster:"study"});
  return insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/correction",text:`Kelp-${crypto.randomUUID()} restored 12 hectares in 2024.`,accessLevel:"partial-text"});
@@ -926,13 +933,13 @@ describe("W06 immutable correction evidence membership",()=>{
   const replacement="What area did the kelp restoration study report?";
   const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput(replacement));
   expect((await pool.query("SELECT original_question FROM research_briefs WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[child.runId])).rows[0].original_question).toBe(replacement);
-  globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
+  globalThis.fetch=correctionDiscovery(revisedWorkerTransport(),"https://example.org/correction");const reread=vi.spyOn(sourceReader,"readSource");await processRun(pool,{...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true},child.runId);expect(reread).not.toHaveBeenCalled();await expectCorrectionSearch(child.runId);
   const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[child.runId])).rows[0];expect(report).toBeDefined();
   expect(report.blocks[1].citationIds).toEqual([p.passageId]);expect(report.claim_ids.some((id:string)=>old.claim_ids.includes(id))).toBe(false);
   expect(report.change_summary).toMatchObject({evidenceUpdated:false,conclusionChanged:false,newlyFeasible:[],comparison:{version:"report-changes.v1",addedClaimRevisionIds:[],removedClaimRevisionIds:[],unchangedAssertions:1,reusedCitedSourceVersionIds:[p.versionId],newlyCitedSourceVersionIds:[]}});
   expect(report.change_summary.comparison.addedCriterionIds).toHaveLength(0);
   expect((await pool.query("SELECT source_version_id FROM run_evidence_membership WHERE run_id=$1",[child.runId])).rows).toEqual([{source_version_id:p.versionId}]);
-  expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[child.runId])).rowCount).toBe(0);expect(fetch).toHaveBeenCalledTimes(7);
+  expect((await pool.query("SELECT 1 FROM sources WHERE run_id=$1",[child.runId])).rowCount).toBe(0);expect(fetch).toHaveBeenCalledTimes(8);
   expect((await pool.query("SELECT dependency_completeness,reused_passages,reopen_discovery FROM research_change_sets WHERE run_id=$1",[child.runId])).rows[0]).toEqual({dependency_completeness:"unknown",reused_passages:1,reopen_discovery:true});
  }));
  it("concurrent identical corrections admit one child, allowance and outbox",async()=>runCase(async(x)=>{
@@ -966,15 +973,17 @@ it("W06 fresh cited versions change evidence without claiming changed assertion 
  const original=await parentEvidence(x);await releaseForWorker(x);globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,x.runId);
  const text=(await pool.query("SELECT exact_text FROM passages WHERE id=$1",[original.passageId])).rows[0].exact_text;
  const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("What area did the study restore?","refresh"));
- const sourceId=await insertSource(pool,{runId:child.runId,accountId:x.accountId,locator:"https://example.org/refreshed",title:"Fresh control",publisher:"Study",originCluster:"study"});
- const fresh=await insertVersionAndPassage(pool,{runId:child.runId,accountId:x.accountId,sourceId,locator:"https://example.org/refreshed",text,accessLevel:"partial-text"});
- await processRun(pool,x.config,child.runId);
+ globalThis.fetch=correctionDiscovery(revisedWorkerTransport(),"https://example.org/refreshed");
+ const read=vi.spyOn(sourceReader,"readSource").mockImplementation(async locator=>readControl(locator,text));
+ await processRun(pool,{...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true},child.runId);
+ expect(read).toHaveBeenCalledOnce();await expectCorrectionSearch(child.runId);
+ const fresh=(await pool.query(`SELECT source_version_id AS "versionId" FROM source_read_operations WHERE run_id=$1 AND state='finished'`,[child.runId])).rows[0];expect(fresh).toBeDefined();
  const report=(await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[child.runId])).rows[0];
  expect(report.change_summary).toMatchObject({evidenceUpdated:true,conclusionChanged:false,comparison:{addedClaimRevisionIds:[],removedClaimRevisionIds:[],unchangedAssertions:1,reusedCitedSourceVersionIds:[],newlyCitedSourceVersionIds:[fresh.versionId]}});
 }));
 it("W06 missing parent publication cannot produce an unchanged comparison",async()=>runCase(async(x)=>{
  await parentEvidence(x);const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("Inspect the measured area"));
- globalThis.fetch=revisedWorkerTransport();await processRun(pool,x.config,child.runId);
+ globalThis.fetch=correctionDiscovery(revisedWorkerTransport(),"https://example.org/correction");const reread=vi.spyOn(sourceReader,"readSource");await processRun(pool,{...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true},child.runId);expect(reread).not.toHaveBeenCalled();await expectCorrectionSearch(child.runId);
  expect((await pool.query("SELECT change_summary FROM reports WHERE run_id=$1",[child.runId])).rows[0].change_summary).toBeNull();
 }));
 
@@ -1320,7 +1329,10 @@ it("W05/W06 production arithmetic report reopens, rejects dropped output and rec
  expect(await reportCompletionCovered(pool,x.accountId,report)).toBe(true);
  expect(await reportCompletionCovered(pool,x.accountId,{...report,blocks:report.blocks.filter(b=>b.id!=="calculation_0")})).toBe(false);
  const child=await admitResearchCorrection(pool,x.accountId,x.runId,correctionInput("What is the ratio of the larger reported restored area to the smaller one? Report arithmetic only."));
- await processRun(pool,x.config,child.runId);
+ const locator=(await pool.query("SELECT canonical_locator FROM sources WHERE run_id=$1 ORDER BY id LIMIT 1",[x.runId])).rows[0].canonical_locator;
+ globalThis.fetch=correctionDiscovery(arithmeticWriterTransport(),locator);const reread=vi.spyOn(sourceReader,"readSource");
+ await processRun(pool,{...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true},child.runId);
+ expect(reread).not.toHaveBeenCalled();await expectCorrectionSearch(child.runId);
  const revised=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[child.runId])).rows[0];
  expect(revised?.outcome).toBe("completed");expect(revised.blocks.find((b:{id:string})=>b.id==="calculation_0").text).toContain("= 3/2 ratio");
  const cited=revised.blocks.flatMap((b:{citationIds:string[]})=>b.citationIds);

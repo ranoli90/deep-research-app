@@ -1,0 +1,70 @@
+[
+  {
+    "path": "RESULTS.json",
+    "sha256": "e5bbd61ca46374f95ebc45f7ec451682448b388bcc8336ca50c576da1af9a0c0"
+  },
+  {
+    "path": "agreement-trace.json",
+    "sha256": "8d2016686f32bcf3fcb5f5cfa1a12652e5f9bdb519d7921673c2663b938b40a0"
+  },
+  {
+    "path": "gateway-full.log",
+    "sha256": "c32f72c76f32837586edc6d1ecec52fc36128da10671c726194973ef61a8a160"
+  },
+  {
+    "path": "gateway-w06.log",
+    "sha256": "6be0a092871bfe3ff693ee685471df70749b7447ca6c5afa97dd5f8b8b6c3e6a"
+  },
+  {
+    "path": "integration-agreement-final.log",
+    "sha256": "c1be6e3d98561fa8f4d98ef69b4fdacbb2ed9e13a0d9e7bfb797fbfc6f1bca07"
+  },
+  {
+    "path": "integration-before-fixed-fixture.log",
+    "sha256": "ff5a1a8f199d4ad5313c5ba8f256e46c2f511fb13bf1438d9a6479a428729ed8"
+  },
+  {
+    "path": "integration-before.log",
+    "sha256": "aa3c85713438427694d80f5a694de1196b905108f03897d85fe343baabff80ed"
+  },
+  {
+    "path": "integration-diagnostic.log",
+    "sha256": "74c68cd123155806ffb38c4a9aaac5cbdd87aeee7dfa34fcf401e138835a0903"
+  },
+  {
+    "path": "integration-final.log",
+    "sha256": "91b65483d9d259a992eca8335f877bfedafb182cad9b59c5ee22d1fbd6f9bdf3"
+  },
+  {
+    "path": "integration-focused-before.log",
+    "sha256": "0ce4fbbf4431fde799c32a6c7a7bde4c4d806d07a9e12ace9c3acc5888790d1a"
+  },
+  {
+    "path": "preflight-before.log",
+    "sha256": "fe0d78d510505100a17bc149e29da3475d18a919e72fab33693efc9ffb4968b9"
+  },
+  {
+    "path": "preflight-final.log",
+    "sha256": "53991ba100e1981a4fe75967fe2af5e81c5726f50b550fc4a6a3af5444d61c07"
+  },
+  {
+    "path": "types-agreement.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "types-initial-failure.json",
+    "sha256": "d053dfb7374868bea02a9783fecee7e466f9163d35dcd1a87188723a6a468379"
+  },
+  {
+    "path": "types-integrated-final.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  },
+  {
+    "path": "types-integrated.log",
+    "sha256": "b96e118b0983c33ed0ccc17795a69c7d97cb41349c6b6371be8c8b75f4ce5e71"
+  },
+  {
+    "path": "types.log",
+    "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+  }
+]

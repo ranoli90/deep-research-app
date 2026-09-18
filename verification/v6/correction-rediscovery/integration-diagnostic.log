@@ -1,0 +1,50 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/correction-rediscovery.integration.test.ts (2 tests | 2 failed) 359ms
+   × W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading 156ms
+     → [{"public_summary":"Research accepted. Closing the app will not stop the server job.","payload":{}},{"public_summary":"Research could not complete with the available evidence and processing allowance.","payload":{"reason":"task_invalid_output"}}]: expected null to be truthy
+   × W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence 95ms
+     → [{"public_summary":"Research accepted. Closing the app will not stop the server job.","payload":{}},{"public_summary":"Research could not complete with the available evidence and processing allowance.","payload":{"reason":"task_invalid_output"}}]: expected null to be truthy
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 relaxed public constraint discovers a previously absent option and reuses exact old evidence without rereading
+AssertionError: [{"public_summary":"Research accepted. Closing the app will not stop the server job.","payload":{}},{"public_summary":"Research could not complete with the available evidence and processing allowance.","payload":{"reason":"task_invalid_output"}}]: expected null to be truthy
+
+- Expected: 
+true
+
++ Received: 
+null
+
+ ❯ setup test/correction-rediscovery.integration.test.ts:44:268
+
+ ❯ test/correction-rediscovery.integration.test.ts:48:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/correction-rediscovery.integration.test.ts > W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence
+AssertionError: [{"public_summary":"Research accepted. Closing the app will not stop the server job.","payload":{}},{"public_summary":"Research could not complete with the available evidence and processing allowance.","payload":{"reason":"task_invalid_output"}}]: expected null to be truthy
+
+- Expected: 
+true
+
++ Received: 
+null
+
+ ❯ setup test/correction-rediscovery.integration.test.ts:44:268
+
+ ❯ test/correction-rediscovery.integration.test.ts:61:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  21:52:05
+   Duration  1.58s (transform 679ms, setup 0ms, collect 1.01s, tests 359ms, environment 0ms, prepare 73ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/correction-rediscovery.integration.test.ts

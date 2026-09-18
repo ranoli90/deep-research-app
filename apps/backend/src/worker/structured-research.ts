@@ -32,11 +32,14 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     await settleRun(db,args.accountId,args.runId,run.spent_micro);
   });
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+  const run=(await getRun(pool,args.runId))!;
+  const brief=await getBrief(pool,run.brief_id);
+  const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
+  // A known unavailable required capability must fail before any model preparation cost.
+  if(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length&&!config.structuredDiscoveryEnabled)return unresolved("correction_rediscovery_disabled");
   const prepared=await ensureResearchTask(pool,config,session,args);
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
   if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
-  const run=(await getRun(pool,args.runId))!;
-  const brief=await getBrief(pool,run.brief_id);
   const requiredProof=await session.write(db=>db.query(`SELECT 1 FROM runs r WHERE r.id=$1 AND r.account_id=$2 AND r.counterevidence_required_revision=$3
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
@@ -61,7 +64,6 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     WHERE s.run_id=$1 AND s.account_id=$2 AND s.brief_revision=$3
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.search_intent_id=s.intent_id AND c.run_id=s.run_id AND c.account_id=s.account_id)
     AND (s.result->'receipt'->>'requestDigest') IS DISTINCT FROM $4::text LIMIT 1`,[args.runId,args.accountId,args.briefRevision,challengeDigest]));
-  const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
     if(brief.attachmentIds.length)return unresolved("document_search_requires_public_query_approval");

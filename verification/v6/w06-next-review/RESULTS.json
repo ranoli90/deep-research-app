@@ -1,0 +1,75 @@
+{
+  "requirements": [
+    "W06",
+    "V2-04",
+    "G05"
+  ],
+  "baseCommit": "7ccfe802e9695a48fe01b15cf676c3d07cc60a41",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T03:48:12.161272+00:00",
+  "evidenceClass": "Read-only same-model engineering review; no DB, tests, live models, native execution or semantic adjudication",
+  "requirementsReferences": [
+    "specs/ENGINE_CONTRACTS.md:79 typed owned dependency edges",
+    "specs/ENGINE_CONTRACTS.md:81 conservative fallback when incomplete",
+    "specs/ENGINE_CONTRACTS.md:86 relaxed hard constraints reopen discovery",
+    "IMPLEMENTATION_PLAN.md:42 relax constraint to reveal omitted option and compare corrected full rerun"
+  ],
+  "findings": [
+    {
+      "area": "Granular changes",
+      "evidence": [
+        "packages/contracts/src/index.ts:221",
+        "apps/backend/src/modules/research-corrections.ts:32"
+      ],
+      "status": "Only replace_question with explicit reuse_snapshot/refresh. No granular constraint/source/freshness patch or format-only path. Existing replacement rebuilds constraints/assumptions and retains other spread brief metadata; additional metadata semantics need explicit design before new patch variants."
+    },
+    {
+      "area": "Selective traversal",
+      "evidence": [
+        "apps/backend/src/modules/research-corrections.ts:39",
+        "apps/backend/src/modules/run-evidence.ts:8"
+      ],
+      "status": "Change set marks unknown dependency completeness and recomputes all conclusions; inheritance copies all readable exact authorized memberships. This conservative behavior is correct until complete dependencies exist. Do not add inferred selective reuse flags."
+    },
+    {
+      "area": "Freshness and deletion",
+      "evidence": [
+        "apps/backend/src/modules/run-evidence.ts:11",
+        "apps/backend/src/modules/source-deletion.ts:25",
+        "specs/ENGINE_CONTRACTS.md:246"
+      ],
+      "status": "Snapshot/refresh explicit; no max-age filtering or task-specific freshness policy. Source deletion now conservatively invalidates descendants and purges private data, superseding older canonical open wording. Disappearance does not imply earlier historical evidence is false."
+    },
+    {
+      "area": "Relaxed discovery obligation",
+      "evidence": [
+        "apps/backend/src/modules/research-corrections.ts:39",
+        "apps/backend/src/worker/structured-research.ts:65",
+        "apps/backend/test/model-gateway.integration.test.ts:922"
+      ],
+      "status": "All replacements record reopen_discovery=true but worker conditions it on structuredDiscoveryEnabled and no attachments. Existing non-document reuse test completes with discovery disabled. Static mismatch between marker/documentation and executable obligation; not independently DB-reproduced. Mixed attachment discovery remains correctly private-query gated."
+    },
+    {
+      "area": "Quality proof",
+      "evidence": [
+        "apps/backend/test/launch-scope.integration.test.ts:9",
+        "apps/backend/test/launch-scope.integration.test.ts:170",
+        "apps/backend/test/p0-smoke.integration.test.ts:9",
+        "apps/backend/test/p0-smoke.integration.test.ts:439"
+      ],
+      "status": "Relaxed-budget omitted-candidate controls use diagnostic-executor, not structured production. Existing production corrections cover membership, ownership, recomputation, fresh-version metrics and arithmetic but not unfamiliar relaxed-candidate discovery/full-rerun agreement."
+    }
+  ],
+  "recommendedNext": {
+    "behavior": "Production relaxed-constraint rediscovery with exact snapshot reuse and explicit disabled-discovery outcome",
+    "firstRegression": "Use production executor, owned synthetic public sources A and B, fabricated gateway/search/read transports. Parent bound excludes B; corrected question relaxes bound. Initial child search must use exact revised public question, return oldURL A plus previously unseen B; A retains original passage/version with zero reread, B has durable source-read receipt and new passages. Child independently computes eligibility/support/report, no parent approval copied. Compare independently supplied reference eligibility and full-rerun control; label fabricated semantic quality limits.",
+    "disabledRegression": "Same correction with required rediscovery and discovery disabled must expose explicit unresolved requirement rather than claim it reopened. Preserve meaningful existing7-call reuse test by either enabling same-URL discovery and updating exact spend/calls or introducing explicit evidence-only intent; policy choice precedes blanket behavior change.",
+    "ownership": [
+      "Primary owns correction policy/public contract/canonical requirement reconciliation",
+      "Backend implementer owns apps/backend/src/worker/structured-research.ts and dedicated apps/backend/test/correction-rediscovery.integration.test.ts",
+      "No mobile, migrations, dependency, source-deletion or existing model-gateway test edits without explicit integration review"
+    ],
+    "checks": "Focused real PostgreSQL production-path suite serialized with other DB suites; units/types; broad suite only if policy changes affect prior correction cases. No paid transport.",
+    "rollback": "Disable scheduling of new discovery-required corrections; retain owned membership projection, tombstones, existing replacement/refresh, publication gates and unknown reservations. Do not return to historical fixture fallback."
+  }
+}

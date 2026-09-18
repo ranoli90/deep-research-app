@@ -1,0 +1,14 @@
+{
+  "scope": "Primary read-only upstream recheck; no dependency repair claimed by this record",
+  "sources": [
+    {
+      "url": "https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9",
+      "finding": "Maintainer advisory identifies patched4.1.11 and says older3.x is not planned for a backport. Root currently uses3.2.7; dev-server exposure scope does not remove the audit finding."
+    },
+    {
+      "url": "https://github.com/react/metro/releases/tag/v0.83.8",
+      "finding": "Official0.83.8 release available; proposed coordinated Metro repair needs separate compatibility proof. Do not substitute a lone image-size override."
+    }
+  ],
+  "paidCalls": 0
+}

@@ -218,10 +218,18 @@ export const CreateRunRequestSchema = z.object({
 });
 export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
 
-export const ResearchCorrectionPatchSchema=z.object({
+export const ResearchCorrectionPatchSchema=z.discriminatedUnion("kind",[
+ z.object({
   kind:z.literal("replace_question"),question:z.string().min(1).max(20_000),
   evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
-}).strict();
+ }).strict(),
+ z.object({
+  kind:z.literal("replace_question_span"),originalQuestionSha256:z.string().regex(/^[a-f0-9]{64}$/u),
+  start:z.number().int().min(0).max(20_000),end:z.number().int().min(0).max(20_000),
+  quote:z.string().max(20_000),replacement:z.string().max(20_000),
+  evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
+ }).strict(),
+]);
 export type ResearchCorrectionPatch=z.infer<typeof ResearchCorrectionPatchSchema>;
 export const CorrectionRequestSchema = z.object({
   patch:ResearchCorrectionPatchSchema.optional(),

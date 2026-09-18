@@ -1,0 +1,17 @@
+
+> @deep/mobile@0.1.0 bundle:android /home/oranolio/Desktop/Deep/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-v6-postcss-integrated
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (648/648)
+Android Bundled 5966ms apps/mobile/index.ts (648 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-0d0784c3828d91b0ce839549f28abf82.hbc (2.18 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-v6-postcss-integrated
+exit_code=0

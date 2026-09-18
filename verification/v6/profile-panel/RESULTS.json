@@ -55,5 +55,6 @@
   },
   "rollback": "Restore inline presentation if needed while retaining truthful availability wording, accessible labels, destructive confirmation and all original account/generation controls.",
   "limits": "No DB/native/hosted/live-model evidence. Existing development sign-in/route controls remain because no new auth capability or broad Settings redesign is introduced.",
-  "canonicalFollowup": "Primary owns STATUS/HANDOFF/ledger/registry and mobile-spec reconciliation."
+  "canonicalFollowup": "Primary owns STATUS/HANDOFF/ledger/registry and mobile-spec reconciliation.",
+  "implementationCommit": "6490546f51bdbf0267abfba36aae9924e904f61b"
 }

@@ -1,0 +1,26 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-v6-clean-9d95ad5/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-v6-clean-9d95ad5/apps/mobile
+
+ ✓ test/source-deletion-flow.test.ts (6 tests) 112ms
+ ✓ test/admission-retry.test.ts (13 tests) 839ms
+ ✓ test/request-scope.test.ts (11 tests) 404ms
+ ✓ test/protected-content.test.ts (11 tests) 151ms
+ ✓ test/document-input.test.ts (7 tests) 72ms
+ ✓ test/lifecycle.test.ts (12 tests) 119ms
+ ✓ test/correction-draft.test.ts (6 tests) 61ms
+ ✓ test/report-layout.test.ts (6 tests) 41ms
+ ✓ test/session-storage.test.ts (10 tests) 95ms
+ ✓ test/journey.test.ts (15 tests) 49ms
+ ✓ test/reading-position.test.ts (11 tests) 61ms
+ ✓ test/source-deletion.test.ts (9 tests) 95ms
+ ✓ test/source-view.test.ts (6 tests) 26ms
+
+ Test Files  13 passed (13)
+      Tests  123 passed (123)
+   Start at  21:41:00
+   Duration  8.51s (transform 3.04s, setup 0ms, collect 6.51s, tests 2.12s, environment 8ms, prepare 5.82s)
+

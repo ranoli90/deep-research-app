@@ -1,0 +1,60 @@
+{
+  "requirements": [
+    "W09"
+  ],
+  "baseCommit": "6490546f51bdbf0267abfba36aae9924e904f61b",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux",
+    "vitest": "3.2.7"
+  },
+  "scope": "Root PostCSS integration alongside labeled W06 source changes; exact isolated dependency-only proof retained separately. No DB/native/provider test from these checks.",
+  "results": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "artifact": "install.log",
+      "exitCode": 0,
+      "scope": "Scoped locked PostCSS override;0downloads",
+      "sha256": "44c4df1d9cd274e9ef6b423445e0e23ce24bb0b61b29171a048bf37c038eb811"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "mobile-tests.log",
+      "exitCode": 0,
+      "scope": "136/136 mobile controls",
+      "sha256": "4de060e2dbae1221cfd3691375eaf95d693d6cbde4868a09fa156c288c4cfcb0"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "mobile-types.log",
+      "exitCode": 0,
+      "scope": "Configured mobile types",
+      "sha256": "70438f50ca40dafc014a4e2e1fa843e728aa5cc056d4af6ca55e6fba4998a0cf"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-postcss-integrated",
+      "artifact": "android-export.log",
+      "exitCode": 0,
+      "scope": "648modules/2.18MB JavaScript export; not native build",
+      "sha256": "366cd07ba37aabe491b4356458d0e608a33a6cdd3062f4bde84881e6464ba0b0"
+    },
+    {
+      "command": "pnpm audit --json",
+      "artifact": "audit.json",
+      "exitCode": 1,
+      "scope": "Remaining3moderate/2high; no suppression or clean-security claim",
+      "sha256": "c287d30915107bc7f0c0da45e46ec52f759bf47ef86adec7fe32dd35a1cd0472"
+    }
+  ],
+  "resolution": {
+    "metroConfig": "54.0.17",
+    "postcss": "8.5.28",
+    "configPath": "/home/oranolio/Desktop/Deep/node_modules/@expo/metro-config/package.json",
+    "postcssPath": "/home/oranolio/Desktop/Deep/node_modules/postcss/package.json"
+  },
+  "paidCalls": 0,
+  "rollback": "ADR038; retain unresolved advisory if restoring old lock, never waive release gates",
+  "priorIsolatedEvidence": "../dependency-postcss/RESULTS.json"
+}

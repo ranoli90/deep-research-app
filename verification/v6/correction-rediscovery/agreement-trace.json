@@ -1,0 +1,46 @@
+{
+  "evidenceClass": "real_local_postgresql_production_worker_with_fabricated_model_search_reader_transports",
+  "referenceFacts": [
+    "Solmere supports Linux.",
+    "Vesper supports Windows."
+  ],
+  "correctedFacts": [
+    "Solmere supports Linux.",
+    "Vesper supports Windows."
+  ],
+  "rerunFacts": [
+    "Solmere supports Linux.",
+    "Vesper supports Windows."
+  ],
+  "correctedRunId": "636286df-1f29-4d43-81cd-85c33323774c",
+  "fullRunId": "12024e5a-432b-4286-a7bb-55fcd708cf5a",
+  "measurements": [
+    {
+      "id": "12024e5a-432b-4286-a7bb-55fcd708cf5a",
+      "spent_micro": "10",
+      "reused_passages": 0,
+      "durable_reads": 2,
+      "provider_attempts": 8
+    },
+    {
+      "id": "636286df-1f29-4d43-81cd-85c33323774c",
+      "spent_micro": "10",
+      "reused_passages": 1,
+      "durable_reads": 1,
+      "provider_attempts": 8
+    }
+  ],
+  "queries": [
+    "Which tools support Linux or Windows?",
+    "Which tools support Linux or Windows?"
+  ],
+  "readLocators": [
+    "https://example.org/vesper.txt",
+    "https://example.org/solmere.txt",
+    "https://example.org/vesper.txt"
+  ],
+  "limitations": [
+    "No live semantic validation or independent human adjudication.",
+    "Extraction and provider receipts are fabricated transports; spend is synthetic micro-units."
+  ]
+}
