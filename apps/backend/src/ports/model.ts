@@ -32,6 +32,8 @@ export const ModelReceiptSchema = z.object({
   actualMicro: z.number().int().nonnegative().safe().nullable(), promptTokens: z.number().int().nonnegative().safe().nullable(),
   completionTokens: z.number().int().nonnegative().safe().nullable(), rawCost: z.string().max(100).nullable(),
   responseDigest: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+  cacheReadTokens: z.number().int().nonnegative().safe().nullable().optional(),
+  cacheWriteTokens: z.number().int().nonnegative().safe().nullable().optional(),
 }).strict();
 export type ModelReceipt = z.infer<typeof ModelReceiptSchema>;
 export type ModelResult<K extends ResearchModelOperation> =

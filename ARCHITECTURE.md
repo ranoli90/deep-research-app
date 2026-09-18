@@ -10,9 +10,10 @@ apps/backend/src/api/        authenticated transport; no orchestration logic
 apps/backend/src/worker/     leases, checkpoints, runtime composition
 apps/backend/src/modules/    runs, evidence, reports, access, billing domain services
 apps/backend/src/adapters/   model, retrieval, queue, storage, notifications
+apps/backend/src/model-governor/  versioned portfolio admission, cheap-first routing, escalation/hold policy
 apps/backend/src/platform/   redacted telemetry, validated config, common runtime plumbing
 packages/contracts/         validated public/internal boundary contracts, no runtime services
-packages/research-core/     controller policies, scope, dependencies, report checks
+packages/research-core/     controller policies, intent compiler, scope, dependencies, report checks
 packages/design/            semantic tokens and native primitives
 agents/runtime/             versioned role instructions; not six services
 specs/                      behavioral contracts and acceptance cases

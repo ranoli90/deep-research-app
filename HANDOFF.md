@@ -1,3 +1,7 @@
+## Session A intelligence governor — 2026-09-18
+
+Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Live semantic quality is blocked without a current explicit authorization. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass.
+
 ## User-authorized GitHub main checkpoint — 2026-09-18
 
 The user explicitly requested merging all outstanding code into GitHub main and continuing work. All20 commits ahead of origin/main4d818fe belong to this continuation; the older evidence branch is already an ancestor. No deployment workflow is triggered by push (verification is manual-only). This checkpoint includes the actual provider failures and local successes; it is not a release approval or a claim of passing all checks.

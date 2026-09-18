@@ -1,6 +1,8 @@
 # Research evaluation and release protocol
 Owner role: evaluation lead. Status: protocol, historical **fixture-class** diagnostic harness, and matched production API/worker/extraction controls under `evals/matched-pipeline/`. Model transports in executed local controls are fabricated; real-model paired repetitions and independent adjudication remain unrun. **No competitor trial or human study has been run.** Reviewed: 2026-09-17.
 
+Session A (2026-09-18): `runPortfolioEvaluation` scores registered candidates on identical local/fixture inputs and stores dated records with `superiorityClaim: false`. Live semantic task classes (`one_sentence_purchase_comparison`, `technical_compatibility_conflict`, `freshness_sensitive_fact`, `document_grounded_check`, `correction`, `unknown_is_correct`) execute only through the existing explicit-authorization fail-closed runner. Fixture or fabricated model output is not semantic-quality proof. No claim that dynamic routing is better until measured.
+
 ## Main question
 Does the controlled system help a person finish a constrained technical decision or document-grounded check with less repair, without worse consequential correctness, than a simpler credible baseline and available dedicated research products?
 

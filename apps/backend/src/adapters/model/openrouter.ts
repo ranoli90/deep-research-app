@@ -12,14 +12,21 @@ const Envelope = z.object({
   id: z.string().max(300).optional(), model: z.string().max(300), provider: z.string().max(300).optional(),
   usage: z.object({ cost: z.union([z.string().max(100), z.number()]).optional(),
     prompt_tokens: z.number().int().nonnegative().safe().optional(), completion_tokens: z.number().int().nonnegative().safe().optional(),
+    cache_read_tokens: z.number().int().nonnegative().safe().optional(),
+    cache_write_tokens: z.number().int().nonnegative().safe().optional(),
+    prompt_tokens_details: z.object({
+      cached_tokens: z.number().int().nonnegative().safe().optional(),
+      cache_write_tokens: z.number().int().nonnegative().safe().optional(),
+    }).optional(),
   }).optional(),
   choices: z.array(z.object({ finish_reason: z.string().max(100).nullable(),
     message: z.object({ content: z.string().max(800_000).nullable().optional(), refusal: z.string().max(4000).nullable().optional() }),
   })).min(1).max(1),
 });
 
-/** Canonical schemas generate the provider contract; local validation remains mandatory. */
-export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id): PreparedModelRequest<K> {
+/** Canonical schemas generate the provider contract; local validation remains mandatory.
+ * Optional extras (session stickiness) must not be passed for historical policy replay. */
+export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string }): PreparedModelRequest<K> {
   const policy=modelPolicy(policyId);
   const contextText = JSON.stringify(ModelContextSchema.parse(context));
   if (!contextText || Buffer.byteLength(contextText) > 240_000) throw new Error("model_context_too_large");
@@ -30,6 +37,7 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
       max_price: { prompt: policy.promptMicroPerMillion / 1_000_000, completion: policy.completionMicroPerMillion / 1_000_000, request: 0 } },
     response_format: { type: "json_schema", json_schema: { name: `research_${operation}_v1`, strict: true, schema } },
     messages: [{ role: "system", content: modelPrompt(operation) }, { role: "user", content: contextText }],
+    ...(extras?.sessionId ? { session_id: extras.sessionId } : {}),
   });
   if (Buffer.byteLength(body) > policy.contextTokens) throw new Error("model_context_exceeds_policy");
   return { operation, body, digest: createHash("sha256").update(body).digest("hex"),
@@ -44,7 +52,8 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
   const policy=modelPolicy(request.policyId);
   const receipt: ModelReceipt = { requestedModel: policy.model, reportedModel: null, reportedProvider: null,
     providerId: null, httpStatus: null, startedAt: new Date().toISOString(), finishedAt: "", actualMicro: null,
-    promptTokens: null, completionTokens: null, rawCost: null, responseDigest: null };
+    promptTokens: null, completionTokens: null, rawCost: null, responseDigest: null,
+    cacheReadTokens: null, cacheWriteTokens: null };
   const finish = <T extends ModelResult<K>>(value: T): T => { value.receipt.finishedAt = new Date().toISOString(); return value; };
   const fail = (status: Exclude<ModelResult<K>["status"], "succeeded">, reason: string): ModelResult<K> => finish({ status, reason, receipt });
   const timeout = args.deadlineMs ?? 45_000;
@@ -114,6 +123,8 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
     receipt.actualMicro = costToMicro(data.usage?.cost) ?? null;
     receipt.rawCost = receipt.actualMicro == null ? null : String(data.usage!.cost);
     receipt.promptTokens = data.usage?.prompt_tokens ?? null; receipt.completionTokens = data.usage?.completion_tokens ?? null;
+    receipt.cacheReadTokens = data.usage?.cache_read_tokens ?? data.usage?.prompt_tokens_details?.cached_tokens ?? null;
+    receipt.cacheWriteTokens = data.usage?.cache_write_tokens ?? data.usage?.prompt_tokens_details?.cache_write_tokens ?? null;
     if (data.model !== policy.model || (data.provider && data.provider !== policy.providerName)) return fail("permanent_failure", "provider_route_mismatch");
     const parsed = Envelope.safeParse(value);
     if (!parsed.success) return fail("invalid_output", "invalid_provider_envelope");

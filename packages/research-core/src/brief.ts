@@ -1,4 +1,5 @@
 import type { Assumption, Constraint, ResearchBrief } from "@deep/contracts";
+import { evaluateClarificationValue, clarificationPrompts } from "./clarification-value.js";
 import { provenanceFromOrigin } from "./provenance.js";
 
 const COUNTRIES = [
@@ -54,6 +55,26 @@ export function extractConstraints(question: string): Constraint[] {
       explanation: `Question names budget ${money[0]}`,
       provenance: provenanceFromOrigin("explicit"),
     });
+  } else {
+    const compact = question.match(/\b(?:under|below|at most|less than|<=)\s*(\$|€|£)?\s*(\d+(?:[.,]\d+)?)\s*[kK]\b/);
+    if (compact) {
+      const raw = Number(compact[2]!.replace(",", ""));
+      if (Number.isFinite(raw)) {
+        const symbol = compact[1];
+        const units = symbol === "$" ? "USD" : symbol === "€" ? "EUR" : symbol === "£" ? "GBP" : undefined;
+        constraints.push({
+          id: "budget",
+          field: "budget",
+          operator: "lte",
+          value: String(Math.round(raw * 1000)),
+          ...(units ? { units } : {}),
+          origin: "explicit",
+          importance: "hard",
+          explanation: `Question names budget ceiling ${compact[0]}`,
+          provenance: provenanceFromOrigin("explicit"),
+        });
+      }
+    }
   }
 
   const iso = question.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
@@ -210,18 +231,10 @@ export function extractConstraints(question: string): Constraint[] {
 }
 
 export function neededClarifications(brief: Pick<ResearchBrief, "originalQuestion" | "constraints">): string[] {
-  const q = brief.originalQuestion.toLowerCase();
-  const fields = new Set(brief.constraints.map((c) => c.field));
-  const questions: string[] = [];
-
-  const needsJurisdiction =
-    /\b(tax|employment law|filing|legal status|which law applies)\b/i.test(q) &&
-    !fields.has("geography") &&
-    !/\b(germany|france|usa|united states|uk|canada)\b/i.test(q);
-  if (needsJurisdiction) {
-    questions.push("Which jurisdiction should this answer apply to?");
-  }
-  return questions;
+  return clarificationPrompts(evaluateClarificationValue({
+    originalQuestion: brief.originalQuestion,
+    knownConstraints: brief.constraints,
+  }));
 }
 
 export type CorrectionIntent = {
