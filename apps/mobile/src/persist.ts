@@ -42,11 +42,17 @@ function parseState(raw: string | null, accountId: string): UiState | null {
 }
 
 /** Credentials and content use separate stores. Only explicit activation may write a credential. */
-export function createSessionStorage(cache: KeyValueStore, credentials: KeyValueStore, backend = "test-local") {
+export function createSessionStorage(cache: KeyValueStore, credentials: KeyValueStore, backend = "test-local", quietPeriodMs = 0) {
+  if (!Number.isSafeInteger(quietPeriodMs) || quietPeriodMs < 0 || quietPeriodMs > 1000) throw new Error("Invalid persistence quiet period.");
   let epoch = 0, current: LocalSession | null = null;
+  let persistSequence = 0;
+  let flushThrough = 0, finishWait: (() => void) | null = null;
+  let lastPersisted: { epoch: number; key: string; payload: string } | null = null;
   let tail: Promise<unknown> = Promise.resolve();
+  let lastOperation: Promise<unknown> = tail;
   function enqueue<T>(fn: () => Promise<T>): Promise<T> {
     const operation = tail.then(fn, fn);
+    lastOperation = operation;
     tail = operation.catch(() => undefined);
     return operation;
   }
@@ -57,8 +63,10 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
       if (!session.accountId || !session.token) return Promise.reject(new Error("Invalid local session."));
       const version = ++epoch, previous = current;
       current = { ...session };
+      finishWait?.();
       return enqueue(async () => {
         if (version !== epoch) return;
+        lastPersisted = null;
         try {
           await cache.setItem(INSTALL_KEY, "1");
           await cache.setItem(REVOKED_KEY, "1");
@@ -79,10 +87,20 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
     persist(session: PersistedSession): Promise<void> {
       const version = epoch, owner = current;
       if (session.token !== (owner?.token ?? null)) return Promise.resolve();
+      const sequence = ++persistSequence;
       const payload = JSON.stringify(owner ? { accountId: owner.accountId, state: storedState(session.state) } : session.state.draft);
       return enqueue(async () => {
-        if (version !== epoch || current?.token !== owner?.token) return;
-        await cache.setItem(owner ? SNAPSHOT_KEY : GUEST_KEY, payload);
+        if (version !== epoch || current?.token !== owner?.token || sequence !== persistSequence) return;
+        if (quietPeriodMs && sequence > flushThrough) await new Promise<void>(resolve => {
+          const finish = () => { clearTimeout(timer); finishWait = null; resolve(); };
+          const timer = setTimeout(finish, quietPeriodMs);
+          finishWait = finish;
+        });
+        if (version !== epoch || current?.token !== owner?.token || sequence !== persistSequence) return;
+        const key = owner ? SNAPSHOT_KEY : GUEST_KEY;
+        if (lastPersisted?.epoch === version && lastPersisted.key === key && lastPersisted.payload === payload) return;
+        await cache.setItem(key, payload);
+        lastPersisted = { epoch: version, key, payload };
       });
     },
     hydrate(): Promise<{ token: string | null; accountId: string | null; state: UiState }> {
@@ -120,13 +138,20 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
     },
     clear(): Promise<void> {
       ++epoch; current = null;
+      finishWait?.();
       return enqueue(async () => {
+        lastPersisted = null;
         // A durable denial marker prevents a failed keychain deletion from restoring this account on next launch.
         const marker = await Promise.allSettled([cache.setItem(REVOKED_KEY, "1")]);
         const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), removeLegacy()];
         const results = await Promise.allSettled(tasks);
         if ([...marker, ...results].some((r) => r.status === "rejected")) throw new Error("Could not finish clearing this device's session. Retry before signing in.");
       });
+    },
+    flush(): Promise<void> {
+      flushThrough = persistSequence;
+      finishWait?.();
+      return lastOperation.then(() => undefined);
     },
   };
 }

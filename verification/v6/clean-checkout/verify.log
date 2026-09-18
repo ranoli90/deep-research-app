@@ -1,0 +1,120 @@
+
+> deep-research-mobile@0.1.0 verify /tmp/deep-v6-clean-5f10a84
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /tmp/deep-v6-clean-5f10a84
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /tmp/deep-v6-clean-5f10a84
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /tmp/deep-v6-clean-5f10a84/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-v6-clean-5f10a84/packages/research-core
+
+ ✓ test/admission.test.ts (21 tests) 65ms
+ ✓ test/p1-p2.test.ts (25 tests) 92ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 99ms
+ ✓ test/model-bindings.test.ts (8 tests) 47ms
+ ✓ test/policy.test.ts (8 tests) 35ms
+ ✓ test/v6-publication.test.ts (22 tests) 52ms
+ ✓ test/scoped-support.test.ts (12 tests) 57ms
+ ✓ test/research-coverage.test.ts (8 tests) 25ms
+ ✓ test/evidence-calculation.test.ts (14 tests) 109ms
+ ✓ test/generic-candidates.test.ts (3 tests) 28ms
+ ✓ test/calculation-report.test.ts (1 test) 30ms
+ ✓ test/scope-comparison.test.ts (11 tests) 692ms
+   ✓ compact projection preserves every pair, field relation and original assertion binding  651ms
+ ✓ test/counterevidence.test.ts (2 tests) 8ms
+
+ Test Files  13 passed (13)
+      Tests  148 passed (148)
+   Start at  19:21:05
+   Duration  3.67s (transform 1.35s, setup 0ms, collect 3.32s, tests 1.34s, environment 6ms, prepare 2.22s)
+
+
+> @deep/backend@0.1.0 test:unit /tmp/deep-v6-clean-5f10a84/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-v6-clean-5f10a84/apps/backend
+
+ ✓ test/model-gateway.unit.test.ts (14 tests) 192ms
+ ✓ test/admission.unit.test.ts (5 tests) 23ms
+ ✓ test/live-search.unit.test.ts (8 tests) 191ms
+ ✓ test/identity.unit.test.ts (14 tests) 135ms
+ ✓ test/report-export.unit.test.ts (7 tests) 18ms
+ ✓ test/ssrf.unit.test.ts (11 tests) 61ms
+ ✓ test/generation-receipt.unit.test.ts (10 tests) 132ms
+ ✓ test/governance.test.ts (6 tests) 2556ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  2038ms
+   ✓ W05 production runtime isolation > the explicit historical diagnostic is detected as reaching fixture data  478ms
+ ✓ test/research-strategy.unit.test.ts (4 tests) 14ms
+ ✓ test/live-policy.unit.test.ts (3 tests) 8ms
+ ✓ test/route-capabilities.unit.test.ts (2 tests) 12ms
+ ✓ test/openrouter.unit.test.ts (4 tests) 19ms
+ ✓ test/eval-benchmark.unit.test.ts (1 test) 238ms
+ ✓ test/config.unit.test.ts (8 tests) 28ms
+stdout | test/scope-context.unit.test.ts > W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values
+scope-context-serialization { full: 1042010, compact: 14626, request: 43085, pairs: 1770 }
+
+ ✓ test/scope-context.unit.test.ts (1 test) 728ms
+   ✓ W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values  726ms
+ ✓ test/usage.unit.test.ts (14 tests) 13ms
+ ✓ test/diagnostic-worker.unit.test.ts (2 tests) 11ms
+
+ Test Files  17 passed (17)
+      Tests  114 passed (114)
+   Start at  19:21:10
+   Duration  7.90s (transform 2.21s, setup 0ms, collect 9.14s, tests 4.38s, environment 9ms, prepare 3.43s)
+
+
+> @deep/mobile@0.1.0 test /tmp/deep-v6-clean-5f10a84/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-v6-clean-5f10a84/apps/mobile
+
+ ✓ test/session-storage.test.ts (10 tests) 21ms
+ ✓ test/lifecycle.test.ts (12 tests) 33ms
+ ✓ test/request-scope.test.ts (11 tests) 91ms
+ ✓ test/journey.test.ts (15 tests) 21ms
+ ✓ test/document-input.test.ts (7 tests) 22ms
+ ✓ test/source-view.test.ts (6 tests) 15ms
+ ✓ test/report-layout.test.ts (6 tests) 16ms
+
+ Test Files  7 passed (7)
+      Tests  67 passed (67)
+   Start at  19:21:20
+   Duration  1.54s (transform 612ms, setup 0ms, collect 1.19s, tests 218ms, environment 3ms, prepare 1.14s)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /tmp/deep-v6-clean-5f10a84/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v3.2.7 /tmp/deep-v6-clean-5f10a84/apps/backend
+
+ ✓ test/governance.test.ts (6 tests) 1308ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  997ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  19:21:24
+   Duration  2.70s (transform 73ms, setup 0ms, collect 1.06s, tests 1.31s, environment 0ms, prepare 99ms)
+

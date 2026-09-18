@@ -6222,7 +6222,7 @@
   "reviewedCheckpointImplementationCommit": "002e2d6f27e4bcf111cdc48f028a688f55c99713",
   "followOnEvidence": {
     "commit": "ea03632642d8aca1a215cb4e3f1fd02a7c7f66c6",
-    "workingTree": "Reviewed uncommitted follow-on; verify148/114/67/6, PostgreSQL328/328, actual extraction17/17 pass. Strict design and final backend typechecks pass.",
+    "workingTree": "Reviewed follow-on committed; combined verification and actual extraction pass as recorded; clean checkout executing.",
     "manifests": [
       "receipt-recovery/FILES.json",
       "source-reader/FILES.json",
@@ -6231,6 +6231,9 @@
       "matched-corpus/FILES.json",
       "follow-on/RESULTS.json"
     ],
-    "limits": "Synthetic models are code controls, not semantic scores. Corpus13actual docs/12tasks:1SQLite reference missing; all failures preserved. Native process-restart anchor not passed. No paid authorization."
-  }
+    "limits": "Synthetic models are code controls, not semantic scores. Corpus13actual docs/12tasks:1SQLite reference missing; all failures preserved. Native process-restart anchor not passed. No paid authorization.",
+    "implementationCommit": "5f10a8471b67b8a3ddd95245f2736fc794fba210"
+  },
+  "cleanCheckoutEvidence": "clean-checkout/RESULTS.json",
+  "protectedContentEvidence": "protected-content/RESULTS.json"
 }

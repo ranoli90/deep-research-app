@@ -1,0 +1,58 @@
+{
+  "requirementIds": [
+    "W09",
+    "W02",
+    "W04",
+    "W08"
+  ],
+  "implementationCommit": "5f10a8471b67b8a3ddd95245f2736fc794fba210",
+  "checkout": "/tmp/deep-v6-clean-5f10a84",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "TEST_DATABASE_URL": "local127.0.0.1:55432/deep_research_clean_v6_5f10a84",
+    "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime"
+  },
+  "results": [
+    {
+      "artifact": "install.log",
+      "command": "CI=1 pnpm install --offline --frozen-lockfile",
+      "exitCode": 0,
+      "scope": "780packages installed from local store;0downloads; lockfile unchanged",
+      "sha256": "eede4c80d8e5386d24c37c668c465d1067fc115021f37fc0961a3db27d0242ce"
+    },
+    {
+      "artifact": "verify.log",
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "scope": "148core/114backend/67mobile/6governance; unsuppressed types and boundaries",
+      "sha256": "eb83224565aeacc8bb17955e9ef2ffa67be8061490aa00d310db008b38022a6a"
+    },
+    {
+      "artifact": "android-export.log",
+      "command": "pnpm --filter @deep/mobile typecheck\nEXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-clean-mobile-bundle",
+      "exitCode": 0,
+      "scope": "Combined command exited0; mobile type log has no errors; Android JS633modules/2.1MB; not native build",
+      "sha256": "15d21b2965d379ee134f1dd59b0d761647cc3e99ccad53b0fd55cf299c245a67"
+    },
+    {
+      "artifact": "integration.log",
+      "command": "pnpm test:integration",
+      "exitCode": 0,
+      "scope": "328/328,19files,291.56s; fresh local PostgreSQL database",
+      "sha256": "cfddea6696ca35575372cc4223a24cb0403471235e4ca604de9e426b7cc55f51"
+    },
+    {
+      "artifact": "extraction.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "scope": "17/17,4files,99.44s; real sandbox parser and local API/worker, fabricated models",
+      "sha256": "69709f318ed9c83fa02dffc7d06bea7727e838c5b63ba7677a85449e711f542d"
+    }
+  ],
+  "paidCalls": 0,
+  "hostedCI": "Configured manual workflow, never dispatched",
+  "cleanliness": "Detached clone, no ignored prior build files or .env; install had empty git status. Extraction intentionally updates only matched document-controls.json, preserved here. Existing test/native databases untouched.",
+  "scopeLimit": "Does not include subsequent uncommitted protected-content changes; no semantic/native signed-build claim."
+}

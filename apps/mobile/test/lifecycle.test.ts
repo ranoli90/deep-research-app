@@ -125,7 +125,9 @@ describe("P0-N native state mapping", () => {
       expect(src).toContain(label);
     }
     expect(src).toMatch(/tab === "research" \? "Research"/);
-    expect(src).toMatch(/tab === "library" \? "Library"/);
+    expect(src).toMatch(/accessibilityLabel=\{tab === "research" \? "Research" : "Library"\}/);
+    expect(src).toContain('(["research", "library"] as const).map');
+    expect(src).toContain('accessibilityLabel="Open profile and settings"');
     expect(src).toMatch(/Keyboard\.addListener/);
     expect(src).toMatch(/announceForAccessibility/);
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);

@@ -1,0 +1,2495 @@
+{
+  "commit": "5f10a8471b67b8a3ddd95245f2736fc794fba210",
+  "workingTree": "Uncommitted matched-pipeline implementation",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "versions": [
+    {
+      "path": "apps/backend/src/adapters/model/prompts.ts",
+      "sha256": "795c678c63074542241a45c38926d24ace51c9816833ae1697f3594395111470"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    },
+    {
+      "path": "packages/contracts/src/research-model.ts",
+      "sha256": "7317c13bc286b87635be2862c1bdabaf9e6e087842e076502d9b6905b28af3ab"
+    },
+    {
+      "path": "evals/matched-pipeline/protocol.json",
+      "sha256": "163f04c5e6937f9ee58f03f83ad4550b081ba1a77c412f003b7119e281c4e002"
+    }
+  ],
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the VNZTGD field note say about underwater recording?",
+      "sourceSha256": "c9bef911ae17c29b5c8c50dbfa6323233e22cd14754d87726a7399fbfb1ad580",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    },
+    {
+      "label": "A1-original",
+      "runId": "c25870bc-177b-4245-b895-31a4f90523a6",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 5330.771343,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "64f54025-3f83-4088-b72e-a7faec8daf18",
+        "runId": "c25870bc-177b-4245-b895-31a4f90523a6",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VNZTGD does not support underwater recording.",
+            "claimIds": [
+              "cbc21d2d-78fc-4655-8cd5-e610128e28ef"
+            ],
+            "citationIds": [
+              "0f7bd4c0-fa30-46e0-a3e9-bb6decf5f6b8"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "52335627-7c89-43d4-82cd-dc7182db16ad",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://a4b7a196-fe10-4269-a3dd-5a66199d3b3a"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "0f7bd4c0-fa30-46e0-a3e9-bb6decf5f6b8",
+          "source_version_id": "fd527faf-d711-40b0-98fd-c82be795da6a",
+          "exact_text": "Field notes: VNZTGD sensor deployment\nVNZTGD supports offline recording only on firmware 4.2.\nVNZTGD does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.408,
+                  748.616
+                ],
+                "text": "Field notes: VNZTGD sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "VNZTGD supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.1040000000001,
+                  712.616
+                ],
+                "text": "VNZTGD does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "42bca288-dddc-4f24-b626-6ab4c224e75d",
+          "source_version_id": "fd527faf-d711-40b0-98fd-c82be795da6a",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "b9701640-13cf-47c9-93cb-3545d5784be5",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "VNZTGD does not support underwater recording.",
+                "start": 94,
+                "passageId": "0f7bd4c0-fa30-46e0-a3e9-bb6decf5f6b8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "66582506-533b-44b1-91f6-bc7de158ff9b",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "VNZTGD does not support underwater recording.",
+                "start": 94,
+                "passageId": "0f7bd4c0-fa30-46e0-a3e9-bb6decf5f6b8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "c25870bc-177b-4245-b895-31a4f90523a6",
+          "accountId": "7d27b587-e57d-4a79-bb72-2f609bea6027",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-original",
+      "runId": "efcb9498-44da-4c2f-b307-ee130e377f10",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 5214.3563349999995,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "de2e3669-1103-48cf-90a1-d89a430653e5",
+        "runId": "efcb9498-44da-4c2f-b307-ee130e377f10",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VNZTGD does not support underwater recording.",
+            "claimIds": [
+              "2c86fa4c-e6ac-4a2d-9142-8af988a7d563"
+            ],
+            "citationIds": [
+              "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "34d0c0ef-7319-4ccc-9a46-32ff6b14ff9f",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://4c578ed1-5f3d-45fe-ac7b-9f4e8bf3500d"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286",
+          "source_version_id": "9b0287d1-35e8-48a1-b2d1-3353f964aa2f",
+          "exact_text": "Field notes: VNZTGD sensor deployment\nVNZTGD supports offline recording only on firmware 4.2.\nVNZTGD does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.408,
+                  748.616
+                ],
+                "text": "Field notes: VNZTGD sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "VNZTGD supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.1040000000001,
+                  712.616
+                ],
+                "text": "VNZTGD does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "85aa3155-fb0f-410f-b899-a2a97da7c2e2",
+          "source_version_id": "9b0287d1-35e8-48a1-b2d1-3353f964aa2f",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "025b5fc7-f1ed-4a38-8779-44c61a1cc9f1",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "VNZTGD does not support underwater recording.",
+                "start": 94,
+                "passageId": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "63c2f2c2-b52c-484e-a3ef-1f0bf2e4479d",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "VNZTGD does not support underwater recording.",
+                "start": 94,
+                "passageId": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "efcb9498-44da-4c2f-b307-ee130e377f10",
+          "accountId": "7d27b587-e57d-4a79-bb72-2f609bea6027",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-correction",
+      "runId": "3c163445-aa18-4afb-ac79-bdbdc331f6b4",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4690.0200749999985,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 0,
+      "report": {
+        "reportId": "0b110fac-fd1d-4e35-8cd1-fe8b851a0aac",
+        "runId": "3c163445-aa18-4afb-ac79-bdbdc331f6b4",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VNZTGD supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "88a778d6-5141-43b5-800f-4c3b85f55ce2"
+            ],
+            "citationIds": [
+              "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "34d0c0ef-7319-4ccc-9a46-32ff6b14ff9f",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://4c578ed1-5f3d-45fe-ac7b-9f4e8bf3500d"
+          }
+        ],
+        "changeSummary": {
+          "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+          "comparison": {
+            "version": "report-changes.v1",
+            "parentReportId": "de2e3669-1103-48cf-90a1-d89a430653e5",
+            "addedCriterionIds": [],
+            "reportStateChanged": false,
+            "removedCriterionIds": [],
+            "unchangedAssertions": 0,
+            "addedClaimRevisionIds": [
+              "53144734-133b-4950-84f1-0bfdc82e090b"
+            ],
+            "removedClaimRevisionIds": [
+              "63c2f2c2-b52c-484e-a3ef-1f0bf2e4479d"
+            ],
+            "newlyCitedSourceVersionIds": [],
+            "reusedCitedSourceVersionIds": [
+              "9b0287d1-35e8-48a1-b2d1-3353f964aa2f"
+            ]
+          },
+          "newlyFeasible": [],
+          "evidenceUpdated": false,
+          "newlyInfeasible": [],
+          "conclusionChanged": true
+        },
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286",
+          "source_version_id": "9b0287d1-35e8-48a1-b2d1-3353f964aa2f",
+          "exact_text": "Field notes: VNZTGD sensor deployment\nVNZTGD supports offline recording only on firmware 4.2.\nVNZTGD does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.408,
+                  748.616
+                ],
+                "text": "Field notes: VNZTGD sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "VNZTGD supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.1040000000001,
+                  712.616
+                ],
+                "text": "VNZTGD does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "85aa3155-fb0f-410f-b899-a2a97da7c2e2",
+          "source_version_id": "9b0287d1-35e8-48a1-b2d1-3353f964aa2f",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "bfe758f8-cb70-4c87-af56-b9de8f4cf6ba",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "VNZTGD supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "53144734-133b-4950-84f1-0bfdc82e090b",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "VNZTGD supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "2a6a9fc3-4106-4e56-92a9-e7fbc426a286"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "3c163445-aa18-4afb-ac79-bdbdc331f6b4",
+          "accountId": "7d27b587-e57d-4a79-bb72-2f609bea6027",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-corrected-full-rerun",
+      "runId": "f92df6be-ea09-439d-a13e-8705e779542c",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4137.276325999999,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "a5823130-a4d6-44f5-9fde-674a0c46a0ef",
+        "runId": "f92df6be-ea09-439d-a13e-8705e779542c",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "VNZTGD supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "76ebbd83-afa9-46e2-be4d-bd5092f67bd9"
+            ],
+            "citationIds": [
+              "c20211a1-8dd6-4b4c-bd5e-503b8ac38525"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "072ff109-ef72-4741-9951-c42a34f3f5e9",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://f4846ad8-2adf-4c2a-8cad-cba3598ebbdf"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "73f23e1d-4bdd-4475-9ea8-9350e15f7317",
+          "source_version_id": "5b66c895-fec7-4eb1-bb32-f292490c0909",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "c20211a1-8dd6-4b4c-bd5e-503b8ac38525",
+          "source_version_id": "5b66c895-fec7-4eb1-bb32-f292490c0909",
+          "exact_text": "Field notes: VNZTGD sensor deployment\nVNZTGD supports offline recording only on firmware 4.2.\nVNZTGD does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  269.408,
+                  748.616
+                ],
+                "text": "Field notes: VNZTGD sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  352.1000000000002,
+                  730.616
+                ],
+                "text": "VNZTGD supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  312.1040000000001,
+                  712.616
+                ],
+                "text": "VNZTGD does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "17b8bbf4-51fa-41b2-b088-c36f988f15fa",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "VNZTGD supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "c20211a1-8dd6-4b4c-bd5e-503b8ac38525"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "6615a40b-1eef-4534-8517-f16208bf06e9",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "VNZTGD supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "c20211a1-8dd6-4b4c-bd5e-503b8ac38525"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "f92df6be-ea09-439d-a13e-8705e779542c",
+          "accountId": "7d27b587-e57d-4a79-bb72-2f609bea6027",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-unavailable",
+      "runId": "ff3e4657-b726-490c-ac3a-96a05d2b44f6",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1717.3330150000002,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "ff3e4657-b726-490c-ac3a-96a05d2b44f6",
+          "accountId": "e1589f51-755a-407b-b5db-d50a5166fe8b",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-unavailable",
+      "runId": "e6190158-517b-4104-b5f7-99ed5aa06ddd",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1728.379431999998,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "e6190158-517b-4104-b5f7-99ed5aa06ddd",
+          "accountId": "e1589f51-755a-407b-b5db-d50a5166fe8b",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-iterative-public",
+      "runId": "8f65247e-6646-4213-aedd-0ccc4bed53a8",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 13670.128415000003,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does CJNAGYX support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:export",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "be695602-df05-4f20-a348-21ab26e99685",
+        "runId": "8f65247e-6646-4213-aedd-0ccc4bed53a8",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "CJNAGYX supports full export.",
+            "claimIds": [
+              "eb82b20a-eed0-44c6-b3cb-67cd1d9b730f"
+            ],
+            "citationIds": [
+              "92f94f5d-6fc9-4442-89ce-574c9131e2ca"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "CJNAGYX supports offline editing.",
+            "claimIds": [
+              "8aa262a8-ac4f-4b65-9f46-94699d4ec263"
+            ],
+            "citationIds": [
+              "2b04a840-cc9f-4dd5-b5d6-09162293b26e"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "4a926a56-b98e-4bc2-a79b-7d21cf872a1f",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "979c40b9-0136-418f-bbac-19aad4564f74",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "2b04a840-cc9f-4dd5-b5d6-09162293b26e",
+          "source_version_id": "360fbd4a-0e0b-4c15-a9d7-ed9d6c8387ec",
+          "exact_text": "CJNAGYX supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "2c09ee9f-c69e-4596-8672-8844d24eb0da",
+          "source_version_id": "248485f7-c14d-40ce-859f-c19d321dbea4",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "39824957-1190-45aa-a36a-597c4f95177b",
+          "source_version_id": "360fbd4a-0e0b-4c15-a9d7-ed9d6c8387ec",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "3b1c2d08-96c5-4527-9db4-2a7c82d9e46c",
+          "source_version_id": "248485f7-c14d-40ce-859f-c19d321dbea4",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "5cbe8cac-b332-4c7b-8047-a5abc55f04ae",
+          "source_version_id": "360fbd4a-0e0b-4c15-a9d7-ed9d6c8387ec",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "92f94f5d-6fc9-4442-89ce-574c9131e2ca",
+          "source_version_id": "248485f7-c14d-40ce-859f-c19d321dbea4",
+          "exact_text": "CJNAGYX supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "924eb56a-2c72-433b-b655-4d687935e8a5",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "92f94f5d-6fc9-4442-89ce-574c9131e2ca"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "e1083004-a28a-4a8f-932c-434a20bc7de9",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "92f94f5d-6fc9-4442-89ce-574c9131e2ca"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "e518285f-6eb4-40b2-aa9f-c5de314a160f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "CJNAGYX supports offline editing.",
+                "start": 0,
+                "passageId": "2b04a840-cc9f-4dd5-b5d6-09162293b26e"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "683f5827-0de1-4bf2-985a-b070ef34e7d0",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "92f94f5d-6fc9-4442-89ce-574c9131e2ca"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "dd3adda5-fc35-412c-9b87-606dcd4a8cd4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "CJNAGYX supports offline editing.",
+                "start": 0,
+                "passageId": "2b04a840-cc9f-4dd5-b5d6-09162293b26e"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "8f65247e-6646-4213-aedd-0ccc4bed53a8",
+          "accountId": "15b28d26-73ea-442a-b8f7-075291573054",
+          "routeMode": "controlled-research",
+          "spentMicro": 19,
+          "confirmedProviderMicro": 19,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 19
+          },
+          "intentTotalMicro": 19,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-iterative-public",
+      "runId": "22442042-c24b-41e9-ad0d-6759d4cf89e3",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 11110.744889000001,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does CJNAGYX support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "6a0e3095-ca61-4ee9-9d64-fdce9fa99aeb",
+        "runId": "22442042-c24b-41e9-ad0d-6759d4cf89e3",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "CJNAGYX supports full export.",
+            "claimIds": [
+              "46671f51-7638-4c5e-9b28-e72120179151"
+            ],
+            "citationIds": [
+              "89a5df3a-ecb9-4a98-a9d0-80dca14c8451"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "CJNAGYX supports offline editing.",
+            "claimIds": [
+              "e99c3a64-f20f-495c-91a1-c2263b9d73fe"
+            ],
+            "citationIds": [
+              "680b6fe3-2592-4c26-9e47-4a41f9a6a507"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "12d3a2e3-bb7c-48fa-8431-e77c1a461482",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "31afdb70-ce8f-4b45-b0c3-a568aaf6ffa4",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "03dc2d7f-a817-42a8-a1d9-690d9b3f0a93",
+          "source_version_id": "854f6b22-9904-43ce-9619-ac49746a9b82",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "680b6fe3-2592-4c26-9e47-4a41f9a6a507",
+          "source_version_id": "854f6b22-9904-43ce-9619-ac49746a9b82",
+          "exact_text": "CJNAGYX supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "6f2e7dc2-8dc8-472f-9508-0a1352adfd3a",
+          "source_version_id": "015f5920-3286-42e1-ae96-fc419ca0f77b",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "89a5df3a-ecb9-4a98-a9d0-80dca14c8451",
+          "source_version_id": "015f5920-3286-42e1-ae96-fc419ca0f77b",
+          "exact_text": "CJNAGYX supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "e4397798-65db-4a2e-88d6-c830a220caaf",
+          "source_version_id": "015f5920-3286-42e1-ae96-fc419ca0f77b",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        },
+        {
+          "id": "fa6d0190-72a1-4287-ad20-93709995b6db",
+          "source_version_id": "854f6b22-9904-43ce-9619-ac49746a9b82",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "30ae8fe9-4585-442a-bf3f-0fb65c36554a",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "89a5df3a-ecb9-4a98-a9d0-80dca14c8451"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "d3bc332a-f59a-4a41-8a6e-24506f78fead",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "89a5df3a-ecb9-4a98-a9d0-80dca14c8451"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "d3a6dc88-9358-4ae5-af49-f5a6324c3593",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "CJNAGYX supports offline editing.",
+                "start": 0,
+                "passageId": "680b6fe3-2592-4c26-9e47-4a41f9a6a507"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c9340aa3-878c-4f44-9e9f-9581f9fc6488",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "CJNAGYX supports full export.",
+                "start": 0,
+                "passageId": "89a5df3a-ecb9-4a98-a9d0-80dca14c8451"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "fbb1aaac-67e1-4f6f-a964-e0935b68fff4",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "CJNAGYX supports offline editing.",
+                "start": 0,
+                "passageId": "680b6fe3-2592-4c26-9e47-4a41f9a6a507"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "22442042-c24b-41e9-ad0d-6759d4cf89e3",
+          "accountId": "15b28d26-73ea-442a-b8f7-075291573054",
+          "routeMode": "controlled-research",
+          "spentMicro": 16,
+          "confirmedProviderMicro": 16,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 16
+          },
+          "intentTotalMicro": 16,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    }
+  ]
+}

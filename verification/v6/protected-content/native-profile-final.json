@@ -1,0 +1,221 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Demo fixture route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Demo route \u2014 labeled fixture, not live research",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Network request failed",
+      "label": "",
+      "bounds": "[0,375][1080,519]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Settings",
+      "bounds": "[0,519][1080,2223]",
+      "class": "android.widget.ScrollView"
+    },
+    {
+      "text": "Settings",
+      "label": "",
+      "bounds": "[45,519][1035,159]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Account, appearance, privacy, and usage. Purchases and push stay unavailable until those integrations are enabled.",
+      "label": "",
+      "bounds": "[45,519][1035,385]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Sign in development session",
+      "bounds": "[45,519][1035,492]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Sign in (development)",
+      "label": "",
+      "bounds": "[45,519][1035,492]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Grant AI processing consent",
+      "bounds": "[45,519][1035,598]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Grant AI processing consent",
+      "label": "",
+      "bounds": "[45,519][1035,598]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Toggle demo or live route",
+      "bounds": "[45,598][1035,704]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Route: fixture",
+      "label": "",
+      "bounds": "[45,598][1035,704]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Demo reports are labeled and never presented as live completed research.",
+      "label": "",
+      "bounds": "[45,726][1035,862]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Processors: Sign in to see processor disclosures.",
+      "label": "Processor disclosures",
+      "bounds": "[45,862][1035,930]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "This app cannot see a provider's internal searches.",
+      "label": "",
+      "bounds": "[45,952][1035,1088]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Restore purchases",
+      "bounds": "[45,1089][1035,1195]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Restore purchases",
+      "label": "",
+      "bounds": "[45,1089][1035,1195]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.",
+      "label": "",
+      "bounds": "[45,1217][1035,1421]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Notifications: optional. The app works if permission is denied; reopen to refresh.",
+      "label": "",
+      "bounds": "[45,1443][1035,1579]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Revoke AI processing consent",
+      "bounds": "[45,1580][1035,1685]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Revoke consent (stops new research)",
+      "label": "",
+      "bounds": "[45,1580][1035,1685]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Drafts and reports are saved on this device while signed in. Signing out clears this account\u2019s saved content.",
+      "label": "",
+      "bounds": "[45,1708][1035,1912]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Log out and clear saved drafts and reports",
+      "bounds": "[45,1912][1035,2018]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Log out and clear saved content",
+      "label": "",
+      "bounds": "[45,1912][1035,2018]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Open web deletion page",
+      "bounds": "[45,2018][1035,2124]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Open web deletion page",
+      "label": "",
+      "bounds": "[45,2018][1035,2124]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Delete account and derived data",
+      "bounds": "[45,2124][1035,2223]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Delete account and derived research",
+      "label": "",
+      "bounds": "[45,2124][1035,2223]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2347]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][353,2313]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2347]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView"
+    }
+  ]
+}

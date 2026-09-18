@@ -454,5 +454,29 @@
     "network": true,
     "paid": false,
     "implementation": ".github/workflows/verification.yml"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-mobile-protected-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json#bundle:android",
+    "scope": "Protected-cache current JS export only; not native build",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "python3 verification/v6/protected-content/native-inspect.py",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/protected-content/native-inspect.py",
+    "scope": "Authorized Android app-only UI inspection; unrelated picker/app contents are not emitted",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "node verification/v6/protected-content/native-probe.cjs '<own-project inspection expression>'",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/protected-content/native-probe.cjs",
+    "scope": "Explicit authorized own-project Metro/Hermes inspection; only synthetic contents and storage-presence metadata; no credential reads",
+    "network": false,
+    "paid": false
   }
 ]

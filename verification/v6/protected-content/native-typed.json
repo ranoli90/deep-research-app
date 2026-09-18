@@ -1,0 +1,95 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Demo fixture route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Demo route \u2014 labeled fixture, not live research",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,375][1080,734]",
+      "class": "android.widget.ScrollView"
+    },
+    {
+      "text": "Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.",
+      "label": "",
+      "bounds": "[45,420][1035,624]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraf",
+      "label": "Research question",
+      "bounds": "[22,759][866,1267]",
+      "class": "android.widget.EditText"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[867,1160][1058,1266]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Send",
+      "label": "",
+      "bounds": "[912,1182][1013,1243]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,1291][540,1412]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,1324][354,1378]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,1291][1080,1412]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,1324][871,1378]",
+      "class": "android.widget.TextView"
+    }
+  ]
+}

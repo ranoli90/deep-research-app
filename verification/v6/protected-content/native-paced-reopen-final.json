@@ -1,0 +1,149 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Demo fixture route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup"
+    },
+    {
+      "text": "Demo route \u2014 labeled fixture, not live research",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Network request failed",
+      "label": "",
+      "bounds": "[0,375][1080,519]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,519][1080,976]",
+      "class": "android.widget.ScrollView"
+    },
+    {
+      "text": "Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.",
+      "label": "",
+      "bounds": "[45,564][1035,768]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "Offline. Draft and last report stay on this device. Research will not be sent until you reconnect.",
+      "label": "",
+      "bounds": "[45,835][1035,971]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Choose PDF, text or Markdown document",
+      "bounds": "[45,999][1035,1105]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Choose a document",
+      "label": "",
+      "bounds": "[45,999][1035,1105]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "PDF, text or Markdown, up to 8 MiB. Selected files are sent when you submit and must be selected again if the app closes.",
+      "label": "",
+      "bounds": "[45,1104][1035,1308]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "note.txt",
+      "label": "Attachment filename",
+      "bounds": "[45,1308][1035,1414]",
+      "class": "android.widget.EditText"
+    },
+    {
+      "text": "Paste a text or Markdown note",
+      "label": "Attachment text",
+      "bounds": "[45,1435][1035,1541]",
+      "class": "android.widget.EditText"
+    },
+    {
+      "text": "",
+      "label": "Attach pasted note",
+      "bounds": "[45,1563][1035,1669]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Attach note (0/3)",
+      "label": "",
+      "bounds": "[45,1563][1035,1669]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_ProtectedDraftControl_",
+      "label": "Research question",
+      "bounds": "[22,1694][866,2202]",
+      "class": "android.widget.EditText"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[867,2095][1058,2201]",
+      "class": "android.widget.Button"
+    },
+    {
+      "text": "Send",
+      "label": "",
+      "bounds": "[912,2117][1013,2178]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2348]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][354,2313]",
+      "class": "android.widget.TextView"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2348]",
+      "class": "android.view.View"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView"
+    }
+  ]
+}
