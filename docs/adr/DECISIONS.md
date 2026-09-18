@@ -471,7 +471,7 @@ Rollback: stop Azure admissions and retain migration041/policy readers, both led
 
 ## ADR060 — Resolve unique exact quote coordinates before unchanged validation (2026-09-18)
 
-W01/W05: the actual Azure MC-D01 A1 brief returned HTTP200 with cost0.0005388USD and then failed invalid_exact_span. B timed out without a generation ID; its21658micro reserve remains. No original report or correction exists from this trial. Preserve both outcomes; neither a real response nor paid cost establishes research quality.
+W01/W05: the actual Azure MC-D01 A1 brief returned HTTP200 with cost0.0005388USD and then failed invalid_exact_span. Rejected output text was not retained, so this does not distinguish incorrect coordinates from a nonmatching quotation; the new resolver covers only exact, unique quotations and is not a demonstrated repair of that specific response. B timed out without a generation ID; its21658micro reserve remains. No original report or correction exists from this trial. Preserve both outcomes; neither a real response nor paid cost establishes research quality.
 
 Explicit new policy openrouter-azure-mini-zdr-exact-quote-v2 adds a pure coordinate resolver. It preserves already valid spans, otherwise locates the unchanged quote only when it occurs exactly once within its supplied question or passage. Repeated/overlapping/inexact text and unknown passage handles remain invalid. It does not normalize case/whitespace, switch passages, invent quotes or infer support. Ownership is checked before issuance and again before persistence; schema and all existing binding/support/publication checks apply after transformation. Quoted text remains untrusted.
 

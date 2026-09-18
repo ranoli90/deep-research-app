@@ -1,0 +1,26 @@
+{
+  "command": [
+    "pnpm",
+    "eval:live",
+    "--execute",
+    "--operator-confirms-user-approval",
+    "--authorization",
+    "/home/oranolio/Desktop/Deep/verification/v6/zdr-route/AUTHORIZATION.json",
+    "--sha256",
+    "513b9f761edc6a418df63e77aa71fd6dca76e918515e2fc95b443fd99f63e87d",
+    "--approval-id",
+    "c8af0430-92d6-4c04-b42d-629e42e6ebd8",
+    "--output",
+    "/home/oranolio/Desktop/Deep/verification/v6/zdr-route/live"
+  ],
+  "commit": "634a8c8c8526e91d2ee7a85a951d7b5573f28682",
+  "startedAt": "2026-09-18T17:34:08.300156+00:00",
+  "scope": "Real OpenRouter model, frozen public SQLite bytes, production API/worker/parser/checker/writer; $0.40 maximum new allowance",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux local PostgreSQL"
+  },
+  "exitCode": 2,
+  "finishedAt": "2026-09-18T17:35:50.656534+00:00"
+}

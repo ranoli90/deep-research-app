@@ -1,0 +1,113 @@
+{
+  "version": "operator-http404-zero-usage-reconciliation.v1",
+  "commit": "634a8c8c8526e91d2ee7a85a951d7b5573f28682",
+  "authorization": "User requested fixing accounting and proceeding with the capped test",
+  "intentIds": [
+    "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+    "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+    "15061d78-0fb4-4b80-a3e8-23553a371e0f"
+  ],
+  "policy": "https://openrouter.zendesk.com/hc/en-us/articles/51693138951451-Was-I-charged-for-a-failed-errored-or-empty-response-Zero-Completion-Insurance",
+  "scope": "Completed HTTP404 non-streaming model-only requests; no output, no plugins, unchanged same-key aggregate usage and zero daily usage. This records an operator financial decision, not invented generation receipts.",
+  "startedAt": "2026-09-18T17:33:52.581Z",
+  "quota": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:33:53.302Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772,
+    "usageDailyUsd": 0
+  },
+  "originalQuota": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T16:55:54.259Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772
+  },
+  "settlements": [
+    {
+      "intentId": "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+      "actualMicro": 0,
+      "originalReceiptUnchanged": true,
+      "requestDigest": "e41430893812382020d9d1b38724037093552a1bbe477a92161cc6abcadaf332"
+    },
+    {
+      "intentId": "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+      "actualMicro": 0,
+      "originalReceiptUnchanged": true,
+      "requestDigest": "4d454aba935f799abf40e4a47d501289c796941e491e69dcef9db457e326d551"
+    },
+    {
+      "intentId": "15061d78-0fb4-4b80-a3e8-23553a371e0f",
+      "actualMicro": 0,
+      "originalReceiptUnchanged": true,
+      "requestDigest": "2ba48ead88ed2422eb8b0e47887cea22932db3520fd0dd00d7ffc55964687d2d"
+    }
+  ],
+  "after": [
+    {
+      "id": "15061d78-0fb4-4b80-a3e8-23553a371e0f",
+      "state": "confirmed",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:03:46.523Z",
+        "finishedAt": "2026-09-18T17:03:46.619Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+      "state": "confirmed",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T16:57:52.324Z",
+        "finishedAt": "2026-09-18T16:57:52.511Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": null,
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+      "state": "confirmed",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:02:00.280Z",
+        "finishedAt": "2026-09-18T17:02:00.498Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    }
+  ],
+  "account": {
+    "limit_micro": "400000",
+    "reserved_micro": "0",
+    "settled_micro": "0"
+  },
+  "exitCode": 0
+}

@@ -1,0 +1,17 @@
+{
+  "commit": "634a8c8c8526e91d2ee7a85a951d7b5573f28682",
+  "quota": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:34:04.198Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.7859228,
+    "usageUsd": 0.2140772,
+    "usageDailyUsd": 0
+  },
+  "accountId": "97143e38-b2a2-4ba8-b032-b104d9b7b9a2",
+  "policyId": "openrouter-azure-mini-zdr-text-v1",
+  "aggregateCapMicro": 400000,
+  "priorAttemptCount": 3,
+  "priorOperatorReconciledMicro": 0,
+  "generationRequests": 0
+}

@@ -1,0 +1,134 @@
+{
+  "commit": "634a8c8c8526e91d2ee7a85a951d7b5573f28682",
+  "checkedAt": "2026-09-18T17:41:01.259Z",
+  "quota": {
+    "version": "openrouter-key-quota.v1",
+    "checkedAt": "2026-09-18T17:41:01.437Z",
+    "limitUsd": 5,
+    "remainingUsd": 4.785384,
+    "usageUsd": 0.214616,
+    "usageDailyUsd": 0.0005388
+  },
+  "lookups": [
+    {
+      "intentId": "f47f0bd2-a083-48ee-a3c7-15a414352dc1",
+      "result": {
+        "kind": "receipt",
+        "receipt": {
+          "version": "openrouter-generation-cost.v1",
+          "providerId": "gen-1789752855-uiOAQKNzxxprKhggS457",
+          "model": "openai/gpt-4o-mini",
+          "provider": "Azure",
+          "actualMicro": 539,
+          "rawCost": "0.0005388",
+          "retrievedAt": "2026-09-18T17:41:01.241Z",
+          "responseDigest": "67323ceb0fd47f16601edd1ce9a8487635cdb7f5aa6a0b9bbf8ca85b820851d9"
+        }
+      }
+    }
+  ],
+  "intents": [
+    {
+      "id": "15061d78-0fb4-4b80-a3e8-23553a371e0f",
+      "state": "confirmed",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:03:46.523Z",
+        "finishedAt": "2026-09-18T17:03:46.619Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "199a3406-7f66-432d-942a-e8feaa4ecdb3",
+      "state": "outcome-unknown",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": null,
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:35:05.281Z",
+        "finishedAt": "2026-09-18T17:35:50.286Z",
+        "httpStatus": 200,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": null,
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "19eb6667-a007-4a8d-ba4c-494c3b5c803b",
+      "state": "confirmed",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T16:57:52.324Z",
+        "finishedAt": "2026-09-18T16:57:52.511Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": null,
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "6854ec77-2779-4f09-9f56-6a1679cd44e3",
+      "state": "confirmed",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": "0",
+      "receipt": {
+        "rawCost": null,
+        "startedAt": "2026-09-18T17:02:00.280Z",
+        "finishedAt": "2026-09-18T17:02:00.498Z",
+        "httpStatus": 404,
+        "providerId": null,
+        "actualMicro": null,
+        "promptTokens": null,
+        "reportedModel": null,
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "0b3670ed61b0fd00571a2efacf7c581c44482a06950c164c27b4a487f0d2119d",
+        "completionTokens": null,
+        "reportedProvider": null
+      }
+    },
+    {
+      "id": "f47f0bd2-a083-48ee-a3c7-15a414352dc1",
+      "state": "confirmed",
+      "reserved_max_micro": "21658",
+      "confirmed_micro": "539",
+      "receipt": {
+        "rawCost": "0.0005388",
+        "startedAt": "2026-09-18T17:34:15.240Z",
+        "finishedAt": "2026-09-18T17:35:04.802Z",
+        "httpStatus": 200,
+        "providerId": "gen-1789752855-uiOAQKNzxxprKhggS457",
+        "actualMicro": 539,
+        "promptTokens": 744,
+        "reportedModel": "openai/gpt-4o-mini",
+        "requestedModel": "openai/gpt-4o-mini",
+        "responseDigest": "d040c2ef3aa94c37f5c0c6aa38a31544ee42ce790587208e551da7ea810bb0be",
+        "completionTokens": 712,
+        "reportedProvider": "Azure"
+      }
+    }
+  ],
+  "mutations": 0,
+  "unknownsNotReconciled": true
+}

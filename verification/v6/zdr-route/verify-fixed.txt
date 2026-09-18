@@ -1,0 +1,74 @@
+
+> deep-research-mobile@0.1.0 verify /home/oranolio/Desktop/Deep
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /home/oranolio/Desktop/Deep/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/packages/research-core
+
+
+ Test Files  16 passed (16)
+      Tests  166 passed (166)
+   Start at  11:24:58
+   Duration  4.03s (transform 1.68s, setup 0ms, import 3.55s, tests 2.89s, environment 4ms)
+
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+
+ Test Files  23 passed (23)
+      Tests  169 passed (169)
+   Start at  11:25:03
+   Duration  10.16s (transform 3.28s, setup 0ms, import 10.07s, tests 11.46s, environment 6ms)
+
+
+> @deep/mobile@0.1.0 test /home/oranolio/Desktop/Deep/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+
+ Test Files  22 passed (22)
+      Tests  206 passed (206)
+   Start at  11:25:15
+   Duration  5.46s (transform 1.94s, setup 0ms, import 5.91s, tests 2.57s, environment 6ms)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  11:25:23
+   Duration  2.63s (transform 177ms, setup 0ms, import 971ms, tests 1.45s, environment 0ms)
+

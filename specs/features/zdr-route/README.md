@@ -10,4 +10,4 @@ Tests: old bytes/replay, new Azure request pin and mismatched-provider rejection
 
 Rollback: disable new Azure admission; retain both immutable policy readers, consent and financial records. Never reinterpret an admitted run's policy or remove privacy gates.
 
-Live follow-on (ADR060): first Azure response had invalid exact offsets; new opt-in v2 policy adds deterministic unique-exact coordinate resolution with an audit event and unchanged post-transform validation. No source text or authority is changed. The second live request timed out and retains its reserve.
+Live follow-on (ADR060): first Azure response failed exact-span validation; new opt-in v2 policy adds deterministic unique-exact coordinate resolution with an audit event and unchanged post-transform validation. No source text or authority is changed. The second live request timed out and retains its reserve.

@@ -1,0 +1,13 @@
+
+> deep-research-mobile@0.1.0 test:integration /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/backend test:integration
+
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/Deep/apps/backend
+> vitest run --config vitest.integration.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/passage-capacity.integration.test.ts (17 tests | 1 failed) 210043ms
+   × W05 sends all 25 whole passages including the late firmware limitation, replays, and restores requested verification 30241ms

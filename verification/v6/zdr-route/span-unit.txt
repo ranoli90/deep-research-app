@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/packages/research-core
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  11:37:52
+   Duration  1.28s (transform 794ms, setup 0ms, import 989ms, tests 27ms, environment 0ms)
+

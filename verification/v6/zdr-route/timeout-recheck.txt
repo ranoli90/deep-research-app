@@ -1,0 +1,44 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (136 tests | 2 failed | 134 skipped) 93122ms
+   × W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions 60036ms
+   × W05 calculated writer remains limited for omitCalculation despite a positive review 30021ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions
+Error: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/model-gateway.integration.test.ts:1338:1
+    1336|  return versions;
+    1337| }
+    1338| it("W05/W06 production arithmetic report reopens, rejects dropped outp…
+       | ^
+    1339|  const versions=await arithmeticSources(x);globalThis.fetch=arithmetic…
+    1340|  await processRun(pool,x.config,x.runId);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 calculated writer remains limited for omitCalculation despite a positive review
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/model-gateway.integration.test.ts:1376:72
+    1374| // allow scheduling headroom without changing any correctness assertio…
+    1375| },sumQuestion),60_000);
+    1376| it.each(["omitCalculation","wrongQuantity","unsupportedProse"] as cons…
+       |                                                                        ^
+    1377|  await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport…
+    1378|  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 134 skipped (136)
+   Start at  11:44:30
+   Duration  97.76s (transform 3.43s, setup 0ms, import 4.26s, tests 93.12s, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t production arithmetic report reopens|calculated writer remains limited for omitCalculation

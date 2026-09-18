@@ -1,0 +1,14 @@
+
+> @deep/backend@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/backend
+> tsc -p tsconfig.json --noEmit
+
+test/eval-live.extraction.test.ts(89,74): error TS2698: Spread types may only be created from object types.
+test/model-gateway.unit.test.ts(88,2): error TS2322: Type 'Mock<() => Promise<{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }>>' is not assignable to type '(input: string | URL | Request, init?: RequestInit | undefined) => Promise<Response>'.
+  Type 'Promise<{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }>' is not assignable to type 'Promise<Response>'.
+    Type '{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }' is missing the following properties from type 'Response': headers, ok, status, statusText, and 11 more.
+test/model-gateway.unit.test.ts(90,2): error TS2322: Type 'Mock<() => Promise<{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }>>' is not assignable to type '(input: string | URL | Request, init?: RequestInit | undefined) => Promise<Response>'.
+  Type 'Promise<{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }>' is not assignable to type 'Promise<Response>'.
+    Type '{ id: string; model: string; provider: string; usage: { cost: string; prompt_tokens: number; completion_tokens: number; }; choices: { finish_reason: string; message: { content: string; }; }[]; }' is missing the following properties from type 'Response': headers, ok, status, statusText, and 11 more.
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

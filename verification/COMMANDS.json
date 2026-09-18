@@ -1880,5 +1880,29 @@
     "network": true,
     "paid": false,
     "scope": "Read-only generation receipt and current key quota; does not settle or retry the timed-out request"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts test/provider-reconciliation.integration.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/model-policy.integration.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Real local PostgreSQL immutable policy, replay, exact quote resolution audit and provider receipt isolation; fabricated transports"
+  },
+  {
+    "command": "pnpm --filter @deep/research-core exec vitest run --config vitest.config.ts test/model-span-resolution.test.ts",
+    "status": "implemented_application_command",
+    "implementation": "packages/research-core/test/model-span-resolution.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Pure exact unique quote resolution and unchanged rejection controls; no network"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/eval-live.extraction.test.ts -t 'frozen .* pairs'",
+    "status": "implemented_application_command",
+    "implementation": "apps/backend/test/eval-live.extraction.test.ts",
+    "network": false,
+    "paid": false,
+    "scope": "Selected real HTML/PDF original/correction/replay through all admitted text policies; actual parser, fabricated model transports"
   }
 ]

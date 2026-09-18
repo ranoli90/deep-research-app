@@ -1,9 +1,12 @@
 {
   "version": "matched-real-model-protocol.v1",
-  "status": "prepared_not_executed_budget_authorization_missing",
+  "status": "execution_started_incomplete",
   "registration": "FREEZE.json",
   "labels": "tasks.json is evaluator-only; mandatoryCriteria, references, fidelityChecks, expected calculations and split labels must never enter generator context or search transport",
-  "taskProjection": ["question", "correctedQuestion"],
+  "taskProjection": [
+    "question",
+    "correctedQuestion"
+  ],
   "sourceModes": {
     "frozen_supplied_document": "Separately labeled frozen-corpus evaluation. Supply whole registered document bytes through the same actual parser/evidence ingestion and production worker. Source documents are allowed inputs; evaluator labels are not. Do not call known-source injection a discovery trial.",
     "live_discovery": "Original question only; use normal safe public search/read through the same route. Hidden decisive-source lists cannot guide retrieval. Capture actual fetched hashes and evaluate version differences; frozen references are not automatically current truth."
@@ -16,19 +19,52 @@
   },
   "repetitions": {
     "allTasks": 1,
-    "selectedThreeRepeats": ["MC-D02", "MC-D05", "MC-H04", "MC-H06"],
+    "selectedThreeRepeats": [
+      "MC-D02",
+      "MC-D05",
+      "MC-H04",
+      "MC-H06"
+    ],
     "rule": "Repeat the entire original/corrected comparison three times for selected tasks only if the newly authorized envelope permits. Otherwise report unrun repeats explicitly; never silently reduce the denominator.",
     "order": "Alternate A1-first and B-first by registered task index; reverse arm order in the second repetition. Keep run IDs and all failures."
   },
-  "authorizationGates": ["Current explicit user paid budget and scope recorded", "Server account/project/key caps verified and same across arms", "Provider route and tariff receipt capability rechecked", "Prior unknown outcomes reconciled or held without blind retry", "No real private documents or human data without applicable consent"],
+  "authorizationGates": [
+    "Current explicit user paid budget and scope recorded",
+    "Server account/project/key caps verified and same across arms",
+    "Provider route and tariff receipt capability rechecked",
+    "Prior unknown outcomes reconciled or held without blind retry",
+    "No real private documents or human data without applicable consent"
+  ],
   "adjudication": {
     "human": null,
     "sourceInspection": "Agent-authored reference criteria are source-grounded, not independent human judgments.",
     "criticalFailure": "Wrong hard-constraint eligibility, lost negation/unit/version/scope, fabricated material claim, or stale corrected conclusion fails that task; do not average it away.",
-    "metrics": ["audited supported claims / audited cited material claims", "adequately supported or explicitly uncertain material assertions / all audited material assertions", "per-criterion correctness", "decisive reference used/missed/misused", "counterevidence and scoped conflict handling", "B correction versus full-rerun agreement", "actual reviewer repair operations/time", "measured end-to-end latency including failures", "receipt-confirmed spend plus separate unresolved exposure"],
+    "metrics": [
+      "audited supported claims / audited cited material claims",
+      "adequately supported or explicitly uncertain material assertions / all audited material assertions",
+      "per-criterion correctness",
+      "decisive reference used/missed/misused",
+      "counterevidence and scoped conflict handling",
+      "B correction versus full-rerun agreement",
+      "actual reviewer repair operations/time",
+      "measured end-to-end latency including failures",
+      "receipt-confirmed spend plus separate unresolved exposure"
+    ],
     "successThreshold": "No critical failure on any evaluated heldout task and a useful source-grounded answer or justified uncertainty. This is an internal quality gate, not a statistical superiority threshold.",
     "superiority": "Not predeclared; descriptive paired outcomes only. No universal, competitor or human-validation claims."
   },
-  "resultRequirements": ["commit and source-tree identity", "frozen registration and document hashes", "actual API run/brief/strategy IDs", "prompt/contract/checker/model-policy hashes", "all attempted operations, failures, invalid/cancelled/no-evidence outcomes", "actual source bytes/extraction/access/locators", "final report blocks and claim/support identities", "correction changed and reused source-version identities", "actual returned provider receipts and separate unknown holds", "wall-clock measurements", "adjudicator identity/status and explicit missing measurements"],
-  "executionBoundary": "Current executable matched-pipeline.extraction.test.ts verifies common production API/worker/parser/tool/writer/checker wiring using fabricated model transports. It is not a real-model score. Paid execution of this protocol remains gated; no provider invocation is performed by corpus.mts."
+  "resultRequirements": [
+    "commit and source-tree identity",
+    "frozen registration and document hashes",
+    "actual API run/brief/strategy IDs",
+    "prompt/contract/checker/model-policy hashes",
+    "all attempted operations, failures, invalid/cancelled/no-evidence outcomes",
+    "actual source bytes/extraction/access/locators",
+    "final report blocks and claim/support identities",
+    "correction changed and reused source-version identities",
+    "actual returned provider receipts and separate unknown holds",
+    "wall-clock measurements",
+    "adjudicator identity/status and explicit missing measurements"
+  ],
+  "executionBoundary": "Actual registered MC-D01 attempts are recorded in verification/v6/forward-accounting and verification/v6/zdr-route. No real-model report or correction succeeded. The current unknown request retains its reservation and gates further paid comparisons. Local matched controls use actual extraction and fabricated model transports. No semantic score or human adjudication is established."
 }

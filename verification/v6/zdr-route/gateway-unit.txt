@@ -1,0 +1,43 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/model-gateway.unit.test.ts (21 tests | 1 failed) 94ms
+   × preserves the exact legacy request digest and pins an explicit Azure ZDR request 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.unit.test.ts > preserves the exact legacy request digest and pins an explicit Azure ZDR request
+AssertionError: expected { status: 'permanent_failure', …(2) } to match object { status: 'succeeded', …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "receipt": {
+-     "reportedProvider": "Azure",
++     "reportedProvider": null,
+    },
+-   "status": "succeeded",
++   "status": "permanent_failure",
+  }
+
+ ❯ test/model-gateway.unit.test.ts:89:102
+     87|  expect(body.max_completion_tokens).toBe(4096);expect(body).not.toHave…
+     88|  globalThis.fetch=vi.fn(async()=>response(undefined,{provider:"Azure"}…
+     89|  expect(await executeModelRequest(azure,{apiKey:"nonbillable",signal:n…
+       |                                                                                                      ^
+     90|  globalThis.fetch=vi.fn(async()=>response(undefined,{provider:"OpenAI"…
+     91|  expect(await executeModelRequest(azure,{apiKey:"nonbillable",signal:n…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 passed (21)
+   Start at  11:18:37
+   Duration  566ms (transform 215ms, setup 0ms, import 304ms, tests 94ms, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.unit.config.ts test/model-gateway.unit.test.ts
