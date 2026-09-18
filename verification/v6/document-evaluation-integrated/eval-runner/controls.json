@@ -1,0 +1,223 @@
+{
+  "evidenceClass": "production_api_worker_actual_html_extraction_fabricated_transports",
+  "actualProviderSpendMicro": 0,
+  "semanticScores": null,
+  "traces": [
+    {
+      "kind": "four_run_and_replay",
+      "events": [
+        {
+          "event": "plan",
+          "authorization": {
+            "version": "matched-evaluation-authorization.v1",
+            "approvalId": "908f18d6-f7ac-4595-b28c-b36de7a78aec",
+            "approvalReference": "synthetic-control-not-paid-approval",
+            "issuedAt": "2026-09-18T10:24:32.168Z",
+            "expiresAt": "2026-09-18T10:34:33.168Z",
+            "protocolSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "freezeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "taskIds": [
+              "MC-D01"
+            ],
+            "budgetMicro": 1000000,
+            "accountId": "d315211a-d577-4315-bfa8-c4a7e87c2e3c",
+            "budgetScope": "evaluation:c7329f3a-10c5-460e-8346-b49a5541f454",
+            "sourceMode": "live_discovery",
+            "exclusiveDatabaseAcknowledged": true
+          },
+          "protocolHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "freezeHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "tasksHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "sourcesHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "unselectedTaskIds": [],
+          "steps": [
+            {
+              "id": "MC-D01:1:A1:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "85b7516d-c31d-8771-a066-20256fa92b61"
+            },
+            {
+              "id": "MC-D01:1:B:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "7dfc7070-06ed-825b-a051-4283c4d8f2ba"
+            },
+            {
+              "id": "MC-D01:1:B:correction",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "correction",
+              "question": "What firmware does Ardent require for offline recording?",
+              "parentStepId": "MC-D01:1:B:original",
+              "idempotencyKey": "2ce75064-b281-8953-ab33-dd5165149ce7"
+            },
+            {
+              "id": "MC-D01:1:A1:full_rerun",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "full_rerun",
+              "question": "What firmware does Ardent require for offline recording?",
+              "idempotencyKey": "52eac7d9-ed7e-88e5-a1fb-36cf8041a2ce"
+            }
+          ],
+          "semanticScores": null,
+          "adjudication": null
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:A1:original",
+          "reason": "prior_unknown_exposure",
+          "exposure": {
+            "confirmedMicro": 0,
+            "heldMicro": 20000,
+            "unknownIntents": 1
+          }
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:original",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:correction",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "finished",
+          "expectedSteps": 4,
+          "recordedResults": 0,
+          "halted": "prior_unknown_exposure",
+          "semanticScores": null,
+          "adjudication": null
+        }
+      ]
+    },
+    {
+      "kind": "different_account_same_key_prior_liability",
+      "held": {
+        "confirmedMicro": 0,
+        "heldMicro": 25000,
+        "unknownIntents": 2
+      }
+    },
+    {
+      "kind": "opaque_provider_failure",
+      "events": [
+        {
+          "event": "plan",
+          "authorization": {
+            "version": "matched-evaluation-authorization.v1",
+            "approvalId": "810e826e-9e10-45c0-853a-a8c214e15a29",
+            "approvalReference": "synthetic-control-not-paid-approval",
+            "issuedAt": "2026-09-18T10:24:32.451Z",
+            "expiresAt": "2026-09-18T10:34:33.451Z",
+            "protocolSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "freezeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "taskIds": [
+              "MC-D01"
+            ],
+            "budgetMicro": 1000000,
+            "accountId": "4ae3013d-5ad8-4978-9ab4-74f4759bd287",
+            "budgetScope": "evaluation:c1ed5086-78b7-4671-b6e2-e6987f5930f3",
+            "sourceMode": "live_discovery",
+            "exclusiveDatabaseAcknowledged": true
+          },
+          "protocolHash": "",
+          "freezeHash": "",
+          "tasksHash": "",
+          "sourcesHash": "",
+          "unselectedTaskIds": [],
+          "steps": [
+            {
+              "id": "MC-D01:1:A1:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "4bb77106-0362-80cd-acc1-57dd9620113b"
+            },
+            {
+              "id": "MC-D01:1:B:original",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "original",
+              "question": "What does Ardent say about underwater recording?",
+              "idempotencyKey": "80cc7d99-12f4-8afc-ad3c-ce532e32c61a"
+            },
+            {
+              "id": "MC-D01:1:B:correction",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "B",
+              "kind": "correction",
+              "question": "What firmware does Ardent require?",
+              "parentStepId": "MC-D01:1:B:original",
+              "idempotencyKey": "87e8b7bc-6613-8eb3-a25f-dbedacdf6820"
+            },
+            {
+              "id": "MC-D01:1:A1:full_rerun",
+              "taskId": "MC-D01",
+              "repeat": 1,
+              "arm": "A1",
+              "kind": "full_rerun",
+              "question": "What firmware does Ardent require?",
+              "idempotencyKey": "1b81dde0-2105-8bbe-ab1c-2038d8c47dbb"
+            }
+          ],
+          "semanticScores": null,
+          "adjudication": null
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:A1:original",
+          "reason": "prior_unknown_exposure",
+          "exposure": {
+            "confirmedMicro": 0,
+            "heldMicro": 20000,
+            "unknownIntents": 1
+          }
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:original",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:B:correction",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "unrun",
+          "stepId": "MC-D01:1:A1:full_rerun",
+          "reason": "prior_unknown_exposure"
+        },
+        {
+          "event": "finished",
+          "expectedSteps": 4,
+          "recordedResults": 0,
+          "halted": "prior_unknown_exposure",
+          "semanticScores": null,
+          "adjudication": null
+        }
+      ]
+    }
+  ]
+}

@@ -63,6 +63,7 @@ export const api = {
   activateSession: requests.setSession,
   selectRun: requests.selectRun,
   closeSource: requests.closeSource,
+  invalidateView: requests.invalidateView,
   currentRun: requests.currentRun,
   capture: () => requests.capture("account"),
   captureView: () => requests.capture("view"),
@@ -98,6 +99,9 @@ export const api = {
       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
       body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText,...(patch?{patch}:{}) })),
     }),
+  resolveCorrection: (token: string, id: string, expectedBriefRevision: number, correctionText: string, patch: ResearchCorrectionPatch) =>
+    req(`/v1/runs/${id}/corrections/resolve`, { method: "POST", token, scope: "view", runId: id,
+      body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText, patch })) }),
   followUp: (token: string, id: string, request: RequestedVerificationRequest) =>
     req(`/v1/runs/${id}/follow-up`, {
       method: "POST",

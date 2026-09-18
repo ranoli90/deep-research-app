@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  23:44:21
+   Duration  1.76s (transform 281ms, setup 0ms, import 354ms, tests 1.24s, environment 0ms)
+

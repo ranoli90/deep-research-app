@@ -1,0 +1,20 @@
+{
+  "commit": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "requirementIds": [
+    "W09"
+  ],
+  "environment": "Python 3.12.3 Linux local",
+  "checks": [
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 1,
+      "error": "Unknown command status (two newly registered entries used implemented instead of implemented_application_command)"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 1,
+      "error": "Unknown command status (two newly registered entries used implemented instead of implemented_application_command)"
+    }
+  ],
+  "repair": "Use canonical implemented_application_command status; no validator changes. Final validation follows."
+}

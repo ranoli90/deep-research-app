@@ -1,6 +1,6 @@
 import { RequestedVerificationRequestSchema } from "@deep/contracts";
 import { admitRequestedVerification } from "../modules/requested-verification.js";
-import { admitResearchCorrection } from "../modules/research-corrections.js";
+import { admitResearchCorrection,resolveResearchCorrection } from "../modules/research-corrections.js";
 import { deleteSourceForAccount } from "../modules/source-deletion.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
@@ -205,7 +205,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   app.get("/v1/runs/:id", async (req, reply) => {
     const a = await auth(req as never);
-    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
@@ -213,8 +213,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const brief = await getBrief(pool, run.brief_id);
     const report = await getLatestReportForRun(pool, run.id, a.accountId);
+    const contentInvalidated = Boolean((await pool.query(
+      "SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion' LIMIT 1",
+      [a.accountId, run.id],
+    )).rowCount);
     return {
       runId: run.id,
+      contentInvalidated,
       lifecycle: run.lifecycle,
       phase: run.phase,
       outcome: run.terminal_outcome,
@@ -228,7 +233,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         consentEpoch: run.consent_epoch,
         cancellationEpoch: run.cancellation_epoch,
       },
-      reportId: report?.id ?? null,
+      reportId: contentInvalidated ? null : report?.id ?? null,
       labeledDemo: run.route_mode === "fixture",
     };
   });
@@ -319,6 +324,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     });
     await tryDispatchRun(pool, boss, id);
     return { runId: id, lifecycle: "queued" };
+  });
+
+  app.post("/v1/runs/:id/corrections/resolve", async (req,reply) => {
+    const a=await auth(req as never);
+    if(!a||a.deleted)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
+    const id=z.string().uuid().safeParse((req.params as {id:string}).id);
+    const input=CorrectionRequestSchema.strict().safeParse(req.body);
+    if(!id.success||!input.success||!input.data.patch)return reply.code(400).send(err("invalid_input","Exact saved typed correction required.",crypto.randomUUID()));
+    const result=await resolveResearchCorrection(pool,a.accountId,id.data,input.data);
+    if(!result)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
+    return result;
   });
 
   app.post("/v1/runs/:id/corrections", async (req, reply) => {
@@ -735,6 +751,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       outputReporting: { available: true, categories: [...OUTPUT_REPORT_CATEGORIES] },
       allowance: allow.rows[0] ?? null,
       liveRouteEnabled: config.liveRouteEnabled,
+      appendDocumentsAllowed: typedCorrectionsEnabled,
       fixtureRouteAllowed: config.fixtureRouteAllowed,
       capabilities: pinRouteCapabilities(config),
       purchases: { available: false, reason: "Store purchases are gated until sandbox credentials exist." },

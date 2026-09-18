@@ -1,3 +1,4 @@
+import { ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
 import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest } from "../ports/search.js";
@@ -34,6 +35,16 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
+  // A document-add obligation is derived from immutable owned brief membership,
+  // so deleting a change-set cannot turn unread new input into old-answer success.
+  let appendedAttachmentIds:string[]=[];
+  if(run.parent_run_id){
+    const previous=await session.write(db=>db.query(`SELECT b.payload FROM runs r JOIN research_briefs b ON b.id=r.brief_id
+      WHERE r.id=$1 AND r.account_id=$2 AND b.account_id=$2`,[run.parent_run_id,args.accountId]));
+    const parentBrief=ResearchBriefSchema.safeParse(previous.rows[0]?.payload);
+    if(!parentBrief.success)return unresolved("correction_parent_basis_unavailable");
+    appendedAttachmentIds=brief.attachmentIds.filter(id=>!parentBrief.data.attachmentIds.includes(id));
+  }
   const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
   // A known unavailable required capability must fail before any model preparation cost.
   if(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length&&!config.structuredDiscoveryEnabled)return unresolved("correction_rediscovery_disabled");
@@ -44,7 +55,16 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
   const queries:string[]=[];
-  await ingestAttachments(pool,run,await getBrief(pool,run.brief_id),session);
+  await ingestAttachments(pool,run,brief,session);
+  for(const id of appendedAttachmentIds){
+    const readable=await session.write(db=>db.query(`SELECT 1 FROM attachments a
+      JOIN sources s ON s.canonical_locator='attachment://'||a.id::text AND s.account_id=a.account_id
+      JOIN source_versions v ON v.source_id=s.id AND v.account_id=a.account_id AND v.content_hash=a.sha256
+      JOIN authorized_run_passages p ON p.source_version_id=v.id AND p.account_id=a.account_id
+      WHERE a.id=$1 AND a.account_id=$2 AND a.deleted_at IS NULL AND a.raw_bytes IS NOT NULL
+        AND p.run_id=$3 AND v.access_level IN ('partial-text','full-text') LIMIT 1`,[id,args.accountId,args.runId]));
+    if(!readable.rowCount)return unresolved("appended_document_unavailable");
+  }
   await session.write(async(db)=>{
     await setPhase(db,args.runId,"researching");
     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"criteria_prepared",phase:"researching",

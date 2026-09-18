@@ -1,0 +1,18 @@
+
+> @deep/mobile@0.1.0 bundle:android /tmp/deep-correction-mobile/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-remote-invalidation-export-complete
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.6% (569/570)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (570/570)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (651/651)
+Android Bundled 9621ms apps/mobile/index.ts (651 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-486c76016d6bb2db8f32d320afcbe07b.hbc (2.21 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/deep-remote-invalidation-export-complete

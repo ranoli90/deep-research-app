@@ -1,0 +1,119 @@
+{
+  "requirementIds": [
+    "W02",
+    "W03",
+    "W04",
+    "W06",
+    "W07",
+    "W08",
+    "W09"
+  ],
+  "baseCommit": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "workingTree": true,
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "4.1.11",
+    "postgres": "127.0.0.1:55432/deep_research_final_internal_v6_20260917",
+    "evaluatorDatabase": "deep_eval_control_111e23a655c249b3afb1c94215f458e5",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "paidCalls": 0,
+  "results": [
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "artifact": "verify.log",
+      "scope": "157core/132backend/186mobile/6governance; configured types/boundaries; before final account-panel ref reset",
+      "sha256": "9862df2b5d57c9a1c96640382f25e3c210bef0c7b028761ddf5f4b86fe6d5cca"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 pnpm test:integration",
+      "exitCode": 0,
+      "artifact": "integration.log",
+      "scope": "422/422,29files,439.79s; actual local PostgreSQL/fabricated providers",
+      "sha256": "774a66857a456ccac82bec8be0461f935995a70db475c3f6b645d77370ecf63f"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/matched-pipeline EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/eval-runner pnpm --filter @deep/backend test:extraction",
+      "exitCode": 1,
+      "artifact": "extraction.log",
+      "scope": "36passed/3failed,8files,131.97s; retained older synthetic unknown hold blocks evaluator correctly",
+      "sha256": "7e6ce0e40ba2877088ee79b4cc3904bd2b55a03289f0e44a84ef63c3fc76b9c4"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_final_internal_v6_20260917 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/matched-pipeline-final EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/document-evaluation-integrated/eval-runner-final pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "artifact": "extraction-final.log",
+      "scope": "39/39,8files,114.57s; actual parser/API/worker/fabricated providers; fresh retained evaluator database",
+      "sha256": "8aafb1583ae9987da09c790bd80ad5d59f32718a532c98db69b21d093fdaa155"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "mobile-typecheck-final.log",
+      "scope": "mobile types before final one-line account-panel ref reset",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-typecheck-final.log",
+      "scope": "backend types including isolated evaluator test setup",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-remote-invalidation-integrated",
+      "exitCode": 0,
+      "artifact": "android-export-final.log",
+      "scope": "651modules2.21MB7163ms; JS export, before final account-panel ref reset, not native build",
+      "sha256": "fb2d6264eb71e2749d1f4e041e20accc7d9a691be2eec38df92badfb243c1550"
+    },
+    {
+      "command": "pnpm eval:live",
+      "exitCode": 2,
+      "artifact": "eval-default-deny.log",
+      "scope": "expected exit2 before paid effects without explicit authorization",
+      "sha256": "fddf88de6d3a6484c1006f01317c4dcaddc61f168799a2148b5061966bdeed11"
+    }
+  ],
+  "sourceHashes": {
+    "apps/backend/src/api/app.ts": "fbdef19587fc82bfc18702a096fbc0a7423b8645f56e0b60b20c66ffbb39f683",
+    "apps/backend/src/eval-live.ts": "969d02070ae377e00cd15ede1a6f369c08d9eff41e3333b235a6b14f74aac7c8",
+    "apps/backend/src/modules/research-corrections.ts": "ab39baf201c72a9a74564e3c15270b3c5eecc8c2a98114f9a28223adaf6a8d38",
+    "apps/backend/src/worker/structured-research.ts": "c69f49dc426e14654326dd8ebfdfc922875e1b4b8015751d69ae5672048b109c",
+    "apps/backend/test/governance.test.ts": "aacbea07a789a44ff75e3c315e9821d218bceac87e32f88fee1ca56f2152adb8",
+    "apps/backend/test/matched-pipeline.extraction.test.ts": "0c3a27d1ff97756eb96fb3ea48205d081bf1a0099d421b545e58ad42dcc3acfc",
+    "apps/mobile/App.tsx": "bebeb40be78d92a1e92f8ec555a7a764e9fe916b0a5ba672b4a77940ec0ebf6d",
+    "apps/mobile/src/api.ts": "8f5845ac29e0700b0443c8fd733a5dc4a7b793519590c93a2dd1a5f70cad2441",
+    "apps/mobile/src/persist.ts": "5cba2c57cf3c7d0b94da54f9b79587e891d04a5e2b8277c191f89097a6e555e2",
+    "apps/mobile/src/protected-content.ts": "a588f6dc37cbab983f15446c788bab1652575fb1181299343a2b3e60a67be02a",
+    "apps/mobile/src/request-scope.ts": "5a9ba5dfa4007c29887c02451b0188cef91163a034249b81b018d74f1c23a70e",
+    "apps/mobile/src/state.ts": "3e5e6f0f996c1267db4cac481b81db5fc47835154b9b3b29c28a754d43fa505b",
+    "apps/mobile/src/verification-request.ts": "e83792d95f8e171060c7312f1266a57db9a0301341bd0d37b3e49a5c6cbd099c",
+    "packages/contracts/src/index.ts": "16c5234fc256b371e431bff4799e1f435bd81fc0ca80ad523bb2b0cae502945f",
+    "packages/research-core/src/question-patch.ts": "fcee0480128de6d61a610d32bbd9056e8cbd61bc4b751581e011747945acd50f",
+    "apps/backend/src/evaluation/authorization.ts": "52827d38fe17525c142ab3597fe4d4acd7b60ef8eeab987409e6ef5118ef7408",
+    "apps/backend/src/evaluation/production-driver.ts": "d01a3e7596ce8ebf406dc4ed3c770961832da712ab03bde9c112a3a11c190bad",
+    "apps/backend/src/evaluation/runner.ts": "a496501ca8c05d29875dbb9eaae117bd0b05f47bd414d8f141e065ec0ff2c797",
+    "apps/backend/test/append-document.extraction.test.ts": "f4e04b3ab7dcc964812cf298d207f6de133a0106429521d817fb2ddaf98c2833",
+    "apps/backend/test/append-document.integration.test.ts": "36804f19a2c737bd2637426a68bc93823b3ad5ede7144c48952300df02e68b04",
+    "apps/backend/test/eval-live.extraction.test.ts": "0cfb4d880c764ccfd4261cbc3b3b743de55c96f6a3822e2e9e830fe5a2024575",
+    "apps/backend/test/eval-live.unit.test.ts": "41c0c44113850a33812a5cf717498fb98e3e746fd13baa117754549575abe715",
+    "apps/backend/test/remote-source-invalidation.integration.test.ts": "b7c0c3e74ae3f9647ac50711d7a60ada6039c9abbae4f2c26622ebca36d4b43c",
+    "apps/mobile/src/correction-documents-flow.ts": "5c0ae2c9ef02c216992a442fcc78a418527f09d6f8a102542e22461fbed28bbf",
+    "apps/mobile/src/correction-documents.ts": "c7d7ffac0a6f6ffbc42cfd61d79387c9a9e9bb509c60fba6196119558c633f4b",
+    "apps/mobile/src/remote-invalidation.ts": "94cdebfffe8a36d9d6daad297e5326663084e885430ca9f94a27f0e803173614",
+    "apps/mobile/test/correction-documents-flow.test.ts": "6ca3704a3ef08ac1bca67a99154347869771e4466ebba7ab2e3dc2f4fe701c37",
+    "apps/mobile/test/correction-documents.test.ts": "9ce9c598f20a8ab81f9acebff35f069fabfdfb22c23900b142888fded2b230c9",
+    "apps/mobile/test/remote-invalidation.test.ts": "5ac2f37d3915043fb4e521456952b87172e10eeecdc2c916d9bc4ab29348128e",
+    "packages/research-core/test/append-document.test.ts": "9b599fd29627896a81e0c8927673ffef5a2043b5472ea3bb92d67826de92da39"
+  },
+  "limits": [
+    "No live semantic, independent human, native build or hostedCI proof",
+    "Final account-panel ref reset awaits exact-commit clean proof",
+    "Evaluator frozen supplied-document mode unavailable; operator approval attestation is not independent authorization proof",
+    "Original synthetic unknown liabilities retained; evaluator controls require local test CREATEDB permission"
+  ]
+}

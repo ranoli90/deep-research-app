@@ -1,0 +1,188 @@
+
+> @deep/backend@0.1.0 test:extraction /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> vitest run --config vitest.extraction.config.ts test/append-document.extraction.test.ts -t 'unreadable appended'
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+
+ ❯ test/append-document.extraction.test.ts (3 tests | 2 failed | 1 skipped) 13330ms
+   × W06 unreadable appended PDF cannot silently republish old answer (missing change-set=false) 6770ms
+   × W06 unreadable appended PDF cannot silently republish old answer (missing change-set=true) 6454ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/append-document.extraction.test.ts > W06 unreadable appended PDF cannot silently republish old answer (missing change-set=false)
+AssertionError: expected { …(14) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "account_id": "725c81ae-2ce0-4dc5-800e-c92b5dc932f7",
+  "basis": {
+    "briefRevision": 2,
+    "cancellationEpoch": 0,
+    "consentEpoch": 1,
+    "evidenceRevision": 2,
+    "workerLeaseFence": 1,
+  },
+  "blocks": [
+    {
+      "citationIds": [],
+      "claimIds": [],
+      "id": "heading_0",
+      "kind": "heading",
+      "text": "Evidence",
+    },
+    {
+      "citationIds": [
+        "75141fd8-5687-45d9-bd01-c5d4307296e2",
+      ],
+      "claimIds": [
+        "d9868b18-c2e8-42ec-9028-dd46cd269548",
+      ],
+      "id": "paragraph_0_0",
+      "kind": "text",
+      "text": "Ardent supports offline recording only on firmware 4.2.",
+    },
+  ],
+  "change_summary": {
+    "comparison": {
+      "addedClaimRevisionIds": [],
+      "addedCriterionIds": [],
+      "newlyCitedSourceVersionIds": [],
+      "parentReportId": "c4dce8d9-5831-4ddb-ba91-aac7585c7ed4",
+      "removedClaimRevisionIds": [],
+      "removedCriterionIds": [],
+      "reportStateChanged": false,
+      "reusedCitedSourceVersionIds": [
+        "9bfc7e17-2ed9-434d-b3c5-2df544333be6",
+      ],
+      "unchangedAssertions": 1,
+      "version": "report-changes.v1",
+    },
+    "conclusionChanged": false,
+    "evidenceUpdated": false,
+    "newlyFeasible": [],
+    "newlyInfeasible": [],
+    "notes": "Assertions: 0 added, 0 removed, 1 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+  },
+  "claim_ids": [
+    "d9868b18-c2e8-42ec-9028-dd46cd269548",
+  ],
+  "id": "6f28ff55-15ea-4259-9db9-10c02654e03b",
+  "limitations": [],
+  "outcome": "completed",
+  "published_at": 2026-09-18T05:19:59.568Z,
+  "redacted_at": null,
+  "route_mode": "controlled-research",
+  "run_id": "89d652f7-8e7a-40d5-840f-7f466262c1d2",
+  "source_access_summary": [
+    {
+      "accessLevel": "partial-text",
+      "originCluster": "attachment://0c785925-e6cf-4097-ad23-a3529b4d5967",
+      "sourceId": "cd599851-77d7-469d-b4ec-c94f52613079",
+      "title": "readable.pdf",
+    },
+  ],
+  "version": 1,
+}
+
+ ❯ test/append-document.extraction.test.ts:45:114
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/append-document.extraction.test.ts > W06 unreadable appended PDF cannot silently republish old answer (missing change-set=true)
+AssertionError: expected { …(14) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "account_id": "82e605b0-ae8e-4cde-9c54-24c6336d05f4",
+  "basis": {
+    "briefRevision": 2,
+    "cancellationEpoch": 0,
+    "consentEpoch": 1,
+    "evidenceRevision": 2,
+    "workerLeaseFence": 1,
+  },
+  "blocks": [
+    {
+      "citationIds": [],
+      "claimIds": [],
+      "id": "heading_0",
+      "kind": "heading",
+      "text": "Evidence",
+    },
+    {
+      "citationIds": [
+        "6fc12d76-d0f5-473c-b1a5-802f3bdd2062",
+      ],
+      "claimIds": [
+        "1a7aef61-7897-4c38-a615-c3419bb8fffa",
+      ],
+      "id": "paragraph_0_0",
+      "kind": "text",
+      "text": "Ardent supports offline recording only on firmware 4.2.",
+    },
+  ],
+  "change_summary": {
+    "comparison": {
+      "addedClaimRevisionIds": [],
+      "addedCriterionIds": [],
+      "newlyCitedSourceVersionIds": [],
+      "parentReportId": "f1aee937-6dbd-4e8f-bd84-06f0ce4d5316",
+      "removedClaimRevisionIds": [],
+      "removedCriterionIds": [],
+      "reportStateChanged": false,
+      "reusedCitedSourceVersionIds": [
+        "587c2e9d-eb17-4948-b92d-06e001b2f91d",
+      ],
+      "unchangedAssertions": 1,
+      "version": "report-changes.v1",
+    },
+    "conclusionChanged": false,
+    "evidenceUpdated": false,
+    "newlyFeasible": [],
+    "newlyInfeasible": [],
+    "notes": "Assertions: 0 added, 0 removed, 1 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+  },
+  "claim_ids": [
+    "1a7aef61-7897-4c38-a615-c3419bb8fffa",
+  ],
+  "id": "1f7434e7-ec18-4526-bce2-f75560e47539",
+  "limitations": [],
+  "outcome": "completed",
+  "published_at": 2026-09-18T05:20:06.060Z,
+  "redacted_at": null,
+  "route_mode": "controlled-research",
+  "run_id": "1253215b-7582-4c63-b26b-afe827591e6d",
+  "source_access_summary": [
+    {
+      "accessLevel": "partial-text",
+      "originCluster": "attachment://d3efd8a5-b687-4b64-93c2-5d6595928e7c",
+      "sourceId": "37ca6e47-38af-4e89-9298-f364449938d7",
+      "title": "readable.pdf",
+    },
+  ],
+  "version": 1,
+}
+
+ ❯ test/append-document.extraction.test.ts:45:114
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 skipped (3)
+   Start at  23:19:52
+   Duration  14.49s (transform 755ms, setup 0ms, import 1.01s, tests 13.33s, environment 0ms)
+
+/tmp/deep-append-document-4c3seb7g/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:extraction: `vitest run --config vitest.extraction.config.ts test/append-document.extraction.test.ts -t 'unreadable appended'`
+Exit status 1

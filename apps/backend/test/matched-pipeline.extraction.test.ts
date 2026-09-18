@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile, mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { beforeAll, afterAll, afterEach, expect, it, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
@@ -17,7 +19,8 @@ import * as publicTransport from "../src/platform/ssrf.js";
 import * as extraction from "../src/adapters/extraction/offline.js";
 const originalFetch=globalThis.fetch;
 let pool:pg.Pool,boss:PgBoss,baseline:FastifyInstance,adaptive:FastifyInstance,config:AppConfig;
-const artifactRoot=new URL("../../../verification/v6/matched-pipeline/",import.meta.url);
+// Repeated verification must not overwrite committed historical receipts.
+const artifactRoot=process.env.MATCHED_PIPELINE_ARTIFACT_DIR ? resolve(process.env.MATCHED_PIPELINE_ARTIFACT_DIR) : await mkdtemp(join(tmpdir(),"deep-matched-pipeline-"));
 const traces:unknown[]=[];
 const digest=(bytes:Uint8Array|string)=>createHash("sha256").update(bytes).digest("hex");
 beforeAll(async()=>{
@@ -30,8 +33,9 @@ beforeAll(async()=>{
 afterEach(()=>{globalThis.fetch=originalFetch;vi.restoreAllMocks();});
 afterAll(async()=>{
  await mkdir(artifactRoot,{recursive:true});
- const versions=await Promise.all(["apps/backend/src/adapters/model/prompts.ts","apps/backend/src/ports/model-policy.ts","packages/contracts/src/research-model.ts","evals/matched-pipeline/protocol.json"].map(async path=>({path,sha256:digest(await readFile(new URL(`../../../${path}`,import.meta.url)))})));
- await writeFile(new URL("document-controls.json",artifactRoot),JSON.stringify({commit:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),workingTree:"Uncommitted matched-pipeline implementation",environment:{node:process.version,platform:process.platform,extractionRuntime:process.env.EXTRACTION_RUNTIME},versions,protocol:"matched-pipeline.v1",evidenceClass:"actual_extraction_production_api_worker_fabricated_model",newPaidCalls:0,actualProviderCostMicro:0,semanticScores:null,humanAdjudication:null,traces},null,2)+"\n");
+ const versions=await Promise.all(["apps/backend/src/adapters/model/prompts.ts","apps/backend/src/ports/model-policy.ts","packages/contracts/src/research-model.ts","evals/matched-pipeline/protocol.json","apps/backend/src/worker/structured-research.ts","apps/backend/src/worker/attachment-ingestion.ts","apps/backend/test/matched-pipeline.extraction.test.ts"].map(async path=>({path,sha256:digest(await readFile(new URL(`../../../${path}`,import.meta.url)))})));
+ await writeFile(join(artifactRoot,"document-controls.json"),JSON.stringify({commit:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),workingTree:execFileSync("git",["status","--porcelain=v1"],{encoding:"utf8"}).trim()?"working_tree_changes_present":"clean_checkout",environment:{node:process.version,platform:process.platform,extractionRuntime:process.env.EXTRACTION_RUNTIME},versions,protocol:"matched-pipeline.v1",evidenceClass:"actual_extraction_production_api_worker_fabricated_model",newPaidCalls:0,actualProviderCostMicro:0,semanticScores:null,humanAdjudication:null,traces},null,2)+"\n");
+ process.stdout.write(`matched-pipeline artifact: ${join(artifactRoot,"document-controls.json")}\n`);
  await baseline.close();await adaptive.close();await boss.stop({graceful:false,timeout:2000});await pool.end();
 });
 async function account(){

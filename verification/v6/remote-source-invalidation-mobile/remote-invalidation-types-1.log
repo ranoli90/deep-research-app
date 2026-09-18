@@ -1,0 +1,9 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-correction-mobile/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+App.tsx(242,38): error TS2304: Cannot find name 'guard'.
+App.tsx(244,27): error TS2304: Cannot find name 'guard'.
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

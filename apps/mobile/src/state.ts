@@ -1,3 +1,4 @@
+import { redactInvalidatedContent } from "./remote-invalidation";
 import type { PendingVerificationRequest } from "./verification-request";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
@@ -7,6 +8,7 @@ export type RouteMode = "fixture" | "controlled-research";
 export type ScreenName = "research" | "library" | "settings" | "source";
 
 export type RunSnapshot = {
+  contentInvalidated?: boolean;
   correctionMode?: "legacy"|"replace_question"|"unavailable";
   correctionReserveMicro?:number;
   runId: string;
@@ -29,6 +31,8 @@ export type ReportBlock = {
 export type AttachmentDraft = { id?: string; filename: string; mime: string } & ({ text: string; bytes?: never } | { bytes: Uint8Array; text?: never });
 
 export type UiState = {
+  pendingContentInvalidation: string | null;
+  pendingCorrectionDocuments: import("./correction-documents").PendingCorrectionDocuments | null;
   tab: "research" | "library" | "settings";
   draft: string;
   correctionDraft: CorrectionDraft | null;
@@ -62,9 +66,11 @@ export type UiState = {
 
 export function emptyState(): UiState {
   return {
+    pendingContentInvalidation: null,
     tab: "research",
     draft: "",
     correctionDraft: null,
+    pendingCorrectionDocuments: null,
     pendingAdmission: null,
     pendingSourceDeletion: null,
     pendingVerification: null,
@@ -95,7 +101,8 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
   else if (snap.lifecycle === "terminal" && snap.outcome === "failed") status = "failed";
   else if (snap.lifecycle === "queued") status = "loading";
   else if (snap.lifecycle === "awaiting_input") status = "awaiting_input";
-  return { ...state, run: snap, status, error: null };
+  const next = { ...state, run: snap, status, error: null };
+  return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
 }
 
 export function restoreAfterReopen(saved: UiState): UiState {
@@ -112,6 +119,8 @@ export function restoreAfterReopen(saved: UiState): UiState {
 }
 
 export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
+  if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting research." };
+  if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };

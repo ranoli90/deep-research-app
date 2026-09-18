@@ -220,6 +220,11 @@ export type CreateRunRequest = z.infer<typeof CreateRunRequestSchema>;
 
 export const ResearchCorrectionPatchSchema=z.discriminatedUnion("kind",[
  z.object({
+  kind:z.literal("append_attachments"),
+  attachmentIds:z.array(IdSchema).min(1).max(3).refine(ids=>new Set(ids.map(id=>id.toLowerCase())).size===ids.length),
+  evidencePolicy:z.literal("reuse_snapshot"),
+ }).strict(),
+ z.object({
   kind:z.literal("replace_question"),question:z.string().min(1).max(20_000),
   evidencePolicy:z.enum(["reuse_snapshot","refresh"]),
  }).strict(),

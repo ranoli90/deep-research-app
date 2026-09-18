@@ -1,0 +1,138 @@
+{
+  "requirements": [
+    "W06",
+    "W04",
+    "W07",
+    "W02",
+    "W03"
+  ],
+  "baseCommit": "0602f96efff0eaa576e7654f08b226ef20108de5",
+  "sourceState": "isolated uncommitted eight-file patch; primary integrates",
+  "clone": "/tmp/deep-append-document-4c3seb7g/repo",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "python": "3.12.3",
+    "postgres": "local real PostgreSQL at127.0.0.1:55432; dedicated deep_research_lease_clock_v6",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "commands": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "artifact": "install.log",
+      "scope": "offline dependency installation"
+    },
+    {
+      "command": "pnpm --filter @deep/research-core test test/append-document.test.ts",
+      "exitCode": 1,
+      "artifact": "unit-before.log",
+      "scope": "1 failed/1 passed before append schema"
+    },
+    {
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "artifact": "core-final.log",
+      "scope": "157/157"
+    },
+    {
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "artifact": "core-final-normalization.log",
+      "scope": "157/157 exact final source"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-typecheck.log",
+      "scope": "source types"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "artifact": "backend-typecheck-tests.log",
+      "scope": "test import defect: storeAttachment imported from wrong module"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 2,
+      "artifact": "backend-typecheck-all-tests.log",
+      "scope": "same test import defect, retained"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-typecheck-final.log",
+      "scope": "corrected test import"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "backend-typecheck-complete.log",
+      "scope": "all final source/tests"
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:extraction test/append-document.extraction.test.ts -t 'unreadable appended'",
+      "exitCode": 1,
+      "artifact": "unreadable-before.log",
+      "scope": "2 failed/1 excluded by focus; old report wrongly published for empty appended PDF, including deleted change-set"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/append-document.integration.test.ts test/question-patch.integration.test.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "integration-first.log",
+      "scope": "18/18 prior to final parent-basis regression"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/append-document.integration.test.ts test/question-patch.integration.test.ts test/correction-rediscovery.integration.test.ts",
+      "exitCode": 0,
+      "artifact": "integration-final.log",
+      "scope": "19/19; 11 new, 6 existing span, 2 existing rediscovery;22.64s"
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:extraction test/append-document.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "extraction-final.log",
+      "scope": "3/3;19.31s, repeated after UUID refinement"
+    },
+    {
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:extraction test/append-document.extraction.test.ts",
+      "exitCode": 0,
+      "artifact": "extraction-final-normalization.log",
+      "scope": "3/3 exact final source;16.97s"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "artifact": "boundaries.log",
+      "scope": "import boundaries"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "artifact": "diff-check.log",
+      "scope": "source whitespace"
+    }
+  ],
+  "evidenceClasses": {
+    "unit": "strict public schema and exact unchanged question;157 core tests",
+    "database": "real PostgreSQL/API ownership, account-lock races, withdrawals, source deletion, exact recovery;19 tests",
+    "extraction": "synthetic real PDF bytes through actual isolated parser/API worker and fabricated model transports;3 controls",
+    "liveModel": "not executed or claimed",
+    "native": "not executed or claimed",
+    "paid": "no paid calls; fabricated provider amounts do not prove invoices"
+  },
+  "failuresRetained": [
+    "unsupported append kind unit failure",
+    "two test import typecheck failures",
+    "two unreadable appended PDF stale-report failures before guard"
+  ],
+  "limitations": [
+    "Append only; no implicit replacement/deletion and no semantic criterion editing UI.",
+    "Full conclusion recomputation; old exact evidence membership/parser reuse measured, no selective inference savings claim.",
+    "Readable owned passage guard does not establish complete-document extraction or model semantic correctness.",
+    "Rollback must retain admitted child membership obligations, typed readers, recovery withdrawals, ownership/deletion and financial unknown holds."
+  ],
+  "dbSlot": "released after final parser session59936 terminal exit0; no additional checks running"
+}

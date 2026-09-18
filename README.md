@@ -64,3 +64,5 @@ python scripts/validate_builder_handoff.py
 python -m unittest discover -s scripts -p 'test_builder_handoff.py' -v
 ```
 These validate the planning package's disposition coverage, preserved input hashes, gate labels and notification-contract wording; they do not execute any application logic. After application implementation, use actual application CI/evidence rather than changing this historical snapshot checker to claim runtime readiness.
+
+Current application implementation and evidence are summarized in `STATUS.md`. ADR048–050 cover recoverable document corrections, the default-deny registered evaluation runner and remote source invalidation. Local synthetic API/parser controls are distinct from paid semantic evaluation, current native acceptance and hosted/release evidence; the internal milestone remains incomplete until its applicable gates pass.

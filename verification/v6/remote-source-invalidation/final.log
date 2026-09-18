@@ -1,0 +1,41 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/remote-source-invalidation.integration.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+
+ ❯ test/remote-source-invalidation.integration.test.ts (4 tests | 1 failed) 502ms
+   × W03 exposes owned remote source invalidation and hides deleted report without foreign access 175ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/remote-source-invalidation.integration.test.ts > W03 exposes owned remote source invalidation and hides deleted report without foreign access
+AssertionError: expected { …(12) } to match object { contentInvalidated: true, …(3) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "contentInvalidated": true,
+    "lifecycle": "terminal",
+    "outcome": "cancelled",
+-   "reportId": null,
++   "reportId": "d2cad38e-ed2e-4f8b-b3c8-7a7a0f1c5ae0",
+  }
+
+ ❯ test/remote-source-invalidation.integration.test.ts:23:147
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  23:37:21
+   Duration  1.63s (transform 709ms, setup 0ms, import 984ms, tests 502ms, environment 0ms)
+
+/tmp/deep-append-document-4c3seb7g/repo/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/remote-source-invalidation.integration.test.ts`
+Exit status 1

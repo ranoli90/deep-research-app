@@ -1,0 +1,591 @@
+--- a/apps/mobile/App.tsx
++++ b/apps/mobile/App.tsx
+@@ -1,3 +1,4 @@
++import { applyRemoteInvalidation, redactInvalidatedContent } from "./src/remote-invalidation";
+ import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot, type CorrectionSelection } from "./src/correction-documents-flow";
+ import { prepareCorrectionDocuments, submitCorrectionDocuments } from "./src/correction-documents";
+ import { ProfilePanel } from "./src/ProfilePanel";
+@@ -75,6 +76,8 @@
+   const theme = useTheme();
+   const insets = useSafeAreaInsets();
+   const [state, setStateRaw] = useState<UiState>(emptyState());
++  const latestUi = useRef(state); latestUi.current = state;
++  const redactingContent = useRef(false);
+   const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
+     const guard = api.capture();
+     setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
+@@ -124,7 +127,7 @@
+   const [correctionPending,setCorrectionPending]=useState(false);
+   const correctionAttempt=useRef<symbol|null>(null);
+   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
+-  const correctionReady=!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
++  const correctionReady=!state.run?.contentInvalidated&&!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
+   useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
+   const [clarifyAnswer, setClarifyAnswer] = useState("");
+   const [attachName, setAttachName] = useState("note.txt");
+@@ -173,7 +176,7 @@
+   const styles = useMemo(() => makeStyles(theme), [theme]);
+ 
+   useEffect(() => {
+-    if (!hydrated || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
++    if (!hydrated || redactingContent.current || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
+     const guard = api.capture();
+     void persistSession(sessionStorage, { token, state }).catch(() => {
+       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
+@@ -204,7 +207,7 @@
+     let guard: ReturnType<typeof api.capture> | undefined;
+     try {
+       const s = await api.session();
+-      api.activateSession(s.token);
++      redactingContent.current = false; api.activateSession(s.token);
+       guard = api.capture();
+       await activateLocalSession(sessionStorage, s);
+       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
+@@ -251,22 +254,44 @@
+   }
+ 
+   async function onAuthFailure() {
+-    stopPolling(); api.activateSession(null); clearPanels();
++    redactingContent.current = false; stopPolling(); api.activateSession(null); clearPanels();
+     setToken(null); setState((s) => expireLocalSession(s));
+     try { await clearAccountLocal(sessionStorage); }
+     catch { setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." })); }
+   }
+ 
+-  async function refreshRun(t: string, runId: string) {
++  async function refreshRun(t: string, runId: string, openingState?: UiState) {
+     if (!api.currentRun(t, runId)) return;
+     const key = `${t}:${runId}`;
+     if (refreshing.current.has(key)) return;
+     const attempt = Symbol(); refreshing.current.set(key, attempt);
++    let guard = api.captureView();
+     try {
+       const snap = await api.getRun(t, runId);
++      if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
++      if (snap.contentInvalidated === true) {
++        // Cancel older source/correction callbacks without changing the selected run.
++        api.invalidateView(t); guard.release(); guard = api.captureView();
++      }
++      const invalidated = await applyRemoteInvalidation(latestUi.current.run?.runId === runId ? latestUi.current : openingState ?? latestUi.current, snap, {
++        current: () => guard.current() && api.currentRun(t, runId),
++        hide: () => {
++          redactingContent.current = true; setStorageReady(false);
++          setViewState(s => guard.current() && s.run?.runId === runId ? redactInvalidatedContent({ ...s, run: snap }, runId) : s);
++          setCorrectionSelection(previous => guard.current() ? { owner: t, parent: runId, files: [] } : previous);
++        },
++        save: (redacted, id) => sessionStorage.redactRunContent(t, id, redacted),
++      });
++      if (!guard.current()) throw new SupersededRequest();
++      if (invalidated) {
++        setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null } : s);
++        redactingContent.current = false; setStorageReady(true); stopPolling();
++        return;
++      }
+       const ev = await api.events(t, runId, 0);
+       const report = snap.reportId ? await api.report(t, snap.reportId) : null;
+       setViewState((s) => {
++        if (!guard.current() || s.pendingContentInvalidation) return s;
+         if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
+         let next = applySnapshot(s, snap);
+         next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
+@@ -292,7 +317,11 @@
+       });
+       setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
+     } catch (e) {
+-      if (isSupersededRequest(e)) return;
++      if (isSupersededRequest(e) || !guard.current()) return;
++      if (redactingContent.current) {
++        setViewState(s => guard.current() ? { ...s, error: "Deleted source content is hidden. Disk cleanup is unconfirmed; reconnect or reopen to retry before starting research." } : s);
++        return;
++      }
+       if (isExpiredSession(e)) await onAuthFailure();
+       else if (isOfflineError(e)) {
+         setViewState((s) => {
+@@ -301,7 +330,7 @@
+           return next;
+         });
+       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+-    } finally { if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
++    } finally { guard.release(); if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
+   }
+ 
+   function stopPolling() {
+@@ -351,12 +380,13 @@
+         }
+       }
+       if (!restored.current()) { restored.release(); return; }
+-      setStorageReady(true);
++      setStorageReady(!s.pendingContentInvalidation);
++      redactingContent.current = !!s.pendingContentInvalidation;
+       setToken((previous) => restored.current() ? t : previous);
+       setState((previous) => restored.current() ? s : previous);
+       if (t && s.run?.runId && !s.pendingSourceDeletion) {
+         api.selectRun(s.run.runId);
+-        void refreshRun(t, s.run.runId);
++        void refreshRun(t, s.run.runId, s);
+         startPolling(t, s.run.runId);
+       }
+       restored.release();
+@@ -405,7 +435,7 @@
+   }, [state.tab, token]);
+ 
+   async function onPickDocument() {
+-    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
++    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
+     if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
+     const guard = api.capture();
+@@ -506,7 +536,7 @@
+       AccessibilityInfo.announceForAccessibility(
+         "Research in progress. Cancel is available. Closing the app will not stop the job.",
+       );
+-      await refreshRun(t, created.runId);
++      await refreshRun(t, created.runId, next);
+       startPolling(t, created.runId);
+       } finally { guard.release(); }
+   }
+@@ -581,7 +611,7 @@
+   }
+ 
+   async function pickCorrectionDocument() {
+-    if (!token || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
++    if (!token || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
+     if (correctionFiles.length >= 3) return;
+     const guard = api.captureView(); pickingDocument.current = true; setDocumentPending(true);
+     try {
+@@ -601,7 +631,7 @@
+         current: guard.current, get: () => api.getRun(token, runId), finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+       });
+       setState(next); setCorrectionFiles([]);
+-      await refreshRun(token, runId); startPolling(token, runId);
++      await refreshRun(token, runId, next); startPolling(token, runId);
+     } finally { guard.release(); }
+   }
+ 
+@@ -661,7 +691,7 @@
+   }
+ 
+   async function onCorrect() {
+-    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments) return;
++    if (!token || !state.run || state.pendingContentInvalidation || redactingContent.current || correctionAttempt.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments) return;
+     const text = correction.trim();
+     if (!text) {
+       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
+@@ -752,12 +782,12 @@
+       await sessionStorage.persistRequired(token, next);
+       if (!guard.current()) throw new SupersededRequest();
+       setState(next);
+-      await refreshRun(token, runId); startPolling(token, runId);
++      await refreshRun(token, runId, next); startPolling(token, runId);
+     } finally { guard.release(); }
+   }
+ 
+   async function onFollowUp() {
+-    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
++    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+     const guard = api.capture();
+     try {
+       verifying.current = true; setVerificationBusy(true);
+@@ -807,7 +837,7 @@
+ 
+   async function onShare(reportId?: string) {
+     const id = reportId ?? state.report?.reportId;
+-    if (!token || !id || state.pendingSourceDeletion || deletingSource.current) return;
++    if (!token || !id || state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current) return;
+     try {
+       const md = await api.exportMd(token, id);
+       await Share.share({ message: md.markdown, title: "Research report" });
+@@ -840,6 +870,10 @@
+             <Text style={styles.bannerText}>Live research route</Text>
+           </View>
+         )}
++        {state.pendingContentInvalidation ? <View style={styles.card} accessibilityLabel="Deleted source cleanup">
++          <Text style={styles.body}>A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.</Text>
++          <Pressable accessibilityRole="button" onPress={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}><Text style={styles.link}>Retry device cleanup</Text></Pressable>
++        </View> : null}
+         {state.pendingCorrectionDocuments ? <View style={styles.card} accessibilityLabel="Saved document correction">
+           <Text style={styles.body}>A document correction is saved for its original report. Retry the same request to avoid starting another correction.</Text>
+           <Text style={styles.body}>{state.pendingCorrectionDocuments.upload.uploads.map(u => `${u.filename}: ${u.attachmentId ? "uploaded" : "select original file again"}`).join("\n")}</Text>
+@@ -1083,7 +1117,7 @@
+               </View>
+             ) : null}
+ 
+-            {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
++            {(state.report || state.status === "completed" || state.status === "partial") && state.run && !state.run.contentInvalidated ? (
+               <View style={styles.card} accessibilityLabel="Correction">
+                 <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
+                 {correctionMode === "replace_question" && !state.pendingCorrectionDocuments ? <View>
+@@ -1149,16 +1183,17 @@
+             }} />
+         ) : null}
+ 
+-        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
++        {state.tab === "library" && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
+           <Library
+             token={token}
+             styles={styles}
+             onOpen={async (id) => {
+-              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
++              if (state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+               api.selectRun(id);
+               if (!token) return;
++              const opening = openLibraryItem(latestUi.current, id);
+               setState((s) => openLibraryItem(s, id));
+-              await refreshRun(token, id);
++              await refreshRun(token, id, opening);
+               startPolling(token, id);
+             }}
+             onShare={(reportId) => onShare(reportId)}
+@@ -1220,13 +1255,13 @@
+           />
+         ) : null}
+ 
+-        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
++        {state.tab === "research" && !state.source && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
+             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
+             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
+             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
+             onAttachNote={() => {
+-                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
++                if (deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+                 setState((s) =>
+                   attachFile(s, {
+                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
+--- a/apps/mobile/src/persist.ts
++++ b/apps/mobile/src/persist.ts
+@@ -1,3 +1,4 @@
++import { readInvalidatedRun, redactInvalidatedContent } from "./remote-invalidation";
+ import { readCorrectionDocuments, type PendingCorrectionDocuments } from "./correction-documents";
+ import { readPendingVerificationRequest } from "./verification-request";
+ import { readPendingSourceDeletion } from "./source-deletion";
+@@ -14,6 +15,7 @@
+ export type PersistedSession = { token: string | null; state: UiState };
+ const SESSION_KEY = "deep.session.v2", REVOKED_KEY = "deep.session.revoked", GUEST_KEY = "deep.draft.guest";
+ const ADMISSION_KEY = "deep.admission.v1", CORRECTION_KEY = "deep.correction-documents.v1";
++const INVALIDATION_KEY = "deep.content-invalidation.v1";
+ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
+ const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
+ 
+@@ -51,6 +53,8 @@
+ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValueStore, backend = "test-local", quietPeriodMs = 0) {
+   if (!Number.isSafeInteger(quietPeriodMs) || quietPeriodMs < 0 || quietPeriodMs > 1000) throw new Error("Invalid persistence quiet period.");
+   let epoch = 0, current: LocalSession | null = null;
++  const invalidatedRuns = new Set<string>();
++  const safeState = (state: UiState) => state.run && invalidatedRuns.has(state.run.runId) ? redactInvalidatedContent(state, state.run.runId, false) : state;
+   let persistSequence = 0;
+   let flushThrough = 0, finishWait: (() => void) | null = null;
+   let lastPersisted: { epoch: number; key: string; payload: string } | null = null;
+@@ -68,6 +72,7 @@
+     activate(session: LocalSession): Promise<void> {
+       if (!session.accountId || !session.token) return Promise.reject(new Error("Invalid local session."));
+       const version = ++epoch, previous = current;
++      invalidatedRuns.clear();
+       current = { ...session };
+       finishWait?.();
+       return enqueue(async () => {
+@@ -80,6 +85,7 @@
+             await cache.removeItem(SNAPSHOT_KEY);
+             await cache.removeItem(ADMISSION_KEY);
+             await cache.removeItem(CORRECTION_KEY);
++            await cache.removeItem(INVALIDATION_KEY);
+             await credentials.removeItem(SESSION_KEY);
+           }
+           await cache.removeItem(GUEST_KEY);
+@@ -92,6 +98,23 @@
+         }
+       });
+     },
++    redactRunContent(token: string, runId: string, state: UiState): Promise<void> {
++      const version = epoch, owner = current;
++      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before clearing deleted content."));
++      readInvalidatedRun(runId);
++      if (state.run?.runId !== runId) return Promise.reject(new Error("Research changed before clearing deleted content."));
++      invalidatedRuns.add(runId); ++persistSequence;
++      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
++      return enqueue(async () => {
++        if (version !== epoch || current?.token !== token) throw new Error("Session changed before clearing deleted content.");
++        await cache.setItem(INVALIDATION_KEY, JSON.stringify({ accountId: owner.accountId, runId }));
++        if (version !== epoch) throw new Error("Session changed while clearing deleted content.");
++        await cache.setItem(SNAPSHOT_KEY, payload);
++        if (version !== epoch) throw new Error("Session changed while clearing deleted content.");
++        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
++        await cache.removeItem(INVALIDATION_KEY);
++      });
++    },
+     readCorrectionDocuments(token: string): Promise<PendingCorrectionDocuments | null> {
+       const version = epoch, owner = current;
+       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before reading correction."));
+@@ -121,7 +144,7 @@
+       const version = epoch, owner = current;
+       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming correction."));
+       ++persistSequence;
+-      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
++      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
+       return enqueue(async () => {
+         if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming correction.");
+         await cache.setItem(SNAPSHOT_KEY, payload);
+@@ -145,7 +168,7 @@
+       const version = epoch, owner = current;
+       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming request."));
+       ++persistSequence;
+-      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
++      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
+       return enqueue(async () => {
+         if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming request.");
+         await cache.setItem(SNAPSHOT_KEY, payload);
+@@ -159,7 +182,7 @@
+       const version = epoch, owner = current;
+       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving privacy action."));
+       ++persistSequence;
+-      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
++      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
+       return enqueue(async () => {
+         if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving privacy action.");
+         await cache.setItem(SNAPSHOT_KEY, payload);
+@@ -171,7 +194,7 @@
+       const version = epoch, owner = current;
+       if (session.token !== (owner?.token ?? null)) return Promise.resolve();
+       const sequence = ++persistSequence;
+-      const payload = JSON.stringify(owner ? { accountId: owner.accountId, state: storedState(session.state) } : session.state.draft);
++      const payload = JSON.stringify(owner ? { accountId: owner.accountId, state: storedState(safeState(session.state)) } : session.state.draft);
+       return enqueue(async () => {
+         if (version !== epoch || current?.token !== owner?.token || sequence !== persistSequence) return;
+         if (quietPeriodMs && sequence > flushThrough) await new Promise<void>(resolve => {
+@@ -211,6 +234,7 @@
+           await cache.removeItem(SNAPSHOT_KEY);
+           await cache.removeItem(ADMISSION_KEY);
+           await cache.removeItem(CORRECTION_KEY);
++          await cache.removeItem(INVALIDATION_KEY);
+           let draft = "";
+           try { const value: unknown = JSON.parse(await cache.getItem(GUEST_KEY) ?? '""'); if (typeof value === "string") draft = value; } catch { /* invalid guest draft */ }
+           if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
+@@ -230,6 +254,18 @@
+             }
+           }
+         }
++        const invalidation = await cache.getItem(INVALIDATION_KEY);
++        if (invalidation !== null) {
++          const marker: unknown = JSON.parse(invalidation);
++          if (!record(marker) || marker.accountId !== session.accountId) throw new Error("Saved content invalidation ownership is invalid.");
++          const runId = readInvalidatedRun(marker.runId);
++          if (version === epoch) invalidatedRuns.add(runId);
++          Object.assign(state, redactInvalidatedContent(state, runId));
++        }
++        if (state.run?.contentInvalidated === true) {
++          if (version === epoch) invalidatedRuns.add(state.run.runId);
++          Object.assign(state, redactInvalidatedContent(state, state.run.runId, state.pendingContentInvalidation === state.run.runId));
++        }
+         const correction = await cache.getItem(CORRECTION_KEY);
+         if (correction !== null) {
+           const envelope: unknown = JSON.parse(correction);
+@@ -250,13 +286,13 @@
+       });
+     },
+     clear(): Promise<void> {
+-      ++epoch; current = null;
++      ++epoch; current = null; invalidatedRuns.clear();
+       finishWait?.();
+       return enqueue(async () => {
+         lastPersisted = null;
+         // A durable denial marker prevents a failed keychain deletion from restoring this account on next launch.
+         const marker = await Promise.allSettled([cache.setItem(REVOKED_KEY, "1")]);
+-        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), cache.removeItem(CORRECTION_KEY), removeLegacy()];
++        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), cache.removeItem(CORRECTION_KEY), cache.removeItem(INVALIDATION_KEY), removeLegacy()];
+         const results = await Promise.allSettled(tasks);
+         if ([...marker, ...results].some((r) => r.status === "rejected")) throw new Error("Could not finish clearing this device's session. Retry before signing in.");
+       });
+--- a/apps/mobile/src/protected-content.ts
++++ b/apps/mobile/src/protected-content.ts
+@@ -1,6 +1,6 @@
+ import type { KeyValueStore } from "./persist";
+ 
+-const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest", "deep.admission.v1", "deep.correction-documents.v1"]);
++const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest", "deep.admission.v1", "deep.correction-documents.v1", "deep.content-invalidation.v1"]);
+ const MAX_LENGTH = 2_000_000, CHUNK_BYTES = 1600, MAX_CHUNKS = 8192;
+ type Manifest = { version: 1; active: 0 | 1 | null; counts: [number, number] };
+ function manifest(raw: string | null): Manifest {
+--- a/apps/mobile/src/state.ts
++++ b/apps/mobile/src/state.ts
+@@ -1,3 +1,4 @@
++import { redactInvalidatedContent } from "./remote-invalidation";
+ import type { PendingVerificationRequest } from "./verification-request";
+ import type { AdmissionDraft } from "./admission-retry";
+ import type { SourceDetail } from "./source-view";
+@@ -7,6 +8,7 @@
+ export type ScreenName = "research" | "library" | "settings" | "source";
+ 
+ export type RunSnapshot = {
++  contentInvalidated?: boolean;
+   correctionMode?: "legacy"|"replace_question"|"unavailable";
+   correctionReserveMicro?:number;
+   runId: string;
+@@ -29,6 +31,7 @@
+ export type AttachmentDraft = { id?: string; filename: string; mime: string } & ({ text: string; bytes?: never } | { bytes: Uint8Array; text?: never });
+ 
+ export type UiState = {
++  pendingContentInvalidation: string | null;
+   pendingCorrectionDocuments: import("./correction-documents").PendingCorrectionDocuments | null;
+   tab: "research" | "library" | "settings";
+   draft: string;
+@@ -63,6 +66,7 @@
+ 
+ export function emptyState(): UiState {
+   return {
++    pendingContentInvalidation: null,
+     tab: "research",
+     draft: "",
+     correctionDraft: null,
+@@ -97,7 +101,8 @@
+   else if (snap.lifecycle === "terminal" && snap.outcome === "failed") status = "failed";
+   else if (snap.lifecycle === "queued") status = "loading";
+   else if (snap.lifecycle === "awaiting_input") status = "awaiting_input";
+-  return { ...state, run: snap, status, error: null };
++  const next = { ...state, run: snap, status, error: null };
++  return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
+ }
+ 
+ export function restoreAfterReopen(saved: UiState): UiState {
+@@ -114,6 +119,7 @@
+ }
+ 
+ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
++  if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting research." };
+   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
+   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
+   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
+--- a/apps/mobile/src/verification-request.ts
++++ b/apps/mobile/src/verification-request.ts
+@@ -64,6 +64,7 @@
+   const fail = () => new Error("Verification run could not be reopened. Retry the saved request.");
+   if (!record(value) || !uuid.test(expectedRunId) || value.runId !== expectedRunId ||
+       value.routeMode !== "controlled-research" || value.labeledDemo !== false ||
++      (value.contentInvalidated !== undefined && value.contentInvalidated !== false) ||
+       !LifecycleSchema.safeParse(value.lifecycle).success || !PhaseSchema.safeParse(value.phase).success ||
+       !(value.reportId === null || typeof value.reportId === "string" && uuid.test(value.reportId)) ||
+       !(value.outcome === null || TerminalOutcomeSchema.safeParse(value.outcome).success) ||
+--- /dev/null
++++ b/apps/mobile/src/remote-invalidation.ts
+@@ -0,0 +1,28 @@
++import { SupersededRequest } from "./request-scope";
++import type { RunSnapshot, UiState } from "./state";
++const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
++export function readInvalidatedRun(value: unknown): string {
++  if (typeof value !== "string" || !uuid.test(value)) throw new Error("Saved content invalidation is invalid. Device cleanup is required.");
++  return value;
++}
++/** Preserve independent input and exact request journals, but never keep deleted evidence content. */
++export function redactInvalidatedContent(state: UiState, runId: string, cleanupPending = true): UiState {
++  if (state.run?.runId !== runId) return state;
++  return { ...state, run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
++    report: null, previousReport: null, source: null, correctionDraft: null, readingAnchor: null,
++    events: [], attachments: [], clarification: [], flagSent: false,
++    pendingContentInvalidation: cleanupPending ? runId : null, error: "This research used a deleted source. Saved report content has been hidden." };
++}
++/** Invalidation outranks ancillary refresh failures; hide before durable cleanup and never fetch a deleted report. */
++export async function applyRemoteInvalidation(state: UiState, snap: RunSnapshot, io: {
++  current(): boolean; hide(): void; save(state: UiState, runId: string): Promise<void>;
++}): Promise<boolean> {
++  if (snap.contentInvalidated !== undefined && typeof snap.contentInvalidated !== "boolean") throw new Error("Run content status is invalid.");
++  if (snap.contentInvalidated !== true) return false;
++  const runId = readInvalidatedRun(snap.runId);
++  const check = () => { if (!io.current() || state.run?.runId !== runId || !state.signedIn) throw new SupersededRequest(); };
++  check(); io.hide(); check();
++  const redacted = redactInvalidatedContent({ ...state, run: snap }, runId);
++  await io.save(redacted, runId); check();
++  return true;
++}
+--- /dev/null
++++ b/apps/mobile/test/remote-invalidation.test.ts
+@@ -0,0 +1,91 @@
++import { expect,it,vi } from "vitest";
++import { applyRemoteInvalidation,redactInvalidatedContent } from "../src/remote-invalidation";
++import { applySnapshot,emptyState,type UiState } from "../src/state";
++import { createSessionStorage,memoryStore } from "../src/persist";
++import { createProtectedContentStore } from "../src/protected-content";
++import { readVerificationRun, prepareVerificationRequest } from "../src/verification-request";
++import { createRequestScope } from "../src/request-scope";
++const runId="11111111-1111-4111-8111-111111111111",other="22222222-2222-4222-8222-222222222222";
++const snapshot={runId,lifecycle:"terminal",phase:"writing",outcome:"cancelled",reportId:null,labeledDemo:false,contentInvalidated:true};
++const cached=():UiState=>({...emptyState(),signedIn:true,consentGranted:true,draft:"independent composer",
++  run:{...snapshot,contentInvalidated:false,brief:{originalQuestion:"private question",constraints:[],revision:1}},
++  report:{reportId:other,blocks:[{id:"answer",kind:"answer",text:"deleted source contents",claimIds:[],citationIds:[]}],limitations:[],labeledDemo:false},
++  previousReport:{reportId:other,blocks:[]},readingAnchor:{reportId:other,blockId:"answer",offset:0},
++  correctionDraft:{version:"correction-draft.v1",runId,baseRevision:1,question:"correction private text",evidencePolicy:"reuse_snapshot"},events:[{sequence:1,type:"event",publicSummary:"content"}],attachments:[{filename:"private.txt",mime:"text/plain",text:"private"}]});
++it("W03 authoritative invalidation clears current and previous content before any ancillary fetch",async()=>{
++  let state=cached();const ancillary=vi.fn(async()=>{throw Error("events offline");}),save=vi.fn(async(next:UiState)=>{expect(state.report).toBeNull();expect(next.previousReport).toBeNull();});
++  const handled=await applyRemoteInvalidation(state,snapshot,{current:()=>true,hide:()=>{state=redactInvalidatedContent(state,runId);},save});
++  if(!handled)await ancillary();expect(ancillary).not.toHaveBeenCalled();expect(save).toHaveBeenCalledOnce();
++  expect(state).toMatchObject({report:null,previousReport:null,source:null,correctionDraft:null,readingAnchor:null,events:[],attachments:[],draft:"independent composer"});expect(state.run?.brief).toBeUndefined();
++  expect(applySnapshot(cached(),snapshot).report).toBeNull();
++});
++it("W03 ordinary cancellation without invalidation does not erase a saved report",async()=>{
++  const hide=vi.fn(),save=vi.fn();expect(await applyRemoteInvalidation(cached(),{...snapshot,contentInvalidated:false},{current:()=>true,hide,save})).toBe(false);expect(hide).not.toHaveBeenCalled();expect(save).not.toHaveBeenCalled();
++});
++it("W03 delayed account/run callback cannot erase another view",async()=>{
++  const scope=createRequestScope();scope.setSession("a");scope.selectRun(runId);const lease=scope.capture("view");scope.selectRun(other);
++  const hide=vi.fn(),save=vi.fn();await expect(applyRemoteInvalidation(cached(),snapshot,{current:lease.current,hide,save})).rejects.toThrow("superseded");expect(hide).not.toHaveBeenCalled();expect(save).not.toHaveBeenCalled();
++  const otherState={...cached(),run:{...snapshot,runId:other}};expect(redactInvalidatedContent(otherState,runId)).toBe(otherState);
++  scope.setSession("b");await expect(applyRemoteInvalidation(cached(),snapshot,{current:lease.current,hide,save})).rejects.toThrow("superseded");
++});
++it("W03 child adoption refuses invalidated or malformed invalidation snapshots",()=>{
++  expect(()=>readVerificationRun({...snapshot,routeMode:"controlled-research"},runId)).toThrow();
++  expect(()=>readVerificationRun({...snapshot,contentInvalidated:"true",routeMode:"controlled-research"},runId)).toThrow();
++});
++it("W03 failed cleanup leaves UI hidden and protected marker redacts old snapshot on restart",async()=>{
++  const ordinary=memoryStore(),secure=memoryStore(),credentials=memoryStore(),protectedCache=createProtectedContentStore(ordinary,secure);let fail=false;
++  const cache={...protectedCache,setItem:async(k:string,v:string)=>{if(fail&&k==="deep.ui.v2")throw Error("disk full");await protectedCache.setItem(k,v);}};
++  const storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});await storage.persistRequired("a",cached());fail=true;let state=cached();
++  await expect(applyRemoteInvalidation(state,snapshot,{current:()=>true,hide:()=>{state=redactInvalidatedContent(state,runId);},save:(next,id)=>storage.redactRunContent("a",id,next)})).rejects.toThrow("disk full");expect(state.report).toBeNull();
++  expect(await ordinary.getItem("deep.content-invalidation.v1")).toBeNull();expect(await protectedCache.getItem("deep.content-invalidation.v1")).toContain(runId);
++  const restarted=createSessionStorage(cache,credentials),restored=await restarted.hydrate();expect(restored.state.report).toBeNull();expect(restored.state.previousReport).toBeNull();expect(restored.state.draft).toBe("independent composer");expect(restored.state.pendingContentInvalidation).toBe(runId);
++  fail=false;await restarted.redactRunContent("a",runId,restored.state);expect(await protectedCache.getItem("deep.content-invalidation.v1")).toBeNull();
++  // A stale coalesced UI write after cleanup is sanitized by the owning session.
++  await restarted.persist({token:"a",state:cached()});expect((await createSessionStorage(cache,credentials).hydrate()).state.report).toBeNull();
++});
++it("W03 marker failure reports uncertainty without restoring current UI",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage({...cache,setItem:async(k,v)=>{if(k==="deep.content-invalidation.v1")throw Error("marker unavailable");await cache.setItem(k,v);}},credentials);await storage.activate({accountId:"a",token:"a"});let state=cached();
++  await expect(applyRemoteInvalidation(state,snapshot,{current:()=>true,hide:()=>{state=redactInvalidatedContent(state,runId);},save:(next,id)=>storage.redactRunContent("a",id,next)})).rejects.toThrow("marker unavailable");expect(state.report).toBeNull();expect(state.pendingContentInvalidation).toBe(runId);
++});
++it("W03 invalidation preserves independent admission identity and account cleanup removes marker",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});
++  const request={version:"admission.v1" as const,key:other,question:"independent request",routeMode:"controlled-research" as const,uploads:[]};await storage.saveAdmission("a",request);
++  await storage.redactRunContent("a",runId,cached());expect((await storage.hydrate()).state.pendingAdmission).toEqual(request);
++  await cache.setItem("deep.content-invalidation.v1",JSON.stringify({accountId:"a",runId}));await storage.activate({accountId:"b",token:"b"});expect(await cache.getItem("deep.content-invalidation.v1")).toBeNull();
++  await cache.setItem("deep.content-invalidation.v1",JSON.stringify({accountId:"b",runId}));await storage.clear();expect(await cache.getItem("deep.content-invalidation.v1")).toBeNull();
++});
++it("W03 malformed invalidation markers fail closed",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});await cache.setItem("deep.content-invalidation.v1",JSON.stringify({accountId:"a",runId:"bad"}));await expect(storage.hydrate()).rejects.toThrow("invalid");
++});
++it("W03 new-install reset removes surviving protected invalidation markers",async()=>{
++  const ordinary=memoryStore(),secure=memoryStore(),credentials=memoryStore();const cache=createProtectedContentStore(ordinary,secure);
++  await cache.setItem("deep.content-invalidation.v1",JSON.stringify({accountId:"old",runId}));
++  await createSessionStorage(cache,credentials).hydrate();
++  expect(await cache.getItem("deep.content-invalidation.v1")).toBeNull();
++});
++
++it("W03 invalidation preserves exact pending correction and verification identities",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});
++  const correction={version:"correction-documents.v1" as const,parentRunId:runId,baseRevision:1,upload:{version:"admission.v1" as const,key:other,question:"Add the selected documents to the existing research question.",routeMode:"controlled-research" as const,uploads:[{key:other,filename:"private.txt",mime:"text/plain",kind:"text" as const,digest:"a".repeat(64),attachmentId:other}]}};
++  const verification=prepareVerificationRequest({run:{runId,reportId:other},report:{reportId:other,version:1,blocks:[{claimIds:[runId]}]},reportId:other,reportVersion:1,claimId:runId,note:"private exact identity",evidencePolicy:"reuse_snapshot",idempotencyKey:other});
++  await storage.saveCorrectionDocuments("a",correction);await storage.redactRunContent("a",runId,{...cached(),pendingVerification:verification});
++  const restored=await storage.hydrate();expect(restored.state.pendingCorrectionDocuments).toEqual(correction);expect(restored.state.pendingVerification).toEqual(verification);expect(restored.state.report).toBeNull();
++});
++it("W03 clean tombstoned snapshot reopens without an unfinished cleanup hold",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});await storage.redactRunContent("a",runId,cached());
++  const reopened=await createSessionStorage(cache,credentials).hydrate();expect(reopened.state.run?.contentInvalidated).toBe(true);expect(reopened.state.report).toBeNull();expect(reopened.state.pendingContentInvalidation).toBeNull();
++});
++it("W03 fast opening snapshot can invalidate before React commits the selected run",async()=>{
++  const before={...cached(),run:{...snapshot,runId:other}},opening={...before,run:{...snapshot,contentInvalidated:false}};
++  let queued=opening;const saved:UiState[]=[];
++  // App passes its explicit opening state while the last rendered state still names the old run.
++  await applyRemoteInvalidation(opening,await Promise.resolve(snapshot),{current:()=>true,hide:()=>{queued=redactInvalidatedContent(queued,runId);},save:async state=>{saved.push(state);}});
++  expect(queued.report).toBeNull();expect(saved[0]?.draft).toBe(before.draft);expect(saved[0]?.report).toBeNull();
++});
++it("W03 queued required and ordinary writes cannot restore content after cleanup",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),storage=createSessionStorage(cache,credentials);await storage.activate({accountId:"a",token:"a"});
++  const before=storage.persistRequired("a",cached());
++  const cleanup=storage.redactRunContent("a",runId,cached());
++  const after=storage.persistRequired("a",cached());
++  await Promise.all([before,cleanup,after]);expect((await createSessionStorage(cache,credentials).hydrate()).state.report).toBeNull();expect(await cache.getItem("deep.content-invalidation.v1")).toBeNull();
++});

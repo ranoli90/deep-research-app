@@ -1,0 +1,11 @@
+
+> @deep/mobile@0.1.0 typecheck /tmp/deep-correction-mobile/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+test/remote-invalidation.test.ts(82,101): error TS2322: Type 'UiState' is not assignable to type '{ run: { contentInvalidated: boolean; runId: string; lifecycle: string; phase: string; outcome: string; reportId: null; labeledDemo: boolean; }; pendingContentInvalidation: string | null; pendingCorrectionDocuments: import("/tmp/deep-correction-mobile/apps/mobile/src/correction-documents").PendingCorrectionDocuments...'.
+  Types of property 'run' are incompatible.
+    Type 'RunSnapshot | null' is not assignable to type '{ contentInvalidated: boolean; runId: string; lifecycle: string; phase: string; outcome: string; reportId: null; labeledDemo: boolean; }'.
+      Type 'null' is not assignable to type '{ contentInvalidated: boolean; runId: string; lifecycle: string; phase: string; outcome: string; reportId: null; labeledDemo: boolean; }'.
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

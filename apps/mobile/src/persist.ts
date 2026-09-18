@@ -1,3 +1,5 @@
+import { readInvalidatedRun, redactInvalidatedContent } from "./remote-invalidation";
+import { readCorrectionDocuments, type PendingCorrectionDocuments } from "./correction-documents";
 import { readPendingVerificationRequest } from "./verification-request";
 import { readPendingSourceDeletion } from "./source-deletion";
 import { emptyState, restoreAfterReopen, type UiState } from "./state";
@@ -12,7 +14,8 @@ export type KeyValueStore = {
 export type LocalSession = { accountId: string; token: string };
 export type PersistedSession = { token: string | null; state: UiState };
 const SESSION_KEY = "deep.session.v2", REVOKED_KEY = "deep.session.revoked", GUEST_KEY = "deep.draft.guest";
-const ADMISSION_KEY = "deep.admission.v1";
+const ADMISSION_KEY = "deep.admission.v1", CORRECTION_KEY = "deep.correction-documents.v1";
+const INVALIDATION_KEY = "deep.content-invalidation.v1";
 const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
@@ -50,6 +53,8 @@ function parseState(raw: string | null, accountId: string): UiState | null {
 export function createSessionStorage(cache: KeyValueStore, credentials: KeyValueStore, backend = "test-local", quietPeriodMs = 0) {
   if (!Number.isSafeInteger(quietPeriodMs) || quietPeriodMs < 0 || quietPeriodMs > 1000) throw new Error("Invalid persistence quiet period.");
   let epoch = 0, current: LocalSession | null = null;
+  const invalidatedRuns = new Set<string>();
+  const safeState = (state: UiState) => state.run && invalidatedRuns.has(state.run.runId) ? redactInvalidatedContent(state, state.run.runId, false) : state;
   let persistSequence = 0;
   let flushThrough = 0, finishWait: (() => void) | null = null;
   let lastPersisted: { epoch: number; key: string; payload: string } | null = null;
@@ -67,6 +72,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
     activate(session: LocalSession): Promise<void> {
       if (!session.accountId || !session.token) return Promise.reject(new Error("Invalid local session."));
       const version = ++epoch, previous = current;
+      invalidatedRuns.clear();
       current = { ...session };
       finishWait?.();
       return enqueue(async () => {
@@ -78,6 +84,8 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (previous?.accountId !== session.accountId) {
             await cache.removeItem(SNAPSHOT_KEY);
             await cache.removeItem(ADMISSION_KEY);
+            await cache.removeItem(CORRECTION_KEY);
+            await cache.removeItem(INVALIDATION_KEY);
             await credentials.removeItem(SESSION_KEY);
           }
           await cache.removeItem(GUEST_KEY);
@@ -88,6 +96,61 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (version === epoch) { epoch++; current = null; }
           throw error;
         }
+      });
+    },
+    redactRunContent(token: string, runId: string, state: UiState): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before clearing deleted content."));
+      readInvalidatedRun(runId);
+      if (state.run?.runId !== runId) return Promise.reject(new Error("Research changed before clearing deleted content."));
+      invalidatedRuns.add(runId); ++persistSequence;
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before clearing deleted content.");
+        await cache.setItem(INVALIDATION_KEY, JSON.stringify({ accountId: owner.accountId, runId }));
+        if (version !== epoch) throw new Error("Session changed while clearing deleted content.");
+        await cache.setItem(SNAPSHOT_KEY, payload);
+        if (version !== epoch) throw new Error("Session changed while clearing deleted content.");
+        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
+        await cache.removeItem(INVALIDATION_KEY);
+      });
+    },
+    readCorrectionDocuments(token: string): Promise<PendingCorrectionDocuments | null> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before reading correction."));
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before reading correction.");
+        const raw = await cache.getItem(CORRECTION_KEY);
+        if (version !== epoch) throw new Error("Session changed while reading correction.");
+        if (raw === null) return null;
+        const envelope: unknown = JSON.parse(raw);
+        if (!record(envelope) || envelope.accountId !== owner.accountId) throw new Error("Saved correction ownership is invalid.");
+        const draft = readCorrectionDocuments(envelope.draft);
+        if (!draft) throw new Error("Saved correction is invalid.");
+        return draft;
+      });
+    },
+    saveCorrectionDocuments(token: string, draft: PendingCorrectionDocuments): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving correction."));
+      const payload = JSON.stringify({ accountId: owner.accountId, draft: readCorrectionDocuments(draft) });
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving correction.");
+        await cache.setItem(CORRECTION_KEY, payload);
+        if (version !== epoch) throw new Error("Session changed while saving correction.");
+      });
+    },
+    finishCorrectionDocuments(token: string, state: UiState): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming correction."));
+      ++persistSequence;
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming correction.");
+        await cache.setItem(SNAPSHOT_KEY, payload);
+        if (version !== epoch) throw new Error("Session changed while confirming correction.");
+        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
+        await cache.removeItem(CORRECTION_KEY);
       });
     },
     saveAdmission(token: string, draft: AdmissionDraft | null): Promise<void> {
@@ -105,7 +168,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
       const version = epoch, owner = current;
       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming request."));
       ++persistSequence;
-      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
       return enqueue(async () => {
         if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming request.");
         await cache.setItem(SNAPSHOT_KEY, payload);
@@ -119,7 +182,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
       const version = epoch, owner = current;
       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving privacy action."));
       ++persistSequence;
-      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(safeState(state)) });
       return enqueue(async () => {
         if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving privacy action.");
         await cache.setItem(SNAPSHOT_KEY, payload);
@@ -131,7 +194,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
       const version = epoch, owner = current;
       if (session.token !== (owner?.token ?? null)) return Promise.resolve();
       const sequence = ++persistSequence;
-      const payload = JSON.stringify(owner ? { accountId: owner.accountId, state: storedState(session.state) } : session.state.draft);
+      const payload = JSON.stringify(owner ? { accountId: owner.accountId, state: storedState(safeState(session.state)) } : session.state.draft);
       return enqueue(async () => {
         if (version !== epoch || current?.token !== owner?.token || sequence !== persistSequence) return;
         if (quietPeriodMs && sequence > flushThrough) await new Promise<void>(resolve => {
@@ -170,6 +233,8 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
         if (!session) {
           await cache.removeItem(SNAPSHOT_KEY);
           await cache.removeItem(ADMISSION_KEY);
+          await cache.removeItem(CORRECTION_KEY);
+          await cache.removeItem(INVALIDATION_KEY);
           let draft = "";
           try { const value: unknown = JSON.parse(await cache.getItem(GUEST_KEY) ?? '""'); if (typeof value === "string") draft = value; } catch { /* invalid guest draft */ }
           if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
@@ -185,9 +250,28 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
             state.pendingVerification = readPendingVerificationRequest(envelope.state.pendingVerification);
             if (state.pendingSourceDeletion) {
               state.run = null; state.report = null; state.previousReport = null; state.source = null;
-              state.readingAnchor = null; state.correctionDraft = null; state.events = []; state.attachments = []; state.status = "empty";
+              state.readingAnchor = null; state.correctionDraft = null; state.pendingCorrectionDocuments = null; state.events = []; state.attachments = []; state.status = "empty";
             }
           }
+        }
+        const invalidation = await cache.getItem(INVALIDATION_KEY);
+        if (invalidation !== null) {
+          const marker: unknown = JSON.parse(invalidation);
+          if (!record(marker) || marker.accountId !== session.accountId) throw new Error("Saved content invalidation ownership is invalid.");
+          const runId = readInvalidatedRun(marker.runId);
+          if (version === epoch) invalidatedRuns.add(runId);
+          Object.assign(state, redactInvalidatedContent(state, runId));
+        }
+        if (state.run?.contentInvalidated === true) {
+          if (version === epoch) invalidatedRuns.add(state.run.runId);
+          Object.assign(state, redactInvalidatedContent(state, state.run.runId, state.pendingContentInvalidation === state.run.runId));
+        }
+        const correction = await cache.getItem(CORRECTION_KEY);
+        if (correction !== null) {
+          const envelope: unknown = JSON.parse(correction);
+          if (!record(envelope) || envelope.accountId !== session.accountId) throw new Error("Saved correction ownership is invalid.");
+          state.pendingCorrectionDocuments = readCorrectionDocuments(envelope.draft);
+          if (!state.pendingCorrectionDocuments) throw new Error("Saved correction is invalid.");
         }
         const pending = await cache.getItem(ADMISSION_KEY);
         if (pending !== null) {
@@ -202,13 +286,13 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
       });
     },
     clear(): Promise<void> {
-      ++epoch; current = null;
+      ++epoch; current = null; invalidatedRuns.clear();
       finishWait?.();
       return enqueue(async () => {
         lastPersisted = null;
         // A durable denial marker prevents a failed keychain deletion from restoring this account on next launch.
         const marker = await Promise.allSettled([cache.setItem(REVOKED_KEY, "1")]);
-        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), removeLegacy()];
+        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), cache.removeItem(CORRECTION_KEY), cache.removeItem(INVALIDATION_KEY), removeLegacy()];
         const results = await Promise.allSettled(tasks);
         if ([...marker, ...results].some((r) => r.status === "rejected")) throw new Error("Could not finish clearing this device's session. Retry before signing in.");
       });

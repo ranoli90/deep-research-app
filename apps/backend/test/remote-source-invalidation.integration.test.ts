@@ -1,0 +1,38 @@
+import { afterAll,afterEach,beforeAll,expect,it } from "vitest";
+import type pg from "pg";
+import type PgBoss from "pg-boss";
+import type { FastifyInstance } from "fastify";
+import { CreateRunRequestSchema } from "@deep/contracts";
+import { createPool,migrate,withTx } from "../src/platform/db.js";
+import { createDevSession,grantConsent,deleteAccount } from "../src/modules/access.js";
+import { admitRun } from "../src/modules/run-admission.js";
+import { insertSource } from "../src/modules/evidence.js";
+import { buildApp } from "../src/api/app.js";
+import { createQueue } from "../src/adapters/queue.js";
+import { loadConfig } from "../src/platform/config.js";
+const url=process.env.TEST_DATABASE_URL!;let pool:pg.Pool,boss:PgBoss,app:FastifyInstance;const accounts:string[]=[];
+beforeAll(async()=>{pool=createPool(url);await migrate(pool);boss=await createQueue(url);app=await buildApp({pool,boss,config:loadConfig({DATABASE_URL:url,NODE_ENV:"test",APP_AUTH_MODE:"development",LIVE_ROUTE_ENABLED:"false"})});});
+afterEach(async()=>{for(const id of accounts.splice(0))await deleteAccount(pool,id);});
+afterAll(async()=>{await app.close();await boss.stop({graceful:false,timeout:2000});await pool.end();});
+async function setup(){const a=await withTx(pool,async db=>{const a=await createDevSession(db);await grantConsent(db,a.accountId);return a;});accounts.push(a.accountId);const run=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Compare synthetic wetland evidence",routeMode:"controlled-research"}));return {...a,runId:run.runId,headers:{authorization:`Bearer ${a.token}`}};}
+it("W03 exposes owned remote source invalidation and hides deleted report without foreign access",async()=>{
+ const a=await setup(),foreign=await setup(),sourceId=await insertSource(pool,{accountId:a.accountId,runId:a.runId,locator:"https://example.org/synthetic",title:"Synthetic source",publisher:"Synthetic",originCluster:"synthetic"});
+ const reportId=crypto.randomUUID();await pool.query(`INSERT INTO reports(id,run_id,account_id,version,outcome,basis,blocks,claim_ids,limitations,source_access_summary,route_mode) VALUES($1,$2,$3,1,'completed_with_limitations','{}','[]','{}','[]','[]','controlled-research')`,[reportId,a.runId,a.accountId]);
+ const before=await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:a.headers});expect(before.statusCode).toBe(200);expect(before.json().reportId).toBe(reportId);
+ const deleted=await app.inject({method:"DELETE",url:`/v1/sources/${sourceId}`,headers:a.headers});expect(deleted.statusCode).toBe(200);
+ const after=await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:a.headers});expect(after.statusCode).toBe(200);expect(after.json()).toMatchObject({contentInvalidated:true,reportId:null,lifecycle:"terminal",outcome:"cancelled"});
+ expect((await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:foreign.headers})).statusCode).toBe(404);
+ expect((await app.inject({method:"GET",url:`/v1/runs/${a.runId}`})).statusCode).toBe(401);
+});
+it("W03 ordinary cancellation does not imply source invalidation",async()=>{
+ const a=await setup();expect((await app.inject({method:"POST",url:`/v1/runs/${a.runId}/cancel`,headers:a.headers})).statusCode).toBe(200);
+ const response=await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:a.headers});expect(response.statusCode).toBe(200);expect(response.json()).toMatchObject({contentInvalidated:false,lifecycle:"cancelling",outcome:null});
+});
+it("W03 account deletion denies session and run snapshot using revoked credentials",async()=>{
+ const a=await setup();await deleteAccount(pool,a.accountId);
+ for(const url of ["/v1/session",`/v1/runs/${a.runId}`])expect((await app.inject({method:"GET",url,headers:a.headers})).statusCode).toBe(401);
+});
+it("W03 tombstoned account is denied even while a credential row remains",async()=>{
+ const a=await setup();await pool.query("UPDATE accounts SET deleted_at=now() WHERE id=$1",[a.accountId]);
+ for(const url of ["/v1/session",`/v1/runs/${a.runId}`])expect((await app.inject({method:"GET",url,headers:a.headers})).statusCode).toBe(401);
+});

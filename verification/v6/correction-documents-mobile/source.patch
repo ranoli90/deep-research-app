@@ -1,0 +1,728 @@
+diff --git a/apps/mobile/App.tsx b/apps/mobile/App.tsx
+index e066a96..aea3b2b 100644
+--- a/apps/mobile/App.tsx
++++ b/apps/mobile/App.tsx
+@@ -1,3 +1,5 @@
++import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot, type CorrectionSelection } from "./src/correction-documents-flow";
++import { prepareCorrectionDocuments, submitCorrectionDocuments } from "./src/correction-documents";
+ import { ProfilePanel } from "./src/ProfilePanel";
+ import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
+ import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
+@@ -111,6 +113,14 @@ function AppInner() {
+   }
+   const setCorrection = (question: string) => changeCorrection({ question });
+   const setEvidencePolicy = (evidencePolicy: "reuse_snapshot" | "refresh") => changeCorrection({ evidencePolicy });
++  const [correctionSelection, setCorrectionSelection] = useState<CorrectionSelection>({ owner: null, parent: null, files: [] });
++  const correctionParent = state.pendingCorrectionDocuments?.parentRunId ?? state.run?.runId ?? null;
++  const correctionFiles = correctionFilesFor(correctionSelection, token, correctionParent);
++  function setCorrectionFiles(update: UiState["attachments"] | ((files: UiState["attachments"]) => UiState["attachments"])) {
++    setCorrectionSelection(previous => ({ owner: token, parent: correctionParent,
++      files: typeof update === "function" ? update(previous.owner === token && previous.parent === correctionParent ? previous.files : []) : update }));
++  }
++  useEffect(() => { setCorrectionFiles([]); }, [token, state.run?.runId, state.pendingSourceDeletion]);
+   const [correctionPending,setCorrectionPending]=useState(false);
+   const correctionAttempt=useRef<symbol|null>(null);
+   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
+@@ -163,7 +173,7 @@ function AppInner() {
+   const styles = useMemo(() => makeStyles(theme), [theme]);
+ 
+   useEffect(() => {
+-    if (!hydrated || submitting.current || deletingSource.current || verifying.current) return;
++    if (!hydrated || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
+     const guard = api.capture();
+     void persistSession(sessionStorage, { token, state }).catch(() => {
+       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
+@@ -395,7 +405,7 @@ function AppInner() {
+   }, [state.tab, token]);
+ 
+   async function onPickDocument() {
+-    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
++    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
+     if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
+     const guard = api.capture();
+@@ -409,7 +419,7 @@ function AppInner() {
+   }
+ 
+   async function onSend() {
+-    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current) return;
++    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
+     if (!storageReady) return;
+     const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
+     if (!gate.ok) {
+@@ -531,7 +541,7 @@ function AppInner() {
+   }
+ 
+   async function onDeleteSource(target?: SourceDeletionTarget) {
+-    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification) return;
++    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+     const guard = api.capture();
+     try {
+       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
+@@ -570,8 +580,88 @@ function AppInner() {
+     }
+   }
+ 
++  async function pickCorrectionDocument() {
++    if (!token || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
++    if (correctionFiles.length >= 3) return;
++    const guard = api.captureView(); pickingDocument.current = true; setDocumentPending(true);
++    try {
++      const file = await pickDocument(guard.current);
++      if (file && guard.current()) setCorrectionSelection(previous => adoptCorrectionFile(previous, token, correctionParent, file, guard.current));
++    } catch (e) {
++      if (guard.current() && !isSupersededRequest(e)) setViewState(s => ({ ...s, error: (e as Error).message }));
++    } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
++  }
++
++  async function adoptDocumentCorrection(runId: string) {
++    if (!token) return;
++    api.selectRun(runId);
++    const guard = api.captureView();
++    try {
++      const next = await adoptCorrectionSnapshot(runId, state, {
++        current: guard.current, get: () => api.getRun(token, runId), finish: next => sessionStorage.finishCorrectionDocuments(token, next),
++      });
++      setState(next); setCorrectionFiles([]);
++      await refreshRun(token, runId); startPolling(token, runId);
++    } finally { guard.release(); }
++  }
++
++  async function resolveDocumentCorrection() {
++    const pending = state.pendingCorrectionDocuments;
++    if (!token || !pending || correctionAttempt.current || pickingDocument.current) return;
++    api.selectRun(pending.parentRunId);
++    const guard = api.captureView(), attempt = Symbol("resolve document correction");
++    correctionAttempt.current = attempt; setCorrectionPending(true);
++    try {
++      const result = await resolveCorrectionDocuments(pending, state, {
++        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
++        resolve: (durable, attachmentIds) => api.resolveCorrection(token, durable.parentRunId, durable.baseRevision, durable.upload.question,
++          { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
++        finish: next => sessionStorage.finishCorrectionDocuments(token, next),
++      });
++      if ("runId" in result) await adoptDocumentCorrection(result.runId);
++      else { setState(result.state); setCorrectionFiles([]); }
++    } catch (e) {
++      if (isSupersededRequest(e)) return;
++      if (isExpiredSession(e)) await onAuthFailure();
++      else setState(s => ({ ...s, error: (e as Error).message }));
++    } finally { guard.release(); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
++  }
++
++  async function addCorrectionDocuments() {
++    if (!token || !storageReady || !state.run || correctionAttempt.current || pickingDocument.current || submitting.current || verifying.current || deletingSource.current || state.pendingAdmission || state.pendingVerification || state.pendingSourceDeletion) return;
++    if (!state.consentGranted) { setViewState(s => ({ ...s, error: "Consent to AI processing is required before adding documents." })); return; }
++    if (!state.pendingCorrectionDocuments && (!correctionReady || correctionMode !== "replace_question" || !state.report)) return;
++    const attempt = Symbol("document correction"); correctionAttempt.current = attempt; setCorrectionPending(true);
++    const pendingParent = state.pendingCorrectionDocuments?.parentRunId ?? state.run.runId;
++    api.selectRun(pendingParent);
++    const guard = api.captureView();
++    try {
++      const durable = await authoritativeCorrection(state.pendingCorrectionDocuments, pendingParent, {
++        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
++      });
++      const pending = durable ?? await prepareCorrectionDocuments(pendingParent, state.run.brief!.revision, correctionFiles, newId, nativeDocumentDigest, guard.current);
++      const runId = await submitCorrectionDocuments(pending, correctionFiles, {
++        current: guard.current, digest: nativeDocumentDigest, progress: setUploadStatus,
++        preflight: () => api.settings(token),
++        save: async saved => {
++          await sessionStorage.saveCorrectionDocuments(token, saved);
++          if (!guard.current()) throw new SupersededRequest();
++          setState(s => ({ ...s, pendingCorrectionDocuments: saved }));
++        },
++        upload: (file, key) => file.bytes ? api.attachBytes(token, file.filename, file.mime, file.bytes, key) : api.attach(token, file.filename, file.mime, file.text, key),
++        correct: (parent, revision, text, attachmentIds) => api.correct(token, parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
++      });
++      if (!guard.current()) throw new SupersededRequest();
++      await adoptDocumentCorrection(runId);
++    } catch (e) {
++      if (isSupersededRequest(e)) return;
++      if (isExpiredSession(e)) await onAuthFailure();
++      else setState(s => ({ ...s, error: (e as Error).message }));
++    } finally { guard.release(); setUploadStatus(null); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
++  }
++
+   async function onCorrect() {
+-    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification) return;
++    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments) return;
+     const text = correction.trim();
+     if (!text) {
+       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
+@@ -667,7 +757,7 @@ function AppInner() {
+   }
+ 
+   async function onFollowUp() {
+-    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission) return;
++    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+     const guard = api.capture();
+     try {
+       verifying.current = true; setVerificationBusy(true);
+@@ -750,6 +840,15 @@ function AppInner() {
+             <Text style={styles.bannerText}>Live research route</Text>
+           </View>
+         )}
++        {state.pendingCorrectionDocuments ? <View style={styles.card} accessibilityLabel="Saved document correction">
++          <Text style={styles.body}>A document correction is saved for its original report. Retry the same request to avoid starting another correction.</Text>
++          <Text style={styles.body}>{state.pendingCorrectionDocuments.upload.uploads.map(u => `${u.filename}: ${u.attachmentId ? "uploaded" : "select original file again"}`).join("\n")}</Text>
++          {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove selection</Text></Pressable>)}
++          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select original file</Text></Pressable>
++          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Retry document correction</Text></Pressable>
++          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void resolveDocumentCorrection()}><Text style={styles.link}>Check or withdraw document correction</Text></Pressable>
++          {uploadStatus ? <Text accessibilityLiveRegion="polite">{uploadStatus}</Text> : null}
++        </View> : null}
+         {state.pendingVerification ? <View style={styles.card} accessibilityLabel="Saved verification request">
+           <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
+           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
+@@ -987,6 +1086,13 @@ function AppInner() {
+             {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
+               <View style={styles.card} accessibilityLabel="Correction">
+                 <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
++                {correctionMode === "replace_question" && !state.pendingCorrectionDocuments ? <View>
++                  <Text style={styles.body}>Add documents to this report using the same question and saved evidence. Research will reassess the answer. The total limit is three documents, including existing files.</Text>
++                  {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" accessibilityLabel={`Remove ${file.filename}`} onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove</Text></Pressable>)}
++                  <Pressable disabled={documentPending || correctionPending || correctionFiles.length >= 3} accessibilityRole="button" accessibilityLabel="Select document for correction" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select document for this report</Text></Pressable>
++                  <Pressable disabled={documentPending || correctionPending || !correctionFiles.length || !correctionReady} accessibilityRole="button" accessibilityLabel="Add documents and update report" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Add documents and update report</Text></Pressable>
++                  <Text style={styles.body}>Selected file bytes stay in memory until submitted. After closing the app, select unconfirmed files again.</Text>
++                </View> : null}
+                 {correctionMode==="unavailable"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
+                 {staleCorrection ? <>
+                   <Text style={styles.body}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
+@@ -1019,7 +1125,7 @@ function AppInner() {
+                   maxFontSizeMultiplier={2}
+                   accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
+                 />
+-                <Pressable onPress={onCorrect} disabled={correctionPending||!correctionReady} accessibilityState={{disabled:correctionPending||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
++                <Pressable onPress={onCorrect} disabled={correctionPending||!!state.pendingCorrectionDocuments||!correctionReady} accessibilityState={{disabled:correctionPending||!!state.pendingCorrectionDocuments||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
+                   <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
+                 </Pressable>
+               </View>
+@@ -1030,7 +1136,7 @@ function AppInner() {
+         {state.source ? (
+           <SourceSheet source={state.source} styles={styles}
+             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
+-            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification}
++            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
+             onOpenOriginal={(url) => {
+               const guard = api.captureView();
+               void Linking.openURL(url).catch(() => {
+@@ -1043,12 +1149,12 @@ function AppInner() {
+             }} />
+         ) : null}
+ 
+-        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy ? (
++        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
+           <Library
+             token={token}
+             styles={styles}
+             onOpen={async (id) => {
+-              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification) return;
++              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+               api.selectRun(id);
+               if (!token) return;
+               setState((s) => openLibraryItem(s, id));
+@@ -1105,7 +1211,7 @@ function AppInner() {
+             }}
+             onRevoke={async () => {
+               if (!token) return;
+-              try { await api.consent(token, false); setState((s) => ({ ...s, consentGranted: false })); }
++              try { if (correctionAttempt.current) api.invalidateView(token); await api.consent(token, false); setCorrectionFiles([]); setState((s) => ({ ...s, consentGranted: false })); }
+               catch (error) {
+                 if (isSupersededRequest(error)) return;
+                 setState((s) => ({ ...s, error: "Could not confirm consent revocation. Retry." }));
+@@ -1114,13 +1220,13 @@ function AppInner() {
+           />
+         ) : null}
+ 
+-        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
++        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
+             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
+             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
+             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
+             onAttachNote={() => {
+-                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
++                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
+                 setState((s) =>
+                   attachFile(s, {
+                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",
+diff --git a/apps/mobile/src/api.ts b/apps/mobile/src/api.ts
+index b677d04..1b8b05c 100644
+--- a/apps/mobile/src/api.ts
++++ b/apps/mobile/src/api.ts
+@@ -63,6 +63,7 @@ export const api = {
+   activateSession: requests.setSession,
+   selectRun: requests.selectRun,
+   closeSource: requests.closeSource,
++  invalidateView: requests.invalidateView,
+   currentRun: requests.currentRun,
+   capture: () => requests.capture("account"),
+   captureView: () => requests.capture("view"),
+@@ -98,6 +99,9 @@ export const api = {
+       headers: { "idempotency-key": `${id}-corr-${expectedBriefRevision}` },
+       body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText,...(patch?{patch}:{}) })),
+     }),
++  resolveCorrection: (token: string, id: string, expectedBriefRevision: number, correctionText: string, patch: ResearchCorrectionPatch) =>
++    req(`/v1/runs/${id}/corrections/resolve`, { method: "POST", token, scope: "view", runId: id,
++      body: JSON.stringify(CorrectionRequestSchema.parse({ expectedBriefRevision, correctionText, patch })) }),
+   followUp: (token: string, id: string, request: RequestedVerificationRequest) =>
+     req(`/v1/runs/${id}/follow-up`, {
+       method: "POST",
+diff --git a/apps/mobile/src/correction-documents-flow.ts b/apps/mobile/src/correction-documents-flow.ts
+new file mode 100644
+index 0000000..d99e072
+--- /dev/null
++++ b/apps/mobile/src/correction-documents-flow.ts
+@@ -0,0 +1,54 @@
++import { readAdmittedRun } from "./admission-retry";
++import type { PendingCorrectionDocuments } from "./correction-documents";
++import { SupersededRequest } from "./request-scope";
++import { applySnapshot, type UiState, type AttachmentDraft } from "./state";
++import { readVerificationRun } from "./verification-request";
++export type CorrectionSelection = { owner: string | null; parent: string | null; files: AttachmentDraft[] };
++export function correctionFilesFor(selection: CorrectionSelection, owner: string | null, parent: string | null): AttachmentDraft[] {
++  return selection.owner === owner && selection.parent === parent ? selection.files : [];
++}
++export function adoptCorrectionFile(selection: CorrectionSelection, owner: string, parent: string | null, file: AttachmentDraft, current: () => boolean): CorrectionSelection {
++  if (!current()) return selection;
++  return { owner, parent, files: [...correctionFilesFor(selection, owner, parent), file] };
++}
++function check(current: () => boolean) { if (!current()) throw new SupersededRequest(); }
++export async function authoritativeCorrection(expected: PendingCorrectionDocuments | null, parent: string, io: {
++  current(): boolean; read(): Promise<PendingCorrectionDocuments | null>;
++}): Promise<PendingCorrectionDocuments | null> {
++  check(io.current); const durable = await io.read(); check(io.current);
++  if ((expected && (!durable || durable.upload.key !== expected.upload.key || durable.parentRunId !== parent)) || (!expected && durable))
++    throw new Error("Saved correction changed. Reopen the app before retrying.");
++  return durable;
++}
++export async function resolveCorrectionDocuments(expected: PendingCorrectionDocuments, state: UiState, io: {
++  current(): boolean; read(): Promise<PendingCorrectionDocuments | null>;
++  resolve(pending: PendingCorrectionDocuments, ids: string[]): Promise<unknown>;
++  finish(state: UiState): Promise<void>;
++}): Promise<{ runId: string } | { state: UiState }> {
++  const durable = (await authoritativeCorrection(expected, expected.parentRunId, io))!;
++  const ids = durable.upload.uploads.map(u => u.attachmentId);
++  // No POST can precede durable confirmation of every uploaded attachment ID.
++  const result = ids.every((id): id is string => id !== null) ? await io.resolve(durable, ids) as Record<string, unknown> : { status: "withdrawn" };
++  check(io.current);
++  if (result?.status === "accepted") {
++    const child = readAdmittedRun(result.run);
++    if (child.runId === durable.parentRunId || child.labeledDemo) throw new Error("Invalid document correction recovery response.");
++    return { runId: child.runId };
++  }
++  if (result?.status !== "withdrawn") throw new Error("Document correction status could not be confirmed. Retry checking the saved correction.");
++  const next = { ...state, pendingCorrectionDocuments: null, error: "The document correction is withdrawn. Uploaded files remain in your account until deleted." };
++  await io.finish(next); check(io.current);
++  return { state: next };
++}
++/** Read actual owned state, then durably adopt it before clearing the request journal. */
++export async function adoptCorrectionSnapshot(runId: string, state: UiState, io: {
++  current(): boolean; get(): Promise<unknown>; finish(state: UiState): Promise<void>;
++}): Promise<UiState> {
++  check(io.current); const value = await io.get(); check(io.current);
++  const snap = readVerificationRun(value, runId);
++  if (snap.labeledDemo) throw new Error("Invalid document correction child route.");
++  const next = applySnapshot({ ...state, pendingCorrectionDocuments: null, correctionDraft: null,
++    previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport,
++    report: null, source: null, readingAnchor: null, events: [], offline: false, tab: "research" }, snap);
++  await io.finish(next); check(io.current); return next;
++}
+diff --git a/apps/mobile/src/correction-documents.ts b/apps/mobile/src/correction-documents.ts
+new file mode 100644
+index 0000000..56e6afd
+--- /dev/null
++++ b/apps/mobile/src/correction-documents.ts
+@@ -0,0 +1,49 @@
++import { prepareAdmission, readAdmissionDraft, submitAdmission, type AdmissionDraft, type DocumentDigester } from "./admission-retry";
++import type { AttachmentDraft } from "./state";
++
++const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
++const note = "Add the selected documents to the existing research question.";
++export type PendingCorrectionDocuments = {
++  version: "correction-documents.v1"; parentRunId: string; baseRevision: number; upload: AdmissionDraft;
++};
++export function readCorrectionDocuments(value: unknown): PendingCorrectionDocuments | null {
++  if (value == null) return null;
++  const p = value as PendingCorrectionDocuments;
++  if (typeof p !== "object" || Array.isArray(p) || Object.keys(p).some(k => !["version", "parentRunId", "baseRevision", "upload"].includes(k)) ||
++    p.version !== "correction-documents.v1" || !uuid.test(p.parentRunId) || !Number.isSafeInteger(p.baseRevision) || p.baseRevision < 1)
++    throw new Error("Saved document correction is invalid. Device cleanup is required.");
++  const upload = readAdmissionDraft(p.upload);
++  if (upload.routeMode !== "controlled-research" || upload.question !== note || !upload.uploads.length)
++    throw new Error("Saved document correction is invalid. Device cleanup is required.");
++  return { ...p, upload };
++}
++export async function prepareCorrectionDocuments(parentRunId: string, baseRevision: number, files: AttachmentDraft[], id: () => string,
++  digest: DocumentDigester, current: () => boolean): Promise<PendingCorrectionDocuments> {
++  const upload = await prepareAdmission(note, "controlled-research", files, id, digest, current);
++  return readCorrectionDocuments({ version: "correction-documents.v1", parentRunId, baseRevision, upload })!;
++}
++/** Reuse the digest/upload pipeline, but never the ordinary research admission endpoint or journal. */
++export async function submitCorrectionDocuments(pending: PendingCorrectionDocuments, files: AttachmentDraft[], io: {
++  digest: DocumentDigester; current(): boolean; progress(message: string): void; preflight(): Promise<unknown>;
++  save(pending: PendingCorrectionDocuments): Promise<void>; upload(file: AttachmentDraft, key: string): Promise<unknown>;
++  correct(parentRunId: string, revision: number, text: string, ids: string[]): Promise<unknown>;
++}): Promise<string> {
++  const p = readCorrectionDocuments(pending)!;
++  const child = await submitAdmission(p.upload, files, { ...io,
++    preflight: async () => {
++      const settings = await io.preflight();
++      if (!settings || typeof settings !== "object" || Array.isArray(settings) || (settings as Record<string, unknown>).appendDocumentsAllowed !== true)
++        throw new Error("Adding documents is unavailable on this server. No new upload or correction was sent. Check or withdraw a saved correction.");
++      return settings;
++    },
++    save: upload => io.save({ ...p, upload }),
++    admit: async (upload, ids) => {
++      const result = await io.correct(p.parentRunId, p.baseRevision, upload.question, ids) as Record<string, unknown>;
++      if (!result || typeof result.runId !== "string" || !uuid.test(result.runId) || result.runId === p.parentRunId ||
++        result.parentRunId !== p.parentRunId || !Number.isSafeInteger(result.briefRevision) || (result.briefRevision as number) <= p.baseRevision || result.fullRerun !== true || typeof result.reused !== "boolean")
++        throw new Error("Document correction could not be confirmed. Retry the saved correction.");
++      return { runId: result.runId, lifecycle: "queued", phase: "preparing", labeledDemo: false };
++    },
++  });
++  return child.runId;
++}
+diff --git a/apps/mobile/src/persist.ts b/apps/mobile/src/persist.ts
+index e96ef7e..b3849be 100644
+--- a/apps/mobile/src/persist.ts
++++ b/apps/mobile/src/persist.ts
+@@ -1,3 +1,4 @@
++import { readCorrectionDocuments, type PendingCorrectionDocuments } from "./correction-documents";
+ import { readPendingVerificationRequest } from "./verification-request";
+ import { readPendingSourceDeletion } from "./source-deletion";
+ import { emptyState, restoreAfterReopen, type UiState } from "./state";
+@@ -12,7 +13,7 @@ export type KeyValueStore = {
+ export type LocalSession = { accountId: string; token: string };
+ export type PersistedSession = { token: string | null; state: UiState };
+ const SESSION_KEY = "deep.session.v2", REVOKED_KEY = "deep.session.revoked", GUEST_KEY = "deep.draft.guest";
+-const ADMISSION_KEY = "deep.admission.v1";
++const ADMISSION_KEY = "deep.admission.v1", CORRECTION_KEY = "deep.correction-documents.v1";
+ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
+ const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
+ 
+@@ -78,6 +79,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
+           if (previous?.accountId !== session.accountId) {
+             await cache.removeItem(SNAPSHOT_KEY);
+             await cache.removeItem(ADMISSION_KEY);
++            await cache.removeItem(CORRECTION_KEY);
+             await credentials.removeItem(SESSION_KEY);
+           }
+           await cache.removeItem(GUEST_KEY);
+@@ -90,6 +92,44 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
+         }
+       });
+     },
++    readCorrectionDocuments(token: string): Promise<PendingCorrectionDocuments | null> {
++      const version = epoch, owner = current;
++      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before reading correction."));
++      return enqueue(async () => {
++        if (version !== epoch || current?.token !== token) throw new Error("Session changed before reading correction.");
++        const raw = await cache.getItem(CORRECTION_KEY);
++        if (version !== epoch) throw new Error("Session changed while reading correction.");
++        if (raw === null) return null;
++        const envelope: unknown = JSON.parse(raw);
++        if (!record(envelope) || envelope.accountId !== owner.accountId) throw new Error("Saved correction ownership is invalid.");
++        const draft = readCorrectionDocuments(envelope.draft);
++        if (!draft) throw new Error("Saved correction is invalid.");
++        return draft;
++      });
++    },
++    saveCorrectionDocuments(token: string, draft: PendingCorrectionDocuments): Promise<void> {
++      const version = epoch, owner = current;
++      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving correction."));
++      const payload = JSON.stringify({ accountId: owner.accountId, draft: readCorrectionDocuments(draft) });
++      return enqueue(async () => {
++        if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving correction.");
++        await cache.setItem(CORRECTION_KEY, payload);
++        if (version !== epoch) throw new Error("Session changed while saving correction.");
++      });
++    },
++    finishCorrectionDocuments(token: string, state: UiState): Promise<void> {
++      const version = epoch, owner = current;
++      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before confirming correction."));
++      ++persistSequence;
++      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
++      return enqueue(async () => {
++        if (version !== epoch || current?.token !== token) throw new Error("Session changed before confirming correction.");
++        await cache.setItem(SNAPSHOT_KEY, payload);
++        if (version !== epoch) throw new Error("Session changed while confirming correction.");
++        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
++        await cache.removeItem(CORRECTION_KEY);
++      });
++    },
+     saveAdmission(token: string, draft: AdmissionDraft | null): Promise<void> {
+       const version = epoch, owner = current;
+       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving request."));
+@@ -170,6 +210,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
+         if (!session) {
+           await cache.removeItem(SNAPSHOT_KEY);
+           await cache.removeItem(ADMISSION_KEY);
++          await cache.removeItem(CORRECTION_KEY);
+           let draft = "";
+           try { const value: unknown = JSON.parse(await cache.getItem(GUEST_KEY) ?? '""'); if (typeof value === "string") draft = value; } catch { /* invalid guest draft */ }
+           if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
+@@ -185,10 +226,17 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
+             state.pendingVerification = readPendingVerificationRequest(envelope.state.pendingVerification);
+             if (state.pendingSourceDeletion) {
+               state.run = null; state.report = null; state.previousReport = null; state.source = null;
+-              state.readingAnchor = null; state.correctionDraft = null; state.events = []; state.attachments = []; state.status = "empty";
++              state.readingAnchor = null; state.correctionDraft = null; state.pendingCorrectionDocuments = null; state.events = []; state.attachments = []; state.status = "empty";
+             }
+           }
+         }
++        const correction = await cache.getItem(CORRECTION_KEY);
++        if (correction !== null) {
++          const envelope: unknown = JSON.parse(correction);
++          if (!record(envelope) || envelope.accountId !== session.accountId) throw new Error("Saved correction ownership is invalid.");
++          state.pendingCorrectionDocuments = readCorrectionDocuments(envelope.draft);
++          if (!state.pendingCorrectionDocuments) throw new Error("Saved correction is invalid.");
++        }
+         const pending = await cache.getItem(ADMISSION_KEY);
+         if (pending !== null) {
+           const envelope: unknown = JSON.parse(pending);
+@@ -208,7 +256,7 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
+         lastPersisted = null;
+         // A durable denial marker prevents a failed keychain deletion from restoring this account on next launch.
+         const marker = await Promise.allSettled([cache.setItem(REVOKED_KEY, "1")]);
+-        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), removeLegacy()];
++        const tasks = [credentials.removeItem(SESSION_KEY), cache.removeItem(GUEST_KEY), cache.removeItem(SNAPSHOT_KEY), cache.removeItem(ADMISSION_KEY), cache.removeItem(CORRECTION_KEY), removeLegacy()];
+         const results = await Promise.allSettled(tasks);
+         if ([...marker, ...results].some((r) => r.status === "rejected")) throw new Error("Could not finish clearing this device's session. Retry before signing in.");
+       });
+diff --git a/apps/mobile/src/protected-content.ts b/apps/mobile/src/protected-content.ts
+index 8629648..a7f6f08 100644
+--- a/apps/mobile/src/protected-content.ts
++++ b/apps/mobile/src/protected-content.ts
+@@ -1,6 +1,6 @@
+ import type { KeyValueStore } from "./persist";
+ 
+-const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest", "deep.admission.v1"]);
++const CONTENT_KEYS = new Set(["deep.ui.v2", "deep.draft.guest", "deep.admission.v1", "deep.correction-documents.v1"]);
+ const MAX_LENGTH = 2_000_000, CHUNK_BYTES = 1600, MAX_CHUNKS = 8192;
+ type Manifest = { version: 1; active: 0 | 1 | null; counts: [number, number] };
+ function manifest(raw: string | null): Manifest {
+diff --git a/apps/mobile/src/request-scope.ts b/apps/mobile/src/request-scope.ts
+index 4b3452a..715d7fb 100644
+--- a/apps/mobile/src/request-scope.ts
++++ b/apps/mobile/src/request-scope.ts
+@@ -20,6 +20,10 @@ export function createRequestScope() {
+       if (next === runId) return;
+       runId = next; viewEpoch++; sourceEpoch++; abort("view");
+     },
++    invalidateView(session: string) {
++      if (session !== token) throw new SupersededRequest();
++      viewEpoch++; sourceEpoch++; abort("view");
++    },
+     closeSource() { sourceEpoch++; abort("source"); },
+     currentRun(session: string, id: string) { return token === session && runId === id; },
+     capture(kind: "account" | "view" | "source", expectedToken?: string, expectedRun?: string) {
+diff --git a/apps/mobile/src/state.ts b/apps/mobile/src/state.ts
+index c17da29..6594609 100644
+--- a/apps/mobile/src/state.ts
++++ b/apps/mobile/src/state.ts
+@@ -29,6 +29,7 @@ export type ReportBlock = {
+ export type AttachmentDraft = { id?: string; filename: string; mime: string } & ({ text: string; bytes?: never } | { bytes: Uint8Array; text?: never });
+ 
+ export type UiState = {
++  pendingCorrectionDocuments: import("./correction-documents").PendingCorrectionDocuments | null;
+   tab: "research" | "library" | "settings";
+   draft: string;
+   correctionDraft: CorrectionDraft | null;
+@@ -65,6 +66,7 @@ export function emptyState(): UiState {
+     tab: "research",
+     draft: "",
+     correctionDraft: null,
++    pendingCorrectionDocuments: null,
+     pendingAdmission: null,
+     pendingSourceDeletion: null,
+     pendingVerification: null,
+@@ -112,6 +114,7 @@ export function restoreAfterReopen(saved: UiState): UiState {
+ }
+ 
+ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
++  if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
+   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
+   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
+   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };
+diff --git a/apps/mobile/test/correction-documents-flow.test.ts b/apps/mobile/test/correction-documents-flow.test.ts
+new file mode 100644
+index 0000000..9ec9241
+--- /dev/null
++++ b/apps/mobile/test/correction-documents-flow.test.ts
+@@ -0,0 +1,63 @@
++import { createRequestScope } from "../src/request-scope";
++import { expect, it, vi } from "vitest";
++import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot } from "../src/correction-documents-flow";
++import { createSessionStorage, memoryStore } from "../src/persist";
++import { emptyState } from "../src/state";
++import type { PendingCorrectionDocuments } from "../src/correction-documents";
++const id=(n:number)=>`00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
++const draft=():PendingCorrectionDocuments=>({version:"correction-documents.v1",parentRunId:id(1),baseRevision:2,upload:{version:"admission.v1",key:id(2),question:"Add the selected documents to the existing research question.",routeMode:"controlled-research",uploads:[{key:id(3),filename:"doc.txt",mime:"text/plain",kind:"text",digest:"a".repeat(64),attachmentId:null}]}});
++const file={filename:"doc.txt",mime:"text/plain",text:"private"};
++it("W03 queued picker adoption cannot overwrite another account or report selection",()=>{
++  const other={owner:"other",parent:id(9),files:[file]};
++  expect(adoptCorrectionFile(other,"old",id(1),file,()=>false)).toBe(other);
++  expect(correctionFilesFor(other,"old",id(9))).toEqual([]);expect(correctionFilesFor(other,"other",id(1))).toEqual([]);
++  expect(correctionFilesFor(other,"other",id(9))).toEqual([file]);
++});
++it("W02 retry and withdrawal use confirmed durable IDs despite stale UI",async()=>{
++  const stale=draft(),durable=draft();durable.upload.uploads[0]!.attachmentId=id(4);
++  const read=async()=>durable, resolve=vi.fn(async()=>({status:"accepted",run:{runId:id(5),lifecycle:"running",phase:"researching",labeledDemo:false}})),finish=vi.fn();
++  expect(await authoritativeCorrection(stale,id(1),{read,current:()=>true})).toEqual(durable);
++  expect(await resolveCorrectionDocuments(stale,emptyState(),{read,resolve,finish,current:()=>true})).toEqual({runId:id(5)});
++  expect(resolve).toHaveBeenCalledWith(durable,[id(4)]);expect(finish).not.toHaveBeenCalled();
++});
++it("W02 unknown recovery and failed withdrawal persistence retain journal",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),store=createSessionStorage(cache,credentials);await store.activate({accountId:"a",token:"t"});const d=draft();d.upload.uploads[0]!.attachmentId=id(4);await store.saveCorrectionDocuments("t",d);
++  const ports={read:()=>store.readCorrectionDocuments("t"),current:()=>true,resolve:vi.fn(async()=>({status:"unknown"})),finish:vi.fn(async()=>{throw Error("storage unavailable");})};
++  await expect(resolveCorrectionDocuments(d,emptyState(),ports)).rejects.toThrow("could not be confirmed");expect(ports.finish).not.toHaveBeenCalled();
++  ports.resolve.mockResolvedValue({status:"withdrawn"});await expect(resolveCorrectionDocuments(d,emptyState(),ports)).rejects.toThrow("storage unavailable");
++  expect(await store.readCorrectionDocuments("t")).toEqual(d);
++});
++it("W02 incomplete durable uploads can be withdrawn locally without a correction request",async()=>{
++  const d=draft(),resolve=vi.fn(),finish=vi.fn();
++  const result=await resolveCorrectionDocuments(d,{...emptyState(),pendingCorrectionDocuments:d},{read:async()=>d,current:()=>true,resolve,finish});
++  expect(resolve).not.toHaveBeenCalled();expect(finish).toHaveBeenCalledOnce();expect("state" in result&&result.state.pendingCorrectionDocuments).toBeNull();
++});
++it("W02 failed child GET retains request; successful actual snapshot is persisted before journal deletion",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),store=createSessionStorage(cache,credentials);await store.activate({accountId:"a",token:"t"});const d=draft();await store.saveCorrectionDocuments("t",d);
++  const parent={...emptyState(),signedIn:true,pendingCorrectionDocuments:d};
++  await expect(adoptCorrectionSnapshot(id(5),parent,{current:()=>true,get:async()=>{throw Error("offline");},finish:next=>store.finishCorrectionDocuments("t",next)})).rejects.toThrow("offline");
++  expect(await store.readCorrectionDocuments("t")).toEqual(d);
++  // This queued ordinary parent write is superseded by required child adoption.
++  const stale=store.persist({token:"t",state:parent});
++  const snap={runId:id(5),lifecycle:"running",phase:"researching",outcome:null,reportId:null,labeledDemo:false};
++  const next=await adoptCorrectionSnapshot(id(5),parent,{current:()=>true,get:async()=>({...snap,routeMode:"controlled-research"}),finish:state=>store.finishCorrectionDocuments("t",state)});await stale;
++  expect(next.run).toEqual(snap);const restored=await createSessionStorage(cache,credentials).hydrate();
++  expect(restored.state.run).toEqual(snap);expect(restored.state.pendingCorrectionDocuments).toBeNull();
++});
++it("W03 account change during child GET cannot persist adoption",async()=>{
++  let current=true;const finish=vi.fn();
++  await expect(adoptCorrectionSnapshot(id(5),emptyState(),{current:()=>current,get:async()=>{current=false;return {runId:id(5),lifecycle:"running",phase:"researching",outcome:null,reportId:null,labeledDemo:false};},finish})).rejects.toThrow("superseded");expect(finish).not.toHaveBeenCalled();
++});
++it("W02 durable journal unseen by stale UI blocks a new correction instead of overwriting identity",async()=>{
++  const durable=draft();
++  await expect(authoritativeCorrection(null,id(9),{current:()=>true,read:async()=>durable})).rejects.toThrow("Saved correction changed");
++  await expect(authoritativeCorrection(durable,id(9),{current:()=>true,read:async()=>durable})).rejects.toThrow("Saved correction changed");
++});
++
++it("W03 revoking consent invalidates old view callbacks while preserving current run and account requests",()=>{
++  const scope=createRequestScope();scope.setSession("owner");scope.selectRun(id(1));
++  const old=scope.capture("view"),account=scope.capture("account");
++  expect(()=>scope.invalidateView("other")).toThrow("superseded");expect(old.current()).toBe(true);
++  scope.invalidateView("owner");expect(old.current()).toBe(false);expect(account.current()).toBe(true);
++  expect(scope.currentRun("owner",id(1))).toBe(true);expect(scope.capture("view","owner",id(1)).current()).toBe(true);
++});
+diff --git a/apps/mobile/test/correction-documents.test.ts b/apps/mobile/test/correction-documents.test.ts
+new file mode 100644
+index 0000000..2db1dcd
+--- /dev/null
++++ b/apps/mobile/test/correction-documents.test.ts
+@@ -0,0 +1,106 @@
++import { createHash } from "node:crypto";
++import { expect, it, vi } from "vitest";
++import { prepareCorrectionDocuments, readCorrectionDocuments, submitCorrectionDocuments, type PendingCorrectionDocuments } from "../src/correction-documents";
++import { createSessionStorage, memoryStore } from "../src/persist";
++import { createProtectedContentStore } from "../src/protected-content";
++import { canSubmit, emptyState } from "../src/state";
++import { api } from "../src/api";
++const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
++const digest = async (bytes: Uint8Array) => new Uint8Array(createHash("sha256").update(bytes).digest());
++const file = { filename: "private.pdf", mime: "application/pdf", bytes: new Uint8Array([1,2,3]) };
++async function draft() { let n = 10; return prepareCorrectionDocuments(id(1), 2, [file], () => id(++n), digest, () => true); }
++function io() { return { digest, current: () => true, progress: vi.fn(), preflight: vi.fn(async () => ({ liveRouteEnabled: true, appendDocumentsAllowed: true })),
++  save: vi.fn(async (_p: PendingCorrectionDocuments) => {}), upload: vi.fn(async () => ({ attachmentId: id(40) })),
++  correct: vi.fn(async () => ({ runId: id(50), parentRunId: id(1), briefRevision: 3, fullRerun: true, reused: false })) }; }
++it("W06 exact correction journal precedes upload and confirmed IDs precede correction", async () => {
++  const d = await draft(), ports = io(); expect(await submitCorrectionDocuments(d, [file], ports)).toBe(id(50));
++  expect(ports.save.mock.invocationCallOrder[0]).toBeLessThan(ports.upload.mock.invocationCallOrder[0]!);
++  expect(ports.save.mock.invocationCallOrder[1]).toBeLessThan(ports.correct.mock.invocationCallOrder[0]!);
++  expect(ports.correct).toHaveBeenCalledWith(id(1), 2, d.upload.question, [id(40)]);
++  expect(JSON.stringify(ports.save.mock.calls)).not.toContain('"bytes":');
++});
++it("W06 upload response loss retries identical key and bytes; admission response loss reuses saved IDs", async () => {
++  const d = await draft(), ports = io(); let saved = d;
++  ports.save.mockImplementation(async p => { saved = p; }); ports.upload.mockRejectedValueOnce(Error("upload response lost"));
++  await expect(submitCorrectionDocuments(d,[file],ports)).rejects.toThrow("upload response lost");
++  ports.correct.mockRejectedValueOnce(Error("admission response lost"));
++  await expect(submitCorrectionDocuments(saved,[file],ports)).rejects.toThrow("admission response lost");
++  expect(ports.upload.mock.calls[0]).toEqual(ports.upload.mock.calls[1]);
++  await expect(submitCorrectionDocuments(saved,[],ports)).resolves.toBe(id(50));
++  expect(ports.upload).toHaveBeenCalledTimes(2); expect(ports.correct.mock.calls[0]).toEqual(ports.correct.mock.calls[1]);
++});
++it("W03 rejects changed original bytes and unavailable route before upload", async () => {
++  const d = await draft(), ports = io();
++  await expect(submitCorrectionDocuments(d,[{...file,bytes:new Uint8Array([9])}],ports)).rejects.toThrow("Select private.pdf again");
++  expect(ports.save).not.toHaveBeenCalled(); expect(ports.upload).not.toHaveBeenCalled();
++  ports.preflight.mockResolvedValue({liveRouteEnabled:false,appendDocumentsAllowed:true});
++  await expect(submitCorrectionDocuments(d,[file],ports)).rejects.toThrow("disabled"); expect(ports.upload).not.toHaveBeenCalled();
++});
++it("W03 storage failure or superseded upload never starts correction", async () => {
++  const d = await draft(), ports = io(); ports.save.mockRejectedValueOnce(Error("storage"));
++  await expect(submitCorrectionDocuments(d,[file],ports)).rejects.toThrow("storage"); expect(ports.upload).not.toHaveBeenCalled();
++  let current = true; ports.current = () => current; ports.upload.mockImplementation(async () => { current = false; return {attachmentId:id(40)}; });
++  await expect(submitCorrectionDocuments(d,[file],ports)).rejects.toThrow("superseded"); expect(ports.correct).not.toHaveBeenCalled();
++});
++it.each(["parentRunId","briefRevision","fullRerun","runId"])("W06 rejects mismatched child %s", async field => {
++  const ports = io(); ports.correct.mockResolvedValue({...await ports.correct(),[field]:field === "briefRevision" ? 2 : field === "fullRerun" ? false : id(1)});
++  if (field === "parentRunId") ports.correct.mockResolvedValue({...await ports.correct(),parentRunId:id(9)});
++  await expect(submitCorrectionDocuments(await draft(),[file],ports)).rejects.toThrow("could not be confirmed");
++});
++it("W03 correction metadata is protected, restored independently of admission and cleared on account switch/logout", async () => {
++  const ordinary=memoryStore(), secure=memoryStore(), credentials=memoryStore();
++  const cache=createProtectedContentStore(ordinary,secure), store=createSessionStorage(cache,credentials);
++  await store.activate({accountId:"owner",token:"token"}); const d=await draft();
++  await store.persistRequired("token",{...emptyState(),signedIn:true,attachments:[file]});
++  await store.saveCorrectionDocuments("token",d);
++  expect(await ordinary.getItem("deep.ui.v2")).toBeNull();
++  expect(await ordinary.getItem("deep.correction-documents.v1")).toBeNull();
++  expect(await cache.getItem("deep.ui.v2")).not.toContain('"bytes":');
++  const restored=await createSessionStorage(cache,credentials).hydrate(); expect(restored.state.pendingCorrectionDocuments).toEqual(d);
++  expect(restored.state.pendingAdmission).toBeNull(); expect(restored.state.attachments).toEqual([]);
++  expect(canSubmit({...restored.state,draft:"unrelated",consentGranted:true}).ok).toBe(false);
++  await store.activate({accountId:"other",token:"other"}); expect((await store.hydrate()).state.pendingCorrectionDocuments).toBeNull();
++  await store.clear(); expect((await store.hydrate()).state.pendingCorrectionDocuments).toBeNull();
++});
++it("W03 malformed correction metadata fails closed",async()=>{
++  expect(()=>readCorrectionDocuments({version:"correction-documents.v1"})).toThrow();
++  const cache=memoryStore(),credentials=memoryStore(),store=createSessionStorage(cache,credentials); await store.activate({accountId:"owner",token:"token"});
++  await cache.setItem("deep.correction-documents.v1",JSON.stringify({accountId:"owner",draft:{bad:true}}));
++  await expect(store.hydrate()).rejects.toThrow("invalid");
++});
++it("W06 recovery sends exact correction body while settings are unavailable",async()=>{
++  const d=await draft(); api.activateSession("token");api.selectRun(d.parentRunId);
++  const fetch=vi.fn(async()=>Response.json({status:"withdrawn"}));vi.stubGlobal("fetch",fetch);
++  try { await expect(api.resolveCorrection("token",d.parentRunId,d.baseRevision,d.upload.question,{kind:"append_attachments",attachmentIds:[id(40)],evidencePolicy:"reuse_snapshot"})).resolves.toEqual({status:"withdrawn"});
++    expect(fetch.mock.calls).toHaveLength(1);
++    const [url,request]=fetch.mock.calls[0] as unknown as [string,RequestInit];
++    expect(url).toContain(`/v1/runs/${d.parentRunId}/corrections/resolve`);
++    expect(JSON.parse(request.body as string)).toEqual({expectedBriefRevision:2,correctionText:d.upload.question,patch:{kind:"append_attachments",attachmentIds:[id(40)],evidencePolicy:"reuse_snapshot"}});
++  } finally {api.activateSession(null);vi.unstubAllGlobals();}
++});
++it("W02 ordinary stale snapshot writes cannot erase confirmed upload identity",async()=>{
++  const cache=memoryStore(),credentials=memoryStore(),store=createSessionStorage(cache,credentials);await store.activate({accountId:"owner",token:"token"});
++  const d=await draft();d.upload.uploads[0]!.attachmentId=id(40);await store.saveCorrectionDocuments("token",d);
++  await store.persist({token:"token",state:{...emptyState(),signedIn:true}});
++  expect((await createSessionStorage(cache,credentials).hydrate()).state.pendingCorrectionDocuments).toEqual(d);
++  await store.finishCorrectionDocuments("token",{...emptyState(),signedIn:true});
++  expect((await createSessionStorage(cache,credentials).hydrate()).state.pendingCorrectionDocuments).toBeNull();
++});
++it("W02 failed child snapshot save retains correction journal",async()=>{
++  const memory=memoryStore(),credentials=memoryStore();let fail=false;
++  const cache={...memory,setItem:async(k:string,v:string)=>{if(fail&&k==="deep.ui.v2")throw Error("disk unavailable");await memory.setItem(k,v);}};
++  const store=createSessionStorage(cache,credentials);await store.activate({accountId:"owner",token:"token"});const d=await draft();await store.saveCorrectionDocuments("token",d);fail=true;
++  await expect(store.finishCorrectionDocuments("token",emptyState())).rejects.toThrow("disk unavailable");
++  expect((await createSessionStorage(cache,credentials).hydrate()).state.pendingCorrectionDocuments).toEqual(d);
++});
++
++it("W06 branched correction accepts a later allocated revision while retaining parent binding",async()=>{
++  const ports=io();ports.correct.mockResolvedValue({...await ports.correct(),briefRevision:9});
++  await expect(submitCorrectionDocuments(await draft(),[file],ports)).resolves.toBe(id(50));
++});
++
++it.each([false,undefined,"true"])("W06 rejects unsupported document correction capability %s before upload",async flag=>{
++  const ports={...io(),preflight:async()=>({liveRouteEnabled:true,appendDocumentsAllowed:flag})};
++  await expect(submitCorrectionDocuments(await draft(),[file],ports)).rejects.toThrow("unavailable");
++  expect(ports.save).not.toHaveBeenCalled();expect(ports.upload).not.toHaveBeenCalled();expect(ports.correct).not.toHaveBeenCalled();
++});

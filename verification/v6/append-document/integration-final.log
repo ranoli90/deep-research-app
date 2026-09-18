@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/append-document.integration.test.ts test/question-patch.integration.test.ts test/correction-rediscovery.integration.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  23:23:38
+   Duration  22.64s (transform 1.03s, setup 0ms, import 1.76s, tests 20.36s, environment 0ms)
+

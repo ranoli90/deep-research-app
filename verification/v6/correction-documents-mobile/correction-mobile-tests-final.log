@@ -1,0 +1,62 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-correction-mobile/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-correction-mobile/apps/mobile
+
+ ❯ test/correction-documents.test.ts (0 test)
+ ❯ test/admission-retry.test.ts (0 test)
+ ❯ test/admission-preflight.test.ts (0 test)
+ ❯ test/verification-request.test.ts (0 test)
+ ❯ test/lifecycle.test.ts (0 test)
+ ❯ test/protected-content.test.ts (0 test)
+ ❯ test/source-deletion-flow.test.ts (0 test)
+ ❯ test/session-storage.test.ts (0 test)
+ ❯ test/reading-position.test.ts (0 test)
+ ❯ test/correction-draft.test.ts (0 test)
+ ❯ test/journey.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 11 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/admission-preflight.test.ts [ test/admission-preflight.test.ts ]
+ FAIL  test/admission-retry.test.ts [ test/admission-retry.test.ts ]
+ FAIL  test/correction-documents.test.ts [ test/correction-documents.test.ts ]
+ FAIL  test/correction-draft.test.ts [ test/correction-draft.test.ts ]
+ FAIL  test/journey.test.ts [ test/journey.test.ts ]
+ FAIL  test/lifecycle.test.ts [ test/lifecycle.test.ts ]
+ FAIL  test/protected-content.test.ts [ test/protected-content.test.ts ]
+ FAIL  test/reading-position.test.ts [ test/reading-position.test.ts ]
+ FAIL  test/session-storage.test.ts [ test/session-storage.test.ts ]
+ FAIL  test/source-deletion-flow.test.ts [ test/source-deletion-flow.test.ts ]
+ FAIL  test/verification-request.test.ts [ test/verification-request.test.ts ]
+Error: Transform failed with 1 error:
+/tmp/deep-correction-mobile/apps/mobile/src/persist.ts:126:8: ERROR: Unexpected "else"
+  Plugin: vite:esbuild
+  File: /tmp/deep-correction-mobile/apps/mobile/src/persist.ts:126:8
+  
+  Unexpected "else"
+  124 |          if (payload === null) await cache.removeItem(ADMISSION_KEY);
+  125 |              await cache.removeItem(CORRECTION_KEY);
+  126 |          else await cache.setItem(ADMISSION_KEY, payload);
+      |          ^
+  127 |          if (version !== epoch) throw new Error("Session changed while saving request.");
+  128 |        });
+  
+ ❯ failureErrorWithLog ../../node_modules/esbuild/lib/main.js:1752:15
+ ❯ ../../node_modules/esbuild/lib/main.js:1019:50
+ ❯ responseCallbacks.<computed> ../../node_modules/esbuild/lib/main.js:886:9
+ ❯ handleIncomingPacket ../../node_modules/esbuild/lib/main.js:941:12
+ ❯ Socket.readFromStdout ../../node_modules/esbuild/lib/main.js:864:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+
+ Test Files  11 failed | 6 passed (17)
+      Tests  43 passed (43)
+   Start at  23:16:10
+   Duration  2.00s (transform 1.09s, setup 0ms, import 505ms, tests 160ms, environment 3ms)
+
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 test: `vitest run --config vitest.config.ts`
+Exit status 1

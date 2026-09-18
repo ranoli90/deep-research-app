@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:integration /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+> vitest run --config vitest.integration.config.ts test/remote-source-invalidation.integration.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/apps/backend
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:38:12
+   Duration  1.57s (transform 646ms, setup 0ms, import 926ms, tests 496ms, environment 0ms)
+

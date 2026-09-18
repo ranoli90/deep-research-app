@@ -16,6 +16,7 @@ const splitsPair=(text:string,index:number)=>index>0&&index<text.length&&high(te
 export function applyQuestionPatch(originalQuestion:string,originalSha256:string,raw:ResearchCorrectionPatch):string{
  const patch=ResearchCorrectionPatchSchema.parse(raw);
  if(patch.kind==="replace_question")return patch.question;
+ if(patch.kind==="append_attachments")return originalQuestion;
  if(patch.originalQuestionSha256!==originalSha256)throw new Error("question_patch_digest_mismatch");
  if(patch.start>patch.end||patch.end>originalQuestion.length)throw new Error("question_patch_invalid_span");
  if(!wellFormed(originalQuestion)||!wellFormed(patch.replacement)||splitsPair(originalQuestion,patch.start)||splitsPair(originalQuestion,patch.end))throw new Error("question_patch_invalid_unicode");

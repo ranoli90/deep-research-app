@@ -114,6 +114,7 @@ describe("W05 production runtime isolation",()=>{
     for(const entry of ["api/server.ts","worker/main.ts"]) {
       const files=runtimeSources(resolve(import.meta.dirname,"../src",entry));
       expect(files.size).toBeGreaterThan(20);
+      expect([...files].filter(f=>/\/evaluation\//.test(f))).toEqual([]);
       expect([...files].filter(f=>/\/fixtures\/|\/eval[^/]*\.|fixture-catalog|\/adapters\/[^/]+\/fixture\.|diagnostic-executor|diagnostic-main/.test(f))).toEqual([]);
       if(entry==="worker/main.ts")expect([...files].some(f=>f.endsWith("/worker/structured-research.ts"))).toBe(true);
     }

@@ -1,0 +1,51 @@
+{
+  "algorithm": "sha256",
+  "sources": [
+    {
+      "path": "apps/backend/src/api/app.ts",
+      "sha256": "fbdef19587fc82bfc18702a096fbc0a7423b8645f56e0b60b20c66ffbb39f683"
+    },
+    {
+      "path": "apps/backend/test/remote-source-invalidation.integration.test.ts",
+      "sha256": "b7c0c3e74ae3f9647ac50711d7a60ada6039c9abbae4f2c26622ebca36d4b43c"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/v6/remote-source-invalidation/HANDOFF.md",
+      "sha256": "9539a09feb35e483cb110c27a272e3b847af6e7be748d7e7929f501a4abb66e5"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/IMPACT.md",
+      "sha256": "8fa4a79efd3a0c3251c19677aeaad05264be26e77e057e3097299615b69fe460"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/RESULTS.json",
+      "sha256": "dd78ceaab9d77d2291f637e9560dda7e779fa6ff7d360a334bdb8223133d7f6a"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/api-before.ts",
+      "sha256": "70cd2773794482637256a692f5493dbacde5bfa70a3ea44cb9bbec3edb20024c"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/before.log",
+      "sha256": "1addd1686c986882bfd73683cc54c607b9a60c5463811ed5696cdb8abe314dd4"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/final-report-null.log",
+      "sha256": "c04824c206f75b65c4c4f8e2971143941007bb5cb29563efc3edf5a27f41ffd0"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/final.log",
+      "sha256": "0b4cbc589f17a296245b76764c2bceaa97936f703291ae15fb29a8dea6db9d89"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/source.patch",
+      "sha256": "2c020b3041f44d3913aa8184880be9ed5566910aa6785c50cb7014bf763ef98d"
+    },
+    {
+      "path": "verification/v6/remote-source-invalidation/typecheck.log",
+      "sha256": "86d9de1cafc4dad35d3931cb03fb0d9b7739be1b08b9fcdc3d5e0dc5ae17df3b"
+    }
+  ]
+}

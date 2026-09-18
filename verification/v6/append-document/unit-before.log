@@ -1,0 +1,47 @@
+
+> @deep/research-core@0.1.0 test /tmp/deep-append-document-4c3seb7g/repo/packages/research-core
+> vitest run --config vitest.config.ts test/append-document.test.ts
+
+
+ RUN  v4.1.11 /tmp/deep-append-document-4c3seb7g/repo/packages/research-core
+
+ ❯ test/append-document.test.ts (2 tests | 1 failed) 10ms
+   × W06 accepts an explicit document append while preserving the exact original question 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/append-document.test.ts > W06 accepts an explicit document append while preserving the exact original question
+ZodError: [
+  {
+    "code": "invalid_union_discriminator",
+    "options": [
+      "replace_question",
+      "replace_question_span"
+    ],
+    "path": [
+      "kind"
+    ],
+    "message": "Invalid discriminator value. Expected 'replace_question' | 'replace_question_span'"
+  }
+]
+ ❯ Object.get error [as error] ../../node_modules/zod/v3/types.js:39:31
+ ❯ ZodDiscriminatedUnion.parse ../../node_modules/zod/v3/types.js:114:22
+ ❯ test/append-document.test.ts:7:44
+      5| const input={kind:"append_attachments",attachmentIds:[id],evidencePoli…
+      6| it("W06 accepts an explicit document append while preserving the exact…
+      7|  const patch=ResearchCorrectionPatchSchema.parse(input);expect(patch).…
+       |                                            ^
+      8|  expect(applyQuestionPatch(" Exact original 🧭 question ","a".repeat(6…
+      9| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  23:11:34
+   Duration  334ms (transform 123ms, setup 0ms, import 167ms, tests 10ms, environment 0ms)
+
+/tmp/deep-append-document-4c3seb7g/repo/packages/research-core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/research-core@0.1.0 test: `vitest run --config vitest.config.ts test/append-document.test.ts`
+Exit status 1

@@ -1,0 +1,49 @@
+{
+  "requirements": [
+    "W03",
+    "W07"
+  ],
+  "base": "0602f96efff0eaa576e7654f08b226ef20108de5 plus reviewed append-document source.patch",
+  "clone": "/tmp/deep-append-document-4c3seb7g/repo",
+  "rootMetadataAtTask": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "scope": "Two-file delta only; api-before.ts preserves exact integrated append API basis",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "database": "local PostgreSQL/deep_research_lease_clock_v6"
+  },
+  "commands": [
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/remote-source-invalidation.integration.test.ts",
+      "artifact": "before.log",
+      "exitCode": 1,
+      "result": "3failed/1passed: missing flags and deleted account credential read; cancellation test also incorrectly expected terminal instead of cancelling"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/remote-source-invalidation.integration.test.ts",
+      "artifact": "final.log",
+      "exitCode": 1,
+      "result": "1failed/3passed: redacted report lookup still yields ID; response must force null when invalidated"
+    },
+    {
+      "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_lease_clock_v6 pnpm --filter @deep/backend test:integration test/remote-source-invalidation.integration.test.ts",
+      "artifact": "final-report-null.log",
+      "exitCode": 0,
+      "result": "4/4,1.57s"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "typecheck.log",
+      "exitCode": 0
+    }
+  ],
+  "behavior": "contentInvalidated always boolean, true only for matching owned run source_deletion tombstone; true forces reportId null. Ordinary cancellation false. Deleted accounts denied even with remaining session row. No foreign or unauthenticated access.",
+  "limits": [
+    "Actual local API/PG only; no native or hosted identity proof.",
+    "Multiple snapshot reads retain existing concurrency characteristics; client must apply invalidation before ancillary loading.",
+    "No paid requests or provider execution."
+  ],
+  "rollback": "Preserve source/account deletion denial and remote invalidation signal; do not restore deleted report caches.",
+  "dbSlot": "released, all sessions terminal"
+}

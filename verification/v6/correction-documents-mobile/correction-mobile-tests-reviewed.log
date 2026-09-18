@@ -1,0 +1,13 @@
+
+> @deep/mobile@0.1.0 test /tmp/deep-correction-mobile/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /tmp/deep-correction-mobile/apps/mobile
+
+
+ Test Files  17 passed (17)
+      Tests  162 passed (162)
+   Start at  23:18:15
+   Duration  3.56s (transform 1.88s, setup 0ms, import 3.99s, tests 1.19s, environment 4ms)
+

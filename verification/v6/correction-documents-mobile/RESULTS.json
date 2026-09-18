@@ -1,0 +1,113 @@
+{
+  "task": "W06/W07 owned document correction mobile",
+  "requirements": [
+    "W02 exact retry/durable recovery",
+    "W03 account/consent/deletion/protected content",
+    "W04 exact document bytes",
+    "W06 append owned documents with unchanged question",
+    "W07 correction UI/recovery"
+  ],
+  "base_commit": "0ddedb466bc08d63690b3ffbb14fb6c23929e50c",
+  "source_commit": "uncommitted isolated patch",
+  "patch_sha256": "8405d6537fa3e5c112a337828adaf88f26447bb86fc0f1c94d55ac156b08635f",
+  "environment": {
+    "os": "Linux",
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "clone": "/tmp/deep-correction-mobile",
+    "network": "offline install/export; mocked API only; no DB/provider/device actions"
+  },
+  "files": {
+    "apps/mobile/App.tsx": "eb47fe85fc8a386e548f650553de62d580f5815d8025d46622e953797e02a7d7",
+    "apps/mobile/src/api.ts": "8f5845ac29e0700b0443c8fd733a5dc4a7b793519590c93a2dd1a5f70cad2441",
+    "apps/mobile/src/correction-documents-flow.ts": "5c0ae2c9ef02c216992a442fcc78a418527f09d6f8a102542e22461fbed28bbf",
+    "apps/mobile/src/correction-documents.ts": "c7d7ffac0a6f6ffbc42cfd61d79387c9a9e9bb509c60fba6196119558c633f4b",
+    "apps/mobile/src/persist.ts": "3a17e409aee0580b2363666485820b6d0bf975cf182dd3587bf8738e2a2ff9f1",
+    "apps/mobile/src/protected-content.ts": "86acf82a41f8ed7b857a42923211a30f950d9043b3c02084464f8839101b77da",
+    "apps/mobile/src/request-scope.ts": "5a9ba5dfa4007c29887c02451b0188cef91163a034249b81b018d74f1c23a70e",
+    "apps/mobile/src/state.ts": "6b807d9dc1c17dfa3e48e8d70929c680605f2d53fa8dc654a29453e75e408ad0",
+    "apps/mobile/test/correction-documents-flow.test.ts": "6ca3704a3ef08ac1bca67a99154347869771e4466ebba7ab2e3dc2f4fe701c37",
+    "apps/mobile/test/correction-documents.test.ts": "9ce9c598f20a8ab81f9acebff35f069fabfdfb22c23900b142888fded2b230c9"
+  },
+  "contract_test_input": {
+    "file": "packages/contracts/src/index.ts",
+    "source": "/tmp/deep-append-document-4c3seb7g/repo/packages/contracts/src/index.ts",
+    "sha256": "3355409bc04e81613101f7d7be350fc25289b00aaf2ad6d27763e8c6ca0da0a6",
+    "excluded_from_patch": true
+  },
+  "checks": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exit_code": 0,
+      "artifact": "correction-mobile-install.log"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exit_code": 0,
+      "artifact": "correction-mobile-tests-final-reviewed.log",
+      "scope": "173/173 in18files;148previous controls plus25new correction controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exit_code": 0,
+      "artifact": "correction-mobile-types-final-reviewed.log",
+      "scope": "Latest production source and tests"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-correction-mobile-export-complete",
+      "exit_code": 0,
+      "artifact": "correction-mobile-export-complete.log",
+      "scope": "650module2.2MB Android JavaScript export; no native build"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "artifact": "RESULTS.json",
+      "scope": "Whitespace only"
+    }
+  ],
+  "retained_failures": [
+    {
+      "artifact": "initial-edit-failure.log",
+      "exit_code": 127,
+      "cause": "python executable unavailable; rerun with python3"
+    },
+    {
+      "artifact": "correction-mobile-tests-final.log",
+      "exit_code": 1,
+      "cause": "11suites transform failure from accidentally inserted statement between if/else in persistence edit; fixed source"
+    },
+    {
+      "artifact": "correction-mobile-types-final.log",
+      "exit_code": 2,
+      "cause": "same syntax failure (pnpm process exits2)"
+    },
+    {
+      "artifact": "correction-mobile-export.log",
+      "exit_code": 1,
+      "cause": "same syntax failure"
+    },
+    {
+      "artifact": "correction-mobile-tests-flow.log",
+      "exit_code": 1,
+      "cause": "2new flow tests: fabricated snapshot omitted required routeMode; fixed mock; moved generation fence before response validation"
+    }
+  ],
+  "limits": [
+    "No actual backend API/DB check in this packet; backend agent owns resolver integration",
+    "No native/device/emulator/ADB actions",
+    "No real model, paid, hosted, deployment or semantic quality claim",
+    "Parent docs/evidence synchronization and integration pending primary review"
+  ],
+  "rollback": "Disable new append controls/admission while preserving dedicated correction journal reader, exact check/withdraw recovery, owned byte/source deletion and account cleanup; never discard uncertain accepted identity.",
+  "review_repairs": [
+    "Branch revision allocation validates safeinteger greater thanparent instead of adjacent",
+    "Picker transient account+parent envelope and late reducer fence",
+    "Authoritative dedicatedjournal reread even when UI has no request",
+    "Ordinary UI persistence blocked during required correction adoption",
+    "Dedicated domain flow helper tests actualchildGET, unknownresponse, withdraw/savefail, staleUI IDs and accountchange",
+    "Strict appendDocumentsAllowed capability preflight",
+    "Account-bound invalidateView retains selectedrun on active consentrevocation"
+  ]
+}

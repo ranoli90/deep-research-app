@@ -6,15 +6,17 @@ The W01–W09 goal remains active and incomplete. Preserve the existing app, unr
 
 Branch `codex/v6-evidence-milestone`; implementation `0602f96efff0eaa576e7654f08b226ef20108de5` adds authenticated settings preflight before private uploads while preserving retry identity and Check/Withdraw. Backend checkpoint `b15c3d85a9fe9911db2323dba5de3a369359591d` adds bounded128 whole-passage capacity and HTML structure-v3. Prior commits retain source deletion, protected content, requested verification, typed corruption handling, exact-span corrections/rediscovery, lease/cancellation fixes and dependency repairs. No broad redesign or fixture fallback.
 
-Original review pin03fab6b9d6a04ce9fdaeb48636383757213f7242; kit /tmp/deep-v6-staging. Check actual git status before editing. Root source freeze is0602f96; exact clean-checkout proof is complete. Isolated agent work now addresses the registered evaluation runner and typed document correction; scope review owns verification/v6/final-scope-review/. Agents must not independently commit. DB slot free; no concurrent truncating suites.
+Original review pin03fab6b9d6a04ce9fdaeb48636383757213f7242; kit /tmp/deep-v6-staging. Check actual git status before editing. Current reviewed working tree over0ddedb4 integrates append-owned-document corrections, dedicated mobile recovery, the gated registered evaluator and remote source invalidation. Prior0602 clean proof is historical. Agents must not independently commit. DB suites have finished; no concurrent truncating suites.
 
 ## Terminal evidence and limits
+
+Latest working-tree packet `document-evaluation-integrated/`:422/422 PostgreSQL (439.79s),39/39 actual extraction/API (114.57s), verify157core/132backend/186mobile/6governance, mobile/backendtypes and651module2.21MB Android JS export all exit0. A final one-line account-panel reset awaits exact-commit clean proof. Retained first extraction run36passed/3failed correctly encountered an older unattributed synthetic hold; fresh dedicated evaluator test database repairs isolation without deleting liabilities or weakening accounting/assertions. Default evaluator exits2 with no paid effect; it supports live discovery only, not frozen supplied-document execution or semantic scoring.
 
 Backend407/407 real local PostgreSQL integration (457.80s),33/33 actual extraction/API (87.54s), verify155core/117backend/136mobile/6governance, types/boundaries all pass (`capacity-formatting-integrated/`). Later mobile-only preflight148/148/types/648module2.18MB JS export pass (`admission-preflight-integrated/`). Actual local authenticated API preflight probe passes separately with zero provider intents. Wrong-endpoint mock proof was rejected, preserved and corrected before integration. Exact0602f96 clean proof passes frozen offline install, verify155/117/148/6, types/boundaries and648module2.18MB JS export, ending clean (`clean-final-internal/`). Hosted CI not dispatched.
 
 All provider responses in those suites are fabricated. Actual SQLite HTMLv3 parser/serialization retains75wholeblocks, network-filesystem restriction and single-writer limitation for original/corrected contexts; no support/model answer was executed. Synthetic platform correction/full rerun agrees on explicit facts with1newread+1reuse versus2newreads, both8attempts/10synthetic micro-units. Frozen12task/13document corpus retains original omission/sloweradaptive failures; no independent semantic or superiority claim. See STATUS for trace details and artifact paths.
 
-Node20.20.2,pnpm9.15.9,Python3.12.3,TypeScript5.9.3,Vitest4.1.11. LocalPG127.0.0.1:55432; latest full suite used deep_research_capacity_v6_20260917. Prior isolated databases preserved. Do not erase standard deep_research_test retained synthetic liability. Native database deep_research_native_v6 is separate. Extraction runtime /tmp/deep-v6-extraction-runtime. Run DB suites serially; no repeated broad suite unless source/risk justifies it.
+Node20.20.2,pnpm9.15.9,Python3.12.3,TypeScript5.9.3,Vitest4.1.11. LocalPG127.0.0.1:55432; latest full suite used deep_research_final_internal_v6_20260917; evaluator controls retain deep_eval_control_111e23a655c249b3afb1c94215f458e5. Prior isolated databases preserved. Do not erase standard deep_research_test retained synthetic liability. Native database deep_research_native_v6 is separate. Extraction runtime /tmp/deep-v6-extraction-runtime. Run DB suites serially; no repeated broad suite unless source/risk justifies it.
 
 Audit remains exit1 with0moderate/2high image-size findings. PostCSS/Vitest/UUID repairs committed; Metro0.83.8 exceeds current Expo pins and remains experimental. Actual Xcode UUID roundtrip and candidate iOS prebuild pass; neither is native runtime proof. JS exports are not signed/native builds. Current design typecheck is unsuppressed.
 
@@ -26,7 +28,7 @@ Remaining external evidence: complete current native research→source→reopen�
 
 ## Next executable steps and rollback
 
-1. Review/integrate bounded evaluation-runner and new-document correction implementations with regression evidence. Exact0602f96 clean proof is complete; later source requires its own checks.
+1. Commit reviewed ADR048–050 source and evidence, preserving ZIPs; then run exact-commit clean-checkout install/verify/mobiletypes/JS export. No repeat DB suite is needed without a new source/risk change.
 2. Synchronize STATUS/HANDOFF/findings/results/commands, rerun both document validators and scoped source/document diff check, commit metadata accurately. No push.
 3. After device unlock, perform guarded cleanup before native acceptance. Real-model evaluation requires current paid authority; hosted/release remains separate.
 

@@ -20,6 +20,10 @@ export function createRequestScope() {
       if (next === runId) return;
       runId = next; viewEpoch++; sourceEpoch++; abort("view");
     },
+    invalidateView(session: string) {
+      if (session !== token) throw new SupersededRequest();
+      viewEpoch++; sourceEpoch++; abort("view");
+    },
     closeSource() { sourceEpoch++; abort("source"); },
     currentRun(session: string, id: string) { return token === session && runId === id; },
     capture(kind: "account" | "view" | "source", expectedToken?: string, expectedRun?: string) {

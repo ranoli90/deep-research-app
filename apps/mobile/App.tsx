@@ -1,3 +1,6 @@
+import { applyRemoteInvalidation, redactInvalidatedContent } from "./src/remote-invalidation";
+import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot, type CorrectionSelection } from "./src/correction-documents-flow";
+import { prepareCorrectionDocuments, submitCorrectionDocuments } from "./src/correction-documents";
 import { ProfilePanel } from "./src/ProfilePanel";
 import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
@@ -73,6 +76,8 @@ function AppInner() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [state, setStateRaw] = useState<UiState>(emptyState());
+  const latestUi = useRef(state); latestUi.current = state;
+  const redactingContent = useRef(false);
   const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
     const guard = api.capture();
     setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
@@ -111,10 +116,18 @@ function AppInner() {
   }
   const setCorrection = (question: string) => changeCorrection({ question });
   const setEvidencePolicy = (evidencePolicy: "reuse_snapshot" | "refresh") => changeCorrection({ evidencePolicy });
+  const [correctionSelection, setCorrectionSelection] = useState<CorrectionSelection>({ owner: null, parent: null, files: [] });
+  const correctionParent = state.pendingCorrectionDocuments?.parentRunId ?? state.run?.runId ?? null;
+  const correctionFiles = correctionFilesFor(correctionSelection, token, correctionParent);
+  function setCorrectionFiles(update: UiState["attachments"] | ((files: UiState["attachments"]) => UiState["attachments"])) {
+    setCorrectionSelection(previous => ({ owner: token, parent: correctionParent,
+      files: typeof update === "function" ? update(previous.owner === token && previous.parent === correctionParent ? previous.files : []) : update }));
+  }
+  useEffect(() => { setCorrectionFiles([]); }, [token, state.run?.runId, state.pendingSourceDeletion]);
   const [correctionPending,setCorrectionPending]=useState(false);
   const correctionAttempt=useRef<symbol|null>(null);
   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
-  const correctionReady=!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
+  const correctionReady=!state.run?.contentInvalidated&&!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
   useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
@@ -163,7 +176,7 @@ function AppInner() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useEffect(() => {
-    if (!hydrated || submitting.current || deletingSource.current || verifying.current) return;
+    if (!hydrated || redactingContent.current || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
     const guard = api.capture();
     void persistSession(sessionStorage, { token, state }).catch(() => {
       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
@@ -194,7 +207,7 @@ function AppInner() {
     let guard: ReturnType<typeof api.capture> | undefined;
     try {
       const s = await api.session();
-      api.activateSession(s.token);
+      redactingContent.current = false; api.activateSession(s.token);
       guard = api.capture();
       await activateLocalSession(sessionStorage, s);
       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
@@ -233,6 +246,7 @@ function AppInner() {
   }
 
   function clearPanels() {
+    redactingContent.current = false;
     refreshing.current.clear();
     setUploadStatus(null);
     setCorrection(""); setClarifyAnswer(""); setAttachText(""); setAttachName("note.txt");
@@ -241,22 +255,44 @@ function AppInner() {
   }
 
   async function onAuthFailure() {
-    stopPolling(); api.activateSession(null); clearPanels();
+    redactingContent.current = false; stopPolling(); api.activateSession(null); clearPanels();
     setToken(null); setState((s) => expireLocalSession(s));
     try { await clearAccountLocal(sessionStorage); }
     catch { setState((s) => ({ ...s, error: "Session expired. Device cleanup failed; retry signing out." })); }
   }
 
-  async function refreshRun(t: string, runId: string) {
+  async function refreshRun(t: string, runId: string, openingState?: UiState) {
     if (!api.currentRun(t, runId)) return;
     const key = `${t}:${runId}`;
     if (refreshing.current.has(key)) return;
     const attempt = Symbol(); refreshing.current.set(key, attempt);
+    let guard = api.captureView();
     try {
       const snap = await api.getRun(t, runId);
+      if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+      if (snap.contentInvalidated === true) {
+        // Cancel older source/correction callbacks without changing the selected run.
+        api.invalidateView(t); guard.release(); guard = api.captureView();
+      }
+      const invalidated = await applyRemoteInvalidation(latestUi.current.run?.runId === runId ? latestUi.current : openingState ?? latestUi.current, snap, {
+        current: () => guard.current() && api.currentRun(t, runId),
+        hide: () => {
+          redactingContent.current = true; setStorageReady(false);
+          setViewState(s => guard.current() && s.run?.runId === runId ? redactInvalidatedContent({ ...s, run: snap }, runId) : s);
+          setCorrectionSelection(previous => guard.current() ? { owner: t, parent: runId, files: [] } : previous);
+        },
+        save: (redacted, id) => sessionStorage.redactRunContent(t, id, redacted),
+      });
+      if (!guard.current()) throw new SupersededRequest();
+      if (invalidated) {
+        setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null } : s);
+        redactingContent.current = false; setStorageReady(true); stopPolling();
+        return;
+      }
       const ev = await api.events(t, runId, 0);
       const report = snap.reportId ? await api.report(t, snap.reportId) : null;
       setViewState((s) => {
+        if (!guard.current() || s.pendingContentInvalidation) return s;
         if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
         let next = applySnapshot(s, snap);
         next = { ...next, events: mergeEvents(next.events, ev.events ?? []) };
@@ -282,7 +318,11 @@ function AppInner() {
       });
       setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
     } catch (e) {
-      if (isSupersededRequest(e)) return;
+      if (isSupersededRequest(e) || !guard.current()) return;
+      if (redactingContent.current) {
+        setViewState(s => guard.current() ? { ...s, error: "Deleted source content is hidden. Disk cleanup is unconfirmed; reconnect or reopen to retry before starting research." } : s);
+        return;
+      }
       if (isExpiredSession(e)) await onAuthFailure();
       else if (isOfflineError(e)) {
         setViewState((s) => {
@@ -291,7 +331,7 @@ function AppInner() {
           return next;
         });
       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
-    } finally { if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
+    } finally { guard.release(); if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
   }
 
   function stopPolling() {
@@ -341,12 +381,13 @@ function AppInner() {
         }
       }
       if (!restored.current()) { restored.release(); return; }
-      setStorageReady(true);
+      setStorageReady(!s.pendingContentInvalidation);
+      redactingContent.current = !!s.pendingContentInvalidation;
       setToken((previous) => restored.current() ? t : previous);
       setState((previous) => restored.current() ? s : previous);
       if (t && s.run?.runId && !s.pendingSourceDeletion) {
         api.selectRun(s.run.runId);
-        void refreshRun(t, s.run.runId);
+        void refreshRun(t, s.run.runId, s);
         startPolling(t, s.run.runId);
       }
       restored.release();
@@ -395,7 +436,7 @@ function AppInner() {
   }, [state.tab, token]);
 
   async function onPickDocument() {
-    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
+    if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
     if (state.attachments.length >= 3) { setState(s => ({ ...s, error: "Attachment limit is 3 files." })); return; }
     const guard = api.capture();
@@ -409,7 +450,7 @@ function AppInner() {
   }
 
   async function onSend() {
-    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current) return;
+    if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
     if (!storageReady) return;
     const gate = canSubmit(state.pendingAdmission ? { ...state, offline: false } : state);
     if (!gate.ok) {
@@ -496,7 +537,7 @@ function AppInner() {
       AccessibilityInfo.announceForAccessibility(
         "Research in progress. Cancel is available. Closing the app will not stop the job.",
       );
-      await refreshRun(t, created.runId);
+      await refreshRun(t, created.runId, next);
       startPolling(t, created.runId);
       } finally { guard.release(); }
   }
@@ -531,7 +572,7 @@ function AppInner() {
   }
 
   async function onDeleteSource(target?: SourceDeletionTarget) {
-    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification) return;
+    if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     const guard = api.capture();
     try {
       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
@@ -570,8 +611,88 @@ function AppInner() {
     }
   }
 
+  async function pickCorrectionDocument() {
+    if (!token || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
+    if (correctionFiles.length >= 3) return;
+    const guard = api.captureView(); pickingDocument.current = true; setDocumentPending(true);
+    try {
+      const file = await pickDocument(guard.current);
+      if (file && guard.current()) setCorrectionSelection(previous => adoptCorrectionFile(previous, token, correctionParent, file, guard.current));
+    } catch (e) {
+      if (guard.current() && !isSupersededRequest(e)) setViewState(s => ({ ...s, error: (e as Error).message }));
+    } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
+  }
+
+  async function adoptDocumentCorrection(runId: string) {
+    if (!token) return;
+    api.selectRun(runId);
+    const guard = api.captureView();
+    try {
+      const next = await adoptCorrectionSnapshot(runId, state, {
+        current: guard.current, get: () => api.getRun(token, runId), finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+      });
+      setState(next); setCorrectionFiles([]);
+      await refreshRun(token, runId, next); startPolling(token, runId);
+    } finally { guard.release(); }
+  }
+
+  async function resolveDocumentCorrection() {
+    const pending = state.pendingCorrectionDocuments;
+    if (!token || !pending || correctionAttempt.current || pickingDocument.current) return;
+    api.selectRun(pending.parentRunId);
+    const guard = api.captureView(), attempt = Symbol("resolve document correction");
+    correctionAttempt.current = attempt; setCorrectionPending(true);
+    try {
+      const result = await resolveCorrectionDocuments(pending, state, {
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
+        resolve: (durable, attachmentIds) => api.resolveCorrection(token, durable.parentRunId, durable.baseRevision, durable.upload.question,
+          { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
+        finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+      });
+      if ("runId" in result) await adoptDocumentCorrection(result.runId);
+      else { setState(result.state); setCorrectionFiles([]); }
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (e as Error).message }));
+    } finally { guard.release(); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
+  }
+
+  async function addCorrectionDocuments() {
+    if (!token || !storageReady || !state.run || correctionAttempt.current || pickingDocument.current || submitting.current || verifying.current || deletingSource.current || state.pendingAdmission || state.pendingVerification || state.pendingSourceDeletion) return;
+    if (!state.consentGranted) { setViewState(s => ({ ...s, error: "Consent to AI processing is required before adding documents." })); return; }
+    if (!state.pendingCorrectionDocuments && (!correctionReady || correctionMode !== "replace_question" || !state.report)) return;
+    const attempt = Symbol("document correction"); correctionAttempt.current = attempt; setCorrectionPending(true);
+    const pendingParent = state.pendingCorrectionDocuments?.parentRunId ?? state.run.runId;
+    api.selectRun(pendingParent);
+    const guard = api.captureView();
+    try {
+      const durable = await authoritativeCorrection(state.pendingCorrectionDocuments, pendingParent, {
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
+      });
+      const pending = durable ?? await prepareCorrectionDocuments(pendingParent, state.run.brief!.revision, correctionFiles, newId, nativeDocumentDigest, guard.current);
+      const runId = await submitCorrectionDocuments(pending, correctionFiles, {
+        current: guard.current, digest: nativeDocumentDigest, progress: setUploadStatus,
+        preflight: () => api.settings(token),
+        save: async saved => {
+          await sessionStorage.saveCorrectionDocuments(token, saved);
+          if (!guard.current()) throw new SupersededRequest();
+          setState(s => ({ ...s, pendingCorrectionDocuments: saved }));
+        },
+        upload: (file, key) => file.bytes ? api.attachBytes(token, file.filename, file.mime, file.bytes, key) : api.attach(token, file.filename, file.mime, file.text, key),
+        correct: (parent, revision, text, attachmentIds) => api.correct(token, parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
+      });
+      if (!guard.current()) throw new SupersededRequest();
+      await adoptDocumentCorrection(runId);
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else setState(s => ({ ...s, error: (e as Error).message }));
+    } finally { guard.release(); setUploadStatus(null); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
+  }
+
   async function onCorrect() {
-    if (!token || !state.run || correctionAttempt.current || verifying.current || state.pendingVerification) return;
+    if (!token || !state.run || state.pendingContentInvalidation || redactingContent.current || correctionAttempt.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments) return;
     const text = correction.trim();
     if (!text) {
       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
@@ -662,12 +783,12 @@ function AppInner() {
       await sessionStorage.persistRequired(token, next);
       if (!guard.current()) throw new SupersededRequest();
       setState(next);
-      await refreshRun(token, runId); startPolling(token, runId);
+      await refreshRun(token, runId, next); startPolling(token, runId);
     } finally { guard.release(); }
   }
 
   async function onFollowUp() {
-    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingSourceDeletion || state.pendingAdmission) return;
+    if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     const guard = api.capture();
     try {
       verifying.current = true; setVerificationBusy(true);
@@ -717,7 +838,7 @@ function AppInner() {
 
   async function onShare(reportId?: string) {
     const id = reportId ?? state.report?.reportId;
-    if (!token || !id || state.pendingSourceDeletion || deletingSource.current) return;
+    if (!token || !id || state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current) return;
     try {
       const md = await api.exportMd(token, id);
       await Share.share({ message: md.markdown, title: "Research report" });
@@ -750,6 +871,19 @@ function AppInner() {
             <Text style={styles.bannerText}>Live research route</Text>
           </View>
         )}
+        {state.pendingContentInvalidation ? <View style={styles.card} accessibilityLabel="Deleted source cleanup">
+          <Text style={styles.body}>A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.</Text>
+          <Pressable accessibilityRole="button" onPress={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}><Text style={styles.link}>Retry device cleanup</Text></Pressable>
+        </View> : null}
+        {state.pendingCorrectionDocuments ? <View style={styles.card} accessibilityLabel="Saved document correction">
+          <Text style={styles.body}>A document correction is saved for its original report. Retry the same request to avoid starting another correction.</Text>
+          <Text style={styles.body}>{state.pendingCorrectionDocuments.upload.uploads.map(u => `${u.filename}: ${u.attachmentId ? "uploaded" : "select original file again"}`).join("\n")}</Text>
+          {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove selection</Text></Pressable>)}
+          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select original file</Text></Pressable>
+          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Retry document correction</Text></Pressable>
+          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void resolveDocumentCorrection()}><Text style={styles.link}>Check or withdraw document correction</Text></Pressable>
+          {uploadStatus ? <Text accessibilityLiveRegion="polite">{uploadStatus}</Text> : null}
+        </View> : null}
         {state.pendingVerification ? <View style={styles.card} accessibilityLabel="Saved verification request">
           <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
@@ -984,9 +1118,16 @@ function AppInner() {
               </View>
             ) : null}
 
-            {(state.report || state.status === "completed" || state.status === "partial") && state.run ? (
+            {(state.report || state.status === "completed" || state.status === "partial") && state.run && !state.run.contentInvalidated ? (
               <View style={styles.card} accessibilityLabel="Correction">
                 <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
+                {correctionMode === "replace_question" && !state.pendingCorrectionDocuments ? <View>
+                  <Text style={styles.body}>Add documents to this report using the same question and saved evidence. Research will reassess the answer. The total limit is three documents, including existing files.</Text>
+                  {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" accessibilityLabel={`Remove ${file.filename}`} onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove</Text></Pressable>)}
+                  <Pressable disabled={documentPending || correctionPending || correctionFiles.length >= 3} accessibilityRole="button" accessibilityLabel="Select document for correction" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select document for this report</Text></Pressable>
+                  <Pressable disabled={documentPending || correctionPending || !correctionFiles.length || !correctionReady} accessibilityRole="button" accessibilityLabel="Add documents and update report" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Add documents and update report</Text></Pressable>
+                  <Text style={styles.body}>Selected file bytes stay in memory until submitted. After closing the app, select unconfirmed files again.</Text>
+                </View> : null}
                 {correctionMode==="unavailable"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
                 {staleCorrection ? <>
                   <Text style={styles.body}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
@@ -1019,7 +1160,7 @@ function AppInner() {
                   maxFontSizeMultiplier={2}
                   accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
                 />
-                <Pressable onPress={onCorrect} disabled={correctionPending||!correctionReady} accessibilityState={{disabled:correctionPending||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
+                <Pressable onPress={onCorrect} disabled={correctionPending||!!state.pendingCorrectionDocuments||!correctionReady} accessibilityState={{disabled:correctionPending||!!state.pendingCorrectionDocuments||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
                   <Text style={styles.send}>{correctionPending?"Updating…":"Update research"}</Text>
                 </Pressable>
               </View>
@@ -1030,7 +1171,7 @@ function AppInner() {
         {state.source ? (
           <SourceSheet source={state.source} styles={styles}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
-            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification}
+            offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
             onOpenOriginal={(url) => {
               const guard = api.captureView();
               void Linking.openURL(url).catch(() => {
@@ -1043,16 +1184,17 @@ function AppInner() {
             }} />
         ) : null}
 
-        {state.tab === "library" && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy ? (
+        {state.tab === "library" && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
           <Library
             token={token}
             styles={styles}
             onOpen={async (id) => {
-              if (state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification) return;
+              if (state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
               api.selectRun(id);
               if (!token) return;
+              const opening = openLibraryItem(latestUi.current, id);
               setState((s) => openLibraryItem(s, id));
-              await refreshRun(token, id);
+              await refreshRun(token, id, opening);
               startPolling(token, id);
             }}
             onShare={(reportId) => onShare(reportId)}
@@ -1105,7 +1247,7 @@ function AppInner() {
             }}
             onRevoke={async () => {
               if (!token) return;
-              try { await api.consent(token, false); setState((s) => ({ ...s, consentGranted: false })); }
+              try { if (correctionAttempt.current) api.invalidateView(token); await api.consent(token, false); setCorrectionFiles([]); setState((s) => ({ ...s, consentGranted: false })); }
               catch (error) {
                 if (isSupersededRequest(error)) return;
                 setState((s) => ({ ...s, error: "Could not confirm consent revocation. Retry." }));
@@ -1114,13 +1256,13 @@ function AppInner() {
           />
         ) : null}
 
-        {state.tab === "research" && !state.source && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
+        {state.tab === "research" && !state.source && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy && !keyboardOpen && (showAttach || (!state.report && (!state.pendingAdmission || state.pendingAdmission.uploads.some(u => !u.attachmentId)))) ? (
           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
             pending={documentPending || uploadStatus !== null} status={uploadStatus} filename={attachName} text={attachText}
             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
             onAttachNote={() => {
-                if (deletingSource.current || state.pendingSourceDeletion || verifying.current || state.pendingVerification) return;
+                if (deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
                 setState((s) =>
                   attachFile(s, {
                     filename: attachName.endsWith(".pdf") ? `${attachName}.notes.txt` : attachName || "note.txt",

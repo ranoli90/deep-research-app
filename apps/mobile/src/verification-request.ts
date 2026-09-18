@@ -64,6 +64,7 @@ export function readVerificationRun(value: unknown, expectedRunId: string): RunS
   const fail = () => new Error("Verification run could not be reopened. Retry the saved request.");
   if (!record(value) || !uuid.test(expectedRunId) || value.runId !== expectedRunId ||
       value.routeMode !== "controlled-research" || value.labeledDemo !== false ||
+      (value.contentInvalidated !== undefined && value.contentInvalidated !== false) ||
       !LifecycleSchema.safeParse(value.lifecycle).success || !PhaseSchema.safeParse(value.phase).success ||
       !(value.reportId === null || typeof value.reportId === "string" && uuid.test(value.reportId)) ||
       !(value.outcome === null || TerminalOutcomeSchema.safeParse(value.outcome).success) ||

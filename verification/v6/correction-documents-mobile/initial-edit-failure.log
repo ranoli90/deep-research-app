@@ -1,0 +1,3 @@
+Initial edit invocation: python - <<...
+/bin/bash: line 1: python: command not found
+Shell continued subsequent cat/install; source edits rerun with python3. No Python edits executed on failed invocation.

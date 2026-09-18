@@ -1,0 +1,19 @@
+
+> @deep/mobile@0.1.0 bundle:android /tmp/deep-correction-mobile/apps/mobile
+> expo export --platform android --output-dir /tmp/deep-correction-mobile-export
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (628/632)
+Android Bundling failed 2707ms apps/mobile/index.ts (632 modules)
+SyntaxError: SyntaxError: /tmp/deep-correction-mobile/apps/mobile/src/persist.ts: Unexpected token (126:8)
+
+  124 |         if (payload === null) await cache.removeItem(ADMISSION_KEY);
+  125 |             await cache.removeItem(CORRECTION_KEY);
+> 126 |         else await cache.setItem(ADMISSION_KEY, payload);
+      |         ^
+  127 |         if (version !== epoch) throw new Error("Session changed while saving request.");
+  128 |       });
+  129 |     },
+/tmp/deep-correction-mobile/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 bundle:android: `expo export --platform android --output-dir /tmp/deep-correction-mobile-export`
+Exit status 1
