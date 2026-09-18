@@ -5,7 +5,7 @@
     "V2-12"
   ],
   "baseCommit": "eb134584dcceb1ccc4b8b018d3df8888aedaf1df",
-  "workingTree": true,
+  "workingTree": false,
   "recordedAt": "2026-09-18T03:10:25.751989+00:00",
   "environment": {
     "node": "20.20.2",
@@ -117,5 +117,6 @@
       "No authenticated API journey in this control.",
       "No source-sheet internal offset, rotation, screen reader, standalone or iOS proof."
     ]
-  }
+  },
+  "implementationCommit": "31539846f2ad1d31d75b5e6cb29edd0d6cb19e6c"
 }

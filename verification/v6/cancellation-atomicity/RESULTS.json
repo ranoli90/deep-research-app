@@ -1,7 +1,7 @@
 {
   "task": "W02/W03 cancellation atomicity and deletion mutation-basis audit",
   "baseCommit": "eb134584dcceb1ccc4b8b018d3df8888aedaf1df",
-  "target": "uncommitted working tree for primary review/integration",
+  "target": "Reviewed implementation checkpoint 31539846f2ad1d31d75b5e6cb29edd0d6cb19e6c",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -73,5 +73,7 @@
       "scope": "Zero temporary test triggers/functions remain. Triggercreation and removal each run transactionally, scoped only generated test run UUIDs.",
       "sha256": "a750ed0b52e569d4f796f61eb1c1f94ac82bdcdf020428ef1872238c753058ab"
     }
-  ]
+  ],
+  "implementationCommit": "31539846f2ad1d31d75b5e6cb29edd0d6cb19e6c",
+  "workingTree": false
 }
