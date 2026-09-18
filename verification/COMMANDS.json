@@ -1112,5 +1112,21 @@
     "network": false,
     "paid": false,
     "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile exec expo prebuild --platform android --no-install",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 isolated ce2f889 native project generation only, not compilation or installed build",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon --console=plain",
+    "status": "implemented_application_command",
+    "scope": "W04/W09 generated isolated Android project dependency resolution; public artifact downloads only, no compilation/deployment/device install",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
   }
 ]

@@ -1,0 +1,64 @@
+{
+  "requirementIds": [
+    "W04",
+    "W09"
+  ],
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "metadataBaseCommit": "6f7d168e688b3b7012b44734a1c84bcbedd67dea",
+  "environment": "Linux,OpenJDK17.0.19,Node20.20.2,pnpm9.15.9,Gradle8.14.3; exact SDK pins in ENVIRONMENT/DECLARATIONS",
+  "results": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "scope": "isolated frozen JavaScript install",
+      "artifact": "install.log",
+      "sha256": "95fb40378e0f9143714c770f19dad0a3ee6b6fedc452074e0406d39ea1f29bf2"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CI=1 pnpm --filter @deep/mobile exec expo prebuild --platform android --no-install",
+      "exitCode": 0,
+      "scope": "generated Android project; no app compilation",
+      "artifact": "prebuild.log",
+      "sha256": "9bb4cee73a7120f2d5a7b8a87a379b2fef55dca85630ead869024a5f0282cdce"
+    },
+    {
+      "command": "GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon --console=plain",
+      "exitCode": 0,
+      "scope": "actual releaseRuntimeClasspath resolution,12m25s,25 Gradle build-plugin tasks; no unresolved dependency entries",
+      "artifact": "gradle-dependencies.log",
+      "sha256": "5cd58c85fd4f3e747d29e00dce6305ebebf183735f7eedb0c964ced2ac0af1c2"
+    }
+  ],
+  "selectedVersions": {
+    "commons-io": "2.6",
+    "commons-codec": "1.10",
+    "okhttp": "4.9.2",
+    "okhttp-urlconnection": "4.9.2",
+    "okio": "2.9.0",
+    "androidx.annotation": "1.8.1",
+    "androidx.biometric": "1.1.0",
+    "react-android": "0.81.4",
+    "hermes-android": "0.81.4"
+  },
+  "security": {
+    "commonsIo": "Selected2.6 is in Apache CVE-2024-47554 affected2.0..<2.14.0 range; XmlStreamReader CPU resource consumption. Reachability not established; no clean native-security claim.",
+    "source": "https://commons.apache.org/proper/commons-io/security.html",
+    "reviewed": "2026-09-18",
+    "sourcePublished": "2026-04-19",
+    "otherNativeDependencies": "No exhaustive advisory or reachability audit claimed",
+    "javascriptAudit": "Existing separate0moderate/2high image-size findings remain"
+  },
+  "mutations": {
+    "rootSource": "none",
+    "isolatedCheckout": "generated Android project; only android/ios launcher scripts changed in package.json, dependencies unchanged",
+    "localToolchain": "Downloaded pinned Gradle8.14.3 and installed NDK27.1.12297006 using pre-existing accepted SDK license",
+    "device": "read-only keyguard check; no app install/launch/cleanup",
+    "paidCalls": 0
+  },
+  "limits": [
+    "Dependency graph resolution is not app compilation, APK, signed release or device acceptance",
+    "Installed standalone APK remains old and untouched",
+    "No root override adopted; native security/compatibility remediation remains before private release",
+    "Device still keyguard showing, screen off; protected synthetic cleanup remains pending"
+  ]
+}

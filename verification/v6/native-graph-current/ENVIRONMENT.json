@@ -1,0 +1,31 @@
+{
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "checkout": "/tmp/deep-native-graph-ce2f889",
+  "java": "OpenJDK17.0.19",
+  "node": "20.20.2",
+  "pnpm": "9.15.9",
+  "gradleUserHome": "/tmp/deep-gradle-ce2f889",
+  "androidSdk": "/home/oranolio/android-sdk",
+  "initialSdkState": {
+    "platforms": "unavailable",
+    "buildTools": [
+      "35.0.0"
+    ],
+    "ndk": "unavailable",
+    "cmdlineTools": [
+      "latest"
+    ]
+  },
+  "deviceProbe": {
+    "commands": [
+      "adb devices -l",
+      "adb -s 10.0.0.167:43417 shell dumpsys window policy | rg 'showing=|isStatusBarKeyguard|keyguardOccluded|inputRestricted|screenState='"
+    ],
+    "exitCodes": [
+      0,
+      0
+    ],
+    "result": "authorized device available, keyguard showing=true, screenState=SCREEN_STATE_OFF; no interaction or unlock attempt"
+  },
+  "scope": "Local public dependency resolution and read-only declared graph. No provider requests, deployment/build service, installed-app mutation or native UI pass."
+}

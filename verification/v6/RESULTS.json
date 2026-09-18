@@ -6267,6 +6267,18 @@
       "evidenceClass": "exact_commit_clean_checkout",
       "scope": "Exactce2f889253185455ec1cef5dc85920e10ce3b816 offline install/verify/mobiletypes/651module2.21MB JS export; clean status, no DB/native/provider repeat",
       "sha256": "f1805484ce98436d13d41258c65d04f5f140b9fd5933a7e6abf6a49724c19352"
+    },
+    {
+      "requirementIds": [
+        "W04",
+        "W09"
+      ],
+      "command": "GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon --console=plain",
+      "exitCode": 0,
+      "artifact": "native-graph-current/RESULTS.json",
+      "evidenceClass": "actual_native_dependency_resolution_not_build",
+      "scope": "Exactce2f889 generated Android release graph;CommonsIO2.6 affectedrange, native security/compatibility still open",
+      "sha256": "0fd2143e5362f48fa2e2aaec09932b96dd0a6153ad78801b3daf85a6aa0ef88f"
     }
   ],
   "unresolved": [
