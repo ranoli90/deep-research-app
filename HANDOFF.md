@@ -37,3 +37,5 @@ Earlier bounded ExpoGo proof covers picker/consent/upload digest/deletion, corre
 Rollback disables new scheduling/acceptance while retaining immutable readers, ownership/tombstones, required challenge/verification/discovery markers, publication vetoes, deletion, receipt settlement and unknown holds. Never restore fixture fallback or erase admitted obligations. No background continuation is promised after execution stops.
 
 W04 HTML list repair over5fb44af: root22/22 actual extraction controls in70.97s/backendtypes pass; isolated8HTML+4PDF pass, generic pre-fix failures retained. Same SQLite saved bytes preserve missing limitation at list:3 understructure-v2; v1 readers unchanged, no frozen gold/heldout edits. Model path still rejects>24passages; separate capacity work is not yet passed. Artifacts verification/v6/html-list-fidelity/ and html-list-integrated/; ADR044; paid0/native0.
+
+HTML list preservation committed as `1aebd5d7dfaded622998a3e0c8fc0934bdd7015e`. Canonical mobile/evaluation prose reconciled with protected storage/recovery and current evidence boundaries. Passage capacity repair remains isolated work in progress; no current>24passage pass.
