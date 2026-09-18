@@ -4,7 +4,7 @@ Goal: compile one-sentence questions into a structured research objective and ro
 
 Non-goals: mobile UI; retrieval/extraction/`structured-research.ts` execution; 10-model fanout; claiming dynamic routing is better before live measurement.
 
-Affected contracts: `research-intent-compiler.v1`, `research-portfolio.v1`, additive `ModelReceipt` cache token fields, migration `043_model_portfolio.sql`.
+Affected contracts: `research-intent-compiler.v1`, `research-portfolio.v1`, additive `ModelReceipt` cache token fields, migration `042_model_portfolio.sql` (canonical; worker A numbered it 043).
 
 Privacy/spend: ZDR and structured-output capability are admission criteria. A cheaper incompatible route is unavailable, not a fallback. Unknown provider outcomes stay held and are not retried. Live semantic evaluation shares the existing explicit-authorization fail-closed runner.
 
