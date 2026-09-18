@@ -1,3 +1,4 @@
+import { restoreEvidenceSelection } from "../modules/evidence-selections.js";
 import type pg from "pg";
 import type PgBoss from "pg-boss";
 import { createHash } from "node:crypto";
@@ -66,6 +67,8 @@ export async function productionDriver(pool:pg.Pool,boss:PgBoss,config:AppConfig
    const cost=await measureRunCost(pool,runId,grant.accountId);if(!cost)throw new Error("evaluation_cost_unavailable");
    const passages=(await pool.query(`SELECT p.id,p.source_version_id,p.content_hash,p.exact_text,p.locator,p.extraction_method,v.access_level,v.content_hash AS source_digest FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$1 AND p.account_id=$2 ORDER BY p.id`,[runId,grant.accountId])).rows;
    const operations=(await pool.query("SELECT intent_id,operation,brief_revision,evidence_revision,schema_version,prompt_version,policy_id,input_manifest FROM model_operation_results WHERE run_id=$1 AND account_id=$2 ORDER BY intent_id",[runId,grant.accountId])).rows;
+   const selections=(await pool.query("SELECT id,brief_revision,evidence_revision,version,question_digest,required_ids,candidates,selection,proof_digest FROM evidence_selections WHERE run_id=$1 AND account_id=$2 ORDER BY id",[runId,grant.accountId])).rows;
+   for(const selection of selections)await restoreEvidenceSelection(pool,{runId,accountId:grant.accountId,briefRevision:run.brief_revision,selectionId:selection.id});
    const attempts=(await pool.query("SELECT id,action_id,route,request_digest,reserved_max_micro,confirmed_micro,state,receipt FROM provider_intents WHERE run_id=$1 ORDER BY id",[runId])).rows;
    const support=(await pool.query("SELECT model_intent_id,claim_revision_id,decision,result FROM scoped_support_results WHERE run_id=$1 AND account_id=$2",[runId,grant.accountId])).rows;
    const extraction=(await pool.query("SELECT DISTINCT e.source_version_id,e.artifact_id,e.transport,e.extraction,v.content_hash AS source_digest FROM extraction_receipts e JOIN source_versions v ON v.id=e.source_version_id AND v.account_id=e.account_id JOIN sources s ON s.id=v.source_id AND s.account_id=v.account_id WHERE e.account_id=$2 AND (s.run_id=$1 OR EXISTS(SELECT 1 FROM authorized_run_passages p WHERE p.source_version_id=v.id AND p.account_id=$2 AND p.run_id=$1))",[runId,grant.accountId])).rows;
@@ -103,7 +106,7 @@ export async function productionDriver(pool:pg.Pool,boss:PgBoss,config:AppConfig
    const brief=await getBrief(pool,run.brief_id);
    const supplied=(await pool.query("SELECT id,filename,mime,sha256,size_bytes,processing_state,extraction FROM attachments WHERE account_id=$1 AND id=ANY($2::uuid[]) AND deleted_at IS NULL",[grant.accountId,brief.attachmentIds])).rows;
    const reuse=(await pool.query("SELECT passage_id,source_version_id FROM run_evidence_membership WHERE run_id=$1 AND account_id=$2",[runId,grant.accountId])).rows;
-   return {runId,...(workerError?{executionError:workerError}:{}),briefRevision:run.brief_revision,lifecycle:run.lifecycle,outcome:run.terminal_outcome,reportId:snapshot.reportId,cost:{confirmedMicro:cost.confirmedProviderMicro,heldMicro:cost.heldProviderMicro,unknownIntents:cost.unknownProviderIntents},trace:{workerError,strategy:run.research_strategy,snapshot,report,passages,operations,attempts,support,extraction,artifacts,supplied,events,reuse,cost}};
+   return {runId,...(workerError?{executionError:workerError}:{}),briefRevision:run.brief_revision,lifecycle:run.lifecycle,outcome:run.terminal_outcome,reportId:snapshot.reportId,cost:{confirmedMicro:cost.confirmedProviderMicro,heldMicro:cost.heldProviderMicro,unknownIntents:cost.unknownProviderIntents},trace:{workerError,strategy:run.research_strategy,snapshot,report,passages,operations,selections,attempts,support,extraction,artifacts,supplied,events,reuse,cost}};
   },
  };
 }

@@ -1,3 +1,4 @@
+import { prepareEvidenceSelection,usesEvidenceSelection } from "../modules/evidence-selections.js";
 import { ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
 import { getCounterevidence } from "../modules/counterevidence.js";
@@ -71,9 +72,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision,strategy:run.research_strategy}});
   });
   if(opts.pauseAt==="researching")return;
+  const selectionEnabled=await session.write(db=>usesEvidenceSelection(db,args));
   const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
     JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
-    AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]));
+    AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]));
   let selected=await selectPassages();
   const savedChallenge=await session.write(db=>getCounterevidence(db,args));
   const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
@@ -106,7 +108,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   for(let iteration=0;iteration<4;iteration++) {
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
     if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
-    const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selected.rows.map((p)=>p.id)});
+    const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,args)):null;
+    if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
+    const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
     if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
     if(!extraction.output.assertions.length)return unresolved("no_relevant_assertions");
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};

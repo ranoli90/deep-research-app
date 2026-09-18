@@ -134,7 +134,13 @@ it("registered official frozen PDFs traverse owned admission and real extraction
    const trace=receipt.trace as any;expect(trace.extraction).toHaveLength(1);expect(trace.artifacts[0].digest).toBe(document.source.sha256);expect(Buffer.from(trace.artifacts[0].bytes_base64,"base64")).toEqual(document.bytes);expect(trace.extraction[0].extraction.version).toBe("docling-parse-7.20.0/geometry-v1");expect(trace.passages.length).toBeGreaterThan(0);expect(trace.supplied).toHaveLength(1);expect(read).not.toHaveBeenCalled();expect(receipt.reportId).toBeNull();expect(receipt.cost.unknownIntents).toBe(0);
    expect(trace.events.every((e:any)=>e.run_id===admitted.runId&&e.account_id===x.account.accountId)).toBe(true);
    expect(trace.events.map((e:any)=>Number(e.sequence))).toEqual(trace.events.map((e:any)=>Number(e.sequence)).sort((a:number,b:number)=>a-b));
-   expect(trace.events.find((e:any)=>e.type==="research_unresolved")?.payload.reason).toBe(sourceId==="esp32"?"model_context_exceeds_policy":"no_relevant_assertions");
+   expect(trace.events.find((e:any)=>e.type==="research_unresolved")?.payload.reason).toBe("no_relevant_assertions");
+   const extraction=trace.operations.find((o:any)=>o.operation==="extract_assertions");expect(extraction).toBeTruthy();expect(trace.selections).toHaveLength(1);
+   const selected=trace.selections[0];expect(selected.selection.available).toBe(trace.passages.length);expect(selected.selection.serializedBytes).toBeLessThanOrEqual(48000);
+   expect(extraction.input_manifest.evidenceSelection.id).toBe(selected.id);
+   expect(extraction.input_manifest.passages.map((p:any)=>p.id)).toEqual(selected.selection.passageIds);
+   expect(selected.candidates.every((p:any)=>typeof p.locatorDigest==="string"&&!p.locator.includes('"geometry"'))).toBe(true);
+   if(sourceId==="esp32"){expect(selected.selection.omitted).toBeGreaterThan(0);expect(selected.selection.passageIds.length).toBeLessThan(78);}
   }finally{await x.driver.close();read.mockRestore();}
  }
 },120000);

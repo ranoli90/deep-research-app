@@ -1,3 +1,4 @@
+import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { calculationWriterContext } from "./calculation-plans.js";
 import { CALCULATED_REPORT_PROMPT_VERSION } from "../ports/model-policy.js";
 import { persistScopeComparison } from "./scope-comparisons.js";
@@ -14,7 +15,7 @@ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 export type CheckedAssertion=ScopedSupportResult & {claimId:string;claimRevisionId:string};
 export type SupportContext={context:ModelContext;evidenceRevision:number;premiseRevisionIds?:Record<string,string[]>;claimType?:"inference"};
 export type SupportArgs={runId:string;accountId:string;briefRevision:number;taskId:string;extractionIntentId:string};
-const Manifest = z.object({version:z.literal("model-input.v1"),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
+const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v5"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
 const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
 
@@ -27,7 +28,7 @@ export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:
   if(row.operation==="write_report"||row.operation==="write_calculated_report") return loadWriterAssertionContext(db,args,versions);
   const manifest=Manifest.safeParse(row.input_manifest);
   if (!manifest.success) throw new Error("support_extraction_manifest_unavailable");
-  const basis=await loadAssertionEvidence(db,{...args,passageIds:manifest.data.passages.map((p)=>p.id)},versions);
+  const basis=await loadAssertionEvidence(db,{...args,passageIds:manifest.data.passages.map((p)=>p.id),selectionId:manifest.data.evidenceSelection?.id},versions);
   if (basis.kind==="blocked") throw new Error(basis.blocked);
   if (basis.evidenceRevision!==row.evidence_revision) throw new Error("support_extraction_basis_changed");
   const saved=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,row.request_digest,basis.context);

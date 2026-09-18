@@ -1,3 +1,7 @@
+import { writeFileSync } from "node:fs";
+import { claimLease } from "../src/modules/runs.js";
+import { fencedSession } from "../src/worker/fenced-session.js";
+import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
 /** Real PostgreSQL/production worker; fabricated model and extraction receipts, no live semantic claim. */
 import { createHash } from "node:crypto";
 import { afterAll,afterEach,beforeAll,expect,it } from "vitest";
@@ -19,11 +23,11 @@ const fact="Ardent supports offline recording only on firmware 4.2.";
 beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
 afterEach(async()=>{globalThis.fetch=originalFetch;for(const id of accounts.splice(0))await deleteAccount(pool,id);});
 afterAll(async()=>{await pool.end();});
-async function setup(count:number,size=100,contradiction=false){
+async function setup(count:number,size=100,contradiction=false,underwater=false){
  const accountId=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s.accountId;});accounts.push(accountId);
  const run=await admitRun(pool,accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research"}));
  const locator="https://example.org/synthetic-capacity.txt",sourceId=await insertSource(pool,{accountId,runId:run.runId,locator,title:"Synthetic firmware note",publisher:"Synthetic",originCluster:"synthetic",sourceType:"web"});
- const texts=Array.from({length:count},(_,i)=>i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
+ const texts=Array.from({length:count},(_,i)=>i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):underwater&&i===count-2?"Ardent does not support underwater recording.":contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
  await insertExtractedVersion(pool,{accountId,runId:run.runId,sourceId,bytes,receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:texts.map((text,i)=>({kind:"text",locator:`paragraph:${i}`,text,rows:[]}))}});
  // Stable UUID order makes the limiting statement demonstrably later than the former 24-passages boundary.
  const prefix=crypto.randomUUID().slice(0,24);
@@ -54,11 +58,65 @@ expect(report!.blocks.map((b:any)=>b.text).join("\n")).toContain(fact);
 });
 it("W05 accepts 128 complete small passages at the bounded capacity",async()=>{const x=await setup(128);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();expect(x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context.passages).toHaveLength(128);},120_000);
 it.each([{count:129,size:100,reason:"invalid_extraction_selection"},{count:25,size:7000,reason:"model_context_exceeds_policy"}])("W02 rejects $count passages / $size characters before extraction issuance",async({count,size,reason})=>{
- const x=await setup(count,size);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
+ const x=await setup(count,size);await processRun(pool,config,x.run.runId,{pauseAt:"researching"});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,x.run.runId,owner,60000))!,session=fencedSession(pool,{accountId:x.accountId,runId:x.run.runId,owner,fence,briefRevision:1,leaseMs:60000});
+ try{const task=(await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.run.runId])).rows[0];
+ const result=await extractEvidenceAssertions(pool,config,session,{accountId:x.accountId,runId:x.run.runId,fence,briefRevision:1,taskId:task.id,passageIds:x.basis.map(p=>p.id)});expect(result).toEqual({kind:"blocked",reason});
+ }finally{session.stop();}
+ expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
  expect(x.contexts.map(c=>c.operation)).toEqual(["research_brief_v1"]);
  const operations=(await pool.query("SELECT operation FROM model_operation_results WHERE run_id=$1",[x.run.runId])).rows;expect(operations).toEqual([{operation:"brief"}]);
  expect((await pool.query("SELECT count(*)::int AS n FROM provider_intents WHERE run_id=$1",[x.run.runId])).rows[0].n).toBe(1);
- expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1",[x.run.runId])).rows)).toContain(reason);
+ // Direct oversize input remains rejected before extraction issuance; worker selection is tested separately.
 });
 
 it("W01 observes a contradiction at passage25 and cannot publish the positive claim",async()=>{const x=await setup(25,100,true);await processRun(pool,config,x.run.runId);const support=x.contexts.find(c=>c.operation==="research_assess_support_v1");expect(support,JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1",[x.run.runId])).rows)).toBeTruthy();const assessment=support!.context;expect(assessment.passages).toHaveLength(25);expect(assessment.passages[24].text).toBe("Ardent does not support offline recording on firmware 4.2.");expect((await pool.query("SELECT decision FROM scoped_support_results WHERE run_id=$1",[x.run.runId])).rows).toEqual([{decision:"disputed"}]);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();});
+
+it.each([{count:129,size:100},{count:25,size:7000}])("W05 selects whole evidence for $count / $size and publishes explicit omissions",async({count,size})=>{
+ const x=await setup(count,size);await processRun(pool,config,x.run.runId);
+ const report=await getLatestReportForRun(pool,x.run.runId,x.accountId);expect(report).toBeTruthy();expect(report!.outcome).toBe("completed_with_limitations");
+ const extraction=x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context,selection=extraction.evidenceSelection;
+ expect(selection.available).toBe(count);expect(selection.omitted).toBeGreaterThan(0);expect(extraction.passages.length).toBe(selection.selected);
+ expect(report!.limitations).toContain(`This assessment selected ${selection.selected} of ${count} available passages. The ${selection.omitted} omitted passages were not assessed; additional qualifications or counterevidence may remain.`);
+ expect(report!.blocks.some((b:{text:string})=>b.text===fact)).toBe(true);
+ for(const p of extraction.passages)expect(x.basis).toContainEqual({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId});
+ expect(extraction.passages.some((p:any)=>p.text===fact)).toBe(true);
+ const calls=x.contexts.length;await processRun(pool,config,x.run.runId);expect(x.contexts.length).toBe(calls);
+ expect((await getLatestReportForRun(pool,x.run.runId,x.accountId))!.id).toBe(report!.id);
+},120_000);
+
+it("W02 terminalizes lost selection proof without another model call or report",async()=>{
+ const x=await setup(25,7000);await processRun(pool,config,x.run.runId,{pauseAt:"writing"});const calls=x.contexts.length;
+ expect((await pool.query("SELECT count(*)::int AS n FROM evidence_selections WHERE run_id=$1",[x.run.runId])).rows[0].n).toBeGreaterThan(0);
+ await pool.query("DELETE FROM evidence_selections WHERE run_id=$1",[x.run.runId]);await processRun(pool,config,x.run.runId);
+ expect(x.contexts.length).toBe(calls);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
+ expect((await pool.query("SELECT lifecycle,terminal_outcome FROM runs WHERE id=$1",[x.run.runId])).rows[0]).toEqual({lifecycle:"terminal",terminal_outcome:"failed"});
+ expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.run.runId])).rows)).toContain("required_selection_proof_missing");
+});
+
+it("W02 retains the legacy input manifest and logical request identity for admitted pre-migration runs",async()=>{
+ const x=await setup(25);await pool.query("UPDATE runs SET evidence_selection_policy='legacy-all.v1' WHERE id=$1",[x.run.runId]);
+ await processRun(pool,config,x.run.runId,{pauseAt:"writing"});
+ const contexts=x.contexts.length,extractions=x.contexts.filter(c=>c.operation==="research_extract_assertions_v1").length;
+ expect(x.contexts.every(c=>c.context.evidenceSelection===undefined)).toBe(true);
+ expect((await pool.query("SELECT count(*)::int AS n FROM evidence_selections WHERE run_id=$1",[x.run.runId])).rows[0].n).toBe(0);
+ await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();
+ expect(x.contexts.filter(c=>c.operation==="research_extract_assertions_v1")).toHaveLength(extractions);expect(x.contexts.length).toBeGreaterThan(contexts);
+ expect(x.contexts.every(c=>c.context.evidenceSelection===undefined)).toBe(true);
+},120_000);
+
+it("W06 changes the requested constraint over an oversized reused document and publishes the newly relevant qualification",async()=>{
+ const x=await setup(25,7000,false,true);await processRun(pool,config,x.run.runId);const original=await getLatestReportForRun(pool,x.run.runId,x.accountId);expect(original).toBeTruthy();
+ expect(original!.blocks.some((b:{text:string})=>b.text===fact)).toBe(true);
+ const correction=await admitResearchCorrection(pool,x.accountId,x.run.runId,CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"The recording must work underwater",patch:{kind:"replace_question",question:"Can Ardent record underwater?",evidencePolicy:"reuse_snapshot"}}));
+ await processRun(pool,{...config,structuredDiscoveryEnabled:true},correction.runId);const revised=await getLatestReportForRun(pool,correction.runId,x.accountId);expect(revised,JSON.stringify({events:(await pool.query("SELECT type,payload FROM run_events WHERE run_id=$1",[correction.runId])).rows,support:(await pool.query("SELECT decision,result FROM scoped_support_results WHERE run_id=$1",[correction.runId])).rows})).toBeTruthy();
+ expect(revised!.outcome).toBe("completed_with_limitations");expect(revised!.blocks.some((b:{text:string})=>b.text==="Ardent does not support underwater recording.")).toBe(true);
+ expect(revised!.blocks.some((b:{text:string})=>b.text===fact)).toBe(false);
+ expect((await pool.query("SELECT reused_passages FROM research_change_sets WHERE run_id=$1",[correction.runId])).rows[0].reused_passages).toBe(25);
+ expect((await pool.query("SELECT count(*)::int AS n FROM run_evidence_membership WHERE run_id=$1",[correction.runId])).rows[0].n).toBe(25);
+ const selections=(await pool.query("SELECT id,run_id,evidence_revision,version,candidates,selection,proof_digest FROM evidence_selections WHERE run_id=ANY($1::uuid[]) ORDER BY run_id,id",[[x.run.runId,correction.runId]])).rows;
+ expect(selections).toHaveLength(2);expect(selections[0].id).not.toBe(selections[1].id);
+ const extraction=x.contexts.filter(c=>c.operation==="research_extract_assertions_v1");expect(extraction).toHaveLength(2);
+ for(const ctx of extraction)for(const p of ctx.context.passages)expect(x.basis).toContainEqual({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId});
+ if(process.env.EVIDENCE_SELECTION_TRACE_PATH)writeFileSync(process.env.EVIDENCE_SELECTION_TRACE_PATH,JSON.stringify({evidenceClass:"synthetic production-worker and real PostgreSQL; fabricated model/extraction receipts",original,revised,selections,passages:x.basis,contexts:x.contexts,reusedPassages:25,paidCost:0,semanticQuality:null},null,2));
+},120_000);

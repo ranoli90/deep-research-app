@@ -12,7 +12,7 @@ type Outcome = { kind:"extraction"; intentId:string; taskId:string; evidenceRevi
 
 /** Executes extraction on explicitly selected whole passages. No fixture catalog or model-owned authority. */
 export async function extractEvidenceAssertions(pool:pg.Pool, config:AppConfig, session:FencedSession, args:{
-  runId:string; accountId:string; fence:number; briefRevision:number; taskId:string; passageIds:string[];
+  runId:string; accountId:string; fence:number; briefRevision:number; taskId:string; passageIds:string[]; selectionId?:string;
 }):Promise<Outcome> {
   const basis = await session.write((db) => loadAssertionEvidence(db,args,TASK_MODEL_VERSIONS));
   if (basis.kind === "blocked") return { kind:"blocked",reason:basis.blocked };

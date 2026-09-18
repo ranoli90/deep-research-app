@@ -1,6 +1,14 @@
 # Builder handoff
 
-## Current continuation — ADR054
+## Current continuation — ADR055
+
+Base `3f22f5b3cd96b85fc78c1843fc9feb1bcb367562`, branch `codex/v6-saved-html`. Bounded whole-passage selection is implemented through production extraction/support/writing/publication. Migration038 preserves legacy policy for existing runs and stamps only new runs. Exact inventory metadata uses block positions and full-locator hashes (PDF geometry is not duplicated). Model-input.v5 binds selection proof; current publication requires omission warnings. Missing/corrupt proof terminalizes without reissuing a model action. Source/account deletion purges inventory; rollback must retain admitted policies, proof/obligation readers, deletion and unknown financial holds.
+
+Final broad checks are pending at this source checkpoint. Prior focused failures are retained: old oversize worker expectations now receive qualified reports; direct executable oversize negatives remain. The new correction control initially hit correction_rediscovery_disabled; fixing its configuration restores the safety-required discovery path and the revised negative underwater statement with25 actual reused passages. A test callback implicit-any caused one verify failure and was typed. Official ESP32's old expected capacity failure now becomes no_relevant_assertions under fabricated transport:23/78 selected passages, no report or semantic pass. One metadata review removed duplicated PDF geometry text from the inventory in favor of a full-locator digest; ranking was not tuned to official reference answers.
+
+Next executable work: final full PostgreSQL and actual parser/evaluation checks, exact artifact/commit handoff, then measured semantic recall/answer failures. The W01–W09 milestone remains incomplete; live monetary authorization is unproven and paid execution stays gated. No new native build, hosted execution, deployment or push. Preserve all three user ZIPs and existing evidence. Canonical behavior: ADR055 and ENGINE_CONTRACTS; change packet: specs/features/evidence-selection/.
+
+## Previous continuation — ADR054
 
 Runtime commit `643e20358c5d05a0480e701215f5f1df7963d68c`; strengthened numeric regression `47c3c1a53e637cd83b08e04e1c8d756095dc48d4`. Current branch `codex/v6-saved-html`, base `4d818feb1dcf8808b38c980ac2f2f204977e2d7b` (merged main). The W01–W09 milestone remains incomplete. Saved UTF-8 HTML now enters authenticated binary upload, isolated extraction and registered frozen evaluation using the existing production worker/writer/checker. Structure-v4 fixes reproduced unlabelled UTF-8 corruption; old receipts remain readable and immutable. See `verification/v6/current-continuation/` for exact commands, failures, traces and final results as recorded. No new mobile picker/native build, paid model call, deployment or push.
 

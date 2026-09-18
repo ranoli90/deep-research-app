@@ -1,3 +1,4 @@
+import { validateSelectionContext } from "./evidence-selections.js";
 import { calculationWriterContext } from "./calculation-plans.js";
 import { compareAssertionScopes, projectScopeComparison } from "@deep/research-core";
 import { createHash } from "node:crypto";
@@ -11,6 +12,7 @@ export async function validateOwnedModelContext(db: Queryable, args: {
 }): Promise<void> {
   const run = await getRun(db, args.runId);
   if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision || run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
+  if(args.context.evidenceSelection)await validateSelectionContext(db,{...args,selection:args.context.evidenceSelection,passageIds:args.context.passages.map(p=>p.id)});
   if(args.context.scopeComparison) {
     const computed=compareAssertionScopes({type:"compare_scopes",claimKeys:args.context.assertions.map(a=>a.key)},args.context.assertions);
     const expected=args.context.scopeComparison.version==="scope-comparison-context.v1"?projectScopeComparison(computed,args.context.assertions):computed;
@@ -61,10 +63,11 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 /** Metadata only: exact selected membership, never a claim of full-document coverage. */
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-  return { version:context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  return { version:context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
     approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
+    ...(context.evidenceSelection?{evidenceSelection:context.evidenceSelection}:{}),
     ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}),
     ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}) };
 }

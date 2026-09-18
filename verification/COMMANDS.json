@@ -1480,5 +1480,37 @@
     "status": "implemented_application_command",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/evidence-selection.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W01/W02/W03/W05 whole-passage selection proof, actual PostgreSQL concurrent replay, ownership, omissions, corruption and deletion; no provider network",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/evidence-selection.integration.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EVIDENCE_SELECTION_TRACE_PATH=/tmp/deep-selection-journey.json pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts test/evidence-selection.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W01/W02/W03/W05/W06 selection capacity, exact proof, correction, replay, real local PostgreSQL; fabricated model and extraction transports",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/evidence-selection.integration.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/official-before pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'registered official frozen PDFs'",
+    "status": "implemented_application_command",
+    "scope": "W04/W05 unchanged official document capacity expectation before updating regression; actual isolated parser, fabricated model",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/eval-live.extraction.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/home/oranolio/Desktop/Deep/verification/v6/evidence-selection/extraction-traces pnpm --filter @deep/backend test:extraction",
+    "status": "implemented_application_command",
+    "scope": "W04/W05/W08 full actual isolated parser/API/worker evaluation traces with selection inventory; fabricated model, no semantic success or paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/eval-live.extraction.test.ts"
   }
 ]

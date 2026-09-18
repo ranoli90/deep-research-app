@@ -1,3 +1,4 @@
+import { evidenceSelectionLimitations } from "../modules/evidence-selections.js";
 import { counterevidenceLimitations } from "../modules/counterevidence.js";
 import { executeCalculatedCoverage } from "./calculated-coverage.js";
 import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
@@ -58,7 +59,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;
-    const challengeLimitations=await counterevidenceLimitations(db,args);
+    const challengeLimitations=[...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,args)];
     const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length;
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");

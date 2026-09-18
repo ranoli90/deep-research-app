@@ -1,3 +1,5 @@
+import { prepareEvidenceSelection,usesEvidenceSelection } from "./evidence-selections.js";
+import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { COUNTEREVIDENCE_VERSION,CounterevidenceActionSchema,CounterevidenceOutcomeSchema,ResearchModelOutputs,RESEARCH_MODEL_SCHEMA_VERSION } from "@deep/contracts";
@@ -69,6 +71,7 @@ async function validateTargets(db:Queryable,row:SavedCounterevidence) {
  AND operation='extract_assertions' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,[row.extraction_intent_id,row.account_id,row.run_id,row.brief_revision,row.original_evidence_revision,RESEARCH_MODEL_SCHEMA_VERSION,MODEL_PROMPT_VERSION,STRUCTURED_MODEL_POLICY.id])).rows[0];
  if(!extraction)throw new Error("challenge_original_extraction_unavailable");
  const original=await loadAssertionEvidence(db,{runId:row.run_id,accountId:row.account_id,briefRevision:row.brief_revision,taskId:row.task_id,
+  selectionId:z.object({evidenceSelection:EvidenceSelectionContextSchema.optional()}).parse(extraction.input_manifest).evidenceSelection?.id,
   passageIds:z.object({passages:z.array(z.object({id:z.string().uuid()}))}).parse(extraction.input_manifest).passages.map(p=>p.id)},versions);
  if(original.kind!=="basis"||original.context.passages.some(p=>createHash("sha256").update(p.text).digest("hex")!==p.digest))throw new Error("challenge_original_evidence_changed");
  if(counterevidenceDigest(modelInputManifest(original.context).passages)!==row.original_evidence_digest)throw new Error("challenge_original_evidence_digest_mismatch");
@@ -92,9 +95,11 @@ async function validateTargets(db:Queryable,row:SavedCounterevidence) {
 export async function counterevidenceContext(db:Queryable,args:{runId:string;accountId:string;briefRevision:number}) {
  const row=await getCounterevidence(db,args);if(!row)throw new Error("challenge_missing");
  const targets=await validateTargets(db,row);
- const selected=await db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+ const selection=await usesEvidenceSelection(db,args)?await prepareEvidenceSelection(db,{...args,requiredIds:targets.flatMap(t=>t.assertion.evidence.map(e=>e.passageId))}):null;
+ if(selection&&selection.kind!=="selected")return {kind:"blocked" as const,reason:selection.reason,row};
+ const legacy=selection?null:await db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
  WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND v.access_level IN ('partial-text','full-text') ORDER BY p.id`,[args.accountId,args.runId]);
- const basis=await loadAssertionEvidence(db,{...args,taskId:row.task_id,passageIds:selected.rows.map(p=>p.id)},versions);
+ const basis=await loadAssertionEvidence(db,{...args,taskId:row.task_id,passageIds:selection?selection.passageIds:legacy!.rows.map(p=>p.id),selectionId:selection?.context.id},versions);
  if(basis.kind!=="basis")return {kind:"blocked" as const,reason:basis.blocked,row};
  // All initial target quotes must remain authorized and exact in the selected fresh evidence.
  for(const t of targets)for(const quote of t.assertion.evidence){const p=basis.context.passages.find(p=>p.id===quote.passageId);

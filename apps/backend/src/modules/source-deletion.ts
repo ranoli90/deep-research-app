@@ -46,7 +46,7 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
    request_digest=NULL,idempotency_key=NULL,updated_at=now() WHERE account_id=$1 AND id=ANY($2::uuid[])`,[accountId,runIds]);
   await db.query("DELETE FROM run_leases WHERE run_id=ANY($1::uuid[])",[runIds]);
   await db.query("DELETE FROM run_evidence_membership WHERE account_id=$1 AND (run_id=ANY($2::uuid[]) OR source_version_id=ANY($3::uuid[]))",[accountId,runIds,versions]);
-  for(const table of ["requested_verifications","research_change_sets","counterevidence_checks","source_read_operations","search_operations","calculated_report_coverage",
+  for(const table of ["evidence_selections","requested_verifications","research_change_sets","counterevidence_checks","source_read_operations","search_operations","calculated_report_coverage",
    "research_drafts","calculation_plans","calculation_claims","evidence_calculations","scope_comparisons","research_coverage",
    "scoped_support_results","extracted_assertions","research_tasks","model_operation_results","support_assessments","report_derivations","claim_revisions"])
    await db.query(`DELETE FROM ${table} WHERE account_id=$1 AND run_id=ANY($2::uuid[])`,[accountId,runIds]);

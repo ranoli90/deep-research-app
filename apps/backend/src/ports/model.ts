@@ -1,3 +1,4 @@
+import { EvidenceSelectionContextSchema } from "./evidence-selection.js";
 import { z } from "zod";
 import { EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
@@ -6,6 +7,7 @@ export const MODEL_CONTEXT_MAX_PASSAGES = 128;
 
 /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
 export const ModelContextSchema = z.object({
+  evidenceSelection: EvidenceSelectionContextSchema.optional(),
   question: z.string().min(1).max(20_000),
   task: ResearchModelOutputs.brief.nullable(),
   passages: z.array(z.object({ id: z.string().uuid(), sourceVersionId: z.string().uuid(),

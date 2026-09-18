@@ -38,3 +38,4 @@ export * from "./counterevidence.js";
 export { requestedVerificationOutcome } from "./requested-verification.js";
 
 export { applyQuestionPatch } from "./question-patch.js";
+export { selectWholePassages, EVIDENCE_SELECTION_VERSION, EVIDENCE_SELECTION_LIMITS, type SelectionPassage, type EvidenceSelection } from "./evidence-selection.js";
