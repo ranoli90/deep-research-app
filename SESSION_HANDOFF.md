@@ -14,14 +14,15 @@ Final SHA: `bf9f95233767a95a2256c35138b7889d06461e74` (not merged to `main`).
 - Evidence-value adaptive breadth with hard discovery ceiling; `not found` is coverage, not nonexistence.
 - Whole-passage selector neighbor bundles now include heading/table/footnote/exception/date-version context; inventory veto and empty-selection recovery unchanged.
 - Origin clustering so syndicated copies count as one confirmation.
-- Criterion-specific freshness policy persisted.
+- Criterion-specific freshness policy persisted **and evaluated** from stored `publication_date` (`sourcesHaveUnmetFreshness`; a null date is unknown, not stale). Search adoption parses ISO dates from snippets and `insertSource` writes them.
+- Opening discovery records its source class so a weak/stale follow-up does not repeat `plan.primary`; `nextSourceClass([], {weak:true})` returns the first fallback.
 - Document/web reconciliation outcomes with permission requirement for private-only terms.
 - OSS radar with measured Adopt/Experiment/Watch/Reject. No new shipped dependency.
 
 ## Files / migrations / dependencies
 
 - New research-core: `query-intelligence.ts`, `source-strategy.ts`, `adaptive-breadth.ts`, `freshness.ts`, `reconciliation.ts`; independence clustering; evidence-selection structural neighbors.
-- Backend: `modules/retrieval-intelligence.ts`, `worker/public-search.ts`, `worker/structured-research.ts`, `modules/search-sources.ts`, `modules/access.ts`, `modules/source-deletion.ts`.
+- Backend: `modules/retrieval-intelligence.ts`, `worker/public-search.ts`, `worker/structured-research.ts`, `modules/search-sources.ts`, `modules/evidence.ts`, `modules/access.ts`, `modules/source-deletion.ts`.
 - Migration `044_retrieval_intelligence.sql` (avoids Session C `042_model_portfolio` and Session A `043_model_portfolio`).
 - Tests: research-core query/source/selection-heldout/independence/freshness/reconciliation; `apps/backend/test/retrieval-evidence.integration.test.ts`.
 - Docs: ADR062, `specs/features/retrieval-evidence/README.md`, ENGINE_CONTRACTS, STATUS, HANDOFF, EXECUTION_LEDGER.
@@ -48,6 +49,8 @@ Final SHA: `bf9f95233767a95a2256c35138b7889d06461e74` (not merged to `main`).
 | `pnpm verify` | 0 | typecheck + 200 research-core + 170 backend unit + 206 mobile + boundaries=ok + 6 governance |
 | `pnpm test:integration` (full matrix, pre-review-fix) | 1 | isolated `deep_research_session_b_full_v3_20260918`: 460 passed / 1 timeout (`W05 counterevidence … contradiction=false linked=true` at 30s). Timeout allowance added; not a weakened assertion. |
 | focused retrieval-evidence after review wiring | 0 | 3/3 twice on `deep_research_session_b_20260918` |
+| focused retrieval-evidence after date/class wiring | 0 | 4/4 twice on `deep_research_session_b_20260918` including persisted `publication_date` + `sourcesHaveUnmetFreshness` |
+| `pnpm --filter @deep/research-core test` after date/class wiring | 0 | 201/201 |
 | `TEST_DATABASE_URL=...deep_research_session_b_postreview_20260918 pnpm test:integration` at `caa0f40` | 1 | 460 passed / 1 failed. Heavy files green (model-gateway 136, passage-capacity 17, retrieval-evidence 3). Remaining: `W03 deletion winning the account lock prevents a waiting append from reviving the document` resolved instead of rejecting. Isolated re-run of that file: 11/11 exit 0. Treated as lock-race flake under a 26-minute suite, not a weakened assertion. |
 | `TEST_DATABASE_URL=...deep_research_session_b_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend test:extraction` | 0 | serial after integration: 55/55. Concurrent earlier run timed out the upload PDF journey at 30s; 120s allowance added; upload case then 21434ms. |
 

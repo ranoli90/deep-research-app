@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,DISCOVERY_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,evaluateFreshness,freshnessPolicyForQuestion,type SourceClass } from "@deep/research-core";
+import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
@@ -99,8 +99,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(brief.attachmentIds.length&&!publicQueryApproved)return unresolved("document_search_requires_public_query_approval");
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     // A bounded initial discovery pass. Completion still requires executed criterion coverage.
+    const openingPlan=planSourceClass(brief.originalQuestion);
+    classesAttempted.push(openingPlan.primary);
     queries.push(brief.originalQuestion);
-    const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:{
+    const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,sourceClass:openingPlan.primary,proposal:{
       rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
         publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
     if(search.kind!=="search")return pendingOrBlocked(search);
@@ -159,7 +161,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
       const failedQueries=Number((await pool.query(`SELECT count(*)::int AS n FROM search_operations s WHERE s.run_id=$1 AND s.account_id=$2 AND COALESCE(jsonb_array_length(s.result->'hits'),0)=0`,[args.runId,args.accountId])).rows[0]?.n??0);
       const policy=freshnessPolicyForQuestion(brief.originalQuestion);
-      const freshnessUnmet=sources.some((s)=>evaluateFreshness(policy,{observedAt:new Date(),sourceDate:null})==="stale");
+      const freshnessUnmet=sourcesHaveUnmetFreshness(policy,sources);
       const nextClass=nextSourceClass(plan,classesAttempted,{
         weak:sources.length>0&&sources.every((s)=>isWeakSourceClass(s)),
         duplicative:sources.length>1&&independentConfirmationCount(sources)<sources.length,

@@ -1,5 +1,6 @@
 import type { Queryable } from "../platform/db.js";
 import { DISCOVERY_POLICY,SearchResultSchema } from "../ports/search.js";
+import { parseSourcePublicationDate } from "@deep/research-core";
 import { insertSource,insertVersionAndPassage } from "./evidence.js";
 import { bumpEvidence } from "./runs.js";
 import { persistSourceOrigins } from "./retrieval-intelligence.js";
@@ -14,7 +15,7 @@ export async function adoptSearchSources(db:Queryable,args:{runId:string;account
  for(const hit of parsed.data.hits) {
   const prior=(await db.query("SELECT s.id,(s.run_id=$1) AS owned FROM sources s WHERE s.account_id=$2 AND s.canonical_locator=$3 AND (s.run_id=$1 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$1 AND p.account_id=$2 AND v.source_id=s.id)) ORDER BY (s.run_id=$1) DESC LIMIT 1",[args.runId,args.accountId,hit.locator])).rows[0];
   if(prior){if(prior.owned)sourceIds.push(prior.id);continue;}
-  const id=await insertSource(db,{...args,...hit});sourceIds.push(id);changed=true;
+  const id=await insertSource(db,{...args,...hit,publicationDate:parseSourcePublicationDate(`${hit.title}\n${hit.snippet}`)});sourceIds.push(id);changed=true;
   if(hit.snippet)await insertVersionAndPassage(db,{...args,sourceId:id,locator:hit.locator,text:hit.snippet,accessLevel:"snippet",extractionMethod:"search-snippet"});
  }
  if(changed)await bumpEvidence(db,args.runId);

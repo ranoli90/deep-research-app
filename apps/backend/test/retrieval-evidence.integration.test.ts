@@ -10,9 +10,10 @@ import { loadConfig } from "../src/platform/config.js";
 import { ensureResearchTask } from "../src/worker/research-task.js";
 import { performPublicSearch } from "../src/worker/public-search.js";
 import { adoptSearchSources } from "../src/modules/search-sources.js";
-import { persistFreshnessPolicy, persistReconciliation, persistSearchCoverage } from "../src/modules/retrieval-intelligence.js";
+import { persistFreshnessPolicy, persistReconciliation, persistSearchCoverage, loadRunStoredSources } from "../src/modules/retrieval-intelligence.js";
 import { prepareEvidenceSelection } from "../src/modules/evidence-selections.js";
-import { reconcileDocumentClaim, recordSearchCoverage } from "@deep/research-core";
+import { freshnessPolicyForQuestion, reconcileDocumentClaim, recordSearchCoverage, sourcesHaveUnmetFreshness } from "@deep/research-core";
+import { insertSource } from "../src/modules/evidence.js";
 
 const originalFetch = globalThis.fetch;
 let pool: pg.Pool;
@@ -37,10 +38,10 @@ const response = (output: unknown = brief) => new Response(JSON.stringify({
   id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI", usage: { cost: "0.000001" },
   choices: [{ finish_reason: "stop", message: { content: JSON.stringify(output) } }],
 }), { status: 200 });
-function searchReply(url = "https://example.org/study") {
+function searchReply(url = "https://example.org/study", content = "Restoration findings") {
   return new Response(JSON.stringify({
     id: "nonbillable-search", model: "openai/gpt-4o-mini", provider: "OpenAI", usage: { cost: "0.000003" },
-    choices: [{ finish_reason: "stop", message: { annotations: [{ type: "url_citation", url_citation: { url, title: "Study", content: "Restoration findings" } }] } }],
+    choices: [{ finish_reason: "stop", message: { annotations: [{ type: "url_citation", url_citation: { url, title: "Study", content } }] } }],
   }));
 }
 
@@ -120,6 +121,25 @@ describe("Session B retrieval/evidence worker path", () => {
     expect((await pool.query("SELECT 1 FROM document_web_reconciliations WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
     expect((await pool.query("SELECT 1 FROM source_origin_links WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
     expect((await pool.query("SELECT 1 FROM search_coverage WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
+  }));
+
+  it("persists search-hit publication dates and uses them for freshness, not a hardcoded null", async () => runCase(async (x) => {
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply("https://example.org/pricing", "Official list price as of 2025-01-01 is 40 EUR.")) as typeof fetch;
+    const first = await performPublicSearch(pool, c.config, x.session, c.args);
+    expect(first).toMatchObject({ kind: "search", reused: false });
+    await x.session.write((db) => adoptSearchSources(db, { ...c.args, intentId: (first as { intentId: string }).intentId }));
+    const stored = await loadRunStoredSources(pool, { accountId: x.accountId, runId: x.runId });
+    const dated = (await pool.query("SELECT title, publication_date::text AS d, canonical_locator FROM sources WHERE run_id=$1", [x.runId])).rows;
+    expect(dated, JSON.stringify({ stored, dated })).toEqual(expect.arrayContaining([expect.objectContaining({ d: "2025-01-01" })]));
+    expect(stored.some((s) => s.publicationDate && s.publicationDate.toISOString().slice(0, 10) === "2025-01-01"), JSON.stringify(stored)).toBe(true);
+    const policy = freshnessPolicyForQuestion("What is the current price of Zephyr Pro?");
+    expect(sourcesHaveUnmetFreshness(policy, stored, new Date("2026-09-18T12:00:00Z"))).toBe(true);
+    const direct = await insertSource(pool, {
+      accountId: x.accountId, runId: x.runId, locator: "https://example.org/dated-insert", title: "Dated",
+      publisher: "Vendor", originCluster: "vendor", publicationDate: new Date("2024-06-01T00:00:00Z"),
+    });
+    expect((await pool.query("SELECT publication_date::text AS d FROM sources WHERE id=$1", [direct])).rows[0].d).toBe("2024-06-01");
   }));
 
   it("keeps missing selection proof terminal and does not send all evidence", async () => runCase(async (x) => {

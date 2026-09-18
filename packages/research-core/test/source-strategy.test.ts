@@ -36,6 +36,9 @@ describe("source-type planning", () => {
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: true, duplicative: false, stale: false })).toBe("vendor-docs");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: false, duplicative: true, stale: false })).toBe("vendor-docs");
     expect(nextSourceClass(plan, [], { weak: false, duplicative: false, stale: false })).toBe("first-party-pricing");
+    expect(nextSourceClass(plan, [], { weak: true, duplicative: false, stale: false })).toBe("vendor-docs");
+    expect(nextSourceClass(plan, [], { weak: false, duplicative: true, stale: false })).toBe("vendor-docs");
+    expect(nextSourceClass(plan, [], { weak: false, duplicative: false, stale: true })).toBe("vendor-docs");
   });
 });
 

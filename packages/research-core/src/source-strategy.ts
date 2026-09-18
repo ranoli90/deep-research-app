@@ -89,6 +89,7 @@ export function nextSourceClass(plan: SourcePlan, attempted: readonly string[], 
 }): SourceClass {
   if (!evidence.weak && !evidence.duplicative && !evidence.stale) return plan.primary;
   const order = [plan.primary, ...plan.fallbacks];
+  if (!attempted.length) return plan.fallbacks[0] ?? plan.primary;
   const unused = order.find((c) => !attempted.includes(c));
   return unused ?? order[order.length - 1]!;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clusterSourceOrigins, independentConfirmationCount, independentConfirmationCountFromClusters } from "../src/independence.js";
-import { evaluateFreshness, freshnessPolicyForQuestion } from "../src/freshness.js";
+import { evaluateFreshness, freshnessPolicyForQuestion, parseSourcePublicationDate, sourcesHaveUnmetFreshness } from "../src/freshness.js";
 import type { StoredSource } from "../src/types.js";
 
 function site(id: string, host: string): StoredSource {
@@ -81,5 +81,18 @@ describe("criterion-specific freshness", () => {
     expect(freshnessPolicyForQuestion("What is the current effective EU AI Act rule in France?").class).toBe("law");
     expect(freshnessPolicyForQuestion("Is Nimbus compatible with firmware 4.2?").requiresVersion).toBe(true);
     expect(freshnessPolicyForQuestion("Does the 2024 trial support the claim?").class).toBe("science");
+  });
+
+  it("does not treat a missing sourceDate as stale and requires the stored publication date", () => {
+    const policy = freshnessPolicyForQuestion("What is the current price of Zephyr Pro?");
+    const dated = new Date("2025-01-01T00:00:00Z");
+    expect(evaluateFreshness(policy, { observedAt: now, sourceDate: null, now })).toBe("unknown");
+    expect(evaluateFreshness(policy, { observedAt: now, sourceDate: dated, now })).toBe("stale");
+    const sources = [{ publicationDate: dated }];
+    const hardcodedNull = sources.some((s) => evaluateFreshness(policy, { observedAt: now, sourceDate: null, now }) === "stale");
+    expect(hardcodedNull).toBe(false);
+    expect(sourcesHaveUnmetFreshness(policy, sources, now)).toBe(true);
+    expect(sourcesHaveUnmetFreshness(policy, [{ publicationDate: null }], now)).toBe(false);
+    expect(parseSourcePublicationDate("List price as of 2025-01-01 is 40 EUR.")?.toISOString().slice(0, 10)).toBe("2025-01-01");
   });
 });

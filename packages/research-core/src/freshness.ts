@@ -96,3 +96,22 @@ export function evaluateFreshness(policy: FreshnessPolicy, args: {
   if (ageHours < 0) return "unknown";
   return ageHours <= policy.maxAgeHours ? "fresh" : "stale";
 }
+
+/** ISO calendar dates only. Absence is unknown, never stale. */
+export function parseSourcePublicationDate(text: string): Date | null {
+  const iso = text.match(/\b(20\d{2}|19\d{2})-(\d{2})-(\d{2})\b/);
+  if (!iso) return null;
+  const d = new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function sourcesHaveUnmetFreshness(
+  policy: FreshnessPolicy,
+  sources: ReadonlyArray<{ publicationDate?: Date | null }>,
+  now?: Date,
+): boolean {
+  const observedAt = now ?? new Date();
+  return sources.some(
+    (s) => evaluateFreshness(policy, { observedAt, sourceDate: s.publicationDate ?? null, now: observedAt }) === "stale",
+  );
+}

@@ -50,8 +50,8 @@ export async function hasPublicQueryApproval(db: Queryable, args: { accountId: s
 }
 
 export async function loadRunStoredSources(db: Queryable, args: { accountId: string; runId: string }): Promise<StoredSource[]> {
-  const rows = await db.query<{ id: string; title: string; locator: string; source_type: string | null; origin_cluster: string | null; publisher: string | null }>(
-    `SELECT id, title, canonical_locator AS locator, source_type, origin_cluster, publisher FROM sources WHERE account_id=$1 AND run_id=$2`,
+  const rows = await db.query<{ id: string; title: string; locator: string; source_type: string | null; origin_cluster: string | null; publisher: string | null; publication_date: Date | string | null }>(
+    `SELECT id, title, canonical_locator AS locator, source_type, origin_cluster, publisher, publication_date FROM sources WHERE account_id=$1 AND run_id=$2`,
     [args.accountId, args.runId],
   );
   return rows.rows.map((s) => ({
@@ -62,6 +62,11 @@ export async function loadRunStoredSources(db: Queryable, args: { accountId: str
     sourceType: s.source_type ?? undefined,
     originCluster: s.origin_cluster ?? undefined,
     publisher: s.publisher ?? undefined,
+    publicationDate: !s.publication_date
+      ? null
+      : s.publication_date instanceof Date
+        ? new Date(`${s.publication_date.toISOString().slice(0, 10)}T00:00:00Z`)
+        : new Date(`${String(s.publication_date).slice(0, 10)}T00:00:00Z`),
   }));
 }
 

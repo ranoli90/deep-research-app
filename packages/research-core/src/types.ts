@@ -114,6 +114,7 @@ export type StoredSource = {
   snippet?: string;
   language?: string;
   translated?: boolean;
+  publicationDate?: Date | null;
 };
 
 export type StoredPassage = {

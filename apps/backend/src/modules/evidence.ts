@@ -52,12 +52,13 @@ export async function insertSource(
     sourceType?: string;
     population?: string;
     language?: string;
+    publicationDate?: Date | string | null;
   },
 ): Promise<string> {
   const id = crypto.randomUUID();
   await db.query(
-    `INSERT INTO sources (id, account_id, run_id, canonical_locator, original_locator, publisher, title, source_type, origin_cluster, population, language)
-     VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10)`,
+    `INSERT INTO sources (id, account_id, run_id, canonical_locator, original_locator, publisher, title, source_type, origin_cluster, population, language, publication_date)
+     VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       id,
       args.accountId,
@@ -69,6 +70,7 @@ export async function insertSource(
       args.originCluster,
       args.population ?? null,
       args.language ?? null,
+      args.publicationDate instanceof Date ? args.publicationDate.toISOString().slice(0, 10) : args.publicationDate ?? null,
     ],
   );
   return id;
