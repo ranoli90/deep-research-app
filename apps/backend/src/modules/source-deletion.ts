@@ -2,6 +2,7 @@ import type pg from "pg";
 import { z } from "zod";
 import { withTx } from "../platform/db.js";
 import { lockActiveAccount } from "./access.js";
+import { admissionKeyHash } from "./admission-recovery.js";
 import { settleRun } from "./billing.js";
 
 /** Source removal is an account-serialized privacy mutation, never a new research action. */
@@ -23,18 +24,23 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
   const passages=(await db.query<{id:string}>("SELECT id FROM passages WHERE account_id=$1 AND source_version_id=ANY($2::uuid[])",[accountId,versions])).rows.map(r=>r.id);
   // Exact reuse links seed invalidation. Descendants are conservative because copied
   // questions/report comparisons lack a complete dependency graph.
-  const affected=(await db.query<{id:string;spent_micro:string}>(`WITH RECURSIVE affected(id) AS (
+  const affected=(await db.query<{id:string;spent_micro:string;idempotency_key:string|null}>(`WITH RECURSIVE affected(id) AS (
    SELECT r.id FROM runs r JOIN research_briefs b ON b.id=r.brief_id WHERE r.account_id=$1 AND (
     r.id IN(SELECT run_id FROM sources WHERE account_id=$1 AND id=ANY($2::uuid[]))
     OR r.id IN(SELECT run_id FROM run_evidence_membership WHERE account_id=$1 AND source_version_id=ANY($3::uuid[]))
     OR r.id IN(SELECT c.run_id FROM claims c JOIN claim_evidence e ON e.claim_id=c.id WHERE c.account_id=$1 AND e.passage_id=ANY($4::uuid[]))
     OR (b.payload->'attachmentIds') ?| $5::text[])
    UNION SELECT r.id FROM runs r JOIN affected p ON r.parent_run_id=p.id WHERE r.account_id=$1)
-   SELECT r.id,r.spent_micro FROM runs r JOIN affected a ON a.id=r.id ORDER BY r.id FOR UPDATE OF r`,[accountId,sourceIds,versions,passages,attachments])).rows;
+   SELECT r.id,r.spent_micro,r.idempotency_key FROM runs r JOIN affected a ON a.id=r.id ORDER BY r.id FOR UPDATE OF r`,[accountId,sourceIds,versions,passages,attachments])).rows;
   const runIds=affected.map(r=>r.id);
   for(const [kind,ids] of [["source",sourceIds],["run",runIds]] as const)await db.query(`INSERT INTO tombstones(account_id,object_kind,object_id,reason)
    SELECT $1,$2,objects.object_id,'source_deletion' FROM unnest($3::uuid[]) AS objects(object_id)
    WHERE NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$1 AND t.object_kind=$2 AND t.object_id=objects.object_id AND t.reason='source_deletion')`,[accountId,kind,ids]);
+  // Keep only the opaque admission identity before scrubbing run metadata. A
+  // delayed client retry must not recreate research invalidated by deletion.
+  for (const run of affected) if (run.idempotency_key !== null)
+   await db.query("INSERT INTO admission_withdrawals(account_id,key_hash) VALUES($1,$2) ON CONFLICT DO NOTHING",
+    [accountId,admissionKeyHash(run.idempotency_key)]);
   await db.query(`UPDATE runs SET lifecycle='terminal',terminal_outcome='cancelled',cancellation_epoch=cancellation_epoch+1,
    worker_lease_fence=worker_lease_fence+1,evidence_revision=evidence_revision+1,controller_artifacts='{}',
    request_digest=NULL,idempotency_key=NULL,updated_at=now() WHERE account_id=$1 AND id=ANY($2::uuid[])`,[accountId,runIds]);

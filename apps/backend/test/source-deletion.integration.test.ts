@@ -192,3 +192,19 @@ it("W02/W03 source deletion keeps unknown provider and account holds until actua
  expect((await pool.query("SELECT state,settled_micro FROM reservations WHERE run_id=$1",[created.runId])).rows).toEqual([{state:"settled",settled_micro:"12000"}]);
  expect(await liveSpendUsedMicro(pool,scope)).toBe(12000);
 });
+
+it("withdraws the exact admission key before source invalidation removes its run identity",async()=>{
+ const owner=await account(),key=crypto.randomUUID().toUpperCase();
+ const body=CreateRunRequestSchema.parse({question,routeMode:"controlled-research",attachmentIds:[]});
+ const created=await admitRun(pool,owner.accountId,key,body);
+ const target=await source(owner.accountId,created.runId);
+ await deleteSourceForAccount(pool,owner.accountId,target.sourceId);
+ await expect(admitRun(pool,owner.accountId,key,body)).rejects.toThrow("idempotency_withdrawn");
+ expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=$1",[owner.accountId])).rows[0].n).toBe(1);
+ expect((await pool.query("SELECT key_hash FROM admission_withdrawals WHERE account_id=$1",[owner.accountId])).rows)
+  .toEqual([{key_hash:createHash("sha256").update(key).digest("hex")}]);
+ expect((await pool.query("SELECT original_question FROM research_briefs WHERE account_id=$1",[owner.accountId])).rows[0].original_question).toBe("[source deleted]");
+ const other=await account();
+ expect((await admitRun(pool,other.accountId,key,body)).reused).toBe(false);
+ expect((await admitRun(pool,owner.accountId,crypto.randomUUID(),body)).reused).toBe(false);
+});

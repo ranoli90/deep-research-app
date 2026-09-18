@@ -1,0 +1,62 @@
+
+ RUN  v3.2.7 /home/oranolio/Desktop/Deep/apps/backend
+
+ ❯ test/source-deletion.integration.test.ts (7 tests | 1 failed) 1240ms
+   ✓ W03/W06 deletes owned source and reused descendants, preserving unrelated raw evidence and accounts  359ms
+   ✓ W03 DELETE source is authenticated, owner-bound and idempotent; source reader returns its deletion handle 139ms
+   ✓ W03 deletes all extraction copies of one attachment and rejects a late parser result 141ms
+   ✓ W03 source deletion prevents late model output but preserves actual financial receipts 112ms
+   ✓ W03 source deletion drains only the selected legacy attachment file 84ms
+   ✓ W02/W03 source deletion keeps unknown provider and account holds until actual reconciliation 89ms
+   × withdraws the exact admission key before source invalidation removes its run identity 85ms
+     → promise resolved "{ …(3) }" instead of rejecting
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/source-deletion.integration.test.ts > withdraws the exact admission key before source invalidation removes its run identity
+AssertionError: promise resolved "{ …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "brief": {
++     "assumptions": [],
++     "attachmentIds": [],
++     "budgetPolicyId": "default",
++     "consentPolicyVersion": "2026-09-17.1",
++     "constraints": [],
++     "conversationId": "93d4f9ea-830a-437f-9aff-9fa84d5f184d",
++     "id": "c945e9bc-3c11-4dd5-bb83-6f53ba216597",
++     "language": "en",
++     "nonGoals": [],
++     "originalQuestion": "Compare synthetic wetland restoration evidence.",
++     "outputPreferences": undefined,
++     "revision": 1,
++     "sourceRestrictions": [],
++   },
++   "reused": false,
++   "runId": "99c8a17e-5623-4df8-a74e-77c243acd8d6",
+  }
+
+ ❯ test/source-deletion.integration.test.ts:202:54
+    200|  const target=await source(owner.accountId,created.runId);
+    201|  await deleteSourceForAccount(pool,owner.accountId,target.sourceId);
+    202|  await expect(admitRun(pool,owner.accountId,key,body)).rejects.toThrow…
+       |                                                      ^
+    203|  expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE a…
+    204|  expect((await pool.query("SELECT key_hash FROM admission_withdrawals …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  21:15:56
+   Duration  2.47s (transform 667ms, setup 0ms, collect 1.03s, tests 1.24s, environment 0ms, prepare 68ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.integration.config.ts test/source-deletion.integration.test.ts
