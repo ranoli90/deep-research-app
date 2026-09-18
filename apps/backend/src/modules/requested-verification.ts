@@ -1,3 +1,4 @@
+import { EvidenceSelectionProofError } from "./evidence-selections.js";
 import { MODEL_CONTEXT_MAX_PASSAGES } from "../ports/model.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
@@ -95,7 +96,9 @@ export async function loadVerification(db:Queryable,args:{runId:string;accountId
  if(verificationDigest(target)!==row.target_digest)throw new VerificationTargetError("verification_target_digest_changed");
  const parsed=VerificationRowSchema.safeParse({...row,target});
  if(!parsed.success)throw new VerificationTargetError("verification_target_record_invalid");
- const original=await captureVerificationTarget(db,{accountId:args.accountId,parentRunId:row.parent_run_id,reportId:row.report_id,reportVersion:row.report_version,claimId:row.claim_id});
+ let original;
+ try{original=await captureVerificationTarget(db,{accountId:args.accountId,parentRunId:row.parent_run_id,reportId:row.report_id,reportVersion:row.report_version,claimId:row.claim_id});}
+ catch(error){if(error instanceof EvidenceSelectionProofError)throw new VerificationTargetError("verification_original_target_changed");throw error;}
  if(verificationDigest(original)!==row.target_digest)throw new VerificationTargetError("verification_original_target_changed");
  return parsed.data;
 }

@@ -247,17 +247,18 @@ it("W05 finite repeated verification lineage reaches an explicit admission ceili
  expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=$1",[x.accountId])).rows[0].n).toBe(before);
 },120000);
 
-for(const corruption of ["digest","schema","original","row"] as const)it(`W05 deterministic verification ${corruption} corruption terminates visibly before new issuance`,async()=>{
+for(const corruption of ["digest","schema","original","selection","row"] as const)it(`W05 deterministic verification ${corruption} corruption terminates visibly before new issuance`,async()=>{
  const x=await setup(),child=await admitRequestedVerification(pool,config,x.accountId,x.parent.runId,x.request),before=x.model.calls.length;
  if(corruption==="digest")await pool.query("UPDATE requested_verifications SET target_digest=$2 WHERE run_id=$1",[child.runId,"0".repeat(64)]);
  else if(corruption==="schema")await pool.query("UPDATE requested_verifications SET target=jsonb_set(target,'{assertion,scope,entity}','123'::jsonb) WHERE run_id=$1",[child.runId]);
  else if(corruption==="original")await pool.query("UPDATE sources SET title='Synthetic changed original title' WHERE run_id=$1",[x.parent.runId]);
+ else if(corruption==="selection")await pool.query("DELETE FROM evidence_selections WHERE run_id=$1",[x.parent.runId]);
  else await pool.query("UPDATE requested_verifications SET source_map='{}'::jsonb WHERE run_id=$1",[child.runId]);
  await processRun(pool,config,child.runId);
  expect((await getRun(pool,child.runId))?.terminal_outcome).toBe("failed");expect(x.model.calls.length).toBe(before);
  const stored=(await pool.query("SELECT state,result FROM requested_verifications WHERE run_id=$1",[child.runId])).rows[0];
  expect(stored.state).toBe("blocked");expect(stored.result.outcome).toBe("blocked");
- expect(stored.result.reason).toBe(({digest:"verification_target_digest_changed",schema:"verification_target_schema_invalid",original:"verification_original_target_changed",row:"verification_target_record_invalid"})[corruption]);
+ expect(stored.result.reason).toBe(({digest:"verification_target_digest_changed",schema:"verification_target_schema_invalid",original:"verification_original_target_changed",selection:"verification_original_target_changed",row:"verification_target_record_invalid"})[corruption]);
  expect(JSON.stringify(stored.result)).not.toContain(x.request.note);expect(JSON.stringify(stored.result)).not.toContain(text);
  expect((await pool.query("SELECT verification_required_revision FROM runs WHERE id=$1",[child.runId])).rows[0].verification_required_revision).toBe(child.briefRevision);
  expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1",[child.runId])).rowCount).toBe(0);

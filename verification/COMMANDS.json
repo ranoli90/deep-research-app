@@ -1512,5 +1512,85 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/test/eval-live.extraction.test.ts"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py integration",
+    "status": "implemented_application_command",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py extraction",
+    "status": "implemented_application_command",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py verify",
+    "status": "implemented_application_command",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py review",
+    "status": "implemented_review_tool",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py handoff",
+    "status": "implemented_review_tool",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py review-mutations",
+    "status": "implemented_review_tool",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py handoff-mutations",
+    "status": "implemented_review_tool",
+    "scope": "ADR055 registered local nonbillable check with terminal receipt; model transport fabricated; no semantic/native/hosted claim",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/diagnose.py",
+    "status": "implemented_review_tool",
+    "scope": "Post-freeze offline reference-span diagnostic on actual saved-document extraction/selection traces. Fails on missing spans; not semantic grading or blind benchmark; no network/model calls.",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/diagnose.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py integration integration-fixed",
+    "status": "implemented_application_command",
+    "scope": "Full real PostgreSQL recheck after ADR055 teardown and typed verification-state repair; original failure retained; no paid model calls",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/model-gateway.integration.test.ts test/requested-verification.integration.test.ts -t 'production processRun|deterministic verification.*corruption|does not classify'",
+    "status": "implemented_application_command",
+    "scope": "ADR055 reproduced full-suite fixes: manual test cleanup and typed parent-proof verification-state repair; all negative and transient controls retained; no paid calls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/requested-verification.integration.test.ts"
   }
 ]
