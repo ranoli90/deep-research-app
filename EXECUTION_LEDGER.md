@@ -14,6 +14,13 @@
 - Run1 Azure v1: purchase and technical compatibility HTTP 200 with confirmed 418µ and 447µ, both `invalid_exact_span`. Freshness HTTP 200 `outcome_unknown` held; no retry; remaining classes unrun on that ledger.
 - Run3 Azure exact-quote-v2 on a new isolated DB (does not retry the held intent): document-grounded succeeded 455µ; correction original succeeded 458µ; corrected question `criterion_without_question` 384µ; unknown-is-correct `criterion_without_question` 452µ. Halted=null.
 - Confirmed new spend 2614µ plus the unresolved freshness reservation. Receipts: `verification/v7/live-semantic/`. No superiority claim. Not a full report+correction+rerun journey.
+
+## 2026-09-18 — Fix failing live briefs
+
+- Root cause: v1 left wrong UTF-16 offsets invalid; models also emitted criteria with no question binding (`criterion_without_question`).
+- Fix: exact-quote-v2 already repairs unique exact quotes; add `repairBriefCriterionLinks` on v2 briefs; tighten the brief prompt to require exact question slices and every criterion key on a question. v1 stays unrepaired.
+- Re-ran previously failing classes as new logical requests (new prompt/digest) on isolated DB `deep_research_session_a_live_eval_fix`. All five attempts succeeded: purchase 508µ, technical 588µ, correction 437µ+368µ, unknown-lot-code 481µ. Halted=null. Did not retry the earlier freshness unknown hold.
+- Tests: research-core brief-criterion-link 2/2; model-policy integration 7/7 including orphan-criterion v2 repair.
 - Not merged to `main`.
 
 ## 2026-09-16 — first application implementation session

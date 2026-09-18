@@ -377,3 +377,5 @@ ADR060: explicit Azure exact-quote-v2 policy resolves only unique unchanged quot
 
 `research-portfolio.v1` admits registered model policies by privacy/ZDR and structured-output capability, cheap-first, fanout 1. Escalation is a new admitted attempt with a recorded trigger and a depth/budget bound, never a second dispatch of an unknown intent. Migration042 stores an immutable routing audit; `runs.model_policy_id` remains the replay identity. Optional receipt `cacheReadTokens`/`cacheWriteTokens` are attributed when the provider envelope includes them; missing `actualMicro` stays null. Portfolio eval records are dated and must not claim dynamic routing is better until measured. Live semantic task classes exist behind the existing explicit-authorization runner.
 
+ADR061 brief binding repair (exact-quote-v2 only): unique exact provenance quotes may have their UTF-16 offsets repaired, and criterion keys that the model omitted from every question are attached to a covering question. Quotes that are not exact unique substrings of the original question remain invalid. v1 policies stay unrepaired. This does not invent citations or mark unknown as answered.
+

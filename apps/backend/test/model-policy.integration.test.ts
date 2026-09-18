@@ -9,7 +9,7 @@ import {runModelVersions} from "../src/modules/run-model-policy.js";
 import {performModelOperation} from "../src/worker/model-gateway.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
 import {loadConfig} from "../src/platform/config.js";
-import {AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POLICY,modelPolicy} from "../src/ports/model-policy.js";
+import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POLICY,modelPolicy} from "../src/ports/model-policy.js";
 import {recordPortfolioResolution} from "../src/modules/model-portfolio.js";
 import {PRODUCTION_PORTFOLIO_V1,replayPolicyIdentity} from "../src/model-governor/index.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
@@ -61,6 +61,31 @@ it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-qu
   const events=(await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='model_span_resolution'",[r.runId])).rows;
   expect(events).toHaveLength(resolved?1:0);
   if(resolved)expect(events[0].payload.resolutions).toHaveLength(2);
+ }finally{session.stop();await cancelRun(pool,r.runId);}
+});
+it("v2 brief repair links orphaned criteria and keeps v1 strict",async()=>{
+ const a=await account(),question="best laptop for running AI under 2k";
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:AZURE_ZDR_EXACT_QUOTE_POLICY.id});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const span={start:99,end:100,quote:question},scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+ const output={objective:question,objectiveProvenance:span,intendedOutput:"recommendation",
+  criteria:[{key:"budget",description:"Stay under the stated budget",field:"budget",operator:"at_most",value:"2k",unit:null,importance:"hard",scope,provenance:{start:99,end:100,quote:"under 2k"},group:"g",groupOperator:"all",unresolvedAlternatives:[]},
+   {key:"local_ai",description:"Run AI on the laptop",field:"workload",operator:"exists",value:null,unit:null,importance:"hard",scope,provenance:{start:99,end:100,quote:"running AI"},group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+  questions:[{key:"q_budget",text:"What laptops stay under budget?",criterionKeys:["budget"],importance:"critical",evidenceStandard:"current prices"}],
+  assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+ globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Azure",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]})));
+ try{
+  const first=await performModelOperation(pool,config,session,{runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief",context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}});
+  expect(first).toMatchObject({kind:"result",result:{status:"succeeded"}});
+  if(first.kind==="result"&&first.result.status==="succeeded"){
+   expect(first.result.output.questions.some(q=>q.criterionKeys.includes("local_ai"))).toBe(true);
+   expect(first.result.output.objectiveProvenance).toEqual({quote:question,start:0,end:question.length});
+  }
+  const events=(await pool.query("SELECT type,payload FROM run_events WHERE run_id=$1 AND type='brief_criterion_link'",[r.runId])).rows;
+  expect(events).toHaveLength(1);
+  expect(events[0].payload.linked).toEqual([{criterionKey:"local_ai",questionKey:"linked_local_ai",attachedToExisting:false}]);
  }finally{session.stop();await cancelRun(pool,r.runId);}
 });
 it("records immutable portfolio resolutions and still replays historical policy identity",async()=>{

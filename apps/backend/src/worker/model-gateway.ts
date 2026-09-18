@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation } from "@deep/contracts";
-import { validateModelBindings, resolveModelSpans, type SpanResolution } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { AZURE_ZDR_EXACT_QUOTE_POLICY } from "../ports/model-policy.js";
 import { emitEvent } from "../modules/runs.js";
@@ -71,10 +71,15 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [attempt.intentId, JSON.stringify(result.receipt)]);
   });
   let resolvedSpans: SpanResolution[] = [];
+  let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
   if (result.status === "succeeded") {
     if (policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id) {
       const resolved = resolveModelSpans(args.operation, result.output, context);
       result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
+      if (args.operation === "brief") {
+        const linked = repairBriefCriterionLinks(result.output);
+        result = { ...result, output: linked.output }; linkedCriteria = linked.linked;
+      }
     }
     const errors = validateModelBindings(args.operation, result.output, context);
     if (errors.length) result = { status: "invalid_output", reason: errors.join(","), receipt: result.receipt };
@@ -85,6 +90,9 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (resolvedSpans.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"model_span_resolution",phase:"verifying",
       summary:"Exact quoted text was located within its original question or passage.",
       payload:{version:"unique-exact-quote-offsets.v1",intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,resolutions:resolvedSpans}});
+    if (linkedCriteria.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"brief_criterion_link",phase:"preparing",
+      summary:"Each research criterion was attached to an evidence-answerable question.",
+      payload:{version:"brief-criterion-question-link.v1",intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,linked:linkedCriteria}});
   });
   return { kind: "result", intentId: attempt.intentId, reused: false, result };
 }

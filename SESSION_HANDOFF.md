@@ -40,7 +40,7 @@ Recorded in implementer scratch after the lane checkpoint.
 
 ## Live / provider / native
 
-- Live semantic protocol: Verified live provider on bounded briefs (`verification/v7/live-semantic/RESULTS.json`). Confirmed spend 865µ + 1749µ USD. Freshness class remains `outcome_unknown` with no retry. Not a full source-backed report journey and not product-quality verified.
+- Live semantic protocol: Verified live provider on bounded briefs (`verification/v7/live-semantic/RESULTS.json`). Fix run: five Azure v2 briefs succeeded (2382µ) after span/criterion repair. Prior `invalid_exact_span` / `criterion_without_question` receipts and the freshness `outcome_unknown` hold are retained without retry. Not a full source-backed report journey and not product-quality verified.
 - Native: Unverified (Session C)
 - Failed attempts retained: Docker daemon socket permission denied when starting compose; used already-listening Postgres with new DB `deep_research_session_a_governor`
 

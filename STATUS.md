@@ -6,7 +6,7 @@ Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-gover
 
 **Verified deterministic:** research-core intent/policy suites; backend governor/gateway/eval-live/portfolio-eval unit tests; focused PostgreSQL `model-policy.integration.test.ts` on isolated `deep_research_session_a_governor`. Legacy OpenAI request digest unchanged.
 
-**Verified live provider:** bounded Azure briefs for the six Session A task classes via `pnpm eval:live-semantic` (`verification/v7/live-semantic/RESULTS.json`). Two schema-invalid briefs with confirmed receipts, one `outcome_unknown` hold without retry, then remaining classes on a new isolated ledger using exact-quote-v2 (one grounded success, original correction success, corrected/unknown schema-invalid with receipts). **Product-quality verified:** no. **Unverified:** native/mobile Research Beta journey (Session C). No routing superiority claim.
+**Verified live provider:** bounded Azure briefs via `pnpm eval:live-semantic`. After v2 span repair, criterion-question linking, and a stricter brief prompt, the previously failing classes succeeded on a new logical request (purchase, technical comparison, Germany/France correction, unknown-lot-code) with confirmed receipts in `verification/v7/live-semantic/run-fix-receipts.jsonl`. Earlier `invalid_exact_span` / `criterion_without_question` receipts and the freshness `outcome_unknown` hold are retained and were not retried. **Product-quality verified:** no (these are briefs, not source-backed reports). No routing superiority claim.
 
 Rollback: disable new portfolio admissions and intent compilation at run admission; retain historical `model_policy_id` readers, unknown holds, publication/deletion gates. No claim that dynamic routing is better.
 
