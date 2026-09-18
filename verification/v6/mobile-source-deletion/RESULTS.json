@@ -1,0 +1,58 @@
+{
+  "requirements": [
+    "W03",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "a86faf8a50b85652b80438287e2c5d1d7ab498d7",
+  "sourceScope": "Source-deletion App/storage/client subset staged before subsequent requestedverification edits; implementation revision recorded after commit.",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "native": "REDMI Note15 5G Android16 ExpoGo54.0.8",
+    "database": "deep_research_native_v6 separate from agent integration DB"
+  },
+  "checks": [
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "mobile-integrated-initial.log",
+      "exitCode": 1,
+      "scope": "122pass/1fail: static lifecycle assertion expected older current-run gate; exact assertion updated to retain it and require privacy gates"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "artifact": "mobile-reviewed-final.log",
+      "exitCode": 0,
+      "scope": "123/123 integrated mobile tests after attachment/picker review"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "artifact": "types-integrated-final.log",
+      "exitCode": 0,
+      "scope": "Source deletion integrated types before requestedverification integration"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-source-deletion-bundle",
+      "artifact": "android-export.log",
+      "exitCode": 0,
+      "scope": "Android JS export; concurrent unused requestedverification contracts existed in workspace. Not standalone/native proof."
+    }
+  ],
+  "componentEvidence": "verification/v6/source-deletion-ui/RESULTS.json",
+  "native": {
+    "status": "blocked_before_UI_controls",
+    "reason": "Authorized device was Dozing then keyguardShowing=true. Own Expo UI/inspector unavailable; wake did not unlock. No source deletion UI success claimed.",
+    "setup": "Programmatic owned account/consent/PDF upload + actual API/worker/parser produced report; fabricated model transport7calls,paid0. Not repeated native sign-in/upload.",
+    "artifacts": [
+      "native-seed.json",
+      "native-api.log",
+      "native-report.json",
+      "native-report-ready.json",
+      "native-report-awake.json",
+      "native-cleanup-db.json"
+    ],
+    "cleanup": "API graceful stop deleted its one created synthetic account; attachment content0. Metro stopped, reverse8081/8787 and temporaryXMLs removed. Protected synthetic device cache/session NOT cleared while locked; clear after unlock before further native acceptance."
+  },
+  "impact": "ADR036; strict source/version confirmation, acknowledged protected cache redaction before remoteDELETE, pending handle through unknown outcomes, account guards, blocked cache repopulation/picker, original user file untouched. No new dependency/schema/service/paid allowance.",
+  "rollback": "Keep pending privacy handle hydration/redaction/retry and account cleanup even if new source deletion UI disabled."
+}

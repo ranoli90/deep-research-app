@@ -1,0 +1,69 @@
+{
+  "requirements": [
+    "W03",
+    "W07"
+  ],
+  "baseCommit": "a86faf8a50b85652b80438287e2c5d1d7ab498d7",
+  "workingTree": true,
+  "recordedAt": "2026-09-18T03:24:30.321966+00:00",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "3.2.7"
+  },
+  "scope": "Pure mobile state/parsing controls and primary durable flow with in-memory protected-storage substitutes. No device UI execution, real network deletion, native secure-storage or server race claim.",
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile test -- source-deletion source-view",
+      "exitCode": 0,
+      "artifact": "unit.log",
+      "sha256": "58b25ee10ca53b7a8cad8098594c1e4a51c7e435ebb419379179f709c4b3986a",
+      "scope": "15/15 initial pure deletion and source parsing controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "types.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "scope": "Configured mobile typecheck before selected attachment redaction"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- source-deletion source-view",
+      "exitCode": 0,
+      "artifact": "unit-final.log",
+      "sha256": "90dadc74c062fa57c9232de6cc7450575730b3d0d08f375a7d0875ab8ee07b69",
+      "scope": "21/21 across deletion reducer, source reader and primary-owned durable deletion flow;472ms"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "types-final.log",
+      "sha256": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f",
+      "scope": "Configured mobile typecheck with selected attachment redaction"
+    }
+  ],
+  "impact": {
+    "contract": "Older source details without sourceId remain readable; delete requires UUID source/passage/version handle. Strict acknowledgement parser binds to expected source and validates invalidation IDs. Missing pending handle is backwards compatible; malformed non-null handle fails hydration closed.",
+    "privacy": "Explicit source/version confirmation; unresolved admission prevents deletion. Conservatively clear report/run/previous report/events/reading/correction and selected attachment bytes/text because previous report lacks complete dependency identity. Preserve plain composer and consent. Same-source idempotent reply with empty invalidated IDs never restores content. Caller must persist redacted snapshot before DELETE and clear confirmed handle only after durable acknowledgement.",
+    "integration": "Primary owns API, App generations, required persistence, pending handle hydration, and pause/retry gates. Read-only review identified picker completion and attachment-panel races; communicated to primary for integration.",
+    "rollback": "Disable new deletion scheduling while retaining pending-handle hydration, redaction, explicit idempotent retry and account guards. Do not restore hidden cached source/report content or silently clear unconfirmed deletion. No dependencies, provider changes or paid calls."
+  },
+  "files": [
+    {
+      "path": "apps/mobile/src/SourceSheet.tsx",
+      "sha256": "46cacea25970b334fba7a2c5c28905da619703a01671a27f68570b7eb9992cee"
+    },
+    {
+      "path": "apps/mobile/src/source-view.ts",
+      "sha256": "3e4de33c1bd16d78e78574b1361674363da3a8bf86ac758b3babe1399fce293d"
+    },
+    {
+      "path": "apps/mobile/src/source-deletion.ts",
+      "sha256": "504b6a151a5d4e6cb5540386c781087f1a226384bd0303aa46a80beebc8a5763"
+    },
+    {
+      "path": "apps/mobile/test/source-deletion.test.ts",
+      "sha256": "760100cc0575d7e996fb8629978536fe12a056e910619b42f53358c2977f59e6"
+    }
+  ]
+}

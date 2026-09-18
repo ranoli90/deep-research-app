@@ -6271,5 +6271,7 @@
   "protectedContentEvidence": "protected-content/RESULTS.json",
   "cancellationAtomicityEvidence": "verification/v6/cancellation-atomicity/RESULTS.json",
   "readingPositionEvidence": "verification/v6/reading-position/RESULTS.json",
-  "admissionCleanCheckoutEvidence": "verification/v6/clean-admission/RESULTS.json"
+  "admissionCleanCheckoutEvidence": "verification/v6/clean-admission/RESULTS.json",
+  "mobileSourceDeletionEvidence": "verification/v6/mobile-source-deletion/RESULTS.json",
+  "sourceDeletionReplayEvidence": "verification/v6/source-deletion-replay/RESULTS.json"
 }

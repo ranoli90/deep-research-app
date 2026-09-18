@@ -106,6 +106,7 @@ export const api = {
       body: JSON.stringify({ claimId, note }),
     }),
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
+  deleteSource: (token: string, sourceId: string) => req(`/v1/sources/${sourceId}`, { method: "DELETE", token }),
   source: (token: string, id: string) => { requests.closeSource(); return req(`/v1/sources/${id}`, { token, scope: "source" }); },
   library: (token: string) => req("/v1/library", { token }),
   exportMd: (token: string, id: string) => req(`/v1/reports/${id}/export`, { token, scope: "view" }),

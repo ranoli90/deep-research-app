@@ -1,0 +1,3 @@
+{"event":"native_control_ready","evidenceClass":"native_ui_actual_api_worker_pdf_fabricated_model","paidCalls":0,"database":"deep_research_native_v6","fixtureRoute":false}
+{"event":"native_control_run","runId":"460eebeb-8b52-4030-befa-16b4cf4c2c68","reports":[{"id":"345a952c-4fa2-471c-bb70-e542393abbb1","outcome":"completed"}],"fabricatedCalls":7,"paidCalls":0}
+{"event":"native_control_stopped","createdAccounts":1,"fabricatedCalls":7,"paidCalls":0}

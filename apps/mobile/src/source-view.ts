@@ -1,6 +1,6 @@
 export type SourceCell = { text: string; header: boolean; colspan: number; rowspan: number; scope: string };
 export type SourceDetail = {
-  passageId: string; title: string; exactText: string; accessLevel: string;
+  passageId: string; sourceId?: string; title: string; exactText: string; accessLevel: string;
   locator?: string; publisher?: string | null; sourceVersionId?: string;
   extractionMethod?: string; coverage?: string | null; warnings?: string[];
   passageLocator?: { block?: string; kind?: string; rows?: SourceCell[][];
@@ -18,7 +18,7 @@ export function sourceCellLabel(cell: SourceCell): string {
 /** Validate the source response before adopting or rendering any provider-derived metadata. */
 export function readSourceDetail(value: unknown): SourceDetail {
   if (!record(value) || ![value.passageId, value.title, value.exactText, value.accessLevel].every(v => typeof v === "string")) throw new Error("The source response is unavailable or invalid.");
-  for (const key of ["locator", "publisher", "sourceVersionId", "extractionMethod", "coverage"])
+  for (const key of ["sourceId", "locator", "publisher", "sourceVersionId", "extractionMethod", "coverage"])
     if (value[key] != null && typeof value[key] !== "string") throw new Error("The source metadata is invalid.");
   if (value.warnings != null && (!Array.isArray(value.warnings) || !value.warnings.every(v => typeof v === "string"))) throw new Error("The source warnings are invalid.");
   if (value.passageLocator != null) {

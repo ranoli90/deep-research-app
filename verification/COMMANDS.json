@@ -758,5 +758,37 @@
     "scope": "Local source-deletion replay protection; exact receipts in source-deletion-replay/RESULTS.json",
     "network": false,
     "paid": false
+  },
+  {
+    "command": "node verification/v6/mobile-source-deletion/native-seed.cjs",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/mobile-source-deletion/native-seed.cjs",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "python3 verification/v6/mobile-source-deletion/native-tap.py \"Delete this source\"",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/mobile-source-deletion/native-tap.py",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-source-deletion-bundle",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test -- source-deletion source-view",
+    "status": "implemented_application_command",
+    "implementation": "apps/mobile/package.json",
+    "scope": "Local source-deletion control; native tap helper implemented but not exercised while device locked; exact results in mobile-source-deletion/RESULTS.json",
+    "network": false,
+    "paid": false
   }
 ]

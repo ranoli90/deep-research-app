@@ -32,6 +32,7 @@ export type UiState = {
   draft: string;
   correctionDraft: CorrectionDraft | null;
   pendingAdmission: AdmissionDraft | null;
+  pendingSourceDeletion: string | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -62,6 +63,7 @@ export function emptyState(): UiState {
     draft: "",
     correctionDraft: null,
     pendingAdmission: null,
+    pendingSourceDeletion: null,
     consentGranted: false,
     signedIn: false,
     offline: false,
@@ -106,6 +108,7 @@ export function restoreAfterReopen(saved: UiState): UiState {
 }
 
 export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
+  if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };
   if (state.offline) return { ok: false, reason: "You are offline. The draft is saved and will not be sent." };
   if (!state.signedIn) return { ok: false, reason: "Sign in to start research. Your draft is kept." };

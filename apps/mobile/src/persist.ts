@@ -1,3 +1,4 @@
+import { readPendingSourceDeletion } from "./source-deletion";
 import { emptyState, restoreAfterReopen, type UiState } from "./state";
 import { readAdmissionDraft, type AdmissionDraft } from "./admission-retry";
 import { parseCorrectionDraft } from "./correction-draft";
@@ -15,8 +16,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 function storedState(state: UiState) {
-  const { draft, correctionDraft, run, report, previousReport, readingAnchor, routeMode, consentGranted, status } = state;
-  return { draft, correctionDraft, run, report, previousReport, readingAnchor, routeMode, consentGranted, status };
+  const { draft, correctionDraft, pendingSourceDeletion, run, report, previousReport, readingAnchor, routeMode, consentGranted, status } = state;
+  return { draft, correctionDraft, pendingSourceDeletion, run, report, previousReport, readingAnchor, routeMode, consentGranted, status };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -112,6 +113,19 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
         await cache.removeItem(ADMISSION_KEY);
       });
     },
+    /** Privacy mutations must durably replace cached content before remote effects. */
+    persistRequired(token: string, state: UiState): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before saving privacy action."));
+      ++persistSequence;
+      const payload = JSON.stringify({ accountId: owner.accountId, state: storedState(state) });
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed before saving privacy action.");
+        await cache.setItem(SNAPSHOT_KEY, payload);
+        if (version !== epoch || current?.token !== token) throw new Error("Session changed while saving privacy action.");
+        lastPersisted = { epoch: version, key: SNAPSHOT_KEY, payload };
+      });
+    },
     persist(session: PersistedSession): Promise<void> {
       const version = epoch, owner = current;
       if (session.token !== (owner?.token ?? null)) return Promise.resolve();
@@ -160,7 +174,19 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (version !== epoch) return { token: null, accountId: null, state: emptyState() };
           return { token: null, accountId: null, state: { ...emptyState(), draft } };
         }
-        const state = parseState(await cache.getItem(SNAPSHOT_KEY), session.accountId) ?? { ...emptyState(), signedIn: true };
+        const rawSnapshot = await cache.getItem(SNAPSHOT_KEY);
+        const state = parseState(rawSnapshot, session.accountId) ?? { ...emptyState(), signedIn: true };
+        // A pending privacy action cannot be silently discarded by permissive cache recovery.
+        if (rawSnapshot !== null) {
+          const envelope: unknown = JSON.parse(rawSnapshot);
+          if (record(envelope) && envelope.accountId === session.accountId && record(envelope.state)) {
+            state.pendingSourceDeletion = readPendingSourceDeletion(envelope.state.pendingSourceDeletion);
+            if (state.pendingSourceDeletion) {
+              state.run = null; state.report = null; state.previousReport = null; state.source = null;
+              state.readingAnchor = null; state.correctionDraft = null; state.events = []; state.attachments = []; state.status = "empty";
+            }
+          }
+        }
         const pending = await cache.getItem(ADMISSION_KEY);
         if (pending !== null) {
           const envelope: unknown = JSON.parse(pending);

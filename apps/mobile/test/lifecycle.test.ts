@@ -86,7 +86,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.followUp/);
     expect(src).toMatch(/logoutLocal\(sessionStorage/);
     expect(src).toMatch(/stopPolling\(\)/);
-    expect(src).toMatch(/if \(!s\.signedIn \|\| !api\.currentRun\(t, runId\)\) return s;/);
+    expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !api\.currentRun\(t, runId\)\) return s;/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
     expect(src).toMatch(/Processor disclosures/);
