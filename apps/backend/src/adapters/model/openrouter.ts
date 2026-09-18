@@ -62,8 +62,33 @@ export async function executeModelRequest<K extends ResearchModelOperation>(requ
     }), aborted]);
     receipt.httpStatus = response.status;
     if (!response.ok) {
-      if (response.body) void response.body.cancel().catch(() => undefined);
-      return fail(response.status === 429 || response.status >= 500 ? "transient_failure" : "permanent_failure", `provider_http_${response.status}`);
+      // Keep only a fixed diagnostic category and digest, never upstream prose.
+      let category = "";
+      if (response.body) {
+        reader = response.body.getReader();
+        const chunks: Uint8Array[] = []; let bytes = 0;
+        while (true) {
+          const part = await Promise.race([reader.read(), aborted]);
+          if (part.done) break;
+          bytes += part.value.byteLength;
+          if (bytes > 65536) break;
+          chunks.push(part.value);
+        }
+        if (bytes <= 65536) {
+          const raw = Buffer.concat(chunks);
+          receipt.responseDigest = createHash("sha256").update(raw).digest("hex");
+          try {
+            const parsed = JSON.parse(raw.toString("utf8"));
+            const message = typeof parsed?.error?.message === "string" ? parsed.error.message : "";
+            if (response.status === 404 && /^No endpoints (?:found|available)\b/i.test(message)) {
+              category = /data policy|privacy|training|guardrail/i.test(message) ? "_data_policy" :
+                /price|pricing/i.test(message) ? "_price" :
+                /parameter|structured|json|tool use/i.test(message) ? "_parameters" : "_no_endpoints";
+            }
+          } catch { /* Unparseable error remains a generic HTTP failure with unknown cost. */ }
+        }
+      }
+      return fail(response.status === 429 || response.status >= 500 ? "transient_failure" : "permanent_failure", `provider_http_${response.status}${category}`);
     }
     if (!response.body) return fail("invalid_output", "empty_response_body");
     reader = response.body.getReader();

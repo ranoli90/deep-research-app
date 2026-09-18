@@ -1,0 +1,12 @@
+
+> deep-research-mobile@0.1.0 eval:live /home/oranolio/Desktop/Deep
+> pnpm --filter @deep/backend eval:live --execute --operator-confirms-user-approval --authorization /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/AUTHORIZATION.json --sha256 4c1c55c942b86863d79885767434c408c0fc5fa12d627c4d267932036e7d924a --approval-id 83059390-9021-4b62-969c-0e73c36d2279 --output /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/live
+
+
+> @deep/backend@0.1.0 eval:live /home/oranolio/Desktop/Deep/apps/backend
+> tsx src/eval-live.ts --execute --operator-confirms-user-approval --authorization /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/AUTHORIZATION.json --sha256 4c1c55c942b86863d79885767434c408c0fc5fa12d627c4d267932036e7d924a --approval-id 83059390-9021-4b62-969c-0e73c36d2279 --output /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/live
+
+/home/oranolio/Desktop/Deep/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 eval:live: `tsx src/eval-live.ts --execute --operator-confirms-user-approval --authorization /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/AUTHORIZATION.json --sha256 4c1c55c942b86863d79885767434c408c0fc5fa12d627c4d267932036e7d924a --approval-id 83059390-9021-4b62-969c-0e73c36d2279 --output /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/live`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

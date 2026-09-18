@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-09-18T16:59:35.102971+00:00",
+  "generationRequests": 0,
+  "endpoint": "GET /api/v1/models/user",
+  "requestedModel": "openai/gpt-4o-mini",
+  "status": 200,
+  "requestedModelPresent": true,
+  "visibleModelCount": 352
+}

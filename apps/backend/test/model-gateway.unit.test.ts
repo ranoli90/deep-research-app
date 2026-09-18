@@ -60,3 +60,19 @@ describe("W05 structured model transport without fallback", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });
+
+it.each([
+ ["No endpoints found matching your data policy. private diagnostic", "data_policy"],
+ ["No endpoints found that support the requested parameters", "parameters"],
+ ["No endpoints available at the requested price", "price"],
+ ["No endpoints found for this model", "no_endpoints"],
+])("retains a redacted routing failure category: %s",async(message,category)=>{
+ globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify({error:{code:404,message}}),{status:404}));
+ const result=await executeModelRequest(request(),{apiKey:"test-not-billed",signal:new AbortController().signal});
+ expect(result).toMatchObject({status:"permanent_failure",reason:`provider_http_404_${category}`,receipt:{httpStatus:404,actualMicro:null,providerId:null,responseDigest:expect.stringMatching(/^[a-f0-9]{64}$/)}});
+ expect(JSON.stringify(result)).not.toContain(message);expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+});
+it("bounds HTTP error bodies and keeps unknown spend",async()=>{
+ globalThis.fetch=vi.fn(async()=>new Response("x".repeat(65537),{status:404}));
+ expect(await executeModelRequest(request(),{apiKey:"test",signal:new AbortController().signal})).toMatchObject({status:"permanent_failure",reason:"provider_http_404",receipt:{actualMicro:null,responseDigest:null}});
+});

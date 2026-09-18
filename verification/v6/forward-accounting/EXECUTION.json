@@ -1,0 +1,26 @@
+{
+  "command": [
+    "pnpm",
+    "eval:live",
+    "--execute",
+    "--operator-confirms-user-approval",
+    "--authorization",
+    "/home/oranolio/Desktop/Deep/verification/v6/forward-accounting/AUTHORIZATION.json",
+    "--sha256",
+    "4c1c55c942b86863d79885767434c408c0fc5fa12d627c4d267932036e7d924a",
+    "--approval-id",
+    "83059390-9021-4b62-969c-0e73c36d2279",
+    "--output",
+    "/home/oranolio/Desktop/Deep/verification/v6/forward-accounting/live"
+  ],
+  "commit": "bd302c3176a6f1c64cc6a2830fc5dc2396ae5475",
+  "startedAt": "2026-09-18T16:57:49.377702+00:00",
+  "scope": "Real OpenRouter model, frozen public SQLite bytes, production API/worker/parser/checker/writer; $0.40 maximum new allowance",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "platform": "Linux local PostgreSQL"
+  },
+  "exitCode": 2,
+  "finishedAt": "2026-09-18T16:57:52.787446+00:00"
+}

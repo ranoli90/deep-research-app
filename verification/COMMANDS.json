@@ -1824,5 +1824,13 @@
     "paid": true,
     "scope": "User-authorized single MC-D01 four-step comparison capped at $0.40; strict grant, no retries",
     "status": "implemented_application_command"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/forward-accounting/diagnose-route.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/forward-accounting/diagnose-route.mts",
+    "network": true,
+    "paid": true,
+    "scope": "One separately reserved route-diagnostic action under existing user-authorized $0.40 aggregate cap, preserves first unknown, no retry or benchmark replacement"
   }
 ]
