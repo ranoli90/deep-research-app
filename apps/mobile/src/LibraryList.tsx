@@ -15,11 +15,13 @@ type Styles = {
 
 export function LibraryList({
   token,
+  reloadKey = "",
   styles,
   onOpen,
   onShare,
 }: {
   token: string | null;
+  reloadKey?: string;
   styles: Styles;
   onOpen: (id: string) => void;
   onShare: (reportId: string) => void;
@@ -39,7 +41,7 @@ export function LibraryList({
       }
     });
     return () => { current = false; };
-  }, [token]);
+  }, [token, reloadKey]);
   if (!token) {
     return (
       <Text style={styles.bodyText} accessibilityLabel="Saved reports">

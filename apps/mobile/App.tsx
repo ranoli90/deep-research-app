@@ -1344,6 +1344,7 @@ function AppInner() {
         {state.tab === "library" && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
           <LibraryList
             token={token}
+            reloadKey={`${state.run?.runId ?? ""}:${state.report?.reportId ?? ""}:${state.status}`}
             styles={styles}
             onOpen={async (id) => {
               if (state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
