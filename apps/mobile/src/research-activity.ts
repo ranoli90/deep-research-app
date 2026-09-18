@@ -27,6 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   clarification_answered: "Saved your clarification",
   searched: "Searching",
   opened_source: "Reading a source",
+  source_read: "Reading a source",
   source_pivot: "Research plan updated",
   disconfirm_search: "Checking a conflicting claim",
   writing: "Writing the report",
@@ -49,12 +50,10 @@ export function labelResearchEvent(event: ResearchEvent): { label: string; detai
   const summary = event.publicSummary.trim();
   if (looksLikePrivateProse(summary)) return null;
   const mapped = TYPE_LABELS[event.type];
-  if (mapped) {
-    const detail = summary && summary.toLowerCase() !== mapped.toLowerCase() ? summary : null;
-    return { label: mapped, detail };
-  }
-  if (!summary) return null;
-  return { label: summary, detail: null };
+  if (!mapped) return null;
+  const hideDetail = event.type === "source_pivot" || event.type === "action_rejected" || event.type === "stop_policy";
+  const detail = !hideDetail && summary && summary.toLowerCase() !== mapped.toLowerCase() ? summary : null;
+  return { label: mapped, detail };
 }
 
 export function visibleResearchEvents(events: ResearchEvent[]): Array<ResearchEvent & { label: string; detail: string | null }> {
@@ -69,8 +68,10 @@ export function visibleResearchEvents(events: ResearchEvent[]): Array<ResearchEv
 }
 
 function sourceCount(events: ResearchEvent[]): number {
-  const opened = events.filter((e) => e.type === "opened_source").map((e) => e.publicSummary.trim() || e.sequence);
-  return new Set(opened).size;
+  const opened = events.filter((e) => e.type === "opened_source");
+  const read = events.filter((e) => e.type === "source_read");
+  const counted = opened.length > 0 ? opened : read;
+  return new Set(counted.map((e) => e.sequence)).size;
 }
 
 function eventTimes(events: ResearchEvent[]): number[] {
@@ -110,7 +111,7 @@ export function collapseResearchActivity(args: {
   const visible = visibleResearchEvents(args.events);
   if (visible.length === 0) {
     if (args.lifecycle && args.lifecycle !== "terminal") {
-      return { summary: "Waiting for the server. Closing this app will not stop the job.", expandable: false };
+      return { summary: "Waiting for the server.", expandable: false };
     }
     return { summary: "No research activity was recorded.", expandable: false };
   }
@@ -118,7 +119,7 @@ export function collapseResearchActivity(args: {
   const elapsed = elapsedLabel(args.events);
   const parts: string[] = [];
   if (args.outcome === "cancelled" || args.events.some((e) => e.type === "cancelled")) {
-    parts.push("Stopped");
+    parts.push("Research cancelled");
   } else if (args.lifecycle === "awaiting_input") {
     parts.push("Waiting for a detail");
   } else if (args.outcome === "failed") {
@@ -134,5 +135,5 @@ export function collapseResearchActivity(args: {
 
 export function currentActivityLine(events: ResearchEvent[]): string {
   const visible = visibleResearchEvents(events);
-  return visible.at(-1)?.label ?? "Waiting for the server. Closing this app will not stop the job.";
+  return visible.at(-1)?.label ?? "Waiting for the server.";
 }

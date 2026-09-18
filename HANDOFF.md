@@ -1,3 +1,23 @@
+## Session C visual overhaul — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. No bottom tabs; Library/New research/Settings in the header; searching stream; quiet/send/stop composer; Add sources sheet; empty-home chips; flush-left answer with `[n]` citations. Mobile 259 tests + typecheck. Native rebuild of this SHA is the EAS device APK. Session B not merged.
+
+## Session C continue-thread composer — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Post-report composer: `Ask anything` + send icon (not Update), New chat pencil (not text link); corrections still via composer. Mobile 259 tests + typecheck pass. Native rebuild separate. Session B not merged.
+
+## Session C follow-up chips — questions above composer — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Suggested next asks: max 3 above the composer (not under the answer), question copy from unresolved/caveats/limitations, ≤42 label / ≤160 prompt, keyboard-visible, no multi-kilobyte draft dumps. Spec `MOBILE_SCREEN_STATES.md` §8; module `apps/mobile/src/follow-ups.ts`; focused Vitest pass. Session B not merged.
+
+## Session C calm Profile + ADR062 chrome — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Implemented: no bottom tabs; Menu + Profile → Library full-screen; calm Profile (avatar/account, appearance, privacy, quiet demo switch, sign out). Mobile typecheck + Vitest pass on this tree. Native rebuild not claimed. Wide drawer / swipe polish remain open. Canonical: `specs/MOBILE_SCREEN_STATES.md`, ADR062. Session B not merged.
+
+## Session C Library navigation spec (ADR062) — 2026-09-18
+
+Worker branch `grok-v7/product-integration`. Specified Library without a bottom tab: Menu + Profile → Library; phone full-screen / wide left drawer; row title/status/version/time; search/share/swipe; dark/light tokens; New research vs resume. Chrome landed in the calm-Profile pass above. Canonical: `specs/MOBILE_SCREEN_STATES.md`, `docs/adr/DECISIONS.md` ADR062. Session B not merged.
+
 ## Session C engineer review cycle — 2026-09-18
 
 Worker branch `grok-v7/product-integration`. Independent Microsoft-style reviews (correctness, RN, SDET, security, privacy, a11y, Android, state, contracts, reliability, perf, product, adversarial, integration, quality) were applied. Session B remains uncommitted and is not merged. Mobile tests/typecheck pass. Native rebuild of this pass is separate. See `SESSION_HANDOFF.md`.

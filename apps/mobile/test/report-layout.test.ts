@@ -47,7 +47,8 @@ describe("M04 report layout", () => {
     expect(src).toMatch(/breakLongTokens/);
     expect(readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8")).toMatch(/styles\.sheetBody/);
     expect(src).toMatch(/accessibilityLabel="Change summary"/);
-    expect(src).toMatch(/Share previous report/);
+    expect(src).not.toMatch(/Share previous report/);
+    expect(src).not.toMatch(/Previous report version/);
   });
 
   it("M08 change summary keeps a follow-up note without claiming a new conclusion", () => {

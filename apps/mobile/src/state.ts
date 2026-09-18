@@ -122,9 +122,9 @@ export function researchActivity(state: Pick<UiState, "run" | "report" | "pendin
   if (run.lifecycle !== "terminal") return {
     inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling", "awaiting_input"].includes(run.lifecycle), terminalNotice: null,
   };
-  const noReport = state.report ? "" : " No report is available.";
-  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: `Research was cancelled.${noReport}` };
-  if (run.outcome === "failed") return { inProgress: false, terminalNotice: `Research failed.${noReport}` };
+  // Failed/cancelled one-liners are owned by researchStatusLine; keep a notice only when no report exists.
+  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: state.report ? null : "Research cancelled." };
+  if (run.outcome === "failed") return { inProgress: false, terminalNotice: state.report ? null : "Research failed." };
   return { inProgress: false, terminalNotice: state.report ? null : "Research has ended. No report is available." };
 }
 

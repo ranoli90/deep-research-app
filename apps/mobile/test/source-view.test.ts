@@ -15,7 +15,7 @@ it("rejects malformed source metadata instead of dropping material extraction li
 it("only offers explicit HTTP(S) originals without credentials", () => {
   expect(publicSourceUrl("https://example.org/paper?q=1")).toBe("https://example.org/paper?q=1");
   expect(sourceDomain("https://www.example.org/paper?q=1")).toBe("example.org");
-  for (const url of [undefined, "attachment://private", "javascript:alert(1)", "file:///private", "https://user:secret@example.org/", "invalid"]) expect(publicSourceUrl(url)).toBeNull();
+  for (const url of [undefined, "attachment://private", "javascript:alert(1)", "file:///private", "https://user:secret@example.org/", "invalid", "http://localhost:8787/x", "https://192.168.0.5/x", "http://127.0.0.1/x", "http://localhost./x", "http://printer.local./x"]) expect(publicSourceUrl(url)).toBeNull();
 });
 it("restores a deep citation at the same scroll offset using card-relative block coordinates", () => {
   const offset = readingOffset(940, 160, 700);

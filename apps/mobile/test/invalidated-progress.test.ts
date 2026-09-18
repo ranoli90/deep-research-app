@@ -33,7 +33,9 @@ it("W03/W07 reopening an invalidated Library run persists terminal status instea
 it.each(["completed", "completed_with_limitations", "cancelled", "failed"])("W07 terminal %s without report never offers progress or cancellation", outcome => {
   const state = { ...emptyState(), status: "progress" as const, run: { ...tombstone, contentInvalidated: false, outcome } };
   expect(researchActivity(state).inProgress).toBe(false);
-  expect(researchActivity(state).terminalNotice).toContain("No report is available.");
+  if (outcome === "cancelled") expect(researchActivity(state).terminalNotice).toBe("Research cancelled.");
+  else if (outcome === "failed") expect(researchActivity(state).terminalNotice).toBe("Research failed.");
+  else expect(researchActivity(state).terminalNotice).toContain("No report is available.");
 });
 it.each(["queued", "running", "cancelling", "awaiting_input"])("W07 actual %s work still shows progress", lifecycle => {
   expect(researchActivity({ ...emptyState(), run: { ...tombstone, lifecycle, outcome: null, contentInvalidated: false } }).inProgress).toBe(true);

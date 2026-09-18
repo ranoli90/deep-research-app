@@ -105,7 +105,7 @@ export function ReportBlockView({
               accessibilityLabel={`Open source ${index}`}
               style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
             >
-              <Text style={[styles.link, styles.citeLink, styles.citeChip]}>{citationChipLabel(index)}</Text>
+              <Text style={[styles.citeChip, styles.citeLink]}>{citationChipLabel(index)}</Text>
             </Pressable>
           );
         })}
@@ -121,6 +121,7 @@ export function ReportSections({
   onOpenSource,
   onLayoutY,
   citationIndex = {},
+  showOutline = false,
 }: {
   blocks: ReportBlock[];
   detailed: boolean;
@@ -128,12 +129,13 @@ export function ReportSections({
   onOpenSource: (id: string, blockId: string) => void;
   onLayoutY: (blockId: string, y: number) => void;
   citationIndex?: Record<string, number>;
+  showOutline?: boolean;
 }) {
   const sections = editorialSections(blocks);
   const numbers = Object.keys(citationIndex).length > 0 ? citationIndex : citationNumbers(blocks);
   return (
     <>
-      {detailed && sections.length > 1 ? (
+      {showOutline && detailed && sections.length > 1 ? (
         <View style={styles.outline} accessibilityLabel="Report outline">
           <Text style={styles.kicker}>Outline</Text>
           {sections.map((section) => (
@@ -145,7 +147,9 @@ export function ReportSections({
       ) : null}
       {sections.map((section) => (
         <Fragment key={section.id}>
-          <Text style={styles.title} accessibilityRole="header" accessibilityLabel={section.title}>{section.title}</Text>
+          {section.id !== "answer" ? (
+            <Text style={styles.title} accessibilityRole="header" accessibilityLabel={section.title}>{section.title}</Text>
+          ) : null}
           {section.blocks.map((b) => (
             <ReportBlockView
               key={b.id}

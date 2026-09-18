@@ -15,8 +15,8 @@ describe("numbered citation chips", () => {
     expect(numbers["aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"]).toBe(1);
     expect(numbers["bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb"]).toBe(2);
     expect(numbers["cccccccc-3333-4333-8333-cccccccccccc"]).toBe(3);
-    expect(citationChipLabel(1)).toBe("1");
-    expect(citationChipLabel(2, "nvidia.com")).toBe("2 · nvidia.com");
+    expect(citationChipLabel(1)).toBe("[1]");
+    expect(citationChipLabel(2, "nvidia.com")).toBe("[2] · nvidia.com");
     expect(citationChipLabel(0)).toBe("");
   });
 

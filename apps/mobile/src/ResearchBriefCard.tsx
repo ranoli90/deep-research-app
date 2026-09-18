@@ -7,7 +7,6 @@ type Styles = {
   title: StyleProp<TextStyle>;
   bodyText: StyleProp<TextStyle>;
   link: StyleProp<TextStyle>;
-  send: StyleProp<TextStyle>;
   input: StyleProp<TextStyle>;
 };
 
@@ -55,13 +54,13 @@ export function ResearchBriefCard({
             accessibilityLabel="Submit clarification and continue"
             disabled={!clarifyAnswer.trim()}
           >
-            <Text style={styles.send}>Continue research</Text>
+            <Text style={styles.link}>Continue research</Text>
           </Pressable>
         </>
       ) : (
         <>
           <Pressable onPress={onContinue} accessibilityRole="button" accessibilityLabel="Continue with these assumptions">
-            <Text style={styles.send}>Research</Text>
+            <Text style={styles.link}>Research</Text>
           </Pressable>
           <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit assumptions">
             <Text style={styles.link}>Edit assumptions</Text>

@@ -1,3 +1,77 @@
+## Session C visual overhaul (tabs/search/plus/header) — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Implemented:** Research is the only home. No bottom tabs. Header: Library glyph, “Deep” / truncated question, New research pencil, avatar → Settings. Searching is a live sentence + 4-dot shimmer + elapsed, not a bordered Researching card. Composer: quiet ring when empty, teal ↑ when text, Stop while running, Retry when pending. Plus opens Add sources (Files + Paste note). Empty home is only “What do you want to know?” plus example chips. After answer: flush-left body, `[n]` citations, follow-up questions, no Concise/Detailed, no always-on Correction card, no previous-version twin. Adversarial review cycle applied (visual, RN lifecycle, truthfulness) and re-run; remaining majors fixed (Back/source order, source counts, continue-thread attachments).
+
+**Verified deterministic:** `pnpm --filter @deep/mobile typecheck` exit 0; `pnpm --filter @deep/mobile test` 259 passed. **Native for this pass:** EAS device APK in progress after this commit.
+
+Rollback: revert the visual-overhaul commit on this branch.
+
+## Session C error/offline/empty-progress one-liners — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified + implemented:** offline / failed research / cancelled / waiting for server are one status line each (Retry when applicable); composer stays mounted; no Sample-answers chip banner and no status card for empty progress. Canonical: `specs/MOBILE_SCREEN_STATES.md` §5 + Failures chrome; helper `apps/mobile/src/research-status.ts`.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 259 passed; typecheck exit 0; `validate_review.py` ok. **Native for this pass:** no.
+
+Rollback: restore Sample-answers banner, offline caveat paragraph, and ResearchActivity card for zero-event waiting.
+
+## Session C continue-thread composer — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Fixed Update vs Research leftover after a report:** continue-thread composer uses placeholder `Ask anything`, circular up-arrow send (not an Update pill), and header New chat as a pencil (`create-outline`) instead of a “New research” text link. Corrections still submit through that composer (`composerContinues` → `onCorrect`). Fresh empty research keeps `What should I research?` + Research pill. Mobile typecheck + 259 Vitest pass. Native rebuild of this pass: no.
+
+Rollback: restore Update/`Add a detail or correction…`/`New research` text chrome on the continue path.
+
+## Session C follow-up chips — questions above composer — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified and implemented:** suggested next asks sit in the composer dock above the field (not under the answer), max 3, question copy from unresolved/caveats/limitations, labels ≤42 / prompts ≤160, stay visible with the keyboard, never dump multi-kilobyte caveat text into the draft. Canonical: `specs/MOBILE_SCREEN_STATES.md` §8; `apps/mobile/src/follow-ups.ts`. Focused Vitest `test/follow-ups.test.ts` covers the contract.
+
+Rollback: revert the follow-up module/App draft-fill/spec hunks; prior truncated-caveat chips return.
+
+## Session C live source appearance — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified + implemented (truthful):** During search — Grok-style activity lines; domain pills only when a public event `publicSummary` already contains a safe `http(s)` URL; no inventing hosts; no third-party favicon CDN (`faviconUri` stays null until owned icon bytes exist). After search — numbered citation chips (no UUIDs); quote-first source sheet unchanged. Canonical: `specs/MOBILE_SCREEN_STATES.md` §§4 and 7; helper `apps/mobile/src/live-source-appearance.ts`; wired in `ResearchActivity`.
+
+**Verified deterministic:** focused `@deep/mobile` Vitest (`live-source-appearance`, `citation-chips`, `research-activity`, `source-sheet-evidence`) + typecheck exit 0. **Native for this pass:** no. Public events still omit payload locators, so pills stay empty on current fixture/live summaries unless a URL is literally in `publicSummary`.
+
+Rollback: remove pills helper/wiring and §4/§7 live-source paragraphs; numbered chips and quote-first sheet remain.
+
+## Session C calm Profile + ADR062 chrome — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Implemented:** No bottom tabs. Research is primary; Library is full-screen from header **Menu** and **Profile → Saved reports**; Done/Android back return to Research. Calm Profile: avatar/account, Appearance (system/light/dark, AsyncStorage), Privacy (consent switch + disclosures/deletion), quiet Demo mode switch, Sign out. Purchases/push remain unavailable. Canonical: `specs/MOBILE_SCREEN_STATES.md` Navigation + Profile paragraph; ADR062. Wide left-drawer Library and swipe Share/Delete polish remain open.
+
+**Verified deterministic:** `pnpm --filter @deep/mobile test` 259 passed; typecheck exit 0. **Native for this pass:** no.
+
+Rollback: restore two-tab chrome and the jargon Settings scroll; keep deletion confirmation and route identities.
+
+## Session C Library navigation spec — ADR062 — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.
+
+**Specified (chrome now landed above):** Library survives without a bottom tab. Research is the sole primary destination. Library opens full-screen on phone (left drawer/pane on wide layouts) from header Menu and from Profile → Library. Rows: title, status Ready/Researching/…, version, time; search, share, swipe; dark/light via design tokens. New research clears local focus from Research or Library chrome without cancelling server jobs or deleting history. Canonical: `specs/MOBILE_SCREEN_STATES.md` Navigation + §9; ADR062.
+
+Rollback: revert the ADR062/doc commit; prior two-tab chrome remains until implementation lands.
+
+## Session C dark chrome tokens — isolated branch checkpoint — 2026-09-18
+
+Lane: Product/UI + Integration. Branch `grok-v7/product-integration`, worktree `/home/oranolio/Desktop/deep-v7-product`. Not merged to `main`.
+
+**Specified dark (and matching light) chrome tokens** in `packages/design`: `composer`, `thinking`, `userBubble`, `stop`. Dark keeps cream/ink/teal calm contrast — warm raised composer pill `#1F1C19` + teal send `#7EC4BC`, not DeepSeek `#0F0F0F`, ChatGPT green, or a Grok black-circle stop. Wired into composer pill, activity trail, question bubble, and Stop chip. Spec note in `MOBILE_SCREEN_STATES.md`.
+
+**Verified deterministic:** `@deep/design` typecheck; `@deep/mobile` typecheck; focused Vitest including `design-chrome-tokens`. **Verified native for this pass:** no. **Product-quality verified:** no.
+
+Rollback: revert the chrome-token commit on this branch.
+
 ## Session C engineer review cycle — isolated branch checkpoint — 2026-09-18
 
 Lane: Product/UI + Integration. Branch `grok-v7/product-integration`. Not merged to `main`.

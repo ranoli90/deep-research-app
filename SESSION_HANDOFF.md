@@ -14,7 +14,7 @@ Final SHA: `f9a500e` (engineer review cycle; this pin follows). Craft pass `fa80
 
 ## Architecture
 
-Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `ResearchBriefCard`, `ReportView`, `LibraryList`, evidence/uncertainty/correction copy). After a finished report the composer continues that research (`composerFollowsReport`) instead of starting a leftover new run. Citations are numbered in first-appearance order. Follow-up chips copy unresolved/caveat/limitation text only. Activity stays collapsed with a truthful current line and elapsed time. Backend public run/event/report APIs are consumed; no new spend/privacy gates. Session A intent assumptions appear on the researching-this card when the persisted brief has them. Clarification is blocking only on `awaiting_input` or `materialClarification`.
+Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `ResearchBriefCard`, `ReportView`, `LibraryList`, evidence/uncertainty/correction copy). After a finished report the composer continues that research (`composerFollowsReport`) instead of starting a leftover new run. Citations are numbered in first-appearance order. Follow-up chips turn unresolved/caveat/limitation lines into at most three short questions above the composer (keyboard-visible; prompts ≤160). Activity stays collapsed with a truthful current line and elapsed time. Backend public run/event/report APIs are consumed; no new spend/privacy gates. Session A intent assumptions appear on the researching-this card when the persisted brief has them. Clarification is blocking only on `awaiting_input` or `materialClarification`.
 
 ## Android
 
@@ -33,7 +33,7 @@ Mobile is organized by product domain (`ResearchComposer`, `ResearchActivity`, `
 
 ## Research Beta honesty
 
-Fixture one-sentence UX, activity-from-events, editorial report, source sheet, correction, library, and settings are implemented and device-checked. Session A bounded live briefs exist and are not relabeled as Research Beta product quality. Session B retrieval intelligence, iOS, hosted auth, purchases, and store release remain incomplete. Do not merge this branch to `main` until B hands off and the integration gate is re-run.
+Fixture one-sentence UX, activity-from-events, editorial report, source sheet, correction, library, and settings are implemented and device-checked. Session A bounded live briefs exist and are not relabeled as Research Beta product quality. ADR062 Library-without-bottom-tab chrome is implemented (header Library, full-screen Library/Settings). Wide left-drawer polish remains open. Session B retrieval intelligence, iOS, hosted auth, purchases, and store release remain incomplete. Do not merge this branch to `main` until B hands off and the integration gate is re-run.
 
 ## Rollback
 

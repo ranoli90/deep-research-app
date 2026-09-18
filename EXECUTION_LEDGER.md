@@ -1,5 +1,36 @@
 # Execution ledger
 
+## 2026-09-18 — Session C visual overhaul (consumer chrome)
+
+- Removed bottom Research/Library tabs. Header: Library, Deep/question, New research, avatar Settings. Android back: keyboard → attach → source → tab; never cancel.
+- Searching: live sentence, themed shimmer, elapsed, domain pills only from opened/read public URLs, Sample prefix on fixture trails. Composer quiet ring / teal ↑ / Stop / Retry. Plus = Files + Paste note, stays mounted.
+- Empty home: “What do you want to know?” + chips. After answer: no Outline/Concise/Correction card/previous-version twin; `[n]` chips; follow-ups as questions.
+- Adversarial reviews (visual, lifecycle, truthfulness) then re-review; remaining majors fixed.
+- `pnpm --filter @deep/mobile typecheck` + `test` 259 passed. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C error/offline/empty-progress one-liners
+
+- Competitors: single line + Retry + keep composer. Replaced banners/Sample-answers chip/empty-progress card with four one-liners: `You're offline.` / `Research failed.` / `Research cancelled.` / `Waiting for the server.`
+- Helper `apps/mobile/src/research-status.ts`; App status row; ResearchActivity returns null with zero events; Sample label remains on demo reports only.
+- Spec: `MOBILE_SCREEN_STATES.md` §5 + Failures chrome. Mobile Vitest 259 + typecheck; validate_review ok. No native rebuild. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C continue-thread composer (Ask anything + send icon)
+
+- After a finished report, composer matched ChatGPT/Grok continue-thread: `Ask anything` placeholder, arrow-up send icon (not Update pill), pencil New chat (not New research text). Correction still uses the dock composer.
+- `pnpm --filter @deep/mobile typecheck` and `test` 259 pass. No live spend. Session B not merged. Native rebuild separate.
+
+## 2026-09-18 — Session C dark chrome tokens
+
+- Specified `composer` / `thinking` / `userBubble` / `stop` under `color.light` and `color.dark` in `packages/design`. Dark: warm raised pill `#1F1C19`, teal send `#7EC4BC`, quiet stop chip — not DeepSeek `#0F0F0F`, ChatGPT green, or Grok black-circle stop.
+- Wired into mobile composer, activity trail, question bubble, Stop control. Spec note in `MOBILE_SCREEN_STATES.md`.
+- `@deep/design` + `@deep/mobile` typecheck; `pnpm --filter @deep/mobile test` 259 passed. No native rebuild. No live spend. Session B not merged.
+
+## 2026-09-18 — Session C Library navigation spec (ADR062)
+
+- Product decision: Library is not a bottom tab. Entry from header Menu (primary) and Profile → Library (secondary). Phone full-screen; wide optional left drawer. Row: title, Ready/Researching/…, version, time. Search, share, swipe. Dark/light via design tokens. New research clears local focus; open row resumes; server jobs and history untouched.
+- Canonical updates: `specs/MOBILE_SCREEN_STATES.md`, ADR062 in `docs/adr/DECISIONS.md`, `PRODUCT.md`, root/`apps/mobile` AGENTS, research-beta-ux packet, STATUS/HANDOFF. No mobile chrome code change in this step; tab-bar removal is next.
+- No live spend. Session B not merged.
+
 ## 2026-09-18 — Session C engineer review cycle
 
 - Fifteen independent reviews of the craft pass. Session B remains dirty at `66df545` with uncommitted `042_retrieval_intelligence.sql` (clash with C/A `042_model_portfolio.sql`) — not merged.

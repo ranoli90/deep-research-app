@@ -487,3 +487,13 @@ The model governor is a versioned `research-portfolio.v1` over registered polici
 
 Impact: additive contracts, research-core modules, `apps/backend/src/model-governor/`, optional cache fields on `ModelReceipt`, migration `042_model_portfolio.sql` (immutable resolution audit). No new dependency, prompt, processor, or default 10-model fanout. Default request bytes for legacy policies are unchanged. Rollback disables new portfolio admissions and intent compilation at admission; retain policy readers, unknown holds, deletion/publication gates, and historical request identities. Live semantic quality remains blocked without a current explicit grant.
 
+## ADR062 — Library as Menu/Profile surface, not a bottom tab (2026-09-18)
+
+W07 / Research Beta UX: Library must survive without a bottom tab. Competitors use a left hamburger thread drawer (ChatGPT/Grok) or Profile → Threads (Perplexity). Deep keeps Research as the sole primary destination and opens Library from a left **Menu** control (primary) and from **Profile → Library** (secondary).
+
+Phone/narrow: full-screen Library stack/modal over Research. Wide/tablet: optional left drawer/master pane. Row layout is title, status (`Ready` / `Researching` / …), version when >1, and updated time. Required interactions: open/resume, search (ownership-respecting), share when a report exists, swipe Share/Delete (no Archive until retention exists), dark/light via design tokens.
+
+**New research** relationship: header action on Research and sticky action on Library both use `startNewResearch` — clear local focus to the empty hero/composer, dismiss Library, leave server jobs running, leave history intact. Opening a Library row is resume, not new research. Pending admission/verification/deletion/invalidation holds keep blocking New research.
+
+Canonical behavior: `specs/MOBILE_SCREEN_STATES.md` Navigation + §9. Supersedes ADR029’s “Research and Library are the only bottom tabs” chrome rule while retaining Profile→Settings and protected-snapshot semantics. No backend/API/schema/spend change. Implementation updates mobile navigation/tests separately; this ADR records the product decision. Rollback may restore a temporary Library entry affordance but must not reintroduce a mandatory peer bottom tab as the only path to history.
+

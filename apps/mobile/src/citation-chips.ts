@@ -17,5 +17,5 @@ export function citationNumbers(blocks: ReportBlock[]): Record<string, number> {
 export function citationChipLabel(index: number, domain?: string | null): string {
   if (!Number.isSafeInteger(index) || index < 1) return "";
   const host = domain?.trim();
-  return host ? `${index} · ${host}` : String(index);
+  return host ? `[${index}] · ${host}` : `[${index}]`;
 }

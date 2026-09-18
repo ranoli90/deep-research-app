@@ -4,9 +4,9 @@ These are implementation requirements. They are not screenshots or claims that n
 
 ## Navigation and global behavior
 
-Use Research and Library as the two stable primary destinations. A profile control opens Settings. New research is always available without traversing an agent dashboard. Keep a research conversation's route stable while its job runs. A notification/deep link opens the exact conversation and verifies the signed-in owner before fetching it.
+Research is the sole primary destination. There is no bottom tab bar. Library opens full-screen from a left **Menu** control and from **Profile → Library** (ADR062). Profile opens Settings as a full-screen calm account surface. New research is always available from Research or Library chrome without traversing an agent dashboard; it clears local focus and dismisses Library while leaving server jobs and history intact. Keep a research conversation's route stable while its job runs. A notification/deep link opens the exact conversation and verifies the signed-in owner before fetching it.
 
-Use a tablet/foldable master-detail layout only when space supports it; do not force a phone into desktop density. On narrow devices, secondary information opens as a sheet or dedicated detail screen. Respect back-navigation conventions on both systems. Android back closes a sheet/keyboard before navigating away. Navigation must never silently cancel a server job.
+Use a tablet/foldable master-detail / left drawer for Library only when space supports it; do not force a phone into desktop density. On narrow devices, Library and Profile are dedicated full-screen destinations with Done/Android back returning to Research. Respect back-navigation conventions on both systems. Android back closes a sheet/keyboard before navigating away. Navigation must never silently cancel a server job.
 
 Preserve drafts, report scroll anchors, collapsed sections, and local display preferences across ordinary navigation. Clear account-specific cached state on logout/account switch. A draft containing potentially sensitive content must follow an explicit local retention policy rather than live forever in unprotected storage.
 
@@ -20,7 +20,11 @@ Email sign-in/deep-link flows must validate redirects and avoid displaying raw a
 
 ## 2. Composer
 
-Normal content: a short welcoming prompt (“Ask anything. One sentence is enough.”), a multiline field with placeholder “What should I research?”, an optional attach action, and a Research/send control (`accessibilityLabel="Start research"`). Files are optional. Do not require advanced configuration on first use. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
+Normal content: empty home shows only “What do you want to know?” plus a few example chips. Composer placeholder is “What should I research?”; attach is a circular + that opens an Add sources sheet (Files and Paste note only); send is a quiet ring until there is text, then a teal circle with ↑ (`accessibilityLabel="Start research"`). Files are optional. Do not require advanced configuration on first use. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
+
+**Continue-thread after a finished report:** keep the same dock composer for the thread (do not leave a leftover new-run “Research”/“Update” pill). Placeholder becomes “Ask anything”; send is a circular up-arrow icon (`accessibilityLabel="Send"`), not an Update pill. Header New chat is a pencil control (`accessibilityLabel="New chat"`), not a “New research” text link. Corrections and follow-up details still submit through this composer.
+
+**Dark / light chrome:** composer pill, thinking trail, user question bubble, and stop control consume `packages/design` chrome tokens (`color.light|dark.composer|thinking|userBubble|stop`). Keep the cream/ink/teal palette with calm contrast — not DeepSeek `#0F0F0F` black pills, ChatGPT green, or a Grok black-circle stop clone. Dark composer is a warm raised pill (`#1F1C19`) with teal send (`#7EC4BC`); stop is a quiet rounded chip.
 
 Handle empty/whitespace input, long pasted text, emoji and Unicode, multiline text, pasted URLs, hardware keyboard, autocorrect, selection, dictation supplied by the operating system, and right-to-left text within a primarily English interface. Enter behavior must not surprise mobile keyboard users; explicit send remains available.
 
@@ -42,6 +46,8 @@ Primary content: question, short current stage, safe activity summary derived on
 
 Detailed activity is an ordered set of real events: searched a topic, opened a source, found conflicting figures, checked an assumption, drafted a report. Do not fabricate animated team dialogue. Explain a pivot in one sentence anchored to findings, not a stream of private reasoning.
 
+**Live source appearance (during search).** Prefer Grok-style search/read activity lines over a Perplexity-style favicon strip of domains “arriving,” ChatGPT places/maps chrome, or DeepSeek “Found N results” theater. Do **not** invent hosts, titles, or favicons while thinking/searching. Domain pills may appear only when a safe public `http(s)` URL is already present on a persisted public event (today: parseable from `publicSummary`; payloads/locators are not on the public event contract). Pill copy is the hostname; favicons render only from owned icon bytes already on device—never a third-party favicon CDN (query leakage and generic/fake icons). If no URL is present, show no source pills. Source counts distinguish found/read/cited only when those facts exist on events.
+
 Show useful partial findings only after they exist and label them provisional. Source counts explicitly distinguish found/read/cited where shown. In-app progress can be more detailed than a privacy-safe push notification.
 
 When the user scrolls up, new events must not pull them down. Offer a subtle new-content control. Screen readers should receive bounded meaningful status changes rather than every streamed token.
@@ -50,7 +56,7 @@ Cancel first enters “Stopping new work”; it must not falsely claim an alread
 
 ## 5. Connectivity, app lifecycle, and notifications
 
-Offline: retain the readable report/draft that policy allows, show an offline banner, disable network-dependent actions with explanation, and recover automatically. Do not enqueue a paid submission invisibly while offline. On network restoration, ask/confirm according to the original submission state and idempotency record rather than guessing.
+Offline: retain the readable report/draft that policy allows, show a single status line (“You're offline.”) with Retry, keep the composer visible, disable network-dependent send, and recover automatically. Do not use a chip banner or status card for offline. Do not enqueue a paid submission invisibly while offline. On network restoration, ask/confirm according to the original submission state and idempotency record rather than guessing.
 
 Background/terminated: server research continues. On reopen, request a state snapshot plus missed events. Notifications are optional and delivery is not guaranteed. A denied permission leaves the core app functional. An invalid push token is retired; retry notification failures without resending the research job.
 
@@ -66,17 +72,21 @@ The report states its research date and important scope limitations. It distingu
 
 Writing/streaming states must not repeatedly reflow the whole document. Final publication should be atomic enough that a report cannot look complete while lacking its final citations. Keep the composer accessible below the report without covering content.
 
-## 7. Source sheet
+## 7. Source sheet and after-search citations
 
-Display title, domain/publisher, relevant dates with unknowns labeled, source type, original link, short supporting passage, locator, and relevant access/extraction limitations. Keep the most useful evidence above low-level metadata.
+**After-search citation chips.** On the published report, cite with first-appearance numbered chips (`1`, `2`, …)—never raw passage UUIDs. Optional `N · domain` only when that domain is known from owned source metadata (not guessed from titles). Chips sit with the answer/blocks they support; tapping opens the source sheet for that passage.
 
-Buttons: open original and close/back; optionally expand evidence context. Do not show a nonexistent downloaded document or claim a highlighted page exists when only a snippet is available. A deleted or inaccessible source reference returns a truthful error without blanking the report.
+**Source sheet (quote-first).** Lead with the exact supporting passage, then title, domain/publisher, uncertainty/access/coverage, “Cited in” when a related claim exists, locator, extraction limits, and open-original when a safe public link exists. Keep the most useful evidence above low-level metadata. Do not show a nonexistent downloaded document, page highlight, or favicon invented for the host.
 
-Entering/leaving the sheet preserves report scroll position and keyboard focus. VoiceOver/TalkBack receives a descriptive citation label, sheet heading, and appropriate close action.
+Buttons: open original and close/back; optionally expand evidence context. A deleted or inaccessible source reference returns a truthful error without blanking the report.
+
+Entering/leaving the sheet preserves report scroll position and keyboard focus. VoiceOver/TalkBack receives a descriptive citation label (number, not UUID), sheet heading, and appropriate close action.
 
 ## 8. Follow-up and report versions
 
 Provide optional relevant actions plus free text, not a wall of chips. “Go deeper” scopes to selected content when selected. “Check this claim” identifies the claim and supporting evidence. “Find contrary evidence” does not manufacture disagreement when the evidence is consistent.
+
+**Suggested next asks (consumer chips):** place at most three chips in the composer dock **above the field**, not under the answer body. Grok-style dock placement stays tappable while the keyboard is open; Perplexity/ChatGPT under-answer chips are rejected here because the keyboard would hide them. Copy is short **questions** derived from unresolved items, caveats, and named limitations — not truncated caveat statements. Chip labels stay ≤42 characters; tapping fills a ≤160-character question into the composer (with `Also:` appended after the original question on `replace_question` routes). Never dump multi-kilobyte block text into the draft. Chips stay visible when the keyboard opens; tabs may hide.
 
 Before a paid continuation, show its allowance effect. The new run references its parent and uses an updated brief. A change summary explains altered findings rather than just saying “updated.” Preserve version history and its source references. Do not overwrite an earlier report while it is being exported.
 
@@ -118,6 +128,13 @@ These requirements refine the earlier states in this same canonical specificatio
 
 **Failures and partial answers.** State what happened, what is preserved and the next viable action. Distinguish service capacity, expired session, no accessible evidence, partial extraction, unknown provider outcome, user cancellation and exhausted allowance. Do not call a task “failed” simply because a client stream disconnected while the server report exists. Do not promise the user will not incur cost when provider accounting is unknown.
 
+**Error / offline / empty-progress chrome.** Competitors use one line plus Retry and keep the composer. Do not present these as banners, Sample-answer chips, or cards:
+- Offline → `You're offline.` + Retry
+- Failed research → `Research failed.` + Retry
+- Cancelled → `Research cancelled.` (no Retry)
+- Waiting for server (no events yet) → `Waiting for the server.` + Retry (Cancel remains available)
+Keep the composer mounted. Sample labeling belongs on a demo report (`Sample` kicker), not a global chip banner. Active trails with real events may still use the collapsed activity card.
+
 **Input acquisition.** Launch supports explicit share/import of links and supported files through native user action. Never read the clipboard or share-sheet content silently. Unsupported data formats need an understandable rejection. File removal during processing must invalidate late completion and derived report access.
 
 **Plans and controls.** Show a lightweight editable plan when it helps; do not require confirmation for every clear request. No agent/model/token dashboard. Only expose pause if the actual executor can pause safely; cancel is required. Progress is event-based, not fabricated. Notifications are optional, private by default, and never replace reopen synchronization.
@@ -156,7 +173,7 @@ Source deletion is an explicit two-step source/version-bound action. Confirming 
 
 Requested claim verification (ADR037): a current controlled report can recheck its first answer claim against the inspected evidence, with snapshot reuse or selected-source refresh. Feedback is saved privately but is not itself assessed or used as a public query. Persist the exact parent/report/version/claim/policy/note/idempotency identity in protected storage before POST. Unknown admission blocks new research, source deletion and report switching; retry uses the same identity. Check or withdraw supplies the bound original request, then durably adopts an authenticated child GET snapshot before clearing the journal, or confirms withdrawal. Superseded accounts cannot adopt late responses; expired sessions clear private state through the existing session handler. Diagnostic reports do not offer this as verification. Unit/storage/type/export evidence is distinct from the still-unverified native journey.
 
-Profile presentation is owned by ProfilePanel; App retains session authority and asynchronous account, consent, restore and deletion handlers. The panel receives only signed-in/consent/mode display state and callbacks, keeps destructive confirmation and accessible labels, and explicitly says purchases/push are unavailable. Internal modes use readable Demo/Research labels. No appearance control or notification capability is implied. Rollback can inline this presentation while preserving handlers, confirmations and privacy wording. Native accessibility/lifecycle acceptance remains separate from rendered callback controls.
+Profile is a full-screen destination opened from the header Profile control (no bottom tabs anywhere). Done and Android back return to Research. ProfilePanel owns presentation; App retains session authority and asynchronous account, consent, restore and deletion handlers. Calm sections are avatar/account, Appearance (system/light/dark, installation-local), Privacy (consent switch, processor/data-flow disclosures, deletion), Library → Saved reports, Preferences with Demo mode as a quiet switch retaining fixture/controlled-research identities, and Sign out. Purchases/push remain explicitly unavailable; destructive account deletion stays behind confirmation. No notification capability is implied. Rollback can inline this presentation while preserving handlers, confirmations and privacy wording. Native accessibility/lifecycle acceptance remains separate from rendered callback controls.
 
 W02/W03/W07 configured-route preflight (ADR047): a fresh authenticated settings read must confirm the selected route flag before a new admission journal/upload/admission. Failures preserve existing recovery identities; Check/Withdraw remains available for already accepted requests. This is configuration checking, not readiness or budget assurance. Account/view generations reject stale responses. Root148 mobile controls/types and648module2.18MB JS export pass; actual local API probe passes with zero provider intents. Incorrect initial session-endpoint mock proof is explicitly rejected and preserved. No native journey or live semantic claim. Evidence: verification/v6/admission-preflight/ and admission-preflight-integrated/.
 

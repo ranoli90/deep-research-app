@@ -21,13 +21,14 @@ describe("research activity from persisted events", () => {
     expect(labelResearchEvent({ sequence: 6, type: "chain_of_thought", publicSummary: "Let me think step by step" })).toBeNull();
     expect(labelResearchEvent({ sequence: 7, type: "prompt", publicSummary: "system prompt leaked" })).toBeNull();
     expect(labelResearchEvent({ sequence: 8, type: "mystery", publicSummary: "{\"internal\":true}" })).toBeNull();
+    expect(labelResearchEvent({ sequence: 9, type: "compare", publicSummary: "internal rationale about the ranking" })).toBeNull();
   });
 
   it("does not invent progress when no events exist", () => {
     expect(visibleResearchEvents([])).toEqual([]);
-    expect(collapseResearchActivity({ events: [], lifecycle: "running" }).summary).toMatch(/Waiting for the server/);
+    expect(collapseResearchActivity({ events: [], lifecycle: "running" }).summary).toBe("Waiting for the server.");
     expect(collapseResearchActivity({ events: [], lifecycle: "terminal", outcome: "completed" }).summary).toBe("No research activity was recorded.");
-    expect(currentActivityLine([])).toMatch(/Waiting for the server/);
+    expect(currentActivityLine([])).toBe("Waiting for the server.");
   });
 
   it("collapses to a truthful source count and elapsed time from timestamps", () => {
@@ -40,12 +41,18 @@ describe("research activity from persisted events", () => {
     const collapsed = collapseResearchActivity({ events, lifecycle: "terminal", outcome: "completed" });
     expect(collapsed.summary).toBe("Researched 2 sources · 2m 18s");
     expect(collapsed.expandable).toBe(true);
+    const liveReads = [
+      { sequence: 1, type: "accepted", publicSummary: "accepted", createdAt: "2026-09-18T12:00:00.000Z" },
+      { sequence: 2, type: "source_read", publicSummary: "Source reading finished; extracted evidence retains its access limitations.", createdAt: "2026-09-18T12:00:10.000Z" },
+      { sequence: 3, type: "source_read", publicSummary: "Source reading finished; extracted evidence retains its access limitations.", createdAt: "2026-09-18T12:00:20.000Z" },
+    ];
+    expect(collapseResearchActivity({ events: liveReads, outcome: "completed" }).summary).toBe("Researched 2 sources · 20s");
   });
 
   it("does not claim a source count when none were opened", () => {
     const events = [{ sequence: 1, type: "accepted", publicSummary: "accepted" }];
     expect(collapseResearchActivity({ events, outcome: "completed" }).summary).toBe("Research complete");
-    expect(collapseResearchActivity({ events: [...events, { sequence: 2, type: "cancelled", publicSummary: "stopped" }], outcome: "cancelled" }).summary).toBe("Stopped");
+    expect(collapseResearchActivity({ events: [...events, { sequence: 2, type: "cancelled", publicSummary: "stopped" }], outcome: "cancelled" }).summary).toBe("Research cancelled");
   });
 
   it("shows elapsed time while running from the first recorded event", () => {

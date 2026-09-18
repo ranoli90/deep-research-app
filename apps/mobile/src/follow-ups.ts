@@ -3,13 +3,74 @@ import type { ReportBlock } from "./state";
 
 export type FollowUpSuggestion = { id: string; label: string; prompt: string };
 
-function shorten(text: string, max = 42): string {
+/** Chip label length; stays scannable in the composer dock. */
+export const FOLLOW_UP_LABEL_MAX = 42;
+/** Draft fill length; never dump a full caveat or 10k-char block into the composer. */
+export const FOLLOW_UP_PROMPT_MAX = 160;
+export const FOLLOW_UP_MAX = 3;
+
+function shorten(text: string, max: number): string {
   const compact = text.replace(/\s+/g, " ").trim();
   if (compact.length <= max) return compact;
   return `${compact.slice(0, max - 1).trimEnd()}…`;
 }
 
-/** 1–3 follow-ups taken only from unresolved items, caveats, and named limitations. */
+function decapitalize(text: string): string {
+  if (!text) return text;
+  if (/^[A-Z]{2,}/.test(text)) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+function capitalize(text: string): string {
+  if (!text) return text;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Turn unresolved/caveat/limitation prose into a short next-ask question. */
+export function asFollowUpQuestion(text: string): string {
+  let t = text.replace(/\s+/g, " ").trim();
+  if (!t) return "";
+  t = t.replace(/^(unresolved|caveat|limitation|note)\s*[:\-—]\s*/i, "");
+  if (/\?\s*$/.test(t)) return shorten(t, FOLLOW_UP_PROMPT_MAX);
+
+  let m = t.match(/^(.+?)\s+(?:is|are|remains?)\s+unresolved\.?$/i);
+  if (m) return shorten(`What is ${decapitalize(m[1].trim())}?`, FOLLOW_UP_PROMPT_MAX);
+
+  m = t.match(/^(.+?)\s+(?:was|were)\s+not\s+(?:measured|checked|verified|inspected|tested|found|reviewed)\.?$/i);
+  if (m) return shorten(`What about ${decapitalize(m[1].trim())}?`, FOLLOW_UP_PROMPT_MAX);
+
+  m = t.match(/^Did not\s+(inspect|check|measure|verify|review|test)\s+(.+?)\.?$/i);
+  if (m) return shorten(`${capitalize(m[1])} ${m[2].replace(/\.+$/, "")}?`, FOLLOW_UP_PROMPT_MAX);
+
+  m = t.match(/^(.+?)\s+disagree(?:s)?\s+with\s+(.+?)\.?$/i);
+  if (m) {
+    return shorten(
+      `Reconcile ${decapitalize(m[1].trim())} with ${decapitalize(m[2].trim())}?`,
+      FOLLOW_UP_PROMPT_MAX,
+    );
+  }
+
+  return shorten(`Resolve ${decapitalize(t.replace(/[.!]+$/, ""))}?`, FOLLOW_UP_PROMPT_MAX);
+}
+
+/** Fill the composer from a chip; keeps replace_question lineage without dumping caveat prose. */
+export function draftFromFollowUp(input: {
+  prompt: string;
+  originalQuestion?: string | null;
+  replaceQuestion: boolean;
+}): string {
+  const prompt = shorten(input.prompt, FOLLOW_UP_PROMPT_MAX);
+  if (input.replaceQuestion && input.originalQuestion?.trim()) {
+    return `${input.originalQuestion.trim()} Also: ${prompt}`;
+  }
+  return prompt;
+}
+
+/**
+ * Up to three suggested next asks from unresolved items, caveats, and named limitations.
+ * Placement is the composer dock (above the field), not under the answer — chips stay
+ * visible while the keyboard is open and rewrite the draft on tap.
+ */
 export function followUpSuggestions(input: {
   blocks: ReportBlock[];
   limitations?: string[];
@@ -27,15 +88,16 @@ export function followUpSuggestions(input: {
   const seen = new Set<string>();
   const out: FollowUpSuggestion[] = [];
   for (const item of items) {
-    const key = item.text.toLowerCase();
-    if (!item.text || seen.has(key)) continue;
+    const question = asFollowUpQuestion(item.text);
+    const key = question.toLowerCase();
+    if (!question || seen.has(key)) continue;
     seen.add(key);
     out.push({
       id: item.id,
-      label: shorten(item.text),
-      prompt: item.text.slice(0, 20_000),
+      label: shorten(question, FOLLOW_UP_LABEL_MAX),
+      prompt: question,
     });
-    if (out.length === 3) break;
+    if (out.length === FOLLOW_UP_MAX) break;
   }
   return out;
 }

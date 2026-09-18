@@ -108,7 +108,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.restorePurchases/);
     expect(profile).toMatch(/Privacy data flows/);
     expect(profile).toMatch(/Open web deletion page/);
-    expect(src).toMatch(/state\.report \|\| state\.status === "completed"/);
+    expect(src).toMatch(/staleCorrection && state\.run/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
     expect(src).toMatch(/startPolling\(token, child\.runId\)/);
@@ -124,6 +124,10 @@ describe("P0-N native state mapping", () => {
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
     const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
     expect(profile).toContain('accessibilityLabel="Settings"');
+    expect(profile).toContain("Demo mode");
+    expect(profile).toContain("Appearance");
+    expect(profile).toContain("Sign out");
+    expect(profile).toContain('accessibilityLabel="Open library"');
     const src = [
       readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8"),
@@ -134,7 +138,7 @@ describe("P0-N native state mapping", () => {
     for (const label of [
       'accessibilityLabel="Research question"',
       'accessibilityLabel="Research progress"',
-      'accessibilityLabel="Cancel research"',
+      '"Stop research"',
       'accessibilityLabel="In progress"',
       'accessibilityLabel="Research report"',
       'accessibilityLabel="Source sheet"',
@@ -145,14 +149,15 @@ describe("P0-N native state mapping", () => {
       expect(src).toContain(label);
     }
     expect(src).toContain("Start research");
-    expect(src).toMatch(/tab === "research" \? "Research"/);
-    expect(src).toMatch(/accessibilityLabel=\{tab === "research" \? "Research" : "Library"\}/);
-    expect(src).toContain('(["research", "library"] as const).map');
+    expect(src).toContain('accessibilityLabel="Library"');
+    expect(src).toContain('accessibilityLabel="New research"');
+    expect(src).toContain("androidBack(latestUi.current)");
     expect(src).toContain('accessibilityLabel="Open profile and settings"');
+    expect(src).not.toContain("accessibilityRole=\"tablist\"");
+    expect(src).not.toContain('(["research", "library"] as const).map');
     expect(src).toMatch(/Keyboard\.addListener/);
     expect(src).toMatch(/announceForAccessibility/);
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);
-    expect(src).toMatch(/!keyboardOpen/);
     expect(src).not.toMatch(/allowFontScaling=\{false\}/);
     expect(src).toMatch(/maxFontSizeMultiplier=\{2\}/);
     expect(src).toMatch(/maxHeight: 180/);
