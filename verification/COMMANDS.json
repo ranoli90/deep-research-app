@@ -1672,5 +1672,93 @@
     "network": false,
     "paid": false,
     "implementation": "verification/v6/evidence-selection/record-inventory.py"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty selected context'",
+    "status": "implemented_application_command",
+    "scope": "ADR057 bounded empty-context recovery; production PostgreSQL/worker and nonbillable synthetic model control",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/passage-capacity.integration.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty|no-recovery|four-iteration|unknown recovery'",
+    "status": "implemented_application_command",
+    "scope": "ADR057 bounded empty-context recovery; production PostgreSQL/worker and nonbillable synthetic model control",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/passage-capacity.integration.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/tmp/deep-recovery-official-before pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'registered official frozen PDFs'",
+    "status": "implemented_application_command",
+    "scope": "ADR057 bounded empty-context recovery; production PostgreSQL/worker and nonbillable synthetic model control",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/eval-live.extraction.test.ts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/tmp/deep-recovery-official-after pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'registered official frozen PDFs'",
+    "status": "implemented_application_command",
+    "scope": "ADR057 actual frozen PDF extraction, every recovery context and exact inventory coverage; fabricated semantic transport",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/eval-live.extraction.test.ts"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py integration",
+    "status": "implemented_application_command",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py extraction",
+    "status": "implemented_application_command",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py verify",
+    "status": "implemented_application_command",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py review",
+    "status": "implemented_review_tool",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py handoff",
+    "status": "implemented_review_tool",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py review-mutations",
+    "status": "implemented_review_tool",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
+  },
+  {
+    "command": "python3 verification/v6/bounded-recovery/run.py handoff-mutations",
+    "status": "implemented_review_tool",
+    "scope": "ADR057 committed terminal verification; fabricated model transport, paid zero; isolated local PostgreSQL/extraction as applicable",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/bounded-recovery/run.py"
   }
 ]

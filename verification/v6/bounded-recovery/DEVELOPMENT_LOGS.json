@@ -1,0 +1,197 @@
+[
+  {
+    "artifact": "verification/v6/bounded-recovery/before.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 1,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty selected context'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/before-confirmed.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 1,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty selected context'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/after.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty selected context'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/focused.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 1,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty|no-recovery|four-iteration|unknown recovery'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/focused-fixed.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend test:integration test/passage-capacity.integration.test.ts -t 'recovers an empty|no-recovery|four-iteration|unknown recovery'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/core.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "pnpm --filter @deep/research-core test"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/types.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 2,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "pnpm --filter @deep/backend typecheck"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/types-fixed.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "pnpm --filter @deep/backend typecheck"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/types-final.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "pnpm --filter @deep/backend typecheck"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/official-before.log.gz",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "development reproduction or focused control; complete terminal output retained",
+    "exitCode": 1,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/tmp/deep-recovery-official-before pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'registered official frozen PDFs'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/official-after.log.gz",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "focused nonbillable check; terminal output retained",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_selection_extraction_20260918 EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime EVAL_RUNNER_ARTIFACT_DIR=/tmp/deep-recovery-official-after pnpm --filter @deep/backend test:extraction test/eval-live.extraction.test.ts -t 'registered official frozen PDFs'"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/review.log.gz",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "focused nonbillable check; terminal output retained",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "python3 scripts/validate_review.py"
+  },
+  {
+    "artifact": "verification/v6/bounded-recovery/handoff.log.gz",
+    "sourceState": "uncommitted development; exact intermediate snapshot not retained",
+    "scope": "focused nonbillable check; terminal output retained",
+    "head": "d1fc3345e998f1820843dd411fda1c74e6d91feb",
+    "exitCode": 0,
+    "environment": "Linux6.14/Node20.20.2/pnpm9.15.9/Python3.12.3; synthetic local PostgreSQL for integration",
+    "requirementIds": [
+      "W02",
+      "W05",
+      "W06",
+      "W08"
+    ],
+    "command": "python3 scripts/validate_builder_handoff.py"
+  }
+]

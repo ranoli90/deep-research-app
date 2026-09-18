@@ -135,12 +135,20 @@ it("registered official frozen PDFs traverse owned admission and real extraction
    expect(trace.events.every((e:any)=>e.run_id===admitted.runId&&e.account_id===x.account.accountId)).toBe(true);
    expect(trace.events.map((e:any)=>Number(e.sequence))).toEqual(trace.events.map((e:any)=>Number(e.sequence)).sort((a:number,b:number)=>a-b));
    expect(trace.events.find((e:any)=>e.type==="research_unresolved")?.payload.reason).toBe("no_relevant_assertions");
-   const extraction=trace.operations.find((o:any)=>o.operation==="extract_assertions");expect(extraction).toBeTruthy();expect(trace.selections).toHaveLength(1);
-   const selected=trace.selections[0];expect(selected.selection.available).toBe(trace.passages.length);expect(selected.selection.serializedBytes).toBeLessThanOrEqual(48000);
-   expect(extraction.input_manifest.evidenceSelection.id).toBe(selected.id);
-   expect(extraction.input_manifest.passages.map((p:any)=>p.id)).toEqual(selected.selection.passageIds);
-   expect(selected.candidates.every((p:any)=>typeof p.locatorDigest==="string"&&!p.locator.includes('"geometry"'))).toBe(true);
-   if(sourceId==="esp32"){expect(selected.selection.omitted).toBeGreaterThan(0);expect(selected.selection.passageIds.length).toBeLessThan(78);}
+   const extractions=trace.operations.filter((o:any)=>o.operation==="extract_assertions");expect(extractions.length).toBeGreaterThan(0);expect(extractions.length).toBeLessThanOrEqual(4);expect(trace.selections).toHaveLength(extractions.length);
+   const inspected=new Set<string>();
+   for(const selected of trace.selections){
+    expect(selected.selection.available).toBe(trace.passages.length);expect(selected.selection.serializedBytes).toBeLessThanOrEqual(48000);
+    const extraction=extractions.find((o:any)=>o.input_manifest.evidenceSelection.id===selected.id);expect(extraction).toBeTruthy();
+    expect(extraction.input_manifest.passages.map((p:any)=>p.id)).toEqual(selected.selection.passageIds);
+    expect(selected.candidates.every((p:any)=>typeof p.locatorDigest==="string"&&!p.locator.includes('"geometry"'))).toBe(true);
+    for(const id of selected.selection.passageIds)inspected.add(id);
+   }
+   // Recovery's empty semantic transport must exhaust actual whole evidence, not
+   // call the presence of a first source or a repeated context a useful answer.
+   expect([...inspected].sort()).toEqual(trace.passages.map((p:any)=>p.id).sort());
+   const initial=trace.selections.find((s:any)=>s.required_ids.length===0);expect(initial).toBeTruthy();
+   if(sourceId==="esp32"){expect(initial.selection.omitted).toBeGreaterThan(0);expect(initial.selection.passageIds.length).toBeLessThan(78);expect(extractions.length).toBeGreaterThan(1);}
   }finally{await x.driver.close();read.mockRestore();}
  }
 },120000);

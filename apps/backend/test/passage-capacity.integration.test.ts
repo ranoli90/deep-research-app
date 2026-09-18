@@ -23,11 +23,11 @@ const fact="Ardent supports offline recording only on firmware 4.2.";
 beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
 afterEach(async()=>{globalThis.fetch=originalFetch;for(const id of accounts.splice(0))await deleteAccount(pool,id);});
 afterAll(async()=>{await pool.end();});
-async function setup(count:number,size=100,contradiction=false,underwater=false,omittedOpposite=false){
+async function setup(count:number,size=100,contradiction=false,underwater=false,omittedOpposite=false,emptyFirst=false){
  const accountId=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s.accountId;});accounts.push(accountId);
  const run=await admitRun(pool,accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research"}));
  const locator="https://example.org/synthetic-capacity.txt",sourceId=await insertSource(pool,{accountId,runId:run.runId,locator,title:"Synthetic firmware note",publisher:"Synthetic",originCluster:"synthetic",sourceType:"web"});
- const texts=Array.from({length:count},(_,i)=>omittedOpposite&&i===11?"Ardent does not support offline recording on firmware 4.2.":i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):underwater&&i===count-2?"Ardent does not support underwater recording.":contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(omittedOpposite&&[9,10,12,13].includes(i)?23980:size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
+ const texts=Array.from({length:count},(_,i)=>omittedOpposite&&i===11?"Ardent does not support offline recording on firmware 4.2.":i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):underwater&&i===count-2?"Ardent does not support underwater recording.":contradiction&&i===0?fact:`Background ${i}. ${emptyFirst?"Which firmware supports Ardent offline recording? ":""}${"x".repeat(omittedOpposite&&[9,10,12,13].includes(i)?23980:size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
  await insertExtractedVersion(pool,{accountId,runId:run.runId,sourceId,bytes,receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:texts.map((text,i)=>({kind:"text",locator:`paragraph:${i}`,text,rows:[]}))}});
  // Stable UUID order makes the limiting statement demonstrably later than the former 24-passages boundary.
  const prefix=crypto.randomUUID().slice(0,24);
@@ -153,4 +153,47 @@ it("W01 restores an admitted result without a cached inventory check by executin
  await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();
  // Writer support is new work; the source assessment's logical request must not be repeated.
  expect(x.contexts.filter(c=>c.operation==="research_assess_support_v1")).toHaveLength(assessments+1);
+});
+
+
+it("W05 recovers an empty selected context by inspecting different whole evidence, then replays without reissuing extraction",async()=>{
+ const x=await setup(12,7000,false,false,false,true);await processRun(pool,config,x.run.runId,{pauseAt:"writing"});
+ const extractions=x.contexts.filter(c=>c.operation==="research_extract_assertions_v1");
+ expect(extractions[0]!.context.passages.some((p:any)=>p.text===fact)).toBe(false);
+ expect(extractions.length).toBeGreaterThan(1);
+ expect(extractions.at(-1)!.context.passages.some((p:any)=>p.text===fact)).toBe(true);
+ const inspected=new Set<string>();for(const call of extractions){expect(call.context.passages.some((p:any)=>!inspected.has(p.id))).toBe(true);for(const p of call.context.passages){inspected.add(p.id);expect(x.basis).toContainEqual({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId});}}
+ await processRun(pool,config,x.run.runId);const report=await getLatestReportForRun(pool,x.run.runId,x.accountId);
+ expect(report!.blocks.some((b:{text:string})=>b.text===fact)).toBe(true);
+ expect(x.contexts.filter(c=>c.operation==="research_extract_assertions_v1")).toHaveLength(extractions.length);
+ const calls=x.contexts.length;await processRun(pool,config,x.run.runId);expect(x.contexts).toHaveLength(calls);
+ if(process.env.EMPTY_RECOVERY_TRACE_PATH)writeFileSync(process.env.EMPTY_RECOVERY_TRACE_PATH,JSON.stringify({evidenceClass:"synthetic real PostgreSQL and production worker; fabricated model/extraction receipts",report,passages:x.basis,contexts:x.contexts,selections:(await pool.query("SELECT * FROM evidence_selections WHERE run_id=$1",[x.run.runId])).rows,support:(await pool.query("SELECT * FROM selection_inventory_checks WHERE run_id=$1",[x.run.runId])).rows,operations:(await pool.query("SELECT operation,input_manifest FROM model_operation_results WHERE run_id=$1",[x.run.runId])).rows,paidCostMicro:0,semanticQuality:null},null,2));
+},120_000);
+
+it("W02 preserves no-recovery behavior for an already admitted policy and refuses unknown policy before model cost",async()=>{
+ const legacy=await setup(12,7000,false,false,false,true);await pool.query("UPDATE runs SET evidence_recovery_policy='none.v1' WHERE id=$1",[legacy.run.runId]);
+ await processRun(pool,config,legacy.run.runId);expect(legacy.contexts.filter(c=>c.operation==="research_extract_assertions_v1")).toHaveLength(1);expect(await getLatestReportForRun(pool,legacy.run.runId,legacy.accountId)).toBeNull();
+ const unknown=await setup(12,7000,false,false,false,true);await pool.query("UPDATE runs SET evidence_recovery_policy='unrecognized' WHERE id=$1",[unknown.run.runId]);
+ await processRun(pool,config,unknown.run.runId);expect(unknown.contexts).toHaveLength(0);expect((await pool.query("SELECT count(*)::int AS n FROM provider_intents WHERE run_id=$1",[unknown.run.runId])).rows[0].n).toBe(0);
+ expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[unknown.run.runId])).rows)).toContain("evidence_recovery_policy_unavailable");
+});
+it("W05 stops empty-context recovery at the existing four-iteration bound with explicit unresolved evidence",async()=>{
+ const x=await setup(40,7000,false,false,false,true),transport=globalThis.fetch;
+ globalThis.fetch=async(input,init)=>{const body=JSON.parse(String(init?.body));if(body.response_format?.json_schema.name==="research_extract_assertions_v1"){
+  x.contexts.push({operation:"research_extract_assertions_v1",context:JSON.parse(body.messages[1].content)});
+  return new Response(JSON.stringify({id:"nonbillable-empty-recovery",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000001"},choices:[{finish_reason:"stop",message:{content:JSON.stringify({candidates:[],assertions:[],limitations:[]})}}]}));
+ }return transport(input,init);};
+ await processRun(pool,config,x.run.runId);
+ expect(x.contexts.filter(c=>c.operation==="research_extract_assertions_v1")).toHaveLength(4);
+ expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
+ expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.run.runId])).rows)).toContain("evidence_selection_recovery_limit");
+});
+it("W02 keeps an unknown recovery attempt reserved and never blindly resends it",async()=>{
+ const x=await setup(12,7000,false,false,false,true),transport=globalThis.fetch;let extractionAttempts=0;
+ globalThis.fetch=async(input,init)=>{const body=JSON.parse(String(init?.body));if(body.response_format?.json_schema.name==="research_extract_assertions_v1"&&++extractionAttempts===2)throw new Error("synthetic_unknown_recovery_transport");return transport(input,init);};
+ await processRun(pool,config,x.run.runId);expect(extractionAttempts).toBe(2);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
+ const held=(await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND state='outcome-unknown'",[x.run.runId])).rows;
+ expect(held).toHaveLength(1);expect(held[0].confirmed_micro).toBeNull();expect(Number(held[0].reserved_max_micro)).toBeGreaterThan(0);
+ await processRun(pool,config,x.run.runId);expect(extractionAttempts).toBe(2);
+ expect((await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND state='outcome-unknown'",[x.run.runId])).rows).toEqual(held);
 });

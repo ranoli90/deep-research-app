@@ -1,5 +1,5 @@
 import {expect,it} from "vitest";
-import {selectWholePassages,EVIDENCE_SELECTION_LIMITS,type SelectionPassage} from "../src/evidence-selection.js";
+import {nextUninspectedSelection,selectWholePassages,EVIDENCE_SELECTION_LIMITS,type SelectionPassage} from "../src/evidence-selection.js";
 const passage=(i:number,text:string):SelectionPassage=>({id:`p${i}`,sourceId:"source",sourceVersionId:"version",locator:`page:${i}`,locatorDigest:`locator${i}`,text,digest:`digest${i}`,accessLevel:"partial-text",title:"Independent document"});
 it("preserves every whole passage when within bounds and is permutation invariant",()=>{
  const ps=Array.from({length:128},(_,i)=>passage(i,`Content ${i}.`));const result=selectWholePassages("unfamiliar",ps);
@@ -40,4 +40,25 @@ it("budgets actual escaped UTF8 data and source cardinality",()=>{
 it("does not invent adjacency when structured locator order is unavailable",()=>{
  const ps=Array.from({length:150},(_,i)=>({...passage(i,"x".repeat(1000)),locator:""}));
  expect(selectWholePassages("x",ps)).toEqual({kind:"blocked",reason:"selection_whole_bundle_exceeds_limit"});
+});
+
+
+it("packs a deterministic new whole inspection after an irrelevant first context without changing v1 selection",()=>{
+ const ps=Array.from({length:20},(_,i)=>passage(i,`Unfamiliar question ${i}. ${"x".repeat(7000)}`));
+ const first=selectWholePassages("Unfamiliar question",ps);expect(first.kind).toBe("selected");if(first.kind!=="selected")return;
+ const seen=new Set(first.passageIds);let rounds=1;
+ while(seen.size<ps.length&&rounds<10){const next=nextUninspectedSelection("Unfamiliar question",ps,[...seen]);expect(next.kind).toBe("recovery");if(next.kind!=="recovery")return;
+  expect(nextUninspectedSelection("Unfamiliar question",[...ps].reverse(),[...seen].reverse())).toEqual(next);
+  expect(next.selection).toEqual(selectWholePassages("Unfamiliar question",ps,next.requiredIds));
+  expect(next.selection.kind).toBe("selected");if(next.selection.kind!=="selected")return;
+  expect(next.selection.serializedBytes).toBeLessThanOrEqual(48000);const prior=seen.size;for(const id of next.selection.passageIds)seen.add(id);expect(seen.size).toBeGreaterThan(prior);rounds++;
+ }
+ expect(seen.size).toBe(ps.length);expect(nextUninspectedSelection("Unfamiliar question",ps,[...seen])).toEqual({kind:"blocked",reason:"inspection_inventory_exhausted"});
+ expect(selectWholePassages("Unfamiliar question",ps)).toEqual(first);
+});
+it("recovery cannot inspect a whole oversized bundle or adopt a foreign inspection identity",()=>{
+ const ps=Array.from({length:10},(_,i)=>passage(i,i>=4&&i<=6?"x".repeat(23999):"Small paragraph"));
+ const initial=selectWholePassages("Small",ps);expect(initial.kind).toBe("selected");if(initial.kind!=="selected")return;
+ expect(nextUninspectedSelection("Small",ps,["foreign"])).toEqual({kind:"blocked",reason:"inspection_inventory_mismatch"});
+ expect(nextUninspectedSelection("Small",ps,ps.filter(p=>p.id!=="p5").map(p=>p.id))).toEqual({kind:"blocked",reason:"uninspected_whole_bundle_exceeds_limit"});
 });

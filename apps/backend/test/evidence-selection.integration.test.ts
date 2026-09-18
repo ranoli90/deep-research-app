@@ -91,3 +91,12 @@ it("W02 migration backfills legacy identities, defaults only new runs, and repla
  expect(rows.find(r=>r.id===oldId).evidence_selection_policy).toBe("legacy-all.v1");expect(rows.find(r=>r.id===newId).evidence_selection_policy).toBe("whole-passage-selection.v1");
  }finally{await db.query("ROLLBACK");db.release();}
 });
+
+it("W02 recovery migration retains old policy and stamps only new admissions on repeated application",async()=>{
+ const db=await pool.connect();try{await db.query("BEGIN");const schema=`recovery_${crypto.randomUUID().replaceAll('-','')}`;await db.query(`CREATE SCHEMA ${schema}`);await db.query(`SET LOCAL search_path TO ${schema}`);
+ await db.query("CREATE TABLE runs(id uuid PRIMARY KEY)");const oldId=crypto.randomUUID(),newId=crypto.randomUUID();await db.query("INSERT INTO runs(id) VALUES($1)",[oldId]);
+ const sql=readFileSync(new URL("../migrations/040_empty_selection_recovery.sql",import.meta.url),"utf8");await db.query(sql);await db.query("INSERT INTO runs(id) VALUES($1)",[newId]);await db.query(sql);
+ expect((await db.query("SELECT evidence_recovery_policy FROM runs WHERE id=$1",[oldId])).rows[0].evidence_recovery_policy).toBe("none.v1");
+ expect((await db.query("SELECT evidence_recovery_policy FROM runs WHERE id=$1",[newId])).rows[0].evidence_recovery_policy).toBe("empty-selection-recovery.v1");
+ }finally{await db.query("ROLLBACK");db.release();}
+});

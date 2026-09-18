@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch } from "@deep/research-core";
+import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION } from "@deep/research-core";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
@@ -49,6 +49,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const correction=await session.write((db)=>db.query("SELECT reopen_discovery FROM research_change_sets WHERE run_id=$1 AND account_id=$2",[args.runId,args.accountId]));
   // A known unavailable required capability must fail before any model preparation cost.
   if(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length&&!config.structuredDiscoveryEnabled)return unresolved("correction_rediscovery_disabled");
+  const recoveryPolicy=(await session.write(db=>db.query("SELECT evidence_recovery_policy FROM runs WHERE id=$1 AND account_id=$2 AND brief_revision=$3",[args.runId,args.accountId,args.briefRevision]))).rows[0]?.evidence_recovery_policy;
+  if(!["none.v1",EMPTY_SELECTION_RECOVERY_VERSION].includes(recoveryPolicy))return unresolved("evidence_recovery_policy_unavailable");
   const prepared=await ensureResearchTask(pool,config,session,args);
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
   if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
@@ -73,6 +75,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   });
   if(opts.pauseAt==="researching")return;
   const selectionEnabled=await session.write(db=>usesEvidenceSelection(db,args));
+  const recoveryEnabled=selectionEnabled&&recoveryPolicy===EMPTY_SELECTION_RECOVERY_VERSION;
+  let recoveryRequiredIds:string[]=[];const inspectedIds=new Set<string>();
   const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
     JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
     AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]));
@@ -108,11 +112,18 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   for(let iteration=0;iteration<4;iteration++) {
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
     if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
-    const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,args)):null;
+    const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
     if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
     if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
-    if(!extraction.output.assertions.length)return unresolved("no_relevant_assertions");
+    if(!extraction.output.assertions.length){
+      if(!recoveryEnabled||!selection)return unresolved("no_relevant_assertions");
+      for(const id of selection.passageIds)inspectedIds.add(id);
+      const next=nextUninspectedSelection(brief.originalQuestion,selection.inventoryPassages,[...inspectedIds]);
+      if(next.kind!=="recovery")return unresolved(next.reason==="inspection_inventory_exhausted"?"no_relevant_assertions":next.reason);
+      if(iteration===3)return unresolved("evidence_selection_recovery_limit");
+      recoveryRequiredIds=next.requiredIds;continue;
+    }
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
     const support=await executeAssertionSupport(pool,config,session,target);
     if(support.kind!=="support")return pendingOrBlocked(support);
@@ -120,7 +131,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(challenge.kind==="challenge") {
       await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
         summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
-      if(challenge.evidenceChanged){selected=await selectPassages();continue;}
+      if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
     }
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
@@ -150,7 +161,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
             rationale:"Read evidence for an unresolved criterion.",action:{type:"fetch",sourceHandle,questionKeys:next.proposal.action.questionKeys}}});
           if(read.kind!=="read")return unresolved(read.kind==="blocked"?read.reason:"source_read_outcome_unknown");
         }
-        selected=await selectPassages();
+        selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
         continue;
       }
       await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"discovery_exhausted",phase:"researching",
