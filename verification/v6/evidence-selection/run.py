@@ -5,7 +5,7 @@ OUT = pathlib.Path(__file__).resolve().parent
 DATABASE = "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918"
 CHOICES = {
     "integration": (["pnpm", "test:integration"], {"TEST_DATABASE_URL": DATABASE, "EVIDENCE_SELECTION_TRACE_PATH": "/tmp/deep-selection-journey-final.json"}),
-    "extraction": (["pnpm", "--filter", "@deep/backend", "test:extraction"], {"TEST_DATABASE_URL": DATABASE, "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime", "EVAL_RUNNER_ARTIFACT_DIR": str(OUT / "extraction-traces")}),
+    "extraction": (["pnpm", "--filter", "@deep/backend", "test:extraction"], {"TEST_DATABASE_URL": DATABASE.replace("deep_research_continuation_20260918", "deep_research_selection_extraction_20260918"), "EXTRACTION_RUNTIME": "/tmp/deep-v6-extraction-runtime", "EVAL_RUNNER_ARTIFACT_DIR": str(OUT / "extraction-traces")}),
     "verify": (["pnpm", "verify"], {}),
     "review": (["python3", "scripts/validate_review.py"], {}),
     "handoff": (["python3", "scripts/validate_builder_handoff.py"], {}),

@@ -900,7 +900,10 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
  await releaseForWorker(x);const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
  await processRun(pool,config,x.runId,{pauseAt:"writing"});await processRun(pool,config,x.runId);
  const comparisonRows=await pool.query("SELECT result FROM scope_comparisons WHERE run_id=$1",[x.runId]);expect(comparisonRows.rows).toHaveLength(1);
- expect((await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest).toMatchObject({version:"model-input.v3",scopeComparisonDigest:expect.stringMatching(/^[a-f0-9]{64}$/)});
+ const writerManifest=(await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest;
+ const selection=(await pool.query("SELECT id,proof_digest FROM evidence_selections WHERE run_id=$1 AND evidence_revision=(SELECT evidence_revision FROM runs WHERE id=$1) AND required_ids='[]'::jsonb",[x.runId])).rows[0];
+ expect(writerManifest).toMatchObject({version:"model-input.v5",scopeComparisonDigest:expect.stringMatching(/^[a-f0-9]{64}$/),
+  evidenceSelection:{id:selection.id,version:"whole-passage-selection.v1",proofDigest:selection.proof_digest,available:2,selected:2,omitted:0}});
  expect(queries).toEqual([question,"kelp restoration"]);expect(sourceReader.readSource).toHaveBeenCalledTimes(2);
  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed");
  const report=(await pool.query("SELECT blocks FROM reports WHERE run_id=$1",[x.runId])).rows[0];

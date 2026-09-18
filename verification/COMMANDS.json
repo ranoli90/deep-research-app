@@ -1592,5 +1592,29 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/test/requested-verification.integration.test.ts"
+  },
+  {
+    "command": "node verification/v6/evidence-selection/setup-extraction.mjs",
+    "status": "implemented_review_tool",
+    "scope": "Create a fresh explicitly named local PostgreSQL extraction-only test database; refuses reuse; no cloud/native/paid provisioning",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/setup-extraction.mjs"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/record.py",
+    "status": "implemented_review_tool",
+    "scope": "Package only terminal ADR055 verification receipts, committed source hashes and lossless traces; preserve failed diagnostics and intermediate-source limitations",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/record.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py integration integration-final",
+    "status": "implemented_application_command",
+    "scope": "Full real PostgreSQL recheck after replacing stale v3 expectation with exact v5 selection-proof assertion; prior failed full runs retained; no paid model calls",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
   }
 ]
