@@ -5,7 +5,7 @@
     "W09"
   ],
   "baseCommit": "75c316e1e1b2dc9db82e0b156de5cd6491ce4fcb",
-  "revisionScope": "Working-tree implementation pending checkpoint commit",
+  "revisionScope": "Tests and native controls exercised working-tree implementation committed as b5d494364d6e74d1658524e7aa318e882ba0cbb9",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -94,5 +94,6 @@
       "artifact": "native-query-attempt.txt"
     }
   ],
-  "rollback": "ADR030: hide recovery but retain protected readers/deletion and server ownership/revision gates"
+  "rollback": "ADR030: hide recovery but retain protected readers/deletion and server ownership/revision gates",
+  "implementationCommit": "b5d494364d6e74d1658524e7aa318e882ba0cbb9"
 }
