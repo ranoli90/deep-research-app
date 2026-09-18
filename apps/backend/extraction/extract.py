@@ -22,6 +22,93 @@ def normalized(element):
     return " ".join(" ".join(element.itertext()).split())
 
 
+
+def supplemental_lists(document, main_blocks):
+    # Preserve source list order/qualifiers independently of main-content heuristics.
+    # These are supplements, not a reconstruction of the article's reading order.
+    blocks, warnings = [], []
+    main_text = " ".join(" ".join(b["text"] for b in main_blocks).split())
+    remaining_items, remaining_chars = 1000, 250000
+    limit_hit = False
+
+    def render_list(node, depth=0):
+        nonlocal remaining_items, limit_hit
+        if depth > 8:
+            limit_hit = True
+            return "[nested list omitted: extraction limit]"
+        label = "Ordered list" if node.tag == "ol" else "Unordered list"
+        # Original numbering attributes are data; emitted item indices identify positions only.
+        attrs = []
+        for key in ("start", "type", "reversed"):
+            if node.get(key) is not None:
+                value = node.get(key, "")
+                if len(value) <= 20:
+                    attrs.append(f"source {key}={value or 'true'}")
+                else:
+                    limit_hit = True
+        lines = [label + (" (" + "; ".join(attrs) + ")" if attrs else "") + ":"]
+        for index, item in enumerate(node.xpath("./li")):
+            if remaining_items <= 0:
+                limit_hit = True
+                break
+            remaining_items -= 1
+            value = item.get("value")
+            identity = f"item {index + 1}"
+            if value is not None and len(value) <= 20:
+                identity += f"; source value={value}"
+            lines.append(f"[{identity}] " + inline(item, depth))
+        return "\n".join(lines)
+
+    def inline(node, depth):
+        parts = [node.text or ""]
+        for child in node:
+            if child.tag in ("ol", "ul"):
+                text = "\n" + render_list(child, depth + 1) + "\n"
+            else:
+                text = inline(child, depth)
+                if child.tag in ("s", "del", "strike"):
+                    text = "[struck-through: " + " ".join(text.split()) + "]"
+            parts.extend((text, child.tail or ""))
+        # Keep nested-list boundaries while normalizing source whitespace within each line.
+        return "\n".join(" ".join(line.split()) for line in "".join(parts).splitlines() if line.strip())
+
+    lists = document.xpath("//ol[not(ancestor::ol or ancestor::ul or ancestor::table)]|//ul[not(ancestor::ol or ancestor::ul or ancestor::table)]")
+    for index, node in enumerate(lists):
+        if node.xpath("ancestor-or-self::*[self::aside or @role='navigation' or @role='menu' or @hidden or @aria-hidden='true']"):
+            continue
+        if any(set(ancestor.get("class", "").lower().split()) & {"menu", "navigation", "sidebar"}
+               for ancestor in [node, *node.iterancestors()]):
+            continue
+        if index >= 100 or remaining_items <= 0:
+            limit_hit = True
+            break
+        original = normalized(node)
+        if not original or (original in main_text and not node.xpath(".//s|.//del|.//strike")):
+            continue
+        lead = ""
+        sibling = node.getprevious()
+        # Ignore up to four empty anchors; never borrow context across another content block.
+        for _ in range(5):
+            if sibling is None:
+                break
+            if normalized(sibling):
+                if sibling.tag in ("p", "h1", "h2", "h3", "h4", "h5", "h6"):
+                    lead = inline(sibling, 0)
+                break
+            sibling = sibling.getprevious()
+        text = (lead + "\n" if lead else "") + render_list(node)
+        if len(text) > remaining_chars:
+            limit_hit = True
+            continue
+        remaining_chars -= len(text)
+        blocks.append({"kind": "text", "locator": f"list:{index}", "text": text, "rows": []})
+    if blocks:
+        warnings.extend(["list_order_preserved_separately", "supplemental_lists_may_overlap_main_content"])
+    if limit_hit:
+        warnings.append("supplemental_list_limit_reached")
+    return blocks, warnings
+
+
 def extract(request):
     raw = base64.b64decode(request["bytes"], validate=True)
     if len(raw) > MAX_BYTES:
@@ -90,6 +177,7 @@ def extract(request):
     if mime not in ("text/html", "application/xhtml+xml"):
         result.update(status="unavailable", warnings=["unsupported_mime"])
         return result
+    result["version"] = "trafilatura-2.2.0/structure-v2"
     document = html.fromstring(raw)
     # Scripts, challenge fallbacks and form fields are not documentary content.
     for element in document.xpath("//script|//style|//noscript|//form|//nav|//header|//footer"):
@@ -137,8 +225,10 @@ def extract(request):
             if text:
                 kind = "heading" if element.tag == "head" else "code" if element.tag == "code" else "text"
                 result["blocks"].append({"kind": kind, "locator": f"block:{index}", "text": text, "rows": []})
+    list_blocks, list_warnings = supplemental_lists(document, result["blocks"])
     result["blocks"].extend(table_blocks)
-    result["warnings"] = ["main_content_extraction_may_omit_regions", "table_order_preserved_separately"]
+    result["blocks"].extend(list_blocks)
+    result["warnings"] = ["main_content_extraction_may_omit_regions", "table_order_preserved_separately", *list_warnings]
     if not result["blocks"]:
         result.update(status="unavailable", warnings=["insufficient_static_content"])
     if len(result["blocks"]) > 10000:

@@ -6281,6 +6281,6 @@
   "correctionRediscoveryEvidence": "verification/v6/correction-rediscovery/RESULTS.json",
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
-  "latestReviewedImplementationCommit": "ece80f4d7be60843963e383b3707083547f61042",
-  "latestEvidencePacket": "verification/v6/dependency-vitest-integrated/RESULTS.json"
+  "latestReviewedImplementationCommit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "latestEvidencePacket": "verification/v6/dependency-uuid-integrated/RESULTS.json"
 }

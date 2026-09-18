@@ -1,0 +1,118 @@
+{
+  "task": "W04 MC-D01 development list omission/general bounded structural preservation",
+  "baseCommit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "clone": "/tmp/deep-html-list-zy4akjz3/repo",
+  "implementation": "uncommitted isolated clone only; root untouched; source.patch excludes reviewed Vitest4-only devrunner patch",
+  "environment": {
+    "node": "v20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "runtime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "checks": [
+    {
+      "artifact": "generic-before.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts",
+      "exitCode": 1,
+      "scope": "4fail1pass; generic OL/UL decisive restrictions omitted; structural/version/bound expectations unmet.",
+      "sha256": "5b7a9ac1c39a0849bb36e99711758cb14fc311378e2c8421b8f0cfb256c3562c"
+    },
+    {
+      "artifact": "generic-first-fix.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts",
+      "exitCode": 1,
+      "scope": "7pass1fail; cap fixture fully retained in main output needed no supplement. Added struck-through content to require structural supplement; cap assertion retained.",
+      "sha256": "ef8a18730e565a9e878fafde9911fc56b9b09cca44ada5ef045d5796c5517645"
+    },
+    {
+      "artifact": "generic-final.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts",
+      "exitCode": 0,
+      "scope": "8/8 actual isolated HTML controls.",
+      "sha256": "ebe743496fe42042fd1ae71f5ce08e79cae95c0b989ba469ae496ddc56b4a9ba"
+    },
+    {
+      "artifact": "pdf-regression.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/pdf.extraction.test.ts",
+      "exitCode": 0,
+      "scope": "4/4 actual isolated PDF controls sharing extraction script; no DB.",
+      "sha256": "e335a0eea4d294ed9901c04349134f0fdb1942952ad75c35b942d79ff58f6f3e"
+    },
+    {
+      "artifact": "typecheck.log",
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "scope": "Backend/imported-contract typecheck.",
+      "sha256": "33ce040b583d7668acabe7b22ae11146b10feb47a6e5c087803ac3aaf050c33a"
+    },
+    {
+      "artifact": "boundaries.log",
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "Import boundaries.",
+      "sha256": "25c457ce585abe31bdc11a31f09dbb797e8460eabe09af4f5a799120b83e8bc2"
+    },
+    {
+      "artifact": "diff-check.log",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "scope": "Clone source whitespace.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "sqlite-before.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/html-list-fidelity/development-case.mts /tmp/deep-html-list-zy4akjz3/repo /home/oranolio/Desktop/Deep/verification/v6/html-list-fidelity/sqlite-before.json",
+      "exitCode": 0,
+      "scope": {
+        "case": "MC-D01 development only",
+        "rawSha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+        "version": "trafilatura-2.2.0/structure-v1",
+        "status": "partial",
+        "warnings": [
+          "main_content_extraction_may_omit_regions",
+          "table_order_preserved_separately"
+        ],
+        "blockCount": 72,
+        "decisiveRestrictionPreserved": false,
+        "singleWriterPreserved": true,
+        "restrictionLocators": [],
+        "scope": "Actual isolated parser on frozen development bytes. No heldout/model/DB/network. Frozen gold and historical failure untouched."
+      }
+    },
+    {
+      "artifact": "sqlite-after.log",
+      "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/html-list-fidelity/development-case.mts /tmp/deep-html-list-zy4akjz3/repo /home/oranolio/Desktop/Deep/verification/v6/html-list-fidelity/sqlite-after.json",
+      "exitCode": 0,
+      "scope": {
+        "case": "MC-D01 development only",
+        "rawSha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+        "version": "trafilatura-2.2.0/structure-v2",
+        "status": "partial",
+        "warnings": [
+          "main_content_extraction_may_omit_regions",
+          "table_order_preserved_separately",
+          "list_order_preserved_separately",
+          "supplemental_lists_may_overlap_main_content"
+        ],
+        "blockCount": 75,
+        "decisiveRestrictionPreserved": true,
+        "singleWriterPreserved": true,
+        "restrictionLocators": [
+          "list:3"
+        ],
+        "scope": "Actual isolated parser on frozen development bytes. No heldout/model/DB/network. Frozen gold and historical failure untouched."
+      }
+    }
+  ],
+  "evidenceClass": "Actual offline OS-isolated extraction, generic synthetic HTML and frozen public MC-D01 development bytes. No heldout, DB, live model, paid/provider call or new network fetch.",
+  "change": "Bounded context-preserving list supplements with structure-v2; retains structure-v1 readers.",
+  "impactRollbackLimits": "HANDOFF.md",
+  "sourceFiles": [
+    "apps/backend/extraction/extract.py",
+    "apps/backend/src/adapters/extraction/offline.ts",
+    "apps/backend/test/html-lists.extraction.test.ts"
+  ],
+  "patch": "source.patch",
+  "frozenGoldModified": false,
+  "pending": "Primary source patch review and canonical integration; downstream passage selection/semantic quality not established."
+}

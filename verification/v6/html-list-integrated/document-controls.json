@@ -1,0 +1,2495 @@
+{
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "workingTree": "Uncommitted matched-pipeline implementation",
+  "environment": {
+    "node": "v20.20.2",
+    "platform": "linux",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "versions": [
+    {
+      "path": "apps/backend/src/adapters/model/prompts.ts",
+      "sha256": "795c678c63074542241a45c38926d24ace51c9816833ae1697f3594395111470"
+    },
+    {
+      "path": "apps/backend/src/ports/model-policy.ts",
+      "sha256": "29ad6c523cdce8f00c1617abd6c07496c8d358ec8bb222961788380b135aace2"
+    },
+    {
+      "path": "packages/contracts/src/research-model.ts",
+      "sha256": "7317c13bc286b87635be2862c1bdabaf9e6e087842e076502d9b6905b28af3ab"
+    },
+    {
+      "path": "evals/matched-pipeline/protocol.json",
+      "sha256": "163f04c5e6937f9ee58f03f83ad4550b081ba1a77c412f003b7119e281c4e002"
+    }
+  ],
+  "protocol": "matched-pipeline.v1",
+  "evidenceClass": "actual_extraction_production_api_worker_fabricated_model",
+  "newPaidCalls": 0,
+  "actualProviderCostMicro": 0,
+  "semanticScores": null,
+  "humanAdjudication": null,
+  "traces": [
+    {
+      "task": "MP-DOCUMENT-NEGATION",
+      "question": "What does the HERCSO field note say about underwater recording?",
+      "sourceSha256": "5e91044d009eab7b23dbe9e0ce581b1abbfb401b75761d39d7e2cb0dbd735ca7",
+      "sourceClass": "original_synthetic_actual_pdf",
+      "entityMutation": "same_length_randomized"
+    },
+    {
+      "label": "A1-original",
+      "runId": "2b3a1d6a-7d34-4d27-a096-590a4577b76e",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4860.849264,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "7b33e924-d8f7-45f0-8d9f-83d75062a1dd",
+        "runId": "2b3a1d6a-7d34-4d27-a096-590a4577b76e",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "HERCSO does not support underwater recording.",
+            "claimIds": [
+              "cb298c50-8651-45ed-8269-3c182d4182fd"
+            ],
+            "citationIds": [
+              "58004679-c3fa-4414-8811-d06c0a29570a"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "1793d0d7-4c78-4510-88bf-53ad99e07325",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://15aee5e7-a129-4a3f-a15d-7f65475e0bf7"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "1745cdb1-7a38-4a5c-bd76-036cc349393d",
+          "source_version_id": "7d8118eb-c3dd-4c9e-be2d-520acd619200",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "58004679-c3fa-4414-8811-d06c0a29570a",
+          "source_version_id": "7d8118eb-c3dd-4c9e-be2d-520acd619200",
+          "exact_text": "Field notes: HERCSO sensor deployment\nHERCSO supports offline recording only on firmware 4.2.\nHERCSO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  271.41200000000003,
+                  748.616
+                ],
+                "text": "Field notes: HERCSO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  354.1040000000002,
+                  730.616
+                ],
+                "text": "HERCSO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  314.1080000000001,
+                  712.616
+                ],
+                "text": "HERCSO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "e8793f52-4c40-484a-9f38-387f713620f8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "HERCSO does not support underwater recording.",
+                "start": 94,
+                "passageId": "58004679-c3fa-4414-8811-d06c0a29570a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "1d611c11-7b20-45ca-bdfc-b145a6cb3000",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "HERCSO does not support underwater recording.",
+                "start": 94,
+                "passageId": "58004679-c3fa-4414-8811-d06c0a29570a"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "2b3a1d6a-7d34-4d27-a096-590a4577b76e",
+          "accountId": "f178d8aa-3e51-46c1-9581-7750396c59f0",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-original",
+      "runId": "718dfd6b-fb4b-40c2-9030-75ce6c3e3b2c",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 4122.8145380000005,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "0adc935a-02bc-4edc-bc25-32213116ffa8",
+        "runId": "718dfd6b-fb4b-40c2-9030-75ce6c3e3b2c",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "HERCSO does not support underwater recording.",
+            "claimIds": [
+              "3b8664fe-4b26-4401-9b8e-a0473685d0f8"
+            ],
+            "citationIds": [
+              "067ad425-4ec0-459d-aca9-57880c8973c8"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "c7baa554-7650-4033-96e0-b0fe1f4213fe",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://c2764755-4aa4-4755-8e6b-b550cb1a8150"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "067ad425-4ec0-459d-aca9-57880c8973c8",
+          "source_version_id": "553b48fe-c238-4a06-b7ba-6a6863730181",
+          "exact_text": "Field notes: HERCSO sensor deployment\nHERCSO supports offline recording only on firmware 4.2.\nHERCSO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  271.41200000000003,
+                  748.616
+                ],
+                "text": "Field notes: HERCSO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  354.1040000000002,
+                  730.616
+                ],
+                "text": "HERCSO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  314.1080000000001,
+                  712.616
+                ],
+                "text": "HERCSO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "a6541891-43ba-4339-a87b-67f8e229a56f",
+          "source_version_id": "553b48fe-c238-4a06-b7ba-6a6863730181",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "2a82b576-2938-4055-8e0a-d4e9e1449005",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "HERCSO does not support underwater recording.",
+                "start": 94,
+                "passageId": "067ad425-4ec0-459d-aca9-57880c8973c8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "9ec6bdd8-2927-41e6-999f-9a97107a4f37",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 139,
+                "quote": "HERCSO does not support underwater recording.",
+                "start": 94,
+                "passageId": "067ad425-4ec0-459d-aca9-57880c8973c8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "718dfd6b-fb4b-40c2-9030-75ce6c3e3b2c",
+          "accountId": "f178d8aa-3e51-46c1-9581-7750396c59f0",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-correction",
+      "runId": "5d2d6e26-566d-4fdd-a473-b338df9e3c90",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 2084.0155290000002,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 0,
+      "report": {
+        "reportId": "5e9cf2f5-605d-4aa2-acb9-e764fa2cd124",
+        "runId": "5d2d6e26-566d-4fdd-a473-b338df9e3c90",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "HERCSO supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "f6378299-4c25-4891-b29c-87f480060c69"
+            ],
+            "citationIds": [
+              "067ad425-4ec0-459d-aca9-57880c8973c8"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "c7baa554-7650-4033-96e0-b0fe1f4213fe",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://c2764755-4aa4-4755-8e6b-b550cb1a8150"
+          }
+        ],
+        "changeSummary": {
+          "notes": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 1. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+          "comparison": {
+            "version": "report-changes.v1",
+            "parentReportId": "0adc935a-02bc-4edc-bc25-32213116ffa8",
+            "addedCriterionIds": [],
+            "reportStateChanged": false,
+            "removedCriterionIds": [],
+            "unchangedAssertions": 0,
+            "addedClaimRevisionIds": [
+              "cefe8b86-4401-498f-bf90-a4d35e2c7f2c"
+            ],
+            "removedClaimRevisionIds": [
+              "9ec6bdd8-2927-41e6-999f-9a97107a4f37"
+            ],
+            "newlyCitedSourceVersionIds": [],
+            "reusedCitedSourceVersionIds": [
+              "553b48fe-c238-4a06-b7ba-6a6863730181"
+            ]
+          },
+          "newlyFeasible": [],
+          "evidenceUpdated": false,
+          "newlyInfeasible": [],
+          "conclusionChanged": true
+        },
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "067ad425-4ec0-459d-aca9-57880c8973c8",
+          "source_version_id": "553b48fe-c238-4a06-b7ba-6a6863730181",
+          "exact_text": "Field notes: HERCSO sensor deployment\nHERCSO supports offline recording only on firmware 4.2.\nHERCSO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  271.41200000000003,
+                  748.616
+                ],
+                "text": "Field notes: HERCSO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  354.1040000000002,
+                  730.616
+                ],
+                "text": "HERCSO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  314.1080000000001,
+                  712.616
+                ],
+                "text": "HERCSO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "a6541891-43ba-4339-a87b-67f8e229a56f",
+          "source_version_id": "553b48fe-c238-4a06-b7ba-6a6863730181",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "9e21c31f-afa6-4e32-a3ba-1e50f337c131",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "HERCSO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "067ad425-4ec0-459d-aca9-57880c8973c8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "cefe8b86-4401-498f-bf90-a4d35e2c7f2c",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "HERCSO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "067ad425-4ec0-459d-aca9-57880c8973c8"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "5d2d6e26-566d-4fdd-a473-b338df9e3c90",
+          "accountId": "f178d8aa-3e51-46c1-9581-7750396c59f0",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-corrected-full-rerun",
+      "runId": "1e0c17fb-b335-432d-80d6-41ab66cd0784",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 3301.3874170000017,
+      "modelCalls": [
+        "research_brief_v1",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": {
+        "reportId": "73a0d0ff-4c97-4dee-b212-ce71a2e3ecee",
+        "runId": "1e0c17fb-b335-432d-80d6-41ab66cd0784",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "HERCSO supports offline recording only on firmware 4.2.",
+            "claimIds": [
+              "67dbabcb-f68f-4f4a-adaa-a01d9a47a921"
+            ],
+            "citationIds": [
+              "2db6bc46-0f55-4b27-9136-b3feb766ced1"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "research-note.pdf",
+            "sourceId": "c3b37689-7d10-4351-bd5a-60b5cd29ba92",
+            "accessLevel": "partial-text",
+            "originCluster": "attachment://d96c74ea-76c2-4f9b-adb6-7483687ef7b6"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "2db6bc46-0f55-4b27-9136-b3feb766ced1",
+          "source_version_id": "12901f38-5ef6-4443-ba99-40d378de562e",
+          "exact_text": "Field notes: HERCSO sensor deployment\nHERCSO supports offline recording only on firmware 4.2.\nHERCSO does not support underwater recording.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:1/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  271.41200000000003,
+                  748.616
+                ],
+                "text": "Field notes: HERCSO sensor deployment"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  354.1040000000002,
+                  730.616
+                ],
+                "text": "HERCSO supports offline recording only on firmware 4.2."
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  314.1080000000001,
+                  712.616
+                ],
+                "text": "HERCSO does not support underwater recording."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        },
+        {
+          "id": "d1a5a301-8d8a-4a2b-9ec5-0128a4902290",
+          "source_version_id": "12901f38-5ef6-4443-ba99-40d378de562e",
+          "exact_text": "Regional testing limits\nRegion       Tested duration       Qualification\nNorth        9 hours               Dry conditions only\nThis result does not apply to immersion or cold weather.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "page:2/block:0",
+            "geometry": [
+              {
+                "box": [
+                  50,
+                  737.516,
+                  166.7,
+                  748.616
+                ],
+                "text": "Regional testing limits"
+              },
+              {
+                "box": [
+                  50,
+                  719.516,
+                  284.1200000000001,
+                  730.616
+                ],
+                "text": "Region       Tested duration       Qualification"
+              },
+              {
+                "box": [
+                  50,
+                  701.516,
+                  297.4520000000002,
+                  712.616
+                ],
+                "text": "North        9 hours               Dry conditions only"
+              },
+              {
+                "box": [
+                  50,
+                  683.516,
+                  347.44400000000024,
+                  694.616
+                ],
+                "text": "This result does not apply to immersion or cold weather."
+              }
+            ],
+            "coordinates": "PDF points; bottom-left origin",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "docling-parse-7.20.0/geometry-v1"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "8c2aea80-007a-488b-a094-f769441d2c67",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "requested",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "HERCSO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "2db6bc46-0f55-4b27-9136-b3feb766ced1"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "4f4d6f49-7c05-4bc9-a9df-d4379aac387a",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 93,
+                "quote": "HERCSO supports offline recording only on firmware 4.2.",
+                "start": 38,
+                "passageId": "2db6bc46-0f55-4b27-9136-b3feb766ced1"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "1e0c17fb-b335-432d-80d6-41ab66cd0784",
+          "accountId": "f178d8aa-3e51-46c1-9581-7750396c59f0",
+          "routeMode": "controlled-research",
+          "spentMicro": 7,
+          "confirmedProviderMicro": 7,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 7
+          },
+          "intentTotalMicro": 7,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-unavailable",
+      "runId": "c99cf52f-87df-4742-8c13-e3fbf919576e",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1343.819556999999,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "c99cf52f-87df-4742-8c13-e3fbf919576e",
+          "accountId": "82be6c4b-99c7-4fe2-8296-5d47d498376a",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-unavailable",
+      "runId": "97472aa1-380d-43c7-a390-3c9095e71fb3",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "failed",
+      "error": null,
+      "wallMs": 1341.181620000003,
+      "modelCalls": [
+        "research_brief_v1"
+      ],
+      "actualParserCalls": 1,
+      "report": null,
+      "sources": [],
+      "support": [],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "97472aa1-380d-43c7-a390-3c9095e71fb3",
+          "accountId": "82be6c4b-99c7-4fe2-8296-5d47d498376a",
+          "routeMode": "controlled-research",
+          "spentMicro": 1,
+          "confirmedProviderMicro": 1,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 1
+          },
+          "intentTotalMicro": 1,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "A1-iterative-public",
+      "runId": "548b53d4-3a26-4fa1-aaa4-2c3205a32c5e",
+      "strategy": "iterative-baseline.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 8166.913905999998,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does GGRYVVU support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:export",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "ea9655c9-e745-4137-bd31-7fe7b3efd048",
+        "runId": "548b53d4-3a26-4fa1-aaa4-2c3205a32c5e",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "GGRYVVU supports full export.",
+            "claimIds": [
+              "4446a824-7048-4ced-9464-07c3bb9f08b1"
+            ],
+            "citationIds": [
+              "8f3a96b3-a60a-4a8b-a680-050c39ddc201"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "GGRYVVU supports offline editing.",
+            "claimIds": [
+              "0cae2358-dcef-42ba-9871-fb8bffd53859"
+            ],
+            "citationIds": [
+              "64d57ae0-a3ce-4598-8fb4-be3ef1a262b6"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "e88e3d23-0b49-4e5d-9ee5-dacbc9d1328a",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "f6e0b51a-dd7e-4ba6-9cf0-4fbd0ea8644f",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "64d57ae0-a3ce-4598-8fb4-be3ef1a262b6",
+          "source_version_id": "aa6a6e80-7f13-4915-b499-be7d304566a7",
+          "exact_text": "GGRYVVU supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "69747f02-1abf-4b35-940b-3213c8072f41",
+          "source_version_id": "5a64f009-b434-461c-abf1-c37140e53b6a",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "795d1afd-4250-499c-8c9e-8888a3031111",
+          "source_version_id": "aa6a6e80-7f13-4915-b499-be7d304566a7",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "8f3a96b3-a60a-4a8b-a680-050c39ddc201",
+          "source_version_id": "5a64f009-b434-461c-abf1-c37140e53b6a",
+          "exact_text": "GGRYVVU supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "a9fec0a5-d161-4c4d-a523-f12ec940bf12",
+          "source_version_id": "5a64f009-b434-461c-abf1-c37140e53b6a",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "d3287084-7f0d-42c7-b7f8-3e57f052c84e",
+          "source_version_id": "aa6a6e80-7f13-4915-b499-be7d304566a7",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "e16e005a-f932-4e61-ab13-890c161b8a11",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "8f3a96b3-a60a-4a8b-a680-050c39ddc201"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "497ba58b-7078-4de9-b078-68bdc5393d46",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "8f3a96b3-a60a-4a8b-a680-050c39ddc201"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c8746624-345a-4c9a-af71-495cdff2850d",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "GGRYVVU supports offline editing.",
+                "start": 0,
+                "passageId": "64d57ae0-a3ce-4598-8fb4-be3ef1a262b6"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "43dbd747-d498-4569-9dc4-bb1245b5428a",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "8f3a96b3-a60a-4a8b-a680-050c39ddc201"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "9c9e68a1-02c1-4038-b24b-2d750e628af9",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "GGRYVVU supports offline editing.",
+                "start": 0,
+                "passageId": "64d57ae0-a3ce-4598-8fb4-be3ef1a262b6"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "548b53d4-3a26-4fa1-aaa4-2c3205a32c5e",
+          "accountId": "43aeb145-5c49-4548-be79-a2cfe10c1245",
+          "routeMode": "controlled-research",
+          "spentMicro": 19,
+          "confirmedProviderMicro": 19,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 19
+          },
+          "intentTotalMicro": 19,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    },
+    {
+      "label": "B-iterative-public",
+      "runId": "4ac1171e-590b-4c43-83d8-4f0e030079f0",
+      "strategy": "criterion-adaptive.v1",
+      "outcome": "completed",
+      "error": null,
+      "wallMs": 7745.214992000001,
+      "modelCalls": [
+        "research_brief_v1",
+        "search:Does GGRYVVU support export and offline editing?",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "search:offline editing",
+        "research_extract_assertions_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1",
+        "research_write_report_v1",
+        "research_assess_support_v1",
+        "research_review_coverage_v1"
+      ],
+      "actualParserCalls": 2,
+      "report": {
+        "reportId": "93a91420-b30e-402a-9bff-7e4d6563afb5",
+        "runId": "4ac1171e-590b-4c43-83d8-4f0e030079f0",
+        "version": 1,
+        "outcome": "completed",
+        "blocks": [
+          {
+            "id": "heading_0",
+            "kind": "heading",
+            "text": "Evidence",
+            "claimIds": [],
+            "citationIds": []
+          },
+          {
+            "id": "paragraph_0_0",
+            "kind": "text",
+            "text": "GGRYVVU supports full export.",
+            "claimIds": [
+              "85e5b2da-34a9-48a8-8668-75b3d32a7d68"
+            ],
+            "citationIds": [
+              "1dbaa458-5c5e-4d90-bad0-3549b045c0ea"
+            ]
+          },
+          {
+            "id": "paragraph_0_1",
+            "kind": "text",
+            "text": "GGRYVVU supports offline editing.",
+            "claimIds": [
+              "76aaede5-d333-4903-b508-7d256fbcd8b0"
+            ],
+            "citationIds": [
+              "8fd3531f-4448-402d-bf40-f5462adb43fd"
+            ]
+          }
+        ],
+        "limitations": [],
+        "sourceAccessSummary": [
+          {
+            "title": "Technical note",
+            "sourceId": "419a5ff9-b343-49cb-a5cc-bada1b7033c4",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          },
+          {
+            "title": "Technical note",
+            "sourceId": "ba5bb8f8-b5fe-4c56-ad94-d3086224d22d",
+            "accessLevel": "partial-text",
+            "originCluster": "https://example.org"
+          }
+        ],
+        "changeSummary": null,
+        "routeMode": "controlled-research",
+        "labeledDemo": false
+      },
+      "sources": [
+        {
+          "id": "172646c2-3d3c-4408-9896-336f3ae73748",
+          "source_version_id": "e8c42687-bc0f-4c3b-b284-fba1b27803a7",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "1dbaa458-5c5e-4d90-bad0-3549b045c0ea",
+          "source_version_id": "e8c42687-bc0f-4c3b-b284-fba1b27803a7",
+          "exact_text": "GGRYVVU supports full export.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "7732c406-1144-46ec-942e-44db50a03fa3",
+          "source_version_id": "e8c42687-bc0f-4c3b-b284-fba1b27803a7",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "8fd3531f-4448-402d-bf40-f5462adb43fd",
+          "source_version_id": "424caae8-e24b-45e1-9746-1ebad4f69d75",
+          "exact_text": "GGRYVVU supports offline editing.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:1",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "a3d8f267-ffc1-4c4c-a0a4-37d40f6fee66",
+          "source_version_id": "424caae8-e24b-45e1-9746-1ebad4f69d75",
+          "exact_text": "Feature documentation",
+          "locator": {
+            "kind": "heading",
+            "rows": [],
+            "block": "block:0",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        },
+        {
+          "id": "f2263087-a2e2-4723-baf2-332c74be2893",
+          "source_version_id": "424caae8-e24b-45e1-9746-1ebad4f69d75",
+          "exact_text": "This original synthetic document is used to test actual saved-byte extraction. Its statements concern the named option and describe the available functionality. The test does not establish any real product capability or comparative research quality.",
+          "locator": {
+            "kind": "text",
+            "rows": [],
+            "block": "block:2",
+            "normalization": "extractor-output-v1"
+          },
+          "access_level": "partial-text",
+          "extraction_method": "trafilatura-2.2.0/structure-v2"
+        }
+      ],
+      "support": [
+        {
+          "claim_revision_id": "2b6a7c93-b462-4786-8047-fe740b1d8862",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "GGRYVVU supports offline editing.",
+                "start": 0,
+                "passageId": "8fd3531f-4448-402d-bf40-f5462adb43fd"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "ab5baf96-17ed-4f33-9fff-55630ba626d8",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "1dbaa458-5c5e-4d90-bad0-3549b045c0ea"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "d07e212a-259e-4226-84dd-6d59ae42f90f",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "paragraph_0_1",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 33,
+                "quote": "GGRYVVU supports offline editing.",
+                "start": 0,
+                "passageId": "8fd3531f-4448-402d-bf40-f5462adb43fd"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "c7e32db7-cca2-4d2d-be0c-1c7c97268396",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "1dbaa458-5c5e-4d90-bad0-3549b045c0ea"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        },
+        {
+          "claim_revision_id": "a0099e10-c46f-4bcd-b3ef-ec3cfd4efa14",
+          "result": {
+            "scope": {
+              "plan": null,
+              "time": null,
+              "entity": null,
+              "version": null,
+              "geography": null,
+              "population": null
+            },
+            "checks": [
+              {
+                "rule": "exact_evidence_bindings",
+                "passed": true
+              },
+              {
+                "rule": "scope_matches_claim",
+                "passed": true
+              },
+              {
+                "rule": "readable_evidence",
+                "passed": true
+              },
+              {
+                "rule": "scope_grounded_in_quotes",
+                "passed": true
+              },
+              {
+                "rule": "numbers_grounded",
+                "passed": true
+              },
+              {
+                "rule": "quantities_grounded",
+                "passed": true
+              },
+              {
+                "rule": "numeric_context_preserved",
+                "passed": true
+              },
+              {
+                "rule": "currency_preserved",
+                "passed": true
+              },
+              {
+                "rule": "no_detected_contradiction",
+                "passed": true
+              },
+              {
+                "rule": "qualification_preserved",
+                "passed": true
+              }
+            ],
+            "claimKey": "c0",
+            "decision": "supported",
+            "evidence": [
+              {
+                "end": 29,
+                "quote": "GGRYVVU supports full export.",
+                "start": 0,
+                "passageId": "1dbaa458-5c5e-4d90-bad0-3549b045c0ea"
+              }
+            ],
+            "rationale": "Fabricated exact-span control",
+            "modelStatus": "supported",
+            "counterEvidence": [],
+            "missingEvidence": []
+          }
+        }
+      ],
+      "cost": {
+        "kind": "fabricated_transport_receipts_not_actual_provider_spend",
+        "ledger": {
+          "runId": "4ac1171e-590b-4c43-83d8-4f0e030079f0",
+          "accountId": "43aeb145-5c49-4548-be79-a2cfe10c1245",
+          "routeMode": "controlled-research",
+          "spentMicro": 16,
+          "confirmedProviderMicro": 16,
+          "heldProviderMicro": 0,
+          "unknownProviderIntents": 0,
+          "simulatedFixtureMicro": 0,
+          "allowanceReconciled": true,
+          "costScope": "provider_receipts_only",
+          "reservationAmountMicro": 100000,
+          "reservationState": "settled",
+          "breakdown": {
+            "search": 0,
+            "fetch": 0,
+            "synthesize": 0,
+            "other": 16
+          },
+          "intentTotalMicro": 16,
+          "reconciled": true,
+          "tariffVersion": null,
+          "effectiveProcessor": "openrouter"
+        }
+      }
+    }
+  ]
+}

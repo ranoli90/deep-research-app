@@ -1,6 +1,6 @@
 # Current execution status
 
-The authorized V6 W01–W09 internal milestone remains **incomplete**. Preserve the existing application and both untracked user ZIPs. Branch: `codex/v6-evidence-milestone`. Latest committed implementation: `5fbec3a` (exact-span corrections, required rediscovery and PostCSS), following `6490546` (profile presentation) and `f88091a` (requested verification). Vitest4.1.11 is a verified working-tree dependency update; no current native build or live semantic pass is implied.
+The authorized V6 W01–W09 internal milestone remains **incomplete**. Preserve the existing application and both untracked user ZIPs. Branch: `codex/v6-evidence-milestone`. Latest committed implementation: `5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c` (scoped UUID repair), following `0734558` (typed verification corruption), `ece80f4` (Vitest4), `5fbec3a` (correction rediscovery/span), `6490546` (profile) and `f88091a` (requested verification). Current audit remains two high image-size findings. No current native build or live semantic pass is implied.
 
 ## Implemented and remaining scope
 
@@ -47,3 +47,5 @@ Verified Vitest runner checkpoint committed as `ece80f4d7be60843963e383b37070835
 W05/W02 typed verification corruption repair: isolated pre-fix6fail/3pass preserved; final isolated35/35 and primary integrated35/35 in107.82s pass, backendtypes/documentvalidators pass. Required markers, confirmed liabilities and unknown holds retained; transient/lease/untyped lookalikes remain recoverable. Artifacts verification/v6/verification-corruption/ and verification-corruption-integrated/. Node20.20.2/pnpm9.15.9/Vitest4.1.11/localPG, fabricated providers, paid0. ADR042; no live/native claim.
 
 W09 UUID-only integration over0734558cd54b39575de825ea1febab883ec52f3d: scoped xcode>uuid11.1.1, unchanged Metro0.83.3; root frozen offline install, actual Xcode roundtrip and mobiletypes exit0. Candidate actual iOS prebuild --no-install passes separately; no native build. Audit exit1,0moderate/2high image-size findings remain. Evidence verification/v6/dependency-uuid-integrated/RESULTS.json; ADR043. Corruption implementation committed as 0734558cd54b39575de825ea1febab883ec52f3d.
+
+W04 HTML list repair over5fb44af: root22/22 actual extraction controls in70.97s/backendtypes pass; isolated8HTML+4PDF pass, generic pre-fix failures retained. Same SQLite saved bytes preserve missing limitation at list:3 understructure-v2; v1 readers unchanged, no frozen gold/heldout edits. Model path still rejects>24passages; separate capacity work is not yet passed. Artifacts verification/v6/html-list-fidelity/ and html-list-integrated/; ADR044; paid0/native0.

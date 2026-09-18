@@ -1016,5 +1016,13 @@
     "network": false,
     "paid": false,
     "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/html-lists.extraction.test.ts test/html.extraction.test.ts",
+    "status": "implemented_application_command",
+    "scope": "Actual isolated HTML list structural preservation; no live research",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/test/html-lists.extraction.test.ts"
   }
 ]

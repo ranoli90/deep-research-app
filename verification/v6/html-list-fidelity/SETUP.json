@@ -1,0 +1,52 @@
+{
+  "commit": "5fbec3a3d319109507655ffa914c56c109c8257e",
+  "clone": "/tmp/deep-html-list-zy4akjz3/repo",
+  "checks": [
+    {
+      "command": [
+        "git",
+        "clone",
+        "--no-hardlinks",
+        "--no-checkout",
+        "/home/oranolio/Desktop/Deep",
+        "/tmp/deep-html-list-zy4akjz3/repo"
+      ],
+      "exitCode": 0,
+      "artifact": "setup-0.log"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/deep-html-list-zy4akjz3/repo",
+        "checkout",
+        "--detach",
+        "5fbec3a3d319109507655ffa914c56c109c8257e"
+      ],
+      "exitCode": 0,
+      "artifact": "setup-1.log"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/deep-html-list-zy4akjz3/repo",
+        "apply",
+        "/home/oranolio/Desktop/Deep/verification/v6/dependency-vitest-experiment/vitest-only.patch"
+      ],
+      "exitCode": 0,
+      "artifact": "setup-2.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "install",
+        "--offline",
+        "--frozen-lockfile",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "artifact": "setup-3.log"
+    }
+  ]
+}

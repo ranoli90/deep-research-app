@@ -1,0 +1,97 @@
+{
+  "task": "W05/W08 bounded production passage-selection reachability audit",
+  "commit": "5fb44af682a58c7b417fae64e6f8a4a40e2d3f2c",
+  "recordedAt": "2026-09-18T04:36:36.495773+00:00",
+  "method": "Read-only code and existing receipt/control inspection. No tests, DB, model/provider, network, heldout inspection or gold edits. Same-model engineering review.",
+  "finding": {
+    "classification": "Concrete source-derived availability limitation; not newly runtime-reproduced",
+    "trigger": "Any ordinary structured run whose owned readable extracted evidence totals25or more passages, including the permitted MC-D01 development result with75blocks.",
+    "behavior": "All readable authorized passages are selected, then the max24 selection validator rejects the entire input as invalid_extraction_selection before assertion-extraction dispatch. Worker terminalizes failed via pendingOrBlocked/unresolved. No supported answer is produced from that evidence set.",
+    "notObserved": "No silent first24 truncation or published false assertion demonstrated. Later restriction does not lose a ranking contest: the whole input is rejected. Brief preparation and discovery/read work may already have occurred before this gate."
+  },
+  "trace": [
+    {
+      "file": "apps/backend/src/modules/evidence.ts:34",
+      "rule": "Each extracted block is stored as a separate passage with random UUID and locator/digest; no coalescing."
+    },
+    {
+      "file": "apps/backend/src/worker/structured-research.ts:54",
+      "rule": "Select every owned authorized partial-text/full-text passage ORDER BY p.id. No question relevance, document position, list priority, diversity or bounded selection."
+    },
+    {
+      "file": "apps/backend/src/modules/assertion-evidence.ts:6",
+      "rule": "Selection must have1..24distinct UUIDs; rejects25+ before loading task/evidence context. Canonical UUID sort stabilizes action identity, not semantic order."
+    },
+    {
+      "file": "apps/backend/src/ports/model.ts:8",
+      "rule": "Context independently caps24passages and24000characters per passage. Whole-text input; no prefix truncation."
+    },
+    {
+      "file": "apps/backend/src/modules/model-operations.ts:62",
+      "rule": "Manifest pins question/task digests, every selected passage ID/version/digest/access, source handles and assertion/draft digests. It is selected membership metadata, not full-document coverage proof."
+    },
+    {
+      "file": "apps/backend/src/modules/scoped-support.ts:17",
+      "rule": "Support restores extraction manifest selection through loadAssertionEvidence; writer source context carries same passages and checked assertions, then final writer support restores same evidence. No later full-document passage retrieval occurs on that path."
+    },
+    {
+      "file": "apps/backend/src/modules/counterevidence.ts:95",
+      "rule": "Counterevidence also reloads all readable authorized passages; crossing24 after challenge reads blocks context rather than dropping old target evidence."
+    },
+    {
+      "file": "apps/backend/src/modules/verification-proof.ts:34",
+      "rule": "Requested reuse verification restores target selected IDs; source refresh selects all readable passages of refreshed selected sources and explicitly rejects rows>24."
+    }
+  ],
+  "questionAndCorrection": "Original question is included in model context but does not affect passage membership. Corrected replacement/span question uses the same production selector after immutable snapshot reuse or fresh discovery/read. Adding a source may raise total above24 even if each individual document fits. No selective dependency/question-sensitive passage traversal exists.",
+  "developmentEvidence": {
+    "source": "verification/v6/html-list-fidelity/RESULTS.json",
+    "case": "MC-D01 only",
+    "blocks": 75,
+    "restrictionLocator": "list:3",
+    "restrictionPreserved": true,
+    "interpretation": "Actual parser preservation is established by prior receipt. Production reachability inference follows one-block/one-passage plus max24 schema; this review did not execute that full production journey."
+  },
+  "existingControls": [
+    {
+      "file": "apps/backend/test/model-gateway.integration.test.ts:305",
+      "scope": "Wrong task, missing passage and duplicate selection reject before dispatch; invalid_extraction_selection assertion is for duplicates, not25distinct passages."
+    },
+    {
+      "file": "apps/backend/test/model-gateway.integration.test.ts:322",
+      "scope": "24001-character passage fails extraction_context_unavailable without provider dispatch; preserves no-prefix-truncation behavior."
+    },
+    {
+      "file": "apps/backend/test/model-gateway.integration.test.ts:1070",
+      "scope": "Twelve large passages exceed serialized context policy and return model_context_too_large before provider admission."
+    }
+  ],
+  "regressionGap": "No explicit25distinct-passage full production worker control found in inspected backend/core tests. A smallest useful future regression would use generic25+block evidence with a late qualifying passage, assert current bounded failure before changing selection, then verify eventual exact selected membership/qualification handling without a fixture-specific selector. Requires separate implementation authorization/scope; no fix made here.",
+  "limits": "Selection or broader context alone cannot prove model attention, applicability, support correctness or benchmark quality. No new semantic quality conclusion.",
+  "sourceHashes": [
+    {
+      "path": "apps/backend/src/worker/structured-research.ts",
+      "sha256": "96fc5650dfb3bf243918a04d79a0336d1c86a2529bf03b5f60379ef05cc63362"
+    },
+    {
+      "path": "apps/backend/src/modules/assertion-evidence.ts",
+      "sha256": "21f23e5c89e8aa9cea1bdafc7b5d98113f1963e2c54ac56cfe247f1e1a72175b"
+    },
+    {
+      "path": "apps/backend/src/modules/evidence.ts",
+      "sha256": "65450a7aabd7bdae0886a7a57a9c1965b547ac5881d48d7680be084b4f235030"
+    },
+    {
+      "path": "apps/backend/src/modules/model-operations.ts",
+      "sha256": "a2a15ba3fcd7e574658269c51f23c487292bbda287c51aca7800bd5971db676a"
+    },
+    {
+      "path": "apps/backend/src/modules/scoped-support.ts",
+      "sha256": "0d23f092cc6ed62575e544ea49cd9a714cd43179e4bda0cdd88031ce7da7529a"
+    },
+    {
+      "path": "apps/backend/src/modules/verification-proof.ts",
+      "sha256": "caa87414239154a8e9dd81b3c5a8a746469e1e1cb1aa6e5f1c47a7b8ea823690"
+    }
+  ]
+}
