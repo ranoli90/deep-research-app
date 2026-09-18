@@ -1,3 +1,7 @@
+## Session A agent contract — 2026-09-18
+
+Root `AGENTS.md` (and scoped backend/core/mobile/evals files) now bind future work to the consumer product bar, applied-not-recorded gates, owned evidence, and finishing independent items instead of listing them.
+
 ## Session A intelligence governor — 2026-09-18
 
 Worker branch `grok-v7/intelligence-governor` (not `main`). See `SESSION_HANDOFF.md` for the machine-readable acceptance map. Do not merge this lane; Product/Integration owns integration. Cheap-first admission now stamps new runs and fail-closes when no route is admitted; live reserves keep writing/verification leftover; document-grounded eval uses an owned passage; portfolio migration is `043_model_portfolio.sql`. Bounded live semantic briefs were executed under a current user grant; the freshness unknown hold was not retried. Historical ZDR/unknown-hold evidence on `main` is not relabeled as a pass. No product-quality or routing-superiority claim.

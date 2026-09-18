@@ -1,3 +1,7 @@
+## Session A agent contract — 2026-09-18
+
+Root and scoped `AGENTS.md` now require: finish independent work instead of listing it; apply gates on the live path rather than only recording them; compile one-sentence questions without cosmetic interviews; keep fixture/live/native/hosted evidence distinct; edit only the assigned worktree.
+
 ## Session A intelligence governor — isolated branch checkpoint — 2026-09-18
 
 Lane: Research Intelligence + Model Governor. Branch `grok-v7/intelligence-governor`, worktree `/home/oranolio/Desktop/deep-v7-intelligence`, base `66df5455de86129db0305f3c96dc3dbf1a13b7e3`. Not merged to `main`.

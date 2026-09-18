@@ -1,5 +1,10 @@
 # Execution ledger
 
+## 2026-09-18 — Stronger AGENTS contract
+
+- Root `AGENTS.md` adds the product bar (one-sentence questions, no cosmetic interview, intelligence on the server), applied-not-recorded, fail-closed routing, owned evidence, evidence-class honesty, parallel-lane isolation, and “fix findings in the same assignment.”
+- Scoped backend/core/mobile/evals files add the same bar in their layer. Independent work is still completed, not listed.
+
 ## 2026-09-18 — Session A finish remaining governor work
 
 - AGENTS: finishing with a backlog / “honest limitations” list of independent work is not a valid completion.
