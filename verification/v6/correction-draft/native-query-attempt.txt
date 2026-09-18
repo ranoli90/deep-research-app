@@ -1,0 +1,1 @@
+Read-only research_change_sets query attempt: /bin/bash: psql: command not found (127). Repeated via installed pg adapter, exit0; native-change-set.json. This note reconstructs terminal receipt, not raw psql output.

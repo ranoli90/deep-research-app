@@ -1,5 +1,6 @@
 import { SourceSheet } from "./src/SourceSheet";
 import { readSourceDetail } from "./src/source-view";
+import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from "./src/correction-draft";
 import { AttachmentPanel } from "./src/AttachmentPanel";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -86,13 +87,22 @@ function AppInner() {
   const signingIn = useRef<Promise<string> | null>(null);
   const refreshing = useRef(new Map<string, symbol>());
   const [detailed, setDetailed] = useState(true);
-  const [correction, setCorrection] = useState("");
-  const [evidencePolicy,setEvidencePolicy]=useState<"reuse_snapshot"|"refresh">("reuse_snapshot");
+  const savedCorrection = activeCorrectionDraft(state);
+  const correction = savedCorrection?.question ?? "";
+  const evidencePolicy = savedCorrection?.evidencePolicy ?? "reuse_snapshot";
+  const staleCorrection = Boolean(savedCorrection && state.run?.brief && savedCorrection.baseRevision !== state.run.brief.revision);
+  function changeCorrection(patch: { question?: string; evidencePolicy?: "reuse_snapshot" | "refresh" }) {
+    const runId = state.run?.runId, revision = state.run?.brief?.revision;
+    if (!token || !runId || !revision || !api.currentRun(token, runId)) return;
+    setViewState(s => editCorrectionDraft(s, runId, revision, patch));
+  }
+  const setCorrection = (question: string) => changeCorrection({ question });
+  const setEvidencePolicy = (evidencePolicy: "reuse_snapshot" | "refresh") => changeCorrection({ evidencePolicy });
   const [correctionPending,setCorrectionPending]=useState(false);
   const correctionAttempt=useRef<symbol|null>(null);
   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
-  const correctionReady=correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
-  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);setCorrection("");setEvidencePolicy("reuse_snapshot");},[token,state.run?.runId]);
+  const correctionReady=!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
+  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
   const [attachText, setAttachText] = useState("");
@@ -491,12 +501,12 @@ function AppInner() {
         correctionMode==="replace_question"?{kind:"replace_question",question:text,evidencePolicy}:undefined);
       if(!guard.current())throw new SupersededRequest();
       api.selectRun(child.runId);
-      setCorrection("");
       setShowAttach(false);
       setViewState((s) => {
         const next = {
           ...s,
           status: "progress" as const,
+          correctionDraft: null,
           error: null,
           previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
           run: {
@@ -617,7 +627,7 @@ function AppInner() {
             <Text style={styles.bannerText}>Demo route — labeled fixture, not live research</Text>
           </View>
         ) : (
-          <View style={styles.bannerLive}>
+          <View style={styles.bannerLive} accessibilityLabel="Live research route">
             <Text style={styles.bannerText}>Live research route</Text>
           </View>
         )}
@@ -832,6 +842,13 @@ function AppInner() {
               <View style={styles.card} accessibilityLabel="Correction">
                 <Text style={styles.kicker}>{correctionMode==="replace_question"?"Revise the question":"Correction"}</Text>
                 {correctionMode==="unavailable"?<Text style={styles.body}>Corrections are not available on this research route.</Text>:null}
+                {staleCorrection ? <>
+                  <Text style={styles.body}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
+                  <Pressable disabled={correctionPending} accessibilityRole="button" accessibilityLabel="Use saved correction for current version" onPress={() => {
+                    const runId = state.run?.runId, revision = state.run?.brief?.revision;
+                    if (token && runId && revision && api.currentRun(token, runId)) setViewState(s => rebaseCorrectionDraft(s, runId, revision));
+                  }}><Text style={styles.link}>Use this correction for the current version</Text></Pressable>
+                </> : null}
                 {correctionMode==="replace_question"?<>
                   <Text style={styles.body}>Write the complete updated question. Its conclusions will be checked again.</Text>
                   <Pressable disabled={correctionPending} onPress={()=>setCorrection(state.run?.brief?.originalQuestion??"")} accessibilityRole="button" accessibilityLabel="Use current question">

@@ -1,0 +1,278 @@
+{
+  "currentDeepUI": true,
+  "rows": [
+    {
+      "text": "",
+      "label": "Deep Research",
+      "bounds": "[0,0][1080,2392]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Deep Research",
+      "label": "",
+      "bounds": "[45,150][431,224]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open profile and settings",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Profile",
+      "label": "",
+      "bounds": "[906,151][1035,257]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Live research route",
+      "bounds": "[45,279][1035,375]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "Live research route",
+      "label": "",
+      "bounds": "[67,301][1012,352]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research conversation",
+      "bounds": "[0,375][1080,1865]",
+      "class": "android.widget.ScrollView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research report",
+      "bounds": "[45,420][1035,1799]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "LIVE REPORT",
+      "label": "",
+      "bounds": "[93,487][313,538]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Show concise view",
+      "bounds": "[825,468][987,574]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Concise",
+      "label": "",
+      "bounds": "[825,468][987,574]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Evidence",
+      "label": "",
+      "bounds": "[93,574][987,648]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Ardent supports offline recording only on firmware 4.2.",
+      "label": "",
+      "bounds": "[93,715][987,851]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Open source 99d1f53f",
+      "bounds": "[93,851][472,957]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Source 99d1f53f",
+      "label": "",
+      "bounds": "[93,851][472,957]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Assertions: 1 added, 1 removed, 0 unchanged. Criteria: 0 added, 0 removed. Reused cited source versions: 0. Comparison uses exact wording and recorded scope; paraphrases may count as changes.",
+      "label": "Change summary",
+      "bounds": "[92,1024][988,1432]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Share report as Markdown",
+      "bounds": "[93,1433][987,1539]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Share Markdown",
+      "label": "",
+      "bounds": "[93,1433][987,1539]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Verify the answer claim",
+      "bounds": "[93,1539][987,1645]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Verify this claim",
+      "label": "",
+      "bounds": "[93,1539][987,1645]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Flag this generated answer",
+      "bounds": "[93,1645][987,1751]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Flag this answer",
+      "label": "",
+      "bounds": "[93,1645][987,1751]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Previous report version",
+      "bounds": "[45,1844][1035,1865]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "PREVIOUS VERSION",
+      "label": "",
+      "bounds": "[92,1891][988,1865]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Earlier result kept.",
+      "label": "",
+      "bounds": "[92,1959][988,1865]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Share previous report as Markdown",
+      "bounds": "[93,2028][987,1865]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Share previous Markdown",
+      "label": "",
+      "bounds": "[93,2028][987,1865]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Correction",
+      "bounds": "[45,2226][1035,1865]",
+      "class": "android.view.ViewGroup",
+      "checked": "false"
+    },
+    {
+      "text": "REVISE THE QUESTION",
+      "label": "",
+      "bounds": "[92,2273][988,1865]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "Write the complete updated question. Its conclusions will be checked again.",
+      "label": "",
+      "bounds": "[92,2341][988,1865]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Show attachment fields",
+      "bounds": "[0,1865][1080,1994]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Attach a file (0/3)",
+      "label": "",
+      "bounds": "[45,1887][1035,1993]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "What does the Ardent field note say about underwater recording?",
+      "label": "Research question",
+      "bounds": "[22,2019][866,2200]",
+      "class": "android.widget.EditText",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Start research",
+      "bounds": "[867,2094][1058,2200]",
+      "class": "android.widget.Button",
+      "checked": "false"
+    },
+    {
+      "text": "Send",
+      "label": "",
+      "bounds": "[912,2116][1013,2177]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Research",
+      "bounds": "[0,2226][540,2347]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Research",
+      "label": "",
+      "bounds": "[186,2259][354,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "label": "Library",
+      "bounds": "[540,2226][1080,2347]",
+      "class": "android.view.View",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "label": "",
+      "bounds": "[748,2259][871,2313]",
+      "class": "android.widget.TextView",
+      "checked": "false"
+    }
+  ]
+}

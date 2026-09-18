@@ -6191,6 +6191,17 @@
       "sha256": "b47e23af632604c6db77d3db49b09adc8dd77326007ed8bd0d6dcd24c6b925e3",
       "scope": "Historical package linkage and current handoff structure",
       "implementationCommit": "002e2d6f27e4bcf111cdc48f028a688f55c99713"
+    },
+    {
+      "requirementIds": [
+        "W06",
+        "W07",
+        "W09"
+      ],
+      "command": "See correction-draft/RESULTS.json",
+      "artifact": "correction-draft/RESULTS.json",
+      "exitCode": 0,
+      "scope": "84mobile controls/typecheck/AndroidJS; actual native correction recovery, fabricated model transport only"
     }
   ],
   "unresolved": [

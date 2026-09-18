@@ -1,0 +1,98 @@
+{
+  "requirementIds": [
+    "W06",
+    "W07",
+    "W09"
+  ],
+  "baseCommit": "75c316e1e1b2dc9db82e0b156de5cd6491ce4fcb",
+  "revisionScope": "Working-tree implementation pending checkpoint commit",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "native": "REDMI Note15 5G Android16 ExpoGo54.0.8; standalone untouched",
+    "database": "local PostgreSQL deep_research_native_v6 separate from standard tests"
+  },
+  "results": [
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "tests-final.log",
+      "scope": "84/84; six new correction recovery controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "types-final.log",
+      "scope": "mobile TypeScript"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-correction-draft-bundle",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "scope": "Android JS2.11MB; not a native build"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 1,
+      "artifact": "review-validator.log",
+      "scope": "initial command registry used unsupported status; corrected to existing application-command status"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "review-validator-final.log",
+      "scope": "canonical document consistency only"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 1,
+      "artifact": "handoff-validator.log",
+      "scope": "initial command registry used unsupported status; corrected to existing application-command status"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "handoff-validator-final.log",
+      "scope": "canonical document consistency only"
+    }
+  ],
+  "native": {
+    "parentSetup": "programmatic authenticated API and protected native snapshot; sign-in/upload not repeated",
+    "command": "EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime pnpm --filter @deep/backend exec tsx test/native-source-reader.ts",
+    "harnessExitCode": 0,
+    "artifacts": [
+      "native-api.log",
+      "native-seed.json",
+      "native-entered.json",
+      "native-restored-editor.json",
+      "native-submitted.json",
+      "native-change-set.json",
+      "native-cleanup.json"
+    ],
+    "question": "Which firmware supports Ardent offline recording?",
+    "coldRestartExactText": true,
+    "coldRestartRefreshSelected": true,
+    "serverPatchPolicy": "refresh",
+    "reusedPassages": 0,
+    "revisedReport": "Ardent supports offline recording only on firmware 4.2.",
+    "actualPdfExtraction": true,
+    "fabricatedModelCalls": 14,
+    "paidCalls": 0,
+    "cleanup": "logout empty; harness gracefully deleted its one created account; Metro and reverse mappings stopped",
+    "limits": [
+      "not real-model semantic quality",
+      "not native standalone build",
+      "parent setup programmatic",
+      "initial UI capture below viewport required another scroll"
+    ]
+  },
+  "failures": [
+    {
+      "command": "psql local read-only correction change-set query",
+      "exitCode": 127,
+      "reason": "psql unavailable; installed pg node adapter then executed exact read-only query successfully",
+      "artifact": "native-query-attempt.txt"
+    }
+  ],
+  "rollback": "ADR030: hide recovery but retain protected readers/deletion and server ownership/revision gates"
+}

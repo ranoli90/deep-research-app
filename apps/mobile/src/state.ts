@@ -1,4 +1,5 @@
 import type { SourceDetail } from "./source-view";
+import type { CorrectionDraft } from "./correction-draft";
 export type RouteMode = "fixture" | "controlled-research";
 
 export type ScreenName = "research" | "library" | "settings" | "source";
@@ -28,6 +29,7 @@ export type AttachmentDraft = { id?: string; filename: string; mime: string } & 
 export type UiState = {
   tab: "research" | "library" | "settings";
   draft: string;
+  correctionDraft: CorrectionDraft | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -56,6 +58,7 @@ export function emptyState(): UiState {
   return {
     tab: "research",
     draft: "",
+    correctionDraft: null,
     consentGranted: false,
     signedIn: false,
     offline: false,

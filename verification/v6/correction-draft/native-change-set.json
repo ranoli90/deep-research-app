@@ -1,0 +1,18 @@
+[
+  {
+    "run_id": "611d5c4f-2cea-498e-a7c7-109dd8bdb00d",
+    "parent_run_id": "2806f77b-47b8-46a4-bbd1-fe46cb8b6ee9",
+    "patch": {
+      "patch": {
+        "kind": "replace_question",
+        "question": "Which firmware supports Ardent offline recording?",
+        "evidencePolicy": "refresh"
+      },
+      "version": "research-correction.v1",
+      "acceptedText": "Which firmware supports Ardent offline recording?",
+      "expectedBriefRevision": 1
+    },
+    "reused_passages": 0,
+    "dependency_completeness": "unknown"
+  }
+]
