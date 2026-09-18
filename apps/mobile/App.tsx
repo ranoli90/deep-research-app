@@ -113,6 +113,7 @@ function AppInner() {
   const [detailed, setDetailed] = useState(true);
   const [activityExpanded, setActivityExpanded] = useState(true);
   const [sourceClaim, setSourceClaim] = useState<string | null>(null);
+  const [briefProceeded, setBriefProceeded] = useState(false);
   const savedCorrection = activeCorrectionDraft(state);
   const correction = savedCorrection?.question ?? "";
   const evidencePolicy = savedCorrection?.evidencePolicy ?? "reuse_snapshot";
@@ -164,6 +165,9 @@ function AppInner() {
       setActivityExpanded(false);
     }
   }, [activity.inProgress, state.status]);
+  useEffect(() => {
+    setBriefProceeded(false);
+  }, [state.run?.runId, state.run?.brief?.revision]);
   const briefView = researchBriefView({
     lifecycle: state.run?.lifecycle,
     status: state.status,
@@ -973,11 +977,14 @@ function AppInner() {
               <Text style={styles.bodyText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
             ) : null}
             <ResearchBriefCard
-              view={briefView}
+              view={briefProceeded && !briefView.blocking ? { ...briefView, show: false } : briefView}
               clarifyAnswer={clarifyAnswer}
               muted={theme.muted}
               onClarify={setClarifyAnswer}
-              onContinue={() => void onContinueClarification()}
+              onContinue={() => {
+                if (briefView.blocking) void onContinueClarification();
+                else setBriefProceeded(true);
+              }}
               onEdit={() => setState((s) => ({
                 ...s,
                 error: "You can change this after the first result, or cancel and ask again.",

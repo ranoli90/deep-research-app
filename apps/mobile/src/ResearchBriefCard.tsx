@@ -59,9 +59,14 @@ export function ResearchBriefCard({
           </Pressable>
         </>
       ) : (
-        <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit assumptions">
-          <Text style={styles.link}>Edit assumptions</Text>
-        </Pressable>
+        <>
+          <Pressable onPress={onContinue} accessibilityRole="button" accessibilityLabel="Continue with these assumptions">
+            <Text style={styles.send}>Research</Text>
+          </Pressable>
+          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit assumptions">
+            <Text style={styles.link}>Edit assumptions</Text>
+          </Pressable>
+        </>
       )}
     </View>
   );

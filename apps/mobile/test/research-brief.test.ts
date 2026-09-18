@@ -61,6 +61,31 @@ describe("one-sentence composer and researching-this brief", () => {
     expect(blocked.materialClarification).toMatch(/jurisdiction/i);
   });
 
+  it("renders Session A intent-compiler brief fields without graph jargon", () => {
+    const view = researchBriefView({
+      lifecycle: "queued",
+      brief: {
+        originalQuestion: "What's the best laptop for running AI locally under $2,000?",
+        revision: 1,
+        desiredOutcome: "Recommend eligible laptops for local AI under the stated budget.",
+        freshnessRequirements: "Prefer current list prices and currently sold configurations.",
+        constraints: [{ field: "budget", value: "2000", origin: "explicit", importance: "hard" }],
+        assumptions: [{
+          value: "“Running AI” means local inference is in scope; cloud-API-only laptops are a documented branch, not a silent replacement.",
+          reversibility: "reversible",
+          userConfirmationState: "unconfirmed",
+          impact: "Changes the hardware search universe.",
+        }],
+      },
+    });
+    expect(view.show).toBe(true);
+    expect(view.blocking).toBe(false);
+    expect(view.objective).toMatch(/local AI/);
+    expect(view.assumptions.some((line) => /local inference/i.test(line))).toBe(true);
+    expect(view.assumptions.some((line) => /current list prices/i.test(line))).toBe(true);
+    expect(JSON.stringify(view)).not.toMatch(/criterionIds|traversal|model_policy/i);
+  });
+
   it("does not keep the brief once a report exists", () => {
     expect(researchBriefView({
       hasReport: true,

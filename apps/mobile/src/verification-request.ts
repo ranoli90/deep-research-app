@@ -75,8 +75,21 @@ export function readVerificationRun(value: unknown, expectedRunId: string): RunS
     if (!record(b) || typeof b.originalQuestion !== "string" || !b.originalQuestion.trim() ||
         typeof b.revision !== "number" || !Number.isSafeInteger(b.revision) || b.revision <= 0 ||
         !Array.isArray(b.constraints) || !b.constraints.every(c => record(c) && typeof c.field === "string" && typeof c.value === "string")) throw fail();
+    const assumptions = Array.isArray(b.assumptions)
+      ? b.assumptions.filter((a): a is Record<string, unknown> => record(a) && typeof a.value === "string").map((a) => ({
+        value: a.value as string,
+        ...(typeof a.reversibility === "string" ? { reversibility: a.reversibility } : {}),
+        ...(typeof a.userConfirmationState === "string" ? { userConfirmationState: a.userConfirmationState } : {}),
+        ...(typeof a.impact === "string" ? { impact: a.impact } : {}),
+      }))
+      : undefined;
     brief = { originalQuestion: b.originalQuestion, revision: b.revision,
-      constraints: b.constraints.map(c => ({ field: c.field as string, value: c.value as string })) };
+      constraints: b.constraints.map(c => ({ field: c.field as string, value: c.value as string,
+        ...(typeof c.origin === "string" ? { origin: c.origin } : {}),
+        ...(typeof c.importance === "string" ? { importance: c.importance } : {}) })),
+      ...(typeof b.desiredOutcome === "string" ? { desiredOutcome: b.desiredOutcome } : {}),
+      ...(typeof b.freshnessRequirements === "string" ? { freshnessRequirements: b.freshnessRequirements } : {}),
+      ...(assumptions && assumptions.length ? { assumptions } : {}) };
   }
   const correctionMode = value.correctionMode;
   if (correctionMode !== undefined && correctionMode !== "legacy" && correctionMode !== "replace_question" && correctionMode !== "unavailable") throw fail();

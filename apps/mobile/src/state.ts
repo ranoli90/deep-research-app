@@ -23,6 +23,7 @@ export type RunSnapshot = {
     revision: number;
     desiredOutcome?: string;
     geography?: string;
+    freshnessRequirements?: string;
     materialClarification?: boolean;
     assumptions?: { value: string; reversibility?: string; userConfirmationState?: string; impact?: string }[];
   };

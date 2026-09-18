@@ -15,6 +15,7 @@ export type ResearchBriefInput = {
   geography?: string;
   constraints: BriefConstraint[];
   assumptions?: BriefAssumption[];
+  freshnessRequirements?: string;
   /** Backend-owned: only show a blocking clarification when this is true or lifecycle is awaiting_input. */
   materialClarification?: boolean;
 };
@@ -31,7 +32,9 @@ function assumptionLines(brief: ResearchBriefInput): string[] {
   const fromAssumptions = (brief.assumptions ?? [])
     .filter((a) => a.value.trim())
     .map((a) => a.value.trim());
-  if (fromAssumptions.length > 0) return fromAssumptions;
+  const freshness = brief.freshnessRequirements?.trim();
+  const lines = freshness ? [...fromAssumptions, freshness] : fromAssumptions;
+  if (lines.length > 0) return lines;
   return brief.constraints
     .filter((c) => c.origin === "assumed" || c.origin === "system")
     .map((c) => `${c.field}: ${c.value}`);
