@@ -1,6 +1,12 @@
+## ADR056 repair in progress — 2026-09-18
+
+The ADR055 final baseline at d784c274217a218c0f73f00a4609090fa1b0d5d5 passed443 PostgreSQL tests, but the separate omitted-contradiction probe FAILED publication safety. A new additive full-inventory deterministic support gate now withholds that reproduced claim (probe exit0); focused and full regression checks remain pending. It preserves selected-context receipts and provider identities, only downgrades support, and records a separate claim/proof-bound result. No live model spend, new native build, hosting or deployment. The goal remains incomplete; reference recall still misses3/8 spans and real semantic quality is unproven. ADR056 describes migration039, ownership/deletion and fail-closed rollback. Preserve both before/after probe artifacts.
+
 # Builder handoff
 
 ## Current continuation — ADR055
+
+**Publication blocker reproduced:** OMITTED_CONTRADICTION.json shows that large neighboring passages exclude a known contradiction and allow the positive limited report, while the small control withholds it. This behavior is not accepted. A versioned inventory-support gate must downgrade writer/calculation/coverage/publication eligibility independently of the model context; raw probe evidence and planned implementation are retained.
 
 Base `3f22f5b3cd96b85fc78c1843fc9feb1bcb367562`, branch `codex/v6-saved-html`. Bounded whole-passage selection is implemented through production extraction/support/writing/publication. Migration038 preserves legacy policy for existing runs and stamps only new runs. Exact inventory metadata uses block positions and full-locator hashes (PDF geometry is not duplicated). Model-input.v5 binds selection proof; current publication requires omission warnings. Missing/corrupt proof terminalizes without reissuing a model action. Source/account deletion purges inventory; rollback must retain admitted policies, proof/obligation readers, deletion and unknown financial holds.
 

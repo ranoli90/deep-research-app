@@ -7,7 +7,8 @@ import {getBrief,getRun} from "./runs.js";
 export class EvidenceSelectionProofError extends Error {}
 const parseProof=<T>(schema:z.ZodType<T>,value:unknown):T=>{const parsed=schema.safeParse(value);if(!parsed.success)throw new EvidenceSelectionProofError("selection_proof_invalid");return parsed.data;};
 const canonical=(v:unknown):unknown=>Array.isArray(v)?v.map(canonical):v&&typeof v==="object"?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,x])=>[k,canonical(x)])):v;
-const digest=(v:unknown)=>createHash("sha256").update(JSON.stringify(canonical(v))).digest("hex");
+export const evidenceSelectionDigest=(v:unknown)=>createHash("sha256").update(JSON.stringify(canonical(v))).digest("hex");
+const digest=evidenceSelectionDigest;
 const idsSchema=z.array(z.string().uuid()).max(4096).refine(ids=>new Set(ids).size===ids.length);
 const metadata=(ps:SelectionPassage[])=>ps.map(({text:_,...p})=>p).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
 type Args={accountId:string;runId:string;briefRevision:number};
@@ -44,7 +45,7 @@ export async function restoreEvidenceSelection(db:Queryable,args:Args&{selection
  const proofDigest=digest({version:row.version,questionDigest:row.question_digest,evidenceRevision:row.evidence_revision,required,candidates:metadata(ps),selection:result});
  if(proofDigest!==row.proof_digest)throw new EvidenceSelectionProofError("selection_proof_changed");
  const context=EvidenceSelectionContextSchema.parse({id:row.id,version:row.version,proofDigest,available:result.available,selected:result.passageIds.length,omitted:result.omitted});
- return {context,passageIds:result.passageIds,evidenceRevision:row.evidence_revision};
+ return {context,passageIds:result.passageIds,evidenceRevision:row.evidence_revision,inventoryPassages:ps};
 }
 /** Call only within a fenced worker transaction; no network or model authority. */
 export async function prepareEvidenceSelection(db:Queryable,args:Args&{requiredIds?:string[]}) {
@@ -83,6 +84,6 @@ export async function evidenceSelectionLimitations(db:Queryable,args:Args) {
  if(!rows.length)throw new EvidenceSelectionProofError("required_selection_proof_missing");
  const limitations=new Set<string>();
  for(const row of rows){const restored=await restoreEvidenceSelection(db,{...args,selectionId:row.id});const s=restored.context;
-  if(s.omitted)limitations.add(`This assessment selected ${s.selected} of ${s.available} available passages. The ${s.omitted} omitted passages were not assessed; additional qualifications or counterevidence may remain.`);
+  if(s.omitted)limitations.add(`This assessment selected ${s.selected} of ${s.available} available passages. The ${s.omitted} omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain.`);
  }return [...limitations].sort();
 }

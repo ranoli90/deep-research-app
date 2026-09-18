@@ -23,11 +23,11 @@ const fact="Ardent supports offline recording only on firmware 4.2.";
 beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
 afterEach(async()=>{globalThis.fetch=originalFetch;for(const id of accounts.splice(0))await deleteAccount(pool,id);});
 afterAll(async()=>{await pool.end();});
-async function setup(count:number,size=100,contradiction=false,underwater=false){
+async function setup(count:number,size=100,contradiction=false,underwater=false,omittedOpposite=false){
  const accountId=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s.accountId;});accounts.push(accountId);
  const run=await admitRun(pool,accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Which firmware supports Ardent offline recording?",routeMode:"controlled-research"}));
  const locator="https://example.org/synthetic-capacity.txt",sourceId=await insertSource(pool,{accountId,runId:run.runId,locator,title:"Synthetic firmware note",publisher:"Synthetic",originCluster:"synthetic",sourceType:"web"});
- const texts=Array.from({length:count},(_,i)=>i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):underwater&&i===count-2?"Ardent does not support underwater recording.":contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
+ const texts=Array.from({length:count},(_,i)=>omittedOpposite&&i===11?"Ardent does not support offline recording on firmware 4.2.":i===count-1?(contradiction?"Ardent does not support offline recording on firmware 4.2.":fact):underwater&&i===count-2?"Ardent does not support underwater recording.":contradiction&&i===0?fact:`Background ${i}. ${"x".repeat(omittedOpposite&&[9,10,12,13].includes(i)?23980:size)}`),bytes=Buffer.from(texts.join("\n")),digest=createHash("sha256").update(bytes).digest("hex");
  await insertExtractedVersion(pool,{accountId,runId:run.runId,sourceId,bytes,receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:texts.map((text,i)=>({kind:"text",locator:`paragraph:${i}`,text,rows:[]}))}});
  // Stable UUID order makes the limiting statement demonstrably later than the former 24-passages boundary.
  const prefix=crypto.randomUUID().slice(0,24);
@@ -77,7 +77,7 @@ it.each([{count:129,size:100},{count:25,size:7000}])("W05 selects whole evidence
  const report=await getLatestReportForRun(pool,x.run.runId,x.accountId);expect(report).toBeTruthy();expect(report!.outcome).toBe("completed_with_limitations");
  const extraction=x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context,selection=extraction.evidenceSelection;
  expect(selection.available).toBe(count);expect(selection.omitted).toBeGreaterThan(0);expect(extraction.passages.length).toBe(selection.selected);
- expect(report!.limitations).toContain(`This assessment selected ${selection.selected} of ${count} available passages. The ${selection.omitted} omitted passages were not assessed; additional qualifications or counterevidence may remain.`);
+ expect(report!.limitations).toContain(`This assessment selected ${selection.selected} of ${count} available passages. The ${selection.omitted} omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain.`);
  expect(report!.blocks.some((b:{text:string})=>b.text===fact)).toBe(true);
  for(const p of extraction.passages)expect(x.basis).toContainEqual({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId});
  expect(extraction.passages.some((p:any)=>p.text===fact)).toBe(true);
@@ -120,3 +120,37 @@ it("W06 changes the requested constraint over an oversized reused document and p
  for(const ctx of extraction)for(const p of ctx.context.passages)expect(x.basis).toContainEqual({id:p.id,digest:p.digest,text:p.text,version:p.sourceVersionId});
  if(process.env.EVIDENCE_SELECTION_TRACE_PATH)writeFileSync(process.env.EVIDENCE_SELECTION_TRACE_PATH,JSON.stringify({evidenceClass:"synthetic production-worker and real PostgreSQL; fabricated model/extraction receipts",original,revised,selections,passages:x.basis,contexts:x.contexts,reusedPassages:25,paidCost:0,semanticQuality:null},null,2));
 },120_000);
+
+
+it("W01 rejects a supported selected claim when the immutable omitted inventory contradicts it",async()=>{
+ const x=await setup(25,100,false,false,true);await processRun(pool,config,x.run.runId);
+ const extraction=x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context;
+ const opposite=x.basis.find(p=>p.text==="Ardent does not support offline recording on firmware 4.2.")!;
+ expect(opposite).toBeTruthy();expect(extraction.passages.some((p:any)=>p.id===opposite.id)).toBe(false);
+ expect((await pool.query("SELECT decision FROM scoped_support_results WHERE run_id=$1",[x.run.runId])).rows).toEqual([{decision:"supported"}]);
+ const checks=(await pool.query("SELECT decision,result,claim_revision_id,evidence_digest FROM selection_inventory_checks WHERE run_id=$1",[x.run.runId])).rows;
+ expect(checks).toHaveLength(1);expect(checks[0].decision).toBe("disputed");expect(JSON.stringify(checks[0].result)).toContain(opposite.id);
+ expect(checks[0].evidence_digest).toBe(extraction.evidenceSelection.proofDigest);
+ expect((await pool.query("SELECT id FROM claim_revisions WHERE id=$1 AND run_id=$2 AND account_id=$3",[checks[0].claim_revision_id,x.run.runId,x.accountId])).rowCount).toBe(1);
+ expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();
+ expect(x.contexts.some(c=>c.operation==="research_write_report_v1")).toBe(false);
+ const calls=x.contexts.length;await processRun(pool,config,x.run.runId);expect(x.contexts).toHaveLength(calls);
+ await deleteAccount(pool,x.accountId);expect((await pool.query("SELECT count(*)::int AS n FROM selection_inventory_checks WHERE account_id=$1",[x.accountId])).rows[0].n).toBe(0);
+},120_000);
+
+it("W01 refuses a tampered inventory support receipt before writing",async()=>{
+ const x=await setup(25,7000);await processRun(pool,config,x.run.runId,{pauseAt:"writing"});
+ expect((await pool.query("UPDATE selection_inventory_checks SET decision='disputed' WHERE run_id=$1 RETURNING selection_id",[x.run.runId])).rowCount).toBeGreaterThan(0);
+ const calls=x.contexts.length;await processRun(pool,config,x.run.runId);
+ expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeNull();expect(x.contexts).toHaveLength(calls);
+ expect(JSON.stringify((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.run.runId])).rows)).toContain("selection_inventory_check_changed");
+});
+
+it("W01 restores an admitted result without a cached inventory check by executing the guard again",async()=>{
+ const x=await setup(25,7000);await processRun(pool,config,x.run.runId,{pauseAt:"writing"});
+ expect((await pool.query("DELETE FROM selection_inventory_checks WHERE run_id=$1 RETURNING selection_id",[x.run.runId])).rowCount).toBeGreaterThan(0);
+ const assessments=x.contexts.filter(c=>c.operation==="research_assess_support_v1").length;
+ await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();
+ // Writer support is new work; the source assessment's logical request must not be repeated.
+ expect(x.contexts.filter(c=>c.operation==="research_assess_support_v1")).toHaveLength(assessments+1);
+});

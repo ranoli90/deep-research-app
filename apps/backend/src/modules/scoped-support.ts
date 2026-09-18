@@ -1,3 +1,4 @@
+import { applySelectionInventorySupport } from "./selection-inventory-support.js";
 import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { calculationWriterContext } from "./calculation-plans.js";
 import { CALCULATED_REPORT_PROMPT_VERSION } from "../ports/model-policy.js";
@@ -88,7 +89,7 @@ export async function persistScopedSupport(db:Queryable,args:SupportArgs & {mode
       [args.modelIntentId,args.extractionIntentId,claim.key,revisionId,args.accountId,args.runId,task.id,args.briefRevision,args.evidenceRevision,evidenceDigest,scopeDigest,SCOPED_SUPPORT_VERSION,outcome.decision,JSON.stringify(outcome)]);
     saved.push({claimId,claimRevisionId:revisionId,...outcome});
   }
-  return saved;
+  return applySelectionInventorySupport(db,{...args,context:basis.context,checked:saved},requireStored);
 }
 
 

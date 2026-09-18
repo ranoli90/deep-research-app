@@ -80,7 +80,7 @@ export async function captureVerificationTarget(db:Queryable,args:{accountId:str
  const supportArgs={runId:parent.id,accountId:args.accountId,briefRevision:parent.brief_revision,taskId:row.task_id,extractionIntentId:row.extraction_intent_id};
  const basis=await loadSupportContext(db,supportArgs,versions);
  const checked=await persistScopedSupport(db,{...supportArgs,...basis,modelIntentId:row.model_intent_id},versions,true);
- if(!checked.some(c=>c.claimId===args.claimId&&c.claimRevisionId===row.claim_revision_id))throw new VerificationTargetError("verification_target_provenance_unavailable",409);
+ if(!checked.some(c=>c.decision==="supported"&&c.claimId===args.claimId&&c.claimRevisionId===row.claim_revision_id))throw new VerificationTargetError("verification_target_provenance_unavailable",409);
  const sources=(await db.query(`SELECT DISTINCT s.id,s.canonical_locator AS locator,s.title,COALESCE(s.publisher,'') AS publisher,COALESCE(s.origin_cluster,'') AS "originCluster"
   FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
   WHERE p.account_id=$1 AND p.run_id=$2 AND p.id=ANY($3::uuid[]) ORDER BY s.id`,[args.accountId,parent.id,basis.context.passages.map(p=>p.id)])).rows;

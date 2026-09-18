@@ -1616,5 +1616,37 @@
     "network": false,
     "paid": false,
     "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/evidence-selection/omitted-contradiction.probe.mts",
+    "status": "implemented_review_tool",
+    "scope": "Nonbillable production worker/real PostgreSQL known-contradiction probe with selected small control and omitted large case; dedicated extraction test database; fabricated model/extraction transport; preserves failure",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/omitted-contradiction.probe.mts"
+  },
+  {
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_continuation_20260918 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/passage-capacity.integration.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W01 ADR056 local deterministic inventory publication guard; fabricated model controls, no semantic/live claim",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/backend/test/passage-capacity.integration.test.ts"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py integration inventory-integration",
+    "status": "implemented_application_command",
+    "scope": "W01 ADR056 local deterministic inventory publication guard; fabricated model controls, no semantic/live claim",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
+  },
+  {
+    "command": "python3 verification/v6/evidence-selection/run.py verify inventory-verify",
+    "status": "implemented_application_command",
+    "scope": "W01 ADR056 local deterministic inventory publication guard; fabricated model controls, no semantic/live claim",
+    "network": true,
+    "paid": false,
+    "implementation": "verification/v6/evidence-selection/run.py"
   }
 ]
