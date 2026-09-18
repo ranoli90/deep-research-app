@@ -1,0 +1,27 @@
+{
+  "scope": "Remaining initial and corrected report support after append-source deletion; fabricated model, not semantic validation",
+  "rows": [
+    {
+      "run_id": "0441dbdb-cbf8-4262-ac00-42b569c31075",
+      "id": "11cd8128-e5ca-4931-8488-67958825ba6b",
+      "text": "Ardent does not support underwater recording.",
+      "support_status": "inference",
+      "passage_id": "6088c801-28b7-4e2c-a296-481aab9fbfa3",
+      "relation": "supports",
+      "checker_version": "scoped-support.v3",
+      "decision": "supports",
+      "explanation": "Current scoped support result revalidated at publication"
+    },
+    {
+      "run_id": "098f0560-13cd-4dee-8d09-55a539c13999",
+      "id": "1384ec77-27f3-447b-8658-25588a4a25b8",
+      "text": "Ardent supports offline recording only on firmware 4.2.",
+      "support_status": "inference",
+      "passage_id": "6088c801-28b7-4e2c-a296-481aab9fbfa3",
+      "relation": "supports",
+      "checker_version": "scoped-support.v3",
+      "decision": "supports",
+      "explanation": "Current scoped support result revalidated at publication"
+    }
+  ]
+}

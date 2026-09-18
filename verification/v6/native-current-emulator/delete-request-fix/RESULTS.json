@@ -1,0 +1,71 @@
+{
+  "requirements": [
+    "W03",
+    "W07"
+  ],
+  "baseRevision": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "implementationState": "uncommitted root working-tree fix at execution; current native JS requires rebundling",
+  "workingDirectory": "/home/oranolio/Desktop/Deep",
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "platform": "Linux; Vitest node environment"
+  },
+  "sourceFiles": [
+    "apps/mobile/src/api.ts",
+    "apps/mobile/test/api-request.test.ts"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @deep/mobile test test/api-request.test.ts",
+      "exitCode": 1,
+      "artifact": "before.log",
+      "tests": {
+        "passed": 1,
+        "failed": 2,
+        "files": 1
+      },
+      "scope": "Before fix: authenticated bodyless DELETE receives simulated actual server rejection for empty JSON body; GET advertises unwanted JSON type. Binary preservation control passed."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test test/api-request.test.ts test/request-scope.test.ts test/source-deletion.test.ts",
+      "exitCode": 0,
+      "artifact": "final.log",
+      "tests": {
+        "passed": 23,
+        "failed": 0,
+        "files": 3
+      },
+      "scope": "Corrected request headers, exact binary bytes/idempotency, authenticated JSON bodies, existing request generations and source deletion behavior."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "typecheck.log",
+      "scope": "Mobile TypeScript noEmit."
+    },
+    {
+      "command": "git diff --check -- apps/mobile/src/api.ts apps/mobile/test/api-request.test.ts",
+      "exitCode": 0,
+      "artifact": "tool terminal receipt; no separate log",
+      "scope": "Changed-file whitespace check."
+    }
+  ],
+  "change": "Default application/json header only when init.body is non-null. Explicit content-type headers, auth, request scopes and abort behavior unchanged.",
+  "evidenceClass": "Local mocked transport regressions and typecheck. Primary separately observed actual native source deletion; that result is not attributed to these unit receipts.",
+  "limitations": [
+    "No device, server, database, paid calls or native build executed by this packet.",
+    "Native binary dependency graph unchanged; updated JS bundle needed."
+  ],
+  "rollback": "Retain bodyless request correctness; no deletion/cache/authorization gate changes.",
+  "sourceHashes": {
+    "apps/mobile/src/api.ts": "a3da438ac5160540c44a62e29366e7f0060a2c6229350fa0d8a78fecf3df42ea",
+    "apps/mobile/test/api-request.test.ts": "41c39613872f1ff8b96dd27ab07410c1252c30198d9d289cc432cac36f6757bd"
+  },
+  "artifactHashes": {
+    "before.log": "e30c7c916cca2fcb6d57c495e739ebdbfde7beee3edf4686bd58c4f23a0cba5a",
+    "final.log": "66cbc5cc183128b4e378ac8d69c3ed8f9e9043519ee124e96e6cd5891ec7022b",
+    "typecheck.log": "c4c5028d4d3dc1a85d8caefbf93d970ccca13e54e43263017b61626a7c21a14f"
+  }
+}

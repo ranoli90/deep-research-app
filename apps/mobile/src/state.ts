@@ -105,6 +105,20 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
   return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
 }
 
+/** The owned run lifecycle outranks cached screen status when describing current work. */
+export function researchActivity(state: Pick<UiState, "run" | "report" | "pendingContentInvalidation">): { inProgress: boolean; terminalNotice: string | null } {
+  const run = state.run;
+  if (!run) return { inProgress: false, terminalNotice: null };
+  if (run.contentInvalidated === true) return { inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." };
+  if (run.lifecycle !== "terminal") return {
+    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling"].includes(run.lifecycle), terminalNotice: null,
+  };
+  const noReport = state.report ? "" : " No report is available.";
+  if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: `Research was cancelled.${noReport}` };
+  if (run.outcome === "failed") return { inProgress: false, terminalNotice: `Research failed.${noReport}` };
+  return { inProgress: false, terminalNotice: state.report ? null : "Research has ended. No report is available." };
+}
+
 export function restoreAfterReopen(saved: UiState): UiState {
   let status = saved.status;
   if (saved.report && (status === "progress" || status === "empty" || status === "loading")) {

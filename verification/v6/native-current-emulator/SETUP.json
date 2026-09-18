@@ -1,0 +1,32 @@
+{
+  "requirements": [
+    "W03",
+    "W04",
+    "W06",
+    "W07",
+    "W09"
+  ],
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "baseMetadataCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "nativeCheckout": "/tmp/deep-native-graph-ce2f889",
+  "plannedEmulator": "deep_v6_ce2f889",
+  "serial": "emulator-5556",
+  "image": "system-images;android-34;google_apis;x86_64",
+  "nativeAppPackage": "app.deepresearch.mobile",
+  "scope": "Local debug build/emulator with actual API/worker/parser and fabricated model responses. No current physical device changes, hosted identity claim, paid API or release/build-service calls.",
+  "availabilityChecks": [
+    {
+      "command": "/home/oranolio/android-sdk/emulator/emulator -accel-check",
+      "exitCode": 0,
+      "result": "KVM version12 installed and usable"
+    },
+    {
+      "command": "/home/oranolio/android-sdk/cmdline-tools/latest/bin/avdmanager list avd",
+      "exitCode": 0,
+      "result": "No existing AVDs"
+    }
+  ],
+  "database": "deep_research_native_v6; only newly captured development-session accounts may execute/delete; no truncation",
+  "harness": "apps/backend/test/native-source-reader.ts",
+  "status": "Debugnativebuild and bounded emulator journey finished; two nativefound mobilefixes verified. Processes stopped; exact syntheticcleanup passed. SeeRESULTS limitations."
+}

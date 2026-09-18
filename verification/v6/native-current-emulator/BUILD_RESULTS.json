@@ -1,0 +1,149 @@
+{
+  "taskIds": [
+    "W07",
+    "W09"
+  ],
+  "requirementScope": "Local current-source x86_64 Android debug native compilation and APK inspection only",
+  "status": "debug_native_build_passed_ui_journey_not_asserted",
+  "recordedAtUtc": "2026-09-18T11:27:06.101305+00:00",
+  "implementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "rootHeadAtInspection": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "nativeCheckout": "/tmp/deep-native-graph-ce2f889",
+  "nativeCheckoutHead": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "sourceState": {
+    "isolatedTrackedDiff": "apps/mobile/package.json scripts android/ios changed by prebuild from expo start --android/--ios to expo run:android/run:ios; no dependency delta in this diff",
+    "rootUncommittedChanges": "Test-only native-source-reader harness imports new native-document-control; corresponding new unit test; command registry and emulator evidence. User ZIPs preserved. This draft does not certify those test changes.",
+    "rootCommittedMobileDifferenceFromImplementation": [],
+    "generatedNativeProject": "Generated Android directory exists in isolated checkout; ignored generated files are not represented by git status. This is not a clean untouched checkout claim."
+  },
+  "environment": {
+    "host": "Linux x86_64",
+    "javaHome": "/usr/lib/jvm/java-17-openjdk-amd64",
+    "installedJdkPackage": "openjdk-17-jdk-headless17.0.20+8-1~24.04",
+    "gradle": "8.14.3",
+    "buildTools": "36.0.0",
+    "compileSdk": 36,
+    "targetSdk": 36,
+    "minSdk": 24,
+    "ndk": "27.1.12297006",
+    "kotlin": "2.1.20",
+    "ksp": "2.1.20-2.0.1",
+    "architecture": "x86_64",
+    "gradleUserHome": "/tmp/deep-gradle-ce2f889",
+    "evidenceBasis": "Terminal build/JDK receipts and generated output metadata; no new build or device command executed by this review"
+  },
+  "results": [
+    {
+      "id": "sdk-provision",
+      "requirementIds": [
+        "W07",
+        "W09"
+      ],
+      "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+      "command": "/home/oranolio/android-sdk/cmdline-tools/latest/bin/sdkmanager \"platforms;android-36\" \"build-tools;36.0.0\" \"system-images;android-34;google_apis;x86_64\"",
+      "commandProvenance": "verification/COMMANDS.json; paired terminal log and exit receipt",
+      "workingDirectory": "/home/oranolio/Desktop/Deep",
+      "evidenceClass": "native_toolchain_setup",
+      "artifact": "verification/v6/native-current-emulator/sdk-install.log",
+      "sha256": "a3073778e2ca7244a3ff43e0ea74a2e7093e203a6fc163abed629d86e7b4821a",
+      "exitArtifact": "verification/v6/native-current-emulator/sdk-install.exit",
+      "exitCode": 0,
+      "scope": "Local SDK package provisioning; no app/native journey assertion"
+    },
+    {
+      "id": "build-initial",
+      "requirementIds": [
+        "W07",
+        "W09"
+      ],
+      "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+      "command": "NODE_ENV=development EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CMAKE_BUILD_PARALLEL_LEVEL=2 GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.parallel=false --max-workers=2 --no-daemon --console=plain",
+      "commandProvenance": "verification/COMMANDS.json; paired terminal log and exit receipt",
+      "workingDirectory": "/tmp/deep-native-graph-ce2f889/apps/mobile/android",
+      "evidenceClass": "native_android_build_failure",
+      "artifact": "verification/v6/native-current-emulator/build-debug.log",
+      "sha256": "80e50800d50f8c06f95485135f2026ba5aff7e93d6d3d5c82b70c4b4b65c2349",
+      "exitArtifact": "verification/v6/native-current-emulator/build-debug.exit",
+      "exitCode": 1,
+      "scope": "Failed after1m8s: JRE toolchain lacks JAVA_COMPILER; retained failure before JDK installation"
+    },
+    {
+      "id": "jdk-repair",
+      "requirementIds": [
+        "W07",
+        "W09"
+      ],
+      "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+      "command": "sudo -n apt-get install --no-install-recommends --yes openjdk-17-jdk-headless",
+      "commandProvenance": "verification/COMMANDS.json; paired terminal log and exit receipt",
+      "workingDirectory": "/home/oranolio/Desktop/Deep",
+      "evidenceClass": "native_toolchain_setup",
+      "artifact": "verification/v6/native-current-emulator/jdk-install.log",
+      "sha256": "b79a6a1ceb575e8e5fe39ef99e94d2b0d867f7a7e8449a698f67b7098a2305af",
+      "exitArtifact": "verification/v6/native-current-emulator/jdk-install.exit",
+      "exitCode": 0,
+      "scope": "Installed full JDK17 headless; upgraded JRE17.0.19 to17.0.20. Toolchain setup, not app correctness"
+    },
+    {
+      "id": "build-final",
+      "requirementIds": [
+        "W07",
+        "W09"
+      ],
+      "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+      "command": "NODE_ENV=development EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CMAKE_BUILD_PARALLEL_LEVEL=2 GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.parallel=false --max-workers=2 --no-daemon --console=plain",
+      "commandProvenance": "verification/COMMANDS.json; paired terminal log and exit receipt",
+      "workingDirectory": "/tmp/deep-native-graph-ce2f889/apps/mobile/android",
+      "evidenceClass": "native_android_debug_build",
+      "artifact": "verification/v6/native-current-emulator/build-debug-jdk.log",
+      "sha256": "cefa1b7ddad5189e4130646b144cddc15011dbf683d3280021a5326cca5da1d9",
+      "exitArtifact": "verification/v6/native-current-emulator/build-debug-jdk.exit",
+      "exitCode": 0,
+      "scope": "BUILD SUCCESSFUL in9m1s;178 actionable tasks,154 executed/24 up-to-date; actual :app:assembleDebug x86_64 APK"
+    },
+    {
+      "id": "apk-signature",
+      "requirementIds": [
+        "W07",
+        "W09"
+      ],
+      "commit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+      "command": null,
+      "commandProvenance": "Exact invocation absent from preserved signature log; do not infer arguments",
+      "artifact": "verification/v6/native-current-emulator/apk-signature.log",
+      "sha256": "a355997bae3e4812f3506ebb9f734b38d7fa78d5faaaaad4f038ab00c2f76ab6",
+      "exitArtifact": "verification/v6/native-current-emulator/apk-signature.exit",
+      "exitCode": 0,
+      "evidenceClass": "native_apk_signature_inspection",
+      "scope": "Android Debug certificate metadata and paired exit0; not release signing"
+    }
+  ],
+  "apk": {
+    "path": "/tmp/deep-native-graph-ce2f889/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk",
+    "bytes": 37282760,
+    "sha256": "334eef0bb20ae75ba049e0f40b8e12b5adbf4fe3dea3b3f650b515cf20b30306",
+    "applicationId": "app.deepresearch.mobile",
+    "variant": "debug",
+    "versionCode": 1,
+    "versionName": "0.1.0",
+    "nativeCode": [
+      "x86_64"
+    ],
+    "signature": "Android Debug test certificate; not release/store signing",
+    "signerCertificateSha256": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+    "outputMetadataSha256": "23cfe2d08c71f6a921380776fe4bb7da046582ce8d29d2c74c5a0283955c4514"
+  },
+  "limits": [
+    "UI journey is underway and not evaluated by this build draft.",
+    "Debug APK compilation/signature inspection does not prove source reading, correction, sharing, lifecycle or accessibility behavior.",
+    "No current physical-device or iOS execution claim; no store/private production release claim.",
+    "No security-clean or exhaustive dependency-resolution claim; Gradle deprecation warnings remain in successful log.",
+    "APK metadata log has no paired exit file or preserved invocation; its text matches generated output metadata. Exact metadata-inspection command is not established here.",
+    "Build command is the registered command associated with the paired terminal logs; log bodies do not independently print the complete shell environment.",
+    "SETUP.json status still says provisioning/build pending; terminal build receipts supersede that historical planning status.",
+    "APK is retained only under /tmp in isolated checkout; evidence contains its digest and metadata, not a durable binary copy."
+  ],
+  "paidProviderCalls": 0,
+  "deployment": false,
+  "independentHumanValidation": false
+}

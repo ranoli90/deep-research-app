@@ -1,0 +1,135 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2400]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[42,149][402,218]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[918,149][1038,248]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[918,149][1038,248]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[42,269][1038,373]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[63,290][1017,352]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Pending source deletion",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,373][1080,857]",
+    "clickable": "false"
+  },
+  {
+    "text": "Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[44,417][1036,697]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Retry source deletion",
+    "class": "android.widget.Button",
+    "bounds": "[45,698][1035,813]",
+    "clickable": "true"
+  },
+  {
+    "text": "Retry deletion",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[45,698][1035,813]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,899][1080,2060]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,941][1038,1130]",
+    "clickable": "false"
+  },
+  {
+    "text": "Does Ardent support underwater ",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[21,2083][879,2200]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[879,2100][1059,2199]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[921,2121][1017,2178]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2223][540,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[192,2254][348,2305]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2223][1080,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[753,2254][867,2305]",
+    "clickable": "false"
+  }
+]

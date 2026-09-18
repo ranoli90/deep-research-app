@@ -1,0 +1,85 @@
+{
+  "scope": "Completed native-build and toolchain receipts only; excludes actively changing API/Metro/emulator/UI journey logs",
+  "recordedAtUtc": "2026-09-18T11:27:06.101305+00:00",
+  "files": [
+    {
+      "path": "verification/v6/native-current-emulator/build-debug.log",
+      "bytes": 6313,
+      "sha256": "80e50800d50f8c06f95485135f2026ba5aff7e93d6d3d5c82b70c4b4b65c2349"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/build-debug.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/build-debug-jdk.log",
+      "bytes": 27879,
+      "sha256": "cefa1b7ddad5189e4130646b144cddc15011dbf683d3280021a5326cca5da1d9"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/build-debug-jdk.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/jdk-install.log",
+      "bytes": 5171,
+      "sha256": "b79a6a1ceb575e8e5fe39ef99e94d2b0d867f7a7e8449a698f67b7098a2305af"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/jdk-install.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/apk-metadata.log",
+      "bytes": 250,
+      "sha256": "5f8aeb3d31e358eac4f701163315ea03f0a67b103cffbe458004a3bb9f0e09f2"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/apk-signature.log",
+      "bytes": 342,
+      "sha256": "a355997bae3e4812f3506ebb9f734b38d7fa78d5faaaaad4f038ab00c2f76ab6"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/apk-signature.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/sdk-install.log",
+      "bytes": 13520,
+      "sha256": "a3073778e2ca7244a3ff43e0ea74a2e7093e203a6fc163abed629d86e7b4821a"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/sdk-install.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/SETUP.json",
+      "bytes": 1273,
+      "sha256": "32263bb7d247a08c7d86526b4698e98d8639847931e9eabe11a99da47c23f5a6"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/BUILD_RESULTS.json",
+      "bytes": 8354,
+      "sha256": "e31d602486f396638009949c30bbdc89fdc1ffe6e9554a160c622bcc064234ec"
+    }
+  ],
+  "externalArtifacts": [
+    {
+      "path": "/tmp/deep-native-graph-ce2f889/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk",
+      "bytes": 37282760,
+      "sha256": "334eef0bb20ae75ba049e0f40b8e12b5adbf4fe3dea3b3f650b515cf20b30306",
+      "retention": "Local isolated checkout; binary not copied into evidence directory"
+    },
+    {
+      "path": "/tmp/deep-native-graph-ce2f889/apps/mobile/android/app/build/outputs/apk/debug/output-metadata.json",
+      "bytes": 407,
+      "sha256": "23cfe2d08c71f6a921380776fe4bb7da046582ce8d29d2c74c5a0283955c4514",
+      "retention": "Local isolated checkout; binary not copied into evidence directory"
+    }
+  ]
+}

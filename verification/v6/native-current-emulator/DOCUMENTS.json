@@ -1,0 +1,15 @@
+{
+  "synthetic": true,
+  "initial": {
+    "path": "apps/backend/test/fixtures/documents/digital-scoped.pdf",
+    "bytes": 1211,
+    "sha256": "a7ede222b83e2ea7edf3c6ecd88395acbc05a4db1f083633255a77dd018a9bfd"
+  },
+  "append": {
+    "path": "added-synthetic.pdf",
+    "text": "Ardent requires a FAT32 card for offline recording.",
+    "bytes": 626,
+    "sha256": "f0c73e0c655e646a12989041fdf99d24e69eacb3a50731b68afccd185d2f3f87"
+  },
+  "evidenceLimit": "Only fabricated synthetic document/model UI controls; not actual product capability or real-model quality"
+}

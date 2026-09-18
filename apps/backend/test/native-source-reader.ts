@@ -1,6 +1,7 @@
 /** Test-only native UI harness: actual local API/worker/parser, fabricated model transport.
  * Never import from runtime. It has no real provider credential or external fetch fallback.
  */
+import { nativeDocumentAssertions, nativeDocumentReport } from "./native-document-control.js";
 import { buildApp } from "../src/api/app.js";
 import { createPool, migrate } from "../src/platform/db.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -23,16 +24,10 @@ globalThis.fetch = async (input, init) => {
     const provenance = { start: 0, end: context.question.length, quote: context.question };
     return reply({ objective: context.question, objectiveProvenance: provenance, intendedOutput: "Document-grounded answer", criteria: [{ key: "recording", description: "Recording support described in the document", field: "recording", operator: "explain", value: null, unit: null, importance: "hard", scope, provenance, group: "g", groupOperator: "all", unresolvedAlternatives: [] }], questions: [{ key: "q", text: context.question, criterionKeys: ["recording"], importance: "critical", evidenceStandard: "Explicit statement in the supplied document" }], assumptions: [], openAmbiguities: [], explicitExclusions: [] });
   }
-  if (operation === "research_extract_assertions_v1") {
-    const sentence = context.question.includes("firmware") ? "Ardent supports offline recording only on firmware 4.2." : "Ardent does not support underwater recording.";
-    const p = context.passages.find((p: { text: string }) => p.text.includes(sentence));
-    if (!p) throw new Error("Actual extraction did not contain the synthetic native control statement");
-    const start = p.text.indexOf(sentence);
-    return reply({ candidates: [], assertions: [{ key: "recording", candidateKey: null, criterionKeys: ["recording"], text: sentence, scope, quantities: [], evidence: [{ passageId: p.id, start, end: start + sentence.length, quote: sentence }] }], limitations: [] });
-  }
+  if (operation === "research_extract_assertions_v1") return reply(nativeDocumentAssertions(context));
   if (operation === "research_assess_support_v1") return reply({ assessments: context.assertions.map((a: { key: string; scope: unknown; evidence: unknown }) => ({ claimKey: a.key, status: "supported", scope: a.scope, evidence: a.evidence, rationale: "Fabricated native UI control; not semantic validation", missingEvidence: [] })) });
   if (operation === "research_review_coverage_v1") return reply({ questions: [{ questionKey: "q", status: "supported", assertionKeys: context.approvedClaimKeys, reason: "Fabricated native UI control" }], omittedRequirements: [] });
-  if (operation === "research_write_report_v1") return reply({ title: "Document finding", sections: [{ heading: "Evidence", paragraphs: [{ text: context.assertions[0].text, claimKeys: [context.assertions[0].key] }] }], unresolvedQuestionKeys: [], limitations: [] });
+  if (operation === "research_write_report_v1") return reply(nativeDocumentReport(context));
   throw new Error(`Unexpected native model operation: ${operation}`);
 };
 const app = await buildApp({ pool, boss, config });

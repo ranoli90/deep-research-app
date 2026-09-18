@@ -1128,5 +1128,109 @@
     "network": true,
     "paid": false,
     "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "/home/oranolio/android-sdk/cmdline-tools/latest/bin/sdkmanager \"platforms;android-36\" \"build-tools;36.0.0\" \"system-images;android-34;google_apis;x86_64\"",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 local native-test SDK provisioning; existing SDK licenses, public artifacts, no build service or deployment",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "NODE_ENV=development EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 CMAKE_BUILD_PARALLEL_LEVEL=2 GRADLE_USER_HOME=/tmp/deep-gradle-ce2f889 ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.parallel=false --max-workers=2 --no-daemon --console=plain",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 isolated local x86_64 debug APK compilation, default test key only; no private/store release, build service or physical-device install",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "sudo -n apt-get install --no-install-recommends --yes openjdk-17-jdk-headless",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Local Android compilation toolchain setup; missing javac repair only",
+    "network": true,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "printf 'no\\n' | /home/oranolio/android-sdk/cmdline-tools/latest/bin/avdmanager create avd --name deep_v6_ce2f889 --package 'system-images;android-34;google_apis;x86_64' --path /tmp/deep-v6-emulator-avd --device pixel_6",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Create separate synthetic local emulator; no existing device changes",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "python3 verification/v6/native-current-emulator/ui.py inspect",
+    "status": "implemented_application_command",
+    "scope": "W07/W09 Bounded synthetic emulator UI inspection; refuses physical serials",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "/home/oranolio/android-sdk/emulator/emulator -avd deep_v6_ce2f889 -port 5556 -no-window -no-audio -no-snapshot -no-boot-anim -no-metrics -gpu swiftshader -memory 2048 -cores 2",
+    "status": "implemented_application_command",
+    "scope": "W07 isolated synthetic Android14 emulator only; no physical device or installed user app changes",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "python3 verification/v6/native-current-emulator/ui.py <inspect|tap|text|key|swipe> [arguments]",
+    "status": "implemented_application_command",
+    "scope": "W07 bounded synthetic emulator only; refuses physical device; exact arguments retained in evidence",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/ui.py"
+  },
+  {
+    "command": "node verification/v6/native-current-emulator/db-trace.mjs verification/v6/native-current-emulator/<trace-name>.json",
+    "status": "implemented_application_command",
+    "scope": "W03/W04/W06/W07 read-only owned synthetic native PostgreSQL trace; no truncation",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/db-trace.mjs"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test test/api-request.test.ts test/request-scope.test.ts test/source-deletion.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 bodyless source deletion request, authentication and binary preservation controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/mobile test test/invalidated-progress.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 terminal invalidation presentation and protected-restart controls",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm --filter @deep/backend test:unit test/native-document-control.unit.test.ts",
+    "status": "implemented_application_command",
+    "scope": "W04/W06/W07 test-only fabricated native controller passage binding",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/backend/package.json"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-native-fixes-export",
+    "status": "implemented_application_command",
+    "scope": "W03/W07 native deletion and terminal-state fixes Android JavaScript export; not native compilation",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json"
+  },
+  {
+    "command": "pnpm exec tsx verification/v6/native-current-emulator/cleanup.mts",
+    "status": "implemented_application_command",
+    "scope": "Exact owned syntheticaccount teardown only, ID/time/zero-run guarded, production deleteAccount; no truncation",
+    "network": false,
+    "paid": false,
+    "implementation": "verification/v6/native-current-emulator/cleanup.mts"
   }
 ]

@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/Deep/apps/mobile
+
+ ❯ test/invalidated-progress.test.ts (1 test | 1 failed) 57ms
+   × W03/W07 reopening an invalidated Library run persists terminal status instead of invented progress 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/invalidated-progress.test.ts > W03/W07 reopening an invalidated Library run persists terminal status instead of invented progress
+AssertionError: expected 'progress' to be 'cancelled' // Object.is equality
+
+Expected: "cancelled"
+Received: "progress"
+
+ ❯ test/invalidated-progress.test.ts:19:27
+     17|   const restored = (await createSessionStorage(cache, credentials).hyd…
+     18|   expect(restored.run?.lifecycle).toBe("terminal");
+     19|   expect(restored.status).toBe("cancelled");
+       |                           ^
+     20|   expect(restored.report).toBeNull();
+     21|   expect(restored.pendingContentInvalidation).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  05:38:26
+   Duration  1.70s (transform 831ms, setup 0ms, import 1.06s, tests 57ms, environment 0ms)
+
+undefined
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --config vitest.config.ts test/invalidated-progress.test.ts

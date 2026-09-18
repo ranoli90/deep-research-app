@@ -1,0 +1,24 @@
+
+> @deep/mobile@0.1.0 start /home/oranolio/Desktop/Deep/apps/mobile
+> expo start --localhost --port 8081
+
+Starting project at /home/oranolio/Desktop/Deep/apps/mobile
+Metro is running in CI mode, reloads are disabled. Remove CI=true to enable watch mode.
+Starting Metro Bundler
+Skipping dependency validation in offline mode
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.8% (518/566)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.7% (682/683)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (683/683)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (762/763)
+Android Bundled 13618ms apps/mobile/index.ts (763 modules)
+Android node_modules/expo-crypto/build/Crypto.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 758ms node_modules/expo-crypto/build/Crypto.js (613 modules)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 119ms apps/mobile/index.ts (1 module)
+Android node_modules/expo-crypto/build/Crypto.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 35ms node_modules/expo-crypto/build/Crypto.js (1 module)
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 90ms apps/mobile/index.ts (1 module)

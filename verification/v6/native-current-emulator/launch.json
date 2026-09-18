@@ -1,0 +1,43 @@
+[
+  {
+    "command": [
+      "adb",
+      "-s",
+      "emulator-5556",
+      "reverse",
+      "tcp:8787",
+      "tcp:8787"
+    ],
+    "exitCode": 0,
+    "stdout": "8787\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "adb",
+      "-s",
+      "emulator-5556",
+      "reverse",
+      "tcp:8081",
+      "tcp:8081"
+    ],
+    "exitCode": 0,
+    "stdout": "8081\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "adb",
+      "-s",
+      "emulator-5556",
+      "shell",
+      "am",
+      "start",
+      "-n",
+      "app.deepresearch.mobile/.MainActivity"
+    ],
+    "exitCode": 0,
+    "stdout": "Starting: Intent { cmp=app.deepresearch.mobile/.MainActivity }\n",
+    "stderr": ""
+  }
+]

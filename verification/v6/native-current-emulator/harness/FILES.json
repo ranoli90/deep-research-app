@@ -1,0 +1,38 @@
+{
+  "sourceFiles": [
+    {
+      "path": "apps/backend/test/native-source-reader.ts",
+      "sha256": "b5b5479496914f6fce39da7fafab1162a8ce95217606ff68963b9df071f39196"
+    },
+    {
+      "path": "apps/backend/test/native-document-control.ts",
+      "sha256": "a73eed423265a718a797584bbc4458122376cecf3a21dd455e43b6505076819f"
+    },
+    {
+      "path": "apps/backend/test/native-document-control.unit.test.ts",
+      "sha256": "8522099ff25eaa93c77b5f39484d87d54ec4606a70ed2ab4ab7e45fa593d8534"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/v6/native-current-emulator/harness/RESULTS.json",
+      "sha256": "06ea4e3dcd83cb7158740b665b262c8a65cf936c7020f41eb551f77c49c45fda"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/harness/typecheck-final.log",
+      "sha256": "2aebe3414aa4c2989b313274ec170312f350df61845ed699d8ad0800658d8166"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/harness/typecheck.log",
+      "sha256": "923e67335b80c2697e0a7520066901fa9a7db55b30aad7ef29b074f94cac96a4"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/harness/unit-final.log",
+      "sha256": "64c37f6cfe6ec1b96f9bfffec773c6a04a2725a2839399dea7c1dd9495ad3238"
+    },
+    {
+      "path": "verification/v6/native-current-emulator/harness/unit.log",
+      "sha256": "8a74fc27fe1b256b469ef5a897dc10be4babc15658e9a50c1cef91092e3ebfc1"
+    }
+  ]
+}

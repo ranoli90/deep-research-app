@@ -1,0 +1,65 @@
+[
+  {
+    "text": "Sharing text",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,1381][291,1444]",
+    "clickable": "false"
+  },
+  {
+    "text": "## Evidence\n\nArdent supports offline recording only on firmware 4.2.\n\n[^source-1]\n\nArdent requires a FAT32 card for offline recording.\n\n[^source-2]\n\n## Sources\n\n[^source-1]: deep\\-v6\\-initial\\.pdf \u2014 uploaded. Non-public document locator. Retrieved: 2026-09-18T11:27:38.326Z. Access: partial\\-text; coverage: selected\\_extracted\\_blocks. Passage locator: \\{\"kind\":\"text\",\"rows\":\\[\\],\"block\":\"page:1/block:0\",\"geometry\":\\[\\{\"box\":\\[50,737\\.516,255\\.42800000000003,748\\.616\\],\"text\":\"Field notes: Ardent sensor deployment\"\\},\\{\"box\":\\[50,719\\.516,338\\.1200000000001,730\\.616\\],\"text\":\"Ardent supports offline recording only on firmware 4\\.2\\.\"\\},\\{\"box\":\\[50,701\\.516,298\\.12400000000014,712\\.616\\],\"text\":\"Ardent does not support underwater recording\\.\"\\}\\],\"coordinates\":\"PDF points; bottom\\-left origin\",\"normalization\":\"extractor\\-output\\-v1\"\\}. Extraction: docling\\-parse\\-7\\.20\\.0/geometry\\-v1. Source version: 1f8251cd-09c8-47c6-950f-18ba3e7d540a; passage: 6088c801-28b7-4e2c-a296-481aab9fbfa3.\n\n[^source-2]: deep\\-v6\\-added\\.pdf \u2014 uploaded. Non-public document locator. Retrieved: 2026-09-18T11:30:32.105Z. Access: partial\\-text; coverage: selected\\_extracted\\_blocks. Passage locator: \\{\"kind\":\"text\",\"rows\":\\[\\],\"block\":\"page:1/block:0\",\"geometry\":\\[\\{\"box\":\\[40,737\\.516,307\\.44400000000013,748\\.616\\],\"text\":\"Ardent requires a FAT32 card for offline recording\\.\"\\}\\],\"coordinates\":\"PDF points; bottom\\-left origin\",\"normalization\":\"extractor\\-output\\-v1\"\\}. Extraction: docling\\-parse\\-7\\.20\\.0/geometry\\-v1. Source version: 4b428d06-5ec4-448d-8409-32eebaa5f58b; passage: 20c01aa1-4d79-4305-be83-55c1c0c82a1f.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[63,1507][890,1644]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Copy",
+    "class": "android.widget.FrameLayout",
+    "bounds": "[901,1513][1027,1639]",
+    "clickable": "true"
+  },
+  {
+    "text": "No recommended people to share with",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,1859][1080,1910]",
+    "clickable": "false"
+  },
+  {
+    "text": "Nearby Share",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[11,2225][205,2268]",
+    "clickable": "false"
+  },
+  {
+    "text": "Chrome",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[227,2225][421,2268]",
+    "clickable": "false"
+  },
+  {
+    "text": "Drive",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[443,2225][637,2268]",
+    "clickable": "false"
+  },
+  {
+    "text": "Messages",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[659,2225][853,2268]",
+    "clickable": "false"
+  },
+  {
+    "text": "Bluetooth",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[875,2225][1069,2268]",
+    "clickable": "false"
+  }
+]

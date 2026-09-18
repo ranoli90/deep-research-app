@@ -1,0 +1,163 @@
+[
+  {
+    "text": "",
+    "content-desc": "Deep Research",
+    "class": "android.view.ViewGroup",
+    "bounds": "[0,0][1080,2400]",
+    "clickable": "false"
+  },
+  {
+    "text": "Deep Research",
+    "content-desc": "",
+    "class": "android.view.View",
+    "bounds": "[42,149][457,222]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Open profile and settings",
+    "class": "android.widget.Button",
+    "bounds": "[883,149][1038,264]",
+    "clickable": "true"
+  },
+  {
+    "text": "Profile",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[883,149][1038,264]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Live research route",
+    "class": "android.view.ViewGroup",
+    "bounds": "[42,285][1038,389]",
+    "clickable": "false"
+  },
+  {
+    "text": "Live research route",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[63,306][1017,368]",
+    "clickable": "false"
+  },
+  {
+    "text": "Source deleted and dependent research invalidated. Other saved reports can be reopened from Library.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[0,389][1080,656]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research conversation",
+    "class": "android.widget.ScrollView",
+    "bounds": "[0,656][1080,1243]",
+    "clickable": "false"
+  },
+  {
+    "text": "Ask a comparison with hard constraints, or reconcile a document with public evidence. Research continues on the server if you leave.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,698][1038,978]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Choose PDF, text or Markdown document",
+    "class": "android.widget.Button",
+    "bounds": "[42,1264][1038,1379]",
+    "clickable": "true"
+  },
+  {
+    "text": "Choose a document",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,1264][1038,1379]",
+    "clickable": "false"
+  },
+  {
+    "text": "PDF, text or Markdown, up to 8 MiB. Selected files are sent when you submit and must be selected again if the app closes.",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,1379][1038,1659]",
+    "clickable": "false"
+  },
+  {
+    "text": "note.txt",
+    "content-desc": "Attachment filename",
+    "class": "android.widget.EditText",
+    "bounds": "[42,1659][1038,1774]",
+    "clickable": "true"
+  },
+  {
+    "text": "Paste a text or Markdown note",
+    "content-desc": "Attachment text",
+    "class": "android.widget.EditText",
+    "bounds": "[42,1794][1038,1909]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Attach pasted note",
+    "class": "android.widget.Button",
+    "bounds": "[42,1930][1038,2045]",
+    "clickable": "true"
+  },
+  {
+    "text": "Attach note (0/3)",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[42,1930][1038,2045]",
+    "clickable": "false"
+  },
+  {
+    "text": "Does Ardent support underwater ",
+    "content-desc": "Research question",
+    "class": "android.widget.EditText",
+    "bounds": "[21,2067][853,2184]",
+    "clickable": "true"
+  },
+  {
+    "text": "",
+    "content-desc": "Start research",
+    "class": "android.widget.Button",
+    "bounds": "[853,2068][1059,2183]",
+    "clickable": "true"
+  },
+  {
+    "text": "Send",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[895,2089][1017,2162]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Research",
+    "class": "android.view.View",
+    "bounds": "[0,2207][540,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Research",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[164,2238][375,2305]",
+    "clickable": "false"
+  },
+  {
+    "text": "",
+    "content-desc": "Library",
+    "class": "android.view.View",
+    "bounds": "[540,2207][1080,2337]",
+    "clickable": "true"
+  },
+  {
+    "text": "Library",
+    "content-desc": "",
+    "class": "android.widget.TextView",
+    "bounds": "[734,2238][886,2305]",
+    "clickable": "false"
+  }
+]

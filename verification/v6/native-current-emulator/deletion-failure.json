@@ -1,0 +1,13 @@
+{
+  "requirementIds": [
+    "W03",
+    "W07"
+  ],
+  "command": "native Delete source confirmation followed by Library",
+  "result": "failed server deletion; pending local deletion guard retained",
+  "message": "Body cannot be empty when content-type is set to 'application/json'",
+  "nativeSnapshot": "library-after-deletion.json",
+  "databaseSnapshot": "trace-source-deleted.json",
+  "productionRevision": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "fix": "in progress; no pass"
+}

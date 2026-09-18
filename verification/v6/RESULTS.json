@@ -1,7 +1,7 @@
 {
   "task": "V6-W01-W09",
   "baseCommit": "03fab6b9d6a04ce9fdaeb48636383757213f7242",
-  "workingTree": "Reviewed checkpoint committed; W01-W09 follow-on implementation active. Local evidence only as labeled; no paid authorization.",
+  "workingTree": "Native-found request/progress fixes reviewed in working tree over0fc5bf9; exact commit metadata follows. W01-W09 incomplete; frozenPDF evaluator safe local work remains; no paid authorization.",
   "environment": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
@@ -6337,5 +6337,7 @@
   "questionPatchEvidence": "verification/v6/question-patch/RESULTS.json",
   "postcssIntegratedEvidence": "verification/v6/dependency-postcss-integrated/RESULTS.json",
   "latestReviewedImplementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
-  "latestEvidencePacket": "verification/v6/html-list-integrated/RESULTS.json"
+  "latestEvidencePacket": "verification/v6/native-current-emulator/RESULTS.json",
+  "nativeDebugEvidence": "verification/v6/native-current-emulator/BUILD_RESULTS.json",
+  "nativeJourneyEvidence": "verification/v6/native-current-emulator/JOURNEY_ASSERTIONS.json"
 }

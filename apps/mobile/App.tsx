@@ -44,6 +44,7 @@ import { breakLongTokens, formatChangeSummary, parseTable } from "./src/report-l
 import {
   androidBack,
   applySnapshot,
+  researchActivity,
   attachFile,
   canSubmit,
   conciseBlocks,
@@ -149,6 +150,7 @@ function AppInner() {
   const reading = useRef(createReadingRestoration());
   const readerIdentity = useRef("");
   const readerGeneration = useRef(0);
+  const activity = researchActivity(state);
   const blocks: ReportBlock[] = state.report
     ? detailed ? state.report.blocks : conciseBlocks(state.report.blocks) : [];
   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
@@ -927,7 +929,7 @@ function AppInner() {
               </Text>
             ) : null}
 
-            {state.status === "progress" || state.status === "loading" ? (
+            {activity.inProgress ? (
               <View style={styles.card} accessibilityLabel="Research progress" accessibilityLiveRegion="polite">
                 <Text style={styles.kicker}>{state.run?.phase ?? "queued"}</Text>
                 <Text style={styles.bodyText}>
@@ -940,11 +942,8 @@ function AppInner() {
               </View>
             ) : null}
 
-            {state.status === "cancelled" ? (
-              <Text style={styles.bodyText}>Cancelled. Partial evidence is kept unless you delete your account.</Text>
-            ) : null}
-            {state.status === "failed" ? (
-              <Text style={styles.bodyText}>The run failed. Saved evidence, if any, is still in your library.</Text>
+            {activity.terminalNotice ? (
+              <Text style={styles.bodyText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
             ) : null}
             {state.status === "awaiting_input" ? (
               <View style={styles.card} accessibilityLabel="Clarification needed">

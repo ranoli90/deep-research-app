@@ -32,7 +32,7 @@ export function isOfflineError(err: unknown): boolean {
 
 async function req(path: string, init: RequestInit & { token?: string; scope?: "account" | "view" | "source"; runId?: string } = {}) {
   const lease = requests.capture(init.scope ?? "account", init.token, init.runId);
-  const headers: Record<string, string> = { "content-type": "application/json", ...(init.headers as Record<string, string>) };
+  const headers: Record<string, string> = { ...(init.body != null ? { "content-type": "application/json" } : {}), ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;
   const ctrl = new AbortController();
   const abort = () => ctrl.abort();

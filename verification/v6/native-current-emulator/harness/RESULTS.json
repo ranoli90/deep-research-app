@@ -1,0 +1,51 @@
+{
+  "requirements": [
+    "W04",
+    "W06",
+    "W07"
+  ],
+  "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "sourceState": "uncommitted test-only changes in shared root",
+  "scope": "Fabricated native transport now includes optional exact parsed FAT32 sentence for firmware question; preserves underwater and firmware controls. No fact generated when absent. All approved statements written. Production source unchanged.",
+  "commands": [
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/native-document-control.unit.test.ts",
+      "artifact": "unit.log",
+      "exitCode": 0,
+      "tests": "4/4"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "typecheck.log",
+      "exitCode": 2,
+      "failure": "Test assignment used invalid literal on crypto.randomUUID inferred UUID-template type; fixed by constructing malformed boundary object, not weakening source types."
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "artifact": "typecheck-final.log",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/native-document-control.unit.test.ts",
+      "artifact": "unit-final.log",
+      "exitCode": 0,
+      "tests": "4/4"
+    },
+    {
+      "command": "git diff --check -- apps/backend/test/native-source-reader.ts apps/backend/test/native-document-control.ts apps/backend/test/native-document-control.unit.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11"
+  },
+  "guards": "Fake key, external-fetch denial, public-search-plugin denial, created-account-only worker and deletion cleanup preserved. Helper parses production model context, checks passage text SHA256 and duplicate IDs; exact offsets/quotes bind assertions. Approved-key filter gates synthetic writer output.",
+  "limits": [
+    "No database, parser, emulator, device or server execution in this packet.",
+    "No native completion, model semantic quality, hosted identity or paid-provider claim.",
+    "Digest checks validate supplied text identity; production owns account/source-version authorization."
+  ],
+  "rollback": "Remove optional synthetic fact controller only; do not change production gates."
+}

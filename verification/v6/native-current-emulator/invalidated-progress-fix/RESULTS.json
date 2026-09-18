@@ -1,0 +1,76 @@
+{
+  "task": "W03/W07 invalidated terminal progress presentation",
+  "requirement_ids": [
+    "W03 remote source deletion cache invalidation",
+    "W07 truthful native progress/terminal states"
+  ],
+  "base_commit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "source_state": "Uncommitted focused changes; API request fix and native harness are independent concurrent work",
+  "source_sha256": {
+    "apps/mobile/App.tsx": "5f71dc90a3b73b670913c6878ef8328b0e8d918567df554ac7289d68b24a61c6",
+    "apps/mobile/src/state.ts": "ce5291b489ea3f29e98a9e8906cf549510ee7ec2480699b5a1e6fdbae2aaca8e",
+    "apps/mobile/src/remote-invalidation.ts": "06f62abaa1d0b7383d3b7221ed3f2da2f9c7fa5710836de38e3aa3dc140168f4",
+    "apps/mobile/test/invalidated-progress.test.ts": "064cc8133c9509c40d2f52f49191bd7a77e433cc861527a0c22be1475d672986"
+  },
+  "patch_sha256": "ddce66673e2c12ad80ef948b30f106c9f9e26e2f110e04191cd4223d238ab859",
+  "environment": {
+    "os": "Linux",
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "vitest": "4.1.11",
+    "scope": "local TypeScript/unit/protected-memory-store tests; no DB, native device, emulator, service or provider actions"
+  },
+  "defect": "Library opens statusprogress; remote invalidation redaction previously preserved progress although server snapshot was terminal/cancelled. UI used cached status to show WRITING/spinner/Cancel. Native observation recorded by primary in invalidated-reopen-settled.json.",
+  "change": "Redaction maps authoritative terminal/cancelled lifecycle to cancelled UI status before required persistence. researchActivity uses authoritative lifecycle and invalidation to gate progress and terminal notices, including terminal runs without reports. Invalidated active/cancelling runs are not claimed ended.",
+  "checks": [
+    {
+      "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/invalidated-progress.test.ts",
+      "exit_code": 1,
+      "artifact": "regression-before.log",
+      "scope": "Reproduced staleprogress through actual Library/invalidation/persistence/hydration helpers beforefix"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exit_code": 0,
+      "artifact": "mobile-tests-reviewed.log",
+      "scope": "200/200 in21files including concurrent API agent tests; completed before test-only variable type annotation"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile exec vitest run --config vitest.config.ts test/invalidated-progress.test.ts",
+      "exit_code": 0,
+      "artifact": "regression-final.log",
+      "scope": "11/11 finalsource focused regressions"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exit_code": 0,
+      "artifact": "mobile-types-final.log",
+      "scope": "Finalsource and test types"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "artifact": "RESULTS.json",
+      "scope": "Whitespace only"
+    }
+  ],
+  "retained_failures": [
+    {
+      "artifact": "mobile-types.log",
+      "exit_code": 2,
+      "cause": "Test object literal explicit status exceeded narrow presentation Pick argument; fixed by binding full UiState variable, no types weakened"
+    },
+    {
+      "artifact": "mobile-types-reviewed.log",
+      "exit_code": 2,
+      "cause": "Same test-only type issue; final typecheck passes"
+    }
+  ],
+  "rollback": "Revert optional presentation wording if needed while retaining terminal/invalidation progress suppression, fail-closed cache redaction, pending request identities and cleanup recovery.",
+  "limitations": [
+    "No native acceptance inferred; primary owns emulator retest",
+    "No input-truncation changes",
+    "No backend/API/model/schema/dependency/migration changes"
+  ],
+  "canonical_handoff": "Primary owns STATUS/HANDOFF/EXECUTION_LEDGER/MOBILE_SCREEN_STATES and command registry updates."
+}

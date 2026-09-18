@@ -1,0 +1,47 @@
+{
+  "requirementIds": [
+    "W03",
+    "W04",
+    "W06",
+    "W07",
+    "W09"
+  ],
+  "artifactAssertions": "passed",
+  "scope": "Checks retained observations and DB traces; does not rerun native actions or establish semantic correctness",
+  "runIds": [
+    "0441dbdb-cbf8-4262-ac00-42b569c31075",
+    "098f0560-13cd-4dee-8d09-55a539c13999",
+    "592be93e-5060-4410-a802-af2ff6dfebfd"
+  ],
+  "admissionToPublicationSeconds": [
+    9.517,
+    2.963,
+    11.516
+  ],
+  "modelCalls": {
+    "fabricatedConfirmed": 21,
+    "paid": 0,
+    "unknown": 0
+  },
+  "accountingMicroUnits": {
+    "fabricatedOnly": 21,
+    "realCost": 0
+  },
+  "initialInput": "Does Ardent support underwater",
+  "correctedInput": "Which firmware supports Ardent offline recording?",
+  "parser": [
+    "docling-parse-7.20.0/geometry-v1"
+  ],
+  "reuse": "Same original source version/digests in both correction children; four passage memberships, two actual document versions total",
+  "bodylessDeletion": "Failed before client fix, actual retry succeeded; local pending guard retained across offline cold restart",
+  "terminalPresentation": "Misleading spinner reproduced, fixed native cold restart shows unavailable notice",
+  "accountCleanup": "UI deletion purged report/evidence content; second account empty Library then logout/cold restart has empty composer; exact second-account teardown separately recorded",
+  "limits": [
+    "Synthetic documents and fabricated model judgments; not useful unfamiliar real-source semantic answer or independent adjudication",
+    "Android14 x86_64 debug app+Metro; not signed release/iOS/physicalAndroid16",
+    "Share preview cancelled; no recipient delivery",
+    "130% font control only; no full screen-reader or accessibility acceptance",
+    "Initial bulk input truncated; cause unverified; full corrected input verified before submission",
+    "Harness termination143 bypassed async stop; owned exact cleanup command restored zeroactiveaccounts; no blanket truncation"
+  ]
+}

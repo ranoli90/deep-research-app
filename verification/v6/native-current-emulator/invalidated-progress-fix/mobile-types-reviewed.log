@@ -1,0 +1,8 @@
+
+> @deep/mobile@0.1.0 typecheck /home/oranolio/Desktop/Deep/apps/mobile
+> tsc -p tsconfig.json --noEmit
+
+test/invalidated-progress.test.ts(39,46): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'Pick<UiState, "run" | "report" | "pendingContentInvalidation">'.
+/home/oranolio/Desktop/Deep/apps/mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/mobile@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2

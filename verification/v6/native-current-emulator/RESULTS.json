@@ -1,0 +1,101 @@
+{
+  "task": "V6-W03-W04-W06-W07-W09-native",
+  "baseCommit": "0fc5bf9cae2fe3c04a3a1017e8a924394733f4e7",
+  "nativeBinaryImplementationCommit": "ce2f889253185455ec1cef5dc85920e10ce3b816",
+  "sourceState": "Root working tree includes reviewed bodyless-request and invalidated-progress fixes; commit recorded subsequently. Debug binary loads final root JS through Metro. No native dependency change.",
+  "evidenceClass": [
+    "actual_native_debug_compilation",
+    "synthetic_emulator_actual_API_worker_PDF_parser_fabricated_models",
+    "deterministic_unit_types",
+    "Android_JS_export"
+  ],
+  "environment": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "vitest": "4.1.11",
+    "java": "17.0.20",
+    "android": "API34 x86_64 emulator; compile/target36 min24",
+    "database": "deep_research_native_v6 127.0.0.1:55432; no truncation",
+    "extractionRuntime": "/tmp/deep-v6-extraction-runtime"
+  },
+  "build": "BUILD_RESULTS.json",
+  "observations": "JOURNEY_ASSERTIONS.json",
+  "operations": "OPERATIONS.json",
+  "subpackets": [
+    "harness/RESULTS.json",
+    "delete-request-fix/RESULTS.json",
+    "invalidated-progress-fix/RESULTS.json"
+  ],
+  "checks": [
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "artifact": "invalidated-progress-fix/mobile-tests-reviewed.log",
+      "result": "200/200; final test-only typing annotation followed, then11focused/typecheckpass"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "artifact": "invalidated-progress-fix/mobile-types-final.log"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:unit test/native-document-control.unit.test.ts",
+      "exitCode": 0,
+      "artifact": "harness/unit-final.log",
+      "result": "4/4"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "artifact": "harness/typecheck-final.log"
+    },
+    {
+      "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-native-fixes-export",
+      "exitCode": 0,
+      "artifact": "android-export.log",
+      "result": "651modules2.21MB4400ms; not APKcompilation"
+    },
+    {
+      "command": "pnpm exec tsx verification/v6/native-current-emulator/cleanup.mts",
+      "exitCode": 0,
+      "artifact": "cleanup-final.log",
+      "result": "Exact second syntheticaccount deleted through productionmodule; activeaccounts0,attachmentcontent0,unconfirmedintents0,retainedruns10"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "artifact": "validate-review.log"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "artifact": "validate-handoff.log"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 2,
+      "artifact": "diff-all-artifacts.log",
+      "result": "Raw SDK/test receipts and exact synthetic PDF xref whitespace retained unchanged; this broad artifact whitespace check remains failed."
+    },
+    {
+      "command": "git diff --cached --check -- apps README.md STATUS.md HANDOFF.md EXECUTION_LEDGER.md specs docs verification/COMMANDS.json verification/v6/RESULTS.json verification/v6/FINDING_RECHECKS.json",
+      "exitCode": 0,
+      "artifact": "diff-source-docs.log",
+      "result": "Source/canonical documents scope only; not a pass for raw artifacts."
+    }
+  ],
+  "paidCalls": 0,
+  "remainingPaidAllowance": "unknown; no authorization",
+  "scopeLimits": [
+    "Development identity/localAPI; no hosted login/refresh/retention proof",
+    "Fabricated model support judgments; no unfamiliar-question semantic-quality or independent adjudication",
+    "Share preview only; cancelled without outbound send",
+    "Debug/test key and x86_64 emulator; physical oldAPK untouched, no arm64/iOS/store release",
+    "Initial bulkADB input truncated; cause unverified; complete corrected text verified",
+    "130percent font layout control only, not general accessibility acceptance",
+    "Harness stopped143 before cleanup hook; exact targeted cleanup separately passed",
+    "No fullPG/extraction-suite repeat; backendproduction/parsers unchanged and native actualparser exercised"
+  ],
+  "rollback": "Disable new controls/scheduling if needed; retain deletion retry and protected tombstones, authoritative terminal status, ownership, immutable proof readers, required markers, financial settlement/unknownholds. Never restore deleted content or fixturefallback."
+}

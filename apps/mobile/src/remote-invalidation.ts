@@ -8,7 +8,8 @@ export function readInvalidatedRun(value: unknown): string {
 /** Preserve independent input and exact request journals, but never keep deleted evidence content. */
 export function redactInvalidatedContent(state: UiState, runId: string, cleanupPending = true): UiState {
   if (state.run?.runId !== runId) return state;
-  return { ...state, run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
+  return { ...state, status: state.run.lifecycle === "terminal" && state.run.outcome === "cancelled" ? "cancelled" : state.status,
+    run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
     report: null, previousReport: null, source: null, correctionDraft: null, readingAnchor: null,
     events: [], attachments: [], clarification: [], flagSent: false,
     pendingContentInvalidation: cleanupPending ? runId : null, error: "This research used a deleted source. Saved report content has been hidden." };
