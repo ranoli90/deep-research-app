@@ -74,4 +74,6 @@ Source-deletion UI implementation committed as `9d95ad50bfdd267a3d6b3b8d19246b99
 
 Requested-verification integrated checkpoint: pnpm verify exit0 (148core/116backend/132mobile/6governance), configured types/boundaries; actual extraction17/17 in87.78s; Android JS647modules/2.17MB and mobile types exit0. First combined failure retained: obsolete diagnostic M08 assertion expected invented verification prose; replacement rejects that false narrative and retains positive report checks. Evidence `verification/v6/requested-verification-integrated/RESULTS.json`. Implementation commit `f88091ac83fd57ba5ed6e28405ba7bfcca796289`; no paid/native/semantic claim.
 
-Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Exact fresh-checkout verification is being recorded separately; prior tests ran against the reviewed working tree.
+Requested-verification reviewed source commit: `f88091ac83fd57ba5ed6e28405ba7bfcca796289`. Exact fresh-checkout verification passed and is recorded separately in verification/v6/clean-requested-verification/RESULTS.json; prior integration/extraction tests ran against the reviewed working tree.
+
+Exact detached f88091a clean-checkout proof passed offline frozen install (zero downloads), verify148core/116backend/132mobile/6governance, explicit mobiletypes and647module2.17MB AndroidJS export; final checkout clean. No new DB/native/hosted claim. Configured design typecheck is unsuppressed since5f10a84; older suppression caveats are historical.

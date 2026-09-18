@@ -1,0 +1,128 @@
+
+> deep-research-mobile@0.1.0 verify /tmp/deep-clean-requested-verification-52ge46jz/repo
+> pnpm typecheck && pnpm test:unit && node scripts/check-boundaries.mjs && pnpm --filter @deep/backend test:governance
+
+
+> deep-research-mobile@0.1.0 typecheck /tmp/deep-clean-requested-verification-52ge46jz/repo
+> pnpm -r --filter "./packages/*" --filter @deep/backend typecheck
+
+Scope: 4 of 6 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/design typecheck$ tsc --noEmit --pretty false src/index.ts
+packages/contracts typecheck: Done
+packages/design typecheck: Done
+packages/research-core typecheck$ tsc -p tsconfig.json --noEmit
+packages/research-core typecheck: Done
+apps/backend typecheck$ tsc -p tsconfig.json --noEmit
+apps/backend typecheck: Done
+
+> deep-research-mobile@0.1.0 test:unit /tmp/deep-clean-requested-verification-52ge46jz/repo
+> pnpm --filter @deep/research-core test && pnpm --filter @deep/backend test:unit && pnpm --filter @deep/mobile test
+
+
+> @deep/research-core@0.1.0 test /tmp/deep-clean-requested-verification-52ge46jz/repo/packages/research-core
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-clean-requested-verification-52ge46jz/repo/packages/research-core
+
+ ✓ test/admission.test.ts (21 tests) 87ms
+ ✓ test/p1-p2.test.ts (25 tests) 92ms
+ ✓ test/adaptive-loop.test.ts (13 tests) 74ms
+ ✓ test/model-bindings.test.ts (8 tests) 33ms
+ ✓ test/v6-publication.test.ts (22 tests) 34ms
+ ✓ test/policy.test.ts (8 tests) 27ms
+ ✓ test/scoped-support.test.ts (12 tests) 47ms
+ ✓ test/evidence-calculation.test.ts (14 tests) 82ms
+ ✓ test/research-coverage.test.ts (8 tests) 22ms
+ ✓ test/generic-candidates.test.ts (3 tests) 26ms
+ ✓ test/calculation-report.test.ts (1 test) 21ms
+ ✓ test/scope-comparison.test.ts (11 tests) 558ms
+   ✓ compact projection preserves every pair, field relation and original assertion binding  530ms
+ ✓ test/counterevidence.test.ts (2 tests) 7ms
+
+ Test Files  13 passed (13)
+      Tests  148 passed (148)
+   Start at  21:52:53
+   Duration  3.00s (transform 956ms, setup 0ms, collect 2.66s, tests 1.11s, environment 5ms, prepare 1.88s)
+
+
+> @deep/backend@0.1.0 test:unit /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/backend
+
+ ✓ test/model-gateway.unit.test.ts (14 tests) 138ms
+ ✓ test/admission.unit.test.ts (5 tests) 16ms
+ ✓ test/generation-receipt.unit.test.ts (12 tests) 1016ms
+   ✓ W02 actual generation receipt transport controls > keeps its deadline alive through garbage collection while a transport never resolves  913ms
+ ✓ test/live-search.unit.test.ts (8 tests) 98ms
+ ✓ test/identity.unit.test.ts (14 tests) 149ms
+ ✓ test/report-export.unit.test.ts (7 tests) 23ms
+ ✓ test/governance.test.ts (6 tests) 2144ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  1657ms
+   ✓ W05 production runtime isolation > the explicit historical diagnostic is detected as reaching fixture data  452ms
+ ✓ test/ssrf.unit.test.ts (11 tests) 45ms
+ ✓ test/research-strategy.unit.test.ts (4 tests) 13ms
+ ✓ test/live-policy.unit.test.ts (3 tests) 7ms
+ ✓ test/route-capabilities.unit.test.ts (2 tests) 13ms
+ ✓ test/openrouter.unit.test.ts (4 tests) 12ms
+ ✓ test/config.unit.test.ts (8 tests) 19ms
+ ✓ test/eval-benchmark.unit.test.ts (1 test) 207ms
+stdout | test/scope-context.unit.test.ts > W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values
+scope-context-serialization { full: 1042010, compact: 14626, request: 43085, pairs: 1770 }
+
+ ✓ test/scope-context.unit.test.ts (1 test) 571ms
+   ✓ W05 all1770 comparisons fit the writer with identical assertions instead of repeated scope values  569ms
+ ✓ test/usage.unit.test.ts (14 tests) 10ms
+ ✓ test/diagnostic-worker.unit.test.ts (2 tests) 9ms
+
+ Test Files  17 passed (17)
+      Tests  116 passed (116)
+   Start at  21:52:57
+   Duration  6.64s (transform 1.69s, setup 0ms, collect 7.10s, tests 4.49s, environment 8ms, prepare 2.53s)
+
+
+> @deep/mobile@0.1.0 test /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/mobile
+> vitest run --config vitest.config.ts
+
+
+ RUN  v3.2.7 /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/mobile
+
+ ✓ test/protected-content.test.ts (11 tests) 32ms
+ ✓ test/lifecycle.test.ts (12 tests) 31ms
+ ✓ test/admission-retry.test.ts (13 tests) 271ms
+ ✓ test/reading-position.test.ts (11 tests) 28ms
+ ✓ test/session-storage.test.ts (10 tests) 24ms
+ ✓ test/verification-request.test.ts (9 tests) 66ms
+ ✓ test/source-deletion.test.ts (9 tests) 22ms
+ ✓ test/request-scope.test.ts (11 tests) 91ms
+ ✓ test/correction-draft.test.ts (6 tests) 25ms
+ ✓ test/journey.test.ts (15 tests) 18ms
+ ✓ test/source-deletion-flow.test.ts (6 tests) 26ms
+ ✓ test/source-view.test.ts (6 tests) 12ms
+ ✓ test/document-input.test.ts (7 tests) 17ms
+ ✓ test/report-layout.test.ts (6 tests) 13ms
+
+ Test Files  14 passed (14)
+      Tests  132 passed (132)
+   Start at  21:53:05
+   Duration  2.73s (transform 820ms, setup 0ms, collect 2.35s, tests 674ms, environment 5ms, prepare 1.86s)
+
+boundaries=ok
+
+> @deep/backend@0.1.0 test:governance /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/backend
+> vitest run --config vitest.unit.config.ts test/governance.test.ts
+
+
+ RUN  v3.2.7 /tmp/deep-clean-requested-verification-52ge46jz/repo/apps/backend
+
+ ✓ test/governance.test.ts (6 tests) 1111ms
+   ✓ W05 production runtime isolation > API and worker cannot transitively load fixtures, evaluator gold or diagnostic executors  832ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  21:53:10
+   Duration  2.32s (transform 61ms, setup 0ms, collect 914ms, tests 1.11s, environment 0ms, prepare 96ms)
+

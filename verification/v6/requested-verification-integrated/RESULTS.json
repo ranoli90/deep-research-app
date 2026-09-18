@@ -73,13 +73,13 @@
   "review": "Primary integration and agent code review are same-model engineering reviews, not independent human semantic validation. M08 diagnostic assertion changed to reject invented verification from question text; positive report ID/content checks retained. Production targeted verification independently has positive/negative evidence controls. Initial failure preserved.",
   "limits": [
     "Native verification flow unrun; device locked, protected synthetic cache cleanup pending",
-    "Real-model semantic applicability, arbitrary malformed-provenance typed termination and external gates remain open",
-    "Design typecheck wrapper is not exhaustive design proof"
+    "Real-model semantic applicability, arbitrary malformed-provenance typed termination and external gates remain open"
   ],
   "actualExtractionTrace": "document-controls.json",
   "related": [
     "../requested-verification/RESULTS.json",
     "../requested-verification-mobile/RESULTS.json"
   ],
-  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289"
+  "implementationCommit": "f88091ac83fd57ba5ed6e28405ba7bfcca796289",
+  "typecheckClarification": "Design typecheck suppression was removed in5f10a84. Current configured design command executes without || true; passing it does not imply unconfigured exhaustive design analysis."
 }

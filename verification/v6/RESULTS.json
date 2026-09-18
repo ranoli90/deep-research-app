@@ -6275,5 +6275,6 @@
   "mobileSourceDeletionEvidence": "verification/v6/mobile-source-deletion/RESULTS.json",
   "sourceDeletionReplayEvidence": "verification/v6/source-deletion-replay/RESULTS.json",
   "requestedVerificationEvidence": "verification/v6/requested-verification-integrated/RESULTS.json",
-  "sourceDeletionCleanCheckoutEvidence": "verification/v6/clean-source-deletion/RESULTS.json"
+  "sourceDeletionCleanCheckoutEvidence": "verification/v6/clean-source-deletion/RESULTS.json",
+  "requestedVerificationCleanCheckoutEvidence": "verification/v6/clean-requested-verification/RESULTS.json"
 }
