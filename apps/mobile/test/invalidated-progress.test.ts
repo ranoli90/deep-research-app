@@ -35,7 +35,7 @@ it.each(["completed", "completed_with_limitations", "cancelled", "failed"])("W07
   expect(researchActivity(state).inProgress).toBe(false);
   expect(researchActivity(state).terminalNotice).toContain("No report is available.");
 });
-it.each(["queued", "running", "cancelling"])("W07 actual %s work still shows progress", lifecycle => {
+it.each(["queued", "running", "cancelling", "awaiting_input"])("W07 actual %s work still shows progress", lifecycle => {
   expect(researchActivity({ ...emptyState(), run: { ...tombstone, lifecycle, outcome: null, contentInvalidated: false } }).inProgress).toBe(true);
 });
 it("W03 stale progress cache cannot imply activity for an invalidated run or incomplete cleanup", () => {
@@ -44,7 +44,6 @@ it("W03 stale progress cache cannot imply activity for an invalidated run or inc
   expect(researchActivity({ ...state, pendingContentInvalidation: runId }).inProgress).toBe(false);
   const unbound: UiState = { ...emptyState(), status: "loading" };
   expect(researchActivity(unbound).inProgress).toBe(false);
-  expect(researchActivity({ ...state, run: { ...tombstone, lifecycle: "awaiting_input", outcome: null, contentInvalidated: false } }).inProgress).toBe(false);
 });
 
 it("W03 invalidated content does not claim an active server run has ended", () => {

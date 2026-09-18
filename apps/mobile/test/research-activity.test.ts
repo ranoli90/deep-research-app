@@ -62,4 +62,9 @@ describe("research activity from persisted events", () => {
     const events = [{ sequence: 1, type: "accepted", publicSummary: "accepted" }];
     expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed");
   });
+
+  it("does not call a clarification pause complete", () => {
+    const events = [{ sequence: 1, type: "clarify", publicSummary: "Which jurisdiction?" }];
+    expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail");
+  });
 });

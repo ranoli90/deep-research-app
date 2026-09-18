@@ -120,7 +120,7 @@ export function researchActivity(state: Pick<UiState, "run" | "report" | "pendin
   if (!run) return { inProgress: false, terminalNotice: null };
   if (run.contentInvalidated === true) return { inProgress: false, terminalNotice: "This report is unavailable because a source was deleted." };
   if (run.lifecycle !== "terminal") return {
-    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling"].includes(run.lifecycle), terminalNotice: null,
+    inProgress: !state.pendingContentInvalidation && ["queued", "running", "cancelling", "awaiting_input"].includes(run.lifecycle), terminalNotice: null,
   };
   const noReport = state.report ? "" : " No report is available.";
   if (run.outcome === "cancelled") return { inProgress: false, terminalNotice: `Research was cancelled.${noReport}` };

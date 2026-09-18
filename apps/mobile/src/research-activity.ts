@@ -119,6 +119,8 @@ export function collapseResearchActivity(args: {
   const parts: string[] = [];
   if (args.outcome === "cancelled" || args.events.some((e) => e.type === "cancelled")) {
     parts.push("Stopped");
+  } else if (args.lifecycle === "awaiting_input") {
+    parts.push("Waiting for a detail");
   } else if (args.outcome === "failed") {
     parts.push("Research failed");
   } else if (sources > 0) {

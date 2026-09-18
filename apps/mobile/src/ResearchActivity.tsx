@@ -58,7 +58,7 @@ export function ResearchActivity({
     <View style={styles.card} accessibilityLabel="Research progress">
       <Pressable onPress={onToggle} accessibilityRole="button" accessibilityLabel={expanded ? "Collapse research activity" : "Expand research activity"} hitSlop={8}>
         <View style={styles.row}>
-          <Text style={styles.kicker}>{inProgress ? (lifecycle === "queued" ? "Queued" : "Researching") : "Research trail"}</Text>
+          <Text style={styles.kicker}>{inProgress ? (lifecycle === "awaiting_input" ? "Need a detail" : lifecycle === "queued" ? "Queued" : "Researching") : "Research trail"}</Text>
           {inProgress && !reducedMotion ? <ActivityIndicator accessibilityLabel="In progress" /> : null}
         </View>
         <Text

@@ -142,6 +142,7 @@ function AppInner() {
   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
   const correctionReady=!state.run?.contentInvalidated&&!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
   useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
+  const clarifying = useRef(false);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
   const [attachText, setAttachText] = useState("");
@@ -851,7 +852,7 @@ function AppInner() {
   }
 
   async function onContinueClarification() {
-    if (!token || !state.run) return;
+    if (!token || !state.run || clarifying.current) return;
     if (latestUi.current.offline) {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
       return;
@@ -861,6 +862,7 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
       return;
     }
+    clarifying.current = true;
     try {
       await api.continueRun(token, state.run.runId, geography);
       setViewState((s) => {
@@ -881,6 +883,8 @@ function AppInner() {
           return next;
         });
       } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally {
+      clarifying.current = false;
     }
   }
 
