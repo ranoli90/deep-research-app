@@ -1,5 +1,5 @@
 import { Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import type { ResearchBriefView } from "./research-brief";
+import { clarificationPlaceholder, type ResearchBriefView } from "./research-brief";
 
 type Styles = {
   card: StyleProp<ViewStyle>;
@@ -46,7 +46,7 @@ export function ResearchBriefCard({
           <TextInput
             value={clarifyAnswer}
             onChangeText={onClarify}
-            placeholder={view.blocking ? "Jurisdiction, budget, or other detail" : "Answer the detail above"}
+            placeholder={view.blocking ? clarificationPlaceholder(view.materialClarification) : "Answer the detail above"}
             placeholderTextColor={muted}
             style={styles.input}
             allowFontScaling

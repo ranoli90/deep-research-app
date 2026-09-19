@@ -1,7 +1,7 @@
 import type { Assumption, Constraint } from "./index.js";
 
 /** Versioned one-sentence research-intent contract. Original question text is immutable. */
-export const RESEARCH_INTENT_COMPILER_VERSION = "research-intent-compiler.v1";
+export const RESEARCH_INTENT_COMPILER_VERSION = "research-intent-compiler.v2";
 
 export type TaskFamily =
   | "underspecified_purchase"

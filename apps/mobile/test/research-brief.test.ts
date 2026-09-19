@@ -41,7 +41,7 @@ describe("one-sentence composer and researching-this brief", () => {
     const src = readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8");
     expect(src).toContain('accessibilityLabel={view.blocking ? "Clarification needed" : "Researching this"}');
     expect(src).toContain("view.materialClarification ?? view.objective");
-    expect(src).toContain("Jurisdiction, budget, or other detail");
+    expect(src).toContain("clarificationPlaceholder(view.materialClarification)");
   });
 
   it("still shows a blocking clarification when the run is awaiting input without a stored brief", () => {

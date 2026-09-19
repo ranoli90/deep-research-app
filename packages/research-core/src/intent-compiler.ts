@@ -14,6 +14,11 @@ import { extractConstraints, parseBudgetCeiling } from "./brief.js";
 import { evaluateClarificationValue } from "./clarification-value.js";
 import { inferTaskFamily } from "./intent-taxonomy.js";
 import { provenanceFromOrigin } from "./provenance.js";
+import {
+  compileSemanticOverlay,
+  pickTaskFamily,
+  validateSemanticOverlay,
+} from "./semantic-intent.js";
 
 function freezeQuestion(question: string): string {
   return String(question);
@@ -119,7 +124,9 @@ export function compileResearchIntent(
   options: { knownConstraints?: import("@deep/contracts").Constraint[] } = {},
 ): ResearchIntent {
   const originalQuestion = freezeQuestion(question);
-  const family = inferTaskFamily(originalQuestion);
+  const deterministicFamily = inferTaskFamily(originalQuestion);
+  const overlay = validateSemanticOverlay(originalQuestion, compileSemanticOverlay(originalQuestion));
+  const family = pickTaskFamily(deterministicFamily, overlay);
   const extracted = extractConstraints(originalQuestion);
   const merged = [...extracted];
   for (const extra of options.knownConstraints ?? []) {
@@ -144,6 +151,19 @@ export function compileResearchIntent(
   }
   const compact = parseBudgetCeiling(originalQuestion);
   if (compact && !hard.some((c) => c.field === "budget")) consider(asIntentConstraint(compact, true));
+
+  for (const row of overlay.constraints) {
+    consider(asIntentConstraint({
+      id: `semantic-${row.field}-${row.value.replace(/\s+/g, "-").slice(0, 32)}`,
+      field: row.field,
+      operator: "eq",
+      value: row.value,
+      origin: "explicit",
+      importance: row.importance === "preference" ? "preference" : "hard",
+      explanation: `Stated in the question as “${row.quote}”.`,
+      provenance: provenanceFromOrigin("explicit"),
+    }, true));
+  }
 
   if (/\bbest\b/i.test(originalQuestion) && !soft.some((c) => c.field === "preference")) {
     consider({

@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Hybrid intent compiler v2 (no live spend)
+
+- `research-intent-compiler.v2`: deterministic preflight + `structured_semantic.v1` overlay; ungrounded/privilege overlays fail closed.
+- Typed material clarification fields; composer hidden on `awaiting_input`; App.tsx header/empty/keyboard extracted.
+- Tests: research-core 235; mobile 280 + typecheck; document validator ok.
+- External blockers unchanged: GitHub billing lock (`35422066858`); live public-web grant ≥ $1.20 + 21,658 µ hold release. main not merged.
+
 ## 2026-09-18 — Research Beta integration native QA + consumer chrome
 
 - Isolated `grok-v8/research-beta-integration` from `main@8a7b1a9`; merged C/A/B; canonical 042/043. Not merged to main.

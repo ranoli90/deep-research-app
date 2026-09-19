@@ -53,9 +53,24 @@ export function clarificationFieldFromPrompt(prompt: string | null | undefined):
   if (/use case|used for|workload/.test(p)) return "use_case";
   if (/population|who is this for/.test(p)) return "population";
   if (/timeframe|as of|which year/.test(p)) return "timeframe";
-  if (/platform|android|ios|operating system/.test(p)) return "platform";
-  if (/private search|public web|uploaded document/.test(p)) return "private_search";
+  if (/platform|android|ios|operating system|dock|device/.test(p)) return "platform";
+  if (/private search|public web|uploaded document|attached documents/.test(p)) return "private_search";
+  if (/company or product|which company/.test(p)) return "subject";
   return "detail";
+}
+
+export function clarificationPlaceholder(prompt: string | null | undefined): string {
+  switch (clarificationFieldFromPrompt(prompt)) {
+    case "geography": return "Jurisdiction or place";
+    case "budget": return "Budget and currency";
+    case "use_case": return "Intended use";
+    case "population": return "Who it applies to";
+    case "timeframe": return "Time window";
+    case "platform": return "Platform or product";
+    case "private_search": return "Yes or no — attached documents";
+    case "subject": return "Named company or product";
+    default: return "The missing detail";
+  }
 }
 
 export function researchBriefView(args: {

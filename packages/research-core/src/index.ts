@@ -60,3 +60,16 @@ export {
   inferTaskFamily,
   RESEARCH_INTENT_COMPILER_VERSION,
 } from "./intent-compiler.js";
+export {
+  applyExternalSemanticOverlay,
+  compileSemanticOverlay,
+  needsSemanticCompilation,
+  pickTaskFamily,
+  validateSemanticOverlay,
+} from "./semantic-intent.js";
+export {
+  MATERIAL_CLARIFICATION_FIELDS,
+  MATERIAL_FIELD_PLACEHOLDERS,
+  MATERIAL_FIELD_PROMPTS,
+  extraMaterialClarifications,
+} from "./clarification-fields.js";

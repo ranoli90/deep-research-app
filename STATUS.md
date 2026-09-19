@@ -1,3 +1,13 @@
+## Hybrid intent compiler v2 — 2026-09-19
+
+Lane: `grok-v8/research-beta-integration`. **Not merged to `main`.** Research Beta is not declared.
+
+**Implemented:** `research-intent-compiler.v2` — deterministic preflight plus provenance-checked structured semantic overlay. `should I take the Seattle offer?` is `relocation_decision` with geography seattle, not `other`. External overlays that invent California or grant tools/budget/consent are rejected. Typed material clarification fields (jurisdiction, budget, use case, population, timeframe, platform, private-search, unnamed subject) ask at most two times; default remains assume/branch. Mobile: `ResearchHeader` / `EmptyHome` / `useKeyboardInset` extracted from `App.tsx`; composer hidden while `awaiting_input`; clarification placeholder is field-specific.
+
+**Verified:** `@deep/research-core` 235 tests; `@deep/mobile` 280 tests + typecheck; `validate_review.py` ok. No live spend. No new APK (chrome split, not a visual overhaul).
+
+**True external blockers unchanged:** GitHub Actions billing lock (latest run `35422066858`); live J1–J12 needs a **new** OpenRouter public-web grant ≥ $1.20 (recommended $2.00) and release of the 21,658 µ MC-D01 unknown hold. A key being present is not that grant.
+
 ## Research Beta integration checkpoint — 2026-09-18
 
 Lane: `grok-v8/research-beta-integration` at `5c3be97`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.

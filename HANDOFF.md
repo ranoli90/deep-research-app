@@ -1,3 +1,7 @@
+## Hybrid intent compiler v2 — 2026-09-19
+
+Branch `grok-v8/research-beta-integration`. ADR066. `compileResearchIntent` is hybrid (deterministic + structured semantic overlay with exact quote provenance). Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers (new ≥ $1.20 public-web grant + 21,658 µ hold release; GitHub billing unlock).
+
 ## Research Beta integration checkpoint — 2026-09-18
 
 Branch `grok-v8/research-beta-integration` HEAD `9c80076`. Full PG 475/475 twice. Device APK `30ceccbe` (`5c3be97`) on `10.0.0.167:43417`. **Do not merge to `main`.**

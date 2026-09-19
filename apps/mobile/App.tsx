@@ -18,8 +18,10 @@ import { ResearchBriefCard } from "./src/ResearchBriefCard";
 import { ResearchComposer } from "./src/ResearchComposer";
 import { ReportSections } from "./src/ReportView";
 import { LibraryList } from "./src/LibraryList";
+import { EmptyHome } from "./src/EmptyHome";
+import { ResearchHeader } from "./src/ResearchHeader";
+import { useKeyboardInset } from "./src/use-keyboard-inset";
 import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
-import { BackIcon, MenuIcon, PencilIcon } from "./src/icons";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions } from "./src/follow-ups";
@@ -30,7 +32,6 @@ import {
   findNodeHandle,
   AppState,
   BackHandler,
-  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -47,7 +48,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { color, space } from "@deep/design";
-import { headerInitials, makeStyles } from "./src/product-styles";
+import { makeStyles } from "./src/product-styles";
 import { sessionStorage } from "./src/native-session";
 import { SupersededRequest } from "./src/request-scope";
 import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
@@ -166,19 +167,7 @@ function AppInner() {
   const [sentQuestion, setSentQuestion] = useState<string | null>(null);
   const [showCorrectionOptions, setShowCorrectionOptions] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [keyboardInset, setKeyboardInset] = useState(0);
-  const keyboardOpenRef = useRef(false);
-  const keyboardInsetRef = useRef(0);
-  keyboardOpenRef.current = keyboardOpen;
-  keyboardInsetRef.current = keyboardInset;
-  function dismissKeyboard() {
-    keyboardOpenRef.current = false;
-    keyboardInsetRef.current = 0;
-    setKeyboardOpen(false);
-    setKeyboardInset(0);
-    Keyboard.dismiss();
-  }
+  const { keyboardOpen, keyboardInset, keyboardOpenRef, keyboardInsetRef, dismissKeyboard } = useKeyboardInset();
   const [processors, setProcessors] = useState<string[]>([]);
   const [privacyFlows, setPrivacyFlows] = useState("");
   const [deletionVsSub, setDeletionVsSub] = useState("");
@@ -463,7 +452,6 @@ function AppInner() {
         dismissKeyboard();
         return true;
       }
-      Keyboard.dismiss();
       if (showAttachRef.current) {
         showAttachRef.current = false;
         setShowAttach(false);
@@ -527,21 +515,6 @@ function AppInner() {
       restored.release();
     }).catch(() => setState((s) => ({ ...s, error: "Device session storage or temporary-file cleanup is unavailable. Try again when device storage is available." })))
       .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
-    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const show = Keyboard.addListener(showEvt, (e) => {
-      const height = e.endCoordinates?.height ?? 0;
-      keyboardOpenRef.current = true;
-      keyboardInsetRef.current = height;
-      setKeyboardOpen(true);
-      setKeyboardInset(height);
-    });
-    const hide = Keyboard.addListener(hideEvt, () => {
-      keyboardOpenRef.current = false;
-      keyboardInsetRef.current = 0;
-      setKeyboardOpen(false);
-      setKeyboardInset(0);
-    });
     const appSub = AppState.addEventListener("change", (st) => {
       if (st !== "active") {
         void sessionStorage.flush().catch(() => setState(s => ({ ...s, error: "Could not save this device’s session." })));
@@ -559,8 +532,6 @@ function AppInner() {
       mounted = false;
       sub.remove();
       motionSub.remove();
-      show.remove();
-      hide.remove();
       appSub.remove();
       api.activateSession(null);
       if (poll.current) clearInterval(poll.current);
@@ -1129,79 +1100,38 @@ function AppInner() {
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]} accessibilityLabel="Deep Research">
       <StatusBar style={theme === color.dark ? "light" : "dark"} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={0}>
-        <View style={styles.header}>
-          <View style={styles.headerSide}>
-            {state.tab === "research" ? (
-              <Pressable
-                onPress={() => {
-                  dismissKeyboard();
-                  setShowAttach(false);
-                  api.closeSource();
-                  setSourceClaim(null);
-                  setState((s) => ({ ...s, tab: "library", source: null }));
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="Library"
-                hitSlop={12}
-                style={styles.headerIconHit}
-              >
-                <MenuIcon color={theme.ink} />
-              </Pressable>
-            ) : (
-              <Pressable
-                onPress={() => { dismissKeyboard(); setState((s) => ({ ...s, tab: "research" })); }}
-                accessibilityRole="button"
-                accessibilityLabel="Done"
-                hitSlop={12}
-                style={styles.headerIconHit}
-              >
-                <BackIcon color={theme.ink} />
-              </Pressable>
-            )}
-          </View>
-          <Text
-            style={styles.wordmark}
-            accessibilityRole="header"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            allowFontScaling
-            maxFontSizeMultiplier={2}
-          >
-            {state.tab === "library"
+        <ResearchHeader
+          tab={state.tab}
+          title={
+            state.tab === "library"
               ? "Library"
               : state.tab === "settings"
                 ? "Settings"
                 : (state.run || state.report || state.pendingAdmission)
                   ? (state.run?.brief?.originalQuestion ?? state.pendingAdmission?.question ?? sentQuestion ?? "Deep")
-                  : "Deep"}
-          </Text>
-          <View style={[styles.headerSide, styles.headerSideEnd]}>
-            {state.tab === "research" || state.tab === "library" ? (
-              <Pressable onPress={onNewResearch} accessibilityRole="button" accessibilityLabel="New research" hitSlop={16} style={styles.headerIconHit}>
-                <PencilIcon color={theme.ink} />
-              </Pressable>
-            ) : null}
-            {state.tab === "research" ? (
-              <Pressable
-                onPress={() => {
-                  dismissKeyboard();
-                  setShowAttach(false);
-                  api.closeSource();
-                  setSourceClaim(null);
-                  setState((s) => ({ ...s, tab: "settings", source: null }));
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="Open profile and settings"
-                hitSlop={12}
-                style={styles.headerIconHit}
-              >
-                <View style={styles.headerAvatar}>
-                  <Text style={styles.headerAvatarText}>{headerInitials(accountId, state.signedIn)}</Text>
-                </View>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
+                  : "Deep"
+          }
+          ink={theme.ink}
+          accountId={accountId}
+          signedIn={state.signedIn}
+          onLibrary={() => {
+            dismissKeyboard();
+            setShowAttach(false);
+            api.closeSource();
+            setSourceClaim(null);
+            setState((s) => ({ ...s, tab: "library", source: null }));
+          }}
+          onDone={() => { dismissKeyboard(); setState((s) => ({ ...s, tab: "research" })); }}
+          onNewResearch={onNewResearch}
+          onSettings={() => {
+            dismissKeyboard();
+            setShowAttach(false);
+            api.closeSource();
+            setSourceClaim(null);
+            setState((s) => ({ ...s, tab: "settings", source: null }));
+          }}
+          styles={styles}
+        />
         {state.pendingContentInvalidation ? <View style={styles.card} accessibilityLabel="Deleted source cleanup">
           <Text style={styles.bodyText}>A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.</Text>
           <Pressable accessibilityRole="button" onPress={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}><Text style={styles.link}>Retry device cleanup</Text></Pressable>
@@ -1253,23 +1183,12 @@ function AppInner() {
               <Pressable disabled={uploadStatus !== null} accessibilityRole="button" accessibilityLabel="Check or withdraw saved research request" onPress={() => void resolvePendingAdmission()}><Text style={styles.link}>Check or withdraw saved request</Text></Pressable>
             </View> : null}
             {!state.run && !state.report && !state.pendingAdmission ? (
-              <View style={styles.emptyHero} accessibilityLabel="Empty research">
-                <Text style={styles.welcomeDisplay}>Ask anything.</Text>
-                <View style={styles.exampleRow}>
-                  {["should I move to Texas", "best laptop under 2k", "research this company"].map((example) => (
-                    <Pressable
-                      key={example}
-                      onPress={() => setState((s) => ({ ...s, draft: example }))}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Use example: ${example}`}
-                      hitSlop={8}
-                      style={styles.exampleChip}
-                    >
-                      <Text style={styles.exampleChipText}>{example}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
+              <EmptyHome
+                title="Ask anything."
+                examples={["should I move to Texas", "best laptop under 2k", "research this company"]}
+                onPick={(example) => setState((s) => ({ ...s, draft: example }))}
+                styles={styles}
+              />
             ) : null}
 
             {/* Header already shows the question; a second bubble crowds the first viewport. */}
@@ -1683,7 +1602,7 @@ function AppInner() {
             ))}
           </View>
         ) : null}
-        {state.tab === "research" && !state.source ? (
+        {state.tab === "research" && !state.source && state.run?.lifecycle !== "awaiting_input" ? (
         <ResearchComposer
           draft={state.draft}
           muted={theme.composer.placeholder}

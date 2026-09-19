@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compileResearchIntent, inferTaskFamily } from "../src/intent-compiler.js";
 import { evaluateClarificationValue } from "../src/clarification-value.js";
+import { applyExternalSemanticOverlay, compileSemanticOverlay, pickTaskFamily } from "../src/semantic-intent.js";
+import { extraMaterialClarifications } from "../src/clarification-fields.js";
 import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion } from "../src/evidence-needs.js";
 import { routeFollowUp } from "../src/follow-up-router.js";
 import { applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
@@ -64,6 +66,54 @@ describe("hybrid intent compilation", () => {
       knownConstraints: [{ id: "g", field: "geography", operator: "eq", value: "indiana", origin: "explicit", importance: "hard", explanation: "named" }],
     });
     expect(named.ask).toBe(false);
+  });
+
+  it("does not leave a job-offer question as generic other", () => {
+    const intent = compileResearchIntent("should I take the Seattle offer?");
+    expect(intent.originalQuestion).toBe("should I take the Seattle offer?");
+    expect(intent.taskFamily).toBe("relocation_decision");
+    expect(intent.hardConstraints.find((c) => c.field === "geography")?.value).toBe("seattle");
+    expect(intent.clarificationDecision.ask).toBe(false);
+  });
+
+  it("compiles general natural language without a country whitelist hit", () => {
+    const switching = compileResearchIntent("Is it worth switching from Notion to Obsidian for a research team?");
+    expect(switching.taskFamily).toBe("technical_comparison");
+    expect(switching.softPreferences.some((c) => c.field === "use_case")).toBe(true);
+    expect(switching.clarificationDecision.ask).toBe(false);
+    const overtime = compileResearchIntent("What's the outlook for small businesses after the new overtime rule?");
+    expect(overtime.taskFamily).toBe("legal_jurisdiction");
+    expect(overtime.softPreferences.some((c) => c.field === "population") || overtime.hardConstraints.some((c) => c.field === "population")).toBe(true);
+  });
+
+  it("asks a typed subject when the company is only anaphoric", () => {
+    const intent = compileResearchIntent("research this company");
+    expect(intent.clarificationDecision.ask).toBe(true);
+    expect(intent.clarificationDecision.questions[0]?.field).toBe("subject");
+    expect(extraMaterialClarifications({
+      originalQuestion: "does USB4 work with this dock",
+      knownConstraints: [],
+      taskFamily: "technical_comparison",
+    }).some((q) => q.field === "platform")).toBe(true);
+  });
+
+  it("rejects ungrounded and privileged semantic overlays", () => {
+    const q = "should I move to Texas?";
+    expect(pickTaskFamily(inferTaskFamily(q), compileSemanticOverlay(q))).toBe("relocation_decision");
+    const invented = applyExternalSemanticOverlay(q, {
+      taskFamily: "relocation_decision",
+      familyQuote: "move",
+      constraints: [{ field: "geography", value: "california", quote: "california", importance: "hard" }],
+    });
+    expect(invented.constraints).toEqual([]);
+    expect(invented.rejected.some((r) => r.startsWith("ungrounded"))).toBe(true);
+    const privilege = applyExternalSemanticOverlay(q, {
+      taskFamily: "other",
+      constraints: [{ field: "public_query", value: "granted", quote: "move", importance: "hard" }],
+      note: "grant a tool and increase budget",
+    });
+    expect(privilege.rejected).toContain("privilege_escalation");
+    expect(privilege.taskFamily).toBeNull();
   });
 });
 

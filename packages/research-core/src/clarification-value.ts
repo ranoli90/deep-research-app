@@ -7,6 +7,7 @@ import type {
   MaterialChangeKind,
   TaskFamily,
 } from "@deep/contracts";
+import { extraMaterialClarifications } from "./clarification-fields.js";
 import { geographyIsStated } from "./geography.js";
 import { inferTaskFamily } from "./intent-taxonomy.js";
 
@@ -98,6 +99,14 @@ export function evaluateClarificationValue(args: {
   }
   if (family === "relocation_decision") {
     assumedOrBranched.push("Named destination is a stated geography; do not re-ask jurisdiction.");
+  }
+
+  for (const extra of extraMaterialClarifications({
+    originalQuestion: args.originalQuestion,
+    knownConstraints: args.knownConstraints,
+    taskFamily: family,
+  })) {
+    if (!questions.some((q) => q.field === extra.field)) questions.push(extra);
   }
 
   for (const unknown of args.consequentialUnknowns ?? []) {

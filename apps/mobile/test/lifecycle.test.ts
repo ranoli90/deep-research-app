@@ -85,6 +85,9 @@ describe("P0-N native state mapping", () => {
       readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchHeader.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/EmptyHome.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/use-keyboard-inset.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
     ].join("\n");
@@ -135,6 +138,8 @@ describe("P0-N native state mapping", () => {
       readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ResearchHeader.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/use-keyboard-inset.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
     ].join("\n");
     for (const label of [
