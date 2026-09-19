@@ -1046,4 +1046,41 @@ describe("remaining launch-scope IDs", () => {
     const searches = events.filter((e) => e.type === "searched");
     expect(searches.some((e) => /france/i.test(e.public_summary))).toBe(true);
   });
+
+  it("POST /v1/runs/:id/assumptions confirms and replaces owned assumptions", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, "should I move to Texas");
+    const runId = created.json().runId as string;
+    expect(created.statusCode).toBeLessThan(300);
+    expect(runId).toMatch(/^[0-9a-f-]{36}$/i);
+    const missing = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${crypto.randomUUID()}/assumptions`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { action: "confirm", values: [] },
+    });
+    expect(missing.statusCode).toBe(404);
+    expect(JSON.stringify(missing.json())).not.toMatch(/Route POST:/);
+    const confirm = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/assumptions`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { action: "confirm", values: [] },
+    });
+    expect(confirm.statusCode).toBe(200);
+    expect(confirm.json()).toMatchObject({ runId, action: "confirm" });
+    const replace = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/assumptions`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { action: "replace", values: ["Use official Texas sources only."] },
+    });
+    expect(replace.statusCode).toBe(200);
+    const snap = await app.inject({
+      method: "GET",
+      url: `/v1/runs/${runId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(JSON.stringify(snap.json().brief.assumptions)).toMatch(/official Texas sources/i);
+  });
 });
