@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v6";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v7";
 /** Category labels copied from the question (e.g. "laptop") are not a quoted product identity. */
 const GENERIC_ENTITY = new Set([
   "laptop", "notebook", "computer", "pc", "phone", "smartphone", "tablet", "device", "product",
@@ -12,7 +12,15 @@ const GENERIC_ENTITY = new Set([
   "employment tax", "tax", "deadline", "filing deadline",
   "python", "javascript", "typescript", "java", "linux", "windows", "android", "ios",
   "federal", "national", "statutory", "wage", "minimum wage",
+  "electric car", "electric vehicle", "ev",
 ]);
+/** "electric car" is still a question category; the last token "car" is not a quoted product. */
+const genericScope = (s: string): boolean => {
+  const n = normalize(s);
+  if (GENERIC_ENTITY.has(n)) return true;
+  const words = n.split(" ").filter(Boolean);
+  return words.length > 1 && GENERIC_ENTITY.has(words[words.length - 1]!);
+};
 const UNIT_ALIASES: Record<string, string[]> = {
   percentage: ["percentage", "percent", "%"],
   percent: ["percentage", "percent", "%"],
@@ -103,7 +111,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     const checks = [{rule:"exact_evidence_bindings",passed:true},
       {rule:"scope_matches_claim",passed:Object.entries(claim.scope).every(([key,value]) => normalize(value ?? "") === normalize(assessment.scope[key as keyof Assertion["scope"]] ?? ""))},
       {rule:"readable_evidence",passed:passages.length > 0 && passages.every((p) => ["partial-text","full-text"].includes(p.accessLevel))},
-      {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || GENERIC_ENTITY.has(normalize(s)))},
+      {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || genericScope(s))},
       {rule:"numbers_grounded",passed:measuredNumbers(claim.text).every((n) => numbers(citedText).includes(n) || measuredNumbers(citedText).includes(n))},
       {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) => {
         if(!quantityValueInQuote(q.value, quote))return false;
@@ -116,7 +124,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
     // Inspect cited passages plus others that share a specific (non-category) scope value.
     const citedIds = new Set(assessment.evidence.map((e) => e.passageId));
-    const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !GENERIC_ENTITY.has(normalize(s)) && !/^\d+(?:\.\d+)*$/u.test(s));
+    const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !genericScope(s) && !/^\d+(?:\.\d+)*$/u.test(s));
     const extraPassages = args.passages.filter((p) => !citedIds.has(p.id) && specificScope.length > 0 && specificScope.every((s) => containsPhrase(p.text, s)));
     const currencyTokens=claim.text.match(/[$€£¥]|\b(?:USD|EUR|GBP|CAD|AUD|JPY|CHF)\b/gu)??[];
     checks.push({rule:"currency_preserved",passed:currencyTokens.every((token)=>citedText.includes(token))});

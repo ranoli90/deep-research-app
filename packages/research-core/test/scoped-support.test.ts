@@ -104,6 +104,19 @@ it("does not ground an effective-date that the statute fragment never states",()
   expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(false);
   expect(result.decision).toBe("out_of_scope");
 });
+it("grounds an EV range quote when the question category is electric car",()=>{
+  const quote="With 303 miles of range and ample interior room, the 2026 LEAF is a standout at a price of just over $31,000.";
+  const claim="The 2026 Nissan Leaf has an EPA range of 303 miles.";
+  const scope={entity:"electric car",plan:null,version:null,geography:"US",time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"epa_range_2026_nissan_leaf",candidateKey:null,criterionKeys:["epa_range"],text:claim,scope,
+    quantities:[{unit:"miles",value:"303",currency:null,qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"epa_range_2026_nissan_leaf",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"LEAF range",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("does not treat an unquoted 'has not changed' caveat as supported by a wage-rate fragment",()=>{
   const quote="$7.25 an hour, beginning 24 months after that 60th day;";
   const claim="The federal minimum wage has not changed since the last update.";
