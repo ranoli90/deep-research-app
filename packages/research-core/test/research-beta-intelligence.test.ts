@@ -3,7 +3,7 @@ import { compileResearchIntent, inferTaskFamily } from "../src/intent-compiler.j
 import { evaluateClarificationValue } from "../src/clarification-value.js";
 import { applyExternalSemanticOverlay, compileSemanticOverlay, pickTaskFamily } from "../src/semantic-intent.js";
 import { extraMaterialClarifications } from "../src/clarification-fields.js";
-import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion } from "../src/evidence-needs.js";
+import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion, applyNeedEvidence } from "../src/evidence-needs.js";
 import { routeFollowUp } from "../src/follow-up-router.js";
 import { applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
 import { buildCandidateLedger, reopenExclusions } from "../src/candidate-ledger.js";
@@ -162,18 +162,29 @@ describe("evidence needs and candidates", () => {
       unresolvedCriterionKeys: ["gpu"],
       remainingBudgetMicro: 100_000,
       nextCostMicro: 7000,
+      criteria: [
+        { key: "price", description: "budget", field: "budget", operator: "lte", value: "2000", unit: "USD", importance: "hard",
+          scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null },
+          provenance: { start: 28, end: 36, quote: "under 2k" }, group: "g", groupOperator: "all", unresolvedAlternatives: [] },
+        { key: "gpu", description: "running AI", field: "feature", operator: "eq", value: "AI", unit: null, importance: "hard",
+          scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null },
+          provenance: { start: 16, end: 26, quote: "running AI" }, group: "g", groupOperator: "all", unresolvedAlternatives: [] },
+      ],
     });
     const top = highestValueNeed(needs);
     expect(top?.nextAction.kind).toBe("search");
     expect(top?.criterionKey).toBe("gpu");
+    expect(needs.find((n) => n.criterionKey === "price")?.nextAction.kind).toBe("stop");
     expect(highestValueNeed(needs.map((n) => ({ ...n, nextAction: { kind: "stop", reason: "need_satisfied", value: 0 } })))).toBeNull();
   });
 
-  it("reopens exclusions when a constraint changes", () => {
+  it("reopens exclusions when a constraint changes and refuses a caller completeness flag", () => {
     const ledger = buildCandidateLedger([{
       id: "dell", identity: "Dell", price: 2500, currency: "USD", discoveredFrom: "p1", feasibility: "violates", excludedBy: "budget>2000",
-    }]);
+    }], { searches: 1, remainingDistinctStrategy: true });
     expect(ledger.entries[0]?.status).toBe("excluded");
+    expect(ledger.universeComplete).toBe(false);
+    expect(buildCandidateLedger(ledger.entries, { searches: 1, remainingDistinctStrategy: false }).universeComplete).toBe(true);
     const reopened = reopenExclusions(ledger, ["budget"]);
     expect(reopened.entries[0]?.status).toBe("discovered");
     expect(reopened.universeComplete).toBe(false);
@@ -183,6 +194,35 @@ describe("evidence needs and candidates", () => {
     const f = falsificationForConclusion({ conclusionKey: "pick", conclusionText: "Buy the Framework", originalQuestion: "best laptop under 2k" });
     expect(f.challenged).toBe(false);
     expect(f.wouldFalsify).toMatch(/false/i);
+    const two = [
+      falsificationForConclusion({ conclusionKey: "pick", conclusionText: "Buy the Framework", originalQuestion: "best laptop under 2k" }),
+      falsificationForConclusion({ conclusionKey: "skip", conclusionText: "Skip the Dell", originalQuestion: "best laptop under 2k" }),
+    ];
+    expect(new Set(two.map((c) => c.conclusionKey)).size).toBe(2);
+  });
+
+  it("updates one evidence need without rewriting sibling query hints", () => {
+    const needs = buildEvidenceNeeds({
+      originalQuestion: "Compare export and offline editing.",
+      criterionKeys: ["c0", "c1"],
+      unresolvedCriterionKeys: ["c0", "c1"],
+      remainingBudgetMicro: 100_000,
+      nextCostMicro: 7000,
+      criteria: [
+        { key: "c0", description: "export", field: "feature", operator: "eq", value: "export", unit: null, importance: "hard",
+          scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null },
+          provenance: { start: 8, end: 14, quote: "export" }, group: "g", groupOperator: "all", unresolvedAlternatives: [] },
+        { key: "c1", description: "offline editing", field: "feature", operator: "eq", value: "offline", unit: null, importance: "hard",
+          scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null },
+          provenance: { start: 19, end: 35, quote: "offline editing" }, group: "g", groupOperator: "all", unresolvedAlternatives: [] },
+      ],
+    });
+    const hints = needs.map((n) => n.nextAction.kind === "search" ? n.nextAction.queryHint : null);
+    expect(new Set(hints.filter(Boolean)).size).toBeGreaterThan(1);
+    const updated = applyNeedEvidence(needs, "c0", true);
+    expect(updated.find((n) => n.criterionKey === "c0")?.state).toBe("satisfied");
+    expect(updated.find((n) => n.criterionKey === "c1")?.state).toBe("missing");
+    expect(updated.find((n) => n.criterionKey === "c1")?.nextAction).toEqual(needs.find((n) => n.criterionKey === "c1")?.nextAction);
   });
 });
 

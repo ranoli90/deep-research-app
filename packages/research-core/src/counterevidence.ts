@@ -9,6 +9,21 @@ export function selectCounterevidenceAction(task:ResearchModelOutput<"brief">,as
  }
  return null;
 }
+/** One challenge object per consequential conclusion. Independent of the run-level counterevidence row. */
+export function selectConsequentialConclusions(task:ResearchModelOutput<"brief">,assertions:ResearchModelOutput<"extract_assertions">["assertions"],checks:ScopedSupportResult[]) {
+ const out:{conclusionKey:string;conclusionText:string;questionKey:string}[]=[];
+ const seen=new Set<string>();
+ for(const question of [...task.questions].sort((a,b)=>Number(b.importance==="critical")-Number(a.importance==="critical"))) {
+  for(const assertion of assertions) {
+   if(seen.has(assertion.key)||!assertion.criterionKeys.some(k=>question.criterionKeys.includes(k)))continue;
+   const check=checks.find(c=>c.claimKey===assertion.key);
+   if(!check||!["supported","partially_supported"].includes(check.decision))continue;
+   seen.add(assertion.key);
+   out.push({conclusionKey:assertion.key,conclusionText:assertion.text,questionKey:question.key});
+  }
+ }
+ return out;
+}
 /** Only user-provided public question wording and a closed application-owned suffix can be disclosed. */
 export function counterevidenceSearch(question:string,questionKeys:string[]) {
  const query=`${question.trim()} ${COUNTEREVIDENCE_SUFFIX}`;

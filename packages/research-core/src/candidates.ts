@@ -77,11 +77,12 @@ export function discoveryStatus(args: {
   candidates: CandidateRecord[];
   searches: number;
   reopened: boolean;
-  boundedComplete: boolean;
+  remainingDistinctStrategy: boolean;
 }): "open" | "bounded-complete" | "incomplete" {
-  if (args.boundedComplete) return "bounded-complete";
   if (args.reopened) return "open";
+  if (args.searches > 0 && !args.remainingDistinctStrategy) {
+    return args.candidates.length ? "bounded-complete" : "incomplete";
+  }
   if (args.candidates.length === 0 && args.searches > 0) return "incomplete";
-  if (args.candidates.length > 0 && args.searches > 0) return "bounded-complete";
   return "open";
 }

@@ -1,3 +1,23 @@
+## Wave 5 intelligence — 2026-09-19
+
+Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main`.**
+
+Confirmed and implemented on the production structured worker:
+
+- FP-030 P1 / FP-049 P1: reconstruct `queries`/`classesAttempted` from durable `search_operations` (query + source_class); persist Evidence Need lifecycle and update one need when coverage changes.
+- FP-051 P0 / FP-052 completeness: wire `extractCandidates` + ledger into extraction/discovery/correction; persist on `candidates` + `candidate_ledgers`; completeness from remaining distinct strategy, not a caller boolean; relaxed budget reopens exclusions.
+- FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`; two consequential conclusions keep independent state. Existing `counterevidence_checks UNIQUE(run,brief,version)` untouched.
+
+Exact tests (this SHA after commit):
+
+- `pnpm --filter @deep/research-core test` — 280/280, exit 0
+- `pnpm --filter @deep/backend typecheck` — exit 0
+- `vitest run --config vitest.integration.config.ts test/wave5-intelligence.integration.test.ts` — 3/3, exit 0, ~93s
+- `vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t "executes search, read and exact original-target support"` — 3/3, exit 0
+- `vitest run --config vitest.unit.config.ts test/token-budget.unit.test.ts` — 6/6, exit 0
+
+Rollback: ADR067. No merge to `main`. Full PG twice and live semantic remain separate.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.

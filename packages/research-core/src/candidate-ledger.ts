@@ -9,6 +9,13 @@ export type LedgerEntry = CandidateRecord & {
   exclusionReason: string | null;
 };
 
+export type CandidateLedgerCoverage = {
+  searches: number;
+  remainingDistinctStrategy: boolean;
+  reopened?: boolean;
+  sourceClassesAttempted?: string[];
+};
+
 export type CandidateLedger = {
   version: typeof CANDIDATE_LEDGER_VERSION;
   entries: LedgerEntry[];
@@ -16,20 +23,75 @@ export type CandidateLedger = {
   completenessNote: string;
 };
 
-export function buildCandidateLedger(candidates: CandidateRecord[], args?: { boundedComplete?: boolean }): CandidateLedger {
-  const entries: LedgerEntry[] = candidates.map((c) => ({
-    ...c,
-    status: c.feasibility === "violates" ? "excluded" : c.feasibility === "satisfies" ? "eligible" : "unresolved",
-    exclusionReason: c.excludedBy ?? null,
-  }));
-  const complete = args?.boundedComplete === true;
+function completenessFromCoverage(coverage?: CandidateLedgerCoverage): Pick<CandidateLedger, "universeComplete" | "completenessNote"> {
+  const searches = coverage?.searches ?? 0;
+  const reopened = coverage?.reopened === true;
+  const remaining = coverage?.remainingDistinctStrategy !== false;
+  if (reopened) {
+    return {
+      universeComplete: false,
+      completenessNote: "A constraint changed; previously excluded candidates must be rediscovered before a completeness claim.",
+    };
+  }
+  if (searches > 0 && !remaining) {
+    return {
+      universeComplete: true,
+      completenessNote: "No remaining distinct discovery strategy; this is a bounded result over the inspected set, not a claim that no option exists outside it.",
+    };
+  }
+  return {
+    universeComplete: false,
+    completenessNote: "Do not claim the option set is complete; additional eligible candidates may exist.",
+  };
+}
+
+export function entryStatusFor(candidate: CandidateRecord, readable: boolean): CandidateStatus {
+  if (candidate.feasibility === "violates") return "excluded";
+  if (!readable) return "discovered";
+  if (candidate.feasibility === "satisfies") return "eligible";
+  if (candidate.feasibility === "unknown") return "inspected";
+  return "unresolved";
+}
+
+export function mergeCandidateRecords(
+  existing: LedgerEntry[],
+  discovered: CandidateRecord[],
+  args: { readablePassageIds: ReadonlySet<string> },
+): LedgerEntry[] {
+  const byId = new Map(existing.map((e) => [e.id, e]));
+  for (const c of discovered) {
+    const next: LedgerEntry = {
+      ...c,
+      status: entryStatusFor(c, args.readablePassageIds.has(c.discoveredFrom)),
+      exclusionReason: c.excludedBy ?? null,
+    };
+    const prev = byId.get(c.id);
+    if (prev?.status === "excluded" && next.status !== "excluded") {
+      byId.set(c.id, { ...prev, discoveredFrom: c.discoveredFrom || prev.discoveredFrom });
+      continue;
+    }
+    byId.set(c.id, next);
+  }
+  return [...byId.values()];
+}
+
+export function buildCandidateLedger(
+  candidates: CandidateRecord[] | LedgerEntry[],
+  coverage?: CandidateLedgerCoverage,
+): CandidateLedger {
+  const entries: LedgerEntry[] = candidates.map((c) =>
+    "status" in c
+      ? c
+      : {
+          ...c,
+          status: c.feasibility === "violates" ? "excluded" : c.feasibility === "satisfies" ? "eligible" : "unresolved",
+          exclusionReason: c.excludedBy ?? null,
+        },
+  );
   return {
     version: CANDIDATE_LEDGER_VERSION,
     entries,
-    universeComplete: complete,
-    completenessNote: complete
-      ? "Search universe was treated as bounded-complete for this run."
-      : "Do not claim the option set is complete; additional eligible candidates may exist.",
+    ...completenessFromCoverage(coverage),
   };
 }
 

@@ -103,6 +103,12 @@ Lane: Research Beta integration. Final Session A `8abcffd` merged after Session 
 
 Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from `main@8a7b1a9`. Session C `0a694f9` merged as product/UI baseline. Main-only correctness is preserved. Not yet merged: final Session A tip `8abcffd`, Session B `e0b00df`. Duplicate portfolio migrations not yet canonicalized.
 
+## Wave 5 intelligence persistence — 2026-09-19
+
+Branch `grok-v8/fix-wave5-intelligence` off `origin/grok-v8/research-beta-integration` (`b30073e`). **Do not merge `main`.** FP-030/049/051/053: production structured worker reconstructs discovery queries/classes from `search_operations`, persists Evidence Needs, wires the candidate ledger with exclusion evidence, and stores independent per-conclusion challenges. Existing `counterevidence_checks` unique key is unchanged.
+
+Focused evidence: research-core 280/280; Wave 5 PostgreSQL `processRun` 3/3; existing counterevidence execution 3/3; backend typecheck exit 0. Not a full PG twice claim and not Research Beta.
+
 ## Subagent implementation checkpoint — 2026-09-18
 
 GitHub main already contains66df545 and all previously outstanding commits. User-authorized subagents completed bounded database authorization batching, exact deletion-race synchronization, mobile source focus/Android Back repairs, redacted schema diagnostics, and immutable Azure discovery-v3 routing. Root added explicit registered continuation for a distinct task while the earlier timeout remains held (ADR061/062). Consent2026-09-18.2 clarifies discovery generation and requires renewal. No new paid call has occurred yet.
