@@ -1,3 +1,15 @@
+## Wave 5 intelligence — 2026-09-19
+
+Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`, base `b30073e`) onto integration. **Do not merge `main`.** Migration `046_research_controller_state.sql`. Worker-local ADR067 remapped to ADR070.
+
+Union with Wave 3: opening discovery still uses `runPublicSearch` (digest-scoped approval). Wave 5 `alreadyOpened` skip reconstructs from `search_operations` so crash/restart does not re-issue query 1.
+
+- FP-030 P1 / FP-049 P1: reconstruct `queries`/`classesAttempted` from durable `search_operations`; persist Evidence Need lifecycle.
+- FP-051 P0 / FP-052: candidate ledger on production `processStructuredResearch`; completeness from durable `queriesAttempted` + exhaustion stop. **RB-CAND-01 remains FAIL.**
+- FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`.
+
+Worker-lane tests (pre-merge): research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3. Post-merge verification is required on this union. `045_model_operation_attempts.sql` remains reserved for Wave 2.
+
 ## Wave 3 query-privacy — 2026-09-19
 
 Merged `0ae1a15` after review. Exact query digest+terms. Residual Gate A recorded. **Do not merge main.**
@@ -8,7 +20,7 @@ Branch `grok-v8/fix-wave6-publication` at `5141bbd` merged to integration after 
 
 ## Wave 4 FP-029 / FP-033 — 2026-09-19
 
-Branch `grok-v8/fix-wave4-search-read` commit `b01f37e6a0ff6ef3202d6d9f4bede8e779ac50d6` from base `72c78ea`. **Do not merge `main` or integration.**
+Branch `grok-v8/fix-wave4-search-read` commit `b01f37e6a0ff6ef3202d6d9f4bede8e779ac50d6` from base `72c78ea`. Merged to integration after review. **Do not merge `main`.**
 
 FP-029: `discoveryPolicyForNewSearch` now returns `AZURE_DEEP_DISCOVERY_POLICY` (`public-discovery-azure-zdr.v3`, `maxResults=8`). Frozen `public-discovery.v1` and `public-discovery-azure-zdr.v2` remain 3. Historical `discoveryPolicyForModel(openrouter-azure-mini-zdr-discovery-v3)` still returns v2.
 

@@ -1,3 +1,7 @@
+## Wave 5 intelligence (FP-030/049/051/052/053) — 2026-09-19
+
+Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`) onto integration after union with Wave 3 `runPublicSearch`. Migration `046_research_controller_state.sql`. Opening search keeps digest-scoped approval and skips re-issue on crash via durable `search_operations`. Completeness requires durable `queriesAttempted` plus exhaustion stop proof. **RB-CAND-01 is not PASS.** **Not merged to `main`.**
+
 ## Wave 3 query-privacy (FP-022–025) — 2026-09-19
 
 Merged to integration after review. Unknown tokens unclassified/blocked; pending approval consumed in place; digest+term proofs. Residual worker Gate A is fail-closed. **Not merged to main.** FP-025 not fully closed.
@@ -114,6 +118,12 @@ Lane: Research Beta integration. Final Session A `8abcffd` merged after Session 
 ## Integration merge C — 2026-09-18
 
 Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from `main@8a7b1a9`. Session C `0a694f9` merged as product/UI baseline. Main-only correctness is preserved. Not yet merged: final Session A tip `8abcffd`, Session B `e0b00df`. Duplicate portfolio migrations not yet canonicalized.
+
+## Wave 5 intelligence persistence — 2026-09-19
+
+Branch `grok-v8/fix-wave5-intelligence` SHA `ef0b679` off `origin/grok-v8/research-beta-integration` (`b30073e`). **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql` (not 044/045). FP-030/049/051/053: production structured worker reconstructs discovery queries/classes from `search_operations`, persists Evidence Needs, wires the candidate ledger with exclusion evidence, and stores independent per-conclusion challenges. Existing `counterevidence_checks` unique key is unchanged.
+
+Focused evidence after rename: Wave 5 PostgreSQL `processRun` 3/3, 54.75s, exit 0. Not a full PG twice claim and not Research Beta. **RB-CAND-01 is not PASS.**
 
 ## Subagent implementation checkpoint — 2026-09-18
 

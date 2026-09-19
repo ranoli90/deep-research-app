@@ -57,7 +57,7 @@ it("W03 deletion removes raw attachments and private text from every owned resea
   const deleted = await app.inject({ method: "POST", url: "/v1/account/deletion", headers });
   expect(deleted.statusCode).toBe(200);
   expect(deleted.json().deleted).toBe(true);
-  for (const table of ["accounts", "attachments", "conversations", "research_briefs", "runs", "run_events", "sources", "source_versions", "passages", "claims", "reports", "challenges"]) {
+  for (const table of ["accounts", "attachments", "conversations", "research_briefs", "runs", "run_events", "sources", "source_versions", "passages", "claims", "reports", "challenges", "conclusion_challenges", "research_evidence_needs", "candidate_ledgers"]) {
     const rows = await pool.query(`SELECT row_to_json(t)::text AS content FROM ${table} t WHERE ${table === "accounts" ? "id" : "account_id"}=$1`, [session.accountId]);
     expect.soft(rows.rows.map((r) => r.content).join("\n"), table).not.toContain(canary);
   }

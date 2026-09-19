@@ -548,3 +548,13 @@ Impact: `limitedCoverageLimitations` in research-core; publication-coverage and 
 ## ADR069 — Exact query authorization proof (2026-09-19)
 
 Unknown query tokens are unclassified and blocked unless they are in the user question, a bounded expansion, public-evidence-derived, or approved for this query digest. Pending rows are consumed in place. Migration 044. Residual original-question Gate A on mixed-document worker entry is fail-closed, not a leak.
+
+## ADR070 — Durable research-controller, candidate ledger, and per-conclusion challenges (2026-09-19)
+
+FP-030/049/051/053: Evidence Needs, discovery query/class counters, candidate completeness, and per-conclusion falsification were helper-only. The production structured worker now reconstructs issued discovery queries and source classes from durable `search_operations` (query + source_class columns) before planning the next search; Evidence Needs are persisted and updated per criterion; the candidate ledger is extracted, inspected, excluded with evidence, and reopened on constraint change using the existing `candidates` table plus `candidate_ledgers`; each consequential conclusion gets an independent `conclusion_challenges` row. `counterevidence_checks UNIQUE(run_id, brief_revision, version)` is unchanged.
+
+Completeness is derived from durable queriesAttempted plus an exhaustion stop proof (ceiling or no distinct strategy/query). `remainingDistinctStrategy` / `boundedComplete` caller flags cannot stamp `universeComplete`. Public challenge queries still use only the original question plus the closed counterevidence suffix. Opening discovery still goes through digest-scoped `runPublicSearch`; crash/restart skips re-issue when the original question is already in reconstructed queries. RB-CAND-01 stays FAIL until an honest matrix regen at a later SHA.
+
+Worker-lane ADR067 remapped here to ADR070 because integration already used ADR067 for Azure discovery v3.
+
+Impact: additive migration `046_research_controller_state.sql` (after `044_query_authorization_proof.sql`; `045_model_operation_attempts.sql` reserved for Wave 2); `processStructuredResearch` production path; account/source deletion. No new provider, prompt, or spend default. Rollback: stop new admissions that depend on controller reconstruction; retain readers, historical search identities, and the existing one-row counterevidence proof.

@@ -1,7 +1,10 @@
+import type { ResearchModelOutput } from "@deep/contracts";
 import type { SourceClass } from "./source-strategy.js";
 import { planSourceClass } from "./source-strategy.js";
+import { tightenCriterionSpan } from "./discovery-planning.js";
 
 export const EVIDENCE_NEEDS_VERSION = "evidence-needs.v1";
+export const CONCLUSION_CHALLENGE_VERSION = "conclusion-challenge.v1";
 
 export type EvidenceNeedState = "missing" | "partial" | "satisfied" | "blocked" | "challenged";
 
@@ -27,23 +30,37 @@ export type EvidenceNeed = {
   stopReason: string | null;
 };
 
+type BriefCriterion = ResearchModelOutput<"brief">["criteria"][number];
+
+function queryHintFor(question: string, key: string, criteria: BriefCriterion[] | undefined): string {
+  const criterion = criteria?.find((c) => c.key === key);
+  if (!criterion) return question;
+  const tight = tightenCriterionSpan(question, criterion);
+  if (tight?.quote && tight.quote.trim() !== question.trim()) return tight.quote.trim();
+  const quote = criterion.provenance?.quote?.trim();
+  if (quote && quote !== question.trim()) return quote;
+  return question;
+}
+
 export function buildEvidenceNeeds(args: {
   originalQuestion: string;
   criterionKeys: string[];
   unresolvedCriterionKeys: string[];
   remainingBudgetMicro: number;
   nextCostMicro: number;
+  criteria?: BriefCriterion[];
 }): EvidenceNeed[] {
   const plan = planSourceClass(args.originalQuestion);
   const keys = args.criterionKeys.length ? args.criterionKeys : ["objective"];
   return keys.map((key) => {
     const unresolved = args.unresolvedCriterionKeys.includes(key) || key === "objective";
     const budgetBlocks = args.nextCostMicro > args.remainingBudgetMicro;
+    const hint = queryHintFor(args.originalQuestion, key, args.criteria);
     const nextAction: EvidenceNeedAction = !unresolved
       ? { kind: "stop", reason: "need_satisfied", value: 0 }
       : budgetBlocks
         ? { kind: "stop", reason: "finishing_reserve", value: 0 }
-        : { kind: "search", sourceClass: plan.primary, queryHint: args.originalQuestion, value: 80 };
+        : { kind: "search", sourceClass: plan.primary, queryHint: hint, value: 80 };
     return {
       id: `need-${key}`,
       version: EVIDENCE_NEEDS_VERSION,
@@ -59,6 +76,51 @@ export function buildEvidenceNeeds(args: {
       nextAction,
       stopReason: nextAction.kind === "stop" ? nextAction.reason : null,
     };
+  });
+}
+
+/** Keep durable query hints; update only the need whose criterion evidence changed. */
+export function applyNeedEvidence(needs: EvidenceNeed[], criterionKey: string, settled: boolean): EvidenceNeed[] {
+  return needs.map((n) => {
+    if (n.criterionKey !== criterionKey && n.id !== `need-${criterionKey}`) return n;
+    if (!settled) {
+      return { ...n, state: n.state === "satisfied" ? "satisfied" : "partial" };
+    }
+    return {
+      ...n,
+      state: "satisfied",
+      nextAction: { kind: "stop", reason: "need_satisfied", value: 0 },
+      stopReason: "need_satisfied",
+      wouldEstablish: `Already inspected for ${criterionKey}`,
+    };
+  });
+}
+
+export function updateNeedsFromCoverage(needs: EvidenceNeed[], args: {
+  originalQuestion: string;
+  criterionKeys: string[];
+  unresolvedCriterionKeys: string[];
+  remainingBudgetMicro: number;
+  nextCostMicro: number;
+  criteria?: BriefCriterion[];
+}): EvidenceNeed[] {
+  const rebuilt = buildEvidenceNeeds(args);
+  const prior = new Map(needs.map((n) => [n.id, n]));
+  return rebuilt.map((next) => {
+    const prev = prior.get(next.id);
+    if (!prev) return next;
+    if (next.nextAction.kind === "stop") {
+      return { ...prev, state: next.state, nextAction: next.nextAction, stopReason: next.stopReason, wouldEstablish: next.wouldEstablish };
+    }
+    if (prev.nextAction.kind === "search" && next.nextAction.kind === "search") {
+      return {
+        ...prev,
+        state: next.state,
+        nextAction: { ...prev.nextAction, sourceClass: next.nextAction.sourceClass, value: next.nextAction.value },
+        stopReason: null,
+      };
+    }
+    return { ...prev, state: next.state, nextAction: next.nextAction, stopReason: next.stopReason };
   });
 }
 

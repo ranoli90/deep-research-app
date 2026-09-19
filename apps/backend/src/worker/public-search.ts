@@ -87,8 +87,8 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  await session.write(async (db)=>{
   await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:proposal.action.query,authorization:{...prepared.auth,query:searchQuery}});
   await persistFreshnessPolicy(db,{accountId:args.accountId,runId:args.runId,question:prepared.question});
-  await db.query(`INSERT INTO search_operations(intent_id,account_id,run_id,task_id,brief_revision,policy_id,request_digest,result)
-  VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[attempt.intentId,args.accountId,args.runId,args.taskId,args.briefRevision,policy.id,digest,JSON.stringify(result)]);
+  await db.query(`INSERT INTO search_operations(intent_id,account_id,run_id,task_id,brief_revision,policy_id,request_digest,result,query,source_class)
+  VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,[attempt.intentId,args.accountId,args.runId,args.taskId,args.briefRevision,policy.id,digest,JSON.stringify(result),searchQuery,args.sourceClass??null]);
  });
  return finish(result,false);
 }

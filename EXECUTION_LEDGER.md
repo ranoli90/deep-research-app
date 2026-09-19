@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 5 intelligence merged to integration
+
+- Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`) onto `grok-v8/research-beta-integration`. Unioned opening search: Wave 3 `runPublicSearch` + Wave 5 `alreadyOpened`. main stays `8a7b1a9`.
+- Migration `046_research_controller_state.sql`. `045_model_operation_attempts.sql` reserved for Wave 2, not present.
+- Worker-local ADR067 remapped to ADR070 (Azure v3 remains ADR067).
+- Completeness requires durable `queriesAttempted` plus exhaustion stop. RB-CAND-01 not claimed PASS.
+- Worker-lane tests: research-core 280/280; wave5-intelligence.integration 3/3. Post-merge verification required.
+
 ## 2026-09-19 — Wave 3 query-authorization proof
 
 - Merged `0ae1a15` after review. Migration `044_query_authorization_proof.sql`. Residual worker Gate A fail-closed. Not main.
@@ -11,7 +19,7 @@
 
 ## 2026-09-19 — Wave 4 FP-029 / FP-033 search-read
 
-- Branch `grok-v8/fix-wave4-search-read` commit `b01f37e` from `72c78ea`. Not merged to main/integration.
+- Branch `grok-v8/fix-wave4-search-read` commit `b01f37e` from `72c78ea`. Merged to integration after review. Not merged to main.
 - FP-029: added `public-discovery-azure-zdr.v3` (`AZURE_DEEP_DISCOVERY_POLICY`, maxResults=8). `discoveryPolicyForNewSearch` Azure path uses it. Frozen v1 digest `9fef15d94afec88128678cb3073ab7151e955d7df384dd8fa1f54582dc308c8b`; v2 maxResults remains 3.
 - FP-033: `source-reading.ts` readable for partial-text or full-text; `counterevidence.ts` proof predicate aligned.
 - Commands (isolated DB `deep_wave4_sr_01a0bb2e`, paid=false): live-search unit 16/16 exit 0; discovery-policy integration 2/2 exit 0; model-gateway focused 9 passed/137 skipped exit 0 (includes full-text executeSourceRead and production worker completion); backend tsc exit 0.
