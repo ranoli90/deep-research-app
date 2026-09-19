@@ -4,6 +4,7 @@ import type pg from "pg";
 import type { ResearchModelOutput } from "@deep/contracts";
 import type { AppConfig } from "../platform/config.js";
 import type { FencedSession } from "./fenced-session.js";
+import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
 import { performModelOperation } from "./model-gateway.js";
 
 type Outcome = { kind:"extraction"; intentId:string; taskId:string; evidenceRevision:number; reused:boolean;
@@ -17,7 +18,7 @@ export async function extractEvidenceAssertions(pool:pg.Pool, config:AppConfig, 
   const basis = await session.write(async (db) => loadAssertionEvidence(db,args,await runModelVersions(db,args.runId)));
   if (basis.kind === "blocked") return { kind:"blocked",reason:basis.blocked };
   let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions" });
-  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
+  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused && knownFinancialOutcome(result.result)) {
     result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions", repairPass: 1 });
   }
   if (result.kind !== "result") return result;

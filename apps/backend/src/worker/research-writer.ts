@@ -13,6 +13,7 @@ import { recordResearchDraft } from "../modules/research-drafts.js";
 import { getRun } from "../modules/runs.js";
 import { publishReport } from "../modules/reports.js";
 import type { FencedSession } from "./fenced-session.js";
+import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
 import { performModelOperation } from "./model-gateway.js";
 import { executeCoverageReview } from "./research-coverage.js";
 import { persistResearchCoverage } from "../modules/research-coverage.js";
@@ -31,6 +32,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   let result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status==="invalid_output"){
+    if(!knownFinancialOutcome(result.result))return {kind:"blocked" as const,reason:"writer_outcome_unknown"};
     result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report",repairPass:1});
     if(result.kind!=="result")return result;
   }

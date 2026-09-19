@@ -6,6 +6,7 @@ import { getBrief, getRun } from "../modules/runs.js";
 import type { FencedSession } from "./fenced-session.js";
 import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
 import { MODEL_PROMPT_VERSION } from "../adapters/model/prompts.js";
+import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
 import { performModelOperation } from "./model-gateway.js";
 
 export const TASK_MODEL_VERSIONS = { promptVersion: MODEL_PROMPT_VERSION, policyId: STRUCTURED_MODEL_POLICY.id } as const;
@@ -26,7 +27,7 @@ export async function ensureResearchTask(pool: pg.Pool, config: AppConfig, sessi
     return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion) };
   });
   let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
-  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
+  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused && knownFinancialOutcome(result.result)) {
     result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief", repairPass: 1 });
   }
   if (result.kind !== "result") return result;

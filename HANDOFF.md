@@ -1,3 +1,7 @@
+## Wave 2 provider — 2026-09-19
+
+Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto integration after review. **Do not merge `main`.** Extract/support refuse `repairPass` unless prior is known-cost `invalid_output`. Gateway holds the same gate. Migration `045`. Worker-local ADR070 remapped to ADR071. Isolated worker PG gateway 146/146. Post-merge verification required.
+
 ## Wave 5 intelligence — 2026-09-19
 
 Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`, base `b30073e`) onto integration. **Do not merge `main`.** Migration `046_research_controller_state.sql`. Worker-local ADR067 remapped to ADR070.
@@ -8,7 +12,7 @@ Union with Wave 3: opening discovery still uses `runPublicSearch` (digest-scoped
 - FP-051 P0 / FP-052: candidate ledger on production `processStructuredResearch`; completeness from durable `queriesAttempted` + exhaustion stop. **RB-CAND-01 remains FAIL.**
 - FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`.
 
-Worker-lane tests (pre-merge): research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3. Post-merge verification is required on this union. `045_model_operation_attempts.sql` remains reserved for Wave 2.
+Worker-lane tests (pre-merge): research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3. `045_model_operation_attempts.sql` landed with Wave 2.
 
 ## Wave 3 query-privacy — 2026-09-19
 

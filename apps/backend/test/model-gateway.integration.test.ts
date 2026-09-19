@@ -43,7 +43,7 @@ import { performModelOperation } from "../src/worker/model-gateway.js";
 import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
 import { reserveMicroForOperation } from "../src/adapters/model/token-budget.js";
 import { prepareModelRequest } from "../src/adapters/model/openrouter.js";
-import { STRUCTURED_MODEL_POLICY } from "../src/ports/model-policy.js";
+import { AZURE_ZDR_MODEL_POLICY, STRUCTURED_MODEL_POLICY, type ModelPolicyId } from "../src/ports/model-policy.js";
 const originalFetch = globalThis.fetch;
 let pool: pg.Pool;
 beforeAll(async () => { pool = createPool(process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test"); await migrate(pool); });
@@ -64,9 +64,9 @@ const briefReserve = () => reserveMicroForOperation({
   bodyText: prepareModelRequest("brief", context).body,
 });
 const response = (output: unknown = brief) => new Response(JSON.stringify({ id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI", usage: { cost: "0.000001" }, choices: [{ finish_reason: "stop", message: { content: JSON.stringify(output) } }] }), { status: 200 });
-async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: ReturnType<typeof fencedSession>; config: ReturnType<typeof loadConfig> }) => Promise<void>,initialQuestion=question) {
+async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: ReturnType<typeof fencedSession>; config: ReturnType<typeof loadConfig> }) => Promise<void>,initialQuestion=question,admit?:{modelPolicyId?:ModelPolicyId}) {
   const accountId = await withTx(pool, async (db) => { const s = await createDevSession(db); await grantConsent(db, s.accountId); return s.accountId; });
-  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question:initialQuestion, routeMode: "controlled-research" }));
+  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question:initialQuestion, routeMode: "controlled-research" }), admit);
   const owner = crypto.randomUUID(); const fence = (await claimLease(pool, runId, owner, 30_000))!;
   const session = fencedSession(pool, { runId, accountId, owner, fence, briefRevision: 1, leaseMs: 30_000 });
   const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_ROUTE_ENABLED: "true", STRUCTURED_MODEL_ENABLED: "true",
@@ -78,7 +78,7 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
       for(const {id:runId} of (await db.query("SELECT id FROM runs WHERE account_id=$1 ORDER BY created_at DESC",[accountId])).rows) {
       await db.query("DELETE FROM claim_evidence WHERE claim_id IN (SELECT id FROM claims WHERE run_id=$1)",[runId]);
       for(const table of ["notification_fanout","completion_outbox","publication_attempts","reports"]) await db.query(`DELETE FROM ${table} WHERE run_id=$1`,[runId]);
-      for (const table of ["query_authorizations","source_origin_links","criterion_freshness_policies","document_web_reconciliations","search_coverage","selection_inventory_checks","evidence_selections","conclusion_challenges","research_evidence_needs","candidate_ledgers","candidates", "extraction_receipts", "evidence_artifacts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
+      for (const table of ["query_authorizations","source_origin_links","criterion_freshness_policies","document_web_reconciliations","search_coverage","selection_inventory_checks","evidence_selections","conclusion_challenges","research_evidence_needs","candidate_ledgers","candidates", "extraction_receipts", "evidence_artifacts", "model_operation_attempts", "provider_intents", "claim_revisions", "claims", "run_actions", "run_leases", "run_dispatch_outbox", "run_events", "reservations", "passages", "sources"]) {
         if (table === "sources") await db.query("DELETE FROM source_versions WHERE source_id IN (SELECT id FROM sources WHERE run_id=$1)", [runId]);
         await db.query(`DELETE FROM ${table} WHERE run_id=$1`, [runId]);
       }
@@ -189,6 +189,72 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     expect(await performModelOperation(pool, x.config, x.session, operation(x))).toMatchObject({ kind: "blocked", reason: "invalid_stored_model_result" });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }));
+  it("persists availability failover under the fallback intent and reuses that identity once", async () => runCase(async (x) => {
+    const providers: string[][] = [];
+    globalThis.fetch = vi.fn(async (_input, init) => {
+      const body = JSON.parse(String(init?.body));
+      providers.push(body.provider.only);
+      if (body.provider.only[0] === "openai") return new Response("{}", { status: 429 });
+      return new Response(JSON.stringify({ id: "fallback-test-id", model: "openai/gpt-4o-mini", provider: "Azure", usage: { cost: "0.000001" },
+        choices: [{ finish_reason: "stop", message: { content: JSON.stringify(brief) } }] }), { status: 200 });
+    }) as typeof fetch;
+    const first = await performModelOperation(pool, x.config, x.session, operation(x));
+    expect(first).toMatchObject({ kind: "result", reused: false, result: { status: "succeeded", output: brief, receipt: { actualMicro: 1, reportedProvider: "Azure" } } });
+    if (first.kind !== "result") throw new Error("missing failover result");
+    const replay = await performModelOperation(pool, x.config, x.session, operation(x));
+    expect(replay).toMatchObject({ kind: "result", intentId: first.intentId, reused: true, result: { status: "succeeded" } });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(providers).toEqual([["openai"], ["azure"]]);
+    const attempts = (await pool.query("SELECT attempt_index,reason,intent_id,policy_id FROM model_operation_attempts WHERE run_id=$1 ORDER BY attempt_index", [x.runId])).rows;
+    expect(attempts).toHaveLength(2);
+    expect(attempts[0]).toMatchObject({ attempt_index: 0, reason: "primary", policy_id: STRUCTURED_MODEL_POLICY.id });
+    expect(attempts[1]).toMatchObject({ attempt_index: 1, reason: "availability_failover", intent_id: first.intentId, policy_id: AZURE_ZDR_MODEL_POLICY.id });
+    expect(attempts[1].intent_id).not.toBe(attempts[0].intent_id);
+    const saved = (await pool.query("SELECT intent_id,policy_id,result->>'status' AS status FROM model_operation_results WHERE run_id=$1 ORDER BY created_at", [x.runId])).rows;
+    expect(saved).toEqual([
+      { intent_id: attempts[0].intent_id, policy_id: STRUCTURED_MODEL_POLICY.id, status: "transient_failure" },
+      { intent_id: first.intentId, policy_id: AZURE_ZDR_MODEL_POLICY.id, status: "succeeded" },
+    ]);
+    await pool.query("DELETE FROM model_operation_results WHERE intent_id=$1", [first.intentId]);
+    expect(await performModelOperation(pool, x.config, x.session, operation(x))).toEqual({ kind: "pending", intentId: first.intentId });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
+  it("holds an unknown fallback attempt on restart and never resends it", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async (_input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.provider.only[0] === "openai") return new Response("{}", { status: 429 });
+      throw new Error("lost acknowledgement");
+    }) as typeof fetch;
+    const first = await performModelOperation(pool, x.config, x.session, operation(x));
+    expect(first).toMatchObject({ kind: "result", reused: false, result: { status: "outcome_unknown" } });
+    if (first.kind !== "result") throw new Error("missing unknown fallback");
+    const replay = await performModelOperation(pool, x.config, x.session, operation(x));
+    expect(replay).toMatchObject({ kind: "result", intentId: first.intentId, reused: true, result: { status: "outcome_unknown" } });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    const attempts = (await pool.query("SELECT attempt_index,intent_id FROM model_operation_attempts WHERE run_id=$1 ORDER BY attempt_index", [x.runId])).rows;
+    expect(attempts).toHaveLength(2);
+    expect(first.intentId).toBe(attempts[1].intent_id);
+    expect(first.intentId).not.toBe(attempts[0].intent_id);
+    const held = (await pool.query("SELECT id,state,confirmed_micro FROM provider_intents WHERE run_id=$1 ORDER BY id", [x.runId])).rows;
+    expect(held).toHaveLength(2);
+    expect(held.find((row: { id: string }) => row.id === attempts[0].intent_id)).toMatchObject({ state: "failed", confirmed_micro: null });
+    expect(held.find((row: { id: string }) => row.id === first.intentId)).toMatchObject({ state: "outcome-unknown", confirmed_micro: null });
+  }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
+  it("does not issue a repair pass for schema-invalid output with unknown cost", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({
+      id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI",
+      choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ ...brief, objective: { fabricated: true } }) } }],
+    }), { status: 200 })) as typeof fetch;
+    for (let n = 0; n < 2; n++) expect(await ensureResearchTask(pool, x.config, x.session, { ...x, briefRevision: 1 })).toEqual({ kind: "blocked", reason: "task_invalid_output" });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const held = (await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1", [x.runId])).rows;
+    expect(held).toEqual([{ state: "outcome-unknown", confirmed_micro: null }]);
+    expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1", [x.runId])).rows).toHaveLength(0);
+    expect(await performModelOperation(pool, x.config, x.session, { ...operation(x), repairPass: 1 })).toMatchObject({
+      kind: "result", reused: true, result: { status: "invalid_output" },
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
 });
 
 
@@ -381,6 +447,17 @@ describe("W05 evidence-bound arbitrary assertion extraction", () => {
     expect((await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows).toHaveLength(0);
     expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:extract_assertions'",[x.runId])).rows[0].confirmed_micro).toBe("1");
   }));
+  it("does not issue an extraction repair pass when invalid_output cost is unknown", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({
+      id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI",
+      choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ title: 1 }) } }],
+    }), { status: 200 })) as typeof fetch;
+    for (let n = 0; n < 2; n++) expect(await extractEvidenceAssertions(pool, x.config, x.session, prepared.args)).toEqual({ kind: "blocked", reason: "extraction_invalid_output" });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT i.state,i.confirmed_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='extract_assertions'", [x.runId])).rows)
+      .toEqual([{ state: "outcome-unknown", confirmed_micro: null }]);
+  }));
 });
 
 
@@ -431,6 +508,16 @@ describe("W05 substantive support execution and persisted revisions",()=>{
     globalThis.fetch=vi.fn(async()=>response({assessments:[]})) as typeof fetch;
     expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"support_invalid_output"});
     expect((await pool.query("SELECT * FROM scoped_support_results WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("does not issue a support repair pass when invalid_output cost is unknown",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify({
+      id:"provider-test-id",model:"openai/gpt-4o-mini",provider:"OpenAI",
+      choices:[{finish_reason:"stop",message:{content:JSON.stringify({title:1})}}]}),{status:200})) as typeof fetch;
+    for(let n=0;n<2;n++) expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"support_invalid_output"});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT i.state,i.confirmed_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='assess_support'",[x.runId])).rows)
+      .toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
   }));
   it("denies a foreign extraction result before spending",async()=>runCase(async(x)=>runCase(async(other)=>{
     const prepared=await supportCase(other);
@@ -611,6 +698,20 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(first.kind).toBe("draft");expect(second).toEqual({...first,reused:true});
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
+  }));
+  it("does not send a writer repair pass when invalid_output cost is unknown",async()=>runCase(async(x)=>{
+    const c=await writerCase(x);
+    globalThis.fetch=vi.fn(async(_input,init)=>{
+      const request=JSON.parse(String(init?.body));
+      if(request.response_format.json_schema.name!=="research_write_report_v1")throw new Error("unexpected operation");
+      return new Response(JSON.stringify({id:"provider-test-id",model:"openai/gpt-4o-mini",provider:"OpenAI",
+        choices:[{finish_reason:"stop",message:{content:JSON.stringify({title:1})}}]}),{status:200});
+    }) as typeof fetch;
+    expect(await createResearchDraft(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
+    expect(await createResearchDraft(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='write_report'",[x.runId])).rows)
+      .toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
   }));
   it("rejects invented premise keys and publishes no report",async()=>runCase(async(x)=>{
     const c=await writerCase(x);c.draft.sections[0]!.paragraphs[0]!.claimKeys=["invented"];

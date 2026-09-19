@@ -1,3 +1,7 @@
+## Wave 2 provider attempt chain (FP-011/012/014) — 2026-09-19
+
+Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto integration after independent review. Extract/support `repairPass` requires known-cost `invalid_output`; unknown HOLD is not resent. Migration `045_model_operation_attempts.sql`. Worker-local ADR070 remapped to ADR071. **Not merged to `main`.**
+
 ## Wave 5 intelligence (FP-030/049/051/052/053) — 2026-09-19
 
 Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`) onto integration after union with Wave 3 `runPublicSearch`. Migration `046_research_controller_state.sql`. Opening search keeps digest-scoped approval and skips re-issue on crash via durable `search_operations`. Completeness requires durable `queriesAttempted` plus exhaustion stop proof. **RB-CAND-01 is not PASS.** **Not merged to `main`.**

@@ -1,9 +1,16 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 2 provider attempt chain merged to integration
+
+- Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto `grok-v8/research-beta-integration`. main stays `8a7b1a9`.
+- Extract/support `repairPass` gated on known-cost `invalid_output`. Unknown HOLD not resent. Migration `045_model_operation_attempts.sql`.
+- Worker-local ADR070 remapped to ADR071 (Wave 5 controller remains ADR070).
+- Worker-lane gateway 146/146. Post-merge verification required.
+
 ## 2026-09-19 — Wave 5 intelligence merged to integration
 
 - Merged `grok-v8/fix-wave5-intelligence` `b51c878` (impl `27beb17`) onto `grok-v8/research-beta-integration`. Unioned opening search: Wave 3 `runPublicSearch` + Wave 5 `alreadyOpened`. main stays `8a7b1a9`.
-- Migration `046_research_controller_state.sql`. `045_model_operation_attempts.sql` reserved for Wave 2, not present.
+- Migration `046_research_controller_state.sql`. `045_model_operation_attempts.sql` landed with Wave 2.
 - Worker-local ADR067 remapped to ADR070 (Azure v3 remains ADR067).
 - Completeness requires durable `queriesAttempted` plus exhaustion stop. RB-CAND-01 not claimed PASS.
 - Worker-lane tests: research-core 280/280; wave5-intelligence.integration 3/3. Post-merge verification required.

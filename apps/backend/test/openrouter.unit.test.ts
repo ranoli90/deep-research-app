@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseActionJson, parseUrlCitations } from "../src/adapters/model/parse.js";
-import { providerFailureState, providerIntentStateForResult } from "../src/adapters/model/outcomes.js";
+import { knownFinancialOutcome, providerFailureState, providerIntentStateForResult } from "../src/adapters/model/outcomes.js";
 import { canIssueLiveCall } from "../src/modules/live-spend.js";
 import { LIVE_CALL_RESERVE_MICRO, MICRO_PER_USD } from "@deep/contracts";
 
@@ -38,6 +38,10 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(providerIntentStateForResult({ status: "outcome_unknown", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(providerIntentStateForResult({ status: "succeeded", receipt: { actualMicro: 12 } })).toEqual({ state: "confirmed", confirmedMicro: 12 });
     expect(providerIntentStateForResult({ status: "invalid_output", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
+    expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: null } })).toBe(false);
+    expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: 2 } })).toBe(true);
+    expect(knownFinancialOutcome({ status: "permanent_failure", receipt: { actualMicro: null } })).toBe(true);
+    expect(knownFinancialOutcome({ status: "outcome_unknown", receipt: { actualMicro: null } })).toBe(false);
   });
 
   it("LIVE_SPEND_CAP_MICRO is USD micros and refuses a call that would exceed remaining", () => {

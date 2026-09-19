@@ -557,4 +557,14 @@ Completeness is derived from durable queriesAttempted plus an exhaustion stop pr
 
 Worker-lane ADR067 remapped here to ADR070 because integration already used ADR067 for Azure discovery v3.
 
-Impact: additive migration `046_research_controller_state.sql` (after `044_query_authorization_proof.sql`; `045_model_operation_attempts.sql` reserved for Wave 2); `processStructuredResearch` production path; account/source deletion. No new provider, prompt, or spend default. Rollback: stop new admissions that depend on controller reconstruction; retain readers, historical search identities, and the existing one-row counterevidence proof.
+Impact: additive migration `046_research_controller_state.sql` (after `044_query_authorization_proof.sql` and `045_model_operation_attempts.sql`); `processStructuredResearch` production path; account/source deletion. No new provider, prompt, or spend default. Rollback: stop new admissions that depend on controller reconstruction; retain readers, historical search identities, and the existing one-row counterevidence proof.
+
+## ADR071 — Durable model-operation attempt chain (2026-09-19)
+
+W02 / FP-011/012/014: availability failover swapped request/result/policy onto the primary intent, so `saveModelOperation` could fail `model_intent_owner_mismatch` or persist the wrong identity. The cached-primary path returned before restoring a later fallback, including unknown HOLD. `invalid_output` repair issued a second paid call even when `providerIntentStateForResult` classified null-cost invalid output as `outcome-unknown`.
+
+Fix: persist each paid attempt under its own intent. Migration `045_model_operation_attempts.sql` records a policy-independent `logical_digest` chain (`primary` → `availability_failover`). Replay restores the latest attempt; issued/unknown attempts return pending/held and are never resent. Repair/second paid call requires `knownFinancialOutcome` at extract, support, brief, writer, and inside `performModelOperation`. Historical request bytes, receipts and unknown holds remain immutable.
+
+Worker-lane ADR070 remapped here to ADR071 because integration already used ADR070 for the Wave 5 research controller.
+
+Rollback disables new failover/repair issuance while retaining attempt-chain readers, primary/fallback identities, receipts and holds. No live provider, prompt or public schema change.
