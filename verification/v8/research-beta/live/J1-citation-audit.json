@@ -1,0 +1,41 @@
+{
+  "id": "J1-citation-audit",
+  "runId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+  "reportId": "b19e0a4a-dd6a-496c-8bc9-ac4913b88099",
+  "outcome": "completed_with_limitations",
+  "limitations": ["Some requested questions remain unresolved."],
+  "question": "best laptop for local AI under $2k",
+  "sourcesUsed": [
+    {
+      "title": "Acer Aspire 16 AI Review — Best for Local AI? | The AI Desk",
+      "locator": "https://ai-desk.tech/products/acer-aspire-16-ai",
+      "passageId": "b6dff45b-fe72-4cd7-85e4-34e960e809d9",
+      "exactText": "The Acer Aspire 16 AI is the best budget Copilot+ PC — Snapdragon X X1-26-100, 45 TOPS NPU, 16GB LPDDR5X, 16\" WUXGA 120Hz touch, Wi-Fi 7, at under $700. Most affordable on-device AI laptop available."
+    }
+  ],
+  "consequentialClaims": [
+    {
+      "text": "The Acer Aspire 16 AI is available at under $700.",
+      "supportedByExactSpan": true,
+      "span": "at under $700"
+    },
+    {
+      "text": "The Acer Aspire 16 AI has 16GB LPDDR5X RAM.",
+      "supportedByExactSpan": true,
+      "span": "16GB LPDDR5X"
+    }
+  ],
+  "hardConstraints": {
+    "budgetUnder2k": {"met": true, "note": "Cited price is under $700, which is under $2k."},
+    "localAi": {"met": "partial", "note": "Source claims on-device AI / Copilot+ NPU; not independently verified beyond this page."},
+    "ram32gb": {"met": false, "note": "Parent question did not require 32GB; cited machine is 16GB. Correction child must reopen this."}
+  },
+  "contradictions": [],
+  "missingEvidence": [
+    "No second independent source.",
+    "No comparison set of other local-AI laptops under $2k.",
+    "No RAM-at-32GB option in the parent report."
+  ],
+  "userRepairRequired": "Need at least 32GB of RAM — that is the live correction under test, not a parent-report defect against the original question.",
+  "evaluator": "deterministic passage/claim audit of owned exact_text; not independent human validation"
+}

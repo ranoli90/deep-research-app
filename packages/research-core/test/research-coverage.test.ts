@@ -51,4 +51,30 @@ describe("W05 criterion discovery policy",()=>{
   const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};
   expect(nextCriterionSearch({question,task:{...task,criteria:[{...task.criteria[0]!,provenance}]},unresolvedCriterionKeys:["area"],queries:["one","two","three"],ceiling:6})).toMatchObject({kind:"search",proposal:{action:{query:"Reef-X"}}});
  });
+ it("issues a distinct original-question constraint span after the full question was already searched",()=>{
+  const laptop="best laptop for local AI under $2k with at least 32GB of RAM";
+  const whole={start:0,end:laptop.length,quote:laptop};
+  const laptopScope={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
+  const laptopTask:ResearchModelOutput<"brief">={objective:laptop,objectiveProvenance:whole,intendedOutput:"answer",
+   criteria:[
+    {key:"budget",description:"Under $2k",field:"price",operator:"at_most",value:"2000",unit:"USD",importance:"hard",scope:laptopScope,provenance:whole,group:"g",groupOperator:"all",unresolvedAlternatives:[]},
+    {key:"ram",description:"At least 32GB RAM",field:"RAM",operator:"at_least",value:"32",unit:"GB",importance:"hard",scope:laptopScope,provenance:whole,group:"g",groupOperator:"all",unresolvedAlternatives:[]},
+   ],
+   questions:[
+    {key:"budget",text:laptop,criterionKeys:["budget"],importance:"critical",evidenceStandard:"public"},
+    {key:"ram",text:laptop,criterionKeys:["ram"],importance:"critical",evidenceStandard:"public"},
+   ],assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+  const budget=nextCriterionSearch({question:laptop,task:laptopTask,unresolvedCriterionKeys:["budget","ram"],queries:[laptop]});
+  expect(budget).toMatchObject({kind:"search"});
+  if(budget.kind!=="search")throw new Error("missing budget search");
+  expect(laptop.includes(budget.proposal.action.query)).toBe(true);
+  expect(budget.proposal.action.query.toLowerCase()).not.toBe(laptop);
+  expect(budget.proposal.action.query).toMatch(/\$2k/i);
+  const ram=nextCriterionSearch({question:laptop,task:laptopTask,unresolvedCriterionKeys:["ram"],queries:[laptop,budget.proposal.action.query]});
+  expect(ram).toMatchObject({kind:"search"});
+  if(ram.kind!=="search")throw new Error("missing ram search");
+  expect(laptop.includes(ram.proposal.action.query)).toBe(true);
+  expect(ram.proposal.action.query).toMatch(/32GB/i);
+  expect(ram.proposal.action.query).not.toBe(budget.proposal.action.query);
+ });
 });

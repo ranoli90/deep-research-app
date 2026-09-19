@@ -24,7 +24,11 @@ Research Beta is **not** declared. `main` stays at `8a7b1a9`. Integration branch
 
 Record: `verification/v6/paid-readiness/AUTHORIZATION.json`.
 
-## 2. Hosted GitHub Actions — RB-CI-01
+## 2. Hosted GitHub Actions — RB-CI-01 — owner declined
+
+The repository owner stated hosted GitHub Actions will not be used. Do not dispatch `.github/workflows/verification.yml`. Do not wait on billing unlock. Local `pnpm verify` and the local verification.yml steps already captured under `verification/v8/research-beta/logs/` remain the CI evidence class for this session.
+
+Historical lock (not retried):
 
 | Run | SHA | Result |
 |---|---|---|
@@ -35,7 +39,7 @@ Record: `verification/v6/paid-readiness/AUTHORIZATION.json`.
 
 Annotation: *The job was not started because your account is locked due to a billing issue.* Job `deterministic` had empty steps and no runner. Local `pnpm verify` is not a substitute.
 
-**Required:** unlock GitHub Actions billing for `ranoli90/deep-research-app`, then dispatch `.github/workflows/verification.yml` on `grok-v8/research-beta-integration`. Do not dispatch while locked.
+**Required:** none. Owner declined hosted Actions. Do not prompt for laptop/device passwords; use passwordless adb/local commands only.
 
 ## After both
 

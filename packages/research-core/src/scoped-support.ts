@@ -22,7 +22,26 @@ const containsPhrase = (text:string,phrase:string) => {
   const escaped=normalize(phrase).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
   return new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`,"u").test(normalize(text));
 };
-const numbers = (s:string):string[] => s.match(/-?\d+(?:\.\d+)?/gu) ?? [];
+const CURRENCY_SIGNS: Record<string, string[]> = { usd: ["usd", "$"], eur: ["eur", "€"], gbp: ["gbp", "£"], jpy: ["jpy", "¥"] };
+/** Grouped prices such as $2,699.99 are one number; comma-split fragments are not the quantity. */
+const numbers = (s:string):string[] => {
+  const found = new Set<string>();
+  const grouped = /-?\d{1,3}(?:,\d{3})+(?:\.\d+)?/gu;
+  for (const g of s.match(grouped) ?? []) found.add(g.replace(/,/gu, ""));
+  for (const n of s.replace(grouped, " ").match(/-?\d+(?:\.\d+)?/gu) ?? []) found.add(n);
+  return [...found];
+};
+const quantityAttrs = (q: Assertion["quantities"][number], claimText: string): string[] => {
+  const attrs = [q.unit, q.currency, q.billingPeriod].filter((v): v is string => v !== null);
+  if (q.qualifier && (containsPhrase(claimText, q.qualifier) || normalize(claimText).includes(normalize(q.qualifier)))) attrs.push(q.qualifier);
+  return attrs;
+};
+const attrInQuote = (attr: string, quote: string): boolean => {
+  const words = normalize(quote);
+  const token = normalize(attr);
+  if (words.includes(token) || quote.includes(attr)) return true;
+  return (CURRENCY_SIGNS[token] ?? []).some((sign) => quote.includes(sign) || words.includes(sign));
+};
 const qualifiers = /\b(only|except|unless|subject to|limited to|may|might|could)\b/iu;
 
 /** Fallible semantic assessment plus independent binding/scope/number/qualification checks.
@@ -42,11 +61,8 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
       {rule:"readable_evidence",passed:passages.length > 0 && passages.every((p) => ["partial-text","full-text"].includes(p.accessLevel))},
       {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || GENERIC_ENTITY.has(normalize(s)))},
       {rule:"numbers_grounded",passed:numbers(claim.text).every((n) => numbers(citedText).includes(n))},
-      {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) => {
-        const words = normalize(quote);
-        return numbers(quote).includes(q.value) && [q.unit,q.currency,q.billingPeriod,q.qualifier].filter((v):v is string => v !== null)
-          .every((v) => words.includes(normalize(v)));
-      }))}];
+      {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) =>
+        numbers(quote).includes(q.value.replace(/,/gu, "")) && quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote))))}];
     // A numeric unit cannot disappear merely because the extraction omitted quantities.
     const pairs = [...claim.text.matchAll(/(-?\d+(?:\.\d+)?)\s*(%|[\p{L}]+)(?=\s|[.,;:!?)]|$)/gu)];
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});

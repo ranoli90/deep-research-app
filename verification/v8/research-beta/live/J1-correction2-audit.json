@@ -1,0 +1,25 @@
+{
+  "id": "J1-correction2-audit",
+  "parentRunId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+  "runId": "8a8e8774-597c-46f0-9e49-2beb88a438e3",
+  "reportId": "ad28ce8b-3a34-4c6e-9164-ab690a7a8bf0",
+  "question": "best laptop for local AI under $2k with at least 32GB of RAM",
+  "outcome": "completed_with_limitations",
+  "published": true,
+  "spentMicro": 22297,
+  "pipeline": "correction_accepted → Azure ZDR brief → public-discovery-azure-zdr.v2 (1 query) → source reads → extract → support → coverage → write_report",
+  "hardConstraints": {
+    "budgetUnder2k": {
+      "met": false,
+      "evidence": "MSI Stealth 16 AI+ B3WF listed at $2,699.99. Extracted as budget assertion. Model contradicted vs $2k; coverage left budget unresolved."
+    },
+    "ram32gb": {
+      "met": "extracted_but_vetoed",
+      "evidence": "Quote contains 32GB of DDR5 RAM. Model status supported. scoped-support.v4 set insufficient because quantity qualifier 'at least' was not in the quote and $2,699.99-style quantities failed grouping. Fix landed after this run."
+    }
+  },
+  "publishedBlocks": "Four caveat blocks only; claim_ids empty. Writer use_case paragraph was not fully supported after heading contradiction.",
+  "discovery": "Stopped after one generic-web query (no_distinct_public_criterion_query) because every criterion provenance was the full original question. Distinct in-question spans ($2k / 32GB) were not issued.",
+  "userRepairRequired": "Do not treat this caveat-only report as a useful 32GB purchase answer. Re-run after quantity grounding + distinct constraint queries.",
+  "evaluator": "deterministic owned passage/claim/support audit; not independent human validation"
+}

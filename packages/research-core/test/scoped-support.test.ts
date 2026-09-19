@@ -57,6 +57,25 @@ it("W05 retains directly relevant and adjacent anaphoric qualifications",()=>{
  for(const text of ["Aster supports offline editing only on paid plans.","Aster supports offline editing. Only on paid plans.","Aster supports offline editing. However, this requires a paid plan."])
   expect(check(text,"Aster supports offline editing.").decision).toBe("partially_supported");
 });
+it("grounds grouped prices and RAM quantities without requiring unquoted criterion qualifiers",()=>{
+  const price="The Stealth 16 AI+ B3WF currently lists for $2,699.99 at Best Buy.";
+  const ram="The MSI Stealth 16 AI+ pairs an RTX 5060 GPU (8GB VRAM), 32GB of DDR5 RAM, and a 16-inch display.";
+  const laptop={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
+  const priced=resolveScopedSupport({assertions:[{key:"budget",candidateKey:null,criterionKeys:["budget"],text:price,scope:laptop,
+    quantities:[{unit:"USD",value:"2699.99",currency:"USD",qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:price.length,quote:price}]}],
+    passages:[{id:pid,text:price,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"budget",status:"contradicted",scope:laptop,evidence:[{passageId:pid,start:0,end:price.length,quote:price}],rationale:"Over the $2k budget",missingEvidence:[]}]}})[0]!;
+  expect(priced.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(priced.decision).toBe("disputed");
+  const ramResult=resolveScopedSupport({assertions:[{key:"ram",candidateKey:null,criterionKeys:["ram"],text:ram,scope:laptop,
+    quantities:[{unit:"GB",value:"32",currency:null,qualifier:"at least",billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:ram.length,quote:ram}]}],
+    passages:[{id:pid,text:ram,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"ram",status:"supported",scope:laptop,evidence:[{passageId:pid,start:0,end:ram.length,quote:ram}],rationale:"32GB RAM",missingEvidence:[]}]}})[0]!;
+  expect(ramResult.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(ramResult.decision).toBe("supported");
+});
 it("does not treat a question-category entity as ungrounded when the quote names a specific product",()=>{
   const text="The ThinkPad P14s Gen 6 AMD is shockingly good. For under $2k, I now have a mobile AI lab.";
   const laptopScope={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
