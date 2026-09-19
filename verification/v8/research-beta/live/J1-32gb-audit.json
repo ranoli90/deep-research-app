@@ -1,0 +1,21 @@
+{
+  "id": "J1-32gb-audit",
+  "runId": "ce893126-2835-4d1f-9082-a45217b863c3",
+  "reportId": "726b2b3b-fd00-4bf0-ba5c-baa367a72ed1",
+  "question": "best laptop for local AI under $2k with at least 32GB of RAM",
+  "outcome": "completed_with_limitations",
+  "spentMicro": 40737,
+  "unknownHolds": 0,
+  "discovery": {
+    "searches": 2,
+    "note": "Second generic-web search ran after incomplete coverage. Distinct constraint continuation is live."
+  },
+  "extractRev4": {
+    "ram": "supported (quantity grounding fix held)",
+    "budget": "disputed ($2,699.99 over $2k)",
+    "use_case": "contradicted by relative-clause never on a different subject (Raider)"
+  },
+  "publishedBody": "Four caveat blocks; empty claim_ids. Writer RAM paragraph was a verbatim 32GB quote; assess_support marked it partially_supported because missingEvidence asked for the budget. compileCheckedDraft then replaced it with caveats.",
+  "userRepairRequired": "Publish grounded RAM sentences even when another hard constraint is unmet. Do not treat a 'which the Raider never claimed' clause as contradicting this laptop.",
+  "evaluator": "deterministic owned passage/claim/support audit; not independent human validation"
+}

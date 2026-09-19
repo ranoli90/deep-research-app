@@ -57,6 +57,17 @@ it("W05 retains directly relevant and adjacent anaphoric qualifications",()=>{
  for(const text of ["Aster supports offline editing only on paid plans.","Aster supports offline editing. Only on paid plans.","Aster supports offline editing. However, this requires a paid plan."])
   expect(check(text,"Aster supports offline editing.").decision).toBe("partially_supported");
 });
+it("does not hide a grounded RAM paragraph because the model asked for an unrelated budget quote",()=>{
+  const ram="The MSI Stealth 16 AI+ (model B3WF) pairs an Intel Core Ultra 9 386H processor with a dedicated NVIDIA RTX 5060 GPU (8GB VRAM), 32GB of DDR5 RAM.";
+  const laptop={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"paragraph_0_0",candidateKey:null,criterionKeys:["ram"],text:ram,scope:laptop,quantities:[],
+    evidence:[{passageId:pid,start:0,end:ram.length,quote:ram}]}],
+    passages:[{id:pid,text:ram,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"paragraph_0_0",status:"partially_supported",scope:laptop,evidence:[{passageId:pid,start:0,end:ram.length,quote:ram}],
+      rationale:"RAM is quoted but the budget is unmet",missingEvidence:["Evidence that the laptop is under $2,000."]}]}})[0]!;
+  expect(result.checks.every((c)=>c.passed)).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("grounds grouped prices and RAM quantities without requiring unquoted criterion qualifiers",()=>{
   const price="The Stealth 16 AI+ B3WF currently lists for $2,699.99 at Best Buy.";
   const ram="The MSI Stealth 16 AI+ pairs an RTX 5060 GPU (8GB VRAM), 32GB of DDR5 RAM, and a 16-inch display.";

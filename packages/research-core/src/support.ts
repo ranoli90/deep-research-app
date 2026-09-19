@@ -57,8 +57,18 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   if (p.trim() === c.trim() && c.trim()) return "supports";
 
   const negated = /\b(?:not|never|no|cannot|can't|doesn't|isn't|unsupported)\b/;
-  for (const sentence of passageText.split(/(?<=[.!?])\s+(?=\p{Lu})/u)) {
-    if (negated.test(sentence.toLowerCase()) === negated.test(c)) continue;
+  const claimed = c.replace(/[.!?]+$/u, "").trim();
+  const sentences = passageText.split(/(?<=[.!?])\s+(?=\p{Lu})/u);
+  for (const sentence of sentences) {
+    const stated = sentence.toLowerCase().replace(/[.!?]+$/u, "").trim();
+    if (claimed && (stated === claimed || stated.startsWith(`${claimed},`) || stated.startsWith(`${claimed} which`))) {
+      if (relevantQualification(passageText, claimText)) return "qualifies";
+      return "supports";
+    }
+  }
+  for (const sentence of sentences) {
+    const sentenceN = sentence.toLowerCase();
+    if (negated.test(sentenceN) === negated.test(c)) continue;
     const content = tokenize(claimText).filter((t) => !negated.test(t));
     const overlap = content.filter((t) => tokenize(sentence).includes(t)).length;
     if (content.length && overlap / content.length >= 0.5) return "contradicts";

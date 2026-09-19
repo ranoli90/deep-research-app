@@ -1,0 +1,86 @@
+{
+  "id": "J1-32gb",
+  "question": "best laptop for local AI under $2k with at least 32GB of RAM",
+  "runId": "ce893126-2835-4d1f-9082-a45217b863c3",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "completed_with_limitations",
+    "reportId": "726b2b3b-fd00-4bf0-ba5c-baa367a72ed1"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "plan_pivot",
+    "model_span_resolution"
+  ],
+  "cost": {
+    "runId": "ce893126-2835-4d1f-9082-a45217b863c3",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 40737,
+    "confirmedProviderMicro": 40737,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 40737
+    },
+    "intentTotalMicro": 40737,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "726b2b3b-fd00-4bf0-ba5c-baa367a72ed1",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "Additional sources were read after this evidence was checked.",
+      "This assessment selected 80 of 239 available passages. The 159 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "blockCount": 4,
+    "claimCount": 0,
+    "texts": [
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ]
+    ]
+  }
+}

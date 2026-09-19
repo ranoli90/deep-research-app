@@ -63,6 +63,10 @@ describe("W01 / V6-F01 production citation regressions", () => {
   it("preserves an exact scoped statement and unrelated negative predicate", () => {
     expect(passageSupportsClaim("Atlas is limited to Germany.", "Atlas is limited to Germany.")).toBe("supports");
     expect(passageSupportsClaim("Atlas supports offline editing. Linux is not supported.", "Atlas supports offline editing.")).toBe("supports");
+    expect(passageSupportsClaim(
+      "This laptop is genuinely capable of running useful local AI, and it's a genuinely pleasant machine to carry around and use every day, which the Raider never claimed to be.",
+      "This laptop is genuinely capable of running useful local AI, and it's a genuinely pleasant machine to carry around and use every day.",
+    )).toBe("supports");
   });
   it.each([
     ["It is a myth that Atlas supports offline editing.", "Atlas supports offline editing."],

@@ -88,8 +88,9 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     else if (assessment.status === "contradicted" && literalSupport) decision="disputed";
     else if (qualified && assessment.status === "supported") decision="partially_supported";
     else if (assessment.status === "supported" && checks.some((c) => !c.passed)) decision="insufficient";
-    // A checker reporting missing decisive evidence cannot simultaneously grant full support.
-    if (decision === "supported" && assessment.missingEvidence.length) decision="partially_supported";
+    else if (assessment.status === "partially_supported" && checks.every((c) => c.passed) && !qualified && !literalContradiction) decision="supported";
+    // A model that claimed full support while listing missing evidence cannot keep that grant.
+    if (decision === "supported" && assessment.status === "supported" && assessment.missingEvidence.length) decision="partially_supported";
     return { claimKey:claim.key,decision,modelStatus:assessment.status,evidence:assessment.evidence,scope:claim.scope,
       rationale:assessment.rationale,missingEvidence:assessment.missingEvidence,checks,
       counterEvidence:scopedPassages.flatMap((p,i)=>literal[i]==="contradicts"||literal[i]==="qualifies"?[{passageId:p.id,decision:literal[i] as "contradicts"|"qualifies"}]:[]) };
