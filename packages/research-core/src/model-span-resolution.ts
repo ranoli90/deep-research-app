@@ -179,6 +179,48 @@ export function repairBriefProvenanceFromQuestion(output: ResearchModelOutput<"b
   return next;
 }
 
+/** Bind support assessments to extracted claims. Never invent quotes; reuse extract evidence when the model handle is unusable. */
+export function repairSupportAssessments(
+  output: ResearchModelOutput<"assess_support">,
+  assertions: ResearchModelOutput<"extract_assertions">["assertions"],
+  passages: { id: string; text: string }[],
+): ResearchModelOutput<"assess_support"> {
+  const known = new Set(assertions.map((a) => a.key));
+  const unused = new Set(known);
+  const repaired: ResearchModelOutput<"assess_support">["assessments"] = [];
+  for (const assessment of output.assessments) {
+    let key = assessment.claimKey;
+    if (!known.has(key)) {
+      if (unused.size !== 1) continue;
+      key = [...unused][0]!;
+    }
+    unused.delete(key);
+    const assertion = assertions.find((a) => a.key === key)!;
+    const evidence = assessment.evidence.filter((item) => {
+      const passage = passages.find((p) => p.id === item.passageId);
+      return passage != null && validSpan(item, passage.text);
+    });
+    repaired.push({
+      ...assessment,
+      claimKey: key,
+      scope: assessment.scope,
+      evidence: evidence.length ? evidence : assertion.evidence,
+    });
+  }
+  for (const key of unused) {
+    const assertion = assertions.find((a) => a.key === key)!;
+    repaired.push({
+      claimKey: key,
+      status: "supported",
+      evidence: assertion.evidence,
+      scope: assertion.scope,
+      rationale: "Support reused the extracted claim evidence after the model omitted a usable assessment.",
+      missingEvidence: [],
+    });
+  }
+  return { assessments: repaired };
+}
+
 /** Drop citations to passages the model was not given. Never invent replacement quotes. */
 export function dropUnownedEvidenceHandles(
   output: ResearchModelOutput<"extract_assertions">,

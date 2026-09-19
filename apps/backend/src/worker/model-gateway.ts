@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { modelPolicy } from "../ports/model-policy.js";
 import { emitEvent, getRun } from "../modules/runs.js";
@@ -115,6 +115,10 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       const provenanced = repairBriefProvenanceFromQuestion(linked.output, context.question);
       const clarified = suppressUnneededBriefClarifications(provenanced, context.question);
       result = { ...result, output: clarified as typeof result.output }; linkedCriteria = linked.linked;
+    }
+    if (args.operation === "assess_support") {
+      result = { ...result, output: repairSupportAssessments(
+        result.output as ResearchModelOutput<"assess_support">, context.assertions, context.passages) as typeof result.output };
     }
     if (args.operation === "extract_assertions") {
       const original = result.output as ResearchModelOutput<"extract_assertions">;

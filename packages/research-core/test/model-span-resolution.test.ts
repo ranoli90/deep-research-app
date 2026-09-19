@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
+import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
 const context = (question: string) => ({question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[]});
 const proposal = (quote: string, start = 99, end = 100) => ({questions:[],omittedRequirements:[{provenance:{quote,start,end},reason:"Missing original requirement"}]});
 it("resolves unique exact Unicode quotes without mutating the proposal or relaxing the binding validator",()=>{
@@ -103,6 +103,29 @@ it("drops extraction citations whose passage was never provided", () => {
   expect(cleaned.candidates.map((c) => c.key)).toEqual(["c1"]);
   expect(cleaned.candidates[0]!.evidence).toHaveLength(1);
   expect(cleaned.assertions.map((a) => a.key)).toEqual(["a1"]);
+});
+
+it("repairs support assessments that use the wrong claim key or unusable evidence handle", () => {
+  const passageId = crypto.randomUUID();
+  const quote = "Federal funds (effective) 3.88";
+  const assertion = {
+    key: "current_rate", candidateKey: null, criterionKeys: ["current_rate"], text: quote,
+    scope: { entity: "US", plan: null, version: null, geography: "United States", time: "current", population: null },
+    quantities: [], evidence: [{ passageId, quote, start: 0, end: quote.length }],
+  };
+  const repaired = repairSupportAssessments({
+    assessments: [{
+      claimKey: "rate", status: "supported",
+      evidence: [{ passageId: crypto.randomUUID(), quote: "nope", start: 0, end: 4 }],
+      scope: assertion.scope, rationale: "wrong handle", missingEvidence: [],
+    }],
+  }, [assertion], [{ id: passageId, text: quote }]);
+  expect(repaired.assessments).toHaveLength(1);
+  expect(repaired.assessments[0]).toMatchObject({ claimKey: "current_rate", evidence: assertion.evidence });
+  expect(validateModelBindings("assess_support", repaired, {
+    question: "What is the current US federal funds rate?", task: null,
+    passages: [{ id: passageId, text: quote }], sources: [], assertions: [assertion], approvedClaimKeys: [],
+  })).toEqual([]);
 });
 
 it("does not invent a span for a quote that never appears in the question", () => {
