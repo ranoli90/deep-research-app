@@ -1,6 +1,6 @@
 ## Wave 5 intelligence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql`.
+Branch `grok-v8/fix-wave5-intelligence` SHA `27beb1710efc5bd142d78782cfc167f72f6338ef`. Base `b30073e`. **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql`.
 
 Confirmed and implemented on the production structured worker:
 

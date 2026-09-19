@@ -1,6 +1,6 @@
 ## Wave 5 revision — completeness stop-proof (2026-09-19)
 
-Branch `grok-v8/fix-wave5-intelligence`. Migration remains `046_research_controller_state.sql`. **Do not merge `main` or integration.** `buildCandidateLedger` no longer stamps `universeComplete` from `remainingDistinctStrategy`/`boundedComplete`. Crash/restart asserts reconstructed queries and surviving Evidence Need ids/hints. **RB-CAND-01 is not PASS.**
+Branch `grok-v8/fix-wave5-intelligence` SHA `27beb17`. Migration remains `046_research_controller_state.sql`. **Do not merge `main` or integration.** `buildCandidateLedger` no longer stamps `universeComplete` from `remainingDistinctStrategy`/`boundedComplete`. Crash/restart asserts reconstructed queries and surviving Evidence Need ids/hints. **RB-CAND-01 is not PASS.**
 
 ## Engineering fix-pass started — 2026-09-19
 
