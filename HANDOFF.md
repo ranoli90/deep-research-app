@@ -1,6 +1,6 @@
 ## Wave 6 FP-068 limited publication — 2026-09-19
 
-Branch `grok-v8/fix-wave6-publication`. Base `d56b0dc`. **Do not merge `main`.**
+Branch `grok-v8/fix-wave6-publication` at `5141bbd`. Base `d56b0dc`. **Do not merge `main`.**
 
 FP-068 P0: limited publication restores ordinary/calculated coverage and maps unresolved critical questions and hard criteria to explicit limitations. Crafted limited report missing criterion `c1` → `incomplete_question_coverage`. Completed path not weakened. Arithmetic calculated-writer limited variants still green. `calculationKeys` remain selectable when `selected:false`.
 

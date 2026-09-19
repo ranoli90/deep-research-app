@@ -2,7 +2,7 @@
 
 ## 2026-09-19 — Wave 6 FP-068 limited-publication coverage restoration
 
-- Branch `grok-v8/fix-wave6-publication` from `d56b0dc`. main stays `8a7b1a9`. Not a completion claim.
+- Branch `grok-v8/fix-wave6-publication` `5141bbd` from `d56b0dc`. main stays `8a7b1a9`. Not a completion claim.
 - Requirement FP-068 / W05: `reportCompletionCovered` restores structured coverage for `completed_with_limitations`; writer emits `limitedCoverageLimitations`. ADR067.
 - Isolated PostgreSQL `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_v8_wave6_pub`
 - `pnpm exec vitest run test/research-coverage.test.ts test/model-span-resolution.test.ts` (research-core): 36 passed, exit 0

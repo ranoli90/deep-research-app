@@ -1,6 +1,6 @@
 ## Wave 6 FP-068 limited-publication coverage — 2026-09-19
 
-Lane `grok-v8/fix-wave6-publication` from `d56b0dc`. **Not merged to `main` (`8a7b1a9`).** FP-068: `completed_with_limitations` no longer returns true before restoring structured coverage. Limited reports must recompile the exact draft and disclose every unresolved/blocked critical question and hard criterion. A crafted limited report that drops `c1` is rejected on the real `publishReport` path. Completed still requires complete coverage, matching blocks/claims and empty limitations. Writer `calculationKeys` selected:false behavior is unchanged.
+Lane `grok-v8/fix-wave6-publication` `5141bbd` from `d56b0dc`. **Not merged to `main` (`8a7b1a9`).** FP-068: `completed_with_limitations` no longer returns true before restoring structured coverage. Limited reports must recompile the exact draft and disclose every unresolved/blocked critical question and hard criterion. A crafted limited report that drops `c1` is rejected on the real `publishReport` path. Completed still requires complete coverage, matching blocks/claims and empty limitations. Writer `calculationKeys` selected:false behavior is unchanged.
 
 Focused PostgreSQL on isolated `deep_v8_wave6_pub`: 13/13 publication+arithmetic + 12/12 writer/selection/counterevidence regressions. Core coverage+span 36/36. Backend/core `tsc --noEmit` exit 0. Full PG twice not rerun in this wave.
 
