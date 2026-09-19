@@ -8,9 +8,9 @@ function tree(node:ReactNode): {type:unknown;props:Record<string,any>}[]{
  if(!isValidElement<Record<string,any>>(node))return [];
  return [{type:node.type,props:node.props},...tree(node.props.children)];
 }
-function render(signedIn=false,consentGranted=false,routeMode:"fixture"|"controlled-research"="fixture",appearance:"system"|"light"|"dark"="system"){
- const handlers={onDone:vi.fn(),onOpenLibrary:vi.fn(),onAppearance:vi.fn(),onConsent:vi.fn(),onSignIn:vi.fn(),onMode:vi.fn(),onRestore:vi.fn(),onDelete:vi.fn(),onLogout:vi.fn(),onRevoke:vi.fn(),onOpenDeletionPage:vi.fn()};
- const nodes=tree(ProfilePanel({styles:{body:undefined,title:undefined,bodyText:undefined,link:undefined,caveat:undefined,error:undefined,kicker:undefined,card:undefined,row:undefined,avatar:undefined,avatarText:undefined,section:undefined,switchRow:undefined,segment:undefined,segmentOn:undefined,segmentOff:undefined},state:{signedIn,consentGranted,routeMode},accountLabel:"Account ab12cd34",appearance,processors:["Synthetic processor"],privacyFlows:"Synthetic data disclosure",deletionVsSub:"Cancel subscriptions separately",restoreMessage:"Store unavailable",...handlers}));
+function render(signedIn=false,consentGranted=false,routeMode:"fixture"|"controlled-research"="fixture",appearance:"system"|"light"|"dark"="system",processorDetailsOpen=true){
+ const handlers={onDone:vi.fn(),onOpenLibrary:vi.fn(),onAppearance:vi.fn(),onConsent:vi.fn(),onSignIn:vi.fn(),onMode:vi.fn(),onRestore:vi.fn(),onDelete:vi.fn(),onLogout:vi.fn(),onRevoke:vi.fn(),onOpenDeletionPage:vi.fn(),onToggleProcessorDetails:vi.fn()};
+ const nodes=tree(ProfilePanel({styles:{body:undefined,title:undefined,bodyText:undefined,link:undefined,caveat:undefined,error:undefined,kicker:undefined,card:undefined,row:undefined,avatar:undefined,avatarText:undefined,section:undefined,switchRow:undefined,segment:undefined,segmentOn:undefined,segmentOff:undefined},state:{signedIn,consentGranted,routeMode},accountLabel:"Account ab12cd34",appearance,processors:["Synthetic processor"],privacyFlows:"Synthetic data disclosure",deletionVsSub:"Cancel subscriptions separately",restoreMessage:"Store unavailable",processorDetailsOpen,...handlers}));
  const button=(label:string)=>{const node=nodes.find(n=>n.type==="Pressable"&&n.props.accessibilityLabel===label);expect(node).toBeTruthy();expect(node!.props.accessibilityRole).toBe("button");return node!;};
  const switchControl=(label:string)=>{const node=nodes.find(n=>n.type==="Switch"&&n.props.accessibilityLabel===label);expect(node).toBeTruthy();return node!;};
  const text=nodes.filter(n=>n.type==="Text").map(n=>JSON.stringify(n.props.children)).join(" ");
@@ -41,6 +41,18 @@ it("W07 mode labels are readable while callbacks retain the existing route ident
 });
 it("W07 unavailable capabilities are explicit and account data cleanup remains disclosed",()=>{
  const x=render();expect(x.text).toContain("Push notifications are unavailable");expect(x.text).toContain("Reopen the app");expect(x.text).toContain("does not grant entitlement");expect(x.text).toContain("Signing out clears");expect(x.text).not.toContain("Notifications: optional");
+});
+it("W07 processor disclosures stay one tap behind How we process data",()=>{
+ const closed=render(false,false,"fixture","system",false);
+ expect(closed.text).toContain("How we process data");
+ expect(closed.text).not.toContain("Synthetic processor");
+ expect(closed.text).not.toContain("Synthetic data disclosure");
+ closed.button("Show how we process data").props.onPress();
+ expect(closed.handlers.onToggleProcessorDetails).toHaveBeenCalledTimes(1);
+ const open=render(false,false,"fixture","system",true);
+ expect(open.text).toContain("Hide how we process data");
+ expect(open.text).toContain("Synthetic processor");
+ expect(open.text).toContain("Synthetic data disclosure");
 });
 it("W07 appearance preference stays local and selectable",()=>{
  const x=render(true,false,"fixture","light");

@@ -35,6 +35,8 @@ export function ProfilePanel({
   onLogout,
   onRevoke,
   onOpenDeletionPage,
+  processorDetailsOpen = false,
+  onToggleProcessorDetails,
 }: {
   styles: {
     body: StyleProp<ViewStyle>;
@@ -72,6 +74,8 @@ export function ProfilePanel({
   onLogout: () => void;
   onRevoke: () => void;
   onOpenDeletionPage: () => void;
+  processorDetailsOpen?: boolean;
+  onToggleProcessorDetails?: () => void;
 }) {
   const demoOn = state.routeMode === "fixture";
   const initials = accountInitials(accountLabel, state.signedIn);
@@ -137,19 +141,30 @@ export function ProfilePanel({
             accessibilityLabel={state.consentGranted ? "Revoke AI processing consent" : "Grant AI processing consent"}
           />
         </View>
-        <Text style={styles.bodyText} accessibilityLabel="Processor disclosures">
-          Processors: {processorLine}
-        </Text>
-        <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
-        {privacyFlows ? (
-          <Text style={styles.bodyText} accessibilityLabel="Privacy data flows">
-            {privacyFlows}
-          </Text>
-        ) : null}
-        {deletionVsSub ? (
-          <Text style={styles.caveat} accessibilityLabel="Deletion versus subscription">
-            {deletionVsSub}
-          </Text>
+        <Pressable
+          onPress={() => onToggleProcessorDetails?.()}
+          accessibilityRole="button"
+          accessibilityLabel={processorDetailsOpen ? "Hide how we process data" : "Show how we process data"}
+        >
+          <Text style={styles.link}>{processorDetailsOpen ? "Hide how we process data" : "How we process data"}</Text>
+        </Pressable>
+        {processorDetailsOpen ? (
+          <>
+            <Text style={styles.bodyText} accessibilityLabel="Processor disclosures">
+              Processors: {processorLine}
+            </Text>
+            <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
+            {privacyFlows ? (
+              <Text style={styles.bodyText} accessibilityLabel="Privacy data flows">
+                {privacyFlows}
+              </Text>
+            ) : null}
+            {deletionVsSub ? (
+              <Text style={styles.caveat} accessibilityLabel="Deletion versus subscription">
+                {deletionVsSub}
+              </Text>
+            ) : null}
+          </>
         ) : null}
         <Pressable onPress={onOpenDeletionPage} accessibilityRole="button" accessibilityLabel="Open web deletion page">
           <Text style={styles.link}>Open web deletion page</Text>

@@ -4,7 +4,7 @@ import type { ReportBlock } from "./state";
 export type FollowUpSuggestion = { id: string; label: string; prompt: string };
 
 /** Chip label length; stays scannable in the composer dock. */
-export const FOLLOW_UP_LABEL_MAX = 42;
+export const FOLLOW_UP_LABEL_MAX = 36;
 /** Draft fill length; never dump a full caveat or 10k-char block into the composer. */
 export const FOLLOW_UP_PROMPT_MAX = 160;
 export const FOLLOW_UP_MAX = 3;
@@ -26,11 +26,24 @@ function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function firstSentence(text: string): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  const match = compact.match(/^(.+?[.!?])(?:\s|$)/);
+  return (match ? match[1] : compact).trim();
+}
+
+/** Research-process / fixture internals are not consumer follow-up questions. */
+export function isProcessMetaFollowUp(text: string): boolean {
+  return /spend counters|provider-internal|fixture or bounded|labeled demo|not an exhaustive|disconfirmation remains|absence of a recorded counterexample|app-level spend|later searches added no new source/i.test(text);
+}
+
 /** Turn unresolved/caveat/limitation prose into a short next-ask question. */
 export function asFollowUpQuestion(text: string): string {
-  let t = text.replace(/\s+/g, " ").trim();
+  let t = firstSentence(text);
   if (!t) return "";
   t = t.replace(/^(unresolved|caveat|limitation|note)\s*[:\-—]\s*/i, "");
+  if (isProcessMetaFollowUp(t)) return "";
   if (/\?\s*$/.test(t)) return shorten(t, FOLLOW_UP_PROMPT_MAX);
 
   let m = t.match(/^(.+?)\s+(?:is|are|remains?)\s+unresolved\.?$/i);
@@ -50,7 +63,9 @@ export function asFollowUpQuestion(text: string): string {
     );
   }
 
-  return shorten(`Resolve ${decapitalize(t.replace(/[.!]+$/, ""))}?`, FOLLOW_UP_PROMPT_MAX);
+  const stripped = t.replace(/[.!]+$/, "").trim();
+  if (stripped.length < 12 || stripped.length > 80) return "";
+  return shorten(`What about ${decapitalize(stripped)}?`, FOLLOW_UP_PROMPT_MAX);
 }
 
 /** Fill the composer from a chip; keeps replace_question lineage without dumping caveat prose. */

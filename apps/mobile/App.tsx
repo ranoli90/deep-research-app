@@ -178,6 +178,7 @@ function AppInner() {
   const [processors, setProcessors] = useState<string[]>([]);
   const [privacyFlows, setPrivacyFlows] = useState("");
   const [deletionVsSub, setDeletionVsSub] = useState("");
+  const [processorDetailsOpen, setProcessorDetailsOpen] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const [flagOpen, setFlagOpen] = useState(false);
   const [flagCategory, setFlagCategory] = useState<(typeof OUTPUT_REPORT_CATEGORIES)[number]>("inaccurate");
@@ -1564,6 +1565,8 @@ function AppInner() {
               setAppearance(value);
               void AsyncStorage.setItem(APPEARANCE_KEY, value).catch(() => undefined);
             }}
+            processorDetailsOpen={processorDetailsOpen}
+            onToggleProcessorDetails={() => setProcessorDetailsOpen((open) => !open)}
             onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
             onConsent={grantConsent}
             onSignIn={() => { void ensureSession().catch(() => undefined); }}
@@ -1652,7 +1655,7 @@ function AppInner() {
                 }))}
                 accessibilityRole="button"
                 accessibilityLabel={`Follow up: ${item.prompt}`}
-                hitSlop={8}
+                hitSlop={12}
                 style={styles.followChipHit}
               >
                 <Text style={styles.followChip}>{item.label}</Text>
@@ -1668,8 +1671,8 @@ function AppInner() {
           editable={hydrated && !verificationBusy && !sourceDeleteBusy && uploadStatus === null && !correctionPending && state.run?.lifecycle !== "awaiting_input"}
           sendDisabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion || correctionPending || verificationBusy || state.offline || state.run?.lifecycle === "awaiting_input" || (composerContinues && !correctionReady)}
           pendingAdmission={!!state.pendingAdmission}
-          placeholder="What should I research?"
-          sendAccessLabel="Start research"
+          placeholder={composerContinues ? "Ask anything" : "What should I research?"}
+          sendAccessLabel={composerContinues ? "Send follow-up" : "Start research"}
           attachOpen={attachVisible}
           inProgress={activity.inProgress && state.run?.lifecycle !== "awaiting_input"}
           onChange={(draft) => setState((s) => ({ ...s, draft }))}

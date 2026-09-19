@@ -83,6 +83,22 @@ describe("follow-up chips from the report", () => {
     })).toBe("What is warranty length?");
   });
 
+  it("does not turn research-process caveats into Resolve dumps", () => {
+    const chips = followUpSuggestions({
+      blocks: [
+        block("unresolved-warranty", "text", "Warranty length is unresolved."),
+        block("caveat-disconfirm", "caveat", "Disconfirmation remains unresolved. Absence of a recorded counterexample is not proof."),
+        block("caveat-spend", "caveat", "App-level spend counters are not a guarantee of opaque provider-internal cost."),
+      ],
+      limitations: [
+        "Later searches added no new source families.",
+        "Fixture or bounded live route; not an exhaustive literature review.",
+      ],
+    });
+    expect(chips.map((c) => c.prompt)).toEqual(["What is warranty length?"]);
+    expect(chips.every((c) => !c.prompt.startsWith("Resolve "))).toBe(true);
+  });
+
   it("keeps chips above the composer and visible while the keyboard is open", () => {
     const src = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
     expect(src).toMatch(/accessibilityLabel="Suggested follow-ups"/);
