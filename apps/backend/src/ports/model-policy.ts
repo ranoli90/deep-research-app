@@ -42,3 +42,9 @@ export function modelPolicy(id:unknown = STRUCTURED_MODEL_POLICY.id) {
   if (id === AZURE_ZDR_DISCOVERY_POLICY.id) return AZURE_ZDR_DISCOVERY_POLICY;
   throw new Error("unsupported_model_policy");
 }
+
+/** Production configuration advances new admissions only; run policy/replay never calls this. */
+export function strictPolicyForNewAdmission(id?: string): ModelPolicyId {
+ const policy=modelPolicy(id ?? STRUCTURED_STRICT_POLICY.id);
+ return policy.provider === "azure" ? AZURE_ZDR_STRICT_POLICY.id : STRUCTURED_STRICT_POLICY.id;
+}

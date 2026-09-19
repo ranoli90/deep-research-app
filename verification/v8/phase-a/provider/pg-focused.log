@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+> vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts test/model-gateway.integration.test.ts -t 'ENG-006|availability failover|unknown fallback|primary 429|issued reservation|does not resend|known-zero|repair'
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+
+
+ Test Files  2 passed (2)
+      Tests  12 passed | 152 skipped (164)
+   Start at  17:20:06
+   Duration  14.98s (transform 5.65s, setup 0ms, import 7.31s, tests 6.86s, environment 1ms)
+

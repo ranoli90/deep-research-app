@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+> vitest run --config vitest.unit.config.ts test/token-budget.unit.test.ts test/model-governor.unit.test.ts test/model-gateway.unit.test.ts test/openrouter.unit.test.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+
+
+ Test Files  4 passed (4)
+      Tests  57 passed (57)
+   Start at  17:17:54
+   Duration  4.55s (transform 5.96s, setup 0ms, import 8.45s, tests 663ms, environment 2ms)
+

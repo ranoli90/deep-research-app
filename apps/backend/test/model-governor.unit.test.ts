@@ -1,3 +1,4 @@
+import { loadConfig } from "../src/platform/config.js";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -362,4 +363,10 @@ describe("cheap-first run admission", () => {
       attemptReserveMicro: 21_658,
     })).toThrow("zdr_incompatible_unavailable");
   });
+});
+
+it("advances production new admissions to strict semantics without changing the configured processor",()=>{
+ expect(loadConfig({STRUCTURED_MODEL_POLICY_ID:"openrouter-azure-mini-zdr-discovery-v3"}).structuredModelPolicyId).toBe("openrouter-azure-mini-zdr-strict-v4");
+ expect(loadConfig({STRUCTURED_MODEL_POLICY_ID:STRUCTURED_MODEL_POLICY.id}).structuredModelPolicyId).toBe("openrouter-openai-mini-strict-v4");
+ expect(replayPolicyIdentity("openrouter-azure-mini-zdr-discovery-v3").id).toBe("openrouter-azure-mini-zdr-discovery-v3");
 });
