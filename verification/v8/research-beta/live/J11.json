@@ -1,12 +1,12 @@
 {
   "id": "J11",
   "question": "Which currently sold US electric cars have EPA range over 300 miles and a starting MSRP under $45,000?",
-  "runId": "16381869-8fe3-49f7-8faf-bbde2d93eb8e",
+  "runId": "cd46275e-9da9-4e34-94dc-7acc1db2001d",
   "after": {
     "lifecycle": "terminal",
-    "phase": "researching",
-    "outcome": null,
-    "reportId": null
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "62f893d9-fe80-4b93-918a-74cc96909e73"
   },
   "eventTypes": [
     "accepted",
@@ -19,31 +19,15 @@
     "source_read",
     "source_read",
     "model_span_resolution",
-    "model_span_resolution",
     "evidence_checked",
-    "searching",
-    "sources_found",
-    "source_read",
-    "source_read",
-    "source_read",
-    "model_span_resolution",
-    "evidence_checked",
-    "searching",
-    "sources_found",
-    "source_read",
-    "source_read",
-    "model_span_resolution",
-    "model_span_resolution",
-    "evidence_checked",
-    "discovery_exhausted",
-    "research_unresolved"
+    "writing"
   ],
   "cost": {
-    "runId": "16381869-8fe3-49f7-8faf-bbde2d93eb8e",
+    "runId": "cd46275e-9da9-4e34-94dc-7acc1db2001d",
     "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
     "routeMode": "controlled-research",
-    "spentMicro": 48470,
-    "confirmedProviderMicro": 48470,
+    "spentMicro": 17465,
+    "confirmedProviderMicro": 17465,
     "heldProviderMicro": 0,
     "unknownProviderIntents": 0,
     "simulatedFixtureMicro": 0,
@@ -55,12 +39,38 @@
       "search": 0,
       "fetch": 0,
       "synthesize": 0,
-      "other": 48470
+      "other": 17465
     },
-    "intentTotalMicro": 48470,
+    "intentTotalMicro": 17465,
     "reconciled": true,
     "tariffVersion": null,
     "effectiveProcessor": "openrouter"
   },
-  "reportPreview": null
+  "reportPreview": {
+    "reportId": "62f893d9-fe80-4b93-918a-74cc96909e73",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved."
+    ],
+    "blockCount": 4,
+    "claimCount": 0,
+    "texts": [
+      [
+        "heading",
+        "Answer"
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ]
+    ]
+  }
 }

@@ -1,3 +1,7 @@
+## J11/J12 live + caveat tests — 2026-09-19
+
+Focused research-core 76/76 and backend units 224/224 after caveat-citation and token-admission tests. Live J12 `51f73565` published OWASP Prompt Injection `d8c5ebcc`. J11-c extract grounded 321-mile / $37,900; writer body unpublished. Ledger **1,070,594 µ**. Device unlocked; installed APK is not HEAD. **Not merged to `main`.**
+
 ## J10 official-source cited wage report — 2026-09-19
 
 Lane `grok-v8/research-beta-integration`. Live J10-e run `6fb90ce8` published report `3e4eb8d8` (`completed_with_limitations`) after mid-run `Only use official sources` (`kind=steer`, identities not mutated). Adopted sources were dol.gov and uscode.house.gov. Owned US Code span `(C) $7.25 an hour, beginning 24 months after that 60th day;`. Ledger **919,563 µ** of the **2,000,000 µ** cap. Unknown holds not retried. **Not merged to `main`. Research Beta is not declared.**

@@ -10,7 +10,7 @@ Filled kit matrix: `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv`.
 | Gate | Result | Exact blocker / artifact |
 |---|---|---|
 | Hosted `verification.yml` (RB-CI-01) | **BLOCKER** | Owner declined hosted GitHub Actions. Do not dispatch `verification.yml`. Historical billing lock on `35437540425` remains unused. Local `pnpm verify` is evidence only. |
-| Live J1–J12 (RB-LIVE-01/02/03) | **PASS with limitations** | Cited J1–J7, J9, J10-e US Code `$7.25` (`3e4eb8d8`). Ledger **919,563 µ** of **2,000,000 µ**. J8 needs a user attachment. J12 has no hosted poisoned URL. Not competitor-parity quality. |
+| Live J1–J12 (RB-LIVE-01/02/03) | **PASS with limitations** | Cited J1–J7, J9, J10-e US Code `$7.25`, J12 OWASP `d8c5ebcc`. J11-c extract supported; writer unpublished. Ledger **1,070,594 µ** of **2,000,000 µ**. J8 needs a user attachment. Not competitor-parity quality. |
 | Non-paid engineering | PASS with artifacts | `pnpm verify` EXIT 0; PG **475/475 twice**; frozen extraction 9/9; intent NL **52**; injection kit 50 unit cases; device APK `2eb385b` / EAS `7e4b02c8`. |
 | Competitor superiority | **not claimed** | No matched ChatGPT/Perplexity/Gemini/Claude/Grok trials. |
 

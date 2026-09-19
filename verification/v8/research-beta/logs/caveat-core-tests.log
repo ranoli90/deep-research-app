@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-v8-integration/packages/research-core
+
+ ✓ test/v6-publication.test.ts (23 tests) 76ms
+ ✓ test/scoped-support.test.ts (24 tests) 828ms
+ ✓ test/source-strategy.test.ts (7 tests) 159ms
+ ✓ test/draft-report.test.ts (2 tests) 83ms
+ ✓ test/research-beta-intelligence.test.ts (20 tests) 769ms
+     ✓ keeps every original question immutable  418ms
+
+ Test Files  5 passed (5)
+      Tests  76 passed (76)
+   Start at  11:19:19
+   Duration  5.99s (transform 6.18s, setup 0ms, import 9.16s, tests 1.91s, environment 2ms)
+

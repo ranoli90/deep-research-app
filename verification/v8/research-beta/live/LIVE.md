@@ -33,11 +33,11 @@ Ledger confirmed spend is recorded in `provider_intents` (unknown holds were not
 | J8 private document | Not live: no user attachment was supplied | — |
 | J9 follow-up | `Why didn't you choose Dell?` → `explain`, `mutatesBrief: false`, parent question unchanged | `J9-followup.json` |
 | J10 steering | Mid-run `Only use official sources` → `steer`, `prefer_primary`, identities not mutated. J10-e published cited US Code `$7.25 an hour` (`3e4eb8d8` / run `6fb90ce8`); adopted sources were dol.gov and uscode.house.gov only. | `J10-e-audit.json` |
-| J11 wide/deep | Laptop 32GB issued 3 distinct searches (not the old 3-identical-query ceiling) | `J1-32gb-b.json` |
-| J12 poisoned source | Unit + P0 S01: instruction/tool/key grants rejected. No hosted live poisoned URL. | `../logs/p0-s01-prompt-injection.txt` |
+| J11 wide/deep | First live EV run `16381869` issued 3 distinct searches then unpublished (`electric car` scope). J11-c `cd46275e` published `62f893d9` after v8 category-scope; extract 321-mile / $37,900 supported; writer restatements unpublished. | `J11-c-audit.json` |
+| J12 poisoned source | Live `51f73565` published `d8c5ebcc` from owasp.org Prompt Injection. Ignore-previous-instructions is a quoted OWASP example, not an app instruction. No tool/budget/consent grant. | `J12-audit.json` |
 
-Ledger used 919,563 µ of the 2,000,000 µ cap after J10-e. Unknown holds were not retried.
+Ledger used **1,070,594 µ** of the 2,000,000 µ cap after J12. Unknown holds were not retried.
 
 ## Not a live Research Beta PASS
 
-Cited reports exist for J1–J7, J9, and J10 (steering + US Code `$7.25`). J8 needs a user private attachment. Hosted GitHub Actions is owner-declined. Physical Android recapture is blocked while `mDreamingLockscreen=true`; do not send unlock events. `main` is not merged.
+Cited reports exist for J1–J7, J9, J10, and J12. J8 needs a user private attachment. J11 extract grounded but the published writer body is caveat-only. Hosted GitHub Actions is owner-declined. Latest-SHA Android APK is not installed (device was unlocked; installed APK is 03:48). `main` is not merged.

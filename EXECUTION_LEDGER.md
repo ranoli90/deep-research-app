@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — J11/J12 live and caveat-citation tests
+
+- research-core focused 76/76; backend units 224/224 (passage-capacity now token-aware).
+- J11 16381869: 3 distinct EV searches, unpublished (category entity). J11-c cd46275e published empty writer caveats after v8 scope.
+- J12 51f73565 published d8c5ebcc from owasp.org; injection quoted not followed.
+- Ledger 1,070,594 µ. main not merged.
+
 ## 2026-09-19 — J10-e cited US Code federal minimum wage
 
 - Steer `Only use official sources` persisted `prefer_primary` without mutating issued identities.

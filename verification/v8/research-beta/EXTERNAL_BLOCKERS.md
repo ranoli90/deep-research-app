@@ -29,9 +29,9 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 **Required:** none. Owner declined hosted Actions. Do not prompt for laptop/device passwords; use passwordless adb/local commands only.
 
-## 3. Physical Android recapture — screen locked
+## 3. Physical Android latest-SHA APK
 
-`adb devices -l` shows `10.0.0.167:43417` (`kunzite_global` / 25098RA98G) connected. Passwordless `screencap` returns a black frame (`mDreamingLockscreen=true`). Recapture of empty/dark/keyboard/report shots on a post-2eb385b APK is blocked until the device is already unlocked. Do not send unlock/keyevents. Existing visual QA remains `verification/v8/research-beta/visual-qa/` on APK `2eb385b`.
+Device `10.0.0.167:43417` was **unlocked** at 11:18 (`mDreamingLockscreen=false`) and showed Deep empty-home. Installed package `app.deepresearch.mobile` `lastUpdateTime=2026-09-19 03:48:27` is not integration HEAD. Recapture of the **latest** UI still needs a new APK. Unlocked shots of the installed APK: `verification/v8/research-beta/visual-qa/unlocked/`. Do not send unlock/keyevents.
 
 ## After remaining blockers
 

@@ -1,0 +1,27 @@
+{
+  "id": "J11-c-audit",
+  "runId": "cd46275e-9da9-4e34-94dc-7acc1db2001d",
+  "reportId": "62f893d9-fe80-4b93-918a-74cc96909e73",
+  "question": "Which currently sold US electric cars have EPA range over 300 miles and a starting MSRP under $45,000?",
+  "outcome": "completed_with_limitations",
+  "spentMicro": 17465,
+  "searches": 1,
+  "priorAttempts": {
+    "J11": "16381869 three distinct searches then no_supported_assertions; entity electric car not in quotes",
+    "J11-b": "6eb20982 entity electric cars plural still out_of_scope on v7"
+  },
+  "extract": {
+    "epa_range": "supported scoped-support.v8 from Kia EV3/EV6 quote EPA-est. 321-mile driving range (Wind FWD)",
+    "msrp": "supported scoped-support.v8 from EV6 $37,900 starting MSRP"
+  },
+  "writer": {
+    "paragraphsAttempted": [
+      "The Kia EV6 has an EPA-estimated driving range of 321 miles, which meets the requirement of having an EPA range over 300 miles.",
+      "The starting MSRP of the Kia EV6 is $37,900, which is under the specified limit of $45,000."
+    ],
+    "published": "heading Answer plus three unresolved caveats; claimCount 0",
+    "note": "Writer restated the 300-mile / $45,000 constraints that are not in the cited fragments. Publication correctly refused those sentences."
+  },
+  "userRepairRequired": "A useful J11 answer needs manufacturer range and price in the same owned span, or a writer that does not add unquoted eligibility arithmetic.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

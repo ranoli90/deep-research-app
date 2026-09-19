@@ -1,3 +1,7 @@
+## J11/J12 live — 2026-09-19
+
+J12 cited OWASP prompt-injection page without following the attack string. J11 needs a writer that does not add unquoted 300-mile / $45k arithmetic. Caveat-citation unit tests 76 core / 224 backend. Do not merge `main`.
+
 ## J10 official-source cited wage report — 2026-09-19
 
 Live J10-e published cited 29 U.S.C. §206 `$7.25 an hour` after official-source steering. Audit `verification/v8/research-beta/live/J10-e-audit.json`. Do not merge `main`. Remaining: GHA owner-declined; Android lockscreen; J8 private attachment.
