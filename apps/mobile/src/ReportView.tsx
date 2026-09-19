@@ -148,6 +148,9 @@ export function ReportSections({
               {section.title}
             </Text>
           ))}
+          {Object.keys(numbers).length > 0 ? (
+            <Text style={styles.kicker}>Sources used: {Object.keys(numbers).length}</Text>
+          ) : null}
         </View>
       ) : null}
       {sections.map((section) => (

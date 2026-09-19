@@ -55,6 +55,35 @@ export function parseDirectUrls(text: string): string[] {
   return [...new Set(found)];
 }
 
+export function encodeSourcePolicy(policy: SourcePolicy): string[] {
+  const rows = [`mode:${policy.mode}`];
+  for (const d of policy.trustedDomains) rows.push(`trusted:${d}`);
+  for (const d of policy.allowedDomains) rows.push(`allow:${d}`);
+  for (const d of policy.excludedDomains) rows.push(`exclude:${d}`);
+  for (const u of policy.userSuppliedUrls) rows.push(`url:${u}`);
+  return rows;
+}
+
+export function policyFromRestrictions(restrictions: readonly string[] | undefined): SourcePolicy {
+  const policy = defaultSourcePolicy();
+  for (const raw of restrictions ?? []) {
+    const [kind, ...rest] = raw.split(":");
+    const value = rest.join(":").trim();
+    if (!value) continue;
+    if (kind === "mode" && ["open_web", "prefer_primary", "trusted_domains", "allowed_domains", "excluded_domains"].includes(value)) {
+      policy.mode = value as SourcePolicyMode;
+    } else if (kind === "trusted") policy.trustedDomains.push(value.toLowerCase());
+    else if (kind === "allow") policy.allowedDomains.push(value.toLowerCase());
+    else if (kind === "exclude") policy.excludedDomains.push(value.toLowerCase());
+    else if (kind === "url") policy.userSuppliedUrls.push(value);
+  }
+  policy.trustedDomains = [...new Set(policy.trustedDomains)];
+  policy.allowedDomains = [...new Set(policy.allowedDomains)];
+  policy.excludedDomains = [...new Set(policy.excludedDomains)];
+  policy.userSuppliedUrls = [...new Set(policy.userSuppliedUrls)];
+  return policy;
+}
+
 export function mergeSteeringIntoPolicy(policy: SourcePolicy, message: string): SourcePolicy {
   const urls = parseDirectUrls(message);
   const next: SourcePolicy = {

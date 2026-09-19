@@ -3,7 +3,7 @@ import { compileResearchIntent, inferTaskFamily } from "../src/intent-compiler.j
 import { evaluateClarificationValue } from "../src/clarification-value.js";
 import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion } from "../src/evidence-needs.js";
 import { routeFollowUp } from "../src/follow-up-router.js";
-import { applySourcePolicy, defaultSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls } from "../src/source-policy.js";
+import { applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
 import { buildCandidateLedger, reopenExclusions } from "../src/candidate-ledger.js";
 import { planTypedQuery } from "../src/query-planning.js";
 import { evaluateDiscoveryContinuation } from "../src/adaptive-breadth.js";
@@ -119,6 +119,10 @@ describe("source policy and query planning", () => {
     const policy = mergeSteeringIntoPolicy(defaultSourcePolicy(), "Only use official sources. Exclude spam.example");
     expect(policy.mode).toBe("prefer_primary");
     expect(applySourcePolicy(policy, "https://spam.example/a")).toBe("exclude");
+    const steered = mergeSteeringIntoPolicy(defaultSourcePolicy(), "Only use official sources. Exclude reddit.com");
+    expect(steered.mode).toBe("prefer_primary");
+    expect(encodeSourcePolicy(steered)).toEqual(expect.arrayContaining(["mode:prefer_primary", "exclude:reddit.com"]));
+    expect(policyFromRestrictions(encodeSourcePolicy(steered)).excludedDomains).toContain("reddit.com");
     expect(applySourcePolicy({ ...policy, trustedDomains: ["nist.gov"] }, "https://csrc.nist.gov/x")).toBe("prefer");
   });
 

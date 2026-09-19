@@ -15,6 +15,13 @@ describe("token-aware context admission", () => {
     expect(estimateTokens("abcd")).not.toBe(Buffer.byteLength("abcd"));
   });
 
+  it("gives same-evidence repair a new request identity", () => {
+    const first = prepareModelRequest("write_report", context);
+    const repair = prepareModelRequest("write_report", context, STRUCTURED_MODEL_POLICY.id, { repairPass: 1 });
+    expect(repair.digest).not.toBe(first.digest);
+    expect(repair.body).toMatch(/Same-evidence repair pass 1/);
+  });
+
   it("uses operation-specific output and deadline", () => {
     expect(operationBudget("brief", STRUCTURED_MODEL_POLICY.id).deadlineMs).toBe(45_000);
     expect(operationBudget("write_report", STRUCTURED_MODEL_POLICY.id).maxOutputTokens).toBeGreaterThan(4096);

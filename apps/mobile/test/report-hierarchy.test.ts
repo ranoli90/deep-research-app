@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { editorialSections, reportOutline } from "../src/report-hierarchy";
 import type { ReportBlock } from "../src/state";
@@ -30,5 +32,13 @@ describe("editorial report hierarchy", () => {
     const evidence = sections.find((s) => s.id === "evidence");
     expect(evidence?.blocks).toHaveLength(1);
     expect(evidence?.blocks[0]?.id).toBe("custom-note");
+  });
+
+  it("shows an outline and sources-used count on detailed reports", () => {
+    const report = readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8");
+    const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    expect(app).toContain("showOutline={detailed}");
+    expect(report).toContain("Sources used:");
+    expect(report).toContain('accessibilityLabel="Report outline"');
   });
 });

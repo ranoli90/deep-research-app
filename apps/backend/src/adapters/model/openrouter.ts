@@ -27,7 +27,7 @@ const Envelope = z.object({
 
 /** Canonical schemas generate the provider contract; local validation remains mandatory.
  * Optional extras (session stickiness) must not be passed for historical policy replay. */
-export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string }): PreparedModelRequest<K> {
+export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string; repairPass?: number }): PreparedModelRequest<K> {
   const policy=modelPolicy(policyId);
   const budget = operationBudget(operation, policy.id);
   const contextText = JSON.stringify(ModelContextSchema.parse(context));
@@ -38,7 +38,7 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
     provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny", ...(policy.provider === "azure" ? {zdr:true} : {}),
       max_price: { prompt: policy.promptMicroPerMillion / 1_000_000, completion: policy.completionMicroPerMillion / 1_000_000, request: 0 } },
     response_format: { type: "json_schema", json_schema: { name: `research_${operation}_v1`, strict: true, schema } },
-    messages: [{ role: "system", content: modelPrompt(operation) }, { role: "user", content: contextText }],
+    messages: [{ role: "system", content: modelPrompt(operation) + (extras?.repairPass ? `\nSame-evidence repair pass ${extras.repairPass}. Keep every citation and claim identity exact.` : "") }, { role: "user", content: contextText }],
     ...(extras?.sessionId ? { session_id: extras.sessionId } : {}),
   });
   admitContextTokens({ contextText, bodyText: body, operation, policyId: policy.id });

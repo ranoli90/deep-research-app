@@ -1334,6 +1334,7 @@ function AppInner() {
                 <ReportSections
                   blocks={blocks}
                   detailed={detailed}
+                  showOutline={detailed}
                   styles={styles}
                   citationIndex={citeIndex}
                   onOpenSource={(id, blockId) => {
@@ -1694,7 +1695,7 @@ function AppInner() {
           styles={{
             ...styles,
             composerDock: [styles.composerDock, { paddingBottom: keyboardOpen
-              ? (Platform.OS === "android" ? Math.max(keyboardInset, space.xs) : space.xs)
+              ? (Platform.OS === "android" ? Math.max(keyboardInset - Math.max(insets.bottom, 0), space.xs) + 16 : space.xs)
               : Math.max(insets.bottom, space.sm) }],
           }}
         />

@@ -25,8 +25,12 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
     if(old.rowCount)args={...args,calculationPlanIntentId:undefined};
   }
   const basis=await session.write(async (db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},await runModelVersions(db,args.runId)));
-  const result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
+  let result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
+  if(result.result.status==="invalid_output"){
+    result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report",repairPass:1});
+    if(result.kind!=="result")return result;
+  }
   if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
   // Check bounded target expansion before adopting a draft; never silently omit final prose.
   try { const {calculationKeys:_,...ordinary}=result.result.output as typeof result.result.output & {calculationKeys?:string[]}; draftStatements(ordinary,basis.context.assertions,basis.context.approvedClaimKeys); }

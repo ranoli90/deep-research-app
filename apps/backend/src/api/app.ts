@@ -22,6 +22,9 @@ import {
   parseCorrection,
   routeFollowUp,
   shouldFullRerun,
+  encodeSourcePolicy,
+  mergeSteeringIntoPolicy,
+  policyFromRestrictions,
 } from "@deep/research-core";
 import type PgBoss from "pg-boss";
 import type pg from "pg";
@@ -553,6 +556,30 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
       if (routed.kind === "explain" && !routed.mutatesBrief) {
         return { kind: "explain", runId: id, reason: routed.reason, mutatesBrief: false };
+      }
+      if ((routed.kind === "steer" || routed.kind === "add_source") && !routed.mutatesBrief) {
+        await withTx(pool, async (db) => {
+          await lockActiveAccount(db, a.accountId);
+          const current = await getRun(db, id, { forUpdate: true });
+          if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+          const brief = await getBrief(db, current.brief_id);
+          const nextPolicy = mergeSteeringIntoPolicy(policyFromRestrictions(brief.sourceRestrictions), followBody.message!);
+          const originalQuestion = brief.originalQuestion;
+          await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify({
+            ...brief,
+            originalQuestion,
+            sourceRestrictions: encodeSourcePolicy(nextPolicy),
+          })]);
+          await emitEvent(db, {
+            runId: id,
+            accountId: a.accountId,
+            type: "plan_pivot",
+            summary: routed.kind === "add_source" ? "A source URL was added for later research steps." : "Source preferences were updated for later research steps.",
+            phase: current.phase,
+            payload: { kind: routed.kind, mutatesIssuedIdentities: false },
+          });
+        });
+        return { kind: routed.kind, runId: id, reason: routed.reason, mutatesBrief: false, mutatesIssuedIdentities: false };
       }
     }
     if(run.route_mode==="controlled-research"){
