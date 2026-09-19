@@ -1,8 +1,24 @@
 import { expect, it, vi } from "vitest";
 import { isValidElement, type ReactNode } from "react";
 const { focus } = vi.hoisted(() => ({ focus: vi.fn() }));
-vi.mock("react", async importOriginal => ({ ...await importOriginal<typeof import("react")>(), useRef: (value: unknown) => ({ current: value }), useState: (value: unknown) => [value, vi.fn()] }));
-vi.mock("react-native", () => ({ AccessibilityInfo: { setAccessibilityFocus: focus }, findNodeHandle: (node: unknown) => node ? 12 : null, Pressable: "Pressable", ScrollView: "ScrollView", Text: "Text", View: "View" }));
+vi.mock("react", async importOriginal => ({ ...await importOriginal<typeof import("react")>(), useRef: (value: unknown) => ({ current: value }), useState: (value: unknown) => [value, vi.fn()], useEffect: () => {} }));
+vi.mock("react-native", () => ({
+  AccessibilityInfo: { setAccessibilityFocus: focus },
+  findNodeHandle: (node: unknown) => node ? 12 : null,
+  Pressable: "Pressable",
+  ScrollView: "ScrollView",
+  Text: "Text",
+  View: "View",
+  Platform: { OS: "android" },
+  Vibration: { vibrate() {} },
+  Easing: { out: (value: unknown) => value, cubic: {} },
+  Animated: {
+    Value: class { setValue() {} },
+    parallel: () => ({ start() {} }),
+    timing: () => ({ start() {} }),
+    View: "View",
+  },
+}));
 import { SourceSheet } from "../src/SourceSheet";
 function tree(node: ReactNode): { type: unknown; props: Record<string, any> }[] {
   if (Array.isArray(node)) return node.flatMap(tree);

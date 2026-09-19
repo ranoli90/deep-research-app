@@ -2,7 +2,7 @@
 
 Root AGENTS.md applies; these rules cannot weaken it.
 
-**Current status:** Expo app in this directory implements Research as the only home (no bottom tabs), Library from the header, Settings from the avatar, searching stream, quiet/send/stop composer, Add sources sheet, flush-left report, and source sheet. Wide left-drawer Library polish remains open. Native device evidence is a separate P0-N gate.
+**Current status:** Expo app in this directory implements Research as the only home (no bottom tabs), Library from the header, Settings from the avatar, a docked hairline composer with 22px send inside a 44px hit, an event-rail activity surface, editorial report with tappable outline, quote-first source sheet, and searchable Library. Visual identity is `verification/v8/research-beta/VISUAL_IDENTITY.md`. Native device evidence is a separate P0-N gate.
 
 Import only public contracts and design/client code. Never call model providers with developer secrets. Screens contain presentation, not orchestration or billing policy. Consume semantic tokens from `packages/design`; editorial consumer UI, not a chatbot clone, and do not copy competitor palettes. Test keyboard/safe areas/back behavior, large text, source-sheet return, offline/reconnect and process death. Exercise changed flows as a user (type, submit, navigate); a screenshot is not verification. Read specs/MOBILE_SCREEN_STATES.md. Actual iOS/Android evidence is required; browser previews do not substitute.
 

@@ -38,9 +38,10 @@ describe("editorial report hierarchy", () => {
     const report = readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8");
     const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
     expect(app).toContain("showOutline={detailed}");
+    expect(app).toContain("onJump=");
     expect(report).toContain("Sources used:");
     expect(report).toContain('accessibilityLabel="Report outline"');
-    expect(report).toContain('.join(" · ")');
+    expect(report).toContain("Jump to ${section.title}");
     expect(report).not.toMatch(/<Text style=\{styles\.kicker\}>Outline<\/Text>/);
   });
 });

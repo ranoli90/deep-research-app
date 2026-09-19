@@ -87,7 +87,7 @@ export function ProfilePanel({
 
   return (
     <ScrollView style={styles.body} accessibilityLabel="Settings">
-      <View style={styles.card} accessibilityLabel="Account">
+      <View style={styles.section} accessibilityLabel="Account">
         <View style={styles.row}>
           <View style={styles.avatar} accessibilityLabel={`Avatar ${initials}`}>
             <Text style={styles.avatarText}>{initials}</Text>

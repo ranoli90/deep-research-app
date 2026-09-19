@@ -90,6 +90,9 @@ describe("P0-N native state mapping", () => {
       readFileSync(join(import.meta.dirname, "../src/use-keyboard-inset.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ReportView.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ReportActions.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/CorrectionPanel.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/PendingBanners.tsx"), "utf8"),
     ].join("\n");
     expect(src).toMatch(/hydrateOnLaunch\(sessionStorage\)/);
     expect(src).toMatch(/persistSession\(sessionStorage/);
@@ -141,6 +144,9 @@ describe("P0-N native state mapping", () => {
       readFileSync(join(import.meta.dirname, "../src/ResearchHeader.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/use-keyboard-inset.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/CorrectionPanel.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/ReportActions.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/PendingBanners.tsx"), "utf8"),
     ].join("\n");
     for (const label of [
       'accessibilityLabel="Research question"',
@@ -171,7 +177,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);
     expect(src).not.toMatch(/allowFontScaling=\{false\}/);
     expect(src).toMatch(/maxFontSizeMultiplier=\{2\}/);
-    expect(src).toMatch(/maxHeight: 180/);
+    expect(src).toMatch(/maxHeight: 160/);
     expect(src).toMatch(/isOfflineError/);
     expect(src).toMatch(/AppState\.addEventListener/);
     expect(src).not.toMatch(/accessibilityLabel="Your question"/);

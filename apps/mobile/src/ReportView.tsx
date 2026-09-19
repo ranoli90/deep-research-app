@@ -106,7 +106,8 @@ export function ReportBlockView({
               onPress={() => onOpenSource(id)}
               accessibilityRole="button"
               accessibilityLabel={`Open source ${index}`}
-              style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
+              hitSlop={14}
+              style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center" }}
             >
               <Text style={[styles.citeChip, styles.citeLink]}>{citationChipLabel(index)}</Text>
             </Pressable>
@@ -126,6 +127,7 @@ export function ReportSections({
   citationIndex = {},
   showOutline = false,
   onCitationRef,
+  onJump,
 }: {
   blocks: ReportBlock[];
   detailed: boolean;
@@ -135,20 +137,32 @@ export function ReportSections({
   citationIndex?: Record<string, number>;
   showOutline?: boolean;
   onCitationRef?: (id: string, node: View | null, blockId: string) => void;
+  onJump?: (blockId: string) => void;
 }) {
   const sections = editorialSections(blocks);
   const numbers = Object.keys(citationIndex).length > 0 ? citationIndex : citationNumbers(blocks);
+  const outline = sections.filter((section) => section.id !== "answer");
   return (
     <>
       {showOutline && detailed && sections.length > 1 ? (
         <View style={styles.outline} accessibilityLabel="Report outline">
-          <Text style={styles.outlineItem} numberOfLines={2}>
-            {sections
-              .filter((section) => section.id !== "answer")
-              .map((section) => section.title)
-              .join(" · ")}
-            {Object.keys(numbers).length > 0 ? ` · Sources used: ${Object.keys(numbers).length}` : ""}
-          </Text>
+          {outline.map((section) => (
+            <Pressable
+              key={section.id}
+              onPress={() => {
+                const target = section.blocks[0]?.id;
+                if (target) onJump?.(target);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Jump to ${section.title}`}
+              hitSlop={8}
+            >
+              <Text style={styles.outlineItem} numberOfLines={1}>{section.title}</Text>
+            </Pressable>
+          ))}
+          {Object.keys(numbers).length > 0 ? (
+            <Text style={styles.outlineItem}>Sources used: {Object.keys(numbers).length}</Text>
+          ) : null}
         </View>
       ) : null}
       {sections.map((section) => (

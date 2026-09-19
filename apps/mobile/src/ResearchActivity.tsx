@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { motion } from "@deep/design";
 import {
   collapseResearchActivity,
   currentActivityLine,
@@ -16,6 +17,11 @@ type Styles = {
   activityNow: StyleProp<TextStyle>;
   activityItem: StyleProp<ViewStyle>;
   activityDetail?: StyleProp<TextStyle>;
+  activityRail?: StyleProp<ViewStyle>;
+  activityTick?: StyleProp<ViewStyle>;
+  activityTickNow?: StyleProp<ViewStyle>;
+  activityStem?: StyleProp<ViewStyle>;
+  activityCopy?: StyleProp<ViewStyle>;
   link: StyleProp<TextStyle>;
   row: StyleProp<ViewStyle>;
   sourcePill?: StyleProp<ViewStyle>;
@@ -33,8 +39,8 @@ function ResearchPulse({ reduced, color }: { reduced: boolean; color: string }) 
     }
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0.28, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: motion.pulse / 2, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.28, duration: motion.pulse / 2, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
       ]),
     );
     loop.start();
@@ -117,19 +123,29 @@ export function ResearchActivity({
           {pills.length > 5 ? <Text style={styles.activityDetail}>+{pills.length - 5}</Text> : null}
         </View>
       ) : null}
-      {expanded ? visible.map((event, index) => (
-        <View key={event.sequence} style={styles.activityItem} accessibilityLabel={`Activity ${event.sequence}`}>
-          <Text style={index === visible.length - 1 && inProgress ? styles.activityNow : styles.activityLine}>{event.label}</Text>
-          {event.detail ? (
-            <Text
-              style={styles.activityDetail ?? styles.activityLine}
-              accessibilityLabel={[event.sourceTitle, event.sourceDomain].filter(Boolean).join(" · ") || event.detail}
-            >
-              {event.detail}
-            </Text>
-          ) : null}
-        </View>
-      )) : null}
+      {expanded ? visible.map((event, index) => {
+        const last = index === visible.length - 1;
+        const live = last && inProgress;
+        return (
+          <View key={event.sequence} style={styles.activityItem} accessibilityLabel={`Activity ${event.sequence}`}>
+            <View style={styles.activityRail}>
+              <View style={live ? styles.activityTickNow : styles.activityTick} />
+              {last ? null : <View style={styles.activityStem} />}
+            </View>
+            <View style={styles.activityCopy}>
+              <Text style={live ? styles.activityNow : styles.activityLine}>{event.label}</Text>
+              {event.detail ? (
+                <Text
+                  style={styles.activityDetail ?? styles.activityLine}
+                  accessibilityLabel={[event.sourceTitle, event.sourceDomain].filter(Boolean).join(" · ") || event.detail}
+                >
+                  {event.detail}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        );
+      }) : null}
     </View>
   );
 }

@@ -20,6 +20,10 @@ import { ReportSections } from "./src/ReportView";
 import { LibraryList } from "./src/LibraryList";
 import { EmptyHome } from "./src/EmptyHome";
 import { ResearchHeader } from "./src/ResearchHeader";
+import { PendingBanners } from "./src/PendingBanners";
+import { ReportActions } from "./src/ReportActions";
+import { CorrectionPanel } from "./src/CorrectionPanel";
+import { productHaptic } from "./src/haptics";
 import { useKeyboardInset } from "./src/use-keyboard-inset";
 import { composerDockBottomInset } from "./src/composer-keyboard";
 import { adoptPublicEvents } from "./src/research-activity";
@@ -40,9 +44,7 @@ import {
   Pressable,
   ScrollView,
   Share,
-  StyleSheet,
   Text,
-  TextInput,
   useColorScheme,
   View,
 } from "react-native";
@@ -131,6 +133,7 @@ function AppInner() {
   const detailed = true;
   const [activityExpanded, setActivityExpanded] = useState(false);
   const [sourceClaim, setSourceClaim] = useState<string | null>(null);
+  const announcedReport = useRef<string | null>(null);
 
   const savedCorrection = activeCorrectionDraft(state);
   const correction = savedCorrection?.question ?? "";
@@ -193,6 +196,13 @@ function AppInner() {
       setActivityExpanded(false);
     }
   }, [state.status]);
+  useEffect(() => {
+    if (!hydrated) return;
+    const id = state.report?.reportId;
+    if (!id || announcedReport.current === id) return;
+    announcedReport.current = id;
+    productHaptic("complete");
+  }, [hydrated, state.report?.reportId]);
 
   const briefView = researchBriefView({
     lifecycle: state.run?.lifecycle,
@@ -1134,29 +1144,27 @@ function AppInner() {
           }}
           styles={styles}
         />
-        {state.pendingContentInvalidation ? <View style={styles.card} accessibilityLabel="Deleted source cleanup">
-          <Text style={styles.bodyText}>A deleted source invalidated this report. Its saved content is hidden while device cleanup is retried.</Text>
-          <Pressable accessibilityRole="button" onPress={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}><Text style={styles.link}>Retry device cleanup</Text></Pressable>
-        </View> : null}
-        {state.pendingCorrectionDocuments ? <View style={styles.card} accessibilityLabel="Saved document correction">
-          <Text style={styles.bodyText}>A document correction is saved for its original report. Retry the same request to avoid starting another correction.</Text>
-          <Text style={styles.bodyText}>{state.pendingCorrectionDocuments.upload.uploads.map(u => `${u.filename}: ${u.attachmentId ? "uploaded" : "select original file again"}`).join("\n")}</Text>
-          {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove selection</Text></Pressable>)}
-          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select original file</Text></Pressable>
-          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Retry document correction</Text></Pressable>
-          <Pressable disabled={documentPending || correctionPending} accessibilityRole="button" onPress={() => void resolveDocumentCorrection()}><Text style={styles.link}>Check or withdraw document correction</Text></Pressable>
-          {uploadStatus ? <Text accessibilityLiveRegion="polite">{uploadStatus}</Text> : null}
-        </View> : null}
-        {state.pendingVerification ? <View style={styles.card} accessibilityLabel="Saved verification request">
-          <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
-          <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={() => void onFollowUp()}><Text style={styles.link}>Retry verification</Text></Pressable>
-          <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Check or withdraw verification" onPress={() => void resolvePendingVerification()}><Text style={styles.link}>Check or withdraw</Text></Pressable>
-        </View> : null}
-        {state.pendingSourceDeletion ? <View style={styles.card} accessibilityLabel="Pending source deletion">
-          <Text style={styles.bodyText}>Source and cached reports are hidden here. Server deletion is not yet confirmed. Retry to confirm it before reopening research.</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Retry source deletion" disabled={sourceDeleteBusy}
-            onPress={() => void onDeleteSource()}><Text style={styles.link}>{sourceDeleteBusy ? "Confirming deletion…" : "Retry deletion"}</Text></Pressable>
-        </View> : null}
+        <PendingBanners
+          styles={styles}
+          pendingContentInvalidation={!!state.pendingContentInvalidation}
+          pendingCorrectionDocuments={state.pendingCorrectionDocuments}
+          correctionFiles={correctionFiles}
+          documentPending={documentPending}
+          correctionPending={correctionPending}
+          uploadStatus={uploadStatus}
+          pendingVerification={!!state.pendingVerification}
+          verificationBusy={verificationBusy}
+          pendingSourceDeletion={!!state.pendingSourceDeletion}
+          sourceDeleteBusy={sourceDeleteBusy}
+          onRetryCleanup={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}
+          onRemoveCorrectionFile={(index) => setCorrectionFiles((files) => files.filter((_, i) => i !== index))}
+          onPickCorrectionDocument={() => void pickCorrectionDocument()}
+          onRetryDocumentCorrection={() => void addCorrectionDocuments()}
+          onResolveDocumentCorrection={() => void resolveDocumentCorrection()}
+          onRetryVerification={() => void onFollowUp()}
+          onResolveVerification={() => void resolvePendingVerification()}
+          onRetryDeletion={() => void onDeleteSource()}
+        />
         {state.error && statusLine?.kind !== "offline" && statusLine?.kind !== "failed" && statusLine?.kind !== "cancelled" ? (
           <Text style={styles.error} accessibilityLiveRegion="polite">
             {state.error}
@@ -1279,6 +1287,11 @@ function AppInner() {
                   showOutline={detailed}
                   styles={styles}
                   citationIndex={citeIndex}
+                  onJump={(blockId) => {
+                    const y = reading.current.jumpY(readerView, blockId);
+                    if (y == null) return;
+                    conversationScroll.current?.scrollTo({ y, animated: !latestUi.current.reducedMotion });
+                  }}
                   onOpenSource={(id, blockId) => {
                     const block = blocks.find((item) => item.id === blockId);
                     setSourceClaim(block?.text.slice(0, 180) ?? null);
@@ -1304,160 +1317,93 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
-                <Pressable onPress={() => onShare()} accessibilityRole="button" accessibilityLabel="Share report" hitSlop={12}>
-                  <Text style={styles.link}>Share report</Text>
-                </Pressable>
-                {!state.report.labeledDemo ? <View>
-                  <Pressable onPress={() => setShowVerification((open) => !open)} accessibilityRole="button" accessibilityLabel="Recheck the answer claim" hitSlop={12}>
-                    <Text style={styles.quietLink}>{showVerification ? "Hide recheck" : "Recheck answer"}</Text>
-                  </Pressable>
-                  {showVerification ? <>
-                    <Text style={styles.bodyText}>Recheck the answer claim against the inspected source evidence. This uses your research allowance; it does not independently establish every fact.</Text>
-                    <TextInput value={verificationNote} onChangeText={setVerificationNote} maxLength={4000} editable={!verificationBusy && !state.pendingVerification}
-                      accessibilityLabel="Optional feedback saved with verification" placeholder="Optional feedback for this request" style={styles.input} />
-                    <Text style={styles.caveat}>Feedback is saved with the request. The check assesses the selected claim and evidence; it does not assess this note.</Text>
-                    <Pressable disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Change verification evidence policy"
-                      onPress={() => setVerificationPolicy(p => p === "reuse_snapshot" ? "refresh_sources" : "reuse_snapshot")}>
-                      <Text style={styles.quietLink}>{verificationPolicy === "reuse_snapshot" ? "Use inspected evidence" : "Refresh inspected sources"}</Text>
-                    </Pressable>
-                    <Pressable onPress={() => void onFollowUp()} disabled={verificationBusy || !!state.pendingVerification} accessibilityRole="button" accessibilityLabel="Submit answer recheck">
-                      <Text style={styles.quietLink}>{verificationBusy ? "Requesting check…" : "Recheck answer claim"}</Text>
-                    </Pressable>
-                  </> : null}
-                </View> : null}
-                {state.flagSent || flagStatus === "submitted" ? (
-                  <Text style={styles.caveat} accessibilityLabel="Flag submitted">Report submitted. Thank you.</Text>
-                ) : flagOpen ? (
-                  <View accessibilityLabel="Report generated output">
-                    <Text style={styles.kicker}>Report this generated answer</Text>
-                    {OUTPUT_REPORT_CATEGORIES.map((cat) => (
-                      <Pressable
-                        key={cat}
-                        onPress={() => setFlagCategory(cat)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Category ${cat}`}
-                        accessibilityState={{ selected: flagCategory === cat }}
-                      >
-                        <Text style={flagCategory === cat ? styles.link : styles.bodyText}>{cat}</Text>
-                      </Pressable>
-                    ))}
-                    <TextInput
-                      value={flagNote}
-                      onChangeText={setFlagNote}
-                      placeholder="Optional explanation"
-                      accessibilityLabel="Report explanation"
-                      style={styles.input}
-                      multiline
-                    />
-                    <Pressable
-                      onPress={() => setFlagInclude((v) => !v)}
-                      accessibilityRole="button"
-                      accessibilityLabel="Include report excerpt"
-                      accessibilityState={{ selected: flagInclude }}
-                    >
-                      <Text style={styles.link}>{flagInclude ? "Include excerpt: yes" : "Include excerpt: no"}</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={async () => {
-                        if (!token || !state.report) return;
-                        setFlagStatus("submitting");
-                        try {
-                          await api.challenge(token, state.report.reportId, {
-                            claimId: state.report.blocks.find((b) => b.id === "answer")?.claimIds[0],
-                            category: flagCategory,
-                            note: flagNote,
-                            includeExcerpt: flagInclude,
-                          });
-                          setFlagStatus("submitted");
-                          setState((s) => ({ ...s, flagSent: true }));
-                        } catch (error) {
-                          if (isSupersededRequest(error)) return;
-                          setFlagStatus("error");
-                        }
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Submit generated-output report"
-                      disabled={flagStatus === "submitting"}
-                    >
-                      <Text style={styles.link}>{flagStatus === "submitting" ? "Submitting…" : "Submit report"}</Text>
-                    </Pressable>
-                    {flagStatus === "error" ? <Text style={styles.error}>Could not submit. Try again.</Text> : null}
-                  </View>
-                ) : (
-                  <Pressable
-                    onPress={() => setFlagOpen(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Flag this generated answer"
-                  >
-                    <Text style={styles.link}>Flag this answer</Text>
-                  </Pressable>
-                )}
+                <ReportActions
+                  labeledDemo={state.report.labeledDemo === true}
+                  showVerification={showVerification}
+                  verificationNote={verificationNote}
+                  verificationBusy={verificationBusy}
+                  pendingVerification={!!state.pendingVerification}
+                  verificationPolicy={verificationPolicy}
+                  flagSent={!!state.flagSent}
+                  flagStatus={flagStatus}
+                  flagOpen={flagOpen}
+                  flagCategory={flagCategory}
+                  flagNote={flagNote}
+                  flagInclude={flagInclude}
+                  styles={styles}
+                  onShare={() => onShare()}
+                  onToggleVerification={() => setShowVerification((open) => !open)}
+                  onVerificationNote={setVerificationNote}
+                  onTogglePolicy={() => setVerificationPolicy((p) => p === "reuse_snapshot" ? "refresh_sources" : "reuse_snapshot")}
+                  onSubmitVerification={() => void onFollowUp()}
+                  onToggleFlag={() => setFlagOpen(true)}
+                  onFlagCategory={setFlagCategory}
+                  onFlagNote={setFlagNote}
+                  onToggleFlagInclude={() => setFlagInclude((v) => !v)}
+                  onSubmitFlag={async () => {
+                    if (!token || !state.report) return;
+                    setFlagStatus("submitting");
+                    try {
+                      await api.challenge(token, state.report.reportId, {
+                        claimId: state.report.blocks.find((b) => b.id === "answer")?.claimIds[0],
+                        category: flagCategory,
+                        note: flagNote,
+                        includeExcerpt: flagInclude,
+                      });
+                      setFlagStatus("submitted");
+                      setState((s) => ({ ...s, flagSent: true }));
+                    } catch (error) {
+                      if (isSupersededRequest(error)) return;
+                      setFlagStatus("error");
+                    }
+                  }}
+                />
               </View>
             ) : null}
             {staleCorrection && state.run && !state.run.contentInvalidated ? (
-              <View accessibilityLabel="Correction">
-                {staleCorrection ? <>
-                  <Text style={styles.bodyText}>This saved correction was written for version {savedCorrection?.baseRevision}. Review it against the current question before submitting: {state.run?.brief?.originalQuestion}</Text>
-                  <Pressable disabled={correctionPending} accessibilityRole="button" accessibilityLabel="Use saved correction for current version" onPress={() => {
-                    const runId = state.run?.runId, revision = state.run?.brief?.revision;
-                    if (token && runId && revision && api.currentRun(token, runId)) setViewState(s => rebaseCorrectionDraft(s, runId, revision));
-                  }}><Text style={styles.link}>Use this correction for the current version</Text></Pressable>
-                </> : null}
-                {correctionMode !== "unavailable" ? (
-                  <Pressable onPress={() => setShowCorrectionOptions((value) => !value)} accessibilityRole="button" accessibilityLabel="Documents and evidence options" accessibilityState={{ expanded: showCorrectionOptions }} hitSlop={12}>
-                    <Text style={styles.link}>{showCorrectionOptions ? "Hide documents and evidence options" : "Documents and evidence options"}</Text>
-                  </Pressable>
-                ) : null}
-                {showCorrectionOptions && correctionMode === "replace_question" && !state.pendingCorrectionDocuments ? <View>
-                  <Text style={styles.bodyText}>Add documents to this report using the same question and saved evidence. Research will reassess the answer. The total limit is three documents, including existing files.</Text>
-                  {correctionFiles.map((file, index) => <Pressable key={index} disabled={correctionPending} accessibilityRole="button" accessibilityLabel={`Remove ${file.filename}`} onPress={() => setCorrectionFiles(files => files.filter((_, i) => i !== index))}><Text style={styles.link}>{file.filename} · Remove</Text></Pressable>)}
-                  <Pressable disabled={documentPending || correctionPending || correctionFiles.length >= 3} accessibilityRole="button" accessibilityLabel="Select document for correction" onPress={() => void pickCorrectionDocument()}><Text style={styles.link}>Select document for this report</Text></Pressable>
-                  <Pressable disabled={documentPending || correctionPending || !correctionFiles.length || !correctionReady} accessibilityRole="button" accessibilityLabel="Add documents and update report" onPress={() => void addCorrectionDocuments()}><Text style={styles.link}>Add documents and update report</Text></Pressable>
-                  <Text style={styles.bodyText}>Selected file bytes stay in memory until submitted. After closing the app, select unconfirmed files again.</Text>
-                </View> : null}
-                {showCorrectionOptions && correctionMode==="replace_question"?<>
-                  <Text style={styles.bodyText}>Write the complete updated question. Its conclusions will be checked again.</Text>
-                  <Pressable disabled={correctionPending} onPress={()=>{
-                    const question = state.run?.brief?.originalQuestion ?? "";
-                    setCorrection(question);
-                    setState((s) => ({ ...s, draft: question }));
-                  }} accessibilityRole="button" accessibilityLabel="Use current question">
-                    <Text style={styles.link}>Edit current question</Text>
-                  </Pressable>
-                  {(["reuse_snapshot","refresh"] as const).map((policy)=><Pressable key={policy} disabled={correctionPending} onPress={()=>setEvidencePolicy(policy)} accessibilityRole="radio" accessibilityState={{checked:evidencePolicy===policy,disabled:correctionPending}} accessibilityLabel={policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}>
-                    <Text style={styles.bodyText}>{evidencePolicy===policy?"● ":"○ "}{policy==="reuse_snapshot"?"Reuse previously read source versions":"Read sources again"}</Text>
-                  </Pressable>)}
-                  <Text style={styles.bodyText}>Reused versions may be older. Refresh requests new evidence; uploaded files retain their supplied bytes.</Text>
-                </>:null}
-                {!composerContinues ? (
-                  <>
-                    {correctionMode==="unavailable"?<Text style={styles.bodyText}>Corrections are not available on this research route.</Text>:null}
-                    {correctionReady&&Number.isSafeInteger(state.run.correctionReserveMicro)&&state.run.correctionReserveMicro!>=0?<Text style={styles.bodyText}>Reserves US${(state.run.correctionReserveMicro!/1_000_000).toFixed(2)} of research allowance. Your earlier report remains available.</Text>:null}
-                    <TextInput
-                      value={correction}
-                      onChangeText={setCorrection}
-                      placeholder={correctionMode==="replace_question"?"Your complete revised research question":"Actually, the budget is 120 EUR"}
-                      multiline
-                      maxLength={20_000}
-                      editable={!correctionPending&&!verificationBusy&&!state.pendingVerification&&correctionMode!=="unavailable"}
-                      placeholderTextColor={theme.muted}
-                      style={styles.input}
-                      allowFontScaling
-                      maxFontSizeMultiplier={2}
-                      accessibilityLabel={correctionMode==="replace_question"?"Revised research question":"Correction field"}
-                    />
-                    <Pressable onPress={() => void onCorrect()} disabled={correctionPending||!!state.pendingCorrectionDocuments||!correctionReady} accessibilityState={{disabled:correctionPending||!!state.pendingCorrectionDocuments||!correctionReady,busy:correctionPending}} accessibilityRole="button" accessibilityLabel="Submit correction">
-                      <Text style={styles.link}>{correctionPending?"Updating…":"Update research"}</Text>
-                    </Pressable>
-                  </>
-                ) : null}
-              </View>
+              <CorrectionPanel
+                staleCorrection={staleCorrection}
+                savedBaseRevision={savedCorrection?.baseRevision}
+                originalQuestion={state.run?.brief?.originalQuestion}
+                correctionMode={correctionMode}
+                showCorrectionOptions={showCorrectionOptions}
+                pendingCorrectionDocuments={!!state.pendingCorrectionDocuments}
+                correctionFiles={correctionFiles}
+                documentPending={documentPending}
+                correctionPending={correctionPending}
+                correctionReady={correctionReady}
+                correctionReserveMicro={state.run.correctionReserveMicro}
+                composerContinues={composerContinues}
+                correction={correction}
+                evidencePolicy={evidencePolicy}
+                verificationBusy={verificationBusy}
+                pendingVerification={!!state.pendingVerification}
+                muted={theme.muted}
+                styles={styles}
+                onRebase={() => {
+                  const runId = state.run?.runId, revision = state.run?.brief?.revision;
+                  if (token && runId && revision && api.currentRun(token, runId)) setViewState(s => rebaseCorrectionDraft(s, runId, revision));
+                }}
+                onToggleOptions={() => setShowCorrectionOptions((value) => !value)}
+                onRemoveFile={(index) => setCorrectionFiles((files) => files.filter((_, i) => i !== index))}
+                onPickDocument={() => void pickCorrectionDocument()}
+                onAddDocuments={() => void addCorrectionDocuments()}
+                onUseCurrentQuestion={() => {
+                  const question = state.run?.brief?.originalQuestion ?? "";
+                  setCorrection(question);
+                  setState((s) => ({ ...s, draft: question }));
+                }}
+                onEvidencePolicy={setEvidencePolicy}
+                onChangeCorrection={setCorrection}
+                onSubmit={() => void onCorrect()}
+              />
             ) : null}
           </ScrollView>
         ) : null}
 
         {state.source ? (
           <SourceSheet key={JSON.stringify([token, state.report?.reportId, state.source.passageId])} source={state.source} styles={styles}
+            reducedMotion={state.reducedMotion} ink={theme.ink}
             canFocus={() => Boolean(token && state.run && api.currentRun(token, state.run.runId) && latestUi.current.tab === "research" && latestUi.current.source?.passageId === state.source?.passageId && latestUi.current.report?.reportId === state.report?.reportId)}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
@@ -1616,6 +1562,7 @@ function AppInner() {
           sendAccessLabel={composerContinues ? "Send follow-up" : "Start research"}
           attachOpen={attachVisible}
           inProgress={activity.inProgress && state.run?.lifecycle !== "awaiting_input"}
+          reducedMotion={state.reducedMotion}
           onChange={(draft) => setState((s) => ({ ...s, draft }))}
           onSend={() => {
             if (composerContinues) {

@@ -96,17 +96,16 @@ export function LibraryList({
         const copy = libraryItemCopy(it);
         return (
           <View style={styles.libraryRow}>
-            <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
+            <Pressable style={{ flex: 1, minWidth: 0 }} onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
               <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}{copy.updated ? ` · ${copy.updated}` : ""}</Text>
+              {!it.report_id ? <Text style={styles.kicker}>Resume from Library when you are ready.</Text> : null}
             </Pressable>
             {it.report_id ? (
-              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12}>
+              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12} style={{ minWidth: 44, minHeight: 44, justifyContent: "center" }}>
                 <Text style={styles.quietLink}>Share</Text>
               </Pressable>
-            ) : (
-              <Text style={styles.kicker}>Resume from Library when you are ready.</Text>
-            )}
+            ) : null}
           </View>
         );
       }}

@@ -12,7 +12,7 @@ export const color = {
     warning: "#8A5A12",
     success: "#2F6B3A",
     caveat: "#7A4E16",
-    /** Pill composer: cream fill, teal Research chip — not DeepSeek black / ChatGPT green. */
+    /** Docked composer: paper field, teal send square — not a floating pill. */
     composer: {
       fill: "#FFFDF9",
       border: "#E6DFD4",
@@ -23,19 +23,19 @@ export const color = {
       sendFillDisabled: "#E6DFD4",
       sendInkDisabled: "#6B645C",
     },
-    /** Truthful activity trail lines (not private chain-of-thought). */
+    /** Truthful activity rail (not private chain-of-thought). */
     thinking: {
       fill: "#FFFDF9",
       ink: "#6B645C",
       inkActive: "#1C1916",
       rule: "#E6DFD4",
     },
-    /** Submitted question chip — warm stone, not accent wash. */
+    /** Submitted question — warm stone, not accent wash. */
     userBubble: {
       fill: "#EDE7DD",
       ink: "#1C1916",
     },
-    /** Stop/cancel chip — quiet rounded square, not a black circle or red clone. */
+    /** Stop — quiet rounded square, not a black circle. */
     stop: {
       fill: "#E6DFD4",
       ink: "#1C1916",
@@ -55,7 +55,7 @@ export const color = {
     caveat: "#E0B56A",
     /**
      * Dark chrome keeps cream/ink/teal calm contrast.
-     * Composer is a warm raised pill (not #0F0F0F black clone); send stays teal.
+     * Composer is a warm paper field (not #0F0F0F black clone); send stays teal.
      */
     composer: {
       fill: "#1F1C19",
@@ -85,13 +85,14 @@ export const color = {
 } as const;
 
 export const type = {
-  display: { fontSize: 22, lineHeight: 28, fontWeight: "600" as const, letterSpacing: -0.3 },
-  title: { fontSize: 18, lineHeight: 24, fontWeight: "600" as const, letterSpacing: -0.2 },
-  body: { fontSize: 16, lineHeight: 22, fontWeight: "400" as const },
-  caption: { fontSize: 12, lineHeight: 16, fontWeight: "500" as const, letterSpacing: 0.15 },
+  display: { fontSize: 20, lineHeight: 26, fontWeight: "600" as const, letterSpacing: -0.4 },
+  title: { fontSize: 16, lineHeight: 22, fontWeight: "600" as const, letterSpacing: -0.25 },
+  body: { fontSize: 15, lineHeight: 22, fontWeight: "400" as const, letterSpacing: -0.1 },
+  caption: { fontSize: 12, lineHeight: 16, fontWeight: "500" as const, letterSpacing: 0.08 },
+  meta: { fontSize: 11, lineHeight: 14, fontWeight: "500" as const, letterSpacing: 0.2 },
 } as const;
 
-export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
-export const radius = { sm: 10, md: 16, lg: 24, pill: 28 } as const;
+export const space = { xs: 4, sm: 8, md: 12, lg: 18, xl: 28 } as const;
+export const radius = { sm: 4, md: 8, lg: 12, sheet: 16, pill: 8 } as const;
 /** Durations in ms. Skip decorative motion when reduced-motion is on. */
-export const motion = { fast: 160, base: 240, slow: 400 } as const;
+export const motion = { fast: 140, base: 220, slow: 360, pulse: 900 } as const;

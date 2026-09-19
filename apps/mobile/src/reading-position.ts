@@ -55,6 +55,13 @@ export function createReadingRestoration() {
       return { kind: "ready", y: Math.max(0, Math.min(y, contentHeight - viewportHeight)), anchor: { ...anchor },
         ...(moved ? { note: hidden ? "That section is hidden in this view. Showing the first visible section." : "That section changed in the saved report. Showing its first available section." } : {}) };
     },
+    /** Outline jump: measured card+block y, or null until layout exists. Does not consume restore. */
+    jumpY(view: number, blockId: string): number | null {
+      if (!active(view) || cardY === null) return null;
+      const blockY = positions.get(blockId);
+      if (blockY === undefined) return null;
+      return Math.max(0, cardY + blockY);
+    },
     /** Save only measured blocks from this reader; stale/foreign callbacks cannot create anchors. */
     capture(view: number, scrollY: number, preferredBlockId?: string): ReportReadingAnchor | null {
       if (!active(view) || cardY === null || !Number.isFinite(scrollY)) return null;

@@ -6,6 +6,7 @@ type Styles = {
   exampleRow: StyleProp<ViewStyle>;
   exampleChip: StyleProp<ViewStyle>;
   exampleChipText: StyleProp<TextStyle>;
+  exampleTick?: StyleProp<ViewStyle>;
 };
 
 export function EmptyHome({
@@ -32,6 +33,7 @@ export function EmptyHome({
             hitSlop={8}
             style={styles.exampleChip}
           >
+            {styles.exampleTick ? <View style={styles.exampleTick} /> : null}
             <Text style={styles.exampleChipText}>{example}</Text>
           </Pressable>
         ))}

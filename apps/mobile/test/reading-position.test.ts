@@ -42,6 +42,13 @@ describe("W07 report reading continuity",()=>{
   sized(reader,view);reader.measureCard(view,160);expect(reader.take(view)).toEqual({kind:"ready",y:940,anchor:saved});
   reader.measureBlock(view,"evidence",900);expect(reader.take(view)).toEqual({kind:"none"});
  });
+ it("outline jump uses measured card and block y without consuming restore",()=>{
+  const reader=createReadingRestoration(),view=reader.begin(owner,saved,["evidence","answer"]);
+  expect(reader.jumpY(view,"evidence")).toBeNull();
+  reader.measureCard(view,160);expect(reader.jumpY(view,"evidence")).toBeNull();
+  reader.measureBlock(view,"evidence",700);expect(reader.jumpY(view,"evidence")).toBe(860);
+  expect(reader.take(view)).toEqual({kind:"waiting"});
+ });
  it("a user scroll cancels pending restoration before delayed layout callbacks arrive",()=>{
   const reader=createReadingRestoration(),view=reader.begin(owner,saved,["evidence"]);
   sized(reader,view);reader.measureCard(view,160);reader.userScrolled(view);reader.measureBlock(view,"evidence",700);
