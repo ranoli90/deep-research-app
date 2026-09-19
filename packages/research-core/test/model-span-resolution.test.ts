@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
+import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
 const context = (question: string) => ({question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[]});
 const proposal = (quote: string, start = 99, end = 100) => ({questions:[],omittedRequirements:[{provenance:{quote,start,end},reason:"Missing original requirement"}]});
 it("resolves unique exact Unicode quotes without mutating the proposal or relaxing the binding validator",()=>{
@@ -103,6 +103,23 @@ it("drops extraction citations whose passage was never provided", () => {
   expect(cleaned.candidates.map((c) => c.key)).toEqual(["c1"]);
   expect(cleaned.candidates[0]!.evidence).toHaveLength(1);
   expect(cleaned.assertions.map((a) => a.key)).toEqual(["a1"]);
+});
+
+it("binds a supported coverage row to extracted assertions instead of failing the run", () => {
+  const repaired = repairCoverageReview({
+    questions: [{ questionKey: "q1", status: "supported", assertionKeys: [], reason: "found a source" }],
+    omittedRequirements: [],
+  }, [{ key: "classification" }], ["q1"]);
+  expect(repaired.questions[0]?.assertionKeys).toEqual(["classification"]);
+  expect(validateModelBindings("review_coverage", repaired, {
+    question: "Is Pluto a planet according to the IAU?",
+    task: { objective: "x", objectiveProvenance: { start: 0, end: 1, quote: "x" }, intendedOutput: "answer",
+      criteria: [], questions: [{ key: "q1", text: "x", criterionKeys: [], importance: "critical", evidenceStandard: "primary" }],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [] } as never,
+    passages: [], sources: [], assertions: [{ key: "classification", candidateKey: null, criterionKeys: [], text: "x",
+      scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null }, quantities: [], evidence: [] }],
+    approvedClaimKeys: ["classification"],
+  })).toEqual([]);
 });
 
 it("drops n.a. unknown extracts that state no measured quantity", () => {

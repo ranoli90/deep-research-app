@@ -1,0 +1,49 @@
+{
+  "id": "J6",
+  "question": "Is Pluto a planet according to the IAU?",
+  "runId": "de8fe69c-87c4-471f-aefd-966e09095d4f",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": null,
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "de8fe69c-87c4-471f-aefd-966e09095d4f",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 10751,
+    "confirmedProviderMicro": 10751,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 10751
+    },
+    "intentTotalMicro": 10751,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": null
+}

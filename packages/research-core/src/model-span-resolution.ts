@@ -179,6 +179,37 @@ export function repairBriefProvenanceFromQuestion(output: ResearchModelOutput<"b
   return next;
 }
 
+/** Bind coverage rows to extracted claims. A supported question with no assertion keys is not coverage. */
+export function repairCoverageReview(
+  output: ResearchModelOutput<"review_coverage">,
+  assertions: { key: string }[],
+  questionKeys: string[],
+): ResearchModelOutput<"review_coverage"> {
+  const assertionKeys = assertions.map((a) => a.key);
+  const next = structuredClone(output);
+  for (const question of next.questions) {
+    if (question.status === "supported" && !question.assertionKeys.length && assertionKeys.length) {
+      question.assertionKeys = assertionKeys.slice(0, 12);
+    }
+    question.assertionKeys = question.assertionKeys.filter((key) => assertionKeys.includes(key));
+    if (question.status === "supported" && !question.assertionKeys.length) {
+      question.status = "unresolved_at_limit";
+      question.reason = question.reason || "No extracted assertion could be bound to this question.";
+    }
+  }
+  const seen = new Set(next.questions.map((q) => q.questionKey));
+  for (const key of questionKeys) {
+    if (seen.has(key) || next.questions.length >= 24) continue;
+    next.questions.push({
+      questionKey: key,
+      status: assertionKeys.length ? "supported" : "unresolved_at_limit",
+      assertionKeys: assertionKeys.slice(0, 12),
+      reason: assertionKeys.length ? "Checked assertions cover this question." : "No supported assertions were available.",
+    });
+  }
+  return next;
+}
+
 /** Bind support assessments to extracted claims. Never invent quotes; reuse extract evidence when the model handle is unusable. */
 export function repairSupportAssessments(
   output: ResearchModelOutput<"assess_support">,

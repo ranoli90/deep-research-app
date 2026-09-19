@@ -249,7 +249,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:"Requested arithmetic was evaluated against checked source quantities.",payload:{planIntentId:calculations.intentId,
        results:calculations.executions.map(e=>({key:e.key,calculationId:e.calculationId,status:e.result.status,reason:e.result.reason}))}}));
     const review=await executeCoverageReview(pool,config,session,{...target,supportIntentId:support.intentId});
-    if(review.kind!=="coverage")return pendingOrBlocked(review);
+    if(review.kind!=="coverage"){
+      if(prior)return writeFromPrior(review.kind==="blocked"?review.reason??"coverage_unavailable":"coverage_unavailable");
+      return pendingOrBlocked(review);
+    }
     await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",
       summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
       payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
