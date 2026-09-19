@@ -245,6 +245,24 @@ export const FIXTURE_BENCHMARK_TASKS: TaskSpec[] = [
       acceptableUncertainty: "confirmed France only",
     },
   },
+  {
+    id: "wide-deep-local-70b",
+    family: "wandr-like-wide-deep",
+    question: "Which currently sold laptops under 2000 USD are documented as able to run a 70B-class model locally, and what is the weakest official source for each?",
+    goldLocators: [],
+  },
+  {
+    id: "multi-hop-usb4-pcie",
+    family: "browsecomp-like-multi-hop",
+    question: "Which organization currently publishes the specification that defines USB4 PCIe tunneling, and what is the latest version date on that organization's own site?",
+    goldLocators: [],
+  },
+  {
+    id: "recall-analysis-presentation",
+    family: "deepresearch-bench-like",
+    question: "Summarize the currently documented eligibility, hard limits, and open uncertainties for running local inference on a 16-inch class laptop under 2000 USD, with citations on every consequential claim.",
+    goldLocators: [],
+  },
 ];
 
 function initialState(question: string, ablations?: AblationFlags): ControllerState {
