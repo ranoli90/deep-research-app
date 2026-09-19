@@ -23,6 +23,8 @@ describe("source-type planning", () => {
   it("maps specialized criteria onto distinct evidence classes", () => {
     expect(planSourceClass("Is Nimbus compatible with Postgres 16?").primary).toBe("vendor-docs");
     expect(planSourceClass("What statute sets the EU AI Act penalty?").primary).toBe("statute-regulator");
+    expect(planSourceClass("What is the official US federal minimum wage?").primary).toBe("statute-regulator");
+    expect(planSourceClass("What is the official US federal minimum wage?").fallbacks).toContain("generic-web");
     expect(planSourceClass("Does the 2024 trial support the claim?").primary).toBe("primary-literature");
     expect(planSourceClass("How much Series B funding did Acme raise?").primary).toBe("filings");
     expect(planSourceClass("What is the measured GPU throughput benchmark?").primary).toBe("docs-source-issues-benchmarks");
@@ -31,6 +33,8 @@ describe("source-type planning", () => {
 
   it("changes class when current evidence is weak, duplicative, or stale", () => {
     const plan = planSourceClass("What is the current price of Zephyr Pro?");
+    const official = planSourceClass("What is the official US federal minimum wage?");
+    expect(nextSourceClass(official, ["statute-regulator"], { weak: true, duplicative: false, stale: false })).toBe("generic-web");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: true, duplicative: true, stale: true })).toBe("vendor-docs");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: false, duplicative: false, stale: true })).toBe("vendor-docs");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: true, duplicative: false, stale: false })).toBe("vendor-docs");

@@ -124,9 +124,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const selectionEnabled=await session.write(db=>usesEvidenceSelection(db,args));
   const recoveryEnabled=selectionEnabled&&recoveryPolicy===EMPTY_SELECTION_RECOVERY_VERSION;
   let recoveryRequiredIds:string[]=[];const inspectedIds=new Set<string>();
-  const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
-    JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
-    AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]));
+  const selectPassages=()=>session.write(async(db)=>{
+    const full=await db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+      JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
+      AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]);
+    if(full.rowCount)return full;
+    return db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+      JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
+      AND v.access_level='snippet' ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]);
+  });
   let selected=await selectPassages();
   const savedChallenge=await session.write(db=>getCounterevidence(db,args));
   const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
@@ -170,7 +176,40 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   let prior:{extraction:Awaited<ReturnType<typeof extractEvidenceAssertions>>&{kind:"extraction"};support:Awaited<ReturnType<typeof executeAssertionSupport>>&{kind:"support"};calculations:Awaited<ReturnType<typeof executeCalculationPlanning>>;target:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;extractionIntentId:string;supportIntentId?:string}}|null=null;
   for(let iteration=0;iteration<4;iteration++) {
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
-    if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
+    if(!selected.rowCount){
+      if(config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled){
+        const plan=planSourceClass(brief.originalQuestion);
+        const nextClass=nextSourceClass(plan,classesAttempted,{weak:true,duplicative:false,stale:false});
+        const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
+          unresolvedCriterionKeys:prepared.task.specification.criteria.map((c)=>c.key),queries,ceiling:DEEP_DISCOVERY_CEILING});
+        const questionKeys=next.kind==="search"?next.proposal.action.questionKeys:Object.keys(prepared.task.questionIds);
+        const proposal=next.kind==="search"?next.proposal:{
+          rationale:"Pivot source class after blocked full-page reads.",
+          action:{type:"search" as const,query:brief.originalQuestion,questionKeys,
+            publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}},
+        };
+        const classAlreadyUsed=classesAttempted.includes(nextClass);
+        if((next.kind==="search"||!classAlreadyUsed)&&queries.length<DEEP_DISCOVERY_CEILING){
+          classesAttempted.push(nextClass);
+          queries.push(proposal.action.query);
+          await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
+            summary:"Full pages were blocked; searching a different source class.",payload:{reason:"readable_evidence_unavailable",sourceClass:nextClass}}));
+          await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
+            summary:"Searching public sources.",payload:{count:queries.length}}));
+          const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal,sourceClass:nextClass});
+          if(search.kind==="pending")return pendingOrBlocked(search);
+          if(search.kind==="search"){
+            const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+            await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+              summary:"Found sources.",payload:{count:adopted.length}}));
+            await readAdoptedSources(prepared.task.id,adopted,questionKeys,"Read evidence after blocked source pages.");
+            selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
+            if(selected.rowCount)continue;
+          }
+        }
+      }
+      return unresolved("readable_evidence_unavailable");
+    }
     const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
     if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});

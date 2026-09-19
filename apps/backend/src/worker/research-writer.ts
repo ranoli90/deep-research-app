@@ -70,11 +70,12 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision<basis.evidenceRevision)throw new Error("stale_writer_publication");
     const laterEvidence=run.evidence_revision>basis.evidenceRevision;
-    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length&&!laterEvidence;
     const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
     const rows=await db.query<{id:string;title:string;access_level:string;origin_cluster:string}>(`SELECT DISTINCT s.id,s.title,v.access_level,s.origin_cluster
       FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
       WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2`,[cited,args.accountId,args.runId]);
+    const snippetCited=rows.rows.some((s)=>s.access_level==="snippet");
+    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length&&!laterEvidence&&!snippetCited;
     const report:CanonicalReport={reportId:crypto.randomUUID(),runId:args.runId,version:1,
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
@@ -82,6 +83,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       limitations:complete?[]:[
         ...((coverage.complete&&!compiled.unresolved.length)?[]:["Some requested questions remain unresolved."]),
         ...(laterEvidence?[LATER_EVIDENCE_LIMITATION]:[]),
+        ...(snippetCited?["Some cited sources could only be read as search snippets after the full page was blocked."]:[]),
         ...challengeLimitations,
       ],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};

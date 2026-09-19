@@ -25,6 +25,12 @@ export type SourcePlan = {
 
 const RULES: { test: RegExp; primary: SourceClass; fallbacks: SourceClass[]; rationale: string }[] = [
   {
+    test: /\b(official|federal minimum wage|minimum wage|dol\.gov|irs\.gov|fomc|usc|cfr)\b/i,
+    primary: "statute-regulator",
+    fallbacks: ["generic-web", "filings"],
+    rationale: "Official legal or wage facts require regulator or statute pages, then other public sources if those pages are blocked.",
+  },
+  {
     test: /current (price|pricing|cost)|list price|msrp|how much (does|is)|price (now|today)/i,
     primary: "first-party-pricing",
     fallbacks: ["vendor-docs", "filings"],

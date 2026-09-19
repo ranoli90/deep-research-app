@@ -20,6 +20,11 @@ export async function adoptSearchSources(db:Queryable,args:{runId:string;account
  const sourceIds:string[]=[];let changed=false;
  for(const hit of parsed.data.hits) {
   if(applySourcePolicy(sourcePolicy,hit.locator)==="exclude")continue;
+  const blocked=(await db.query(`SELECT 1 FROM sources s JOIN source_versions v ON v.source_id=s.id
+    JOIN extraction_receipts r ON r.source_version_id=v.id
+    WHERE s.account_id=$1 AND s.run_id=$2 AND s.canonical_locator=$3 AND v.access_level='blocked' LIMIT 1`,
+    [args.accountId,args.runId,hit.locator])).rowCount;
+  if(blocked)continue;
   const prior=(await db.query("SELECT s.id,(s.run_id=$1) AS owned FROM sources s WHERE s.account_id=$2 AND s.canonical_locator=$3 AND (s.run_id=$1 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id WHERE p.run_id=$1 AND p.account_id=$2 AND v.source_id=s.id)) ORDER BY (s.run_id=$1) DESC LIMIT 1",[args.runId,args.accountId,hit.locator])).rows[0];
   if(prior){if(prior.owned)sourceIds.push(prior.id);continue;}
   const id=await insertSource(db,{...args,...hit,publicationDate:parseSourcePublicationDate(`${hit.title}\n${hit.snippet}`)});sourceIds.push(id);changed=true;
