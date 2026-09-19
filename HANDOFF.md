@@ -4,7 +4,7 @@ Filled `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv` with PASS+artifa
 
 User must:
 
-1. Unlock **GitHub billing** so `verification.yml` can start (runs `35411856817`, `35421735059`, `35422066858` still billing-locked).
+1. Unlock **GitHub billing** so `verification.yml` can start (latest dispatch `35437540425` on `6cfec73` still billing-locked, 0 steps).
 2. Authorize a **new** live public-web OpenRouter cap **≥ $1.20** (recommended **$2.00**) for J1–J12, distinct from $0.40 MC-D01 sqlite-only, **and** release the **21,658 µ** unknown hold.
 
 Then resume live journeys + hosted CI and merge only if those gates PASS.

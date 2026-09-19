@@ -4,7 +4,7 @@ Filled kit `35_ACCEPTANCE_MATRIX.csv` at `verification/v8/research-beta/35_ACCEP
 
 External blockers (user action required):
 
-1. **RB-CI-01** — hosted `verification.yml` runs `35411856817` / `35421735059` / `35422066858` did not start: GitHub account locked for billing. Local `pnpm verify` is not a substitute.
+1. **RB-CI-01** — hosted `verification.yml` run `35437540425` on `6cfec73` did not start (0 steps): GitHub account locked for billing. Prior runs `35411856817` / `35421735059` / `35422066858` same. Local `pnpm verify` is not a substitute.
 2. **RB-LIVE-01/02/03** — need a **new** OpenRouter public-web grant **≥ $1.20** (recommended **$2.00**) distinct from $0.40 MC-D01 frozen-SQLite, **and** explicit release of the **21,658 µ** unknown hold. A key being present is not that grant.
 
 See `verification/v8/research-beta/EXTERNAL_BLOCKERS.md`.

@@ -9,7 +9,7 @@ Filled kit matrix: `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv`.
 
 | Gate | Result | Exact blocker / artifact |
 |---|---|---|
-| Hosted `verification.yml` (RB-CI-01) | **BLOCKER** | Runs `35411856817`, `35421735059`, `35422066858` did not start: GitHub account locked for billing. Local `pnpm verify` is not a substitute. Unlock billing, then dispatch on `grok-v8/research-beta-integration`. |
+| Hosted `verification.yml` (RB-CI-01) | **BLOCKER** | Dispatch `35437540425` on `6cfec73` did not start (0 steps): GitHub account locked for billing. Prior runs `35411856817`, `35421735059`, `35422066858` same. Local `pnpm verify` is not a substitute. Unlock billing, then re-dispatch on `grok-v8/research-beta-integration`. |
 | Live J1–J12 (RB-LIVE-01/02/03) | **BLOCKER** | Grant is **$0.40 MC-D01 frozen SQLite only** (confirmed $0.0005388; **21,658 µ unknown hold unreleased**; `legacyUnknownsReleased: false`). Required: a **new** OpenRouter public-web identity **≥ $1.20** (recommended **$2.00**) **and** hold release. A key being present is not that grant. Scope: kit `38_USER_JOURNEYS.md` full path through correction. |
 | Non-paid engineering | PASS with artifacts | `pnpm verify` EXIT 0; PG **475/475 twice**; frozen extraction 9/9; intent NL **52**; injection kit 50 unit cases; device APK `2eb385b` / EAS `7e4b02c8`. |
 | Competitor superiority | **not claimed** | No matched ChatGPT/Perplexity/Gemini/Claude/Grok trials. |

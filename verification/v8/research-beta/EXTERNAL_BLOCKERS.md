@@ -30,7 +30,8 @@ Record: `verification/v6/paid-readiness/AUTHORIZATION.json`.
 |---|---|---|
 | `35411856817` | `3db3f5e` | job not started: account locked due to a billing issue |
 | `35421735059` | `9c80076` | same annotation |
-| `35422066858` | later integration HEAD | same billing lock |
+| `35422066858` | `c005e8c` | same billing lock |
+| `35437540425` | `6cfec73` (2026-09-19T10:29:25Z) | same annotation; job `deterministic` had 0 steps |
 
 Annotation: *The job was not started because your account is locked due to a billing issue.* Job `deterministic` had empty steps and no runner. Local `pnpm verify` is not a substitute.
 
