@@ -68,6 +68,19 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("grounds a mixed-fraction federal funds range and US/current question labels",()=>{
+  const quote="The Committee decided to raise the target range for the federal funds rate by 1/4 percentage point to 3-3/4 to 4 percent.";
+  const claim="The target range for the federal funds rate is 3-3/4 to 4 percent.";
+  const scope={entity:"US",plan:null,version:null,geography:"United States",time:"current",population:null};
+  const result=resolveScopedSupport({assertions:[{key:"current_rate",candidateKey:null,criterionKeys:["current_rate"],text:claim,scope,
+    quantities:[{unit:"percentage",value:"3.75",currency:null,qualifier:"target range",billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"current_rate",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Fed target range",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("grounds hyphenated measured ranges that appear in the quote",()=>{
   const claim="Texas has no income tax but averages 1.6-2.2% annual property taxes on assessed value, among the highest in the country.";
   const texas={entity:"Texas",plan:null,version:null,geography:null,time:null,population:null};

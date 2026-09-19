@@ -7,7 +7,14 @@ export const SCOPED_SUPPORT_VERSION = "scoped-support.v4";
 const GENERIC_ENTITY = new Set([
   "laptop", "notebook", "computer", "pc", "phone", "smartphone", "tablet", "device", "product",
   "software", "service", "vehicle", "car", "tool", "app", "application", "machine", "camera",
+  "us", "usa", "u.s.", "u.s", "united states", "america", "american",
+  "current", "today", "now", "latest", "present",
 ]);
+const UNIT_ALIASES: Record<string, string[]> = {
+  percentage: ["percentage", "percent", "%"],
+  percent: ["percentage", "percent", "%"],
+  "%": ["percentage", "percent", "%"],
+};
 type Assertion = ResearchModelOutput<"extract_assertions">["assertions"][number];
 type Assessment = ResearchModelOutput<"assess_support">["assessments"][number];
 type Passage = { id:string; text:string; accessLevel:string };
@@ -24,9 +31,23 @@ const containsPhrase = (text:string,phrase:string) => {
 };
 const CURRENCY_SIGNS: Record<string, string[]> = { usd: ["usd", "$"], eur: ["eur", "€"], gbp: ["gbp", "£"], jpy: ["jpy", "¥"] };
 const MEASURE_UNIT = "%|°F|°C|GB|GiB|MB|MiB|TB|TiB|kg|hectares?|acres?|USD|EUR|GBP|Hz|kHz|MHz|GHz|W|Wh|kWh|hours?|years?|months?|days?|mm|cm|inches|inch|lbs?|pounds?";
+const mixedFractionValues = (s:string):string[] => {
+  const found = new Set<string>();
+  for (const m of s.matchAll(/(-?\d+)\s*[-–]\s*(\d+)\s*\/\s*(\d+)/gu)) {
+    const whole=Number(m[1]), num=Number(m[2]), den=Number(m[3]);
+    if (!den) continue;
+    const v=whole+(whole<0?-1:1)*num/den;
+    found.add(String(v));
+  }
+  for (const m of s.matchAll(/(?<![\d.])(\d+)\s*\/\s*(\d+)/gu)) {
+    const num=Number(m[1]), den=Number(m[2]);
+    if (den) found.add(String(num/den));
+  }
+  return [...found];
+};
 const quantityValueInQuote = (value:string, quote:string):boolean => {
   const v=value.replace(/,/gu,"");
-  if(numbers(quote).includes(v)||measuredNumbers(quote).includes(v))return true;
+  if(numbers(quote).includes(v)||measuredNumbers(quote).includes(v)||mixedFractionValues(quote).includes(v))return true;
   const range=v.match(/^(-?\d+(?:\.\d+)?)\s*[-–—to]+\s*(-?\d+(?:\.\d+)?)$/u);
   return Boolean(range&&numbers(quote).includes(range[1]!)&&numbers(quote).includes(range[2]!));
 };
@@ -54,7 +75,8 @@ const attrInQuote = (attr: string, quote: string): boolean => {
   const words = normalize(quote);
   const token = normalize(attr);
   if (words.includes(token) || quote.includes(attr)) return true;
-  return (CURRENCY_SIGNS[token] ?? []).some((sign) => quote.includes(sign) || words.includes(sign));
+  if ((CURRENCY_SIGNS[token] ?? []).some((sign) => quote.includes(sign) || words.includes(sign))) return true;
+  return (UNIT_ALIASES[token] ?? []).some((alias) => words.includes(alias) || quote.includes(alias));
 };
 const qualifiers = /\b(only|except|unless|subject to|limited to|may|might|could)\b/iu;
 

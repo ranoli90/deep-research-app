@@ -51,6 +51,19 @@ describe("W05 criterion discovery policy",()=>{
   const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};
   expect(nextCriterionSearch({question,task:{...task,criteria:[{...task.criteria[0]!,provenance}]},unresolvedCriterionKeys:["area"],queries:["one","two","three"],ceiling:6})).toMatchObject({kind:"search",proposal:{action:{query:"Reef-X"}}});
  });
+ it("issues a distinct in-question field phrase for a current-fact criterion",()=>{
+  const q="What is the current US federal funds rate?";
+  const whole={start:0,end:q.length,quote:q};
+  const scope={entity:"US",plan:null,version:null,geography:null,time:null,population:null};
+  const task:ResearchModelOutput<"brief">={objective:q,objectiveProvenance:whole,intendedOutput:"answer",
+   criteria:[{key:"current_rate",description:"Current rate",field:"federal funds rate",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance:whole,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+   questions:[{key:"current_rate",text:q,criterionKeys:["current_rate"],importance:"critical",evidenceStandard:"public"}],
+   assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+  const next=nextCriterionSearch({question:q,task,unresolvedCriterionKeys:["current_rate"],queries:[q]});
+  expect(next).toMatchObject({kind:"search"});
+  if(next.kind!=="search")throw new Error("missing field search");
+  expect(next.proposal.action.query.toLowerCase()).toBe("federal funds rate");
+ });
  it("issues a distinct original-question place span when criterion values are not in the question",()=>{
   const move="should I move to Texas?";
   const whole={start:0,end:move.length,quote:move};

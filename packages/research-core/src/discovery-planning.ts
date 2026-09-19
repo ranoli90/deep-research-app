@@ -59,6 +59,7 @@ export function tightenCriterionSpan(question:string,criterion:Criterion):Span|n
   ...(value&&unit?[`${value}${unit}`,`${value} ${unit}`,`${value}${unit} of ${field}`,`${value} ${unit} of ${field}`]:[]),
   ...currencyNeedles(value,unit),
   ...(value?[value]:[]),
+  ...(field.includes(" ")||field.length>10?[field]:[]),
  ].filter((n)=>n&&n.length>1);
  let best:Span|null=null;
  for(const needle of needles){
