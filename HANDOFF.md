@@ -1,6 +1,6 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Branch `grok-v8/research-beta-integration` HEAD `09c5633`. Full PG 475/475 twice. Device APK `d8e69a8f` (`09c5633`) on `10.0.0.167:43417`; v8g screenshot matrix recaptured. Hosted CI billing-locked (`35411856817`). Live J1–J12 blocked: `$0.40` MC-D01 frozen SQLite + unknown holds unreleased. Do not merge to `main`.
+Branch `grok-v8/research-beta-integration` HEAD `5c3be97`. Full PG 475/475 twice. Device APK `30ceccbe` (`5c3be97`) on `10.0.0.167:43417`; v8h matrix recaptured; New research and Android Back stay in Deep. Hosted CI billing-locked (`35411856817`). Live J1–J12 blocked: `$0.40` MC-D01 frozen SQLite + unknown holds unreleased. Do not merge to `main`.
 
 ## Integration merge B — 2026-09-18
 
