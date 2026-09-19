@@ -6,7 +6,9 @@
 - Full PostgreSQL 474/474 on `deep_v8_int4` EXIT 0 (second full 474 on earlier isolated DB); W03 lock-race 12/12.
 - EAS `7ef789a2` (`942a65e`) installed on `10.0.0.167:43417`; visual matrix + short-report gfxinfo (0.31% janky).
 - `80e0aec`: Settings processor dump behind How we process data; follow-ups skip process-meta caveats; continue-thread placeholder Ask anything.
-- External blockers unchanged: GitHub Actions billing lock `35411856817`; live journeys outside `$0.40` MC-D01 frozen SQLite + unknown holds.
+- External blockers (reconfirmed 2026-09-19):
+  - Live J1–J12: need new public-web OpenRouter grant ≥ $1.20 (recommended $2.00) + release of 21,658 µ MC-D01 unknown hold. Existing $0.40 sqlite-only cap is exhausted for this scope.
+  - Hosted CI: `verification.yml` run `35421735059` (and `35411856817`) did not start — GitHub account locked for billing.
 
 ## 2026-09-18 — Session C visual overhaul (consumer chrome)
 

@@ -4,7 +4,11 @@ Lane: `grok-v8/research-beta-integration` at `5c3be97`. Starts at `main@8a7b1a9`
 
 **Executed:** Full PostgreSQL **475/475 twice** (`deep_v8_int5`, `deep_v8_int6`). Device APK `30ceccbe` (`5c3be97`) installed; New research from awaiting_input and Android Back stay inside Deep (`v8h`). `pnpm verify` EXIT 0; frozen extraction 9/9; discovery v3 `max_results=8`.
 
-**True external blockers:** GitHub Actions run `35411856817` did not start (`account is locked due to a billing issue`). Live no-file public journeys are outside the recorded `$0.40` MC-D01 frozen-SQLite cap; unknown holds remain unreleased. No additional spend was inferred from a key being present.
+**True external blockers (user action required before merge):**
+
+1. **Live J1–J12 (RB-LIVE-01/02/03).** Recorded grant is **$0.40 MC-D01 frozen SQLite only** (confirmed $0.0005388; **21,658 µ unknown hold unreleased**; `legacyUnknownsReleased: false`). That grant does **not** cover public-web admission → search → source read → report → correction. A key being present is not new authority. Required: a **new** OpenRouter live public-web spend identity, distinct from MC-D01, of **at least $1.20** (12 × `DEFAULT_RUN_BUDGET_MICRO` $0.10) and **$2.00 recommended** to cover J7 correction plus unknown-hold buffer; **and** explicit release of the 21,658 µ MC-D01 unknown hold. Scope: kit `38_USER_JOURNEYS.md` J1–J12.
+
+2. **Hosted CI (RB-CI-01).** Workflow `verification.yml` on `grok-v8/research-beta-integration` still does not start: run `35421735059` (HEAD `9c80076`) annotation *The job was not started because your account is locked due to a billing issue.* Prior run `35411856817` same. Unlock GitHub billing, then re-dispatch.
 
 Rollback: leave `main` at `8a7b1a9`; do not merge this branch.
 

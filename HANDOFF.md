@@ -1,6 +1,12 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Branch `grok-v8/research-beta-integration` HEAD `5c3be97`. Full PG 475/475 twice. Device APK `30ceccbe` (`5c3be97`) on `10.0.0.167:43417`; v8h matrix recaptured; New research and Android Back stay in Deep. Hosted CI billing-locked (`35411856817`). Live J1–J12 blocked: `$0.40` MC-D01 frozen SQLite + unknown holds unreleased. Do not merge to `main`.
+Branch `grok-v8/research-beta-integration` HEAD `9c80076`. Full PG 475/475 twice. Device APK `30ceccbe` (`5c3be97`) on `10.0.0.167:43417`. **Do not merge to `main`.**
+
+User must:
+1. Authorize a **new** live public-web OpenRouter cap **≥ $1.20** (recommended **$2.00**) for J1–J12 full path, distinct from $0.40 MC-D01 sqlite-only, **and** release the **21,658 µ** unknown hold.
+2. Unlock **GitHub billing** so `verification.yml` can start (run `35421735059` still billing-locked).
+
+Then resume live journeys + hosted CI and merge only if those gates PASS.
 
 ## Integration merge B — 2026-09-18
 

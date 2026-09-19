@@ -3,6 +3,8 @@ Owner role: evaluation lead. Status: protocol, historical **fixture-class** diag
 
 Session A (2026-09-18): `runPortfolioEvaluation` scores registered candidates on identical local/fixture inputs and stores dated records with `superiorityClaim: false`. Live semantic task classes execute only through explicit-authorization fail-closed runners (`eval:live` matched pipeline and `eval:live-semantic` bounded briefs). Bounded Azure receipts are in `verification/v7/live-semantic/`; one freshness unknown remains held. Fixture or fabricated model output is not semantic-quality proof. No claim that dynamic routing is better until measured.
 
+Research Beta live J1–J12 (kit `38_USER_JOURNEYS.md`) are **not executed**. The $0.40 MC-D01 grant is frozen-SQLite only, with 21,658 µ unknown hold unreleased. Hosted `verification.yml` run `35421735059` did not start (GitHub billing lock). No competitor-superiority claim.
+
 ## Main question
 Does the controlled system help a person finish a constrained technical decision or document-grounded check with less repair, without worse consequential correctness, than a simpler credible baseline and available dedicated research products?
 
