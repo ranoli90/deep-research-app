@@ -1201,7 +1201,7 @@ function AppInner() {
             key={readerView}
             ref={conversationScroll}
             style={styles.body}
-            contentContainerStyle={{ paddingBottom: space.lg }}
+            contentContainerStyle={{ paddingBottom: followUps.length ? 96 : space.lg }}
             keyboardShouldPersistTaps="handled"
             accessibilityLabel="Research conversation"
             scrollEventThrottle={100}
@@ -1782,8 +1782,8 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     sendOff: { color: theme.composer.sendInkDisabled, fontWeight: "600", fontSize: 15 },
     attachMark: { color: theme.composer.ink, fontSize: 22, lineHeight: 26, width: 44, textAlign: "center" },
     followRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: space.md, paddingBottom: space.sm },
-    followChipHit: { minHeight: 44, justifyContent: "center" },
-    followChip: { backgroundColor: theme.accentMuted, color: theme.ink, overflow: "hidden", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, fontSize: 14 },
+    followChipHit: { minHeight: 44, justifyContent: "center", maxWidth: "100%" },
+    followChip: { color: theme.muted, overflow: "hidden", paddingVertical: 6, fontSize: 14 },
     input: { borderWidth: 1, borderColor: theme.line, borderRadius: 14, padding: space.sm, color: theme.ink, marginBottom: 8, backgroundColor: theme.surface },
     attachSheet: { marginHorizontal: space.md, marginBottom: space.sm, padding: space.md, backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: radius.md },
     attachAction: { minHeight: 44, justifyContent: "center", paddingVertical: 4 },
