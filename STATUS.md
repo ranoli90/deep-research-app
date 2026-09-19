@@ -1,6 +1,6 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Lane: `grok-v8/research-beta-integration` at `80e0aec`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
+Lane: `grok-v8/research-beta-integration` at `92f32ba`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
 
 **Executed:** Full PostgreSQL 474/474 twice; W03 lock-race 12/12. EAS APK `d13505fd` (git `126d8c7`) installed on `10.0.0.167:43417`. Duplicate question bubble removed; report outline is one caption line (answer first); employment-tax fixture reaches `awaiting_input` with a compact jurisdiction prompt. `POST /v1/runs/:id/assumptions` confirm/replace covered.
 
