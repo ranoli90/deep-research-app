@@ -19,6 +19,15 @@ it.each(RESEARCH_STRATEGIES)("%s keeps query ceiling and rejects source-derived 
  const malformed={...task,criteria:[{...criteria[0]!,provenance:{start:0,end:7,quote:"PRIVATE"}}]};
  expect(()=>nextStrategySearch(strategy,{...args,task:malformed,queries:[]})).toThrow("invalid_discovery_provenance");
 });
+it("does not issue a tighter slice of an already-issued original-question search",()=>{
+ const restoration="Compare coral and kelp restoration.";
+ const span={start:0,end:restoration.length,quote:restoration};
+ const restorationTask:ResearchModelOutput<"brief">={...task,objective:restoration,objectiveProvenance:span,
+  criteria:[{...criteria[0]!,key:"c1",field:"restoration",provenance:span}],
+  questions:[{key:"q1",text:restoration,criterionKeys:["c1"],importance:"critical",evidenceStandard:"documented outcomes"}]};
+ expect(nextStrategySearch("criterion-adaptive.v1",{question:restoration,task:restorationTask,unresolvedCriterionKeys:["c1"],queries:[restoration],ceiling:6}))
+  .toEqual({kind:"stop",reason:"no_distinct_public_criterion_query"});
+});
 it("defaults existing configuration to adaptive and rejects invalid configured policy",()=>{
  expect(researchStrategy(undefined)).toBe("criterion-adaptive.v1");
  expect(loadConfig({DATABASE_URL:"local",STRUCTURED_RESEARCH_STRATEGY:"iterative-baseline.v1"}).structuredStrategy).toBe("iterative-baseline.v1");

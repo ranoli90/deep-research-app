@@ -12,7 +12,7 @@ Live-quality salvage had fail-opened deterministic gates. This checkpoint keeps 
 - Counterevidence runs on supported claims again.
 - Coverage continuation requires a distinct criterion query; generic-web does not pivot on the same question after unreadable hits.
 
-**PostgreSQL (`deep_v8_int9`):** 473 passed / **7 failed** / 480. Remaining: worker extra search (readable true/false, correction rediscovery), arithmetic outcome, unsupportedProse unpublished, counterevidence unknown-support intent row, discovery-v3 span salvage (fix landed after that run).
+**PostgreSQL (`deep_v8_int9`):** 473 passed / **7 failed** / 480 at the first fail-closed commit. Follow-up: subsumed criterion queries are not re-issued; `invalid_output` with unknown cost HOLDs (404 stays failed). Focused gateway retest: readable true/false, correction membership, and unknown-support **passed**; **2 still failed** — arithmetic parent `completed_with_limitations` vs `completed`, and `unsupportedProse` unpublished.
 
 **`pnpm verify`:** recorded on this tree immediately before push (see ledger). **Do not treat 475/475 at `09c5633` as current.** Hosted GHA still owner-declined. APK `1021057` is behind this checkpoint.
 

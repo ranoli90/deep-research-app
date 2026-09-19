@@ -13,6 +13,8 @@ export function providerIntentStateForResult(result: {
   receipt: { actualMicro: number | null };
 }): { state: "confirmed" | "outcome-unknown" | "failed"; confirmedMicro?: number } {
   if (result.status === "outcome_unknown") return { state: "outcome-unknown" };
+  // A 200 with unusable JSON and no usage is an unknown spend, not a null-cost 404.
+  if (result.status === "invalid_output" && result.receipt.actualMicro == null) return { state: "outcome-unknown" };
   if (result.receipt.actualMicro != null) return { state: "confirmed", confirmedMicro: result.receipt.actualMicro };
   return { state: "failed" };
 }

@@ -37,6 +37,7 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: null } })).toEqual({ state: "failed" });
     expect(providerIntentStateForResult({ status: "outcome_unknown", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(providerIntentStateForResult({ status: "succeeded", receipt: { actualMicro: 12 } })).toEqual({ state: "confirmed", confirmedMicro: 12 });
+    expect(providerIntentStateForResult({ status: "invalid_output", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
   });
 
   it("LIVE_SPEND_CAP_MICRO is USD micros and refuses a call that would exceed remaining", () => {
