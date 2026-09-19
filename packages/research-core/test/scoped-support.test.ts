@@ -68,6 +68,17 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("supports a 3.12 removal paraphrase that the model marked contradicted",()=>{
+  const quote="This module is no longer part of the Python standard library. It was removed in Python 3.12 after being deprecated in Python 3.10.";
+  const claim="distutils is not included in the Python 3.12 standard library.";
+  const scope={entity:"Python",plan:null,version:"3.12",geography:null,time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"distutils_inclusion",candidateKey:null,criterionKeys:["distutils_inclusion"],text:claim,scope,quantities:[],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"distutils_inclusion",status:"contradicted",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Model polarity error",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("does not treat a use-case label or a later statute 'may' as disqualifying a cited employment-tax quote",()=>{
   const quote="Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month.";
   const page=`${quote} You may also have to file Form 941. This calendar is only a summary.`;

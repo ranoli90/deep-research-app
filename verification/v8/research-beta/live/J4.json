@@ -1,0 +1,54 @@
+{
+  "id": "J4",
+  "question": "Is distutils still part of the Python 3.12 standard library?",
+  "runId": "a020a881-8242-4859-8940-982a177850d1",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": null,
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "evidence_checked",
+    "discovery_exhausted",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "a020a881-8242-4859-8940-982a177850d1",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 20004,
+    "confirmedProviderMicro": 20004,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 20004
+    },
+    "intentTotalMicro": 20004,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": null
+}

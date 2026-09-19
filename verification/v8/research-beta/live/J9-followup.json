@@ -1,0 +1,13 @@
+{
+  "id": "J9-followup",
+  "parentRunId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+  "http": 200,
+  "response": {
+    "kind": "explain",
+    "reason": "explanation_question",
+    "mutatesBrief": false,
+    "mutatesIssuedIdentities": null,
+    "runId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe"
+  },
+  "parentQuestion": "best laptop for local AI under $2k"
+}

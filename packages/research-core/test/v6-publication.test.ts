@@ -67,6 +67,10 @@ describe("W01 / V6-F01 production citation regressions", () => {
       "This laptop is genuinely capable of running useful local AI, and it's a genuinely pleasant machine to carry around and use every day, which the Raider never claimed to be.",
       "This laptop is genuinely capable of running useful local AI, and it's a genuinely pleasant machine to carry around and use every day.",
     )).toBe("supports");
+    expect(passageSupportsClaim(
+      "This module is no longer part of the Python standard library. It was removed in Python 3.12 after being deprecated in Python 3.10.",
+      "distutils is not included in the Python 3.12 standard library.",
+    )).toBe("supports");
   });
   it.each([
     ["It is a myth that Atlas supports offline editing.", "Atlas supports offline editing."],

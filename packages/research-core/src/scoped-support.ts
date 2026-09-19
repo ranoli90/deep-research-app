@@ -10,6 +10,7 @@ const GENERIC_ENTITY = new Set([
   "us", "usa", "u.s.", "u.s", "united states", "america", "american",
   "current", "today", "now", "latest", "present",
   "employment tax", "tax", "deadline", "filing deadline",
+  "python", "javascript", "typescript", "java", "linux", "windows", "android", "ios",
 ]);
 const UNIT_ALIASES: Record<string, string[]> = {
   percentage: ["percentage", "percent", "%"],
@@ -114,7 +115,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
     // Inspect cited passages plus others that share a specific (non-category) scope value.
     const citedIds = new Set(assessment.evidence.map((e) => e.passageId));
-    const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !GENERIC_ENTITY.has(normalize(s)));
+    const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !GENERIC_ENTITY.has(normalize(s)) && !/^\d+(?:\.\d+)*$/u.test(s));
     const extraPassages = args.passages.filter((p) => !citedIds.has(p.id) && specificScope.length > 0 && specificScope.every((s) => containsPhrase(p.text, s)));
     const currencyTokens=claim.text.match(/[$€£¥]|\b(?:USD|EUR|GBP|CAD|AUD|JPY|CHF)\b/gu)??[];
     checks.push({rule:"currency_preserved",passed:currencyTokens.every((token)=>citedText.includes(token))});
@@ -132,6 +133,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     else if (!checks.find((c) => c.rule === "readable_evidence")!.passed) decision="insufficient";
     else if (!checks.find((c) => c.rule === "scope_grounded_in_quotes")!.passed) decision="out_of_scope";
     else if (literalContradiction) decision=literalSupport ? "disputed" : "contradicted";
+    else if (assessment.status === "contradicted" && literalSupport && /\b(not (?:included|part of)|no longer|removed from|is not in|deprecated)\b/i.test(claim.text) && checks.every((c) => c.passed) && !literalContradiction) decision="supported";
     else if (assessment.status === "contradicted" && literalSupport) decision="disputed";
     else if (qualified && assessment.status === "supported") decision="partially_supported";
     else if (assessment.status === "supported" && checks.some((c) => !c.passed)) decision="insufficient";

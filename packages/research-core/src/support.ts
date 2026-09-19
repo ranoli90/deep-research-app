@@ -98,6 +98,9 @@ export function passageSupportsClaim(passageText: string, claimText: string): Su
   const assertsFact = /\b(is|are|was|were|equals|costs|includes|supports|requires|announced)\b/i.test(claimText);
   if (assertsFact && ratio < 0.35) return "context-only";
   if (ratio < 0.25) return "unsupported";
+  const absenceClaim = /\b(not (?:included|part of)|no longer|removed from|is not in|deprecated)\b/i.test(claimText);
+  const absencePassage = /\b(no longer part of|removed in|removed from|not part of|is not part of|deprecated)\b/i.test(passageText);
+  if (absenceClaim && absencePassage) return "supports";
   if (relevantQualification(passageText,claimText)) return "qualifies";
   // Overlap is useful for rejecting unrelated text, never for proving entailment.
   // Accept a complete literal statement or this narrow, meaning-preserving passive form.
