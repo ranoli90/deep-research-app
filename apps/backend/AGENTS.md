@@ -18,7 +18,7 @@ Persist coverage, origin links, freshness, and reconciliation inside an existing
 
 Document/web reconciliation must run from `processStructuredResearch` when attachments exist. Tests that `INSERT` `kind='approved'` and then call `persistReconciliation` themselves do not prove the worker path.
 
-Account and source deletion must scrub new retrieval columns (`origin_relation`, `publication_date`) as well as the new tables. Canonical integration migrations: `042_model_portfolio.sql` then `043_retrieval_intelligence.sql` then `044_research_controller_state.sql`. Isolated worker DBs may still record historical `042_retrieval_intelligence` / `043_model_portfolio` / `044_retrieval_intelligence` ids. `CREATE TABLE IF NOT EXISTS` does not add uniqueness later; add `CREATE UNIQUE INDEX IF NOT EXISTS` for `ON CONFLICT`.
+Account and source deletion must scrub new retrieval columns (`origin_relation`, `publication_date`) as well as the new tables. Canonical integration migrations: `042_model_portfolio.sql` then `043_retrieval_intelligence.sql` then `044_query_authorization_proof.sql` then `045_model_operation_attempts.sql` then `046_research_controller_state.sql`. Isolated worker DBs may still record historical `042_retrieval_intelligence` / `043_model_portfolio` / `044_retrieval_intelligence` ids. `CREATE TABLE IF NOT EXISTS` does not add uniqueness later; add `CREATE UNIQUE INDEX IF NOT EXISTS` for `ON CONFLICT`.
 
 Counterevidence search identity is the original suffix query after binding validation. Do not send an expanded/stripped string if the challenge receipt digest is the unexpanded query.
 

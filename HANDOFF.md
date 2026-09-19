@@ -1,6 +1,6 @@
 ## Wave 5 intelligence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence` SHA `1448e789363050c066d688a3c11b51bd919fbb92`. Base `b30073e`. **Do not merge `main`.**
+Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main` or integration.** Migration renamed to `046_research_controller_state.sql` so it does not collide with integration `044_query_authorization_proof.sql` or Wave 2 `045_model_operation_attempts.sql`.
 
 Confirmed and implemented on the production structured worker:
 
@@ -8,13 +8,10 @@ Confirmed and implemented on the production structured worker:
 - FP-051 P0 / FP-052 completeness: wire `extractCandidates` + ledger into extraction/discovery/correction; persist on `candidates` + `candidate_ledgers`; completeness from remaining distinct strategy, not a caller boolean; relaxed budget reopens exclusions.
 - FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`; two consequential conclusions keep independent state. Existing `counterevidence_checks UNIQUE(run,brief,version)` untouched.
 
-Exact tests at `1448e78`:
+Exact tests after rename (focused re-run):
 
-- `pnpm --filter @deep/research-core test` — 280/280, exit 0
-- `pnpm --filter @deep/backend typecheck` — exit 0
-- `vitest run --config vitest.integration.config.ts test/wave5-intelligence.integration.test.ts` — 3/3, exit 0, ~93s
-- `vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts -t "executes search, read and exact original-target support"` — 3/3, exit 0
-- `vitest run --config vitest.unit.config.ts test/token-budget.unit.test.ts` — 6/6, exit 0
+- `vitest run --config vitest.integration.config.ts test/wave5-intelligence.integration.test.ts` — 3/3, exit 0, 54.75s
+- Prior implementation SHA `1448e78`: research-core 280/280; backend typecheck 0; existing counterevidence execution 3/3; token-budget unit 6/6
 
 Rollback: ADR067. No merge to `main`. Full PG twice and live semantic remain separate.
 

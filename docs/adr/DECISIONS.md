@@ -535,4 +535,4 @@ FP-030/049/051/053: Evidence Needs, discovery query/class counters, candidate co
 
 Completeness is derived from remaining distinct strategy and search coverage, never a caller boolean. Public challenge queries still use only the original question plus the closed counterevidence suffix.
 
-Impact: additive migration `044_research_controller_state.sql`; `processStructuredResearch` production path; account/source deletion. No new provider, prompt, or spend default. Rollback: stop new admissions that depend on controller reconstruction; retain readers, historical search identities, and the existing one-row counterevidence proof.
+Impact: additive migration `046_research_controller_state.sql` (after integration `044_query_authorization_proof.sql` and Wave 2 `045_model_operation_attempts.sql`); `processStructuredResearch` production path; account/source deletion. No new provider, prompt, or spend default. Rollback: stop new admissions that depend on controller reconstruction; retain readers, historical search identities, and the existing one-row counterevidence proof.

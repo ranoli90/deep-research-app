@@ -3,8 +3,8 @@
 ## 2026-09-19 — Wave 5 intelligence persistence (FP-030/049/051/053)
 
 - Branch `grok-v8/fix-wave5-intelligence` from `b30073e`. Isolated worktree. main untouched.
-- Migration `044_research_controller_state.sql`. Worker reconstructs discovery from `search_operations`; Evidence Needs persisted; candidate ledger on production `processStructuredResearch`; per-conclusion `conclusion_challenges`.
-- research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3 (~93s); existing counterevidence execution 3/3; token-budget unit 6/6.
+- Migration `046_research_controller_state.sql` (renamed to avoid colliding with integration `044_query_authorization_proof.sql` and Wave 2 `045_model_operation_attempts.sql`). Worker reconstructs discovery from `search_operations`; Evidence Needs persisted; candidate ledger on production `processStructuredResearch`; per-conclusion `conclusion_challenges`.
+- research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3 after 046 rename (54.75s); existing counterevidence execution 3/3; token-budget unit 6/6.
 - Not full PostgreSQL twice. Not Research Beta. Not merged to main.
 
 ## 2026-09-19 — Fail-closed WIP checkpoint (not Research Beta)

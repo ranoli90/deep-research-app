@@ -1,6 +1,6 @@
 -- Durable research-controller, candidate ledger, and per-conclusion challenge state.
--- Additive after 043_retrieval_intelligence.sql. Purged with account/source deletion.
--- Does not alter counterevidence_checks UNIQUE(run_id, brief_revision, version).
+-- Additive as 046 after 044_query_authorization_proof.sql and 045_model_operation_attempts.sql.
+-- Purged with account/source deletion. Does not alter counterevidence_checks UNIQUE(run_id, brief_revision, version).
 
 ALTER TABLE search_operations ADD COLUMN IF NOT EXISTS query text;
 ALTER TABLE search_operations ADD COLUMN IF NOT EXISTS source_class text;
