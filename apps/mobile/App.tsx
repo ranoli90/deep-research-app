@@ -1209,7 +1209,7 @@ function AppInner() {
             key={readerView}
             ref={conversationScroll}
             style={styles.body}
-            contentContainerStyle={{ paddingBottom: followUps.length ? 96 : space.lg }}
+            contentContainerStyle={{ paddingBottom: followUps.length ? 168 : space.lg }}
             keyboardShouldPersistTaps="handled"
             accessibilityLabel="Research conversation"
             scrollEventThrottle={100}
