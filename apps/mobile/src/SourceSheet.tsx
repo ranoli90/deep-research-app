@@ -34,7 +34,7 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
         if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
       }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
       <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
-      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Cited in: {relatedClaim}</Text> : null}
+      {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim" numberOfLines={3} ellipsizeMode="tail">Cited in: {relatedClaim}</Text> : null}
       <Text style={styles.kicker}>{uncertaintyLabel(quality)}</Text>
       <Text style={styles.bodyText}>{sourceFreshnessCopy(source)}</Text>
       <Text style={styles.bodyText}>{sourceIndependenceCopy(source)}</Text>

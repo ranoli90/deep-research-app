@@ -35,11 +35,15 @@ describe("one-sentence composer and researching-this brief", () => {
     expect(view.blocking).toBe(false);
     expect(view.objective).toContain("laptops under $2,000");
     expect(view.assumptions).toContain("Assuming U.S. pricing and new devices.");
+    const card = readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8");
+    expect(card).not.toContain("<Text style={styles.bodyText}>{view.objective}</Text>");
+    expect(card).toContain("Edit assumptions");
+    expect(card).not.toContain("Continue with these assumptions");
   });
 
   it("blocking clarification copy is the material prompt, not a second restatement of the question", () => {
     const src = readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8");
-    expect(src).toContain('accessibilityLabel={view.blocking ? "Clarification needed" : "Researching this"}');
+    expect(src).toContain('accessibilityLabel={view.blocking ? "Clarification needed" : "Assumptions"}');
     expect(src).toContain("view.materialClarification ?? view.objective");
     expect(src).toContain("clarificationPlaceholder(view.materialClarification)");
   });

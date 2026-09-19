@@ -17,6 +17,7 @@ it("source sheet shows passage, publisher, location, access, quality, and challe
   expect(src).toContain("uncertaintyLabel(quality)");
   expect(src).toContain('accessibilityLabel="Related claim"');
   expect(src).toContain("Cited in:");
+  expect(src).toContain("numberOfLines={3}");
   expect(src).toContain("Challenge this conclusion");
   expect(src).toContain("Request targeted verification");
   expect(src).toContain("Open original source");

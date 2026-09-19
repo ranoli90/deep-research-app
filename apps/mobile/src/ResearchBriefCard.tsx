@@ -29,17 +29,14 @@ export function ResearchBriefCard({
 }) {
   if (!view.show) return null;
   return (
-    <View style={styles.card} accessibilityLabel={view.blocking ? "Clarification needed" : "Researching this"}>
-      <Text style={styles.kicker}>{view.blocking ? "Need one detail" : "Researching this"}</Text>
+    <View style={styles.card} accessibilityLabel={view.blocking ? "Clarification needed" : "Assumptions"}>
+      <Text style={styles.kicker}>{view.blocking ? "Need one detail" : "Assumptions"}</Text>
       {view.blocking ? (
         <Text style={styles.bodyText}>{view.materialClarification ?? view.objective}</Text>
       ) : (
-        <>
-          <Text style={styles.bodyText}>{view.objective}</Text>
-          {view.assumptions.map((line) => (
-            <Text key={line} style={styles.kicker}>{line}</Text>
-          ))}
-        </>
+        view.assumptions.map((line) => (
+          <Text key={line} style={styles.bodyText}>{line}</Text>
+        ))
       )}
       {view.blocking || clarifyAnswer ? (
         <>
@@ -63,14 +60,9 @@ export function ResearchBriefCard({
           </Pressable>
         </>
       ) : (
-        <>
-          <Pressable onPress={onContinue} accessibilityRole="button" accessibilityLabel="Continue with these assumptions">
-            <Text style={styles.link}>Research</Text>
-          </Pressable>
-          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit assumptions">
-            <Text style={styles.link}>Edit assumptions</Text>
-          </Pressable>
-        </>
+        <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel="Edit assumptions">
+          <Text style={styles.link}>Edit assumptions</Text>
+        </Pressable>
       )}
     </View>
   );
