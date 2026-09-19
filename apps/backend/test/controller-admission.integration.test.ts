@@ -120,9 +120,10 @@ describe("controller admission on the fixture worker path", () => {
     const runId = created.json().runId as string;
     // Explicit test-only allowance, backed by the account reserve. No runtime default is raised.
     await withTx(pool, async (db) => {
-      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, LIVE_CALL_RESERVE_MICRO - DEFAULT_RUN_BUDGET_MICRO]);
-      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
-      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+      const searchBudget = Math.ceil(LIVE_CALL_RESERVE_MICRO / 0.65);
+      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, searchBudget - DEFAULT_RUN_BUDGET_MICRO]);
+      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, searchBudget]);
+      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, searchBudget]);
     });
 
     const usedBefore = await liveSpendUsedMicro(pool);
@@ -182,9 +183,10 @@ describe("controller admission on the fixture worker path", () => {
     const created = await createRun(token, "Compare unfamiliar document tools");
     const runId = created.json().runId as string;
     await withTx(pool, async (db) => {
-      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, LIVE_CALL_RESERVE_MICRO - DEFAULT_RUN_BUDGET_MICRO]);
-      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
-      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, LIVE_CALL_RESERVE_MICRO]);
+      const searchBudget = Math.ceil(LIVE_CALL_RESERVE_MICRO / 0.65);
+      await db.query("UPDATE allowance_accounts SET reserved_micro = reserved_micro + $2 WHERE account_id = (SELECT account_id FROM runs WHERE id = $1)", [runId, searchBudget - DEFAULT_RUN_BUDGET_MICRO]);
+      await db.query("UPDATE reservations SET amount_micro = $2 WHERE run_id = $1", [runId, searchBudget]);
+      await db.query("UPDATE runs SET route_mode = 'controlled-research', budget_micro = $2 WHERE id = $1", [runId, searchBudget]);
     });
     if (outcome.startsWith("prior_")) {
       const reserve = liveSpend.reserveLiveAttempt;

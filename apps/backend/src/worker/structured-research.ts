@@ -2,7 +2,7 @@ import { prepareEvidenceSelection,usesEvidenceSelection } from "../modules/evide
 import { ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
 import { getCounterevidence } from "../modules/counterevidence.js";
-import { publicSearchDigest,discoveryPolicyForModel,DISCOVERY_RESERVE_MICRO } from "../ports/search.js";
+import { publicSearchDigest,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,type SourceClass } from "@deep/research-core";
@@ -175,7 +175,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         novelty:sources.length>lastSourceCount?1:0,
         expectedInformationGain:next.kind==="search"?"high":"none",
         remainingBudgetMicro:Math.max(0,Number(run.budget_micro)-Number(run.spent_micro)),
-        nextCostMicro:DISCOVERY_RESERVE_MICRO,
+        nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
         freshnessUnmet,
         priorFailedQueries:failedQueries,
         queriesIssued:queries.length,

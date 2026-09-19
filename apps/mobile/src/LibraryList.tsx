@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { api, isSupersededRequest } from "./api";
 import { breakLongTokens } from "./report-layout";
 import { libraryItemCopy, type LibraryRecord } from "./library-copy";
@@ -29,7 +29,11 @@ export function LibraryList({
   const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryRecord[]; error: string | null }>({
     token: null, items: [], error: null,
   });
-  const items = loaded.token === token ? loaded.items : [];
+  const [query, setQuery] = useState("");
+  const items = (loaded.token === token ? loaded.items : []).filter((it) => {
+    const hay = `${it.title ?? ""} ${it.status ?? ""}`.toLowerCase();
+    return !query.trim() || hay.includes(query.trim().toLowerCase());
+  });
   useEffect(() => {
     if (!token) return;
     let current = true;
@@ -58,6 +62,13 @@ export function LibraryList({
   }
   return (
     <ScrollView style={styles.body} accessibilityLabel="Saved reports">
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search saved reports"
+        accessibilityLabel="Search saved reports"
+        style={styles.bodyText}
+      />
       {items.map((it) => {
         const copy = libraryItemCopy(it);
         return (

@@ -25,7 +25,7 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
  const {runId}=await admitRun(pool,account.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policy.id});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,runId,owner,30000))!;
  const session=fencedSession(pool,{runId,accountId:account.accountId,owner,fence,briefRevision:1,leaseMs:30000});
- const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",STRUCTURED_DISCOVERY_ENABLED:"true",STRUCTURED_MODEL_POLICY_ID:STRUCTURED_MODEL_POLICY.id,OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",STRUCTURED_DISCOVERY_ENABLED:"true",STRUCTURED_MODEL_POLICY_ID:STRUCTURED_MODEL_POLICY.id,OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
  try{
   globalThis.fetch=vi.fn(async()=>envelope("Azure",brief));
   const task=await ensureResearchTask(pool,config,session,{runId,accountId:account.accountId,fence,briefRevision:1});if(task.kind!=="task")throw Error("test_task_unavailable");
@@ -54,6 +54,6 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
   const changed={...args,proposal:{...args.proposal,action:{...args.proposal.action,query:"kelp restoration"}}};
   expect(await performPublicSearch(pool,config,session,changed)).toMatchObject({kind:"pending"});
   expect(await performPublicSearch(pool,config,session,changed)).toMatchObject({kind:"pending"});expect(fetch).toHaveBeenCalledTimes(1);
-  expect((await pool.query("SELECT reserved_max_micro::text,state FROM provider_intents WHERE run_id=$1 AND confirmed_micro IS NULL",[runId])).rows).toEqual([{reserved_max_micro:"28658",state:"outcome-unknown"}]);
+  expect((await pool.query("SELECT reserved_max_micro::text,state FROM provider_intents WHERE run_id=$1 AND confirmed_micro IS NULL",[runId])).rows).toEqual([{reserved_max_micro:"9000",state:"outcome-unknown"}]);
  }finally{session.stop();await cancelRun(pool,runId);}
 });

@@ -4,6 +4,8 @@ import { STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_DISCOVERY_POLI
 export const DISCOVERY_POLICY={id:"public-discovery.v1",model:STRUCTURED_MODEL_POLICY.model,engine:"exa",mode:"auto",maxResults:3,
   searchFeeMicro:7000,observedAt:"2026-09-17"} as const;
 export const DISCOVERY_RESERVE_MICRO=STRUCTURED_CALL_RESERVE_MICRO+DISCOVERY_POLICY.searchFeeMicro;
+/** Attempt reserve for a single search: Exa fee plus a small generation bound, not the full 128k-token ceiling. */
+export const DISCOVERY_ATTEMPT_RESERVE_MICRO=DISCOVERY_POLICY.searchFeeMicro+2_000;
 export const AZURE_DISCOVERY_POLICY={...DISCOVERY_POLICY,id:"public-discovery-azure-zdr.v2",observedAt:"2026-09-18"} as const;
 /** Existing text policies retain their original discovery identity, including Azure text-only runs. */
 export function discoveryPolicyForModel(modelPolicyId:unknown=STRUCTURED_MODEL_POLICY.id) {

@@ -57,7 +57,7 @@ expect(report!.blocks.map((b:any)=>b.text).join("\n")).toContain(fact);
  expect(corrected.passages).toEqual(extraction.passages);
 },120_000);
 it("W05 accepts 128 complete small passages at the bounded capacity",async()=>{const x=await setup(128);await processRun(pool,config,x.run.runId);expect(await getLatestReportForRun(pool,x.run.runId,x.accountId)).toBeTruthy();expect(x.contexts.find(c=>c.operation==="research_extract_assertions_v1")!.context.passages).toHaveLength(128);},120_000);
-it.each([{count:129,size:100,reason:"invalid_extraction_selection"},{count:25,size:7000,reason:"model_context_exceeds_policy"}])("W02 rejects $count passages / $size characters before extraction issuance",async({count,size,reason})=>{
+it.each([{count:129,size:100,reason:"invalid_extraction_selection"},{count:25,size:7000,reason:"model_context_too_large"}])("W02 rejects $count passages / $size characters before extraction issuance",async({count,size,reason})=>{
  const x=await setup(count,size);await processRun(pool,config,x.run.runId,{pauseAt:"researching"});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,x.run.runId,owner,60000))!,session=fencedSession(pool,{accountId:x.accountId,runId:x.run.runId,owner,fence,briefRevision:1,leaseMs:60000});
  try{const task=(await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.run.runId])).rows[0];

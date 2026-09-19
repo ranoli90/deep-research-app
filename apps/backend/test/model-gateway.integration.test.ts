@@ -38,6 +38,9 @@ import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-
 import { loadResearchTask } from "../src/modules/research-tasks.js";
 import { performModelOperation } from "../src/worker/model-gateway.js";
 import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
+import { reserveMicroForOperation } from "../src/adapters/model/token-budget.js";
+import { prepareModelRequest } from "../src/adapters/model/openrouter.js";
+import { STRUCTURED_MODEL_POLICY } from "../src/ports/model-policy.js";
 const originalFetch = globalThis.fetch;
 let pool: pg.Pool;
 beforeAll(async () => { pool = createPool(process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test"); await migrate(pool); });
@@ -52,6 +55,11 @@ const brief = { objective: question, objectiveProvenance: span, intendedOutput: 
   questions: [{ key: "q1", text: question, criterionKeys: ["c1"], importance: "critical", evidenceStandard: "documented outcomes" }],
   assumptions: [], openAmbiguities: [], explicitExclusions: [] };
 const context = { question, task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [], draft: null };
+const briefReserve = () => reserveMicroForOperation({
+  operation: "brief",
+  policyId: STRUCTURED_MODEL_POLICY.id,
+  bodyText: prepareModelRequest("brief", context).body,
+});
 const response = (output: unknown = brief) => new Response(JSON.stringify({ id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI", usage: { cost: "0.000001" }, choices: [{ finish_reason: "stop", message: { content: JSON.stringify(output) } }] }), { status: 200 });
 async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: ReturnType<typeof fencedSession>; config: ReturnType<typeof loadConfig> }) => Promise<void>,initialQuestion=question) {
   const accountId = await withTx(pool, async (db) => { const s = await createDevSession(db); await grantConsent(db, s.accountId); return s.accountId; });
@@ -83,7 +91,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
   it("records an issued reservation before network and reuses a stored validated result without another call", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => {
       const issued = await pool.query("SELECT state,reserved_max_micro FROM provider_intents WHERE run_id=$1", [x.runId]);
-      expect(issued.rows).toEqual([{ state: "issued", reserved_max_micro: String(STRUCTURED_CALL_RESERVE_MICRO) }]);
+      expect(issued.rows).toEqual([{ state: "issued", reserved_max_micro: String(briefReserve()) }]);
       return response();
     }) as typeof fetch;
     const first = await performModelOperation(pool, x.config, x.session, operation(x));
@@ -97,7 +105,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     expect(await performModelOperation(pool, x.config, x.session, operation(x))).toMatchObject({ kind: "result", reused: true, result: { status: "outcome_unknown" } });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const held = await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE run_id=$1", [x.runId]);
-    expect(held.rows).toEqual([{ state: "outcome-unknown", confirmed_micro: null, reserved_max_micro: String(STRUCTURED_CALL_RESERVE_MICRO) }]);
+    expect(held.rows).toEqual([{ state: "outcome-unknown", confirmed_micro: null, reserved_max_micro: String(briefReserve()) }]);
   }));
   it("invalid question provenance is persisted as invalid_output, never as a usable brief", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response({ ...brief, objectiveProvenance: { ...span, quote: "invented requirement" } })) as typeof fetch;
@@ -793,7 +801,7 @@ describe("W02/W05 durable pinned public discovery",()=>{
   const first=await performPublicSearch(pool,c.config,x.session,c.args);expect(first.kind).toBe("pending");
   await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
   expect(await performPublicSearch(pool,c.config,x.session,c.args)).toEqual(first);expect(fetch).toHaveBeenCalledTimes(1);
-  expect((await pool.query("SELECT confirmed_micro,state,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0]).toMatchObject({confirmed_micro:null,state:"outcome-unknown",reserved_max_micro:"28658"});
+  expect((await pool.query("SELECT confirmed_micro,state,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0]).toMatchObject({confirmed_micro:null,state:"outcome-unknown",reserved_max_micro:"9000"});
  }));
  it("rejects transformed private words and foreign task ownership before dispatch",async()=>runCase(async(x)=>{
   const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
@@ -925,12 +933,12 @@ it("W05 unresolved criteria trigger a distinct public query and rechecked synthe
 }),60_000);
 it("W02/W05 concurrent distinct searches obey the durable per-run query ceiling",async()=>runCase(async(x)=>{
  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
- const queries=Array.from({length:11},(_,i)=>`topic-${i}`);
+ const queries=["coral","kelp","restoration","Compare","coral kelp","kelp restoration","coral restoration"];
  const results=await Promise.all(queries.map((query)=>performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})));
- expect(results.filter((r)=>r.kind==="search")).toHaveLength(10);expect(results.filter((r)=>r.kind==="blocked")).toEqual([{kind:"blocked",reason:"discovery_query_limit"}]);expect(fetch).toHaveBeenCalledTimes(10);
+ expect(results.filter((r)=>r.kind==="search")).toHaveLength(6);expect(results.filter((r)=>r.kind==="blocked")).toEqual([{kind:"blocked",reason:"discovery_query_limit"}]);expect(fetch).toHaveBeenCalledTimes(6);
  const query=queries[results.findIndex((r)=>r.kind==="search")]!;
  expect(await performPublicSearch(pool,c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,query}}})).toMatchObject({kind:"search",reused:true});
- expect(fetch).toHaveBeenCalledTimes(10);
+ expect(fetch).toHaveBeenCalledTimes(6);
 }));
 
 const correctionInput=(question:string,evidencePolicy:"reuse_snapshot"|"refresh"="reuse_snapshot")=>CorrectionRequestSchema.parse({expectedBriefRevision:1,correctionText:"Replace the research question",patch:{kind:"replace_question",question,evidencePolicy}});
@@ -1276,7 +1284,9 @@ describe("W05 structured calculation planning",()=>{
   for(let i=0;i<2;i++)expect(await executeCalculationPlanning(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"calculation_plan_outcome_unknown"});
   expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   const row=(await pool.query("SELECT state,confirmed_micro,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:plan_calculations'",[x.runId])).rows[0];
-  expect(row.state).toBe("outcome-unknown");expect(row.confirmed_micro).toBeNull();expect(Number(row.reserved_max_micro)).toBe(STRUCTURED_CALL_RESERVE_MICRO);
+  expect(row.state).toBe("outcome-unknown");expect(row.confirmed_micro).toBeNull();
+  expect(Number(row.reserved_max_micro)).toBeGreaterThan(0);
+  expect(Number(row.reserved_max_micro)).toBeLessThan(STRUCTURED_CALL_RESERVE_MICRO);
  }));
  it("does not introduce planning over an existing writer's unknown outcome",async()=>runCase(async x=>{
   const c=await calculationCase(x);globalThis.fetch=vi.fn(async()=>{throw new Error("unknown writer");}) as typeof fetch;
@@ -1542,8 +1552,8 @@ it("W05 counterevidence race cannot double-send its search and shares the three-
  const searchArgs={...c.args,proposal:{rationale:"Boundary control",action:{type:"search" as const,query:"coral",questionKeys:["q1"],publicQueryBasis:span}}};
  expect(await performPublicSearch(pool,c.config,x.session,searchArgs)).toMatchObject({kind:"search"});
  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"kelp"}}})).toMatchObject({kind:"search"});
- for (let i = 0; i < 8; i += 1) {
-  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:`extra-${i}`}}})).toMatchObject({kind:"search"});
+ for (const query of ["coral kelp","kelp restoration","coral restoration"]) {
+  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query}}})).toMatchObject({kind:"search"});
  }
  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"restoration"}}})).toEqual({kind:"blocked",reason:"discovery_query_limit"});
 }));

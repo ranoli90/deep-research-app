@@ -450,8 +450,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
     const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string };
-    if (!followBody.claimId && (followBody.message || followBody.note)) {
-      const routed = routeFollowUp(followBody.message || followBody.note || "", {
+    if (!followBody.claimId && followBody.message) {
+      const routed = routeFollowUp(followBody.message, {
         reportReady: true,
         runActive: run.lifecycle !== "terminal",
       });

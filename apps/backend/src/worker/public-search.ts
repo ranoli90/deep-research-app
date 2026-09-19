@@ -9,7 +9,7 @@ import { getBrief,getRun } from "../modules/runs.js";
 import { briefContext,loadResearchTask } from "../modules/research-tasks.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
 import { updateIntentState } from "../modules/billing.js";
-import { DISCOVERY_POLICY,discoveryPolicyForModel,DISCOVERY_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
+import { DISCOVERY_POLICY,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
 import { liveWebSearch,publicSearchDigest } from "../adapters/retrieval/live-web.js";
 import type { FencedSession } from "./fenced-session.js";
 import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
@@ -49,7 +49,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:policy.id,briefRevision:args.briefRevision})).digest("hex");
  let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;
  try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
-  route:`openrouter:${policy.model}:${policy.id}`,requestDigest:digest,reserveMicro:DISCOVERY_RESERVE_MICRO,maxRunRouteAttempts:DEEP_DISCOVERY_CEILING});}
+  route:`openrouter:${policy.model}:${policy.id}`,requestDigest:digest,reserveMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,maxRunRouteAttempts:DEEP_DISCOVERY_CEILING});}
  catch(error){if(error instanceof Error&&error.message==="route_attempt_limit")return {kind:"blocked" as const,reason:"discovery_query_limit"};throw error;}
  const finish=(result:SearchResult,reused:boolean)=>result.receipt.state==="confirmed"&&result.receipt.actualMicro!==undefined
   ?{kind:"search" as const,intentId:attempt.intentId,hits:result.hits,reused}
