@@ -49,6 +49,7 @@ import { toSanitizedRunEvent } from "../modules/public-activity.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import {
   cancelOwnedRun,
+  commitBriefRevision,
   emitEvent,
   findRunByIdempotency,
   getBrief,
@@ -322,19 +323,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       if (!parsed.ok) continue;
       constraints = [...constraints.filter((c) => c.field !== parsed.constraint.field), parsed.constraint];
     }
-    const nextBrief = { ...brief, originalQuestion, constraints };
     await withTx(pool, async (db) => {
     await lockActiveAccount(db, a.accountId);
     const current = await getRun(db, id, { forUpdate: true });
     if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== run.brief_revision) {
       throw Object.assign(new Error("This run is no longer waiting for this input."), { statusCode: 409 });
     }
-    const written = await db.query(
-      `UPDATE research_briefs SET payload = $2 WHERE id = $1 AND original_question = $3`,
-      [brief.id, JSON.stringify(nextBrief), originalQuestion],
-    );
-    if (written.rowCount !== 1) throw Object.assign(new Error("original_question_mismatch"), { statusCode: 409 });
-    await db.query(`DELETE FROM research_tasks WHERE run_id = $1 AND brief_revision = $2`, [id, current.brief_revision]);
+    await commitBriefRevision(db, {
+      accountId: a.accountId,
+      runId: id,
+      expectedRevision: current.brief_revision,
+      originalQuestion,
+      next: { ...brief, originalQuestion, constraints },
+    });
     await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
     await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
       ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
@@ -362,34 +363,85 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send(err("invalid_input", "Replacement assumptions cannot be empty.", crypto.randomUUID()));
     }
     try {
-      await withTx(pool, async (db) => {
+      const result = await withTx(pool, async (db) => {
         await lockActiveAccount(db, a.accountId);
         const run = await getRun(db, id, { forUpdate: true });
         if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
         const brief = await getBrief(db, run.brief_id);
         const current = Array.isArray(brief.assumptions) ? brief.assumptions : [];
-        const next = action === "replace"
+        const nextAssumptions = action === "replace"
           ? values.map((value, index) => ({
-              ...(typeof current[index] === "object" && current[index] ? current[index] : { id: `assumption-${index}` }),
+              ...(typeof current[index] === "object" && current[index] ? current[index] : {
+                id: `assumption-${index}`,
+                reversibility: "reversible" as const,
+                impact: "User-supplied assumption",
+              }),
               value,
-              userConfirmationState: "confirmed",
+              userConfirmationState: "accepted" as const,
             }))
-          : current.map((item) => ({ ...item, userConfirmationState: "confirmed" }));
-        await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify({ ...brief, assumptions: next })]);
-        await emitEvent(db, {
-          runId: id,
-          accountId: a.accountId,
-          type: "clarification_answered",
-          summary: action === "replace" ? "Assumptions updated." : "Assumptions confirmed.",
-          phase: "preparing",
+          : current.map((item) => ({ ...item, userConfirmationState: "accepted" as const }));
+        if (action === "confirm") {
+          await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1 AND original_question = $3`,
+            [brief.id, JSON.stringify({ ...brief, assumptions: nextAssumptions }), brief.originalQuestion]);
+          await emitEvent(db, {
+            runId: id, accountId: a.accountId, type: "clarification_answered",
+            summary: "Assumptions confirmed.", phase: "preparing",
+          });
+          return { runId: id, action, briefRevision: run.brief_revision };
+        }
+        if (run.lifecycle === "running") {
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+        }
+        if (run.lifecycle === "terminal") {
+          const revision = Number((await db.query(
+            "SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",
+            [run.conversation_id],
+          )).rows[0]?.revision ?? brief.revision + 1);
+          const childBrief = { ...brief, id: crypto.randomUUID(), revision, assumptions: nextAssumptions, originalQuestion: brief.originalQuestion };
+          await insertBrief(db, childBrief, a.accountId);
+          const childId = crypto.randomUUID();
+          const key = `assumptions-${id}-${revision}-${createHash("sha256").update(JSON.stringify(values)).digest("hex").slice(0, 12)}`;
+          const consent = await currentConsent(db, a.accountId);
+          if (!consent || consent.revoked) throw Object.assign(new Error("consent_required"), { statusCode: 403 });
+          await insertRun(db, {
+            id: childId, accountId: a.accountId, conversationId: run.conversation_id, briefId: childBrief.id,
+            parentRunId: run.id, routeMode: run.route_mode, briefRevision: revision, consentEpoch: consent.epoch,
+            idempotencyKey: key, budgetMicro: DEFAULT_RUN_BUDGET_MICRO,
+          });
+          await reserveAllowance(db, a.accountId, childId, DEFAULT_RUN_BUDGET_MICRO);
+          await emitEvent(db, {
+            runId: childId, accountId: a.accountId, type: "clarification_answered",
+            summary: "Assumptions updated on a new research revision. The prior report is unchanged.",
+            phase: "preparing", payload: { parentRunId: id, briefRevision: revision },
+          });
+          return { runId: childId, action, briefRevision: revision, parentRunId: id };
+        }
+        const committed = await commitBriefRevision(db, {
+          accountId: a.accountId, runId: id, expectedRevision: run.brief_revision,
+          originalQuestion: brief.originalQuestion, next: { ...brief, assumptions: nextAssumptions },
         });
+        if (run.lifecycle === "awaiting_input") {
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
+            ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
+              lease_until = NULL, next_attempt_at = now()`, [id]);
+        }
+        await emitEvent(db, {
+          runId: id, accountId: a.accountId, type: "clarification_answered",
+          summary: "Assumptions updated.", phase: "preparing", payload: { briefRevision: committed.briefRevision },
+        });
+        return { runId: id, action, briefRevision: committed.briefRevision };
       });
+      if (result.parentRunId) await tryDispatchRun(pool, boss, result.runId);
+      else if (action === "replace") await tryDispatchRun(pool, boss, result.runId);
+      return result;
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode;
       if (status === 404) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (status === 409) return reply.code(409).send(err("stale_revision", "This run cannot replace assumptions in its current state.", crypto.randomUUID()));
+      if (status === 403) return reply.code(403).send(err("consent_required", "Consent required.", crypto.randomUUID()));
       throw e;
     }
-    return { runId: id, action };
   });
 
   app.post("/v1/runs/:id/query-authorizations/approve", async (req, reply) => {

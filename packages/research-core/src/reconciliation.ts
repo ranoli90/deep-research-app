@@ -1,6 +1,7 @@
 import { authorizePublicQuery, classifyQueryTerms, type QueryAuthorization } from "./query-intelligence.js";
+import { passageSupportsClaim } from "./support.js";
 
-export const RECONCILIATION_VERSION = "document-web-reconciliation.v1";
+export const RECONCILIATION_VERSION = "document-web-reconciliation.v2";
 export const RECONCILIATION_OUTCOMES = [
   "confirmed",
   "partially_confirmed",
@@ -118,25 +119,44 @@ export function reconcileDocumentClaim(args: {
   }
   const claimTokens = tokens(args.claim.text);
   const claimNumbers = numbers(args.claim.text);
-  const contradiction = /\b(does not|is not|no longer|contradict)\b/i;
+  const claimVersion = args.claim.version?.trim();
+  const claimScope = args.claim.scope?.trim().toLocaleLowerCase("en");
   let support = 0;
   let contra = 0;
   let outdated = 0;
   for (const ev of readable) {
     const evTokens = tokens(ev.text);
-    const hit = overlap(claimTokens, evTokens) >= Math.min(3, Math.max(2, Math.floor(claimTokens.size / 3)));
-    if (!hit) continue;
+    // Lexical overlap is triage only: it never authorizes a final confirmed status.
+    const topical = overlap(claimTokens, evTokens) >= Math.min(3, Math.max(2, Math.floor(claimTokens.size / 3)));
+    if (!topical) continue;
+    if (claimScope && ev.text.trim() && !ev.text.toLocaleLowerCase("en").includes(claimScope)) {
+      continue;
+    }
     const evNumbers = numbers(ev.text);
     const numberMismatch = claimNumbers.length > 0 && evNumbers.length > 0 && claimNumbers.some((n) => !evNumbers.includes(n));
-    if (numberMismatch || (contradiction.test(ev.text) && !contradiction.test(args.claim.text))) contra += 1;
-    else support += 1;
-    if (numberMismatch && args.claim.date && ev.date && ev.date > args.claim.date && /price|cost|current/i.test(args.claim.text)) outdated += 1;
+    const numberMatch = claimNumbers.length > 0 && claimNumbers.every((n) => evNumbers.includes(n));
+    const later = Boolean(args.claim.date && ev.date && ev.date > args.claim.date);
+    const versionMismatch = Boolean(claimVersion && ev.text.includes(claimVersion) === false && /\bv(?:ersion)?\s*\d/i.test(ev.text));
+    const decision = passageSupportsClaim(ev.text, args.claim.text);
+    if ((numberMismatch || versionMismatch) && later && /price|cost|current|effective/i.test(args.claim.text)) {
+      outdated += 1;
+      continue;
+    }
+    if (numberMismatch || decision === "contradicts") {
+      contra += 1;
+      continue;
+    }
+    if (decision === "supports" && (numberMatch || claimNumbers.length === 0)) {
+      support += 1;
+      continue;
+    }
+    if (decision === "qualifies" && numberMatch) support += 1;
   }
   if (contra && support) {
     return { ...base, outcome: "partially_confirmed", rationale: "Public evidence both supports and contradicts the claim; scopes were not collapsed." };
   }
   if (outdated && !support) return { ...base, outcome: "outdated", rationale: "A later public source updates the document figure." };
   if (contra) return { ...base, outcome: "contradicted", rationale: "Public evidence contradicts the document claim." };
-  if (support) return { ...base, outcome: "confirmed", rationale: "Public evidence confirms the document claim within inspected source scope." };
-  return { ...base, outcome: "unverifiable", rationale: "Inspected public evidence neither confirms nor contradicts the claim." };
+  if (support) return { ...base, outcome: "confirmed", rationale: "Scoped public evidence confirms the document claim under number/scope/date guards." };
+  return { ...base, outcome: "unverifiable", rationale: "Lexical overlap is not confirmation; inspected public evidence did not pass number, scope, or date guards." };
 }

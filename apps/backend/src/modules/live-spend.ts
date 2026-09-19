@@ -8,13 +8,13 @@ import { getRun } from "./runs.js";
 import { currentConsent } from "./access.js";
 import { operationClassFor, reserveOperationBudget } from "../model-governor/index.js";
 
-/** Sum issued/confirmed/unknown live-provider reservations. Unknown is not treated as zero. */
+/** Sum confirmed spend plus unresolved HOLD. Known-zero failures are not unknown liabilities. */
 export async function liveSpendUsedMicro(db: Queryable, scope = "project"): Promise<number> {
   const res = await db.query<{ used: string }>(
     `SELECT COALESCE(SUM(
        CASE
          WHEN confirmed_micro IS NOT NULL THEN confirmed_micro
-         WHEN state IN ('issued', 'confirmed', 'outcome-unknown', 'failed') THEN reserved_max_micro
+         WHEN state IN ('issued', 'outcome-unknown') THEN reserved_max_micro
          ELSE 0
        END
      ), 0)::text AS used
@@ -87,7 +87,13 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
       [args.runId, run.account_id]);
     const reservation = allowance.rows[0];
     if (!reservation || allowance.rows.length !== 1) throw new Error("missing_active_run_allowance");
-    const costs = await db.query<{ used: string }>(`SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
+    const costs = await db.query<{ used: string }>(`SELECT COALESCE(SUM(
+       CASE
+         WHEN confirmed_micro IS NOT NULL THEN confirmed_micro
+         WHEN state IN ('issued', 'outcome-unknown') THEN reserved_max_micro
+         ELSE 0
+       END
+     ), 0)::text AS used
       FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'`, [args.runId]);
     const used = Number(costs.rows[0]?.used ?? 0);
     const runCap = Math.min(run.budget_micro, Number(reservation.amount_micro));
@@ -115,7 +121,13 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if ((await db.query(`SELECT 1 FROM provider_intents WHERE route LIKE 'openrouter:%'
       AND (provider_key_scope=$1 OR provider_key_scope IS NULL) AND confirmed_micro > reserved_max_micro LIMIT 1`, [keyScope])).rowCount)
       throw new Error("provider_overrun_requires_review");
-    const keyCosts = await db.query<{ used: string }>(`SELECT COALESCE(SUM(COALESCE(confirmed_micro, reserved_max_micro)), 0)::text AS used
+    const keyCosts = await db.query<{ used: string }>(`SELECT COALESCE(SUM(
+       CASE
+         WHEN confirmed_micro IS NOT NULL THEN confirmed_micro
+         WHEN state IN ('issued', 'outcome-unknown') THEN reserved_max_micro
+         ELSE 0
+       END
+     ), 0)::text AS used
       FROM provider_intents WHERE route LIKE 'openrouter:%' AND (provider_key_scope = $1 OR provider_key_scope IS NULL)`, [keyScope]);
     if (!canIssueLiveCall({ capMicro: config.liveKeySpendCapMicro ?? 0, usedMicro: Number(keyCosts.rows[0]?.used ?? 0), estimatedMicro: args.reserveMicro }).ok) {
       throw new Error("provider_key_cap_exhausted");

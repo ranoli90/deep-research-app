@@ -1,3 +1,7 @@
+## P0 brief revision / cost / reconciliation — 2026-09-19
+
+Continue and assumption replace no longer mutate the same brief identity. Known-zero failures settle; unknown HOLD. Reconciliation v2 is not lexical confirmation. **Do not merge `main`.**
+
 ## Full PG twice — 2026-09-19
 
 SHA `d88cf62`. `deep_v8_int13` and `deep_v8_int14` both **505/505 EXIT 0**. `RB-TEST-02` PASS. **Do not merge `main`.** Research Beta is not declared.

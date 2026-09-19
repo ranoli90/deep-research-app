@@ -99,11 +99,16 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
     expect(after.rows[0]?.original_question).toBe(after.rows[0]?.payload.originalQuestion);
     expect(after.rows[0]?.payload.originalQuestion).not.toMatch(/ in Germany\?/u);
 
-    const restored = await getBrief(pool, before.rows[0]!.id);
+    const afterRun = await getRun(pool, runId);
+    expect(afterRun?.brief_revision).toBeGreaterThan(1);
+    expect(afterRun?.brief_id).not.toBe(before.rows[0]!.id);
+    const restored = await getBrief(pool, afterRun!.brief_id);
     expect(restored.originalQuestion).toBe(ORIGINAL);
     const geo = restored.constraints.find((c) => c.field === "geography" && c.origin === "confirmed");
     expect(geo).toMatchObject({ origin: "confirmed", importance: "hard" });
     expect(String(geo?.value)).toMatch(/germany/i);
+    const prior = await getBrief(pool, before.rows[0]!.id);
+    expect(prior.constraints.some((c) => c.field === "geography" && c.origin === "confirmed")).toBe(false);
   });
 
   it("exposes confirmed geography to brief model context without rewriting the question", async () => {

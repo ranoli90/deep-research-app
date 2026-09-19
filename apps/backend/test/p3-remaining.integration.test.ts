@@ -1082,5 +1082,7 @@ describe("remaining launch-scope IDs", () => {
       headers: { authorization: `Bearer ${token}` },
     });
     expect(JSON.stringify(snap.json().brief.assumptions)).toMatch(/official Texas sources/i);
+    const after = await pool.query<{ brief_revision: number; brief_id: string }>("SELECT brief_revision, brief_id FROM runs WHERE id=$1", [runId]);
+    expect(after.rows[0]?.brief_revision).toBeGreaterThan(1);
   });
 });

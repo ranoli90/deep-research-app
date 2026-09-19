@@ -1,6 +1,7 @@
 import {modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
 import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
+import { ResearchBriefSchema } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
 import { lockActiveAccount } from "./access.js";
@@ -82,6 +83,42 @@ export async function insertBrief(db: Queryable, brief: ResearchBrief, accountId
      VALUES ($1,$2,$3,$4,$5,$6)`,
     [brief.id, brief.conversationId, accountId, brief.originalQuestion, JSON.stringify(brief), brief.revision],
   );
+}
+
+/** New brief identity for semantic change. Never mutates a prior brief row or originalQuestion. */
+export async function commitBriefRevision(
+  db: Queryable,
+  args: {
+    accountId: string;
+    runId: string;
+    expectedRevision: number;
+    originalQuestion: string;
+    next: Omit<ResearchBrief, "id" | "revision"> & { id?: string; revision?: number };
+  },
+): Promise<{ brief: ResearchBrief; briefRevision: number }> {
+  const run = await getRun(db, args.runId, { forUpdate: true });
+  if (!run || run.account_id !== args.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+  if (run.brief_revision !== args.expectedRevision) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+  const current = await getBrief(db, run.brief_id);
+  if (current.originalQuestion !== args.originalQuestion) throw Object.assign(new Error("original_question_mismatch"), { statusCode: 409 });
+  const revision = Number((await db.query(
+    "SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",
+    [run.conversation_id],
+  )).rows[0]?.revision ?? current.revision + 1);
+  const brief = ResearchBriefSchema.parse({
+    ...current,
+    ...args.next,
+    id: crypto.randomUUID(),
+    conversationId: current.conversationId,
+    originalQuestion: args.originalQuestion,
+    revision,
+  });
+  await insertBrief(db, brief, args.accountId);
+  await db.query(
+    `UPDATE runs SET brief_id=$2, brief_revision=$3, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
+    [args.runId, brief.id, revision, args.accountId, args.expectedRevision],
+  );
+  return { brief, briefRevision: revision };
 }
 
 export async function getBrief(db: Queryable, briefId: string): Promise<ResearchBrief> {

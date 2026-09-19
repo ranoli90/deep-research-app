@@ -237,7 +237,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     expect(first.intentId).not.toBe(attempts[0].intent_id);
     const held = (await pool.query("SELECT id,state,confirmed_micro FROM provider_intents WHERE run_id=$1 ORDER BY id", [x.runId])).rows;
     expect(held).toHaveLength(2);
-    expect(held.find((row: { id: string }) => row.id === attempts[0].intent_id)).toMatchObject({ state: "failed", confirmed_micro: null });
+    expect(held.find((row: { id: string }) => row.id === attempts[0].intent_id)).toMatchObject({ state: "outcome-unknown", confirmed_micro: null });
     expect(held.find((row: { id: string }) => row.id === first.intentId)).toMatchObject({ state: "outcome-unknown", confirmed_micro: null });
   }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
   it("does not issue a repair pass for schema-invalid output with unknown cost", async () => runCase(async (x) => {

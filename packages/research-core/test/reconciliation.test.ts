@@ -71,6 +71,20 @@ describe("document/web reconciliation", () => {
     expect(RECONCILIATION_OUTCOMES).toEqual(expect.arrayContaining(["confirmed", "partially_confirmed", "contradicted", "outdated", "unverifiable", "blocked_by_access"]));
   });
 
+  it("does not treat lexical paraphrase overlap as confirmation", () => {
+    const paraphrase = reconcileDocumentClaim({
+      question,
+      claim,
+      documentText: claim.text,
+      publicEvidence: [{
+        sourceId: "s9",
+        accessLevel: "partial-text",
+        text: "Teams often like Zephyr products and talk about monthly list price in passing.",
+      }],
+    });
+    expect(paraphrase.outcome).toBe("unverifiable");
+  });
+
   it("requires approval for private-only terms and omits them from the public query", () => {
     const result = reconcileDocumentClaim({
       question: "What is the customer code?",

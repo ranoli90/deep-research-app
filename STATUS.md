@@ -1,3 +1,7 @@
+## P0 revision/cost/reconciliation — 2026-09-19
+
+`/continue` and assumption **replace** commit a new brief row and bump `runs.brief_revision`; the prior brief stays. Confirm-only updates confirmation metadata. Known-zero `failed` 404s settle; 429/transport HOLD. Reconciliation v2 does not confirm from paraphrase overlap. **Not merged to `main`.**
+
 ## Full PG twice at d88cf62 — 2026-09-19
 
 `grok-v8/research-beta-integration` SHA `d88cf62`. Isolated fabricated-transport PG:

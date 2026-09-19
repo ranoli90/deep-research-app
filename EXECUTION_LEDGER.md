@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — FP-003/013/060 and continue brief revision
+
+- `/continue` inserts a new `research_briefs` row and increments `runs.brief_revision`; originalQuestion unchanged. Prior brief rows keep pre-clarification constraints.
+- Assumption confirm is metadata-only; replace commits a new revision; terminal replace admits a child run.
+- `settleRun`/`liveSpendUsedMicro` HOLD only `issued` and `outcome-unknown`. Permanent 404 is known-zero (`failed`, confirmed_micro=0). 429/transient HOLD.
+- `document-web-reconciliation.v2`: lexical overlap triage; scoped support + number/date/version guards. Paraphrase test unverifiable.
+- Isolated PG `deep_v8_p0_rev`: brief-continue 4/4; assumptions replace revision bump; A09 known-zero settle; gateway unknown fallback. Not full PG twice. Not main.
+
 ## 2026-09-19 — Full PG twice at d88cf62
 
 - SHA `d88cf6265303149ba002c224af57f9e6a466c2cc`. Isolated Postgres 127.0.0.1:55432. Fabricated OpenRouter. No live spend.

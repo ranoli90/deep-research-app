@@ -35,10 +35,10 @@ function bucket(route: string): keyof RunCost["breakdown"] {
 
 function intentMicro(row: { reserved_max_micro: string; confirmed_micro: string | null; state: string }): number {
   if (row.confirmed_micro != null) return Number(row.confirmed_micro);
-  if (row.state === "outcome-unknown" || row.state === "issued" || row.state === "confirmed") {
+  if (row.state === "outcome-unknown" || row.state === "issued") {
     return Number(row.reserved_max_micro);
   }
-  return Number(row.reserved_max_micro);
+  return 0;
 }
 
 export async function measureRunCost(db: Queryable, runId: string, accountId: string): Promise<RunCost | null> {
@@ -57,7 +57,7 @@ export async function measureRunCost(db: Queryable, runId: string, accountId: st
   const selected = intents.rows.filter((row) => live ? row.route.startsWith("openrouter:") : row.route.startsWith("fixture:"));
   const provider = selected.filter((row) => row.route.startsWith("openrouter:"));
   const confirmedProviderMicro = provider.reduce((sum, row) => sum + Number(row.confirmed_micro ?? 0), 0);
-  const unresolved = provider.filter((row) => row.confirmed_micro == null);
+  const unresolved = provider.filter((row) => row.confirmed_micro == null && (row.state === "issued" || row.state === "outcome-unknown"));
   const heldProviderMicro = unresolved.reduce((sum, row) => sum + Number(row.reserved_max_micro), 0);
   for (const row of selected) {
     breakdown[bucket(row.route)] += intentMicro(row);

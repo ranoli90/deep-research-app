@@ -225,15 +225,17 @@ describe("production continue after geography clarification", () => {
     expect(searches.some((q) => q.includes(ORIGINAL))).toBe(true);
 
     const extract = await pool.query<{ intent_id: string; input_manifest: { version: string } }>(
-      `SELECT intent_id, input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions' ORDER BY created_at LIMIT 1`,
+      `SELECT intent_id, input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions' ORDER BY created_at DESC LIMIT 1`,
       [runId],
     );
     expect(extract.rows[0]?.input_manifest.version).toBe("model-input.v6");
-    const task = await pool.query<{ id: string }>(`SELECT id FROM research_tasks WHERE run_id=$1`, [runId]);
+    const continued = await getRun(pool, runId);
+    expect(continued?.brief_revision).toBeGreaterThan(1);
+    const task = await pool.query<{ id: string }>(`SELECT id FROM research_tasks WHERE run_id=$1 AND brief_revision=$2`, [runId, continued!.brief_revision]);
     await expect(loadSupportContext(pool, {
       runId,
       accountId: session.accountId,
-      briefRevision: 1,
+      briefRevision: continued!.brief_revision,
       taskId: task.rows[0]!.id,
       extractionIntentId: extract.rows[0]!.intent_id,
     }, TASK_MODEL_VERSIONS)).resolves.toMatchObject({ evidenceRevision: expect.any(Number) });

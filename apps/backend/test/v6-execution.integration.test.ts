@@ -129,6 +129,20 @@ describe("W02 real PostgreSQL execution boundaries", () => {
     expect(spent.rows[0].spent_micro).toBe("123456");
     await expect(reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "overrun2", reserveMicro: 1, logicalKey: "b" })).rejects.toThrow("missing_active_run_allowance");
   }));
+  it("A09 known-zero failed intents settle and do not hold the reserve", async () => runCase(async (runId, accountId) => {
+    await withTx(pool, (db) => reserveAllowance(db, accountId, runId, 100_000));
+    await pool.query("UPDATE runs SET route_mode = 'controlled-research' WHERE id = $1", [runId]);
+    const fence = (await claimLease(pool, runId, "known-zero", 30_000))!;
+    const scope = crypto.randomUUID();
+    const config = loadConfig({ ...budgetEnv, DATABASE_URL: "postgres://localhost/test", LIVE_SPEND_CAP_MICRO: "1000000", LIVE_BUDGET_SCOPE: scope });
+    const intent = await reserveLiveAttempt(pool, config, { runId, fence, briefRevision: 1, kind: "search", route: "openrouter:test", requestDigest: "known-zero", reserveMicro: 60_000, logicalKey: "a" });
+    expect(await liveSpendUsedMicro(pool, scope)).toBe(60_000);
+    await updateIntentState(pool, intent.intentId, "failed", 0);
+    expect(await liveSpendUsedMicro(pool, scope)).toBe(0);
+    await withTx(pool, (db) => settleRun(db, accountId, runId, 0));
+    const held = await pool.query("SELECT state, settled_micro FROM reservations WHERE run_id = $1", [runId]);
+    expect(held.rows[0]).toMatchObject({ state: "settled", settled_micro: "0" });
+  }));
   it("A08 the same provider key cannot bypass its cap through different project scopes or accounts", async () => runCase(async (runA, accountA) => runCase(async (runB, accountB) => {
     await withTx(pool, (db) => reserveAllowance(db, accountA, runA, 100_000));
     await withTx(pool, (db) => reserveAllowance(db, accountB, runB, 100_000));

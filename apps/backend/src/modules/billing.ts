@@ -48,7 +48,7 @@ export async function settleRun(db: Queryable, accountId: string, runId: string,
   if (run.rows[0].route_mode === "controlled-research") {
     const receipts = await db.query<{ confirmed: string; unknown: number }>(`SELECT
       COALESCE(SUM(confirmed_micro), 0)::text AS confirmed,
-      COUNT(*) FILTER (WHERE confirmed_micro IS NULL)::int AS unknown
+      COUNT(*) FILTER (WHERE confirmed_micro IS NULL AND state IN ('issued', 'outcome-unknown'))::int AS unknown
       FROM provider_intents WHERE run_id = $1 AND route LIKE 'openrouter:%'`, [runId]);
     // Hold the entire admitted allowance conservatively until every external outcome is known.
     // A retry of settlement after reconciliation releases it exactly once.
@@ -99,7 +99,9 @@ export async function updateIntentState(
 ): Promise<void> {
   if (db instanceof pg.Pool) return withTx(db, (client) => updateIntentState(client, intentId, state, confirmedMicro));
   if (!["issued", "confirmed", "outcome-unknown", "failed"].includes(state)) throw new Error("invalid_provider_state");
-  if (confirmedMicro != null && state !== "confirmed") throw new Error("invalid_provider_receipt_state");
+  if (confirmedMicro != null && state !== "confirmed" && !(state === "failed" && confirmedMicro === 0)) {
+    throw new Error("invalid_provider_receipt_state");
+  }
   const identity = await db.query<{ run_id: string; route: string; account_id: string | null; provider_key_scope: string | null; scope_key: string }>(`SELECT i.run_id, i.route, r.account_id, i.provider_key_scope, i.scope_key
     FROM provider_intents i LEFT JOIN runs r ON r.id = i.run_id WHERE i.id = $1`, [intentId]);
   const intent = identity.rows[0];

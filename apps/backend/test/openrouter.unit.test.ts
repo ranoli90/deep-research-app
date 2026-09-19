@@ -27,20 +27,23 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(hits[0]!.url).toBe("https://example.com/a");
   });
 
-  it("timeouts are outcome-unknown; other errors failed", () => {
+  it("timeouts and transport errors are outcome-unknown HOLD", () => {
     expect(providerFailureState({ name: "TimeoutError" })).toBe("outcome-unknown");
     expect(providerFailureState({ name: "AbortError" })).toBe("outcome-unknown");
-    expect(providerFailureState({ name: "TypeError", message: "fetch failed" })).toBe("failed");
+    expect(providerFailureState({ name: "TypeError", message: "fetch failed" })).toBe("outcome-unknown");
   });
 
-  it("null-cost HTTP 404 permanent failures are failed, not unknown holds", () => {
-    expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: null } })).toEqual({ state: "failed" });
+  it("null-cost HTTP 404 is known-zero; 429 and malformed JSON HOLD", () => {
+    expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: null } })).toEqual({ state: "failed", confirmedMicro: 0 });
+    expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: 0 } })).toEqual({ state: "confirmed", confirmedMicro: 0 });
+    expect(providerIntentStateForResult({ status: "transient_failure", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(providerIntentStateForResult({ status: "outcome_unknown", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(providerIntentStateForResult({ status: "succeeded", receipt: { actualMicro: 12 } })).toEqual({ state: "confirmed", confirmedMicro: 12 });
     expect(providerIntentStateForResult({ status: "invalid_output", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: null } })).toBe(false);
     expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: 2 } })).toBe(true);
     expect(knownFinancialOutcome({ status: "permanent_failure", receipt: { actualMicro: null } })).toBe(true);
+    expect(knownFinancialOutcome({ status: "transient_failure", receipt: { actualMicro: null } })).toBe(false);
     expect(knownFinancialOutcome({ status: "outcome_unknown", receipt: { actualMicro: null } })).toBe(false);
   });
 
