@@ -2,11 +2,10 @@ import {runModelVersions} from "./run-model-policy.js";
 import { evidenceSelectionLimitations } from "./evidence-selections.js";
 import { verificationReportMatches } from "./verification-proof.js";
 import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
-import { calculatedCompletionCovered } from "./calculated-coverage.js";
+import { CALCULATED_COVERAGE_VERSION,calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,limitedCoverageDisclosed,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { MODEL_PROMPT_VERSION } from "../ports/model-policy.js";
 import { persistResearchCoverage } from "./research-coverage.js";
 import { loadSupportContext,persistScopedSupport,restoreWriterDraft } from "./scoped-support.js";
 
@@ -21,12 +20,13 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
   const verification=await verificationReportMatches(db,accountId,report);
   if(verification!==null)return verification;
-  if(report.outcome!=="completed")return true;
-  if(challengeLimitations.length)return false;
+  const completed=report.outcome==="completed";
+  if(!completed&&report.outcome!=="completed_with_limitations")return true;
+  if(completed&&challengeLimitations.length)return false;
   const task=await db.query("SELECT id FROM research_tasks WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3",[report.runId,accountId,report.basis.briefRevision]);
   // Historical controller reports have no structured task; retain their existing publication contract.
   if(!task.rowCount)return true;
-  if(report.limitations.length)return false;
+  if(completed&&report.limitations.length)return false;
   const rows=(await db.query(`SELECT c.model_intent_id,c.extraction_intent_id,c.support_intent_id,c.task_id FROM research_coverage c
     JOIN research_drafts d ON d.writer_intent_id=c.extraction_intent_id
     WHERE c.run_id=$1 AND c.account_id=$2 AND c.brief_revision=$3 AND c.evidence_revision=$4
@@ -34,17 +34,32 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
     [report.runId,accountId,report.basis.briefRevision,report.basis.evidenceRevision,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION])).rows;
   const versions=await runModelVersions(db,report.runId);
   if(await calculatedCompletionCovered(db,accountId,report,versions))return true;
+  let restoredCoverage=false;
   for(const row of rows) {
+    restoredCoverage=true;
     const args={runId:report.runId,accountId,briefRevision:report.basis.briefRevision,taskId:row.task_id,
       extractionIntentId:row.extraction_intent_id,supportIntentId:row.support_intent_id,modelIntentId:row.model_intent_id};
     const coverage=await persistResearchCoverage(db,args,versions,true);
-    if(!coverage.complete)continue;
+    if(completed&&!coverage.complete)continue;
     const restored=await restoreWriterDraft(db,args,versions);
     const basis=await loadSupportContext(db,args,versions);
     const checks=await persistScopedSupport(db,{...args,...basis,modelIntentId:row.support_intent_id},versions,true);
     const compiled=compileCheckedDraft(draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys),checks);
-    if(!compiled.unresolved.length && JSON.stringify(compiled.blocks)===JSON.stringify(report.blocks) &&
-      JSON.stringify(compiled.claims.map((c)=>c.id))===JSON.stringify(report.claimIds))return true;
+    if(JSON.stringify(compiled.blocks)!==JSON.stringify(report.blocks)||
+      JSON.stringify(compiled.claims.map((c)=>c.id))!==JSON.stringify(report.claimIds))continue;
+    if(completed) {
+      if(compiled.unresolved.length)continue;
+      return true;
+    }
+    const spec=restored.basis.context.task??basis.context.task;
+    if(spec&&limitedCoverageDisclosed(report.limitations,coverage,spec))return true;
   }
-  return false;
+  if(completed)return false;
+  if(restoredCoverage)return false;
+  const calculated=(await db.query(`SELECT 1 FROM calculated_report_coverage WHERE account_id=$1 AND run_id=$2 AND brief_revision=$3
+    AND evidence_revision=$4 AND checker_version=$5 LIMIT 1`,
+    [accountId,report.runId,report.basis.briefRevision,report.basis.evidenceRevision,CALCULATED_COVERAGE_VERSION])).rowCount;
+  // Structured coverage existed and did not prove this limited report; do not fall back to the outcome label.
+  if(calculated)return false;
+  return true;
 }

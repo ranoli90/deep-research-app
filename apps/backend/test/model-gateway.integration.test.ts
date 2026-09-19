@@ -8,7 +8,9 @@ import { executeEvidenceCalculation } from "../src/worker/evidence-calculation.j
 import { modelInputManifest } from "../src/modules/model-operations.js";
 import { reserveLiveAttempt } from "../src/modules/live-spend.js";
 import { executeScopeComparison } from "../src/worker/scope-comparison.js";
-import { loadSupportContext,loadWriterSourceContext } from "../src/modules/scoped-support.js";
+import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft } from "../src/modules/scoped-support.js";
+import { persistResearchCoverage } from "../src/modules/research-coverage.js";
+import { runModelVersions } from "../src/modules/run-model-policy.js";
 import { admitResearchCorrection } from "../src/modules/research-corrections.js";
 import { inheritRunEvidence } from "../src/modules/run-evidence.js";
 import { createHash } from "node:crypto";
@@ -26,7 +28,7 @@ import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
-import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, LATER_EVIDENCE_LIMITATION, UNRESOLVED_SECTION, type StoredClaim } from "@deep/research-core";
+import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, LATER_EVIDENCE_LIMITATION, UNRESOLVED_SECTION, compileCheckedDraft,draftStatements,limitedCoverageLimitations, type StoredClaim } from "@deep/research-core";
 import { claimLease,getRun,cancelRun,emitEvent } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -748,6 +750,47 @@ describe("W05 report completion requires exact final coverage",()=>{
   globalThis.fetch=vi.fn(async(input,init)=>JSON.parse(String(init?.body)).response_format.json_schema.name==="research_review_coverage_v1"?response({questions:[],omittedRequirements:[]}):normal(input,init)) as typeof fetch;
   expect(await writeResearchReport(pool,x.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"coverage_invalid_output"});
   expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+ }));
+ it("W05 limited publication restores coverage and rejects a crafted report missing an unresolved critical criterion",async()=>runCase(async(x)=>{
+  const c=await writerCase(x);globalThis.fetch=optimisticWriterTransport(c.draft);
+  const draft=await createResearchDraft(pool,x.config,x.session,c.args);
+  if(draft.kind!=="draft")throw new Error("missing draft");
+  const support=await executeAssertionSupport(pool,x.config,x.session,{...c.args,extractionIntentId:draft.writerIntentId});
+  if(support.kind!=="support")throw new Error("missing support");
+  const reviewed=await executeCoverageReview(pool,x.config,x.session,{...c.args,extractionIntentId:draft.writerIntentId,supportIntentId:support.intentId});
+  if(reviewed.kind!=="coverage")throw new Error("missing coverage");
+  expect(reviewed.coverage.complete).toBe(false);expect(reviewed.coverage.unresolvedCriterionKeys).toContain("c1");
+  const crafted=await x.session.write(async db=>{
+   const versions=await runModelVersions(db,x.runId);
+   const args={...c.args,extractionIntentId:draft.writerIntentId,supportIntentId:support.intentId,modelIntentId:reviewed.intentId};
+   const restored=await restoreWriterDraft(db,args,versions);
+   const basis=await loadSupportContext(db,args,versions);
+   const checks=await persistScopedSupport(db,{...args,...basis,modelIntentId:support.intentId},versions,true);
+   const coverage=await persistResearchCoverage(db,args,versions,true);
+   const compiled=compileCheckedDraft(draftStatements(restored.draft,restored.basis.context.assertions,restored.basis.context.approvedClaimKeys),checks);
+   const run=await getRun(db,x.runId);if(!run||!basis.context.task)throw new Error("missing task");
+   const required=limitedCoverageLimitations(coverage,basis.context.task);
+   expect(required.some((limitation)=>limitation.includes("c1"))).toBe(true);
+   const report:CanonicalReport={reportId:crypto.randomUUID(),runId:x.runId,version:1,
+    basis:{briefRevision:1,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:0,workerLeaseFence:x.fence},
+    outcome:"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((claim)=>claim.id),
+    limitations:["Some requested questions remain unresolved.",...required.filter((limitation)=>!limitation.includes("c1"))],
+    sourceAccessSummary:[],routeMode:"controlled-research"};
+   return publishReport(db,{report,accountId:x.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
+  });
+  expect(crafted).toEqual({accepted:false,reason:"incomplete_question_coverage"});
+  expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
+  const result=await writeResearchReport(pool,x.config,x.session,c.args);
+  expect(result).toMatchObject({kind:"publication",accepted:true});
+  if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
+  const report=await getReportForAccount(pool,result.reportId,x.accountId);
+  expect(report.outcome).toBe("completed_with_limitations");
+  expect(report.limitations.join(" ")).toMatch(/critical criterion c1/);
+  const canonical:CanonicalReport={reportId:report.id,runId:x.runId,version:report.version,outcome:report.outcome,basis:report.basis,
+   blocks:report.blocks,claimIds:report.claim_ids,limitations:report.limitations,sourceAccessSummary:report.source_access_summary,routeMode:"controlled-research"};
+  expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(true);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,limitations:canonical.limitations.filter((limitation:string)=>!limitation.includes("c1"))})).toBe(false);
+  expect(await reportCompletionCovered(pool,x.accountId,{...canonical,outcome:"completed",limitations:[]})).toBe(false);
  }));
 });
 it("W05 publication rejects a forged complete outcome without a review while preserving limited publication",async()=>runCase(async(x)=>{

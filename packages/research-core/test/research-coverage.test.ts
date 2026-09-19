@@ -1,7 +1,7 @@
 import { nextCriterionSearch } from "../src/discovery-planning.js";
 import { describe,it,expect } from "vitest";
 import type { ResearchModelOutput } from "@deep/contracts";
-import { resolveResearchCoverage } from "../src/research-coverage.js";
+import { limitedCoverageDisclosed,limitedCoverageLimitations,resolveResearchCoverage,unresolvedCriticalCriterionLimitation } from "../src/research-coverage.js";
 import { resolveScopedSupport } from "../src/scoped-support.js";
 const question="What area did Reef-X restore in 2024?";
 const span={start:0,end:question.length,quote:question};
@@ -34,6 +34,16 @@ describe("W05 criterion-linked answer coverage",()=>{
  it("requires exact complete review bindings",()=>{
   expect(()=>resolveResearchCoverage({...args,proposal:{...proposal,questions:[]}})).toThrow("missing_question_review");
   expect(()=>resolveResearchCoverage({...args,proposal:{...proposal,questions:[{...proposal.questions[0]!,assertionKeys:["invented"]}]}})).toThrow("unknown_model_handle");
+ });
+ it("maps unresolved critical questions and hard criteria to explicit limited-publication disclosures",()=>{
+  const coverage=resolveResearchCoverage({...args,proposal:{...proposal,questions:[{...proposal.questions[0]!,status:"unresolved_at_limit"}]}});
+  const required=limitedCoverageLimitations(coverage,task);
+  expect(required).toEqual(["Unresolved critical question q (unresolved_at_limit).",unresolvedCriticalCriterionLimitation("area")]);
+  expect(limitedCoverageDisclosed(["Some requested questions remain unresolved.",...required],coverage,task)).toBe(true);
+  expect(limitedCoverageDisclosed(["Some requested questions remain unresolved.",required[0]!],coverage,task)).toBe(false);
+  expect(limitedCoverageLimitations(resolveResearchCoverage(args),task)).toEqual([]);
+  const useful={...task,questions:[{...task.questions[0]!,importance:"useful" as const}],criteria:[{...task.criteria[0]!,importance:"preference" as const}]};
+  expect(limitedCoverageLimitations(coverage,useful)).toEqual([]);
  });
 });
 

@@ -6,7 +6,7 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
@@ -82,6 +82,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       // Completion requires the separately executed coverage review and intact final assertions.
       limitations:complete?[]:[
         ...((coverage.complete&&!compiled.unresolved.length)?[]:["Some requested questions remain unresolved."]),
+        ...(basis.context.task?limitedCoverageLimitations(coverage,basis.context.task):[]),
         ...(laterEvidence?[LATER_EVIDENCE_LIMITATION]:[]),
         ...(snippetCited?["Some cited sources could only be read as search snippets after the full page was blocked."]:[]),
         ...challengeLimitations,

@@ -1,5 +1,10 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 6 FP-068 limited-publication coverage restoration
+
+- Branch `grok-v8/fix-wave6-publication` `5141bbd` merged to integration after review. main stays `8a7b1a9`.
+- Limited publication restores structured coverage; crafted missing-criterion report rejected. Arithmetic tests not weakened.
+
 ## 2026-09-19 — Wave 4 FP-029 / FP-033 search-read
 
 - Branch `grok-v8/fix-wave4-search-read` commit `b01f37e` from `72c78ea`. Not merged to main/integration.

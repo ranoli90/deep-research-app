@@ -1,3 +1,7 @@
+## Wave 6 FP-068 limited-publication coverage — 2026-09-19
+
+Lane `grok-v8/fix-wave6-publication` `5141bbd` merged to integration after independent review. **Not merged to `main`.** Limited reports restore structured coverage; dropping an unresolved critical criterion is rejected. Arithmetic tests not weakened.
+
 ## Wave 4 search/read (FP-029/FP-033) — 2026-09-19
 
 Lane `grok-v8/fix-wave4-search-read` `b01f37e` merged to integration after independent review. **Not merged to `main`.** New Azure live searches use `public-discovery-azure-zdr.v3` with `max_results=8`; frozen v1/v2 stay 3. `executeSourceRead` reports finished `full-text` as readable. No paid live 8-hit receipt. Research Beta is not declared.

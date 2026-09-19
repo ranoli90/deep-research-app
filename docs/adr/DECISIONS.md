@@ -536,3 +536,11 @@ W02/W04/W05 / FP-029: `discoveryPolicyForNewSearch` previously returned `public-
 Related worker repair (FP-033): `executeSourceRead` reports `readable` for `partial-text` or `full-text`; challenge proof uses the same predicate. Snippet/blocked/abstract remain unreadable.
 
 Rollback disables new Azure v3 discovery admissions while retaining v1/v2/v3 readers, ZDR pins, receipts, and the readable-access predicate for admitted full-text versions.
+
+## ADR068 — Limited publication restores coverage and discloses unresolved criticals (2026-09-19)
+
+FP-068: `completed_with_limitations` returned true after challenge/selection/verification checks and skipped ordinary structured coverage restoration. A caller could publish a degraded report without proving that every unresolved or blocked critical question and hard criterion was disclosed.
+
+Limited publication now restores the same stored coverage and compiled draft as completion. Every unrestored critical question and hard criterion must appear as an explicit limitation; dropping one rejects the report. Completed reports still require complete coverage, matching blocks/claims and no limitations. Historical no-task reports and structured runs without writer/calculated coverage retain their prior limited contract. The writer emits the same deterministic disclosures it is later required to prove.
+
+Impact: `limitedCoverageLimitations` in research-core; publication-coverage and calculated completion; research-writer limitation composition. No migration, prompt, processor or spend change. Rollback disables the limited restoration branch and restores the outcome-label early return; completed-path readers, challenge/selection proofs and unknown holds stay.

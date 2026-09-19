@@ -1,3 +1,7 @@
+## Wave 6 FP-068 limited publication — 2026-09-19
+
+Branch `grok-v8/fix-wave6-publication` at `5141bbd` merged to integration after review. **Do not merge `main`.** Limited publication restores coverage; crafted missing-criterion reports rejected.
+
 ## Wave 4 FP-029 / FP-033 — 2026-09-19
 
 Branch `grok-v8/fix-wave4-search-read` commit `b01f37e6a0ff6ef3202d6d9f4bede8e779ac50d6` from base `72c78ea`. **Do not merge `main` or integration.**
