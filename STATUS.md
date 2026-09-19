@@ -1,3 +1,13 @@
+## Research Beta integration checkpoint — 2026-09-18
+
+Lane: `grok-v8/research-beta-integration` at `cb6f3b0`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
+
+**Executed:** Azure exact-quote extraction cases pass after pinning `STRUCTURED_MODEL_POLICY_ID` on API admission. Physical device `10.0.0.167:43417` (25098RA98G) has APK `3494e414` (`422fa9a`); composer sits above the keyboard. Cleartext is device-profile-only. Evidence Needs now gate extra searches. Steering persists `sourceRestrictions` without rewriting the original question.
+
+**True external blockers:** GitHub Actions run `35411856817` did not start (`account is locked due to a billing issue`). Live no-file public journeys are outside the recorded `$0.40` MC-D01 frozen-SQLite cap; unknown holds remain unreleased. No additional spend was inferred from a key being present.
+
+Rollback: leave `main` at `8a7b1a9`; do not merge this branch.
+
 ## Integration merge B — 2026-09-18
 
 Lane: Research Beta integration. Session B `e0b00df` merged after C and final A. Retrieval intelligence will be canonicalized to `043_retrieval_intelligence.sql`.

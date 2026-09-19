@@ -1,3 +1,7 @@
+## Research Beta integration checkpoint — 2026-09-18
+
+Branch `grok-v8/research-beta-integration` HEAD `cb6f3b0` (pushed). Device APK proven for keyboard: EAS `3494e414` / git `422fa9a`. Later commits include steering, Evidence Needs continuation, Library `FlatList`, and injection cases. Hosted CI is blocked by GitHub billing lock. Live public-web Research Beta journeys are blocked pending authorization beyond `$0.40` MC-D01 frozen SQLite and release of unknown holds. Do not merge to `main`.
+
 ## Integration merge B — 2026-09-18
 
 Merged current Session B tip `e0b00df` (includes source-date/opening-class continuation beyond kit pin `d100b86`). Main versioned discovery-v3 policy is preserved; B query authorization, freshness persistence, and origin clustering are added. Worker-local ADR062 retrieval is canonicalized as ADR065.
