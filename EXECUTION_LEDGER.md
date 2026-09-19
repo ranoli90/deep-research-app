@@ -2,7 +2,7 @@
 
 ## 2026-09-19 — Wave 4 FP-029 / FP-033 search-read
 
-- Branch `grok-v8/fix-wave4-search-read` from `72c78ea`. Not merged to main/integration.
+- Branch `grok-v8/fix-wave4-search-read` commit `b01f37e` from `72c78ea`. Not merged to main/integration.
 - FP-029: added `public-discovery-azure-zdr.v3` (`AZURE_DEEP_DISCOVERY_POLICY`, maxResults=8). `discoveryPolicyForNewSearch` Azure path uses it. Frozen v1 digest `9fef15d94afec88128678cb3073ab7151e955d7df384dd8fa1f54582dc308c8b`; v2 maxResults remains 3.
 - FP-033: `source-reading.ts` readable for partial-text or full-text; `counterevidence.ts` proof predicate aligned.
 - Commands (isolated DB `deep_wave4_sr_01a0bb2e`, paid=false): live-search unit 16/16 exit 0; discovery-policy integration 2/2 exit 0; model-gateway focused 9 passed/137 skipped exit 0 (includes full-text executeSourceRead and production worker completion); backend tsc exit 0.

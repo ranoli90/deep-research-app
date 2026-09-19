@@ -1,6 +1,6 @@
 ## Wave 4 FP-029 / FP-033 — 2026-09-19
 
-Branch `grok-v8/fix-wave4-search-read` from base `72c78ea`. **Do not merge `main` or integration.**
+Branch `grok-v8/fix-wave4-search-read` commit `b01f37e6a0ff6ef3202d6d9f4bede8e779ac50d6` from base `72c78ea`. **Do not merge `main` or integration.**
 
 FP-029: `discoveryPolicyForNewSearch` now returns `AZURE_DEEP_DISCOVERY_POLICY` (`public-discovery-azure-zdr.v3`, `maxResults=8`). Frozen `public-discovery.v1` and `public-discovery-azure-zdr.v2` remain 3. Historical `discoveryPolicyForModel(openrouter-azure-mini-zdr-discovery-v3)` still returns v2.
 
