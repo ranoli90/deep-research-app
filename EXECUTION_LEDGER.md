@@ -3,7 +3,7 @@
 ## 2026-09-19 — Wave 3 query-privacy (FP-022–025)
 
 - Task/requirement: FP-022 P0, FP-023 P1, FP-024 P1, FP-025 P1 (schema uniqueness FP-026 required for consume-pending).
-- Branch `grok-v8/fix-wave3-query-privacy` from base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. main not updated.
+- Branch `grok-v8/fix-wave3-query-privacy` HEAD `0ae1a15b2d6dc1e087223f0962097a1f250e8cdb` from base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. main not updated.
 - Environment: local worktree; isolated PostgreSQL `postgres://127.0.0.1:55432/deep_research_wave3_query`; no paid calls.
 - Commands/results:
   - `pnpm --filter @deep/research-core test` exit 0, **283/283** (19.18s)

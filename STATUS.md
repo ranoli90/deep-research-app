@@ -1,6 +1,6 @@
 ## Wave 3 query-privacy proof — 2026-09-19
 
-Lane `grok-v8/fix-wave3-query-privacy` from `72c78ea`. **Not merged to `main`.** FP-022–025 (and the FP-026 uniqueness needed to consume pending) are implemented: unknown query tokens are `unclassified` and blocked; approvals bind `query_digest` + exact private-term set; pending is consumed in place; search 2 cannot borrow search 1. ADR067. Isolated PostgreSQL `deep_research_wave3_query`.
+Lane `grok-v8/fix-wave3-query-privacy` HEAD `0ae1a15b2d6dc1e087223f0962097a1f250e8cdb` from `72c78ea`. **Not merged to `main`.** FP-022–025 (and the FP-026 uniqueness needed to consume pending) are implemented: unknown query tokens are `unclassified` and blocked; approvals bind `query_digest` + exact private-term set; pending is consumed in place; search 2 cannot borrow search 1. ADR067. Isolated PostgreSQL `deep_research_wave3_query`.
 
 ## Engineering fix-pass started — 2026-09-19
 
