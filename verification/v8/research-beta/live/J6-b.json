@@ -1,0 +1,69 @@
+{
+  "id": "J6-b",
+  "question": "Is Pluto a planet according to the IAU?",
+  "runId": "1a574872-fce8-427f-8028-d15f2c8afd92",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "647acad7-9ac4-4f05-9e55-ad79a697de25"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "discovery_exhausted",
+    "writing"
+  ],
+  "cost": {
+    "runId": "1a574872-fce8-427f-8028-d15f2c8afd92",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 12694,
+    "confirmedProviderMicro": 12694,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 12694
+    },
+    "intentTotalMicro": 12694,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "647acad7-9ac4-4f05-9e55-ad79a697de25",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved."
+    ],
+    "blockCount": 2,
+    "claimCount": 0,
+    "texts": [
+      [
+        "heading",
+        "Pluto's Status"
+      ],
+      [
+        "text",
+        "Pluto is classified as a dwarf planet according to the IAU."
+      ]
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "J6-b-audit",
+  "runId": "1a574872-fce8-427f-8028-d15f2c8afd92",
+  "reportId": "647acad7-9ac4-4f05-9e55-ad79a697de25",
+  "question": "Is Pluto a planet according to the IAU?",
+  "intent": "Definition/version conflict. IAU 2006 resolution vs historical planet status.",
+  "searches": 1,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 12694,
+  "unknownHolds": 0,
+  "consequentialClaims": [
+    {
+      "text": "Pluto is classified as a dwarf planet according to the IAU.",
+      "passageId": "f887e16f-1e2f-45b5-81a9-b64dc2b9c34d",
+      "title": "Press Release in English, August 24, 2006 - IAU XXVIth General Assembly",
+      "locator": "https://www.astronomy2006.com/press-release-resolution-24-8-2006.html",
+      "date": "August 24, 2006",
+      "supportedByExactSpan": true,
+      "span": "Pluto is a \"dwarf planet\" by the above definition and is recognized as the prototype of a new category of trans-Neptunian objects."
+    }
+  ],
+  "conflict": {
+    "kind": "definition/date",
+    "explainedInReport": false,
+    "note": "The cited 2006 IAU resolution is the official answer. The report does not separately quote the pre-2006 planet listing or explain the definition change as a dated conflict between sources."
+  },
+  "userRepairRequired": "None for the asked IAU yes/no. A stronger J6 would cite both the 2006 resolution and a pre-2006 planet catalog and explain the date/definition split.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}
