@@ -38,7 +38,7 @@ export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:
   if (!parsed.success || validateModelBindings("extract_assertions",parsed.data.output,basis.context).length) throw new Error("invalid_extraction_for_support");
   if (!parsed.data.output.assertions.length) throw new Error("no_assertions_to_check");
   const context={...basis.context,assertions:parsed.data.output.assertions};
-  await validateOwnedModelContext(db,{...args,evidenceRevision:basis.evidenceRevision,context});
+  await validateOwnedModelContext(db,{...args,evidenceRevision:row.evidence_revision,context,historical:true});
   return {context,evidenceRevision:row.evidence_revision};
 }
 

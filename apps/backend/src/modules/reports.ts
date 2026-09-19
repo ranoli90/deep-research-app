@@ -1,7 +1,7 @@
 import { calculationPublicationClaims } from "./calculation-publication.js";
 import { deriveReportChanges } from "./report-changes.js";
 import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
-import { canPublish, citationValidationFails, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
+import { canPublish, citationValidationFails, LATER_EVIDENCE_LIMITATION, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
 import { currentConsent, lockActiveAccount } from "./access.js";
@@ -56,8 +56,8 @@ export async function publishReport(
     passages: evidence.passages.map((p) => ({ id: p.id, sourceId: p.source_id, sourceVersionId: p.source_version_id, exactText: p.exact_text, locator: "document" })),
     sources: evidence.sources.map((s) => ({ id: s.id, title: s.title, locator: s.canonical_locator,
       accessLevel: s.access_level, originCluster: s.origin_cluster ?? undefined, language: s.language ?? undefined })) };
-  const scoped=await scopedPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
-  const calculations=await calculationPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,claims:args.claims});
+  const scoped=await scopedPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:args.report.basis.evidenceRevision,claims:args.claims});
+  const calculations=await calculationPublicationClaims(db,{runId:run.id,accountId:args.accountId,briefRevision:run.brief_revision,evidenceRevision:args.report.basis.evidenceRevision,claims:args.claims});
   const rejected=new Set([...scoped.rejected,...calculations.rejected]);
   const problems = validateMaterialCitations({
     blocks: args.report.blocks, claims: args.claims, passages,
@@ -77,6 +77,7 @@ export async function publishReport(
     deleted: deletedNow,
     unknownCitationIds: problems.unknownIds,
     unsupportedCitationCount: citationValidationFails(problems) || alteredEvidence ? 1 : 0,
+    laterEvidenceDisclosed: args.report.outcome === "completed_with_limitations" && args.report.limitations.includes(LATER_EVIDENCE_LIMITATION),
   });
   if (reason === "ok" && (run.lifecycle === "cancelling" || run.cancellation_epoch > 0 && args.loaded.cancellationEpoch < run.cancellation_epoch)) {
     reason = "cancelled";

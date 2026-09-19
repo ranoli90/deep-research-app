@@ -6,7 +6,7 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
@@ -25,8 +25,9 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
     if(old.rowCount)args={...args,calculationPlanIntentId:undefined};
   }
   const basis=await session.write(async (db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},await runModelVersions(db,args.runId)));
-  const liveRevision=(await getRun(pool,args.runId))?.evidence_revision ?? args.fence;
-  const writeArgs={...args,...basis,evidenceRevision:liveRevision};
+  const liveRevision=(await getRun(pool,args.runId))?.evidence_revision ?? basis.evidenceRevision;
+  const historical=liveRevision>basis.evidenceRevision;
+  const writeArgs={...args,...basis,historical};
   let result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status==="invalid_output"){
@@ -65,7 +66,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;
-    const challengeLimitations=[...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,args)];
+    const challengeLimitations=[...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,{...args,evidenceRevision:basis.evidenceRevision})];
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision<basis.evidenceRevision)throw new Error("stale_writer_publication");
     const laterEvidence=run.evidence_revision>basis.evidenceRevision;
@@ -80,7 +81,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       // Completion requires the separately executed coverage review and intact final assertions.
       limitations:complete?[]:[
         ...((coverage.complete&&!compiled.unresolved.length)?[]:["Some requested questions remain unresolved."]),
-        ...(laterEvidence?["Additional sources were read after this evidence was checked."]:[]),
+        ...(laterEvidence?[LATER_EVIDENCE_LIMITATION]:[]),
         ...challengeLimitations,
       ],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};

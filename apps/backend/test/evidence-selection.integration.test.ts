@@ -11,6 +11,7 @@ import {insertSource,insertExtractedVersion} from "../src/modules/evidence.js";
 import {claimLease} from "../src/modules/runs.js";
 import {fencedSession,type FencedSession} from "../src/worker/fenced-session.js";
 import {prepareEvidenceSelection,restoreEvidenceSelection,evidenceSelectionLimitations,validateSelectionContext} from "../src/modules/evidence-selections.js";
+import { validateOwnedModelContext } from "../src/modules/model-operations.js";
 import {reportCompletionCovered} from "../src/modules/publication-coverage.js";
 import {deleteSourceForAccount} from "../src/modules/source-deletion.js";
 let pool:pg.Pool;const accounts:string[]=[],sessions:FencedSession[]=[];
@@ -41,6 +42,25 @@ it("W05 restores the original inventory after new evidence and creates a distinc
  const x=await setup(),a=await selected(x);await addEvidence(x,2);await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);const old=await restoreEvidenceSelection(pool,{...x,selectionId:a.context.id});expect(old.context).toEqual(a.context);
  const b=await selected(x);expect(b.context.id).not.toBe(a.context.id);expect(b.context.available).toBe(a.context.available+2);
  await expect(validateSelectionContext(pool,{...x,evidenceRevision:b.evidenceRevision,selection:a.context,passageIds:a.passageIds})).rejects.toThrow("selection_context_mismatch");
+});
+it("W05 write-from-prior restores the extract selection limitations after later unread evidence",async()=>{
+ const x=await setup(),a=await selected(x),warnings=await evidenceSelectionLimitations(pool,{...x,evidenceRevision:a.evidenceRevision});
+ expect(warnings[0]).toContain(`selected ${a.context.selected} of 150`);
+ await addEvidence(x,2);await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
+ await expect(evidenceSelectionLimitations(pool,x)).rejects.toThrow("required_selection_proof_missing");
+ expect(await evidenceSelectionLimitations(pool,{...x,evidenceRevision:a.evidenceRevision})).toEqual(warnings);
+});
+it("W05 historical extract selection remains valid after later evidence so write-from-prior can publish",async()=>{
+ const x=await setup(),a=await selected(x);
+ const chosen=a.inventoryPassages.filter(p=>a.passageIds.includes(p.id));
+ const context={question:"Does Solace support offline recording?",task:null,
+  passages:chosen.map(p=>({id:p.id,sourceVersionId:p.sourceVersionId,digest:p.digest,accessLevel:p.accessLevel as "partial-text"|"full-text",text:p.text})),
+  sources:[...new Map(chosen.map(p=>[p.sourceId,{handle:p.sourceId,title:p.title}])).values()],
+  assertions:[],approvedClaimKeys:[],draft:null,evidenceSelection:a.context};
+ await validateOwnedModelContext(pool,{...x,evidenceRevision:a.evidenceRevision,context,historical:true});
+ await addEvidence(x,2);await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
+ await validateOwnedModelContext(pool,{...x,evidenceRevision:a.evidenceRevision,context,historical:true});
+ await expect(validateOwnedModelContext(pool,{...x,evidenceRevision:a.evidenceRevision,context})).rejects.toThrow("stale_model_context");
 });
 it("W01 rejects missing limitation and completed outcome even with a limited caller flag",async()=>{
  const x=await setup(),s=await selected(x),warnings=await evidenceSelectionLimitations(pool,x);expect(warnings).toHaveLength(1);expect(warnings[0]).toContain(`selected ${s.context.selected} of 150`);

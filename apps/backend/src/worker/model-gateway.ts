@@ -27,7 +27,7 @@ const Cached = z.object({ status: z.enum(["succeeded","refused","invalid_output"
 /** All model operations share this durable, fenced path. Provider transport never owns permissions. */
 export async function performModelOperation<K extends ResearchModelOperation>(pool: pg.Pool, config: AppConfig, session: FencedSession, args: {
   runId: string; accountId: string; fence: number; briefRevision: number; evidenceRevision: number;
-  operation: K; context: unknown; repairPass?: number;
+  operation: K; context: unknown; repairPass?: number; historical?: boolean;
 }): Promise<Outcome<K>> {
   if (!config.structuredModelEnabled || !config.liveRouteEnabled || config.openRouterModel !== STRUCTURED_MODEL_POLICY.model) return { kind: "blocked", reason: "structured_model_policy_unavailable" };
   let policy:Awaited<ReturnType<typeof runModelPolicy>>;
@@ -43,10 +43,11 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   let request = { ...prepared, digest: createHash("sha256").update(JSON.stringify({ digest: prepared.digest,
     policy: prepared.policyId, schema: prepared.schemaVersion, prompt: prepared.promptVersion,
     brief: args.briefRevision, evidence: args.evidenceRevision })).digest("hex") };
-  await session.write((db) => validateOwnedModelContext(db, { ...args, context }));
+  const historical=Boolean(args.historical);
+  await session.write((db) => validateOwnedModelContext(db, { ...args, context, historical }));
   const attempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${request.digest}`, kind: args.operation,
-    route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }) });
+    route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }), historical });
   if (!attempt.issue) {
     const cached = await session.write((db) => loadModelOperation(db, attempt.intentId, args.runId, args.accountId, request.digest, context, request));
     if (!cached) return { kind: "pending", intentId: attempt.intentId };
@@ -88,7 +89,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
         brief: args.briefRevision, evidence: args.evidenceRevision })).digest("hex") };
       const altAttempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
         evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${altRequest.digest}`, kind: args.operation,
-        route: routeStringFor(failover.nextPolicyId, args.operation), requestDigest: altRequest.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }) });
+        route: routeStringFor(failover.nextPolicyId, args.operation), requestDigest: altRequest.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }), historical });
       if (altAttempt.issue) {
         const altResult = await executeModelRequest(altRequest, { apiKey: config.openRouterApiKey!, signal: session.signal });
         await withTx(pool, async (db) => {
@@ -144,8 +145,8 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (errors.length) result = { status: "invalid_output", reason: errors.join(","), receipt: result.receipt };
   }
   await session.write(async (db) => {
-    await validateOwnedModelContext(db, { ...args, context });
-    await saveModelOperation(db, { ...args, intentId: attempt.intentId, request, result, context });
+    await validateOwnedModelContext(db, { ...args, context, historical });
+    await saveModelOperation(db, { ...args, intentId: attempt.intentId, request, result, context, historical });
     if (resolvedSpans.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"model_span_resolution",phase:"verifying",
       summary:"Exact quoted text was located within its original question or passage.",
       payload:{version:MODEL_SPAN_RESOLUTION_VERSION,intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,resolutions:resolvedSpans}});

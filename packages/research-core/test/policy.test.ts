@@ -192,6 +192,35 @@ describe("publication fence", () => {
         unsupportedCitationCount: 0,
       }),
     ).toBe("unknown_citation");
+    expect(
+      canPublish({
+        loaded,
+        current: { ...loaded, evidenceRevision: loaded.evidenceRevision + 1 },
+        deleted: false,
+        unknownCitationIds: [],
+        unsupportedCitationCount: 0,
+      }),
+    ).toBe("stale_evidence");
+    expect(
+      canPublish({
+        loaded,
+        current: { ...loaded, evidenceRevision: loaded.evidenceRevision + 1 },
+        deleted: false,
+        unknownCitationIds: [],
+        unsupportedCitationCount: 0,
+        laterEvidenceDisclosed: true,
+      }),
+    ).toBe("ok");
+    expect(
+      canPublish({
+        loaded,
+        current: { ...loaded, evidenceRevision: loaded.evidenceRevision - 1 },
+        deleted: false,
+        unknownCitationIds: [],
+        unsupportedCitationCount: 0,
+        laterEvidenceDisclosed: true,
+      }),
+    ).toBe("stale_evidence");
   });
 });
 

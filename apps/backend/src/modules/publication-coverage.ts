@@ -17,7 +17,7 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   if(await requiredCounterevidenceMissing(db,challengeBasis))return false;
   // Limited publication must carry every independently restored target warning too.
   // Its outcome label cannot bypass an admitted proof obligation or corrupt saved proof.
-  const challengeLimitations=[...await counterevidenceLimitations(db,challengeBasis),...await evidenceSelectionLimitations(db,challengeBasis)];
+  const challengeLimitations=[...await counterevidenceLimitations(db,challengeBasis),...await evidenceSelectionLimitations(db,{...challengeBasis,evidenceRevision:report.basis.evidenceRevision})];
   if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
   const verification=await verificationReportMatches(db,accountId,report);
   if(verification!==null)return verification;

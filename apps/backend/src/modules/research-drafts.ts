@@ -7,9 +7,10 @@ import type { TaskModelVersions } from "./research-tasks.js";
 /** Fenced, immutable lineage; the saved writer result is reloaded rather than supplied by the caller. */
 export async function recordResearchDraft(db:Queryable,args:SupportArgs & {sourceSupportIntentId:string;writerIntentId:string;calculationPlanIntentId?:string},versions:TaskModelVersions) {
   const basis=await loadWriterSourceContext(db,args,versions);
-  const writer=(await db.query(`SELECT intent_id FROM model_operation_results WHERE intent_id=$1 AND operation=$9
-    AND run_id=$2 AND account_id=$3 AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,
-    [args.writerIntentId,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision,args.calculationPlanIntentId?CALCULATED_REPORT_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,args.calculationPlanIntentId?CALCULATED_REPORT_PROMPT_VERSION:versions.promptVersion,versions.policyId,args.calculationPlanIntentId?"write_calculated_report":"write_report"])).rows[0];
+  const writer=(await db.query(`SELECT intent_id FROM model_operation_results WHERE intent_id=$1 AND operation=$8
+    AND run_id=$2 AND account_id=$3 AND brief_revision=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7
+    AND evidence_revision=$9`,
+    [args.writerIntentId,args.runId,args.accountId,args.briefRevision,args.calculationPlanIntentId?CALCULATED_REPORT_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,args.calculationPlanIntentId?CALCULATED_REPORT_PROMPT_VERSION:versions.promptVersion,versions.policyId,args.calculationPlanIntentId?"write_calculated_report":"write_report",basis.evidenceRevision])).rows[0];
   if(!writer)throw new Error("writer_result_owner_or_basis_mismatch");
   await db.query(`INSERT INTO research_drafts(writer_intent_id,source_extraction_intent_id,source_support_intent_id,account_id,run_id,task_id,brief_revision,evidence_revision,calculation_plan_intent_id)
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(writer_intent_id) DO NOTHING`,

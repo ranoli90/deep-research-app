@@ -9,9 +9,11 @@ import { getBrief, getRun } from "./runs.js";
 
 export async function validateOwnedModelContext(db: Queryable, args: {
   runId: string; accountId: string; briefRevision: number; evidenceRevision: number; context: ModelContext;
+  historical?: boolean;
 }): Promise<void> {
   const run = await getRun(db, args.runId);
-  if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision || run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
+  if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision) throw new Error("stale_model_context");
+  if (args.historical ? run.evidence_revision < args.evidenceRevision : run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
   if(args.context.evidenceSelection)await validateSelectionContext(db,{...args,selection:args.context.evidenceSelection,passageIds:args.context.passages.map(p=>p.id)});
   if(args.context.scopeComparison) {
     const computed=compareAssertionScopes({type:"compare_scopes",claimKeys:args.context.assertions.map(a=>a.key)},args.context.assertions);
@@ -56,10 +58,12 @@ export async function validateOwnedModelContext(db: Queryable, args: {
 }
 export async function saveModelOperation<K extends ResearchModelOperation>(db: Queryable, args: {
   intentId: string; runId: string; accountId: string; briefRevision: number; evidenceRevision: number;
-  request: PreparedModelRequest<K>; result: ModelResult<K>; context: ModelContext;
+  request: PreparedModelRequest<K>; result: ModelResult<K>; context: ModelContext; historical?: boolean;
 }): Promise<void> {
   const run = await getRun(db, args.runId);
-  if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision || run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
+  if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision) throw new Error("stale_model_context");
+  // Write-from-prior may persist a restored extract snapshot after later unread evidence.
+  if (args.historical ? run.evidence_revision < args.evidenceRevision : run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
   const intent = await db.query("SELECT id FROM provider_intents WHERE id=$1 AND run_id=$2 AND request_digest=$3", [args.intentId,args.runId,args.request.digest]);
   if (intent.rowCount !== 1) throw new Error("model_intent_owner_mismatch");
   await db.query(`INSERT INTO model_operation_results(intent_id,run_id,account_id,operation,brief_revision,evidence_revision,request_digest,schema_version,prompt_version,policy_id,result,input_manifest)

@@ -11,19 +11,24 @@ export type PublishRejectReason =
   | "unsupported_citation"
   | "ok";
 
+export const LATER_EVIDENCE_LIMITATION = "Additional sources were read after this evidence was checked.";
+
 export function canPublish(args: {
   loaded: RevisionBasis;
   current: RevisionBasis;
   deleted: boolean;
   unknownCitationIds: string[];
   unsupportedCitationCount: number;
+  laterEvidenceDisclosed?: boolean;
 }): PublishRejectReason {
   if (args.deleted) return "deleted";
   if (args.current.cancellationEpoch !== args.loaded.cancellationEpoch) return "cancelled";
   if (args.current.consentEpoch !== args.loaded.consentEpoch) return "consent_revoked";
   if (args.current.workerLeaseFence !== args.loaded.workerLeaseFence) return "stale_lease";
   if (args.current.briefRevision !== args.loaded.briefRevision) return "stale_brief";
-  if (args.current.evidenceRevision !== args.loaded.evidenceRevision) return "stale_evidence";
+  if (args.current.evidenceRevision !== args.loaded.evidenceRevision) {
+    if (!(args.laterEvidenceDisclosed && args.current.evidenceRevision > args.loaded.evidenceRevision)) return "stale_evidence";
+  }
   if (args.unknownCitationIds.length > 0) return "unknown_citation";
   if (args.unsupportedCitationCount > 0) return "unsupported_citation";
   return "ok";

@@ -55,7 +55,7 @@ export async function assertLiveCallAllowed(db: Queryable, config: AppConfig, es
 /** One logical action, one issued attempt until its outcome is reconciled. */
 export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args: {
   runId: string; fence: number; briefRevision: number; evidenceRevision?: number; requiredConsentPolicy?: string; logicalKey: string;
-  kind: string; route: string; requestDigest: string; reserveMicro: number; maxRunRouteAttempts?: number;
+  kind: string; route: string; requestDigest: string; reserveMicro: number; maxRunRouteAttempts?: number; historical?: boolean;
 }): Promise<{ intentId: string; issue: boolean }> {
   return withTx(pool, async (db) => {
     const identity = await getRun(db, args.runId);
@@ -67,7 +67,7 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if (!run || account.rows[0]?.deleted_at || !consent || consent.revoked || consent.epoch !== run.consent_epoch ||
         (args.requiredConsentPolicy !== undefined && consent.policyVersion !== args.requiredConsentPolicy) ||
         run.lifecycle !== "running" || run.cancellation_epoch !== 0 || run.worker_lease_fence !== args.fence ||
-        run.brief_revision !== args.briefRevision || (args.evidenceRevision !== undefined && run.evidence_revision !== args.evidenceRevision) || Number(lease.rows[0]?.fence) !== args.fence) {
+        run.brief_revision !== args.briefRevision || (args.evidenceRevision !== undefined && (args.historical ? run.evidence_revision < args.evidenceRevision : run.evidence_revision !== args.evidenceRevision)) || Number(lease.rows[0]?.fence) !== args.fence) {
       throw new Error("stale_or_unauthorized_attempt");
     }
     const prior = await db.query<{ id: string; request_digest: string }>(`SELECT i.id, a.request_digest

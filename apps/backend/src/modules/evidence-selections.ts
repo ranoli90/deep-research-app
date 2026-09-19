@@ -65,12 +65,14 @@ export async function prepareEvidenceSelection(db:Queryable,args:Args&{requiredI
  await db.query("UPDATE runs SET evidence_selection_required_revision=$3,evidence_selection_obligations=evidence_selection_obligations||$4::jsonb WHERE id=$1 AND account_id=$2 AND brief_revision=$3",[args.runId,args.accountId,args.briefRevision,JSON.stringify([{...slot,id}])]);
  return {kind:"selected" as const,...await restoreEvidenceSelection(db,{...args,selectionId:id})};
 }
-export async function validateSelectionContext(db:Queryable,args:Args&{evidenceRevision:number;selection:EvidenceSelectionContext;passageIds:string[]}) {
+export async function validateSelectionContext(db:Queryable,args:Args&{evidenceRevision:number;selection:EvidenceSelectionContext;passageIds:string[];historical?:boolean}) {
  const restored=await restoreEvidenceSelection(db,{...args,selectionId:args.selection.id});
- if(restored.evidenceRevision!==args.evidenceRevision||digest(restored.context)!==digest(args.selection)||digest(restored.passageIds)!==digest([...args.passageIds].sort()))throw new EvidenceSelectionProofError("selection_context_mismatch");
+ if(digest(restored.context)!==digest(args.selection)||digest(restored.passageIds)!==digest([...args.passageIds].sort()))throw new EvidenceSelectionProofError("selection_context_mismatch");
+ if(args.historical){if(restored.evidenceRevision>args.evidenceRevision)throw new EvidenceSelectionProofError("selection_context_mismatch");return;}
+ if(restored.evidenceRevision!==args.evidenceRevision)throw new EvidenceSelectionProofError("selection_context_mismatch");
 }
-/** Publication replays every current selection; no outcome flag can erase omissions or proof loss. */
-export async function evidenceSelectionLimitations(db:Queryable,args:Args) {
+/** Publication replays the report's selection snapshot; no outcome flag can erase omissions or proof loss. */
+export async function evidenceSelectionLimitations(db:Queryable,args:Args&{evidenceRevision?:number}) {
  const marker=(await db.query("SELECT evidence_selection_required_revision,evidence_selection_obligations,evidence_revision FROM runs WHERE id=$1 AND account_id=$2",[args.runId,args.accountId])).rows[0];
  if(!marker)throw new EvidenceSelectionProofError("selection_owner_or_revision_mismatch");
  if(marker.evidence_selection_required_revision!==args.briefRevision){
@@ -78,8 +80,10 @@ export async function evidenceSelectionLimitations(db:Queryable,args:Args) {
    OR EXISTS(SELECT 1 FROM model_operation_results WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 AND input_manifest ? 'evidenceSelection')`,[args.runId,args.accountId,args.briefRevision]);
   if(proof.rowCount)throw new EvidenceSelectionProofError("selection_obligation_missing");return [];
  }
- const rows=(await db.query("SELECT id FROM evidence_selections WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 AND evidence_revision=$4 ORDER BY id",[args.runId,args.accountId,args.briefRevision,marker.evidence_revision])).rows;
- const obligations=parseProof(z.array(z.object({id:z.string().uuid(),evidenceRevision:z.number().int()})),marker.evidence_selection_obligations).filter(o=>o.evidenceRevision===marker.evidence_revision);
+ const evidenceRevision=args.evidenceRevision??marker.evidence_revision;
+ if(evidenceRevision>marker.evidence_revision)throw new EvidenceSelectionProofError("selection_owner_or_revision_mismatch");
+ const rows=(await db.query("SELECT id FROM evidence_selections WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 AND evidence_revision=$4 ORDER BY id",[args.runId,args.accountId,args.briefRevision,evidenceRevision])).rows;
+ const obligations=parseProof(z.array(z.object({id:z.string().uuid(),evidenceRevision:z.number().int()})),marker.evidence_selection_obligations).filter(o=>o.evidenceRevision===evidenceRevision);
  if(rows.length!==obligations.length||obligations.some(o=>!rows.some(r=>r.id===o.id)))throw new EvidenceSelectionProofError("required_selection_proof_missing");
  if(!rows.length)throw new EvidenceSelectionProofError("required_selection_proof_missing");
  const limitations=new Set<string>();

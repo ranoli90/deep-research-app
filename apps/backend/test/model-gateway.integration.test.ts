@@ -26,7 +26,7 @@ import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { publishReport,getReportForAccount } from "../src/modules/reports.js";
-import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, UNRESOLVED_SECTION, type StoredClaim } from "@deep/research-core";
+import { SCOPED_SUPPORT_VERSION,passageSupportsClaim, LATER_EVIDENCE_LIMITATION, UNRESOLVED_SECTION, type StoredClaim } from "@deep/research-core";
 import { claimLease,getRun,cancelRun,emitEvent } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -34,6 +34,7 @@ import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js"
 import { createResearchDraft,writeResearchReport } from "../src/worker/research-writer.js";
 import { executeAssertionSupport } from "../src/worker/support-execution.js";
 import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
+import { prepareEvidenceSelection } from "../src/modules/evidence-selections.js";
 import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
 import { loadResearchTask } from "../src/modules/research-tasks.js";
 import { performModelOperation } from "../src/worker/model-gateway.js";
@@ -614,6 +615,31 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     globalThis.fetch=optimisticWriterTransport(c.draft);
     expect(await writeResearchReport(pool,x.config,x.session,c.args)).toEqual({kind:"blocked",reason:"writer_invalid_output"});
     expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("writes from a selected extract after later evidence without selection mismatch",async()=>runCase(async(x)=>{
+    const prepared=await extractionCase(x);
+    const selection=await x.session.write((db)=>prepareEvidenceSelection(db,{accountId:x.accountId,runId:x.runId,briefRevision:1}));
+    if(selection.kind!=="selected")throw new Error("missing selection");
+    expect(selection.passageIds).toContain(prepared.p.passageId);
+    prepared.args.passageIds=selection.passageIds;prepared.args.selectionId=selection.context.id;
+    globalThis.fetch=vi.fn(async()=>response(prepared.output)) as typeof fetch;
+    const extraction=await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
+    if(extraction.kind!=="extraction")throw new Error("missing extraction");
+    const claim=prepared.output.assertions[0]!;
+    globalThis.fetch=vi.fn(async()=>response({assessments:[{claimKey:claim.key,status:"supported",scope:claim.scope,evidence:claim.evidence,rationale:"scoped",missingEvidence:[]}]})) as typeof fetch;
+    const support=await executeAssertionSupport(pool,x.config,x.session,{...prepared.args,extractionIntentId:extraction.intentId});
+    if(support.kind!=="support")throw new Error("missing support");
+    const text=claim.text.replace(/^(.+) restored 12 hectares in 2024\.$/,"In 2024, $1 restored an area of 12 hectares.");
+    const draft={title:"Restoration findings",sections:[{heading:"Evidence",paragraphs:[{text,claimKeys:["area"]}]}],unresolvedQuestionKeys:["q1"],limitations:[] as string[]};
+    await insertVersionAndPassage(pool,{sourceId:prepared.sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/later",text:"Later note.",accessLevel:"partial-text"});
+    await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
+    globalThis.fetch=optimisticWriterTransport(draft);
+    const result=await writeResearchReport(pool,x.config,x.session,{...prepared.args,extractionIntentId:extraction.intentId,sourceSupportIntentId:support.intentId});
+    expect(result).toMatchObject({kind:"publication",accepted:true});
+    if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
+    const report=await getReportForAccount(pool,result.reportId,x.accountId);
+    expect(report.outcome).toBe("completed_with_limitations");
+    expect(report.limitations).toContain(LATER_EVIDENCE_LIMITATION);
   }));
   it("blocks an oversized final assertion set without truncation or a second paid attempt",async()=>runCase(async(x)=>{
     const c=await writerCase(x);
