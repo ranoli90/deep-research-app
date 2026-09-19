@@ -578,3 +578,9 @@ Consumer events are `public-activity.v1`: id, runId, sequence, createdAt, schema
 Worker-lane ADR067 remapped here to ADR072 because integration already used ADR067 for Azure discovery v3.
 
 Impact checklist: additive public schema in contracts; backend sanitizer on the existing `/events` path; mobile activity/composer inset only. No migration, dependency, prompt, processor, spend, or design-token change. Rollback: restore the previous `/events` JSON and legacy mobile mapping; historical `run_events` rows remain readable.
+
+## ADR073 — Phase A owner/spend invariants and honest intent/query labels (2026-09-19)
+
+ENG-037/043/044/045: newer 042–046 audit/retrieval tables lacked owner-matching and spend-identity constraints. Additive migration `050_phase_a_invariants.sql` (047–049 reserved for other lanes) adds composite `(run_id, account_id)` FKs, digest/kind/class CHECKs, and a model-intent FK, all `IF NOT EXISTS` / `NOT VALID` so historical rows are not rewritten. Account/source deletion still DELETE/scrubs these tables. Source-injection regressions stay on the existing S01 / prompt-injection path: retrieved text cannot authorize search, budget, or consent. Production intent remains `research-intent-compiler.v2` rules plus provenance-checked overlay (`RESEARCH_INTENT_CAPABILITY`); no new semantic-intent model operation. `planTypedQuery` stays lexicon/standards and must not copy private/source wording into public expansions.
+
+Impact checklist: additive local migration 050; research-core capability label/constants; existing injection and query-planning tests. No dependency, service, public API, provider route, prompt, or spend default. Rollback: stop applying 050 on new databases; retain readers, deletion, publication, and unknown holds. Do not roll back to unconstrained cross-account audit inserts.

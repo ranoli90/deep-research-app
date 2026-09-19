@@ -1,3 +1,7 @@
+## Phase A API/DB/injection — 2026-09-19
+
+Lane `grok-v8/phase-a-api`. ENG-037/043/044/045 only. Migration `050_phase_a_invariants.sql`. Do not re-implement ENG-034/035/036 or retrieval/provider lanes. **Do not merge `main`.**
+
 ## P0 brief revision / cost / reconciliation — 2026-09-19
 
 Continue and assumption replace no longer mutate the same brief identity. Known-zero failures settle; unknown HOLD. Reconciliation v2 is not lexical confirmation. **Do not merge `main`.**

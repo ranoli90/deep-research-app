@@ -1,5 +1,15 @@
 # Execution ledger
 
+## 2026-09-19 — Phase A API/DB/injection ENG-037/043/044/045
+
+- Lane `grok-v8/phase-a-api` off `d0ddbb2`. Isolated DB `deep_phase_a_api`. No live spend. No GHA.
+- ENG-037: additive `050_phase_a_invariants.sql` owner/spend FKs and CHECKs, `NOT VALID`, no historical rewrite.
+- ENG-043: source-injection suite on existing S01 / prompt-injection path; adversarial source text cannot authorize search/budget/consent.
+- ENG-044: `RESEARCH_INTENT_CAPABILITY` rules + provenance-checked overlay; no new semantic-intent model operation.
+- ENG-045: `planTypedQuery` cannot copy private/source wording into public expansions; no semantic reformulation.
+- Isolated `deep_phase_a_api` on 127.0.0.1:55432. research-core focused 59/59; backend typecheck 0; retrieval-evidence 9/9; P0 S01 1/1 (15 skipped by filter); source-deletion 7/7; migrate 050 twice; `validate_review.py` ok. No live spend.
+- Evidence in `verification/phase-a/api/CHANGE.md`. Not merged to main.
+
 ## 2026-09-19 — FP-003/013/060 and continue brief revision
 
 - `/continue` inserts a new `research_briefs` row and increments `runs.brief_revision`; originalQuestion unchanged. Prior brief rows keep pre-clarification constraints.

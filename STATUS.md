@@ -1,3 +1,7 @@
+## Phase A API/DB/injection (ENG-037/043/044/045) — 2026-09-19
+
+Lane `grok-v8/phase-a-api`. Additive migration `050_phase_a_invariants.sql` (047–049 reserved). Owner/spend FKs and CHECKs on 042–046 tables are `NOT VALID`; historical rows are not rewritten; account/source deletion still scrubs. Source-injection S01 extended: adversarial source text cannot authorize search/budget/consent. Intent compiler labeled `rules_plus_provenance_checked_overlay` (no new model operation). `planTypedQuery` regression: private/source wording stays out of public expansions. **Not merged to `main`.** Research Beta is not declared.
+
 ## P0 revision/cost/reconciliation — 2026-09-19
 
 `/continue` and assumption **replace** commit a new brief row and bump `runs.brief_revision`; the prior brief stays. Confirm-only updates confirmation metadata. Known-zero `failed` 404s settle; 429/transport HOLD. Reconciliation v2 does not confirm from paraphrase overlap. **Not merged to `main`.**
