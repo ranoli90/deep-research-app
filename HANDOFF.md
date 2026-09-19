@@ -1,8 +1,12 @@
+## Wave 2 revision — 2026-09-19
+
+Review rejection: extract/support still repaired unknown-cost `invalid_output`. Now gated like brief/writer; gateway refuses `repairPass` unless the prior attempt is known-cost `invalid_output`. Tests: extract + support null-cost, plus explicit `repairPass:1` after unknown brief. Gateway integration **146/146**. ADR070. 045 kept; AGENTS still names historical 044. Branch `grok-v8/fix-wave2-provider`. Do not merge.
+
 ## Wave 2 implementer — 2026-09-19
 
 Worker: Wave 2 provider/cost/replay. Issues **FP-011 P0**, **FP-012 P0**, **FP-014 P0**. Branch `grok-v8/fix-wave2-provider`. Worktree `/home/oranolio/.grok/worktrees/desktop-deep/subagent-01a0bb2d-fd73-7970-8296-065910efdf96`. Base `72c78ea`. Final `0ab1f7bc772648b7930b456b23306ac3efbbde8c`. **Do not merge `main` or `grok-v8/research-beta-integration`.**
 
-Files: `apps/backend/src/worker/model-gateway.ts`, `outcomes.ts`, `model-operations.ts`, `research-writer.ts`, `research-task.ts`, `access.ts`, `source-deletion.ts`, `migrations/045_model_operation_attempts.sql`, gateway/openrouter tests, ADR067.
+Files: `apps/backend/src/worker/model-gateway.ts`, `outcomes.ts`, `model-operations.ts`, `research-writer.ts`, `research-task.ts`, `assertion-extraction.ts`, `support-execution.ts`, `access.ts`, `source-deletion.ts`, `migrations/045_model_operation_attempts.sql`, gateway/openrouter tests, ADR070.
 
 Tests (isolated `postgres://127.0.0.1:55432/deep_wave2_provider`, fabricated transport, no live spend): gateway integration 144/144 exit 0; model-policy 9/9; held-intent 3/3; source-deletion 7/7; backend units 225/225; `tsc -p apps/backend` exit 0. Failures: none in this scope.
 

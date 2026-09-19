@@ -4,6 +4,7 @@ import type { AppConfig } from "../platform/config.js";
 import { getRun } from "../modules/runs.js";
 import { loadSupportContext,persistScopedSupport,type SupportArgs } from "../modules/scoped-support.js";
 import type { FencedSession } from "./fenced-session.js";
+import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
 import { performModelOperation } from "./model-gateway.js";
 
 /** Executes an evidence comparison, persists its typed result; no progress event substitutes for it. */
@@ -14,7 +15,7 @@ export async function executeAssertionSupport(pool:pg.Pool,config:AppConfig,sess
   // A first extract-support after the evidence basis changed must not check old assertions as current.
   if(historical&&basis.claimType!=="inference")throw new Error("support_extraction_basis_changed");
   let result=await performModelOperation(pool,config,session,{...args,...basis,operation:"assess_support",historical});
-  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
+  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused && knownFinancialOutcome(result.result)) {
     result = await performModelOperation(pool,config,session,{...args,...basis,operation:"assess_support", repairPass: 1, historical });
   }
   if (result.kind!=="result") return result;

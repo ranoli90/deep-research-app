@@ -1,3 +1,7 @@
+## Wave 2 revision — extract/support unknown-cost repair HOLD — 2026-09-19
+
+Independent review: extract and support still issued `repairPass` on null-cost `invalid_output`. Gated those callers with `knownFinancialOutcome` and fail-closed the same check inside `performModelOperation` before a repair reserve. Null-cost extract/support tests added. ADR070 (not 067). `044_retrieval_intelligence` kept in AGENTS historical ids; 045 still follows 043. Isolated PG `deep_wave2_provider`: gateway **146/146** exit 0. Not merged.
+
 ## Wave 2 provider attempt chain — 2026-09-19
 
 Branch `grok-v8/fix-wave2-provider` `0ab1f7b` from `72c78ea`. **Not merged to `main` or `grok-v8/research-beta-integration`.** FP-011/012/014: failover persists under the fallback intent; replay restores the latest attempt; unknown fallback HOLD is never resent; `invalid_output` with `actualMicro` null does not issue `repairPass`. Isolated PG `deep_wave2_provider`: focused gateway **144/144**, model-policy **9/9**, held-intent **3/3**, source-deletion **7/7**, backend units **225/225**, backend `tsc --noEmit` exit 0. Live/native/full-PG not run. Rollback: disable new failover/repair issuance; retain attempt-chain readers, receipts and holds.

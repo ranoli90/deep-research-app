@@ -529,10 +529,10 @@ W05 / Research Beta: `research-intent-compiler.v1` was a useful deterministic pr
 
 Impact: contracts identity `research-intent-compiler.v2`, research-core `semantic-intent.ts` + `clarification-fields.ts`, existing admission path. No new model operation, prompt, processor, or spend. Rollback: restore v1 compiler identity and omit overlay merge; historical briefs remain readable.
 
-## ADR067 — Durable model-operation attempt chain (2026-09-19)
+## ADR070 — Durable model-operation attempt chain (2026-09-19)
 
 W02: availability failover swapped request/result/policy onto the primary intent, so `saveModelOperation` could fail `model_intent_owner_mismatch` or persist the wrong identity. The cached-primary path returned before restoring a later fallback, including unknown HOLD. `invalid_output` repair issued a second paid call even when `providerIntentStateForResult` classified null-cost invalid output as `outcome-unknown`.
 
-Fix: persist each paid attempt under its own intent. Migration `045_model_operation_attempts.sql` records a policy-independent `logical_digest` chain (`primary` → `availability_failover`). Replay restores the latest attempt; issued/unknown attempts return pending/held and are never resent. Repair/second paid call requires `knownFinancialOutcome`. Historical request bytes, receipts and unknown holds remain immutable.
+Fix: persist each paid attempt under its own intent. Migration `045_model_operation_attempts.sql` records a policy-independent `logical_digest` chain (`primary` → `availability_failover`). Replay restores the latest attempt; issued/unknown attempts return pending/held and are never resent. Repair/second paid call requires `knownFinancialOutcome` at extract, support, brief, writer, and inside `performModelOperation`. Historical request bytes, receipts and unknown holds remain immutable. `044_retrieval_intelligence` remains a historical isolated-DB id and is not reused.
 
 Rollback disables new failover/repair issuance while retaining attempt-chain readers, primary/fallback identities, receipts and holds. No live provider, prompt or public schema change.

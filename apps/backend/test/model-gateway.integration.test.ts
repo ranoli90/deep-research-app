@@ -248,6 +248,10 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     const held = (await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1", [x.runId])).rows;
     expect(held).toEqual([{ state: "outcome-unknown", confirmed_micro: null }]);
     expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1", [x.runId])).rows).toHaveLength(0);
+    expect(await performModelOperation(pool, x.config, x.session, { ...operation(x), repairPass: 1 })).toMatchObject({
+      kind: "result", reused: true, result: { status: "invalid_output" },
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
 });
 
@@ -441,6 +445,17 @@ describe("W05 evidence-bound arbitrary assertion extraction", () => {
     expect((await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1 AND operation='extract_assertions'",[x.runId])).rows).toHaveLength(0);
     expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%:extract_assertions'",[x.runId])).rows[0].confirmed_micro).toBe("1");
   }));
+  it("does not issue an extraction repair pass when invalid_output cost is unknown", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({
+      id: "provider-test-id", model: "openai/gpt-4o-mini", provider: "OpenAI",
+      choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ title: 1 }) } }],
+    }), { status: 200 })) as typeof fetch;
+    for (let n = 0; n < 2; n++) expect(await extractEvidenceAssertions(pool, x.config, x.session, prepared.args)).toEqual({ kind: "blocked", reason: "extraction_invalid_output" });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT i.state,i.confirmed_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='extract_assertions'", [x.runId])).rows)
+      .toEqual([{ state: "outcome-unknown", confirmed_micro: null }]);
+  }));
 });
 
 
@@ -491,6 +506,16 @@ describe("W05 substantive support execution and persisted revisions",()=>{
     globalThis.fetch=vi.fn(async()=>response({assessments:[]})) as typeof fetch;
     expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"support_invalid_output"});
     expect((await pool.query("SELECT * FROM scoped_support_results WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it("does not issue a support repair pass when invalid_output cost is unknown",async()=>runCase(async(x)=>{
+    const prepared=await supportCase(x);
+    globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify({
+      id:"provider-test-id",model:"openai/gpt-4o-mini",provider:"OpenAI",
+      choices:[{finish_reason:"stop",message:{content:JSON.stringify({title:1})}}]}),{status:200})) as typeof fetch;
+    for(let n=0;n<2;n++) expect(await executeAssertionSupport(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"support_invalid_output"});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT i.state,i.confirmed_micro FROM provider_intents i JOIN run_actions a ON a.id=i.action_id WHERE a.run_id=$1 AND a.kind='assess_support'",[x.runId])).rows)
+      .toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
   }));
   it("denies a foreign extraction result before spending",async()=>runCase(async(x)=>runCase(async(other)=>{
     const prepared=await supportCase(other);

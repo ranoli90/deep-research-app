@@ -1,7 +1,7 @@
 -- Durable logical model-operation attempt chain (FP-011/012).
 -- Policy-independent logical_digest links primary and availability-failover intents.
 -- Replay restores the latest attempt; unknown attempts never advance.
--- Canonical 045 after 043_retrieval_intelligence.sql. Avoid 044: isolated DBs may record historical 044_retrieval_intelligence.
+-- Canonical 045 after 043_retrieval_intelligence.sql. Isolated DBs may still record historical 044_retrieval_intelligence; do not reuse 044.
 -- Rows are hashes, intent pointers and policy ids only. Purged with account/source deletion.
 
 CREATE TABLE IF NOT EXISTS model_operation_attempts (

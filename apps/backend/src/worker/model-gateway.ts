@@ -11,7 +11,7 @@ import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelContext, type ModelResult, type PreparedModelRequest } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
-import { providerIntentStateForResult } from "../adapters/model/outcomes.js";
+import { knownFinancialOutcome, providerIntentStateForResult } from "../adapters/model/outcomes.js";
 import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
 import { reserveMicroForOperation, routeStringFor } from "../adapters/model/token-budget.js";
 import { availabilityFailover, nextAttemptDecision } from "../model-governor/index.js";
@@ -67,6 +67,23 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     schemaVersion: request.schemaVersion, promptVersion: request.promptVersion, repairPass: args.repairPass,
   });
   await session.write((db) => validateOwnedModelContext(db, { ...args, context, historical }));
+  if (args.repairPass) {
+    const priorDigest = modelOperationLogicalDigest({
+      operation: args.operation, context, briefRevision: args.briefRevision, evidenceRevision: args.evidenceRevision,
+      schemaVersion: request.schemaVersion, promptVersion: request.promptVersion, repairPass: 0,
+    });
+    const prior = await session.write((db) => loadLatestModelOperationAttempt(db, { runId: args.runId, accountId: args.accountId, logicalDigest: priorDigest }));
+    if (!prior) return { kind: "blocked", reason: "repair_requires_prior_attempt" };
+    const priorPrepared = prepareModelRequest(args.operation, context, prior.policyId);
+    const priorRequest: ActiveRequest<K> = { ...priorPrepared, digest: prior.requestDigest };
+    const cached = await session.write((db) => loadModelOperation(db, prior.intentId, args.runId, args.accountId, prior.requestDigest, context, priorRequest));
+    const parsed = parseCached(cached, args.operation, context);
+    if (parsed.kind === "empty") return { kind: "pending", intentId: prior.intentId };
+    if (parsed.kind === "blocked") return parsed;
+    if (parsed.result.status !== "invalid_output" || !knownFinancialOutcome(parsed.result)) {
+      return { kind: "result", intentId: prior.intentId, reused: true, result: parsed.result };
+    }
+  }
   const attempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${request.digest}`, kind: args.operation,
     route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }), historical });
