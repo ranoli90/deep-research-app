@@ -1,0 +1,15 @@
+{
+  "requirementIds": ["RB-LIVE-01", "RB-LIVE-02", "RB-LIVE-03", "RB-CI-01"],
+  "version": "user-spend-authorization-record.v1",
+  "recordedAt": "2026-09-19T16:45:00.000000+00:00",
+  "source": "Current user message in this session",
+  "userInstruction": "Use the openrouter API key to make that - and then if you can use EXPO for the verification.yml or something or run it locally please do that",
+  "authorized": true,
+  "initialOperatorCapMicro": 2000000,
+  "scope": "Live no-file public-web Research Beta journeys J1–J12 (admission → search → source read → report → correction) on grok-v8/research-beta-integration. Distinct from MC-D01 frozen SQLite. Hosted verification.yml remains billing-locked; run the same steps locally. Expo is not this workflow. No production deploy, no store submission.",
+  "paidGenerationCalls": 16,
+  "confirmedNewCostMicro": 72555,
+  "legacyUnknownsReleased": false,
+  "deploymentAuthorized": false,
+  "status": "Authorized $2.00 public-web cap. MC-D01 21658µ unknown hold remains unreleased and will not be retried. New spend identity uses isolated database deep_v8_live_j12."
+}

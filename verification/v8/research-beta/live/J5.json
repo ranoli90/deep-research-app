@@ -1,0 +1,117 @@
+{
+  "id": "J5",
+  "question": "What is the filing deadline for employment tax?",
+  "admit": {
+    "status": 200,
+    "body": {
+      "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+      "reused": false,
+      "lifecycle": "queued",
+      "phase": "preparing",
+      "routeMode": "controlled-research",
+      "constraints": [
+        {
+          "id": "semantic-use_case-employment-tax",
+          "field": "use_case",
+          "operator": "eq",
+          "value": "employment tax",
+          "origin": "explicit",
+          "importance": "preference",
+          "explanation": "Stated in the question as \u201cfor employment tax?\u201d.",
+          "provenance": "user_provided"
+        }
+      ],
+      "labeledDemo": false
+    }
+  },
+  "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+  "after_wait": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "events": {
+    "events": [
+      {
+        "id": "c37a0fd1-1210-44d9-816e-b143751c2382",
+        "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+        "sequence": 1,
+        "type": "accepted",
+        "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:55.712Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:55 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "d486493e-be80-439f-bf2d-8b9a0ed6b36c",
+        "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+        "sequence": 2,
+        "type": "intent_compiled",
+        "publicSummary": "Understood the question.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:55.712Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:55 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "00c5273f-01ff-475b-a997-3762f24e1f74",
+        "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+        "sequence": 3,
+        "type": "research_unresolved",
+        "publicSummary": "Research could not complete with the available evidence and processing allowance.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:57.333Z",
+        "activity": {
+          "kind": "plan_pivot",
+          "label": "Changed the search plan",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:57 GMT-0600 (Mountain Daylight Time)"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+    "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+    "routeMode": "controlled-research",
+    "spentMicro": 0,
+    "confirmedProviderMicro": 0,
+    "heldProviderMicro": 3453,
+    "unknownProviderIntents": 1,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": false,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "reserved",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 3453
+    },
+    "intentTotalMicro": 3453,
+    "reconciled": false,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

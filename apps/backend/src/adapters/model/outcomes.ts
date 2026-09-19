@@ -6,3 +6,13 @@ export function providerFailureState(err: { name?: string; message?: string }): 
   }
   return "failed";
 }
+
+/** Null-cost HTTP 404s are known failures, not unknown holds. Only true unknown outcomes HOLD. */
+export function providerIntentStateForResult(result: {
+  status: string;
+  receipt: { actualMicro: number | null };
+}): { state: "confirmed" | "outcome-unknown" | "failed"; confirmedMicro?: number } {
+  if (result.status === "outcome_unknown") return { state: "outcome-unknown" };
+  if (result.receipt.actualMicro != null) return { state: "confirmed", confirmedMicro: result.receipt.actualMicro };
+  return { state: "failed" };
+}

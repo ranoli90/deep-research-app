@@ -220,7 +220,7 @@ describe("W05 durable versioned research task", () => {
   it("does not create a task from invalid output or resend its failed logical attempt", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response({ ...brief,objectiveProvenance:{ ...span,quote:"fabricated" } })) as typeof fetch;
     for (let n=0;n<2;n++) expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toEqual({ kind:"blocked",reason:"task_invalid_output" });
-    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
   }));
   it("rejects wrong owner and stale brief revision, without another provider call", async () => runCase(async (x) => {

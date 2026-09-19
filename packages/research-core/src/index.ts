@@ -50,8 +50,8 @@ export * from "./geography.js";
 export * from "./evidence-needs.js";
 export * from "./follow-up-router.js";
 export * from "./candidate-ledger.js";
-export { resolveModelSpans, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "./model-span-resolution.js";
-export { repairBriefCriterionLinks, BRIEF_CRITERION_LINK_VERSION } from "./brief-criterion-link.js";
+export { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "./model-span-resolution.js";
+export { repairBriefCriterionLinks, suppressUnneededBriefClarifications, BRIEF_CRITERION_LINK_VERSION } from "./brief-criterion-link.js";
 export {
   compileResearchIntent,
   evaluateClarificationValue,

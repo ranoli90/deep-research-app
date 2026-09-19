@@ -1,0 +1,117 @@
+{
+  "id": "J2",
+  "question": "should I move to Texas?",
+  "admit": {
+    "status": 200,
+    "body": {
+      "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+      "reused": false,
+      "lifecycle": "queued",
+      "phase": "preparing",
+      "routeMode": "controlled-research",
+      "constraints": [
+        {
+          "id": "geo-texas",
+          "field": "geography",
+          "operator": "eq",
+          "value": "texas",
+          "origin": "explicit",
+          "importance": "hard",
+          "explanation": "Question names geography: texas",
+          "provenance": "user_provided"
+        }
+      ],
+      "labeledDemo": false
+    }
+  },
+  "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+  "after_wait": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "events": {
+    "events": [
+      {
+        "id": "9204b8e2-8ea5-470c-8d72-1e5433a17bc2",
+        "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+        "sequence": 1,
+        "type": "accepted",
+        "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:47.618Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:47 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "7263fe6c-5602-4757-b081-7fdaa47c8179",
+        "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+        "sequence": 2,
+        "type": "intent_compiled",
+        "publicSummary": "Understood the question.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:47.618Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:47 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "939c7e3c-fe5e-4b0d-9243-0bfcabc62df5",
+        "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+        "sequence": 3,
+        "type": "research_unresolved",
+        "publicSummary": "Research could not complete with the available evidence and processing allowance.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:49.342Z",
+        "activity": {
+          "kind": "plan_pivot",
+          "label": "Changed the search plan",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:49 GMT-0600 (Mountain Daylight Time)"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+    "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+    "routeMode": "controlled-research",
+    "spentMicro": 0,
+    "confirmedProviderMicro": 0,
+    "heldProviderMicro": 3450,
+    "unknownProviderIntents": 1,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": false,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "reserved",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 3450
+    },
+    "intentTotalMicro": 3450,
+    "reconciled": false,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

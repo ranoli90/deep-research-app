@@ -3,14 +3,15 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, type SpanResolution } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY, modelPolicy } from "../ports/model-policy.js";
+import { modelPolicy } from "../ports/model-policy.js";
 import { emitEvent, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelResult } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
+import { providerIntentStateForResult } from "../adapters/model/outcomes.js";
 import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
 import { reserveMicroForOperation, routeStringFor } from "../adapters/model/token-budget.js";
 import { availabilityFailover, nextAttemptDecision } from "../model-governor/index.js";
@@ -68,10 +69,11 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   }
   // Financial receipts survive a lost lease/deletion; private model output does not.
   await withTx(pool, async (db) => {
-    await updateIntentState(db, attempt.intentId, result.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", result.receipt.actualMicro ?? undefined);
+    const settled = providerIntentStateForResult(result);
+    await updateIntentState(db, attempt.intentId, settled.state, settled.confirmedMicro);
     await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [attempt.intentId, JSON.stringify(result.receipt)]);
   });
-  if (result.status === "transient_failure") {
+  if (result.status === "transient_failure" || (result.status === "permanent_failure" && /^provider_http_404/.test(result.reason ?? ""))) {
     const runRow = await getRun(pool, args.runId);
     const failover = availabilityFailover({
       outcome: "transient_failure",
@@ -90,7 +92,8 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       if (altAttempt.issue) {
         const altResult = await executeModelRequest(altRequest, { apiKey: config.openRouterApiKey!, signal: session.signal });
         await withTx(pool, async (db) => {
-          await updateIntentState(db, altAttempt.intentId, altResult.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", altResult.receipt.actualMicro ?? undefined);
+          const settled = providerIntentStateForResult(altResult);
+          await updateIntentState(db, altAttempt.intentId, settled.state, settled.confirmedMicro);
           await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [altAttempt.intentId, JSON.stringify(altResult.receipt)]);
         });
         if (altResult.status !== "outcome_unknown") {
@@ -104,13 +107,17 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   let resolvedSpans: SpanResolution[] = [];
   let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
   if (result.status === "succeeded") {
-    if (policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id || policy.id === AZURE_ZDR_DISCOVERY_POLICY.id) {
-      const resolved = resolveModelSpans(args.operation, result.output, context);
-      result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
-      if (args.operation === "brief") {
-        const linked = repairBriefCriterionLinks(result.output as ResearchModelOutput<"brief">);
-        result = { ...result, output: linked.output as typeof result.output }; linkedCriteria = linked.linked;
-      }
+    const resolved = resolveModelSpans(args.operation, result.output, context);
+    result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    if (args.operation === "brief") {
+      const linked = repairBriefCriterionLinks(result.output as ResearchModelOutput<"brief">);
+      const provenanced = repairBriefProvenanceFromQuestion(linked.output, context.question);
+      const clarified = suppressUnneededBriefClarifications(provenanced, context.question);
+      result = { ...result, output: clarified as typeof result.output }; linkedCriteria = linked.linked;
+    }
+    if (args.operation === "extract_assertions") {
+      const owned = new Set(context.passages.map((p) => p.id));
+      result = { ...result, output: dropUnownedEvidenceHandles(result.output as ResearchModelOutput<"extract_assertions">, owned) as typeof result.output };
     }
     const errors = validateModelBindings(args.operation, result.output, context);
     if (errors.length) result = { status: "invalid_output", reason: errors.join(","), receipt: result.receipt };

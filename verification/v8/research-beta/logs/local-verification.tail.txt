@@ -1,0 +1,30 @@
+ Test Files  8 passed (8)
+      Tests  55 passed (55)
+   Start at  07:02:34
+   Duration  354.02s (transform 1.57s, setup 0ms, import 4.27s, tests 347.85s, environment 2ms)
+
+=== android js export ===
+
+> @deep/mobile@0.1.0 bundle:android /home/oranolio/Desktop/deep-v8-integration/apps/mobile
+> expo export --platform android --output-dir /tmp/grok-goal-4e1ed7c66606/implementer/local-android-bundle
+
+Starting Metro Bundler
+Android apps/mobile/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/mobile/index.ts ▓░░░░░░░░░░░░░░░ 10.8% ( 64/195)
+Android apps/mobile/index.ts ▓▓▓░░░░░░░░░░░░░ 23.9% (130/304)
+Android apps/mobile/index.ts ▓▓▓▓▓▓░░░░░░░░░░ 42.4% (302/466)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓░░░░░░ 67.4% (421/516)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 89.0% (540/574)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 98.7% (666/674)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (674/674)
+Android Bundled 25373ms apps/mobile/index.ts (674 modules)
+Android apps/mobile/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (674/674)
+
+› android bundles (1):
+_expo/static/js/android/index-0dbf5c4d92bbfff48c9abbb570289077.hbc (2.3 MB)
+
+› Files (1):
+metadata.json (150 B)
+
+Exported: /tmp/grok-goal-4e1ed7c66606/implementer/local-android-bundle
+LOCAL_VERIFICATION_DONE

@@ -1,6 +1,21 @@
 import type { ResearchModelOutput } from "@deep/contracts";
+import { compileResearchIntent } from "./intent-compiler.js";
 
 export const BRIEF_CRITERION_LINK_VERSION = "brief-criterion-question-link.v1";
+
+/** The intent compiler already decided not to interview; do not let model ambiguities block research. */
+export function suppressUnneededBriefClarifications(
+  output: ResearchModelOutput<"brief">,
+  question: string,
+): ResearchModelOutput<"brief"> {
+  const intent = compileResearchIntent(question);
+  if (intent.clarificationDecision.ask) return output;
+  return {
+    ...output,
+    openAmbiguities: [],
+    criteria: output.criteria.map((c) => ({ ...c, unresolvedAlternatives: [] })),
+  };
+}
 
 function questionKey(criterionKey: string, used: Set<string>): string {
   const base = `linked_${criterionKey}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 100);

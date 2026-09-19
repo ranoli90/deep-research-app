@@ -16,7 +16,10 @@ export async function extractEvidenceAssertions(pool:pg.Pool, config:AppConfig, 
 }):Promise<Outcome> {
   const basis = await session.write(async (db) => loadAssertionEvidence(db,args,await runModelVersions(db,args.runId)));
   if (basis.kind === "blocked") return { kind:"blocked",reason:basis.blocked };
-  const result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions" });
+  let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions" });
+  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
+    result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"extract_assertions", repairPass: 1 });
+  }
   if (result.kind !== "result") return result;
   if (result.result.status !== "succeeded") return { kind:"blocked",reason:`extraction_${result.result.status}` };
   return { kind:"extraction",intentId:result.intentId,taskId:args.taskId,evidenceRevision:basis.evidenceRevision,reused:result.reused,output:result.result.output };

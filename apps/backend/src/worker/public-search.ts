@@ -56,6 +56,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  catch(error){if(error instanceof Error&&error.message==="route_attempt_limit")return {kind:"blocked" as const,reason:"discovery_query_limit"};throw error;}
  const finish=(result:SearchResult,reused:boolean)=>result.receipt.state==="confirmed"&&result.receipt.actualMicro!==undefined
   ?{kind:"search" as const,intentId:attempt.intentId,hits:result.hits,reused}
+  :result.receipt.state==="failed"?{kind:"blocked" as const,reason:result.receipt.failureReason??"search_output_unavailable"}
   :result.receipt.actualMicro===undefined?{kind:"pending" as const,intentId:attempt.intentId}
   :{kind:"blocked" as const,reason:result.receipt.failureReason??"search_output_unavailable"};
  if(!attempt.issue) {
@@ -69,8 +70,11 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   return finish(result.data,true);
  }
  const result=SearchResultSchema.parse(await liveWebSearch(searchQuery,config,session.signal,45_000,true,policy.id));
- await withTx(pool,async(db)=>{await updateIntentState(db,attempt.intentId,result.receipt.actualMicro===undefined?"outcome-unknown":"confirmed",result.receipt.actualMicro);
-  await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1",[attempt.intentId,JSON.stringify(result.receipt)]);});
+ await withTx(pool,async(db)=>{
+  const state=result.receipt.state==="failed"?"failed":result.receipt.actualMicro===undefined?"outcome-unknown":"confirmed";
+  await updateIntentState(db,attempt.intentId,state,state==="confirmed"?result.receipt.actualMicro:undefined);
+  await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1",[attempt.intentId,JSON.stringify(result.receipt)]);
+ });
  await authorize();
  await session.write(async (db)=>{
   await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:proposal.action.query,authorization:{...prepared.auth,query:searchQuery}});

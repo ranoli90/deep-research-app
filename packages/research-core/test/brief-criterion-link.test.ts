@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { repairBriefCriterionLinks, validateModelBindings, resolveModelSpans } from "../src/index.js";
+import { repairBriefCriterionLinks, suppressUnneededBriefClarifications, validateModelBindings, resolveModelSpans } from "../src/index.js";
 
 const question = "best laptop for running AI under 2k";
 const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
@@ -7,6 +7,26 @@ const criterion = (key: string, quote: string, start = 99, end = 100) => ({
   key, description: `Need ${key}`, field: key, operator: "exists" as const, value: null, unit: null,
   importance: "hard" as const, scope, provenance: { quote, start, end }, group: "g1", groupOperator: "all" as const,
   unresolvedAlternatives: [],
+});
+
+it("clears model interview prompts when the intent compiler already decided not to ask", () => {
+  const raw = {
+    objective: question,
+    objectiveProvenance: { quote: question, start: 0, end: question.length },
+    intendedOutput: "recommendation",
+    criteria: [{ ...criterion("budget", "under 2k", 24, 32), unresolvedAlternatives: ["gaming", "ultrabook"] }],
+    questions: [{
+      key: "q_budget", text: "What machines stay under the budget?", criterionKeys: ["budget"],
+      importance: "critical" as const, evidenceStandard: "current list prices",
+    }],
+    assumptions: [],
+    openAmbiguities: [{ question: "What specifically will you use it for?", whyMaterial: "use case" }],
+    explicitExclusions: [],
+  };
+  const suppressed = suppressUnneededBriefClarifications(raw, question);
+  expect(suppressed.openAmbiguities).toEqual([]);
+  expect(suppressed.criteria[0]?.unresolvedAlternatives).toEqual([]);
+  expect(suppressed.objective).toBe(question);
 });
 
 it("links orphaned brief criteria to questions without rewriting the original question", () => {

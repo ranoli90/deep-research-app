@@ -1,4 +1,5 @@
 import { ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { extractConstraints } from "./brief.js";
 
 export const MODEL_SPAN_RESOLUTION_VERSION = "unique-exact-quote-offsets.v1";
 type Span = { start: number; end: number; quote: string };
@@ -41,4 +42,72 @@ export function resolveModelSpans<K extends ResearchModelOperation>(operation: K
     if (action.type === "search") span(action.publicQueryBasis, context.question, "action.publicQueryBasis");
   }
   return { output, resolutions, version: MODEL_SPAN_RESOLUTION_VERSION };
+}
+
+function uniqueSpan(question: string, needle: string): Span | null {
+  if (!needle) return null;
+  const exact = question.indexOf(needle);
+  if (exact >= 0 && question.indexOf(needle, exact + 1) === -1) {
+    return { start: exact, end: exact + needle.length, quote: needle };
+  }
+  const lower = question.toLowerCase();
+  const q = needle.toLowerCase();
+  const i = lower.indexOf(q);
+  if (i >= 0 && lower.indexOf(q, i + 1) === -1) {
+    return { start: i, end: i + needle.length, quote: question.slice(i, i + needle.length) };
+  }
+  return null;
+}
+
+function validSpan(item: Span, question: string): boolean {
+  return item.end > item.start && item.end <= question.length && question.slice(item.start, item.end) === item.quote;
+}
+
+/** Replace invalid brief provenances with unique question spans for the same stated field. Never invent quotes. */
+export function repairBriefProvenanceFromQuestion(output: ResearchModelOutput<"brief">, question: string): ResearchModelOutput<"brief"> {
+  const next = structuredClone(output);
+  const extracted = extractConstraints(question);
+  const apply = (item: Span, needles: string[]) => {
+    if (validSpan(item, question)) return;
+    for (const needle of needles) {
+      const found = uniqueSpan(question, needle);
+      if (found) {
+        item.start = found.start;
+        item.end = found.end;
+        item.quote = found.quote;
+        return;
+      }
+    }
+  };
+  apply(next.objectiveProvenance, [next.objectiveProvenance.quote]);
+  for (const criterion of next.criteria) {
+    const known = extracted.find((c) => c.field === criterion.field);
+    const needles = [
+      criterion.provenance.quote,
+      ...(known?.value ? [String(known.value)] : []),
+      ...(criterion.value ? [criterion.value] : []),
+    ];
+    if (criterion.field === "budget") {
+      const compact = question.match(/\b(?:under|below|at most|less than|<=)\s*(?:\$|€|£)?\s*\d+(?:[.,]\d+)?\s*[kK]?(?:\s*(?:USD|EUR|GBP))?\b/i);
+      if (compact) needles.unshift(compact[0]);
+    }
+    apply(criterion.provenance, needles);
+  }
+  for (const exclusion of next.explicitExclusions) apply(exclusion.provenance, [exclusion.provenance.quote, exclusion.text]);
+  return next;
+}
+
+/** Drop citations to passages the model was not given. Never invent replacement quotes. */
+export function dropUnownedEvidenceHandles(
+  output: ResearchModelOutput<"extract_assertions">,
+  passageIds: ReadonlySet<string>,
+): ResearchModelOutput<"extract_assertions"> {
+  const next = structuredClone(output);
+  const owned = (evidence: { passageId: string }[]) => evidence.filter((e) => passageIds.has(e.passageId));
+  next.candidates = next.candidates.map((c) => ({ ...c, evidence: owned(c.evidence) })).filter((c) => c.evidence.length);
+  const candidateKeys = new Set(next.candidates.map((c) => c.key));
+  next.assertions = next.assertions
+    .map((a) => ({ ...a, evidence: owned(a.evidence) }))
+    .filter((a) => a.evidence.length && (a.candidateKey === null || candidateKeys.has(a.candidateKey)));
+  return next;
 }

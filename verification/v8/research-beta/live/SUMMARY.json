@@ -1,0 +1,129 @@
+{
+  "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+  "journeys": [
+    {
+      "id": "J1",
+      "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+      "lifecycle": "terminal",
+      "outcome": "failed",
+      "reportId": null,
+      "cost": {
+        "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+        "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+        "routeMode": "controlled-research",
+        "spentMicro": 0,
+        "confirmedProviderMicro": 0,
+        "heldProviderMicro": 3451,
+        "unknownProviderIntents": 1,
+        "simulatedFixtureMicro": 0,
+        "allowanceReconciled": false,
+        "costScope": "provider_receipts_only",
+        "reservationAmountMicro": 100000,
+        "reservationState": "reserved",
+        "breakdown": {
+          "search": 0,
+          "fetch": 0,
+          "synthesize": 0,
+          "other": 3451
+        },
+        "intentTotalMicro": 3451,
+        "reconciled": false,
+        "tariffVersion": null,
+        "effectiveProcessor": "openrouter"
+      }
+    },
+    {
+      "id": "J2",
+      "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+      "lifecycle": "terminal",
+      "outcome": "failed",
+      "reportId": null,
+      "cost": {
+        "runId": "a8e16a5a-17d7-4dd4-8d62-ba91e659f7fe",
+        "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+        "routeMode": "controlled-research",
+        "spentMicro": 0,
+        "confirmedProviderMicro": 0,
+        "heldProviderMicro": 3450,
+        "unknownProviderIntents": 1,
+        "simulatedFixtureMicro": 0,
+        "allowanceReconciled": false,
+        "costScope": "provider_receipts_only",
+        "reservationAmountMicro": 100000,
+        "reservationState": "reserved",
+        "breakdown": {
+          "search": 0,
+          "fetch": 0,
+          "synthesize": 0,
+          "other": 3450
+        },
+        "intentTotalMicro": 3450,
+        "reconciled": false,
+        "tariffVersion": null,
+        "effectiveProcessor": "openrouter"
+      }
+    },
+    {
+      "id": "J3",
+      "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+      "lifecycle": "terminal",
+      "outcome": "failed",
+      "reportId": null,
+      "cost": {
+        "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+        "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+        "routeMode": "controlled-research",
+        "spentMicro": 0,
+        "confirmedProviderMicro": 0,
+        "heldProviderMicro": 3451,
+        "unknownProviderIntents": 1,
+        "simulatedFixtureMicro": 0,
+        "allowanceReconciled": false,
+        "costScope": "provider_receipts_only",
+        "reservationAmountMicro": 100000,
+        "reservationState": "reserved",
+        "breakdown": {
+          "search": 0,
+          "fetch": 0,
+          "synthesize": 0,
+          "other": 3451
+        },
+        "intentTotalMicro": 3451,
+        "reconciled": false,
+        "tariffVersion": null,
+        "effectiveProcessor": "openrouter"
+      }
+    },
+    {
+      "id": "J5",
+      "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+      "lifecycle": "terminal",
+      "outcome": "failed",
+      "reportId": null,
+      "cost": {
+        "runId": "b18ffc61-966d-48c2-8815-d54d011a80b8",
+        "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+        "routeMode": "controlled-research",
+        "spentMicro": 0,
+        "confirmedProviderMicro": 0,
+        "heldProviderMicro": 3453,
+        "unknownProviderIntents": 1,
+        "simulatedFixtureMicro": 0,
+        "allowanceReconciled": false,
+        "costScope": "provider_receipts_only",
+        "reservationAmountMicro": 100000,
+        "reservationState": "reserved",
+        "breakdown": {
+          "search": 0,
+          "fetch": 0,
+          "synthesize": 0,
+          "other": 3453
+        },
+        "intentTotalMicro": 3453,
+        "reconciled": false,
+        "tariffVersion": null,
+        "effectiveProcessor": "openrouter"
+      }
+    }
+  ]
+}

@@ -25,7 +25,10 @@ export async function ensureResearchTask(pool: pg.Pool, config: AppConfig, sessi
     const brief = await getBrief(db,run.brief_id);
     return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion) };
   });
-  const result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
+  let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
+  if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
+    result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief", repairPass: 1 });
+  }
   if (result.kind !== "result") return result;
   if (result.result.status !== "succeeded") return { kind:"blocked", reason: `task_${result.result.status}` };
   const task = await session.write(async (db) => adoptResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId)));

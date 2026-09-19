@@ -1,0 +1,43 @@
+{
+  "id": "J1-ready",
+  "runId": "47a5946d-eeff-4cc3-923b-af8db9619756",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "47a5946d-eeff-4cc3-923b-af8db9619756",
+    "accountId": "478f6c54-4772-420e-a70e-ad035ae3ba64",
+    "routeMode": "controlled-research",
+    "spentMicro": 618,
+    "confirmedProviderMicro": 618,
+    "heldProviderMicro": 9000,
+    "unknownProviderIntents": 1,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": false,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "reserved",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 9618
+    },
+    "intentTotalMicro": 9618,
+    "reconciled": false,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

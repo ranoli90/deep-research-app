@@ -143,21 +143,39 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,sourceClass:openingPlan.primary,proposal:{
       rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
         publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
-    if(search.kind!=="search")return pendingOrBlocked(search);
-    const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
-    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
-      summary:"Found sources.",payload:{count:sources.length}}));
-    await readAdoptedSources(prepared.task.id,sources,questionKeys,"Read the discovered source before assessing its assertions.");
-    selected=await selectPassages();
+    if(search.kind==="pending")return pendingOrBlocked(search);
+    if(search.kind==="search"){
+      const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+        summary:"Found sources.",payload:{count:sources.length}}));
+      await readAdoptedSources(prepared.task.id,sources,questionKeys,"Read the discovered source before assessing its assertions.");
+      selected=await selectPassages();
+    } else {
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"search_failed",phase:"researching",
+        summary:"A search could not run; research continues with remaining evidence.",payload:{reason:search.reason}}));
+    }
   }
   // Repeat actual extraction/checking after new evidence, never count search events as coverage.
+  let prior:{extraction:Awaited<ReturnType<typeof extractEvidenceAssertions>>&{kind:"extraction"};support:Awaited<ReturnType<typeof executeAssertionSupport>>&{kind:"support"};calculations:Awaited<ReturnType<typeof executeCalculationPlanning>>;target:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;extractionIntentId:string;supportIntentId?:string}}|null=null;
   for(let iteration=0;iteration<4;iteration++) {
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
     if(!selected.rowCount)return unresolved("readable_evidence_unavailable");
     const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
     if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
-    if(extraction.kind!=="extraction")return pendingOrBlocked(extraction);
+    if(extraction.kind!=="extraction"){
+      if(prior){
+        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
+          summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason:extraction.reason}}));
+        const result=await writeResearchReport(pool,config,session,{...prior.target,sourceSupportIntentId:prior.support.intentId,...(prior.calculations.kind==="calculations"&&prior.calculations.executions.length?{calculationPlanIntentId:prior.calculations.intentId}:{})});
+        if(result.kind!=="publication")return pendingOrBlocked(result);
+        if(!result.accepted)return unresolved(result.reason);
+        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
+          summary:"Answer ready."}));
+        return;
+      }
+      return pendingOrBlocked(extraction);
+    }
     if(!extraction.output.assertions.length){
       if(!recoveryEnabled||!selection)return unresolved("no_relevant_assertions");
       for(const id of selection.passageIds)inspectedIds.add(id);
@@ -169,6 +187,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
     const support=await executeAssertionSupport(pool,config,session,target);
     if(support.kind!=="support")return pendingOrBlocked(support);
+    prior={extraction,support,calculations:{kind:"not_applicable"},target:{...target,supportIntentId:support.intentId}};
     const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
     if(challenge.kind==="challenge") {
       await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
@@ -182,6 +201,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     const calculations=await executeCalculationPlanning(pool,config,session,{...target,supportIntentId:support.intentId});
     if(calculations.kind!=="calculations"&&calculations.kind!=="not_applicable")return pendingOrBlocked(calculations);
+    prior={extraction,support,calculations,target:{...target,supportIntentId:support.intentId}};
     if(calculations.kind==="calculations"&&calculations.executions.length)await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"calculations_executed",phase:"researching",
       summary:"Requested arithmetic was evaluated against checked source quantities.",payload:{planIntentId:calculations.intentId,
        results:calculations.executions.map(e=>({key:e.key,calculationId:e.calculationId,status:e.result.status,reason:e.result.reason}))}}));
@@ -242,7 +262,12 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
           summary:"Searching public sources.",payload:{count:queries.length}}));
         const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:continuation,sourceClass:nextClass});
-        if(search.kind!=="search")return pendingOrBlocked(search);
+        if(search.kind==="pending")return pendingOrBlocked(search);
+        if(search.kind!=="search"){
+          await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"search_failed",phase:"researching",
+            summary:"A search could not run; research continues with remaining evidence.",payload:{reason:search.reason}}));
+          continue;
+        }
         const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
         await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
           summary:"Found sources.",payload:{count:adopted.length}}));

@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Live public-web path under new $2 cap
+
+- User: use OpenRouter key; run verification.yml locally (hosted still billing-locked).
+- Isolated DB `deep_v8_live_j12`. Azure ZDR brief+web. Confirmed **72555 µ**. OpenAI `data_collection=deny` 404s recorded, not retried.
+- Fixes: null-cost 404 is `failed` not unknown hold; Azure new-search routing; brief span/clarification repair; drop unowned extraction handles; write from prior evidence if a later extract fails.
+- No published live report yet. main not merged.
+
 ## 2026-09-19 — Filled kit 35 matrix; 2eb385b visual QA complete
 
 - Wrote `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv` with PASS+artifact or exact external-blocker rows.

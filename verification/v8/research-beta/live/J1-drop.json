@@ -1,0 +1,54 @@
+{
+  "id": "J1-drop",
+  "runId": "d0b2d2f4-b3ff-4387-9de2-8e3fd10b2272",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "model_span_resolution",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "counterevidence_checked",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "d0b2d2f4-b3ff-4387-9de2-8e3fd10b2272",
+    "accountId": "68f28153-a45d-44a3-8cea-3ae4e70f40ad",
+    "routeMode": "controlled-research",
+    "spentMicro": 36014,
+    "confirmedProviderMicro": 36014,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 36014
+    },
+    "intentTotalMicro": 36014,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

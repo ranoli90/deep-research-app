@@ -86,11 +86,12 @@ describe("P0 smoke against shipped API/worker/postgres", () => {
       "budget",
       "date",
       "geography",
+      "timeframe",
     ]);
     await processRun(pool, config, runId);
     const snap = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: { authorization: `Bearer ${token}` } });
     const brief = snap.json().brief;
-    expect(brief.constraints.map((c: { field: string }) => c.field).sort()).toEqual(["budget", "date", "geography"]);
+    expect(brief.constraints.map((c: { field: string }) => c.field).sort()).toEqual(["budget", "date", "geography", "timeframe"]);
     const events = await listEvents(pool, runId, 0);
     expect(events.some((e) => e.type === "clarify")).toBe(false);
     const report = await getLatestReportForRun(pool, runId, (await getRun(pool, runId))!.account_id);

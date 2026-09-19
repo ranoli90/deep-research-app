@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseActionJson, parseUrlCitations } from "../src/adapters/model/parse.js";
-import { providerFailureState } from "../src/adapters/model/outcomes.js";
+import { providerFailureState, providerIntentStateForResult } from "../src/adapters/model/outcomes.js";
 import { canIssueLiveCall } from "../src/modules/live-spend.js";
 import { LIVE_CALL_RESERVE_MICRO, MICRO_PER_USD } from "@deep/contracts";
 
@@ -31,6 +31,12 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(providerFailureState({ name: "TimeoutError" })).toBe("outcome-unknown");
     expect(providerFailureState({ name: "AbortError" })).toBe("outcome-unknown");
     expect(providerFailureState({ name: "TypeError", message: "fetch failed" })).toBe("failed");
+  });
+
+  it("null-cost HTTP 404 permanent failures are failed, not unknown holds", () => {
+    expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: null } })).toEqual({ state: "failed" });
+    expect(providerIntentStateForResult({ status: "outcome_unknown", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
+    expect(providerIntentStateForResult({ status: "succeeded", receipt: { actualMicro: 12 } })).toEqual({ state: "confirmed", confirmedMicro: 12 });
   });
 
   it("LIVE_SPEND_CAP_MICRO is USD micros and refuses a call that would exceed remaining", () => {

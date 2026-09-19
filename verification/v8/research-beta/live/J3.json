@@ -1,0 +1,117 @@
+{
+  "id": "J3",
+  "question": "What is the current US federal funds rate?",
+  "admit": {
+    "status": 200,
+    "body": {
+      "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+      "reused": false,
+      "lifecycle": "queued",
+      "phase": "preparing",
+      "routeMode": "controlled-research",
+      "constraints": [
+        {
+          "id": "freshness",
+          "field": "freshness",
+          "operator": "eq",
+          "value": "current",
+          "origin": "explicit",
+          "importance": "hard",
+          "explanation": "Question requires current/fresh evidence",
+          "provenance": "user_provided"
+        }
+      ],
+      "labeledDemo": false
+    }
+  },
+  "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+  "after_wait": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "events": {
+    "events": [
+      {
+        "id": "5532c547-77da-4752-bd34-d7c2b6b37cb7",
+        "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+        "sequence": 1,
+        "type": "accepted",
+        "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:51.661Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:51 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "3c428df9-cd11-45ee-8770-4995702ac91d",
+        "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+        "sequence": 2,
+        "type": "intent_compiled",
+        "publicSummary": "Understood the question.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:51.661Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:51 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "1dc8a50d-b20e-4370-9cbe-a56f037e313c",
+        "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+        "sequence": 3,
+        "type": "research_unresolved",
+        "publicSummary": "Research could not complete with the available evidence and processing allowance.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:53.421Z",
+        "activity": {
+          "kind": "plan_pivot",
+          "label": "Changed the search plan",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:53 GMT-0600 (Mountain Daylight Time)"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "runId": "b120c881-e0c0-455f-b7b9-08abb4c2ed94",
+    "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+    "routeMode": "controlled-research",
+    "spentMicro": 0,
+    "confirmedProviderMicro": 0,
+    "heldProviderMicro": 3451,
+    "unknownProviderIntents": 1,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": false,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "reserved",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 3451
+    },
+    "intentTotalMicro": 3451,
+    "reconciled": false,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

@@ -19,6 +19,8 @@ describe("W02/W05 bounded search transport",()=>{
  });
  it("issues new searches under v3 with a bounded result count above the historical three",()=>{
   expect(discoveryPolicyForNewSearch(STRUCTURED_MODEL_POLICY.id)).toEqual(DEEP_DISCOVERY_POLICY);
+  expect(discoveryPolicyForNewSearch(AZURE_ZDR_MODEL_POLICY.id)).toEqual(AZURE_DISCOVERY_POLICY);
+  expect(pinnedSearchBody("restoration",discoveryPolicyForNewSearch(AZURE_ZDR_MODEL_POLICY.id).id).provider).toMatchObject({only:["azure"],zdr:true});
   expect(DEEP_DISCOVERY_POLICY.maxResults).toBe(8);
   expect(DISCOVERY_POLICY.maxResults).toBe(3);
   expect(AZURE_DISCOVERY_POLICY.maxResults).toBe(3);

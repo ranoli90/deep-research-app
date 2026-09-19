@@ -1,0 +1,47 @@
+{
+  "id": "J1-azure-search",
+  "runId": "32a06cf2-211e-4fae-919a-1a70ec6f050f",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "32a06cf2-211e-4fae-919a-1a70ec6f050f",
+    "accountId": "ed951ae4-b6d1-44bb-9c72-150756d4d251",
+    "routeMode": "controlled-research",
+    "spentMicro": 8301,
+    "confirmedProviderMicro": 8301,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 8301
+    },
+    "intentTotalMicro": 8301,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

@@ -1,0 +1,128 @@
+{
+  "id": "J1",
+  "question": "best laptop for local AI under $2k",
+  "admit": {
+    "status": 200,
+    "body": {
+      "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+      "reused": false,
+      "lifecycle": "queued",
+      "phase": "preparing",
+      "routeMode": "controlled-research",
+      "constraints": [
+        {
+          "id": "budget",
+          "field": "budget",
+          "operator": "lte",
+          "value": "2000",
+          "units": "USD",
+          "origin": "explicit",
+          "importance": "hard",
+          "explanation": "Question names budget ceiling under $2k",
+          "provenance": "user_provided"
+        },
+        {
+          "id": "preference-best",
+          "field": "preference",
+          "operator": "eq",
+          "value": "best among eligible options",
+          "origin": "explicit",
+          "importance": "preference",
+          "explanation": "\u201cBest\u201d is a ranking preference, not a hard eligibility rule.",
+          "provenance": "user_provided"
+        }
+      ],
+      "labeledDemo": false
+    }
+  },
+  "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+  "after_wait": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "events": {
+    "events": [
+      {
+        "id": "f132c0b4-b04e-4372-9e97-2d89134b723c",
+        "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+        "sequence": 1,
+        "type": "accepted",
+        "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:43.542Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:43 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "3d8e7725-1812-49b5-8444-021ea142cb24",
+        "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+        "sequence": 2,
+        "type": "intent_compiled",
+        "publicSummary": "Understood the question.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:43.542Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:43 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "9a42f06a-744c-4422-b9f3-ddd6f8dbcee8",
+        "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+        "sequence": 3,
+        "type": "research_unresolved",
+        "publicSummary": "Research could not complete with the available evidence and processing allowance.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T12:52:45.840Z",
+        "activity": {
+          "kind": "plan_pivot",
+          "label": "Changed the search plan",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 06:52:45 GMT-0600 (Mountain Daylight Time)"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "runId": "0fac4185-be02-4860-b7d2-47fc7fc729d6",
+    "accountId": "6c70bb6e-7166-430d-9c1c-b33ebab5af42",
+    "routeMode": "controlled-research",
+    "spentMicro": 0,
+    "confirmedProviderMicro": 0,
+    "heldProviderMicro": 3451,
+    "unknownProviderIntents": 1,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": false,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "reserved",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 3451
+    },
+    "intentTotalMicro": 3451,
+    "reconciled": false,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

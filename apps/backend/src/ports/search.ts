@@ -16,6 +16,8 @@ export function discoveryPolicyForModel(modelPolicyId:unknown=STRUCTURED_MODEL_P
 }
 /** New search attempts: v3 result bound. Replay of issued v1/v2 identities still uses discoveryPolicy(). */
 export function discoveryPolicyForNewSearch(modelPolicyId:unknown=STRUCTURED_MODEL_POLICY.id) {
+ const admitted=modelPolicy(modelPolicyId);
+ if(admitted.provider==="azure") return AZURE_DISCOVERY_POLICY;
  const mapped=discoveryPolicyForModel(modelPolicyId);
  return mapped.id===DISCOVERY_POLICY.id?DEEP_DISCOVERY_POLICY:mapped;
 }

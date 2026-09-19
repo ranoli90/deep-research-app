@@ -1,3 +1,7 @@
+## Live public-web grant used — 2026-09-19
+
+User authorized the OpenRouter key for a **new $2.00 public-web cap**. Isolated ledger `deep_v8_live_j12`. Confirmed spend **72,555 µ**. Azure ZDR search and source reads ran; no published report yet (`extraction_invalid_output` on a later pass). MC-D01 unknown hold **not** released. Hosted `verification.yml` still billing-locked; local equivalent ran (integration R01 timeframe assertion updated). **main not merged. Research Beta not declared.**
+
 ## Research Beta matrix fill — 2026-09-19
 
 Filled kit `35_ACCEPTANCE_MATRIX.csv` at `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv`. Product APK `2eb385b` / EAS `7e4b02c8` visual matrix recaptured (clarification, expanded activity, correction, large text, offline Retry). Intent NL corpus is 52 unique questions. **Not merged to `main` (`8a7b1a9`). Research Beta is not declared.**

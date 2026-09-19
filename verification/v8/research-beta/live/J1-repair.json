@@ -1,0 +1,40 @@
+{
+  "id": "J1-repair",
+  "runId": "98798c08-0eb1-47b5-a688-a90a1f3be103",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "98798c08-0eb1-47b5-a688-a90a1f3be103",
+    "accountId": "daff2774-0d24-43bd-89ab-83519df0c37a",
+    "routeMode": "controlled-research",
+    "spentMicro": 615,
+    "confirmedProviderMicro": 615,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 615
+    },
+    "intentTotalMicro": 615,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

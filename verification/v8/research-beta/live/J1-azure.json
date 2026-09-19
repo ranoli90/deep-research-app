@@ -1,0 +1,93 @@
+{
+  "id": "J1-azure",
+  "runId": "5b2cc944-c3e3-4023-a274-1404101af554",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "preparing",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "events": {
+    "events": [
+      {
+        "id": "f75b03b2-e616-4adc-ae2a-6a0602041d51",
+        "runId": "5b2cc944-c3e3-4023-a274-1404101af554",
+        "sequence": 1,
+        "type": "accepted",
+        "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T13:05:14.405Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 07:05:14 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "ef2d447c-aa8f-46c2-a46a-d6c676f7a124",
+        "runId": "5b2cc944-c3e3-4023-a274-1404101af554",
+        "sequence": 2,
+        "type": "intent_compiled",
+        "publicSummary": "Understood the question.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T13:05:14.405Z",
+        "activity": {
+          "kind": "intent_ready",
+          "label": "Understood the question",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 07:05:14 GMT-0600 (Mountain Daylight Time)"
+        }
+      },
+      {
+        "id": "eb6b0bc8-3fd6-462a-a845-458b5213a971",
+        "runId": "5b2cc944-c3e3-4023-a274-1404101af554",
+        "sequence": 3,
+        "type": "research_unresolved",
+        "publicSummary": "Research could not complete with the available evidence and processing allowance.",
+        "phase": "preparing",
+        "createdAt": "2026-09-19T13:05:25.596Z",
+        "activity": {
+          "kind": "plan_pivot",
+          "label": "Changed the search plan",
+          "phase": "preparing",
+          "count": null,
+          "sourceDomain": null,
+          "sourceTitle": null,
+          "createdAt": "Sat Sep 19 2026 07:05:25 GMT-0600 (Mountain Daylight Time)"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "runId": "5b2cc944-c3e3-4023-a274-1404101af554",
+    "accountId": "ae29c063-e80d-4484-a25e-d95745481bcc",
+    "routeMode": "controlled-research",
+    "spentMicro": 529,
+    "confirmedProviderMicro": 529,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 529
+    },
+    "intentTotalMicro": 529,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

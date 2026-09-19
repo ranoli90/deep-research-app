@@ -1,3 +1,7 @@
+## Live public-web attempt — 2026-09-19
+
+User authorized the OpenRouter key ($2 public-web). Isolated live DB spent **72,555 µ**. Azure ZDR search found sources and some pages extracted; **no published report**. Hosted Actions still billing-locked; local `verification.yml` steps ran. Do not merge `main`. See `verification/v8/research-beta/live/LIVE.md`.
+
 ## Research Beta matrix fill — 2026-09-19
 
 Filled `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv` with PASS+artifact or exact external-blocker rows. 2eb385b visual matrix is in `verification/v8/research-beta/visual-qa/`. **Do not merge to `main`.** Research Beta is not declared.
