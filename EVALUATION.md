@@ -1,9 +1,24 @@
 # Research evaluation and release protocol
-Owner role: evaluation lead. Status: protocol, historical **fixture-class** diagnostic harness, and matched production API/worker/extraction controls under `evals/matched-pipeline/`. Model transports in executed local controls are fabricated; real-model paired repetitions and independent adjudication remain unrun. **No competitor trial or human study has been run.** Reviewed: 2026-09-17.
+Owner role: evaluation lead. Status: protocol, historical **fixture-class** diagnostic harness, and matched production API/worker/extraction controls under `evals/matched-pipeline/`. Model transports in executed local controls are fabricated; real-model paired repetitions and independent adjudication remain unrun. **No competitor trial or human study has been run.** Reviewed: 2026-09-19.
+
+## Research Beta honesty — 2026-09-19
+
+Filled kit matrix: `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv`.
+
+**Research Beta is not reached.** Fixture, unit, PostgreSQL, extraction, and native visual evidence are not live public-web research and are not hosted CI.
+
+| Gate | Result | Exact blocker / artifact |
+|---|---|---|
+| Hosted `verification.yml` (RB-CI-01) | **BLOCKER** | Runs `35411856817`, `35421735059`, `35422066858` did not start: GitHub account locked for billing. Local `pnpm verify` is not a substitute. Unlock billing, then dispatch on `grok-v8/research-beta-integration`. |
+| Live J1–J12 (RB-LIVE-01/02/03) | **BLOCKER** | Grant is **$0.40 MC-D01 frozen SQLite only** (confirmed $0.0005388; **21,658 µ unknown hold unreleased**; `legacyUnknownsReleased: false`). Required: a **new** OpenRouter public-web identity **≥ $1.20** (recommended **$2.00**) **and** hold release. A key being present is not that grant. Scope: kit `38_USER_JOURNEYS.md` full path through correction. |
+| Non-paid engineering | PASS with artifacts | `pnpm verify` EXIT 0; PG **475/475 twice**; frozen extraction 9/9; intent NL **52**; injection kit 50 unit cases; device APK `2eb385b` / EAS `7e4b02c8`. |
+| Competitor superiority | **not claimed** | No matched ChatGPT/Perplexity/Gemini/Claude/Grok trials. |
+
+`main` is not merged. See `verification/v8/research-beta/EXTERNAL_BLOCKERS.md`.
 
 Session A (2026-09-18): `runPortfolioEvaluation` scores registered candidates on identical local/fixture inputs and stores dated records with `superiorityClaim: false`. Live semantic task classes execute only through explicit-authorization fail-closed runners (`eval:live` matched pipeline and `eval:live-semantic` bounded briefs). Bounded Azure receipts are in `verification/v7/live-semantic/`; one freshness unknown remains held. Fixture or fabricated model output is not semantic-quality proof. No claim that dynamic routing is better until measured.
 
-Research Beta live J1–J12 (kit `38_USER_JOURNEYS.md`) are **not executed**. The $0.40 MC-D01 grant is frozen-SQLite only, with 21,658 µ unknown hold unreleased. Hosted `verification.yml` run `35421735059` did not start (GitHub billing lock). No competitor-superiority claim.
+Research Beta live J1–J12 (kit `38_USER_JOURNEYS.md`) remain **unexecuted** under the spend/hold blocker above. No competitor-superiority claim.
 
 ## Main question
 Does the controlled system help a person finish a constrained technical decision or document-grounded check with less repair, without worse consequential correctness, than a simpler credible baseline and available dedicated research products?

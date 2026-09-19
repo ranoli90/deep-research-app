@@ -1,3 +1,14 @@
+## Research Beta matrix fill — 2026-09-19
+
+Filled kit `35_ACCEPTANCE_MATRIX.csv` at `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv`. Product APK `2eb385b` / EAS `7e4b02c8` visual matrix recaptured (clarification, expanded activity, correction, large text, offline Retry). Intent NL corpus is 52 unique questions. **Not merged to `main` (`8a7b1a9`). Research Beta is not declared.**
+
+External blockers (user action required):
+
+1. **RB-CI-01** — hosted `verification.yml` runs `35411856817` / `35421735059` / `35422066858` did not start: GitHub account locked for billing. Local `pnpm verify` is not a substitute.
+2. **RB-LIVE-01/02/03** — need a **new** OpenRouter public-web grant **≥ $1.20** (recommended **$2.00**) distinct from $0.40 MC-D01 frozen-SQLite, **and** explicit release of the **21,658 µ** unknown hold. A key being present is not that grant.
+
+See `verification/v8/research-beta/EXTERNAL_BLOCKERS.md`.
+
 ## Consumer brief card + cited-in — 2026-09-19
 
 HEAD `2eb385b`. EAS `7e4b02c8` APK sha256 `6ded85d00989a33bc89aeb186261f4d715b7f62de71aaa6781141b3d141df9cb` installed on `10.0.0.167:43417`. Non-blocking brief no longer dumps desiredOutcome; source-sheet “Cited in” ellipsizes. Device source-sheet recaptured. **Not merged to `main`.** Research Beta is not declared. External blockers unchanged.

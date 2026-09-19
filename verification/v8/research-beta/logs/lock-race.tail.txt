@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-v8-integration/apps/backend
+
+ ✓ test/append-document.integration.test.ts (12 tests | 11 skipped) 1822ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 11 skipped (12)
+   Start at  21:27:14
+   Duration  3.61s (transform 1.19s, setup 0ms, import 1.61s, tests 1.82s, environment 0ms)
+

@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-v8-integration/packages/research-core
+
+ ✓ test/intent-compiler.test.ts (12 tests) 53ms
+ ✓ test/research-beta-intelligence.test.ts (20 tests) 63ms
+
+ Test Files  2 passed (2)
+      Tests  32 passed (32)
+   Start at  04:12:20
+   Duration  685ms (transform 613ms, setup 0ms, import 790ms, tests 116ms, environment 0ms)
+

@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Filled kit 35 matrix; 2eb385b visual QA complete
+
+- Wrote `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv` with PASS+artifact or exact external-blocker rows.
+- Recaptured 2eb385b device matrix: clarification, expanded activity, correction, large text (font_scale 1.5 then restored 1.0), offline Retry.
+- Intent NL corpus expanded to 52 unique questions; focused research-core 32/32 EXIT 0.
+- **main not merged. Research Beta not declared.** Blockers: GitHub billing lock; live public-web grant ≥ $1.20 + 21,658 µ hold release.
+
 ## 2026-09-19 — Consumer brief card APK 2eb385b
 
 - EAS `7e4b02c8` FINISHED; APK sha256 `6ded85d00989a33bc89aeb186261f4d715b7f62de71aaa6781141b3d141df9cb` on `10.0.0.167:43417`.

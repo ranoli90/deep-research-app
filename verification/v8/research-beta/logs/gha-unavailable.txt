@@ -1,0 +1,4 @@
+Hosted GitHub Actions run 35411856817 (workflow_dispatch on grok-v8/research-beta-integration @ 3db3f5e)
+failed immediately: "The job was not started because your account is locked due to a billing issue."
+Annotation path .github line 1. Job deterministic had empty steps and no runner.
+This is a genuine external blocker for RB-CI-01. Local pnpm verify is not a substitute.

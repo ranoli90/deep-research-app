@@ -1,0 +1,20 @@
+ ✓ test/held-intent-continuation.integration.test.ts (3 tests) 598ms
+ ✓ test/remote-source-invalidation.integration.test.ts (4 tests) 554ms
+ ✓ test/v6-publication.integration.test.ts (19 tests) 553ms
+stdout | test/model-context.integration.test.ts > W02 batches complete evidence authorization without accepting a changed binding or deleted owner
+{"evidenceClass":"real PostgreSQL, synthetic evidence, no model transport","passages":25,"queryCount":4,"elapsedMs":29.892260999999962}
+
+ ✓ test/model-context.integration.test.ts (1 test) 509ms
+   ✓ W02 batches complete evidence authorization without accepting a changed binding or deleted owner  373ms
+ ✓ test/research-strategy.integration.test.ts (1 test) 481ms
+ ✓ test/v6-identity.integration.test.ts (3 tests) 449ms
+ ✓ test/html-upload.integration.test.ts (1 test) 289ms
+ ✓ test/v6-upload.integration.test.ts (2 tests) 323ms
+ ✓ test/v6-ingestion.integration.test.ts (1 test) 206ms
+ ✓ test/pinned-http.integration.test.ts (3 tests) 83ms
+
+ Test Files  37 passed (37)
+      Tests  475 passed (475)
+   Start at  21:44:39
+   Duration  690.47s (transform 2.24s, setup 0ms, import 11.25s, tests 673.82s, environment 5ms)
+

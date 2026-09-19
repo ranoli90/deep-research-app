@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-v8-integration/apps/backend
+
+evaluation control database (retained): deep_eval_control_abd2f4b950c6494ea1237bba6ed3618b
+ ✓ test/eval-live.extraction.test.ts (17 tests | 8 skipped) 144820ms
+   ✓ frozen pdf openrouter-openai-mini-text-v1 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  21313ms
+   ✓ frozen html openrouter-openai-mini-text-v1 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  18131ms
+   ✓ frozen pdf openrouter-azure-mini-zdr-text-v1 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  20393ms
+   ✓ frozen html openrouter-azure-mini-zdr-text-v1 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  17870ms
+   ✓ frozen pdf openrouter-azure-mini-zdr-exact-quote-v2 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  20064ms
+   ✓ frozen html openrouter-azure-mini-zdr-exact-quote-v2 pairs use exact owned uploads, actual parser, inherited correction and replay without discovery  17996ms
+   ✓ unreadable frozen PDF retains attempted version and original bytes with no supporting passages  1579ms
+   ✓ registered official frozen PDFs traverse owned admission and real extraction without a semantic success claim  25706ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed | 8 skipped (17)
+   Start at  21:27:15
+   Duration  146.90s (transform 1.42s, setup 0ms, import 1.91s, tests 144.82s, environment 0ms)
+

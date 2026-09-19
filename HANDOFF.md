@@ -1,3 +1,14 @@
+## Research Beta matrix fill — 2026-09-19
+
+Filled `verification/v8/research-beta/35_ACCEPTANCE_MATRIX.csv` with PASS+artifact or exact external-blocker rows. 2eb385b visual matrix is in `verification/v8/research-beta/visual-qa/`. **Do not merge to `main`.** Research Beta is not declared.
+
+User must:
+
+1. Unlock **GitHub billing** so `verification.yml` can start (runs `35411856817`, `35421735059`, `35422066858` still billing-locked).
+2. Authorize a **new** live public-web OpenRouter cap **≥ $1.20** (recommended **$2.00**) for J1–J12, distinct from $0.40 MC-D01 sqlite-only, **and** release the **21,658 µ** unknown hold.
+
+Then resume live journeys + hosted CI and merge only if those gates PASS.
+
 ## Consumer brief card APK 2eb385b — 2026-09-19
 
 EAS `7e4b02c8` installed. Source-sheet cited-in now ellipsizes. Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers.

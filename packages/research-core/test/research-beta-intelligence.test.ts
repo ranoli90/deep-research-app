@@ -34,9 +34,46 @@ const NL = [
   "current price of NVIDIA H100",
   "should I take the Seattle offer",
   "compare two databases for local-first",
+  "Why not Dell?",
+  "Only use official sources",
+  "Focus on battery life",
+  "Check this URL too: https://example.com/spec",
+  "Should I move to Boise?",
+  "What is the sales tax in Wyoming?",
+  "Is remote work taxable if I live in Oregon and work for a New York firm?",
+  "best e-ink tablet for academic PDFs under 600 USD",
+  "compare Claude Projects vs NotebookLM for a 200-page corpus",
+  "current EPA PM2.5 annual standard",
+  "Does USB4 version 2.0 change Thunderbolt 5 cable requirements?",
+  "should a two-person LLC in Nevada collect sales tax on SaaS?",
+  "rent vs buy in Indianapolis with a 200k budget",
+  "what changed in Postgres 17 vacuum?",
+  "is the 2024 IRS mileage rate still in force?",
+  "best standing desk under 800 that ships to Alaska",
+  "should I take the Chicago offer or stay in Minneapolis?",
+  "compare Matter vs Zigbee for a small apartment",
+  "how fresh is the Census ACS 1-year estimate for Travis County?",
+  "explain the difference between ZDR and zero retention",
+  "which jurisdictions still ban flavored nicotine pouches?",
+  "best used ThinkPad for Linux in 2026 under 500",
+  "does Indiana require estimated tax for a single contractor?",
+  "should we migrate from Mongo to Postgres for audit logs?",
+  "what is the filing deadline for Q2 employment tax in Utah?",
+  "compare Framework 13 Ryzen vs MacBook Air M4 for local LLMs",
+  "is it worth moving to Austin from Philadelphia for a 15% raise?",
+  "current SOFR and what it replaced",
+  "research this company",
+  "does this dock work with my laptop",
+  "outlook for regional banks after the next stress test",
+  "best noise-cancelling earbuds for commuting in Boston under $180",
 ];
 
 describe("hybrid intent compilation", () => {
+  it("covers at least 50 distinct natural-language questions", () => {
+    expect(NL.length).toBeGreaterThanOrEqual(50);
+    expect(new Set(NL).size).toBe(NL.length);
+  });
+
   it("keeps every original question immutable", () => {
     for (const q of NL) {
       expect(compileResearchIntent(q).originalQuestion).toBe(q);
