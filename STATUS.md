@@ -1,5 +1,9 @@
 ## Engineering fix-pass started — 2026-09-19
 
+Audit ingested. Isolated implementers running for Waves 1–4 and 7. Full PG **480/480 EXIT 0** on `deep_v8_int10` (process started on the calculationKeys tree). Second fresh-DB run `deep_v8_int11` launched against `72c78ea`. **Not merged to `main`.**
+
+## Engineering fix-pass started — 2026-09-19 (audit import)
+
 Audit package ingested at `verification/v8/engineering-fix-pass/` against SHA `906c00f`. **UI phase deferred.** `main` stays `8a7b1a9`. 126 findings in `ISSUE_REGISTRY.csv`. Wave 1 starts with immutable originalQuestion (FP-001/002/008). Writer `calculationKeys` no longer stripped by `selected:false` (FP-073). **Not merged to `main`. Research Beta is not declared.**
 
 ## Fail-closed checkpoint (WIP) — 2026-09-19
