@@ -1,0 +1,29 @@
+{
+  "id": "J3-f-audit",
+  "runId": "b2928494-35d9-47ec-918a-20c1dadea6d6",
+  "reportId": "b0b7af1c-fcb9-4c82-a34e-1f444cf73f04",
+  "question": "What is the current US federal funds rate?",
+  "intent": "Current-fact family. Objective: determine the current US federal funds rate. No spurious clarification.",
+  "searches": 2,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 25541,
+  "unknownHolds": 0,
+  "stopReason": "plan_pivot later_support_unproven; wrote from first checked extract (evidence revision 4).",
+  "consequentialClaims": [
+    {
+      "text": "The current US federal funds rate is in a target range of 3-3/4 to 4 percent.",
+      "passageId": "ab07820f-a0ec-47c4-bffc-565ffd1304c2",
+      "title": "Federal Reserve issues FOMC statement",
+      "locator": "https://www.federalreserve.gov/monetarypolicy/files/monetary20260916a1.pdf",
+      "supportedByExactSpan": true,
+      "date": "September 16, 2026",
+      "note": "Owned quote: 'raise the target range for the federal funds rate by 1/4 percentage point to 3-3/4 to 4 percent'. Primary official source."
+    }
+  ],
+  "missingEvidence": [
+    "Update-frequency criterion remained unresolved.",
+    "Effective (market) rate vs FOMC target range is not separately cited."
+  ],
+  "userRepairRequired": "None for the asked current-fact. The FOMC target range is the official policy setting.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}
