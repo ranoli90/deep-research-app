@@ -61,7 +61,7 @@ export const color = {
       fill: "#1F1C19",
       border: "#3A342E",
       ink: "#F4EFE8",
-      placeholder: "#8A8278",
+      placeholder: "#C6BDB3",
       sendFill: "#7EC4BC",
       sendInk: "#10201E",
       sendFillDisabled: "#2E2924",

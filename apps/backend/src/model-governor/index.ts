@@ -16,6 +16,8 @@ export {
   ESCALATION_TRIGGERS,
   resolveOperationRoute,
   nextAttemptDecision,
+  availabilityFailover,
+  withRetiredRoutes,
   cacheSessionPolicy,
   triggerForInvalidOutput,
   type EscalationTrigger,

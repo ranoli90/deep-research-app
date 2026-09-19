@@ -15,3 +15,7 @@ it("production/preview stay HTTPS-only; cleartext is an explicit debug profile f
   expect(eas.build.preview.env.EXPO_PUBLIC_ALLOW_CLEARTEXT).not.toBe("1");
   expect(eas.build.production.env.EXPO_PUBLIC_ALLOW_CLEARTEXT).not.toBe("1");
 });
+it("Android resizes the window for the keyboard instead of panning the composer off-screen", () => {
+  const app = JSON.parse(readFileSync(join(import.meta.dirname, "../app.json"), "utf8"));
+  expect(app.expo.android.softwareKeyboardLayoutMode).toBe("resize");
+});

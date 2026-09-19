@@ -11,6 +11,8 @@ import {
   cacheSessionPolicy,
   chooseAdmittedRunPolicy,
   nextAttemptDecision,
+  availabilityFailover,
+  withRetiredRoutes,
   operationClassFor,
   replayPolicyIdentity,
   reserveOperationBudget,
@@ -189,6 +191,64 @@ describe("bounded escalation and unknown holds", () => {
       currentPolicyId: "test-zdr-v1",
     });
     expect(hold).toEqual({ action: "hold", retry: false, escalate: false, reason: "outcome_unknown" });
+  });
+
+  it("keeps availability failover separate from quality escalation", () => {
+    const none = availabilityFailover({
+      outcome: "transient_failure",
+      currentPolicyId: "test-zdr-v1",
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: catalog,
+    });
+    expect(none).toMatchObject({ failover: false, retry: false, reason: "no_compatible_availability_route" });
+    const open = availabilityFailover({
+      outcome: "transient_failure",
+      currentPolicyId: "test-cheap-open-v1",
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: catalog,
+    });
+    expect(open).toMatchObject({ failover: true, retry: false, nextPolicyId: "test-zdr-v1" });
+    const unknown = availabilityFailover({
+      outcome: "outcome_unknown",
+      currentPolicyId: "test-cheap-open-v1",
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: catalog,
+    });
+    expect(unknown).toEqual({ action: "hold", retry: false, failover: false, reason: "outcome_unknown" });
+    const quality = nextAttemptDecision({
+      outcome: "invalid_output",
+      trigger: "schema_validation_failure",
+      currentDepth: 0,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 1,
+      portfolio: catalog,
+      currentPolicyId: "test-zdr-v1",
+    });
+    expect(quality.escalate).toBe(true);
+    expect("failover" in quality).toBe(false);
+  });
+
+  it("removes retired routes from new admission while preserving replay identity", () => {
+    const retired = withRetiredRoutes(PRODUCTION_PORTFOLIO_V1, [STRUCTURED_MODEL_POLICY.id]);
+    const decision = resolveOperationRoute({
+      portfolio: retired,
+      operation: "brief",
+      operationClass: "structured",
+      privacy: { zdrRequired: false, dataCollection: "deny" },
+      structuredOutputRequired: true,
+      remainingBudgetMicro: 1_000_000,
+      attemptReserveMicro: 21_658,
+    });
+    expect(decision.policyId).not.toBe(STRUCTURED_MODEL_POLICY.id);
+    expect(replayPolicyIdentity(STRUCTURED_MODEL_POLICY.id)).toEqual({
+      id: STRUCTURED_MODEL_POLICY.id,
+      model: STRUCTURED_MODEL_POLICY.model,
+      provider: STRUCTURED_MODEL_POLICY.provider,
+      providerName: STRUCTURED_MODEL_POLICY.providerName,
+    });
   });
 
   it("does not escalate without a recorded trigger", () => {

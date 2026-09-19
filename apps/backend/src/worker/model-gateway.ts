@@ -5,15 +5,15 @@ import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
-import { emitEvent } from "../modules/runs.js";
+import { AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY, modelPolicy } from "../ports/model-policy.js";
+import { emitEvent, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelResult } from "../ports/model.js";
 import { executeModelRequest, prepareModelRequest } from "../adapters/model/openrouter.js";
 import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
 import { reserveMicroForOperation, routeStringFor } from "../adapters/model/token-budget.js";
-import { nextAttemptDecision } from "../model-governor/index.js";
+import { availabilityFailover, nextAttemptDecision } from "../model-governor/index.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
 import { updateIntentState } from "../modules/billing.js";
 import { loadModelOperation, saveModelOperation, validateOwnedModelContext } from "../modules/model-operations.js";
@@ -39,7 +39,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       return {kind:"blocked",reason:error.message};
     throw error;
   }
-  const request = { ...prepared, digest: createHash("sha256").update(JSON.stringify({ digest: prepared.digest,
+  let request = { ...prepared, digest: createHash("sha256").update(JSON.stringify({ digest: prepared.digest,
     policy: prepared.policyId, schema: prepared.schemaVersion, prompt: prepared.promptVersion,
     brief: args.briefRevision, evidence: args.evidenceRevision })).digest("hex") };
   await session.write((db) => validateOwnedModelContext(db, { ...args, context }));
@@ -71,6 +71,36 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     await updateIntentState(db, attempt.intentId, result.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", result.receipt.actualMicro ?? undefined);
     await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [attempt.intentId, JSON.stringify(result.receipt)]);
   });
+  if (result.status === "transient_failure") {
+    const runRow = await getRun(pool, args.runId);
+    const failover = availabilityFailover({
+      outcome: "transient_failure",
+      currentPolicyId: policy.id,
+      remainingBudgetMicro: Math.max(0, Number(runRow?.budget_micro ?? 0) - Number(runRow?.spent_micro ?? 0)),
+      attemptReserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }),
+    });
+    if (failover.action === "failover") {
+      const altPrepared = prepareModelRequest(args.operation, context, failover.nextPolicyId);
+      const altRequest = { ...altPrepared, digest: createHash("sha256").update(JSON.stringify({ digest: altPrepared.digest,
+        policy: altPrepared.policyId, schema: altPrepared.schemaVersion, prompt: altPrepared.promptVersion,
+        brief: args.briefRevision, evidence: args.evidenceRevision })).digest("hex") };
+      const altAttempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
+        evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${altRequest.digest}`, kind: args.operation,
+        route: routeStringFor(failover.nextPolicyId, args.operation), requestDigest: altRequest.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }) });
+      if (altAttempt.issue) {
+        const altResult = await executeModelRequest(altRequest, { apiKey: config.openRouterApiKey!, signal: session.signal });
+        await withTx(pool, async (db) => {
+          await updateIntentState(db, altAttempt.intentId, altResult.receipt.actualMicro == null ? "outcome-unknown" : "confirmed", altResult.receipt.actualMicro ?? undefined);
+          await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [altAttempt.intentId, JSON.stringify(altResult.receipt)]);
+        });
+        if (altResult.status !== "outcome_unknown") {
+          result = altResult;
+          request = altRequest;
+          policy = modelPolicy(failover.nextPolicyId);
+        }
+      }
+    }
+  }
   let resolvedSpans: SpanResolution[] = [];
   let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
   if (result.status === "succeeded") {

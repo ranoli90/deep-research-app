@@ -247,3 +247,54 @@ export function triggerForInvalidOutput(reason: string): EscalationTrigger | und
   if (/span|binding|semantic/i.test(reason)) return "semantic_validation_failure";
   return undefined;
 }
+
+export type AvailabilityDecision =
+  | { action: "hold"; retry: false; failover: false; reason: "outcome_unknown" }
+  | { action: "stop"; retry: false; failover: false; reason: string }
+  | { action: "failover"; retry: false; failover: true; nextPolicyId: string; reason: string };
+
+/**
+ * Availability failover is not quality escalation. Same privacy/ZDR/structured-output
+ * constraints; prefer an equal-tier distinct provider/policy. Unknown outcomes still HOLD.
+ */
+export function availabilityFailover(args: {
+  outcome: ModelOutcomeStatus;
+  currentPolicyId: string;
+  remainingBudgetMicro: number;
+  attemptReserveMicro: number;
+  portfolio?: PortfolioCatalog;
+}): AvailabilityDecision {
+  if (args.outcome === "outcome_unknown") {
+    return { action: "hold", retry: false, failover: false, reason: "outcome_unknown" };
+  }
+  if (args.outcome !== "transient_failure" && args.outcome !== "permanent_failure") {
+    return { action: "stop", retry: false, failover: false, reason: "not_an_availability_failure" };
+  }
+  if (args.remainingBudgetMicro < args.attemptReserveMicro) {
+    return { action: "stop", retry: false, failover: false, reason: "attempt_budget_exhausted" };
+  }
+  const portfolio = args.portfolio ?? PRODUCTION_PORTFOLIO_V1;
+  const current = portfolio.candidates.find((c) => c.policyId === args.currentPolicyId) ?? capabilitiesFor(args.currentPolicyId);
+  const privacy = { zdrRequired: current.zdr, dataCollection: current.dataCollection };
+  const alternative = portfolio.candidates
+    .filter((c) => c.available && c.policyId !== current.policyId && c.structuredOutput && privacyOk(c, privacy) && c.tier <= current.tier && c.model === current.model)
+    .sort((a, b) => price(a) - price(b) || a.tier - b.tier)[0];
+  if (!alternative) {
+    return { action: "stop", retry: false, failover: false, reason: "no_compatible_availability_route" };
+  }
+  return {
+    action: "failover",
+    retry: false,
+    failover: true,
+    nextPolicyId: alternative.policyId,
+    reason: `availability_failover:${args.outcome}`,
+  };
+}
+
+export function withRetiredRoutes(portfolio: PortfolioCatalog, retiredPolicyIds: readonly string[]): PortfolioCatalog {
+  const retired = new Set(retiredPolicyIds);
+  return {
+    ...portfolio,
+    candidates: portfolio.candidates.map((c) => (retired.has(c.policyId) ? { ...c, available: false } : c)),
+  };
+}

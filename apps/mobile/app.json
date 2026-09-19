@@ -19,6 +19,7 @@
     "android": {
       "package": "app.deepresearch.mobile",
       "versionCode": 1,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F6F3EE"
