@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CALCULATED_REPORT_SCHEMA_VERSION,ResearchModelOutputs,type ResearchModelOutput,type CanonicalReport } from "@deep/contracts";
-import { resolveResearchCoverage,validateModelBindings } from "@deep/research-core";
+import { limitedCoverageDisclosed,resolveResearchCoverage,validateModelBindings } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import type { TaskModelVersions } from "./research-tasks.js";
 import type { SupportArgs } from "./scoped-support.js";
@@ -57,7 +57,9 @@ export async function calculatedCompletionCovered(db:Queryable,accountId:string,
  for(const row of rows) {
   const {coverage,basis}=await persistCalculatedCoverage(db,{accountId,runId:report.runId,briefRevision:report.basis.briefRevision,taskId:row.task_id,
    extractionIntentId:row.writer_intent_id,supportIntentId:row.support_intent_id,modelIntentId:row.model_intent_id},versions,true);
-  if(coverage.complete&&JSON.stringify(basis.compiled.blocks)===JSON.stringify(report.blocks)&&JSON.stringify(basis.compiled.claims.map(c=>c.id))===JSON.stringify(report.claimIds))return true;
+  const compiledMatch=JSON.stringify(basis.compiled.blocks)===JSON.stringify(report.blocks)&&JSON.stringify(basis.compiled.claims.map(c=>c.id))===JSON.stringify(report.claimIds);
+  if(coverage.complete&&compiledMatch)return true;
+  if(report.outcome==="completed_with_limitations"&&compiledMatch&&basis.context.task&&limitedCoverageDisclosed(report.limitations,coverage,basis.context.task))return true;
  }
  return false;
 }

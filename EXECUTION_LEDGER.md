@@ -1,5 +1,17 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 6 FP-068 limited-publication coverage restoration
+
+- Branch `grok-v8/fix-wave6-publication` from `d56b0dc`. main stays `8a7b1a9`. Not a completion claim.
+- Requirement FP-068 / W05: `reportCompletionCovered` restores structured coverage for `completed_with_limitations`; writer emits `limitedCoverageLimitations`. ADR067.
+- Isolated PostgreSQL `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_v8_wave6_pub`
+- `pnpm exec vitest run test/research-coverage.test.ts test/model-span-resolution.test.ts` (research-core): 36 passed, exit 0
+- `pnpm --filter @deep/research-core exec tsc -p tsconfig.json --noEmit` and backend same: exit 0
+- `apps/backend` vitest integration `test/model-gateway.integration.test.ts -t "exact final coverage|limited publication restores|forged complete outcome|calculated writer remains limited|production arithmetic report|arithmetic proof at real publication|later evidence"`: 13 passed / 128 skipped, exit 0, 372.83s
+- Follow-up writer/selection/counterevidence: 12 passed / 144 skipped, exit 0, 74.35s
+- `python3 scripts/validate_review.py` and `validate_builder_handoff.py`: ok, application_tests_run 0
+- No paid calls, no native, no merge to main.
+
 ## 2026-09-19 — Fail-closed WIP checkpoint (not Research Beta)
 
 - Branch `grok-v8/research-beta-integration`. main stays `8a7b1a9`. Not a completion claim.

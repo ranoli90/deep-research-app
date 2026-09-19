@@ -9,7 +9,35 @@ type Review=ResearchModelOutput<"review_coverage">;
 export type CoverageResult={version:typeof RESEARCH_COVERAGE_VERSION;complete:boolean;
   questions:{questionKey:string;status:Review["questions"][number]["status"];assertionKeys:string[];reason:string;failedChecks:string[]}[];
   unresolvedCriterionKeys:string[];omittedRequirements:Review["omittedRequirements"]};
+export type LimitedCoverageView={questions:{questionKey:string;status:string}[];unresolvedCriterionKeys:string[]};
 const normalize=(s:string)=>s.toLowerCase().replace(/\s+/gu," ").trim();
+
+export function unresolvedCriticalQuestionLimitation(questionKey:string,status:string):string {
+  return `Unresolved critical question ${questionKey} (${status}).`;
+}
+export function unresolvedCriticalCriterionLimitation(criterionKey:string):string {
+  return `Unresolved critical criterion ${criterionKey}.`;
+}
+
+/** Limited publication must name every unrestored critical question and hard criterion. Outcome labels are not proof. */
+export function limitedCoverageLimitations(coverage:LimitedCoverageView,task:Pick<Task,"questions"|"criteria">):string[] {
+  const questions=new Map(task.questions.map((q)=>[q.key,q]));
+  const criteria=new Map(task.criteria.map((c)=>[c.key,c]));
+  const limitations:string[]=[];
+  for(const question of coverage.questions) {
+    if(question.status==="supported")continue;
+    if(questions.get(question.questionKey)?.importance!=="critical")continue;
+    limitations.push(unresolvedCriticalQuestionLimitation(question.questionKey,question.status));
+  }
+  for(const key of coverage.unresolvedCriterionKeys) {
+    if(criteria.get(key)?.importance!=="hard")continue;
+    limitations.push(unresolvedCriticalCriterionLimitation(key));
+  }
+  return limitations;
+}
+export function limitedCoverageDisclosed(limitations:readonly string[],coverage:LimitedCoverageView,task:Pick<Task,"questions"|"criteria">):boolean {
+  return limitedCoverageLimitations(coverage,task).every((limitation)=>limitations.includes(limitation));
+}
 
 /** Answer coverage is separate from candidate eligibility. A supported negative answer can cover a question.
  * The semantic review remains fallible; deterministic guards cannot certify its reasoning quality.

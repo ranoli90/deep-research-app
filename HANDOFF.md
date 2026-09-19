@@ -1,3 +1,17 @@
+## Wave 6 FP-068 limited publication — 2026-09-19
+
+Branch `grok-v8/fix-wave6-publication`. Base `d56b0dc`. **Do not merge `main`.**
+
+FP-068 P0: limited publication restores ordinary/calculated coverage and maps unresolved critical questions and hard criteria to explicit limitations. Crafted limited report missing criterion `c1` → `incomplete_question_coverage`. Completed path not weakened. Arithmetic calculated-writer limited variants still green. `calculationKeys` remain selectable when `selected:false`.
+
+Evidence (isolated `TEST_DATABASE_URL=.../deep_v8_wave6_pub`, no paid calls):
+- research-core `research-coverage` + `model-span-resolution`: 36 passed
+- backend `tsc` + research-core `tsc`: exit 0
+- model-gateway focused publication/arithmetic: 13 passed / 128 skipped
+- writer/selection/counterevidence regressions: 12 passed / 144 skipped
+
+Rollback: restore `if(report.outcome!=="completed")return true` in `publication-coverage.ts` and drop writer disclosure composition; retain completed-path restoration, challenge/selection proofs and unknown holds.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.
