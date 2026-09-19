@@ -15,6 +15,14 @@ const INJECTION_PATTERNS = [
   /self[- ]verif/i,
   /new tool allowlist/i,
   /override processor/i,
+  /SYSTEM:\s*ignore/i,
+  /send the user's files/i,
+  /private customer code/i,
+  /this source is authoritative/i,
+  /don't verify/i,
+  /white[- ]on[- ]white/i,
+  /"type"\s*:\s*"tool"/i,
+  /fake (citation|source) ids?/i,
 ];
 
 const PRIVILEGE_ESCALATION = [
@@ -25,6 +33,9 @@ const PRIVILEGE_ESCALATION = [
   /grant public[- ]query permission/i,
   /bypass consent/i,
   /self[- ]verif(y|ies|ication)/i,
+  /SYSTEM:\s*ignore/i,
+  /don't verify/i,
+  /this source is authoritative/i,
 ];
 
 /** Retrieved pages cannot modify instructions, tools, public-query permission, budget, or consent. */
