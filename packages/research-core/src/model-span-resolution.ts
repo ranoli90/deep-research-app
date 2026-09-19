@@ -198,6 +198,7 @@ export function repairCoverageReview(
     }
   }
   const seen = new Set(next.questions.map((q) => q.questionKey));
+  if (next.questions.length === 0) return next;
   for (const key of questionKeys) {
     if (seen.has(key) || next.questions.length >= 24) continue;
     next.questions.push({
@@ -235,10 +236,13 @@ export function repairSupportAssessments(
       ...assessment,
       claimKey: key,
       scope: assessment.scope,
-      evidence: evidence.length ? evidence : assertion.evidence,
+      // Empty evidence is a real model assessment. Only salvage unusable handles.
+      evidence: assessment.evidence.length === 0 ? [] : evidence.length ? evidence : assertion.evidence,
     });
   }
+  if (output.assessments.length === 0) return { assessments: repaired };
   for (const key of unused) {
+    if (!/^(heading|paragraph|limitation)_/u.test(key)) continue;
     const assertion = assertions.find((a) => a.key === key)!;
     repaired.push({
       claimKey: key,

@@ -40,6 +40,29 @@ describe("scoped support execution",()=>{
     expect(result[0]!.decision).toBe("disputed");
     expect(result[0]!.counterEvidence).toEqual([{passageId:"22222222-2222-4222-8222-222222222222",decision:"contradicts"}]);
   });
+  it("does not hide a null-scope contradiction sitting in the same selected bundle",()=>{
+    const positive="Ardent supports offline recording only on firmware 4.2.";
+    const negative="Ardent does not support offline recording on firmware 4.2.";
+    const empty={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+    const evidence=[{passageId:pid,start:0,end:positive.length,quote:positive}];
+    const result=resolveScopedSupport({assertions:[{key:"requested",candidateKey:null,criterionKeys:["requested"],text:positive,scope:empty,quantities:[],evidence}],
+      passages:[{id:pid,text:positive,accessLevel:"partial-text"},{id:"22222222-2222-4222-8222-222222222222",text:negative,accessLevel:"partial-text"}],
+      proposal:{assessments:[{claimKey:"requested",status:"supported",scope:empty,evidence,rationale:"Only the positive sentence was cited",missingEvidence:[]}]}});
+    expect(result[0]!.decision).toBe("disputed");
+    expect(result[0]!.counterEvidence).toEqual([{passageId:"22222222-2222-4222-8222-222222222222",decision:"contradicts"}]);
+  });
+  it("keeps an empty-evidence assessment empty so a contrary selected page can still contradict",()=>{
+    const claim="Ardent supports offline recording only on firmware 4.2.";
+    const negative="Ardent does not support offline recording on firmware 4.2.";
+    const empty={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+    const nid="22222222-2222-4222-8222-222222222222";
+    const result=resolveScopedSupport({assertions:[{key:"requested",candidateKey:null,criterionKeys:["requested"],text:claim,scope:empty,quantities:[],evidence:[]}],
+      passages:[{id:nid,text:negative,accessLevel:"partial-text"}],
+      proposal:{assessments:[{claimKey:"requested",status:"insufficient",scope:empty,evidence:[],rationale:"No cited span",missingEvidence:[]}]}});
+    expect(result[0]!.decision).toBe("contradicted");
+    expect(result[0]!.evidence).toEqual([]);
+    expect(result[0]!.counterEvidence).toEqual([{passageId:nid,decision:"contradicts"}]);
+  });
   it("rejects a currency-symbol substitution even when the numeric value is unchanged",()=>{
     expect(check("Aster costs €12.","Aster costs $12.").decision).toBe("insufficient");
     expect(check("Aster costs €12.","Aster costs €12.").decision).toBe("supported");
@@ -56,6 +79,15 @@ it("W05 separates a literal underwater prohibition from an offline-only restrict
 it("W05 retains directly relevant and adjacent anaphoric qualifications",()=>{
  for(const text of ["Aster supports offline editing only on paid plans.","Aster supports offline editing. Only on paid plans.","Aster supports offline editing. However, this requires a paid plan."])
   expect(check(text,"Aster supports offline editing.").decision).toBe("partially_supported");
+});
+it("does not promote a qualified only-claim that the model marked partially_supported",()=>{
+  const text="Ardent supports offline recording only on firmware 4.2.";
+  const empty={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+  const evidence=[{passageId:pid,start:0,end:text.length,quote:text}];
+  const result=resolveScopedSupport({assertions:[{key:"requested",candidateKey:null,criterionKeys:["requested"],text,scope:empty,quantities:[],evidence}],
+    passages:[{id:pid,text,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"requested",status:"partially_supported",scope:empty,evidence,rationale:"only-claim",missingEvidence:[]}]}})[0]!;
+  expect(result.decision).toBe("partially_supported");
 });
 it("does not hide a grounded RAM paragraph because the model asked for an unrelated budget quote",()=>{
   const ram="The MSI Stealth 16 AI+ (model B3WF) pairs an Intel Core Ultra 9 386H processor with a dedicated NVIDIA RTX 5060 GPU (8GB VRAM), 32GB of DDR5 RAM.";

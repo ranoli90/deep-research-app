@@ -294,7 +294,7 @@ async function extractionCase(x: Parameters<Parameters<typeof runCase>[0]>[0]) {
     assertions:[{key:"area",candidateKey:"new_entity",criterionKeys:["c1"],text:quote.quote,scope:{...scope,entity,time:"2024"},
       quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[quote]}],
     limitations:["Long-term survival was not measured."] };
-  return { args:{ ...x,briefRevision:1,taskId:task.task.id,passageIds:[p.passageId] },output,p,text,sourceId };
+  return { args:{ ...x,briefRevision:1,taskId:task.task.id,passageIds:[p.passageId],selectionId:undefined as string | undefined },output,p,text,sourceId };
 }
 describe("W05 evidence-bound arbitrary assertion extraction", () => {
   it("executes general extraction, records selected version/digest/access and reuses the exact result", async () => runCase(async (x) => {

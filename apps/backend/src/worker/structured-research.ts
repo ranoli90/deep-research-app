@@ -124,15 +124,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const selectionEnabled=await session.write(db=>usesEvidenceSelection(db,args));
   const recoveryEnabled=selectionEnabled&&recoveryPolicy===EMPTY_SELECTION_RECOVERY_VERSION;
   let recoveryRequiredIds:string[]=[];const inspectedIds=new Set<string>();
-  const selectPassages=()=>session.write(async(db)=>{
-    const full=await db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
-      JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
-      AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]);
-    if(full.rowCount)return full;
-    return db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
-      JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
-      AND v.access_level='snippet' ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]);
-  });
+  const selectPassages=()=>session.write((db)=>db.query<{id:string}>(`SELECT p.id FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id
+    JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
+    AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]));
   let selected=await selectPassages();
   const savedChallenge=await session.write(db=>getCounterevidence(db,args));
   const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
@@ -189,7 +183,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
             publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}},
         };
         const classAlreadyUsed=classesAttempted.includes(nextClass);
-        if((next.kind==="search"||!classAlreadyUsed)&&queries.length<DEEP_DISCOVERY_CEILING){
+        // Generic-web with no distinct criterion query must fail closed after unreadable hits.
+        // Official/specialized classes may pivot once onto an unused fallback (blocked regulator pages).
+        if((next.kind==="search"||(plan.primary!=="generic-web"&&!classAlreadyUsed))&&queries.length<DEEP_DISCOVERY_CEILING){
           classesAttempted.push(nextClass);
           queries.push(proposal.action.query);
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
@@ -265,13 +261,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const supportedNow=support.checks.some((c)=>c.decision==="supported");
     if(!supportedNow && prior)return writeFromPrior("later_support_unproven");
     if(supportedNow) prior={extraction,support,calculations:{kind:"not_applicable",reason:"pending_calculation_planning"},target:{...target,supportIntentId:support.intentId}};
-    if(!supportedNow) {
-      const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
-      if(challenge.kind==="challenge") {
-        await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
-          summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
-        if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
-      }
+    const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
+    if(challenge.kind==="challenge") {
+      await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
+        summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
+      if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
     }
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
@@ -331,22 +325,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       });
       const topNeed=highestValueNeed(needs);
       const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion});
-      const questionKeys=next.kind==="search"?next.proposal.action.questionKeys:Object.keys(prepared.task.questionIds);
-      const continuation=next.kind==="search"?next.proposal:{
-        rationale:"Continue public discovery with a distinct source class while keeping the original question wording.",
-        action:{type:"search" as const,query:brief.originalQuestion,questionKeys,
-          publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}},
-      };
-      const classAlreadyUsed=next.kind!=="search"&&classesAttempted.includes(nextClass);
-      if(!classAlreadyUsed&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.privateTermsRequiringApproval.length===0) {
+      if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.privateTermsRequiringApproval.length===0) {
         if(freshnessUnmet) await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"freshness_checking",phase:"researching",
           summary:"Checking how current the evidence is."}));
         classesAttempted.push(nextClass);
-        queries.push(continuation.action.query);
+        queries.push(next.proposal.action.query);
         lastSourceCount=sources.length;
         await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
           summary:"Searching public sources.",payload:{count:queries.length}}));
-        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:continuation,sourceClass:nextClass});
+        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass:nextClass});
         if(search.kind==="pending")return pendingOrBlocked(search);
         if(search.kind!=="search"){
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"search_failed",phase:"researching",
@@ -356,7 +343,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
         await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
           summary:"Found sources.",payload:{count:adopted.length}}));
-        await readAdoptedSources(prepared.task.id,adopted,continuation.action.questionKeys,"Read evidence for an unresolved criterion.");
+        await readAdoptedSources(prepared.task.id,adopted,next.proposal.action.questionKeys,"Read evidence for an unresolved criterion.");
         selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
         continue;
       }

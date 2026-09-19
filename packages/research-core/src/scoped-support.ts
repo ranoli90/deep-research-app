@@ -125,10 +125,11 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     // A numeric unit cannot disappear merely because the extraction omitted quantities.
     const pairs = [...claim.text.matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*(?:${MEASURE_UNIT})`,"giu"))];
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
-    // Inspect cited passages plus others that share a specific (non-category) scope value.
+    // Inspect every selected context passage. Named entities still limit extra matches;
+    // a null/category-only claim must not hide a contradiction sitting in the same bundle.
     const citedIds = new Set(assessment.evidence.map((e) => e.passageId));
     const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !genericScope(s) && !/^\d+(?:\.\d+)*$/u.test(s));
-    const extraPassages = args.passages.filter((p) => !citedIds.has(p.id) && specificScope.length > 0 && specificScope.every((s) => containsPhrase(p.text, s)));
+    const extraPassages = args.passages.filter((p) => !citedIds.has(p.id) && (specificScope.length === 0 || specificScope.every((s) => containsPhrase(p.text, s))));
     const currencyTokens=claim.text.match(/[$€£¥]|\b(?:USD|EUR|GBP|CAD|AUD|JPY|CHF)\b/gu)??[];
     checks.push({rule:"currency_preserved",passed:currencyTokens.every((token)=>citedText.includes(token))});
     // Long statutes often contain "may"/"only" elsewhere; qualify from the cited quote, not the whole page.
@@ -142,16 +143,16 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     checks.push({rule:"no_detected_contradiction",passed:!literalContradiction}, {rule:"qualification_preserved",passed:!qualified});
     let decision:ScopedSupportResult["decision"] = assessment.status;
     if (!checks.find((c) => c.rule === "scope_matches_claim")!.passed) decision="out_of_scope";
-    else if (!checks.find((c) => c.rule === "readable_evidence")!.passed) decision="insufficient";
     else if (!checks.find((c) => c.rule === "scope_grounded_in_quotes")!.passed) decision="out_of_scope";
     else if (literalContradiction) decision=literalSupport ? "disputed" : "contradicted";
+    else if (!checks.find((c) => c.rule === "readable_evidence")!.passed) decision="insufficient";
     else if (assessment.status === "contradicted" && literalSupport && /\b(not (?:included|part of)|no longer|removed from|is not in|deprecated)\b/i.test(claim.text) && checks.every((c) => c.passed) && !literalContradiction) decision="supported";
     else if (assessment.status === "contradicted" && literalSupport) decision="disputed";
     else if (qualified && assessment.status === "supported") decision="partially_supported";
     else if (assessment.status === "supported" && !literalSupport && literal.length > 0 && literal.every((d) => d === "unsupported")
       && claim.quantities.length === 0 && measuredNumbers(claim.text).length === 0) decision="insufficient";
     else if (assessment.status === "supported" && checks.some((c) => !c.passed)) decision="insufficient";
-    else if (assessment.status === "partially_supported" && checks.every((c) => c.passed) && !qualified && !literalContradiction) decision="supported";
+    else if (assessment.status === "partially_supported" && checks.every((c) => c.passed) && !qualified && !literalContradiction && !qualifiers.test(claim.text)) decision="supported";
     // A model that claimed full support while listing missing evidence cannot keep that grant.
     if (decision === "supported" && assessment.status === "supported" && assessment.missingEvidence.length) decision="partially_supported";
     return { claimKey:claim.key,decision,modelStatus:assessment.status,evidence:assessment.evidence,scope:claim.scope,

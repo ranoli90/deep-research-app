@@ -138,6 +138,32 @@ it("drops n.a. unknown extracts that state no measured quantity", () => {
   expect(cleaned.candidates).toEqual([]);
 });
 
+it("does not invent a supported extract assessment when the model omitted every handle", () => {
+  const passageId = crypto.randomUUID();
+  const quote = "Federal funds (effective) 3.88";
+  const assertion = {
+    key: "current_rate", candidateKey: null, criterionKeys: ["current_rate"], text: quote,
+    scope: { entity: "US", plan: null, version: null, geography: "United States", time: "current", population: null },
+    quantities: [], evidence: [{ passageId, quote, start: 0, end: quote.length }],
+  };
+  const repaired = repairSupportAssessments({ assessments: [] }, [assertion], [{ id: passageId, text: quote }]);
+  expect(repaired.assessments).toEqual([]);
+});
+
+it("does not replace an explicit empty-evidence assessment with extract quotes", () => {
+  const passageId = crypto.randomUUID();
+  const quote = "Ardent supports offline recording only on firmware 4.2.";
+  const assertion = {
+    key: "requested", candidateKey: null, criterionKeys: ["requested"], text: quote,
+    scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null },
+    quantities: [], evidence: [{ passageId, quote, start: 0, end: quote.length }],
+  };
+  const repaired = repairSupportAssessments({
+    assessments: [{ claimKey: "requested", status: "insufficient", evidence: [], scope: assertion.scope, rationale: "none", missingEvidence: [] }],
+  }, [assertion], [{ id: passageId, text: quote }]);
+  expect(repaired.assessments[0]!.evidence).toEqual([]);
+});
+
 it("repairs support assessments that use the wrong claim key or unusable evidence handle", () => {
   const passageId = crypto.randomUUID();
   const quote = "Federal funds (effective) 3.88";

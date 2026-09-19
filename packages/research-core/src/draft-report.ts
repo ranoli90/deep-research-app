@@ -21,7 +21,7 @@ export function compileCheckedDraft(statements:DraftStatement[],checks:(ScopedSu
       continue;
     }
     if(check.decision!=="supported") {
-      if(statement.kind==="heading") {
+      if(statement.kind==="heading" && (isReportSectionLabel(statement.text) || (statement.text.length <= 48 && !/\d/.test(statement.text) && !/[.!?]$/.test(statement.text.trim())))) {
         const text=isReportSectionLabel(statement.text)?statement.text:"Answer";
         blocks.push({id:statement.key,kind:"heading",text,claimIds:[],citationIds:[]});
         continue;

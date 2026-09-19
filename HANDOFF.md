@@ -1,3 +1,9 @@
+## Fail-closed WIP checkpoint — 2026-09-19
+
+Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.
+
+PostgreSQL on `deep_v8_int9`: **473/7/480**. Units/typecheck green on the repair tree. Remaining worker/search/arithmetic/counterevidence-unknown failures are real. Next: finish those six/seven integration cases, re-run full PG twice, then only merge if the matrix is honest PASS or genuine external blocker (`RB-CI-01`).
+
 ## Native APK 1021057 — 2026-09-19
 
 Installed EAS `5f4cd0e7` on `10.0.0.167:43417`. Shots in `verification/v8/research-beta/visual-qa/v8k/`. Do not merge `main`.

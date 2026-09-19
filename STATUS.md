@@ -1,3 +1,21 @@
+## Fail-closed checkpoint (WIP) — 2026-09-19
+
+Lane `grok-v8/research-beta-integration`. **Not merged to `main` (`8a7b1a9`). Research Beta is not declared.**
+
+Live-quality salvage had fail-opened deterministic gates. This checkpoint keeps the repairs plus honest red PG:
+
+- `repairSupportAssessments` does not invent extract assessments or fill explicit empty evidence.
+- `repairCoverageReview` does not invent a full review from zero questions.
+- Brief span salvage is not applied to strict `openrouter-azure-mini-zdr-text-v1`.
+- Null-scope selected contradictions are inspected again.
+- Extract-support after an evidence-revision bump throws `support_extraction_basis_changed`.
+- Counterevidence runs on supported claims again.
+- Coverage continuation requires a distinct criterion query; generic-web does not pivot on the same question after unreadable hits.
+
+**PostgreSQL (`deep_v8_int9`):** 473 passed / **7 failed** / 480. Remaining: worker extra search (readable true/false, correction rediscovery), arithmetic outcome, unsupportedProse unpublished, counterevidence unknown-support intent row, discovery-v3 span salvage (fix landed after that run).
+
+**`pnpm verify`:** recorded on this tree immediately before push (see ledger). **Do not treat 475/475 at `09c5633` as current.** Hosted GHA still owner-declined. APK `1021057` is behind this checkpoint.
+
 ## Native APK 1021057 visual QA — 2026-09-19
 
 EAS `5f4cd0e7` device APK git `1021057` sha256 `a3adc4de…` installed `adb -r` on `10.0.0.167:43417` (no wipe). Full v8k screenshot matrix reviewed. IME suggestion bar still covers send. **Not merged to `main`.**

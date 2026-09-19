@@ -14,6 +14,13 @@ const check = (claimKey: string, decision: ScopedSupportResult["decision"], clai
   scope, rationale: "test", missingEvidence: [], checks: [], counterEvidence: [],
 });
 
+it("keeps a numbered unsupported heading as unresolved rather than an Answer label", () => {
+  const heading: DraftStatement = { key: "heading_0", kind: "heading", text: "Restoration improved by 999 percent", premiseKeys: ["current_minimum_wage"], assertion: assertion("heading_0", "Restoration improved by 999 percent") };
+  const compiled = compileCheckedDraft([heading], [check("heading_0", "insufficient", "22222222-2222-4222-8222-222222222222")]);
+  expect(compiled.blocks[0]).toMatchObject({ kind: "caveat" });
+  expect(compiled.unresolved).toEqual(["heading_0"]);
+});
+
 it("maps an unsupported heading to Answer so the cited paragraph can publish", () => {
   const heading: DraftStatement = { key: "heading_0", kind: "heading", text: "Current Minimum Wage", premiseKeys: ["current_minimum_wage"], assertion: assertion("heading_0", "Current Minimum Wage") };
   const paragraph: DraftStatement = { key: "paragraph_0_0", kind: "text", text: "The current federal minimum wage is $7.25 an hour.", premiseKeys: ["current_minimum_wage"], assertion: assertion("paragraph_0_0", "The current federal minimum wage is $7.25 an hour.") };

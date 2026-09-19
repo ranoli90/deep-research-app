@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — Fail-closed WIP checkpoint (not Research Beta)
+
+- Branch `grok-v8/research-beta-integration`. main stays `8a7b1a9`. Not a completion claim.
+- Isolated PG `deep_v8_int9`: **473 passed / 7 failed / 480** (`verification/v8/research-beta/logs/integration-int9.tail.txt`). Improved from 456/24 on `deep_v8_int7`.
+- Remaining failures: production worker searches=2 (readable true/false); correction extra public-discovery intent; arithmetic parent `completed_with_limitations` vs `completed`; calculated `unsupportedProse` unpublished; counterevidence unknown-support has 0 outcome-unknown intents; discovery-v3 brief salvage expected succeeded (salvage extended to discovery-v3 after that run; not re-proven in the 480).
+- Requested-verification 36/36 and passage-capacity W01 contradiction/inventory rows are green again on this tree.
+- `RB-TEST-02` recorded FAIL. `RB-CI-01` still owner-declined GHA. Research Beta not declared.
+
 ## 2026-09-19 — Native APK 1021057 visual QA
 
 - EAS `5f4cd0e7-6f12-4461-80a7-968946f28690` profile device, git `1021057`.

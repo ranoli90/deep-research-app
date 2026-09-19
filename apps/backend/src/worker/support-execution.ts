@@ -10,6 +10,9 @@ import { performModelOperation } from "./model-gateway.js";
 export async function executeAssertionSupport(pool:pg.Pool,config:AppConfig,session:FencedSession,args:SupportArgs & {fence:number}) {
   const basis=await session.write(async (db)=>loadSupportContext(db,args,await runModelVersions(db,args.runId)));
   const historical=((await getRun(pool,args.runId))?.evidence_revision ?? basis.evidenceRevision)>basis.evidenceRevision;
+  // Writer-from-prior may validate at the draft revision while newer unread evidence exists.
+  // A first extract-support after the evidence basis changed must not check old assertions as current.
+  if(historical&&basis.claimType!=="inference")throw new Error("support_extraction_basis_changed");
   let result=await performModelOperation(pool,config,session,{...args,...basis,operation:"assess_support",historical});
   if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused) {
     result = await performModelOperation(pool,config,session,{...args,...basis,operation:"assess_support", repairPass: 1, historical });

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { modelPolicy } from "../ports/model-policy.js";
+import { modelPolicy, AZURE_ZDR_EXACT_QUOTE_POLICY, AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
 import { emitEvent, getBrief, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
@@ -108,15 +108,22 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   let resolvedSpans: SpanResolution[] = [];
   let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
   if (result.status === "succeeded") {
-    const resolved = resolveModelSpans(args.operation, result.output, context);
-    result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    const salvageBrief = policy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id || policy.id === AZURE_ZDR_DISCOVERY_POLICY.id;
+    if (args.operation !== "brief" || salvageBrief) {
+      const resolved = resolveModelSpans(args.operation, result.output, context);
+      result = { ...result, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    }
     if (args.operation === "brief") {
-      const linked = repairBriefCriterionLinks(result.output as ResearchModelOutput<"brief">);
-      const provenanced = repairBriefProvenanceFromQuestion(linked.output, context.question);
+      let briefOut = result.output as ResearchModelOutput<"brief">;
+      if (salvageBrief) {
+        const linked = repairBriefCriterionLinks(briefOut);
+        briefOut = repairBriefProvenanceFromQuestion(linked.output, context.question);
+        linkedCriteria = linked.linked;
+      }
       const owned=await getRun(pool,args.runId);
       const constraints=owned? (await getBrief(pool,owned.brief_id)).constraints : [];
-      const clarified = suppressUnneededBriefClarifications(provenanced, context.question, constraints);
-      result = { ...result, output: clarified as typeof result.output }; linkedCriteria = linked.linked;
+      const clarified = suppressUnneededBriefClarifications(briefOut, context.question, constraints);
+      result = { ...result, output: clarified as typeof result.output };
     }
     if (args.operation === "review_coverage") {
       result = { ...result, output: repairCoverageReview(

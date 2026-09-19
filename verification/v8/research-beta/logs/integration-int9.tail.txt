@@ -1,0 +1,206 @@
+deep_v8_int9 full pnpm test:integration (vitest still ran all files)
+473 passed / 7 failed / 480
+SHA worktree dirty fail-closed repairs
+
+ FAIL  test/model-gateway.integration.test.ts > W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=true
+
+ FAIL  test/model-gateway.integration.test.ts > W04/W05 durable discovered source reading > production worker reads discovered evidence; readable=false
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ test/model-gateway.integration.test.ts:938:20
+    936|   await processRun(pool,config,x.runId);
+    937|   if(readable){expect(model).toHaveBeenCalledTimes(7);expect(sourceRea…
+    938|   expect(searches).toBe(1);
+       |                    ^
+    939|   expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(readable…
+    940|   const reports=(await pool.query("SELECT * FROM reports WHERE run_id=…
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+
+ FAIL  test/model-gateway.integration.test.ts > W06 immutable correction evidence membership > reuses exact passage/version identities but recomputes child claims through production worker
+AssertionError: expected [ { confirmed_micro: '3' }, …(1) ] to deeply equal [ { confirmed_micro: '3' } ]
+
+- Expected
++ Received
+
+  [
+    {
+      "confirmed_micro": "3",
+    },
++   {
++     "confirmed_micro": "3",
++   },
+  ]
+
+ ❯ expectCorrectionSearch test/model-gateway.integration.test.ts:1000:143
+    998| }
+    999| async function expectCorrectionSearch(runId:string){
+    1000|  expect((await pool.query("SELECT confirmed_micro FROM provider_intent…
+       |                                                                                                                                               ^
+    1001| }
+    1002| async function parentEvidence(x:Parameters<Parameters<typeof runCase>[…
+ ❯ test/model-gateway.integration.test.ts:1013:293
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+
+ FAIL  test/model-gateway.integration.test.ts > W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions
+AssertionError: expected 'completed_with_limitations' to be 'completed' // Object.is equality
+
+Expected: "completed"
+Received: "completed_with_limitations"
+
+ ❯ test/model-gateway.integration.test.ts:1406:26
+
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+
+ FAIL  test/model-gateway.integration.test.ts > W05 calculated writer remains limited for unsupportedProse despite a positive review
+AssertionError: expected undefined to be 'completed_with_limitations' // Object.is equality
+
+- Expected:
+"completed_with_limitations"
+
++ Received:
+undefined
+
+ ❯ test/model-gateway.integration.test.ts:1443:26
+    1441|  await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport…
+    1442|  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1…
+    1443|  expect(report?.outcome).toBe("completed_with_limitations");
+       |                          ^
+    1444|  expect(report.blocks.some((b:{text:string})=>b.text.includes("guarant…
+    1445|  if(option==="unsupportedProse")expect(report.blocks.find((b:{id:strin…
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+
+ FAIL  test/model-gateway.integration.test.ts > W05 counterevidence retains an unknown support outcome without another model send
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ test/model-gateway.integration.test.ts:1578:126
+    1576|  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).…
+    1577|  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).…
+    1578|  expect((await pool.query("SELECT state FROM provider_intents WHERE ru…
+       |                                                                                                                              ^
+    1579| }));
+    1580| it("W05 counterevidence race cannot double-send its search and shares …
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+
+ FAIL  test/model-policy.integration.test.ts > preserves strict legacy spans and audits exact quote coordinate resolution: openrouter-azure-mini-zdr-discovery-v3
+AssertionError: expected { kind: 'result', …(3) } to match object { kind: 'result', reused: false, …(1) }
+(17 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "kind": "result",
+    "result": {
+-     "status": "succeeded",
++     "status": "invalid_output",
+    },
+    "reused": false,
+  }
+
+ ❯ test/model-policy.integration.test.ts:58:17
+     56|  try{
+     57|   const resolved=policyId!=="openrouter-azure-mini-zdr-text-v1",first=…
+     58|   expect(first).toMatchObject({kind:"result",reused:false,result:{stat…
+       |                 ^
+     59|   if(first.kind==="result"&&first.result.status==="succeeded")expect(f…
+     60|   expect(await performModelOperation(pool,config,session,args)).toMatc…
+
+
+===tail===
+
+ ❯ test/model-gateway.integration.test.ts:1406:26
+
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 calculated writer remains limited for unsupportedProse despite a positive review
+AssertionError: expected undefined to be 'completed_with_limitations' // Object.is equality
+
+- Expected:
+"completed_with_limitations"
+
++ Received:
+undefined
+
+ ❯ test/model-gateway.integration.test.ts:1443:26
+    1441|  await arithmeticSources(x);globalThis.fetch=arithmeticWriterTransport…
+    1442|  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1…
+    1443|  expect(report?.outcome).toBe("completed_with_limitations");
+       |                          ^
+    1444|  expect(report.blocks.some((b:{text:string})=>b.text.includes("guarant…
+    1445|  if(option==="unsupportedProse")expect(report.blocks.find((b:{id:strin…
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  test/model-gateway.integration.test.ts > W05 counterevidence retains an unknown support outcome without another model send
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ test/model-gateway.integration.test.ts:1578:126
+    1576|  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).…
+    1577|  expect(await executeCounterevidence(pool,c.config,x.session,c.args)).…
+    1578|  expect((await pool.query("SELECT state FROM provider_intents WHERE ru…
+       |                                                                                                                              ^
+    1579| }));
+    1580| it("W05 counterevidence race cannot double-send its search and shares …
+ ❯ runCase test/model-gateway.integration.test.ts:72:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  test/model-policy.integration.test.ts > preserves strict legacy spans and audits exact quote coordinate resolution: openrouter-azure-mini-zdr-discovery-v3
+AssertionError: expected { kind: 'result', …(3) } to match object { kind: 'result', reused: false, …(1) }
+(17 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "kind": "result",
+    "result": {
+-     "status": "succeeded",
++     "status": "invalid_output",
+    },
+    "reused": false,
+  }
+
+ ❯ test/model-policy.integration.test.ts:58:17
+     56|  try{
+     57|   const resolved=policyId!=="openrouter-azure-mini-zdr-text-v1",first=…
+     58|   expect(first).toMatchObject({kind:"result",reused:false,result:{stat…
+       |                 ^
+     59|   if(first.kind==="result"&&first.result.status==="succeeded")expect(f…
+     60|   expect(await performModelOperation(pool,config,session,args)).toMatc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+
+ Test Files  2 failed | 35 passed (37)
+      Tests  7 failed | 473 passed (480)
+   Start at  12:45:21
+   Duration  788.33s (transform 2.64s, setup 0ms, import 14.19s, tests 767.40s, environment 6ms)
+
+ ELIFECYCLE  Command failed with exit code 1.

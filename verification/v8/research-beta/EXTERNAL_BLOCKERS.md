@@ -2,6 +2,10 @@
 
 Research Beta is **not** declared. `main` stays at `8a7b1a9`. Integration branch `grok-v8/research-beta-integration` is not merged.
 
+## 0. Current in-tree FAIL (not external) — RB-TEST-02
+
+WIP fail-closed checkpoint. Full PostgreSQL on `deep_v8_int9` is **473/7/480**, not 475/475. See `logs/integration-int9.tail.txt`. This is this session’s work, not an external blocker. Do not merge `main` while this is red.
+
 ## 1. Live public-web journeys — remaining J8 attachment
 
 The **$2.00** public-web grant (`research-beta-j12-20260919`) is in use on isolated DB `deep_v8_live_j12`. Ledger **919,563 µ** after J10-e. MC-D01 21,658 µ unknown hold was **not** released or retried.
