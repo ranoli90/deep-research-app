@@ -236,6 +236,22 @@ export function dropUnownedEvidenceHandles(
   return next;
 }
 
+const VACUOUS = /\b(unknown|n\.?\s*a\.?|n\/a|not available|unavailable|no data)\b/iu;
+/** n.a. / unknown extracts are not research claims; keep assertions that state a measured quantity. */
+export function dropVacuousAssertions(
+  output: ResearchModelOutput<"extract_assertions">,
+): ResearchModelOutput<"extract_assertions"> {
+  const next = structuredClone(output);
+  next.assertions = next.assertions.filter((a) => {
+    if (a.quantities.some((q) => Number.isFinite(Number(String(q.value).replace(/,/gu, ""))))) return true;
+    const blob = `${a.text}\n${a.evidence.map((e) => e.quote).join("\n")}`;
+    return !VACUOUS.test(blob);
+  });
+  const keys = new Set(next.assertions.map((a) => a.candidateKey).filter((k): k is string => k != null));
+  next.candidates = next.candidates.filter((c) => keys.has(c.key));
+  return next;
+}
+
 /** Keep only extraction quotes that are exact owned passage slices. */
 export function dropUnresolvedExtractionSpans(
   output: ResearchModelOutput<"extract_assertions">,

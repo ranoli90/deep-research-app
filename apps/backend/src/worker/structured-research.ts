@@ -179,6 +179,26 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     if(!extraction.output.assertions.length){
       if(prior)return writeFromPrior("no_relevant_assertions");
+      if(config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled){
+        const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
+          unresolvedCriterionKeys:prepared.task.specification.criteria.map((c)=>c.key),queries,ceiling:DEEP_DISCOVERY_CEILING});
+        if(next.kind==="search"){
+          const sourceClass=planSourceClass(brief.originalQuestion).primary;
+          queries.push(next.proposal.action.query);
+          await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
+            summary:"Searching public sources.",payload:{count:queries.length}}));
+          const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass});
+          if(search.kind==="pending")return pendingOrBlocked(search);
+          if(search.kind==="search"){
+            const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+            await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+              summary:"Found sources.",payload:{count:adopted.length}}));
+            await readAdoptedSources(prepared.task.id,adopted,next.proposal.action.questionKeys,"Read evidence after an empty extraction.");
+            selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
+            continue;
+          }
+        }
+      }
       if(!recoveryEnabled||!selection)return unresolved("no_relevant_assertions");
       for(const id of selection.passageIds)inspectedIds.add(id);
       const next=nextUninspectedSelection(brief.originalQuestion,selection.inventoryPassages,[...inspectedIds]);

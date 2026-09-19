@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
+import { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, locateUniqueQuote, locateOwnedPassageQuote, validateModelBindings } from "../src/index.js";
 const context = (question: string) => ({question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[]});
 const proposal = (quote: string, start = 99, end = 100) => ({questions:[],omittedRequirements:[{provenance:{quote,start,end},reason:"Missing original requirement"}]});
 it("resolves unique exact Unicode quotes without mutating the proposal or relaxing the binding validator",()=>{
@@ -103,6 +103,22 @@ it("drops extraction citations whose passage was never provided", () => {
   expect(cleaned.candidates.map((c) => c.key)).toEqual(["c1"]);
   expect(cleaned.candidates[0]!.evidence).toHaveLength(1);
   expect(cleaned.assertions.map((a) => a.key)).toEqual(["a1"]);
+});
+
+it("drops n.a. unknown extracts that state no measured quantity", () => {
+  const passageId = crypto.randomUUID();
+  const cleaned = dropVacuousAssertions({
+    candidates: [{ key: "current_federal_funds_rate", label: "Rate", evidence: [{ passageId, quote: "n.a. | Not available.", start: 0, end: 21 }] }],
+    assertions: [{
+      key: "current_rate", candidateKey: "current_federal_funds_rate", criterionKeys: ["current_rate"],
+      text: "The current US federal funds rate is unknown.",
+      scope: { entity: "US", plan: null, version: null, geography: "US", time: "current", population: null },
+      quantities: [], evidence: [{ passageId, quote: "n.a. | Not available.", start: 0, end: 21 }],
+    }],
+    limitations: [],
+  });
+  expect(cleaned.assertions).toEqual([]);
+  expect(cleaned.candidates).toEqual([]);
 });
 
 it("repairs support assessments that use the wrong claim key or unusable evidence handle", () => {

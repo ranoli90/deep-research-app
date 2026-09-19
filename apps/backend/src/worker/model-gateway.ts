@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { modelPolicy } from "../ports/model-policy.js";
 import { emitEvent, getRun } from "../modules/runs.js";
@@ -124,11 +124,11 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       const original = result.output as ResearchModelOutput<"extract_assertions">;
       const hadAssertions = original.assertions.length > 0;
       const owned = new Set(context.passages.map((p) => p.id));
-      const cleaned = uniquifyExtractionKeys(dropUnresolvedExtractionSpans(
-        dropUnownedEvidenceHandles(original, owned), context.passages));
-      result = { ...result, output: cleaned as typeof result.output };
-      if (hadAssertions && !cleaned.assertions.length) {
+      const located = dropUnresolvedExtractionSpans(dropUnownedEvidenceHandles(original, owned), context.passages);
+      if (hadAssertions && !located.assertions.length) {
         result = { status: "invalid_output", reason: "unlocatable_extraction_spans", receipt: result.receipt };
+      } else {
+        result = { ...result, output: uniquifyExtractionKeys(dropVacuousAssertions(located)) as typeof result.output };
       }
     }
     if (result.status === "succeeded" && (args.operation === "write_report" || args.operation === "write_calculated_report")) {
