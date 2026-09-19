@@ -33,7 +33,7 @@ export async function executeSourceRead(config:AppConfig,session:FencedSession,a
   const row=(await db.query(`SELECT v.id,v.access_level,r.transport FROM source_versions v JOIN extraction_receipts r ON r.source_version_id=v.id
     WHERE v.id=$1 AND v.source_id=$2 AND v.account_id=$3 AND r.account_id=$3 AND r.run_id=$4`,[admitted.versionId,action.sourceHandle,args.accountId,args.runId])).rows[0];
   if(!row||row.transport.requestedUrl!==admitted.locator)throw new Error("saved_read_unavailable");
-  return {kind:"read" as const,operationId:admitted.id,sourceVersionId:row.id as string,readable:row.access_level==="partial-text",reused:!admitted.issue};
+  return {kind:"read" as const,operationId:admitted.id,sourceVersionId:row.id as string,readable:row.access_level==="partial-text"||row.access_level==="full-text",reused:!admitted.issue};
  });
  if(!admitted.issue)return admitted.state==="finished"?load():{kind:"pending" as const,operationId:admitted.id};
  const result=await reader.readSource(admitted.locator,session.signal);

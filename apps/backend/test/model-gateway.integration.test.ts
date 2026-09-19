@@ -903,6 +903,14 @@ describe("W04/W05 durable discovered source reading",()=>{
   expect((await pool.query("SELECT extraction_method FROM passages WHERE run_id=$1 ORDER BY extraction_method",[x.runId])).rows).toEqual([{extraction_method:"search-snippet"},{extraction_method:"utf8-notes-v1"}]);
   await withTx(pool,(db)=>deleteAccount(db,x.accountId));expect((await pool.query("SELECT 1 FROM source_read_operations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
  }));
+ it.each([["partial-text",true],["full-text",true],["snippet",false],["blocked",false],["abstract",false]] as const)(
+  "executeSourceRead marks finished %s as readable=%s",async(accessLevel,readable)=>runCase(async(x)=>{
+  const c=await readCase(x);vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url));
+  const first=await executeSourceRead(c.config,x.session,c.args);expect(first).toMatchObject({kind:"read",readable:true,reused:false});
+  if(first.kind!=="read")throw new Error("test_read_unavailable");
+  await pool.query("UPDATE source_versions SET access_level=$2 WHERE id=$1",[first.sourceVersionId,accessLevel]);
+  expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"read",readable,reused:true,sourceVersionId:first.sourceVersionId});
+ }));
  it("rejects unknown source handles and invalid question bindings before network",async()=>runCase(async(x)=>{
   const c=await readCase(x),read=vi.spyOn(sourceReader,"readSource");
   await expect(executeSourceRead(c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,sourceHandle:crypto.randomUUID()}}})).rejects.toThrow("read_source_owner_mismatch");
@@ -940,6 +948,22 @@ describe("W04/W05 durable discovered source reading",()=>{
   const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows;expect(reports).toHaveLength(readable?1:0);
   if(readable){expect(reports[0].blocks[1].text).toBe(text);const p=(await pool.query("SELECT id FROM passages WHERE run_id=$1 AND extraction_method='utf8-notes-v1'",[x.runId])).rows[0];expect(reports[0].blocks[1].citationIds).toEqual([p.id]);}
   else expect((await pool.query("SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'",[x.runId])).rows[0].payload.reason).toBe("readable_evidence_unavailable");
+ }));
+ it("production worker completes after executeSourceRead reports finished full-text as readable",async()=>runCase(async(x)=>{
+  const c=await readCase(x),text=`Reef-${crypto.randomUUID()} restored 12 hectares in 2024.`;
+  vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url,text));
+  const first=await executeSourceRead(c.config,x.session,c.args);expect(first).toMatchObject({kind:"read",readable:true,reused:false});
+  if(first.kind!=="read")throw new Error("test_read_unavailable");
+  await pool.query("UPDATE source_versions SET access_level='full-text',text_coverage='complete' WHERE id=$1",[first.sourceVersionId]);
+  expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"read",readable:true,reused:true,sourceVersionId:first.sourceVersionId});
+  const model=structuredWorkerTransport();
+  globalThis.fetch=vi.fn(async(input,init)=>{if(JSON.parse(String(init?.body)).plugins?.length)return searchReply();return model(input,init);}) as typeof fetch;
+  await releaseForWorker(x);
+  await processRun(pool,{...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true},x.runId);
+  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe("completed_with_limitations");
+  expect((await pool.query("SELECT access_level FROM source_versions WHERE id=$1",[first.sourceVersionId])).rows[0].access_level).toBe("full-text");
+  const reports=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows;expect(reports).toHaveLength(1);
+  expect(reports[0].blocks[1].text).toBe(text);
  }));
 });
 

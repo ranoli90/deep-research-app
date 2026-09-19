@@ -128,7 +128,7 @@ export async function persistCounterevidenceResult(db:Queryable,args:{runId:stri
  for(const read of reads){const saved=(await db.query(`SELECT o.locator,v.access_level FROM source_read_operations o JOIN source_versions v ON v.id=o.source_version_id
  JOIN extraction_receipts e ON e.source_version_id=v.id WHERE o.id=$1 AND o.account_id=$2 AND o.run_id=$3 AND o.brief_revision=$5 AND o.state='finished'
  AND o.source_version_id=$4 AND v.account_id=$2 AND e.account_id=$2 AND e.run_id=$3 AND e.transport->>'requestedUrl'=o.locator`,[read.operationId,args.accountId,args.runId,read.sourceVersionId,args.briefRevision])).rows[0];
- if(!saved||read.readable!==(saved.access_level==="partial-text")||!searched.data.hits.some(h=>h.locator===saved.locator))throw new Error("challenge_read_proof_unavailable");readLocators.push(saved.locator);}
+ if(!saved||read.readable!==(saved.access_level==="partial-text"||saved.access_level==="full-text")||!searched.data.hits.some(h=>h.locator===saved.locator))throw new Error("challenge_read_proof_unavailable");readLocators.push(saved.locator);}
  if(searched.data.hits.some(h=>!readLocators.includes(h.locator)))throw new Error("challenge_uninspected_search_result");
  const model=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND account_id=$2 AND run_id=$3
  AND brief_revision=$4 AND evidence_revision=$5 AND operation='assess_support' AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,

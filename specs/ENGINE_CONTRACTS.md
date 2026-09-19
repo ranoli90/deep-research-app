@@ -383,7 +383,9 @@ W05 authorization query batching: validateOwnedModelContext restores bounded cur
 
 W05 model-validation-diagnostics.v1 records only bounded fixed structural field names, schema issue codes and numeric indices on output-schema rejection. Unknown keys become `other`; values, rejected prose and validation messages are not retained. Existing rejection reason, paid receipt, cached replay and publication denial remain unchanged.
 
-ADR062: only new openrouter-azure-mini-zdr-discovery-v3 runs select public-discovery-azure-zdr.v2. Existing OpenAI/Azure-v1/exact-quote-v2 discovery identities remain unchanged. All search/challenge/adoption/receipt bindings derive from immutable run policy; Azure generation requires ZDR/no fallback, while existing public-query projection and separately disclosed Exa plugin remain unchanged. Search-provider ZDR is not asserted.
+ADR062: only new openrouter-azure-mini-zdr-discovery-v3 runs historically selected public-discovery-azure-zdr.v2. Existing OpenAI/Azure-v1/exact-quote-v2 discovery identities remain unchanged. All search/challenge/adoption/receipt bindings derive from immutable run policy; Azure generation requires ZDR/no fallback, while existing public-query projection and separately disclosed Exa plugin remain unchanged. Search-provider ZDR is not asserted.
+
+ADR067: new Azure searches select public-discovery-azure-zdr.v3 with maxResults=8. Frozen public-discovery.v1 and public-discovery-azure-zdr.v2 stay at 3. discoveryPolicyForModel still maps the Azure discovery-v3 model policy to v2. Finished source reads are readable for partial-text or full-text.
 
 ### Research intent compiler and model portfolio (ADR063)
 

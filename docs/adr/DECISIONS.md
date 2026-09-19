@@ -528,3 +528,11 @@ Rollback disables new discovery admissions while retaining retrieval-intelligenc
 W05 / Research Beta: `research-intent-compiler.v1` was a useful deterministic preflight but classified general natural language as `other` unless a small regex family matched. v2 keeps that preflight for obvious hard facts, then runs a structured semantic overlay (`structured_semantic.v1`) whose every kept quote must be a substring of the original question. An external/model overlay is the same validator: ungrounded geography, invented families, and privilege fields (`public_query`, consent, tools, budget increase) are rejected and the deterministic result is kept. Admission still calls pure `compileResearchIntent` with no I/O. Typed material clarification fields exist for jurisdiction, budget, use case, population, timeframe, platform, private-search permission, and unnamed subject; the default remains assume/branch, with at most two asks.
 
 Impact: contracts identity `research-intent-compiler.v2`, research-core `semantic-intent.ts` + `clarification-fields.ts`, existing admission path. No new model operation, prompt, processor, or spend. Rollback: restore v1 compiler identity and omit overlay merge; historical briefs remain readable.
+
+## ADR067 — Version Azure ZDR live discovery to eight results without rewriting v1/v2 (2026-09-19)
+
+W02/W04/W05 / FP-029: `discoveryPolicyForNewSearch` previously returned `public-discovery-azure-zdr.v2`, a copy of v1 with `maxResults=3`, so Azure live search contradicted the eight-result deep-search claim. New identity `public-discovery-azure-zdr.v3` keeps Azure ZDR/no-fallback/Exa plugin bytes and sets `maxResults=8`. Frozen `public-discovery.v1` and `public-discovery-azure-zdr.v2` stay at 3; `discoveryPolicyForModel` still maps historical Azure discovery-v3 runs to v2. Replay of issued v1/v2 identities still uses `discoveryPolicy()`. Receipt reconciliation includes the new route. No new processor, migration, model, prompt, or spend ceiling.
+
+Related worker repair (FP-033): `executeSourceRead` reports `readable` for `partial-text` or `full-text`; challenge proof uses the same predicate. Snippet/blocked/abstract remain unreadable.
+
+Rollback disables new Azure v3 discovery admissions while retaining v1/v2/v3 readers, ZDR pins, receipts, and the readable-access predicate for admitted full-text versions.
