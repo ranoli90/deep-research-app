@@ -1,0 +1,38 @@
+{
+  "id": "J5-c-audit",
+  "runId": "6da50bac-be89-4875-91d7-333f0a28e23f",
+  "reportId": "6d9f108f-76ab-4388-87bf-408155417cb6",
+  "question": "What is the filing deadline for employment tax?",
+  "clarification": {
+    "asked": true,
+    "event": "clarify",
+    "answered": "indiana",
+    "constraint": "geography-indiana confirmed hard"
+  },
+  "originalQuestionAfterContinue": "What is the filing deadline for employment tax?",
+  "note": "Continue ran against the pre-fold API, so Indiana was a constraint but not appended to the search question. Federal IRS Form 941 still applies in Indiana. Restart API before later jurisdiction journeys.",
+  "searches": 1,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 21302,
+  "unknownHolds": 0,
+  "consequentialClaims": [
+    {
+      "text": "File Form 941 if you paid wages subject to employment taxes with the IRS for each quarter by the last day of the month that follows the end of the quarter. If you timely deposited all taxes when due, then you have 10 additional calendar days to file the return.",
+      "passageId": "1969dc64-200a-4472-af02-ce9623bb3601",
+      "title": "Employment tax due dates | Internal Revenue Service",
+      "locator": "https://www.irs.gov/businesses/small-businesses-self-employed/employment-tax-due-dates",
+      "supportedByExactSpan": true
+    }
+  ],
+  "hardConstraints": {
+    "indiana": {
+      "met": "partial",
+      "note": "Federal Form 941 deadline applies in Indiana. State WH-1 / Indiana withholding was not separately cited."
+    }
+  },
+  "missingEvidence": [
+    "Indiana Department of Revenue employment-withholding due dates."
+  ],
+  "userRepairRequired": "None for federal employment-tax filing. Ask a follow-up for Indiana WH-1 if state withholding is in scope.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

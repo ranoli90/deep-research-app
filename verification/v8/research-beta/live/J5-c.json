@@ -1,0 +1,84 @@
+{
+  "id": "J5-c",
+  "question": "What is the filing deadline for employment tax?",
+  "runId": "6da50bac-be89-4875-91d7-333f0a28e23f",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "6d9f108f-76ab-4388-87bf-408155417cb6"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "clarify",
+    "clarification_answered",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "writing",
+    "model_span_resolution"
+  ],
+  "cost": {
+    "runId": "6da50bac-be89-4875-91d7-333f0a28e23f",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 21302,
+    "confirmedProviderMicro": 21302,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 21302
+    },
+    "intentTotalMicro": 21302,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "6d9f108f-76ab-4388-87bf-408155417cb6",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "This assessment selected 84 of 251 available passages. The 167 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "blockCount": 5,
+    "claimCount": 0,
+    "texts": [
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "text",
+        "File Form 941 if you paid wages subject to employment taxes with the IRS for each quarter by the last day of the month that follows the end of the quarter. If you timely deposited all taxes when due, then you have 10 additional calendar day"
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "text",
+        "File Form 941 if you paid wages subject to employment taxes with the IRS for each quarter by the last day of the month that follows the end of the quarter."
+      ],
+      [
+        "caveat",
+        "The specific filing deadlines may vary based on individual circumstances and should be confirmed with the IRS or a tax professional."
+      ]
+    ]
+  }
+}
