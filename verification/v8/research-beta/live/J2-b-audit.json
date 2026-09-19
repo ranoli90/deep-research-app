@@ -1,0 +1,34 @@
+{
+  "id": "J2-b-audit",
+  "runId": "8fb7d269-bd0a-43b9-a632-462883bd7e7a",
+  "reportId": "c41a7795-20e3-46ed-9373-446dfd73fda2",
+  "question": "should I move to Texas?",
+  "intent": "Moving decision with cost of living, jobs, climate, lifestyle. Not generic other. Texas named; no jurisdiction clarification asked.",
+  "searches": 2,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 51059,
+  "unknownHolds": 0,
+  "consequentialClaims": [
+    {
+      "text": "The cost of living in Texas is about 5% below the national average as of 2026, which is a genuine advantage for potential movers. However, there are also disadvantages such as higher property taxes and car dependency.",
+      "passageId": "09456c1a-3eeb-41b9-a693-5acce0f5986b",
+      "locator": "https://relocateright.blog/blog/is-texas-a-good-place-to-live-2026",
+      "supportedByExactSpan": true,
+      "note": "5% below national average as of 2026 and property taxes/car dependency are in the owned quote. 'Higher' is a slight intensification of 'property taxes … are genuine disadvantages.'"
+    },
+    {
+      "text": "Texas is America’s number one destination for out-of-state movers, driven by no income tax and strong job growth, making it an attractive option for those seeking employment.",
+      "passageId": "366da90c-b061-4552-9bfe-c5ce3b40fd80",
+      "locator": "https://themovingplaybook.com/moving-to-texas/",
+      "supportedByExactSpan": true,
+      "note": "First sentence is exact. Source says 'job growth' not 'strong job growth'."
+    }
+  ],
+  "missingEvidence": [
+    "No primary government COL or BLS job series.",
+    "Climate and profession-specific jobs remain unresolved, disclosed as caveats.",
+    "Two relocation blogs are not independent official confirmations."
+  ],
+  "userRepairRequired": "Useful first-pass moving brief; not a substitute for city-level tax/job/climate comparison.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

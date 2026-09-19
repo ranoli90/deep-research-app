@@ -1,0 +1,91 @@
+{
+  "id": "J2-b",
+  "question": "should I move to Texas?",
+  "runId": "8fb7d269-bd0a-43b9-a632-462883bd7e7a",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "c41a7795-20e3-46ed-9373-446dfd73fda2"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "discovery_exhausted",
+    "writing"
+  ],
+  "cost": {
+    "runId": "8fb7d269-bd0a-43b9-a632-462883bd7e7a",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 51059,
+    "confirmedProviderMicro": 51059,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 51059
+    },
+    "intentTotalMicro": 51059,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "c41a7795-20e3-46ed-9373-446dfd73fda2",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "This assessment selected 108 of 201 available passages. The 93 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "blockCount": 6,
+    "claimCount": 0,
+    "texts": [
+      [
+        "heading",
+        "Cost of Living"
+      ],
+      [
+        "text",
+        "The cost of living in Texas is about 5% below the national average as of 2026, which is a genuine advantage for potential movers. However, there are also disadvantages such as higher property taxes and car dependency."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "text",
+        "Texas is America\u2019s number one destination for out-of-state movers, driven by no income tax and strong job growth, making it an attractive option for those seeking employment."
+      ],
+      [
+        "caveat",
+        "The analysis does not include specific job market data for individual fields or professions."
+      ],
+      [
+        "caveat",
+        "Personal preferences regarding climate and culture are subjective and may vary widely among individuals."
+      ]
+    ]
+  }
+}
