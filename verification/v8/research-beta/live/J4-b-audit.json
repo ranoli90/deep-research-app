@@ -1,0 +1,33 @@
+{
+  "id": "J4-b-audit",
+  "runId": "a8b16291-818b-472c-bec0-52f879b395df",
+  "reportId": "b307d7f6-5456-47b1-a0ef-b065974a2477",
+  "question": "Is distutils still part of the Python 3.12 standard library?",
+  "intent": "Technical compatibility / version-specific primary docs. No clarification.",
+  "searches": 1,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 16402,
+  "unknownHolds": 0,
+  "consequentialClaims": [
+    {
+      "text": "distutils is not included in the Python 3.12 standard library.",
+      "passageId": "5e569b50-64fb-4270-b360-22d69c88a3b8",
+      "title": "distutils — Building and installing Python modules",
+      "locator": "https://docs.python.org/3/library/distutils.html",
+      "supportedByExactSpan": true,
+      "span": "This module is no longer part of the Python standard library. It was removed in Python 3.12 after being deprecated in Python 3.10."
+    },
+    {
+      "text": "distutils has been deprecated in Python 3.12.",
+      "passageId": "ebf63d50-8bbc-4103-8ff8-c346c94a3673",
+      "locator": "https://docs.python.org/3/library/distutils.html",
+      "supportedByExactSpan": "partial",
+      "note": "Owned quote is 'Deprecated since version 3.10, removed in version 3.12.' Deprecation was 3.10; removal was 3.12. The published sentence compresses that into 'deprecated in 3.12'."
+    }
+  ],
+  "hardConstraints": {
+    "python312": {"met": true, "note": "Primary docs.python.org library page for current 3.x docs."}
+  },
+  "userRepairRequired": "None for the asked yes/no. The deprecation-year compression is a remaining writer precision defect, not a fabricated citation.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

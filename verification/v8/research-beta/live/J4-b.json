@@ -1,0 +1,80 @@
+{
+  "id": "J4-b",
+  "question": "Is distutils still part of the Python 3.12 standard library?",
+  "runId": "a8b16291-818b-472c-bec0-52f879b395df",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "b307d7f6-5456-47b1-a0ef-b065974a2477"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "writing"
+  ],
+  "cost": {
+    "runId": "a8b16291-818b-472c-bec0-52f879b395df",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 16402,
+    "confirmedProviderMicro": 16402,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 16402
+    },
+    "intentTotalMicro": 16402,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "b307d7f6-5456-47b1-a0ef-b065974a2477",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved."
+    ],
+    "blockCount": 5,
+    "claimCount": 0,
+    "texts": [
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "text",
+        "distutils is not included in the Python 3.12 standard library."
+      ],
+      [
+        "heading",
+        "Deprecation Status"
+      ],
+      [
+        "text",
+        "distutils has been deprecated in Python 3.12."
+      ],
+      [
+        "caveat",
+        "The information is based on the current status of Python 3.12 and may change in future releases."
+      ]
+    ]
+  }
+}
