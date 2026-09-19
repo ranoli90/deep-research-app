@@ -68,6 +68,18 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("grounds hyphenated measured ranges that appear in the quote",()=>{
+  const claim="Texas has no income tax but averages 1.6-2.2% annual property taxes on assessed value, among the highest in the country.";
+  const texas={entity:"Texas",plan:null,version:null,geography:null,time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"cost_of_living",candidateKey:null,criterionKeys:["cost"],text:claim,scope:texas,
+    quantities:[{unit:"%",value:"1.6-2.2",currency:null,qualifier:"annual property taxes",billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:claim.length,quote:claim}]}],
+    passages:[{id:pid,text:claim,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"cost_of_living",status:"partially_supported",scope:texas,evidence:[{passageId:pid,start:0,end:claim.length,quote:claim}],
+      rationale:"Taxes quoted without a home-city comparison",missingEvidence:["Current location cost of living"]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("does not treat a model name number as an ungrounded RAM quantity",()=>{
   const claim="The MSI Stealth 16 AI+ has 32GB of DDR5 RAM.";
   const quote="RAM 32GB DDR5 at 5600 MT/s (2 SO-DIMM slots, up to 128GB)";

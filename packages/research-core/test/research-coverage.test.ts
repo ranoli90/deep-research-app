@@ -51,6 +51,21 @@ describe("W05 criterion discovery policy",()=>{
   const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};
   expect(nextCriterionSearch({question,task:{...task,criteria:[{...task.criteria[0]!,provenance}]},unresolvedCriterionKeys:["area"],queries:["one","two","three"],ceiling:6})).toMatchObject({kind:"search",proposal:{action:{query:"Reef-X"}}});
  });
+ it("issues a distinct original-question place span when criterion values are not in the question",()=>{
+  const move="should I move to Texas?";
+  const whole={start:0,end:move.length,quote:move};
+  const scope={entity:"Texas",plan:null,version:null,geography:null,time:null,population:null};
+  const moveTask:ResearchModelOutput<"brief">={objective:move,objectiveProvenance:whole,intendedOutput:"answer",
+   criteria:[{key:"cost_of_living",description:"Cost of living",field:"cost",operator:"explain",value:"current location",unit:null,importance:"hard",scope,provenance:whole,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+   questions:[{key:"cost_of_living",text:move,criterionKeys:["cost_of_living"],importance:"critical",evidenceStandard:"public"}],
+   assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+  const next=nextCriterionSearch({question:move,task:moveTask,unresolvedCriterionKeys:["cost_of_living"],queries:[move]});
+  expect(next).toMatchObject({kind:"search"});
+  if(next.kind!=="search")throw new Error("missing texas search");
+  expect(move.includes(next.proposal.action.query)).toBe(true);
+  expect(next.proposal.action.query.toLowerCase()).toMatch(/texas/i);
+  expect(next.proposal.action.query.toLowerCase()).not.toBe(move.toLowerCase());
+ });
  it("issues a distinct original-question constraint span after the full question was already searched",()=>{
   const laptop="best laptop for local AI under $2k with at least 32GB of RAM";
   const whole={start:0,end:laptop.length,quote:laptop};

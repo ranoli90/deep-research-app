@@ -40,6 +40,16 @@ function currencyNeedles(value:string,unit:string|null):string[] {
  if(n>=1000&&n%1000===0)needles.push(`${sign}${n/1000}k`,`${sign}${n/1000}K`,`under ${sign}${n/1000}k`);
  return needles;
 }
+function namedQuestionSpans(question:string):Span[] {
+ const spans:Span[]=[];
+ for(const match of question.matchAll(/\b[A-Z][\p{L}']{2,}\b/gu)) {
+  const found={start:match.index!,end:match.index!+match[0].length,quote:match[0]};
+  const expanded=expandWords(question,found,2,0);
+  const candidate=expanded.quote.trim()===question.trim()?found:expanded;
+  if(candidate.quote.trim()!==question.trim())spans.push(candidate);
+ }
+ return spans;
+}
 /** A tighter original-question span for an unmet hard constraint. Never uses source text. */
 export function tightenCriterionSpan(question:string,criterion:Criterion):Span|null {
  const value=criterion.value?.trim()??"";
@@ -59,7 +69,11 @@ export function tightenCriterionSpan(question:string,criterion:Criterion):Span|n
   if(candidate.quote.trim()===question.trim())continue;
   if(!best||candidate.quote.length>best.quote.length)best=candidate;
  }
- return best&&question.slice(best.start,best.end)===best.quote?best:null;
+ if(best&&question.slice(best.start,best.end)===best.quote)return best;
+ const assumed=criterion.value?.trim();
+ if(!assumed||findInQuestion(question,assumed))return null;
+ const named=namedQuestionSpans(question).sort((a,b)=>b.quote.length-a.quote.length)[0];
+ return named&&question.slice(named.start,named.end)===named.quote?named:null;
 }
 /** Narrow discovery to unmet criteria without copying any source text into public queries. */
 export function nextCriterionSearch(args:{question:string;task:ResearchModelOutput<"brief">;unresolvedCriterionKeys:string[];queries:string[];ceiling?:number}) {

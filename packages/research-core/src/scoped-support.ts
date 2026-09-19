@@ -23,13 +23,19 @@ const containsPhrase = (text:string,phrase:string) => {
   return new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`,"u").test(normalize(text));
 };
 const CURRENCY_SIGNS: Record<string, string[]> = { usd: ["usd", "$"], eur: ["eur", "€"], gbp: ["gbp", "£"], jpy: ["jpy", "¥"] };
-const MEASURE_UNIT = "%|GB|GiB|MB|MiB|TB|TiB|kg|hectares?|acres?|USD|EUR|GBP|Hz|kHz|MHz|GHz|W|Wh|kWh|hours?|years?|months?|days?|mm|cm|inches|inch|lbs?|pounds?";
+const MEASURE_UNIT = "%|°F|°C|GB|GiB|MB|MiB|TB|TiB|kg|hectares?|acres?|USD|EUR|GBP|Hz|kHz|MHz|GHz|W|Wh|kWh|hours?|years?|months?|days?|mm|cm|inches|inch|lbs?|pounds?";
+const quantityValueInQuote = (value:string, quote:string):boolean => {
+  const v=value.replace(/,/gu,"");
+  if(numbers(quote).includes(v)||measuredNumbers(quote).includes(v))return true;
+  const range=v.match(/^(-?\d+(?:\.\d+)?)\s*[-–—to]+\s*(-?\d+(?:\.\d+)?)$/u);
+  return Boolean(range&&numbers(quote).includes(range[1]!)&&numbers(quote).includes(range[2]!));
+};
 /** Grouped prices such as $2,699.99 are one number; comma-split fragments are not the quantity. */
 const numbers = (s:string):string[] => {
   const found = new Set<string>();
   const grouped = /-?\d{1,3}(?:,\d{3})+(?:\.\d+)?/gu;
   for (const g of s.match(grouped) ?? []) found.add(g.replace(/,/gu, ""));
-  for (const n of s.replace(grouped, " ").match(/-?\d+(?:\.\d+)?/gu) ?? []) found.add(n);
+  for (const n of s.replace(grouped, " ").match(/(?<![\d.])-?\d+(?:\.\d+)?/gu) ?? []) found.add(n);
   return [...found];
 };
 /** Product names like "Stealth 16" are not RAM/price quantities. */
@@ -70,7 +76,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
       {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || GENERIC_ENTITY.has(normalize(s)))},
       {rule:"numbers_grounded",passed:measuredNumbers(claim.text).every((n) => numbers(citedText).includes(n) || measuredNumbers(citedText).includes(n))},
       {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) =>
-        numbers(quote).includes(q.value.replace(/,/gu, "")) && quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote))))}];
+        quantityValueInQuote(q.value, quote) && quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote))))}];
     // A numeric unit cannot disappear merely because the extraction omitted quantities.
     const pairs = [...claim.text.matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*(?:${MEASURE_UNIT})`,"giu"))];
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
