@@ -156,6 +156,8 @@ describe("P0-N native state mapping", () => {
     expect(src).not.toContain("accessibilityRole=\"tablist\"");
     expect(src).not.toContain('(["research", "library"] as const).map');
     expect(src).toMatch(/Keyboard\.addListener/);
+    expect(src).toMatch(/endCoordinates/);
+    expect(src).toMatch(/keyboardInset/);
     expect(src).toMatch(/announceForAccessibility/);
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);
     expect(src).not.toMatch(/allowFontScaling=\{false\}/);

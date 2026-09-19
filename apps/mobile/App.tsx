@@ -166,6 +166,7 @@ function AppInner() {
   const [showCorrectionOptions, setShowCorrectionOptions] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
   const keyboardOpenRef = useRef(false);
   keyboardOpenRef.current = keyboardOpen;
   function dismissKeyboard() {
@@ -511,8 +512,14 @@ function AppInner() {
       .finally(() => { hydration.release(); if (mounted) setHydrated(true); });
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
-    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
+    const show = Keyboard.addListener(showEvt, (e) => {
+      setKeyboardOpen(true);
+      setKeyboardInset(e.endCoordinates?.height ?? 0);
+    });
+    const hide = Keyboard.addListener(hideEvt, () => {
+      setKeyboardOpen(false);
+      setKeyboardInset(0);
+    });
     const appSub = AppState.addEventListener("change", (st) => {
       if (st !== "active") {
         void sessionStorage.flush().catch(() => setState(s => ({ ...s, error: "Could not save this device’s session." })));
@@ -1685,7 +1692,9 @@ function AppInner() {
           onCancel={() => void onCancel()}
           styles={{
             ...styles,
-            composerDock: [styles.composerDock, { paddingBottom: keyboardOpen ? space.xs : Math.max(insets.bottom, space.sm) }],
+            composerDock: [styles.composerDock, { paddingBottom: keyboardOpen
+              ? (Platform.OS === "android" ? Math.max(keyboardInset, space.xs) : space.xs)
+              : Math.max(insets.bottom, space.sm) }],
           }}
         />
         ) : null}
