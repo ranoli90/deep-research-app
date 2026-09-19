@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Phase A Wave D retrieval ENG-011–021
+
+- Lane `codex/phase-a-retrieval`. Isolated Postgres `127.0.0.1:55432/deep_phase_a_retrieval_waved`. Fabricated OpenRouter. No live spend. Not merged to main. Not pushed.
+- `pnpm --filter @deep/research-core exec vitest run --config vitest.config.ts test/source-strategy.test.ts test/independence-freshness.test.ts test/research-beta-intelligence.test.ts test/phase-a-retrieval.test.ts` exit 0, **37/37**.
+- `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_phase_a_retrieval_waved pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/direct-url.integration.test.ts test/retrieval-evidence.integration.test.ts` exit 0, **18/18**.
+- Applied: iteration ordinals, spent+held remaining, per-source adapter degrade, unknown abandoned reads, canonical tracking URLs, redirect policy, prefer_primary vs primary_only, curated entity hosts, unknown required freshness, effective date/version, best authorized source version.
+
 ## 2026-09-19 — FP-003/013/060 and continue brief revision
 
 - `/continue` inserts a new `research_briefs` row and increments `runs.brief_revision`; originalQuestion unchanged. Prior brief rows keep pre-clarification constraints.

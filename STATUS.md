@@ -1,3 +1,7 @@
+## Phase A Wave D retrieval (ENG-011–021) — 2026-09-19
+
+Lane `codex/phase-a-retrieval`. Durable iteration bounds, spent+held remaining, per-source read degrade, unknown abandoned reads, URL canonicalization, redirect policy, prefer vs only, curated vendor/standards primary hosts, required unknown freshness, effective date/version metadata, and best authorized source version. Migration `049_retrieval_recovery.sql`. **Not merged to `main`.** Isolated PG `deep_phase_a_retrieval_waved`; no live spend.
+
 ## P0 revision/cost/reconciliation — 2026-09-19
 
 `/continue` and assumption **replace** commit a new brief row and bump `runs.brief_revision`; the prior brief stays. Confirm-only updates confirmation metadata. Known-zero `failed` 404s settle; 429/transport HOLD. Reconciliation v2 does not confirm from paraphrase overlap. **Not merged to `main`.**

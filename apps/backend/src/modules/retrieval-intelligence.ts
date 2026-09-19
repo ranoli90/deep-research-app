@@ -168,15 +168,24 @@ export async function approveQueryAuthorization(db: Queryable, args: {
 }
 
 export async function loadRunStoredSources(db: Queryable, args: { accountId: string; runId: string }): Promise<StoredSource[]> {
-  const rows = await db.query<{ id: string; title: string; locator: string; source_type: string | null; origin_cluster: string | null; publisher: string | null; publication_date: Date | string | null }>(
-    `SELECT id, title, canonical_locator AS locator, source_type, origin_cluster, publisher, publication_date FROM sources WHERE account_id=$1 AND run_id=$2`,
+  const rows = await db.query<{ id: string; title: string; locator: string; source_type: string | null; origin_cluster: string | null; publisher: string | null; publication_date: Date | string | null; access_level: StoredSource["accessLevel"] | null; effective_date: string | null; applicable_version: string | null; retrieved_at: Date | null; text_coverage: string | null }>(
+    `SELECT s.id,s.title,COALESCE(v.final_locator,s.canonical_locator) AS locator,s.source_type,s.origin_cluster,s.publisher,s.publication_date::text AS publication_date,
+       v.access_level,v.effective_date::text AS effective_date,v.applicable_version,v.retrieved_at,v.text_coverage
+     FROM sources s LEFT JOIN LATERAL (
+       SELECT v.* FROM source_versions v WHERE v.source_id=s.id AND v.account_id=s.account_id
+       AND (s.run_id=$2 OR EXISTS(SELECT 1 FROM authorized_run_passages p WHERE p.run_id=$2 AND p.account_id=$1 AND p.source_version_id=v.id))
+       AND NOT EXISTS(SELECT 1 FROM source_policy_exclusions x JOIN runs r ON r.id=x.run_id WHERE x.run_id=$2 AND x.account_id=$1 AND x.brief_revision=r.brief_revision AND x.source_version_id=v.id)
+       ORDER BY CASE v.access_level WHEN 'full-text' THEN 0 WHEN 'partial-text' THEN 1 WHEN 'snippet' THEN 2 ELSE 3 END,v.retrieved_at DESC LIMIT 1
+     ) v ON true WHERE s.account_id=$1 AND (s.run_id=$2 OR EXISTS(SELECT 1 FROM authorized_run_passages p JOIN source_versions av ON av.id=p.source_version_id WHERE p.run_id=$2 AND p.account_id=$1 AND av.source_id=s.id))
+       AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$1 AND t.object_kind='source' AND t.object_id=s.id)`,
     [args.accountId, args.runId],
   );
   return rows.rows.map((s) => ({
     id: s.id,
     title: s.title,
     locator: s.locator,
-    accessLevel: "snippet",
+    accessLevel: s.access_level ?? "blocked",
+    effectiveDate: s.effective_date ? new Date(`${s.effective_date}T00:00:00Z`) : null, version: s.applicable_version, retrievedAt: s.retrieved_at, textCoverage: s.text_coverage ?? undefined,
     sourceType: s.source_type ?? undefined,
     originCluster: s.origin_cluster ?? undefined,
     publisher: s.publisher ?? undefined,

@@ -578,3 +578,11 @@ Consumer events are `public-activity.v1`: id, runId, sequence, createdAt, schema
 Worker-lane ADR067 remapped here to ADR072 because integration already used ADR067 for Azure discovery v3.
 
 Impact checklist: additive public schema in contracts; backend sanitizer on the existing `/events` path; mobile activity/composer inset only. No migration, dependency, prompt, processor, spend, or design-token change. Rollback: restore the previous `/events` JSON and legacy mobile mapping; historical `run_events` rows remain readable.
+
+## ADR073 — Retrieval recovery, redirect policy, and required freshness (2026-09-19)
+
+ENG-011–021: process-local iteration bounds, stale remaining-budget snapshots, thrown source-read aborts, issued-forever reads, tracking-parameter duplicate sources, redirect policy gaps, `prefer_primary` as exclusion, gov-only primary hosts, unknown freshness treated as met, and snippet-flattened stored sources.
+
+Fix: `research_iteration_actions` binds a pass to task/evidence/passage/discovery identity and fails closed on a fifth distinct pass. Continuation uses confirmed spend plus issued/unknown reserves. Adapter source-read errors settle per source; lease/cancel/ownership remain fatal. Abandoned issued reads become `unknown` and are not resent. `source-policy.v2` ranks curated vendor/standards/project hosts under `prefer_primary` and excludes only under `primary_only`. Canonical URL identity strips tracking/fragments/default ports. Final-redirect policy is checked before storing bytes. `criterion-freshness.v2` keeps required unknown dates/versions unmet and publication must disclose them. Stored-source strategy restores the best authorized version.
+
+Impact: migration `049_retrieval_recovery.sql`; production `processStructuredResearch` / `executeSourceRead`; deletion scrubs new columns/tables. No new provider, prompt, or spend default. Rollback disables new scheduling and keeps historical readers, versions, exclusion gates, and holds.

@@ -11,3 +11,9 @@ Atomicity: authorization, freshness, origin links, coverage and reconciliation w
 Tests: research-core provenance leak/expansion, source-class change, adaptive stop, held-out selection vs whole-passage.v1, independence clustering, freshness, reconciliation outcomes; real PostgreSQL search-adapter canary/mixed-document/deletion and empty-selection fail-closed. OSS reranker/Docling/OCR/Playwright decisions are recorded, not auto-integrated.
 
 Rollback: stop new discovery admissions if needed. Retain migration044 readers, private-query blocks, inventory veto, empty-selection recovery, deletion and unknown financial holds. Do not adopt neural rerankers or a browser reader by flipping a hidden flag. No cloud migration/deployment is authorized by this packet.
+
+## Phase A Wave D (ENG-011–021)
+
+Durable retrieval recovery and source policy. Migration `049_retrieval_recovery.sql` adds `research_iteration_actions`, `source_policy_exclusions`, source-read `unknown`/`failed`, and optional `effective_date`/`applicable_version`. New reads use `source-read.v2` and restore v1 identities first. Adapter failures degrade per source; lease/cancel/ownership stay fatal. Continuation refreshes spent plus issued/unknown reserves. `prefer_primary` ranks curated vendor/standards/project hosts and admits secondaries; `primary_only` is exclusion. Canonical URL identity strips tracking/fragments/default ports. Redirect policy is re-checked before storing bytes. Unknown required dates/versions stay unmet and must be disclosed at publication. Stored-source strategy loads the best authorized version.
+
+Impact: internal recovery/evidence membership and optional source metadata only. No new dependency, service, model, processor, prompt, or paid allowance. Rollback disables new scheduling; keep historical v1/v2 readers, source versions, deletion, exclusion gates, and financial holds.

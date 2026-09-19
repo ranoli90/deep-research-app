@@ -1,3 +1,7 @@
+## Phase A Wave D retrieval — 2026-09-19
+
+Lane `codex/phase-a-retrieval`. ENG-011–021 applied on the production structured worker and `executeSourceRead`. Migration `049`. Isolated tests on `deep_phase_a_retrieval_waved`. **Do not merge `main`.** No live spend. No push.
+
 ## P0 brief revision / cost / reconciliation — 2026-09-19
 
 Continue and assumption replace no longer mutate the same brief identity. Known-zero failures settle; unknown HOLD. Reconciliation v2 is not lexical confirmation. **Do not merge `main`.**

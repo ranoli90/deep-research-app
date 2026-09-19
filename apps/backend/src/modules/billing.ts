@@ -71,6 +71,20 @@ export async function settleRun(db: Queryable, accountId: string, runId: string,
   }
 }
 
+/** Remaining budget after confirmed spend and outstanding issued/unknown reserves. Failed-null receipts are not holds. */
+export async function loadRunFinancialRemaining(db: Queryable, args: { runId: string; accountId: string }): Promise<number> {
+  const row = await db.query<{ budget_micro: string; spent_micro: string; held_micro: string }>(
+    `SELECT r.budget_micro, r.spent_micro,
+       COALESCE((SELECT SUM(i.reserved_max_micro) FROM provider_intents i
+         WHERE i.run_id=r.id AND i.confirmed_micro IS NULL AND i.state IN ('issued','outcome-unknown')),0) AS held_micro
+     FROM runs r WHERE r.id=$1 AND r.account_id=$2`,
+    [args.runId, args.accountId],
+  );
+  const financial = row.rows[0];
+  if (!financial) throw new Error("run_financial_owner_mismatch");
+  return Math.max(0, Number(financial.budget_micro) - Number(financial.spent_micro) - Number(financial.held_micro));
+}
+
 export async function recordIntent(
   db: Queryable,
   runId: string,

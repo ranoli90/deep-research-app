@@ -386,3 +386,20 @@ export async function loadReadablePassageIds(
   const readableIds = new Set(rows.rows.filter((r) => r.access_level === "partial-text" || r.access_level === "full-text").map((r) => r.id));
   return { passages: rows.rows.map((r) => ({ id: r.id, exactText: r.exact_text })), readableIds };
 }
+
+/** The same evidence pass resumes at its old ordinal; a new pass cannot reset the bound. Caller holds the run fence. */
+export async function admitResearchIteration(db: Queryable, args: {runId:string;accountId:string;briefRevision:number;taskId:string;inputDigest:string}): Promise<number | null> {
+  const prior=await db.query("SELECT ordinal FROM research_iteration_actions WHERE run_id=$1 AND brief_revision=$2 AND input_digest=$3 AND account_id=$4",[args.runId,args.briefRevision,args.inputDigest,args.accountId]);
+  if(prior.rows[0])return Number(prior.rows[0].ordinal);
+  const count=Number((await db.query("SELECT count(*) AS n FROM research_iteration_actions WHERE run_id=$1 AND brief_revision=$2",[args.runId,args.briefRevision])).rows[0].n);
+  if(count>=4)return null;
+  const inserted=await db.query(
+    `INSERT INTO research_iteration_actions(run_id,account_id,brief_revision,task_id,input_digest,ordinal)
+     VALUES($1,$2,$3,$4,$5,$6)
+     ON CONFLICT (run_id,brief_revision,input_digest) DO NOTHING RETURNING ordinal`,
+    [args.runId,args.accountId,args.briefRevision,args.taskId,args.inputDigest,count],
+  );
+  if(inserted.rows[0])return Number(inserted.rows[0].ordinal);
+  const raced=await db.query("SELECT ordinal FROM research_iteration_actions WHERE run_id=$1 AND brief_revision=$2 AND input_digest=$3 AND account_id=$4",[args.runId,args.briefRevision,args.inputDigest,args.accountId]);
+  return raced.rows[0]?Number(raced.rows[0].ordinal):null;
+}

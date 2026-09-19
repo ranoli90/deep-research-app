@@ -35,8 +35,8 @@ describe("source-type planning", () => {
     const plan = planSourceClass("What is the current price of Zephyr Pro?");
     const official = planSourceClass("What is the official US federal minimum wage?");
     expect(nextSourceClass(official, ["statute-regulator"], { weak: true, duplicative: false, stale: false })).toBe("generic-web");
-    expect(constrainSourcePlan(official, "prefer_primary").fallbacks).not.toContain("generic-web");
-    expect(nextSourceClass(constrainSourcePlan(official, "prefer_primary"), ["statute-regulator"], { weak: true, duplicative: false, stale: false })).toBe("filings");
+    expect(constrainSourcePlan(official, "primary_only").fallbacks).not.toContain("generic-web");
+    expect(nextSourceClass(constrainSourcePlan(official, "primary_only"), ["statute-regulator"], { weak: true, duplicative: false, stale: false })).toBe("filings");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: true, duplicative: true, stale: true })).toBe("vendor-docs");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: false, duplicative: false, stale: true })).toBe("vendor-docs");
     expect(nextSourceClass(plan, ["first-party-pricing"], { weak: true, duplicative: false, stale: false })).toBe("vendor-docs");

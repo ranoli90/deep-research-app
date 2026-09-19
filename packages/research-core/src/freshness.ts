@@ -1,4 +1,4 @@
-export const FRESHNESS_POLICY_VERSION = "criterion-freshness.v1";
+export const FRESHNESS_POLICY_VERSION = "criterion-freshness.v2";
 export const FRESHNESS_CLASSES = ["price", "law", "compatibility", "historical", "science", "generic"] as const;
 export type FreshnessClass = (typeof FRESHNESS_CLASSES)[number];
 export type FreshnessPolicy = {
@@ -87,6 +87,9 @@ export function evaluateFreshness(policy: FreshnessPolicy, args: {
   }
   if (policy.requiresVersion && !args.version) return "unknown";
   if (policy.requiresEffectiveDate && !args.effectiveDate && policy.class === "law") return "unknown";
+  if (policy.requiresVersion && args.version && !policy.requiresEffectiveDate && policy.maxAgeHours === null) {
+    return "fresh";
+  }
   const dated = args.effectiveDate ?? args.sourceDate;
   if (!dated) return "unknown";
   if (policy.maxAgeHours === null) {
@@ -102,16 +105,26 @@ export function parseSourcePublicationDate(text: string): Date | null {
   const iso = text.match(/\b(20\d{2}|19\d{2})-(\d{2})-(\d{2})\b/);
   if (!iso) return null;
   const d = new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) ? null : d;
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0,10) !== `${iso[1]}-${iso[2]}-${iso[3]}` ? null : d;
+}
+
+export function unresolvedFreshnessLimitation(policy: FreshnessPolicy): string {
+  if (policy.requiresVersion) return "Required applicable version remains unknown.";
+  if (policy.class === "law") return "Required effective legal date remains unknown.";
+  if (policy.requiresEffectiveDate) return "Required source date remains unknown.";
+  return "Required source freshness remains unknown.";
 }
 
 export function sourcesHaveUnmetFreshness(
   policy: FreshnessPolicy,
-  sources: ReadonlyArray<{ publicationDate?: Date | null }>,
+  sources: ReadonlyArray<{ publicationDate?: Date | null; effectiveDate?: Date | null; version?: string | null; retrievedAt?: Date | null }>,
   now?: Date,
 ): boolean {
   const observedAt = now ?? new Date();
-  return sources.some(
-    (s) => evaluateFreshness(policy, { observedAt, sourceDate: s.publicationDate ?? null, now: observedAt }) === "stale",
-  );
+  const required = policy.requiresEffectiveDate || policy.requiresVersion;
+  if (!sources.length) return required;
+  return sources.some((s) => {
+    const status = evaluateFreshness(policy, { observedAt: s.retrievedAt ?? observedAt, sourceDate: s.publicationDate, effectiveDate: s.effectiveDate, version: s.version, now: observedAt });
+    return status === "stale" || (required && status === "unknown");
+  });
 }
