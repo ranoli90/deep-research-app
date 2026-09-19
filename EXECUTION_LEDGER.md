@@ -2,7 +2,7 @@
 
 ## 2026-09-19 — Wave 2 FP-011/012/014 provider attempt chain
 
-- Task/requirement: FP-011, FP-012, FP-014. Branch `grok-v8/fix-wave2-provider` from `72c78ea`. main not updated.
+- Task/requirement: FP-011, FP-012, FP-014. Branch `grok-v8/fix-wave2-provider` `0ab1f7b` from `72c78ea`. main not updated.
 - Environment: isolated PostgreSQL `deep_wave2_provider` on `127.0.0.1:55432`; fabricated OpenRouter transport; `TEST_DATABASE_URL` only; no live key.
 - Commands:
   - `pnpm --filter @deep/backend exec tsc -p tsconfig.json --noEmit` exit 0

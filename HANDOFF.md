@@ -1,6 +1,6 @@
 ## Wave 2 implementer — 2026-09-19
 
-Worker: Wave 2 provider/cost/replay. Issues **FP-011 P0**, **FP-012 P0**, **FP-014 P0**. Branch `grok-v8/fix-wave2-provider`. Worktree `/home/oranolio/.grok/worktrees/desktop-deep/subagent-01a0bb2d-fd73-7970-8296-065910efdf96`. Base `72c78ea`. **Do not merge `main` or `grok-v8/research-beta-integration`.**
+Worker: Wave 2 provider/cost/replay. Issues **FP-011 P0**, **FP-012 P0**, **FP-014 P0**. Branch `grok-v8/fix-wave2-provider`. Worktree `/home/oranolio/.grok/worktrees/desktop-deep/subagent-01a0bb2d-fd73-7970-8296-065910efdf96`. Base `72c78ea`. Final `0ab1f7bc772648b7930b456b23306ac3efbbde8c`. **Do not merge `main` or `grok-v8/research-beta-integration`.**
 
 Files: `apps/backend/src/worker/model-gateway.ts`, `outcomes.ts`, `model-operations.ts`, `research-writer.ts`, `research-task.ts`, `access.ts`, `source-deletion.ts`, `migrations/045_model_operation_attempts.sql`, gateway/openrouter tests, ADR067.
 
