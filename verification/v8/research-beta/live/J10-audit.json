@@ -1,0 +1,18 @@
+{
+  "id": "J10-audit",
+  "runId": "d5c4f1f6-581f-42d8-abb5-5e41a1fba8b9",
+  "question": "What is the official US federal minimum wage?",
+  "steer": "Only use official sources from here.",
+  "steerResponse": {
+    "kind": "steer",
+    "mutatesBrief": false,
+    "mutatesIssuedIdentities": false,
+    "reason": "active_steering"
+  },
+  "persistedPolicy": "mode:prefer_primary",
+  "originalQuestionUnchanged": true,
+  "events": ["searching", "plan_pivot", "sources_found", "source_read", "research_unresolved"],
+  "report": null,
+  "stopReason": "readable_evidence_unavailable — all three post-steer source reads returned unavailable_status (likely official-domain fetch blocks).",
+  "gate": "Active steering persisted a prefer-primary policy without mutating issued identities or the original question. That J10 contract passed. The subsequent official-source fetch failure is a search-resilience gap, not a silent brief rewrite."
+}
