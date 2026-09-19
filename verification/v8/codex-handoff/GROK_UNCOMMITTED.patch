@@ -1,0 +1,74 @@
+diff --git a/apps/mobile/src/SourceSheet.tsx b/apps/mobile/src/SourceSheet.tsx
+index 47290e3..b326839 100644
+--- a/apps/mobile/src/SourceSheet.tsx
++++ b/apps/mobile/src/SourceSheet.tsx
+@@ -30,6 +30,7 @@ type Props = {
+     sheetField?: StyleProp<ViewStyle>;
+     title: StyleProp<TextStyle>;
+     kicker: StyleProp<TextStyle>;
++    fieldLabel?: StyleProp<TextStyle>;
+     bodyText: StyleProp<TextStyle>;
+     link: StyleProp<TextStyle>;
+     quote?: StyleProp<TextStyle>;
+@@ -66,6 +67,7 @@ export function SourceSheet({
+   const domain = sourceDomain(source.locator);
+   const quality = uncertaintyFromSource(source);
+   const publisher = source.publisher?.trim() || domain || "Unknown publisher";
++  const label = styles.fieldLabel ?? styles.kicker;
+   return (
+     <Animated.View
+       style={[styles.sheet, { opacity: fade, transform: [{ translateY: rise }] }]}
+@@ -75,7 +77,7 @@ export function SourceSheet({
+       {styles.sheetHandle ? <View style={styles.sheetHandle} /> : null}
+       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+         <View style={{ flex: 1, minWidth: 0 }}>
+-          <Text style={styles.kicker}>Source</Text>
++          <Text style={label}>Source</Text>
+           <Text style={styles.bodyText}>{publisher}{domain && source.publisher ? ` · ${domain}` : ""}</Text>
+         </View>
+         <Pressable
+@@ -95,25 +97,25 @@ export function SourceSheet({
+           if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
+         }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
+         <View style={styles.sheetField}>
+-          <Text style={styles.kicker}>Quote</Text>
++          <Text style={label}>Quote</Text>
+           <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
+         </View>
+         {relatedClaim ? (
+           <View style={styles.sheetField}>
+-            <Text style={styles.kicker}>Claim</Text>
++            <Text style={label}>Claim</Text>
+             <Text style={styles.bodyText} accessibilityLabel="Related claim" numberOfLines={3} ellipsizeMode="tail">Cited in: {relatedClaim}</Text>
+           </View>
+         ) : null}
+         <View style={styles.sheetField}>
+-          <Text style={styles.kicker}>Relationship</Text>
++          <Text style={label}>Relationship</Text>
+           <Text style={styles.bodyText}>{uncertaintyLabel(quality)}</Text>
+         </View>
+         <View style={styles.sheetField}>
+-          <Text style={styles.kicker}>Freshness</Text>
++          <Text style={label}>Freshness</Text>
+           <Text style={styles.bodyText}>{sourceFreshnessCopy(source)}</Text>
+         </View>
+         <View style={styles.sheetField}>
+-          <Text style={styles.kicker}>Independence</Text>
++          <Text style={label}>Independence</Text>
+           <Text style={styles.bodyText}>{sourceIndependenceCopy(source)}</Text>
+         </View>
+         {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
+diff --git a/apps/mobile/src/product-styles.ts b/apps/mobile/src/product-styles.ts
+index 12dc25d..839e0cb 100644
+--- a/apps/mobile/src/product-styles.ts
++++ b/apps/mobile/src/product-styles.ts
+@@ -61,7 +61,8 @@ export function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark
+     citeChip: { color: theme.accent, overflow: "hidden", paddingHorizontal: 4, paddingVertical: 2, borderRadius: radius.sm, fontSize: 11, lineHeight: 14, fontWeight: "600", minHeight: 16, fontVariant: ["tabular-nums"] },
+     answerText: { ...typeTokens.display, ...androidText, color: theme.ink, flexShrink: 1 },
+     sampleMark: { ...typeTokens.meta, ...androidText, color: theme.muted, marginBottom: space.sm },
+-    kicker: { ...typeTokens.meta, ...androidText, color: theme.muted, marginBottom: 4, textTransform: "uppercase" },
++    kicker: { ...typeTokens.meta, ...androidText, color: theme.muted, marginBottom: 4 },
++    fieldLabel: { ...typeTokens.meta, ...androidText, color: theme.muted, marginBottom: 4, textTransform: "uppercase" as const },
+     activityKicker: { ...typeTokens.caption, ...androidText, color: theme.thinking.ink, marginBottom: 8 },
+     activityDetail: { ...typeTokens.caption, ...androidText, color: theme.thinking.ink, marginTop: 2 },
+     activityLine: { ...typeTokens.body, ...androidText, color: theme.thinking.ink, flexShrink: 1 },
