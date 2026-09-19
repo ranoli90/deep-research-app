@@ -1,0 +1,47 @@
+{
+  "id": "J10",
+  "question": "What is the official US federal minimum wage?",
+  "steer": "Only use official sources from here.",
+  "runId": "1c80f6b1-f5f0-430c-98fb-2e5421fbdd60",
+  "steerResponse": {
+    "http": 200,
+    "kind": "steer",
+    "mutatesBrief": false,
+    "mutatesIssuedIdentities": false,
+    "reason": "active_steering"
+  },
+  "sourceRestrictions": [
+    "mode:prefer_primary"
+  ],
+  "originalQuestion": "What is the official US federal minimum wage?",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": null,
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "plan_pivot",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "discovery_exhausted",
+    "research_unresolved"
+  ],
+  "reportPreview": null
+}

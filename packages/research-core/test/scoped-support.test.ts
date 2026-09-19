@@ -79,6 +79,31 @@ it("supports a 3.12 removal paraphrase that the model marked contradicted",()=>{
   expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("grounds a federal minimum-wage statute fragment that does not repeat United States",()=>{
+  const quote="$7.25 an hour, beginning 24 months after that 60th day;";
+  const claim="The current federal minimum wage in the United States is $7.25.";
+  const scope={entity:"federal",plan:null,version:null,geography:"United States",time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"current_minimum_wage",candidateKey:null,criterionKeys:["minimum_wage"],text:claim,scope,
+    quantities:[{unit:"hour",value:"7.25",currency:"USD",qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"current_minimum_wage",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"US Code rate",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
+it("does not ground an effective-date that the statute fragment never states",()=>{
+  const quote="$7.25 an hour, beginning 24 months after that 60th day;";
+  const claim="The federal minimum wage became $7.25 an hour on 2009-07-24.";
+  const scope={entity:"federal",plan:null,version:null,geography:"United States",time:"2009-07-24",population:null};
+  const result=resolveScopedSupport({assertions:[{key:"minimum_wage_date",candidateKey:null,criterionKeys:["minimum_wage_date"],text:claim,scope,
+    quantities:[{unit:"hour",value:"7.25",currency:"USD",qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"minimum_wage_date",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Date inferred from delay language",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(false);
+  expect(result.decision).toBe("out_of_scope");
+});
 it("does not treat a use-case label or a later statute 'may' as disqualifying a cited employment-tax quote",()=>{
   const quote="Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month.";
   const page=`${quote} You may also have to file Form 941. This calendar is only a summary.`;

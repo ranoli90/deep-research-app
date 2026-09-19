@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v4";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v5";
 /** Category labels copied from the question (e.g. "laptop") are not a quoted product identity. */
 const GENERIC_ENTITY = new Set([
   "laptop", "notebook", "computer", "pc", "phone", "smartphone", "tablet", "device", "product",
@@ -11,6 +11,7 @@ const GENERIC_ENTITY = new Set([
   "current", "today", "now", "latest", "present",
   "employment tax", "tax", "deadline", "filing deadline",
   "python", "javascript", "typescript", "java", "linux", "windows", "android", "ios",
+  "federal", "national", "statutory", "wage", "minimum wage",
 ]);
 const UNIT_ALIASES: Record<string, string[]> = {
   percentage: ["percentage", "percent", "%"],
