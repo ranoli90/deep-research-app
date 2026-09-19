@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-19 — Native APK 4a4948e visual QA
+
+- EAS `d2a06da7` FINISHED; APK sha256 `1becfe79fc548dc2591a5d55744b91b25275d5b4e2402b16373b4579fcbc397e` installed on `10.0.0.167:43417`.
+- Device matrix: empty light/dark, keyboard, Library, Settings, clarification, expanded activity, completed report, source sheet, correction, active research, large text, offline Retry.
+- main not merged. Research Beta not declared.
+
 ## 2026-09-19 — Hybrid intent compiler v2 (no live spend)
 
 - `research-intent-compiler.v2`: deterministic preflight + `structured_semantic.v1` overlay; ungrounded/privilege overlays fail closed.

@@ -1,3 +1,7 @@
+## Native APK 4a4948e visual QA — 2026-09-19
+
+EAS `d2a06da7-a9c1-411a-83e3-843bc6da5797` git `4a4948e`. Installed on `10.0.0.167:43417` (`adb install -r`, no wipe). APK sha256 `1becfe79fc548dc2591a5d55744b91b25275d5b4e2402b16373b4579fcbc397e`. Screenshot matrix under implementer `visual-qa/v8i/`. Composer, empty light/dark, keyboard, clarification (composer hidden), expanded real activity, report, source sheet, Library hairlines, Settings, large text, offline Retry reviewed on device. **Not merged to `main`. Research Beta is not declared.** External blockers unchanged: GitHub billing lock; live public-web grant ≥ $1.20 + 21,658 µ hold release.
+
 ## Public activity + deep discovery wiring — 2026-09-19
 
 Lane: `grok-v8/research-beta-integration`. **Not merged to `main`.**

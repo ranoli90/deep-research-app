@@ -15,6 +15,7 @@ it("A1 iterates a fixed user-order plan while B targets the remaining gap, using
 it.each(RESEARCH_STRATEGIES)("%s keeps query ceiling and rejects source-derived disclosure",strategy=>{
  const args={question,task,unresolvedCriterionKeys:["c0","c1"],queries:[question,"export","offline editing"]};
  expect(nextStrategySearch(strategy,args)).toEqual({kind:"stop",reason:"discovery_query_limit"});
+ expect(nextStrategySearch(strategy,{...args,ceiling:6,queries:[question]})).toMatchObject({kind:"search"});
  const malformed={...task,criteria:[{...criteria[0]!,provenance:{start:0,end:7,quote:"PRIVATE"}}]};
  expect(()=>nextStrategySearch(strategy,{...args,task:malformed,queries:[]})).toThrow("invalid_discovery_provenance");
 });

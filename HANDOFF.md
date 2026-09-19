@@ -1,3 +1,7 @@
+## Native APK 4a4948e — 2026-09-19
+
+EAS `d2a06da7` installed on `10.0.0.167:43417`. Visual matrix `visual-qa/v8i/`. Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers.
+
 ## Hybrid intent compiler v2 — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. ADR066. `compileResearchIntent` is hybrid (deterministic + structured semantic overlay with exact quote provenance). Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers (new ≥ $1.20 public-web grant + 21,658 µ hold release; GitHub billing unlock).
