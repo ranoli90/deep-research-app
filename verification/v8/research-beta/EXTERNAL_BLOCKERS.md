@@ -41,6 +41,10 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 **Required:** none. Owner declined hosted Actions. Do not prompt for laptop/device passwords; use passwordless adb/local commands only.
 
+## 3. Physical Android recapture — screen locked
+
+`adb devices -l` shows `10.0.0.167:43417` (`kunzite_global` / 25098RA98G) connected. Passwordless `screencap` returns a black frame (`mDreamingLockscreen=true`). Recapture of empty/dark/keyboard/report shots on a post-2eb385b APK is blocked until the device is already unlocked. Do not send unlock/keyevents. Existing visual QA remains `verification/v8/research-beta/visual-qa/` on APK `2eb385b`.
+
 ## After both
 
 Re-run live J1–J12 and hosted CI. Merge to `main` **only if** those gates PASS. This session does not merge.
