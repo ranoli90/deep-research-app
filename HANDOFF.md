@@ -1,6 +1,6 @@
 ## Wave 5 intelligence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main` or integration.** Migration renamed to `046_research_controller_state.sql` so it does not collide with integration `044_query_authorization_proof.sql` or Wave 2 `045_model_operation_attempts.sql`.
+Branch `grok-v8/fix-wave5-intelligence` SHA `ef0b679a54514c707df00070e7b414e4e45ff4dd`. Base `b30073e`. **Do not merge `main` or integration.** Migration renamed to `046_research_controller_state.sql` so it does not collide with integration `044_query_authorization_proof.sql` or Wave 2 `045_model_operation_attempts.sql`.
 
 Confirmed and implemented on the production structured worker:
 

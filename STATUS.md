@@ -105,7 +105,7 @@ Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from
 
 ## Wave 5 intelligence persistence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence` off `origin/grok-v8/research-beta-integration` (`b30073e`). **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql` (not 044/045). FP-030/049/051/053: production structured worker reconstructs discovery queries/classes from `search_operations`, persists Evidence Needs, wires the candidate ledger with exclusion evidence, and stores independent per-conclusion challenges. Existing `counterevidence_checks` unique key is unchanged.
+Branch `grok-v8/fix-wave5-intelligence` SHA `ef0b679` off `origin/grok-v8/research-beta-integration` (`b30073e`). **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql` (not 044/045). FP-030/049/051/053: production structured worker reconstructs discovery queries/classes from `search_operations`, persists Evidence Needs, wires the candidate ledger with exclusion evidence, and stores independent per-conclusion challenges. Existing `counterevidence_checks` unique key is unchanged.
 
 Focused evidence after rename: Wave 5 PostgreSQL `processRun` 3/3, 54.75s, exit 0. Not a full PG twice claim and not Research Beta.
 
