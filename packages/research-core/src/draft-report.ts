@@ -1,5 +1,6 @@
 import type { ReportBlock } from "@deep/contracts";
 import { isReportSectionLabel, UNRESOLVED_SECTION } from "./citations.js";
+import { passageSupportsClaim } from "./support.js";
 import type { DraftStatement } from "./draft-assertions.js";
 import type { ScopedSupportResult } from "./scoped-support.js";
 import type { StoredClaim } from "./types.js";
@@ -12,6 +13,13 @@ export function compileCheckedDraft(statements:DraftStatement[],checks:(ScopedSu
     const matching=checks.filter((c)=>c.claimKey===statement.key);
     if(matching.length!==1)throw new Error("missing_or_duplicate_writer_support");
     const check=matching[0]!;
+    const quoteSupports=check.evidence.some((e)=>passageSupportsClaim(e.quote,statement.text)==="supports");
+    if(statement.kind==="caveat"&&(check.decision!=="supported"||!quoteSupports)) {
+      unresolved.push(statement.key);
+      blocks.push({id:statement.key,kind:"caveat",text:UNRESOLVED_SECTION,claimIds:[],
+        citationIds:[...new Set([...check.evidence.map((e)=>e.passageId),...check.counterEvidence.map((e)=>e.passageId)])]});
+      continue;
+    }
     if(check.decision!=="supported") {
       if(statement.kind==="heading") {
         const text=isReportSectionLabel(statement.text)?statement.text:"Answer";

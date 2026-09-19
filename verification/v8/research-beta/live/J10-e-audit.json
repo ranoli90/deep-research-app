@@ -1,0 +1,47 @@
+{
+  "id": "J10-e-audit",
+  "runId": "6fb90ce8-ba01-48bf-b4d6-85fec3d7f9ec",
+  "reportId": "3e4eb8d8-69d0-4940-9bfd-bc12e51de1b9",
+  "question": "What is the official US federal minimum wage?",
+  "steer": "Only use official sources from here.",
+  "steerResponse": {
+    "kind": "steer",
+    "mutatesBrief": false,
+    "mutatesIssuedIdentities": false,
+    "reason": "active_steering"
+  },
+  "persistedPolicy": "mode:prefer_primary",
+  "originalQuestionUnchanged": true,
+  "outcome": "completed_with_limitations",
+  "spentMicro": null,
+  "ledgerSpentAfterRun": 919563,
+  "checkerVersion": "scoped-support.v6",
+  "sourcesAdopted": [
+    "https://www.dol.gov/agencies/whd/minimum-wage",
+    "https://uscode.house.gov/view.xhtml?req=(title:29+section:206+edition:prelim)",
+    "https://www.dol.gov/agencies/whd/flsa"
+  ],
+  "unofficialSourcesAdoptedAfterSteer": [],
+  "consequentialClaims": [
+    {
+      "text": "The current federal minimum wage in the United States is $7.25 an hour.",
+      "passageId": "2b650952-6a20-4a7d-b114-0795169cbc3b",
+      "title": "29 USC 206: Minimum wage",
+      "locator": "https://uscode.house.gov/view.xhtml?req=(title:29+section:206+edition:prelim)",
+      "exactText": "(C) $7.25 an hour, beginning 24 months after that 60th day;",
+      "supportedByExactSpan": true
+    },
+    {
+      "text": "The information provided is based on the current federal minimum wage and does not include state-specific minimum wages or historical changes.",
+      "passageId": "2b650952-6a20-4a7d-b114-0795169cbc3b",
+      "supportedByExactSpan": false,
+      "note": "Writer limitation reused the $7.25 extract quote. The fragment does not mention state wages or history. Date 2009-07-24 was not published. compileCheckedDraft now requires a supporting quote before citing a caveat."
+    }
+  ],
+  "missingEvidence": [
+    "Effective date of the $7.25 rate (the owned span only says beginning 24 months after that 60th day).",
+    "State minimum wages, which were not asked."
+  ],
+  "userRepairRequired": "Treat the state/history caveat as a limitation, not a US Code finding. Primary $7.25 rate is owned.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

@@ -1,3 +1,7 @@
+## J10 official-source cited wage report — 2026-09-19
+
+Live J10-e published cited 29 U.S.C. §206 `$7.25 an hour` after official-source steering. Audit `verification/v8/research-beta/live/J10-e-audit.json`. Do not merge `main`. Remaining: GHA owner-declined; Android lockscreen; J8 private attachment.
+
 ## Live public-web attempt — 2026-09-19
 
 User authorized the OpenRouter key ($2 public-web). Isolated live DB spent **72,555 µ**. Azure ZDR search found sources and some pages extracted; **no published report**. Hosted Actions still billing-locked; local `verification.yml` steps ran. Do not merge `main`. See `verification/v8/research-beta/live/LIVE.md`.

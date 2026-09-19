@@ -2,27 +2,15 @@
 
 Research Beta is **not** declared. `main` stays at `8a7b1a9`. Integration branch `grok-v8/research-beta-integration` is not merged.
 
-## 1. Live public-web journeys — RB-LIVE-01 / RB-LIVE-02 / RB-LIVE-03
+## 1. Live public-web journeys — remaining J8 attachment
 
-**Not authorized:** leftover MC-D01 money, or inferring spend from an API key.
+The **$2.00** public-web grant (`research-beta-j12-20260919`) is in use on isolated DB `deep_v8_live_j12`. Ledger **919,563 µ** after J10-e. MC-D01 21,658 µ unknown hold was **not** released or retried.
 
-| Item | Value |
-|---|---|
-| Existing grant | $0.40 MC-D01, **frozen SQLite only** |
-| Confirmed spend | $0.0005388 (539 µ) |
-| Unknown hold | **21,658 µ** ($0.021658), unreleased |
-| Protocol | `legacyUnknownsReleased: false`; any new unknown stops |
-| Per-run budget | `DEFAULT_RUN_BUDGET_MICRO` = 100,000 µ = **$0.10** |
-| Journeys | kit `38_USER_JOURNEYS.md` J1–J12 |
+Cited live families: J1–J7, J9, J10 (steer + US Code `$7.25`). J11 used the 32GB laptop’s distinct searches. J12 is unit + P0 S01 (no hosted poisoned URL).
 
-**Required authorization (exact scope):**
+**J8 private document** still needs a user-supplied attachment. This session does not invent one.
 
-- New spend identity, **not** MC-D01.
-- Live **public web**: admission → intent → public search → source read → evidence → verification → report → reopen → source inspection → correction → updated report.
-- **Amount:** at least **$1.20** (12 × $0.10). **$2.00 recommended** to cover J7 correction, J9 follow-up, J10 steering, and a new unknown-hold buffer.
-- **Plus** explicit release of the 21,658 µ MC-D01 unknown hold (or a written statement that new runs may proceed with that hold still on the ledger).
-
-Record: `verification/v6/paid-readiness/AUTHORIZATION.json`.
+Record: `verification/v8/research-beta/live/LIVE.md`.
 
 ## 2. Hosted GitHub Actions — RB-CI-01 — owner declined
 
@@ -45,6 +33,6 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 `adb devices -l` shows `10.0.0.167:43417` (`kunzite_global` / 25098RA98G) connected. Passwordless `screencap` returns a black frame (`mDreamingLockscreen=true`). Recapture of empty/dark/keyboard/report shots on a post-2eb385b APK is blocked until the device is already unlocked. Do not send unlock/keyevents. Existing visual QA remains `verification/v8/research-beta/visual-qa/` on APK `2eb385b`.
 
-## After both
+## After remaining blockers
 
-Re-run live J1–J12 and hosted CI. Merge to `main` **only if** those gates PASS. This session does not merge.
+Merge to `main` **only if** required matrix rows are PASS or genuine external blockers. This session does not merge while hosted CI is owner-declined and native recapture is lockscreen-blocked.

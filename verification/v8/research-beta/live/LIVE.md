@@ -32,12 +32,12 @@ Ledger confirmed spend is recorded in `provider_intents` (unknown holds were not
 | J7 correction | Typed 32GB correction published (see J1) | `J1-correction2.json` |
 | J8 private document | Not live: no user attachment was supplied | — |
 | J9 follow-up | `Why didn't you choose Dell?` → `explain`, `mutatesBrief: false`, parent question unchanged | `J9-followup.json` |
-| J10 steering | Mid-run `Only use official sources` → `steer`, `prefer_primary`, identities not mutated; later official fetches were unreadable | `J10-audit.json` |
+| J10 steering | Mid-run `Only use official sources` → `steer`, `prefer_primary`, identities not mutated. J10-e published cited US Code `$7.25 an hour` (`3e4eb8d8` / run `6fb90ce8`); adopted sources were dol.gov and uscode.house.gov only. | `J10-e-audit.json` |
 | J11 wide/deep | Laptop 32GB issued 3 distinct searches (not the old 3-identical-query ceiling) | `J1-32gb-b.json` |
 | J12 poisoned source | Unit + P0 S01: instruction/tool/key grants rejected. No hosted live poisoned URL. | `../logs/p0-s01-prompt-injection.txt` |
 
-Ledger used about 821k µ of the 2,000,000 µ cap after J6-b (later J10 added a small brief). Unknown holds were not retried.
+Ledger used 919,563 µ of the 2,000,000 µ cap after J10-e. Unknown holds were not retried.
 
 ## Not a live Research Beta PASS
 
-Cited reports exist for J1–J7, J9, and J10 steering. J8 needs a user private attachment. Hosted GitHub Actions is owner-declined. Physical Android recapture is blocked while `mDreamingLockscreen=true`; do not send unlock events. `main` is not merged.
+Cited reports exist for J1–J7, J9, and J10 (steering + US Code `$7.25`). J8 needs a user private attachment. Hosted GitHub Actions is owner-declined. Physical Android recapture is blocked while `mDreamingLockscreen=true`; do not send unlock events. `main` is not merged.

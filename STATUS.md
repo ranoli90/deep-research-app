@@ -1,3 +1,9 @@
+## J10 official-source cited wage report — 2026-09-19
+
+Lane `grok-v8/research-beta-integration`. Live J10-e run `6fb90ce8` published report `3e4eb8d8` (`completed_with_limitations`) after mid-run `Only use official sources` (`kind=steer`, identities not mutated). Adopted sources were dol.gov and uscode.house.gov. Owned US Code span `(C) $7.25 an hour, beginning 24 months after that 60th day;`. Ledger **919,563 µ** of the **2,000,000 µ** cap. Unknown holds not retried. **Not merged to `main`. Research Beta is not declared.**
+
+Remaining external blockers: hosted GitHub Actions owner-declined; physical Android recapture while `mDreamingLockscreen=true`; J8 needs a user private attachment.
+
 ## Live public-web grant used — 2026-09-19
 
 User authorized the OpenRouter key for a **new $2.00 public-web cap**. Isolated ledger `deep_v8_live_j12`. Confirmed spend **72,555 µ**. Azure ZDR search and source reads ran; no published report yet (`extraction_invalid_output` on a later pass). MC-D01 unknown hold **not** released. Hosted `verification.yml` still billing-locked; local equivalent ran (integration R01 timeframe assertion updated). **main not merged. Research Beta not declared.**

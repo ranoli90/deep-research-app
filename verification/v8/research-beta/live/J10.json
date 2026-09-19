@@ -2,7 +2,7 @@
   "id": "J10",
   "question": "What is the official US federal minimum wage?",
   "steer": "Only use official sources from here.",
-  "runId": "0492d7d7-9aae-46a3-850b-56d9041067e7",
+  "runId": "6fb90ce8-ba01-48bf-b4d6-85fec3d7f9ec",
   "steerResponse": {
     "http": 200,
     "kind": "steer",
@@ -17,8 +17,8 @@
   "after": {
     "lifecycle": "terminal",
     "phase": "writing",
-    "outcome": null,
-    "reportId": null
+    "outcome": "completed_with_limitations",
+    "reportId": "3e4eb8d8-69d0-4940-9bfd-bc12e51de1b9"
   },
   "eventTypes": [
     "accepted",
@@ -34,8 +34,27 @@
     "model_span_resolution",
     "evidence_checked",
     "discovery_exhausted",
-    "writing",
-    "research_unresolved"
+    "writing"
   ],
-  "reportPreview": null
+  "reportPreview": {
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "This assessment selected 105 of 207 available passages. The 102 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "texts": [
+      [
+        "heading",
+        "Answer"
+      ],
+      [
+        "text",
+        "The current federal minimum wage in the United States is $7.25 an hour."
+      ],
+      [
+        "caveat",
+        "The information provided is based on the current federal minimum wage and does not include state-specific minimum wages or historical changes."
+      ]
+    ]
+  }
 }

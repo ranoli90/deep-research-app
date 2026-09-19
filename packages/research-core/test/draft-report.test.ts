@@ -25,3 +25,16 @@ it("maps an unsupported heading to Answer so the cited paragraph can publish", (
   expect(compiled.blocks[1]).toMatchObject({ kind: "text", text: paragraph.text, citationIds: [pid] });
   expect(compiled.unresolved).toEqual([]);
 });
+
+it("does not cite a scope caveat that the wage fragment never stated", () => {
+  const heading: DraftStatement = { key: "heading_0", kind: "heading", text: "Answer", premiseKeys: ["current_minimum_wage"], assertion: null };
+  const paragraph: DraftStatement = { key: "paragraph_0_0", kind: "text", text: "The current federal minimum wage is $7.25 an hour.", premiseKeys: ["current_minimum_wage"], assertion: assertion("paragraph_0_0", "The current federal minimum wage is $7.25 an hour.") };
+  const caveat: DraftStatement = { key: "limitation_0", kind: "caveat", text: "The information provided is based on the current federal minimum wage and does not include state-specific minimum wages or historical changes.", premiseKeys: ["current_minimum_wage"], assertion: assertion("limitation_0", "The information provided is based on the current federal minimum wage and does not include state-specific minimum wages or historical changes.") };
+  const compiled = compileCheckedDraft([heading, paragraph, caveat], [
+    check("paragraph_0_0", "supported", "33333333-3333-4333-8333-333333333333"),
+    check("limitation_0", "supported", "44444444-4444-4444-8444-444444444444"),
+  ]);
+  expect(compiled.blocks.find((b)=>b.kind==="text")).toMatchObject({ text: paragraph.text, citationIds: [pid] });
+  expect(compiled.blocks.find((b)=>b.kind==="caveat")?.text).toMatch(/unresolved/i);
+  expect(compiled.unresolved).toEqual(["limitation_0"]);
+});

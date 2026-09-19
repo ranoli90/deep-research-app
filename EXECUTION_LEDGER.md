@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — J10-e cited US Code federal minimum wage
+
+- Steer `Only use official sources` persisted `prefer_primary` without mutating issued identities.
+- Run `6fb90ce8` published `3e4eb8d8`. Owned span: `(C) $7.25 an hour, beginning 24 months after that 60th day;` on uscode.house.gov 29 USC 206.
+- Adopted sources were dol.gov and uscode.house.gov only. Ledger **919,563 µ**.
+- Writer caveat about state/history is not in that span; compileCheckedDraft now refuses to cite caveats the quote does not support.
+- main not merged.
+
 ## 2026-09-19 — Live public-web path under new $2 cap
 
 - User: use OpenRouter key; run verification.yml locally (hosted still billing-locked).
