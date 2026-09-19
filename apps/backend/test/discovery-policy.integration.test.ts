@@ -12,7 +12,7 @@ import {performPublicSearch} from "../src/worker/public-search.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
 import {loadConfig} from "../src/platform/config.js";
 import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY,STRUCTURED_MODEL_POLICY} from "../src/ports/model-policy.js";
-import {discoveryPolicyForNewSearch,discoveryModelPolicy,AZURE_DISCOVERY_POLICY,DEEP_DISCOVERY_POLICY} from "../src/ports/search.js";
+import {discoveryPolicyForNewSearch,discoveryModelPolicy,AZURE_DISCOVERY_POLICY,AZURE_DEEP_DISCOVERY_POLICY,DEEP_DISCOVERY_POLICY} from "../src/ports/search.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
 beforeAll(async()=>{if(!process.env.TEST_DATABASE_URL)throw Error("Explicit isolated test database required");pool=createPool(process.env.TEST_DATABASE_URL);await migrate(pool);});
 afterEach(()=>{globalThis.fetch=originalFetch;});afterAll(async()=>{await pool.end();});
@@ -30,9 +30,12 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
   globalThis.fetch=vi.fn(async()=>envelope("Azure",brief));
   const task=await ensureResearchTask(pool,config,session,{runId,accountId:account.accountId,fence,briefRevision:1});if(task.kind!=="task")throw Error("test_task_unavailable");
   const searchPolicy=discoveryPolicyForNewSearch(policy.id),provider=discoveryModelPolicy(searchPolicy.id);
+  expect(AZURE_DISCOVERY_POLICY.maxResults).toBe(3);expect(AZURE_DISCOVERY_POLICY.id).toBe("public-discovery-azure-zdr.v2");
+  expect(searchPolicy).toEqual(AZURE_DEEP_DISCOVERY_POLICY);expect(searchPolicy.maxResults).toBe(8);
   const send=vi.fn(async(_url:Parameters<typeof fetch>[0],init?:RequestInit)=>{
    const body=JSON.parse(String(init?.body));expect(body.provider.only).toEqual([provider.provider]);
    expect(body.provider.zdr).toBe(provider.provider==="azure"?true:undefined);
+   expect(body.plugins[0]).toMatchObject({id:"web",engine:"exa",mode:"auto",max_results:8});
    return new Response(JSON.stringify({id:crypto.randomUUID(),model:provider.model,provider:provider.providerName,usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:"https://example.org/study",title:"Study",content:"Restoration findings"}}]}}]}));
   });globalThis.fetch=send;
   const args={runId,accountId:account.accountId,fence,briefRevision:1,taskId:task.task.id,proposal:{rationale:"Public evidence",action:{type:"search",query:"coral kelp restoration",questionKeys:["q1"],publicQueryBasis:span}}};
@@ -46,7 +49,7 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
   expect((await pool.query("SELECT receipt FROM provider_intents WHERE id=$1",[first.intentId])).rows[0].receipt).toEqual(originalReceipt);
   expect((await pool.query("SELECT policy_id FROM search_operations WHERE intent_id=$1",[first.intentId])).rows).toEqual([{policy_id:searchPolicy.id}]);
   const adopted=await session.write(db=>adoptSearchSources(db,{...args,intentId:first.intentId}));expect(adopted).toHaveLength(1);
-  const otherPolicy=searchPolicy.id===AZURE_DISCOVERY_POLICY.id?DEEP_DISCOVERY_POLICY:AZURE_DISCOVERY_POLICY;
+  const otherPolicy=searchPolicy.id===AZURE_DEEP_DISCOVERY_POLICY.id?DEEP_DISCOVERY_POLICY:AZURE_DEEP_DISCOVERY_POLICY;
   await pool.query("UPDATE search_operations SET policy_id=$2 WHERE intent_id=$1",[first.intentId,otherPolicy.id]);
   await expect(session.write(db=>adoptSearchSources(db,{...args,intentId:first.intentId}))).rejects.toThrow("search_result_not_adoptable");
   await pool.query("UPDATE search_operations SET policy_id=$2 WHERE intent_id=$1",[first.intentId,searchPolicy.id]);

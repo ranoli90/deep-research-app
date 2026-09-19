@@ -1,3 +1,7 @@
+## Wave 4 search/read (FP-029/FP-033) — 2026-09-19
+
+Lane `grok-v8/fix-wave4-search-read` from `72c78ea`. **Not merged to `main` or integration.** New Azure live searches use `public-discovery-azure-zdr.v3` with `max_results=8`; frozen v1/v2 stay 3. `executeSourceRead` reports finished `full-text` as readable. Focused checks: live-search unit 16/16; discovery-policy integration 2/2; model-gateway source-read/worker 9/9; backend tsc exit 0. Isolated DB `deep_wave4_sr_01a0bb2e`. No paid live search rerun. Research Beta is not declared.
+
 ## Engineering fix-pass started — 2026-09-19
 
 Audit package ingested at `verification/v8/engineering-fix-pass/` against SHA `906c00f`. **UI phase deferred.** `main` stays `8a7b1a9`. 126 findings in `ISSUE_REGISTRY.csv`. Wave 1 starts with immutable originalQuestion (FP-001/002/008). Writer `calculationKeys` no longer stripped by `selected:false` (FP-073). **Not merged to `main`. Research Beta is not declared.**

@@ -1,3 +1,19 @@
+## Wave 4 FP-029 / FP-033 — 2026-09-19
+
+Branch `grok-v8/fix-wave4-search-read` from base `72c78ea`. **Do not merge `main` or integration.**
+
+FP-029: `discoveryPolicyForNewSearch` now returns `AZURE_DEEP_DISCOVERY_POLICY` (`public-discovery-azure-zdr.v3`, `maxResults=8`). Frozen `public-discovery.v1` and `public-discovery-azure-zdr.v2` remain 3. Historical `discoveryPolicyForModel(openrouter-azure-mini-zdr-discovery-v3)` still returns v2.
+
+FP-033: `executeSourceRead` `readable` is true for `partial-text` or `full-text`; challenge proof matches. Snippet/blocked/abstract stay false.
+
+Focused evidence (isolated Postgres `deep_wave4_sr_01a0bb2e`, no paid calls):
+- `pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/live-search.unit.test.ts` exit 0, 16/16
+- `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_wave4_sr_01a0bb2e` discovery-policy.integration.test.ts exit 0, 2/2
+- model-gateway.integration.test.ts `-t executeSourceRead marks finished|production worker reads discovered|production worker completes after executeSourceRead|persists read provenance` exit 0, 9 passed / 137 skipped
+- `pnpm --filter @deep/backend exec tsc -p tsconfig.json --noEmit` exit 0
+
+Rollback: stop new Azure v3 discovery admissions; keep v1/v2/v3 readers and the readable-access predicate.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.

@@ -9,6 +9,8 @@ export const DISCOVERY_RESERVE_MICRO=STRUCTURED_CALL_RESERVE_MICRO+DISCOVERY_POL
 /** Attempt reserve for a single search: Exa fee plus a small generation bound, not the full 128k-token ceiling. */
 export const DISCOVERY_ATTEMPT_RESERVE_MICRO=DISCOVERY_POLICY.searchFeeMicro+2_000;
 export const AZURE_DISCOVERY_POLICY={...DISCOVERY_POLICY,id:"public-discovery-azure-zdr.v2",observedAt:"2026-09-18"} as const;
+/** New Azure ZDR searches: v3 result bound. Frozen v2 request bytes stay at maxResults=3. */
+export const AZURE_DEEP_DISCOVERY_POLICY={...AZURE_DISCOVERY_POLICY,id:"public-discovery-azure-zdr.v3",maxResults:8,observedAt:"2026-09-19"} as const;
 /** Existing text policies retain their original discovery identity, including Azure text-only runs. */
 export function discoveryPolicyForModel(modelPolicyId:unknown=STRUCTURED_MODEL_POLICY.id) {
  const policy=modelPolicy(modelPolicyId);
@@ -17,18 +19,20 @@ export function discoveryPolicyForModel(modelPolicyId:unknown=STRUCTURED_MODEL_P
 /** New search attempts: v3 result bound. Replay of issued v1/v2 identities still uses discoveryPolicy(). */
 export function discoveryPolicyForNewSearch(modelPolicyId:unknown=STRUCTURED_MODEL_POLICY.id) {
  const admitted=modelPolicy(modelPolicyId);
- if(admitted.provider==="azure") return AZURE_DISCOVERY_POLICY;
+ if(admitted.provider==="azure") return AZURE_DEEP_DISCOVERY_POLICY;
  const mapped=discoveryPolicyForModel(modelPolicyId);
  return mapped.id===DISCOVERY_POLICY.id?DEEP_DISCOVERY_POLICY:mapped;
 }
 export function discoveryPolicy(id:unknown=DISCOVERY_POLICY.id) {
  if(id===DISCOVERY_POLICY.id)return DISCOVERY_POLICY;
  if(id===AZURE_DISCOVERY_POLICY.id)return AZURE_DISCOVERY_POLICY;
+ if(id===AZURE_DEEP_DISCOVERY_POLICY.id)return AZURE_DEEP_DISCOVERY_POLICY;
  if(id===DEEP_DISCOVERY_POLICY.id)return DEEP_DISCOVERY_POLICY;
  throw Error("unsupported_discovery_policy");
 }
 export function discoveryModelPolicy(id:unknown=DISCOVERY_POLICY.id) {
- return discoveryPolicy(id).id===AZURE_DISCOVERY_POLICY.id?AZURE_ZDR_MODEL_POLICY:STRUCTURED_MODEL_POLICY;
+ const discovery=discoveryPolicy(id);
+ return discovery.id===AZURE_DISCOVERY_POLICY.id||discovery.id===AZURE_DEEP_DISCOVERY_POLICY.id?AZURE_ZDR_MODEL_POLICY:STRUCTURED_MODEL_POLICY;
 }
 const PublicUrl=z.string().url().max(4000).refine((s)=>{const u=new URL(s);return ["https:","http:"].includes(u.protocol)&&!u.username&&!u.password;});
 export const SearchResultSchema=z.object({hits:z.array(z.object({locator:PublicUrl,title:z.string().max(4000),publisher:z.string().max(4000),

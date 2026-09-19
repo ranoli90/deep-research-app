@@ -1,7 +1,7 @@
 import { afterEach,describe,it,expect,vi } from "vitest";
 import { liveWebSearch } from "../src/adapters/retrieval/live-web.js";
 import { loadConfig } from "../src/platform/config.js";
-import {DISCOVERY_POLICY,DEEP_DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,discoveryPolicyForModel,discoveryPolicyForNewSearch,pinnedSearchBody,publicSearchDigest} from "../src/ports/search.js";
+import {DISCOVERY_POLICY,DEEP_DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,AZURE_DEEP_DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,discoveryPolicyForModel,discoveryPolicyForNewSearch,pinnedSearchBody,publicSearchDigest} from "../src/ports/search.js";
 import {STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY} from "../src/ports/model-policy.js";
 const original=globalThis.fetch;afterEach(()=>{globalThis.fetch=original;});
 const config=loadConfig({DATABASE_URL:"postgres://localhost/test",OPENROUTER_API_KEY:"test-only",LIVE_SPEND_CAP_MICRO:"1000000"});
@@ -19,15 +19,22 @@ describe("W02/W05 bounded search transport",()=>{
  });
  it("issues new searches under v3 with a bounded result count above the historical three",()=>{
   expect(discoveryPolicyForNewSearch(STRUCTURED_MODEL_POLICY.id)).toEqual(DEEP_DISCOVERY_POLICY);
-  expect(discoveryPolicyForNewSearch(AZURE_ZDR_MODEL_POLICY.id)).toEqual(AZURE_DISCOVERY_POLICY);
-  expect(pinnedSearchBody("restoration",discoveryPolicyForNewSearch(AZURE_ZDR_MODEL_POLICY.id).id).provider).toMatchObject({only:["azure"],zdr:true});
+  for(const policy of [AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY]){
+   expect(discoveryPolicyForNewSearch(policy.id)).toEqual(AZURE_DEEP_DISCOVERY_POLICY);
+  }
+  const azureBody=pinnedSearchBody("restoration",discoveryPolicyForNewSearch(AZURE_ZDR_MODEL_POLICY.id).id);
+  expect(azureBody.provider).toMatchObject({only:["azure"],zdr:true});
+  expect(azureBody.plugins[0]).toMatchObject({id:"web",engine:"exa",mode:"auto",max_results:8});
   expect(DEEP_DISCOVERY_POLICY.maxResults).toBe(8);
+  expect(AZURE_DEEP_DISCOVERY_POLICY.maxResults).toBe(8);
   expect(DISCOVERY_POLICY.maxResults).toBe(3);
   expect(AZURE_DISCOVERY_POLICY.maxResults).toBe(3);
+  expect(pinnedSearchBody("restoration",DISCOVERY_POLICY.id).plugins[0]?.max_results).toBe(3);
+  expect(pinnedSearchBody("restoration",AZURE_DISCOVERY_POLICY.id).plugins[0]?.max_results).toBe(3);
   const body=pinnedSearchBody("restoration",DEEP_DISCOVERY_POLICY.id);
   expect(body.plugins[0]).toMatchObject({id:"web",engine:"exa",mode:"auto",max_results:8});
   expect(publicSearchDigest("restoration",DEEP_DISCOVERY_POLICY.id)).not.toBe(publicSearchDigest("restoration",DISCOVERY_POLICY.id));
-  expect(pinnedSearchBody("restoration",DISCOVERY_POLICY.id).plugins[0]?.max_results).toBe(3);
+  expect(publicSearchDigest("restoration",AZURE_DEEP_DISCOVERY_POLICY.id)).not.toBe(publicSearchDigest("restoration",AZURE_DISCOVERY_POLICY.id));
  });
  it("pins new discovery to Azure ZDR with unchanged public plugin and reserve",async()=>{
   const policy=discoveryPolicyForModel(AZURE_ZDR_DISCOVERY_POLICY.id),body=pinnedSearchBody("restoration",policy.id);
@@ -35,6 +42,17 @@ describe("W02/W05 bounded search transport",()=>{
   expect(body).toMatchObject({max_completion_tokens:1024,provider:{only:["azure"],zdr:true,allow_fallbacks:false,require_parameters:true,data_collection:"deny",max_price:{prompt:0.15,completion:0.6,request:0}},plugins:[{id:"web",engine:"exa",mode:"auto",max_results:3}]});
   expect(body).not.toHaveProperty("max_tokens");expect(body.messages.at(-1)?.content).toBe("restoration");
   expect(publicSearchDigest("restoration",policy.id)).not.toBe(publicSearchDigest("restoration"));
+  transport({...envelope,provider:"Azure"});
+  const result=await liveWebSearch("restoration",config,undefined,45000,true,policy.id);
+  expect(result.receipt).toMatchObject({state:"confirmed",actualMicro:2,route:`openrouter:${policy.model}:${policy.id}`,requestDigest:publicSearchDigest("restoration",policy.id)});
+  expect(JSON.parse(String(vi.mocked(fetch).mock.calls[0]![1]!.body))).toEqual(body);
+ });
+ it("pins new Azure ZDR searches to v3 with max_results=8 while frozen v2 stays 3",async()=>{
+  const policy=discoveryPolicyForNewSearch(AZURE_ZDR_DISCOVERY_POLICY.id),body=pinnedSearchBody("restoration",policy.id);
+  expect(policy).toEqual(AZURE_DEEP_DISCOVERY_POLICY);
+  expect(discoveryPolicyForModel(AZURE_ZDR_DISCOVERY_POLICY.id)).toEqual(AZURE_DISCOVERY_POLICY);
+  expect(body).toMatchObject({max_completion_tokens:1024,provider:{only:["azure"],zdr:true,allow_fallbacks:false,require_parameters:true,data_collection:"deny"},plugins:[{id:"web",engine:"exa",mode:"auto",max_results:8}]});
+  expect(pinnedSearchBody("restoration",AZURE_DISCOVERY_POLICY.id).plugins[0]?.max_results).toBe(3);
   transport({...envelope,provider:"Azure"});
   const result=await liveWebSearch("restoration",config,undefined,45000,true,policy.id);
   expect(result.receipt).toMatchObject({state:"confirmed",actualMicro:2,route:`openrouter:${policy.model}:${policy.id}`,requestDigest:publicSearchDigest("restoration",policy.id)});
