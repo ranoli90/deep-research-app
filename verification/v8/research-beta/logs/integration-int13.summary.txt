@@ -1,0 +1,10 @@
+ Test Files  41 passed (41)
+      Tests  505 passed (505)
+ ✓ test/v6-ingestion.integration.test.ts (1 test) 307ms
+ ✓ test/pinned-http.integration.test.ts (3 tests) 102ms
+
+ Test Files  41 passed (41)
+      Tests  505 passed (505)
+   Start at  15:31:29
+   Duration  1025.39s (transform 3.26s, setup 0ms, import 17.06s, tests 1000.65s, environment 7ms)
+

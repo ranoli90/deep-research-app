@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Full PG twice at d88cf62
+
+- SHA `d88cf6265303149ba002c224af57f9e6a466c2cc`. Isolated Postgres 127.0.0.1:55432. Fabricated OpenRouter. No live spend.
+- `deep_v8_int13`: `pnpm --filter @deep/backend test:integration` exit 0, **505/505**, 1025.39s. Summary `verification/v8/research-beta/logs/integration-int13.summary.txt`.
+- `deep_v8_int14`: same command exit 0, **505/505**, 997.56s. Summary `verification/v8/research-beta/logs/integration-int14.summary.txt`.
+- `RB-TEST-02` PASS at this SHA. Not live. Not native. Not merged to main.
+
 ## 2026-09-19 — Full PG int12 501/4/505
 
 - SHA `6280f95`. Isolated `postgres://127.0.0.1:55432/deep_v8_int12`. Fabricated transport. No live spend.

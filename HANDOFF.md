@@ -1,3 +1,7 @@
+## Full PG twice — 2026-09-19
+
+SHA `d88cf62`. `deep_v8_int13` and `deep_v8_int14` both **505/505 EXIT 0**. `RB-TEST-02` PASS. **Do not merge `main`.** Research Beta is not declared.
+
 ## Wave 1 briefs port — 2026-09-19
 
 Ported A–E onto current integration (not a `git merge` of `grok-v8/fix-wave1-briefs`). Keep Wave 3 unclassified default. Confirmed geography is `userPublicTerms` / `confirmedConstraints`. Indiana production continue 1/1 on `deep_v8_wave1_port`. **Do not merge `main`.** Residual: continue still overwrites the same brief revision.

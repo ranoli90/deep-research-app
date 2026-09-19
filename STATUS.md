@@ -1,3 +1,12 @@
+## Full PG twice at d88cf62 — 2026-09-19
+
+`grok-v8/research-beta-integration` SHA `d88cf62`. Isolated fabricated-transport PG:
+
+- `deep_v8_int13` **505/505 EXIT 0** (1025s)
+- `deep_v8_int14` **505/505 EXIT 0** (998s)
+
+`RB-TEST-02` is PASS at this SHA. **Not merged to `main`.** Research Beta is **not** declared (live journeys, native IME, visual overhaul, and remaining matrix FAILs remain).
+
 ## Full PG int12 — 2026-09-19
 
 SHA `6280f95` isolated `deep_v8_int12`: **501 passed / 4 failed / 505**. Failures were Wave 5 per-conclusion challenge adding a second plugin search in the counterevidence crash test (target preservation still held). Test updated to allow bounded extra challenge searches and require a `conclusion_challenges` row. **Not merged to `main`.** Research Beta is not declared.
