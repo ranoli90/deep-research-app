@@ -2,7 +2,7 @@ import { restoreEvidenceSelection } from "./evidence-selections.js";
 import { z } from "zod";
 import type { Queryable } from "../platform/db.js";
 import { MODEL_CONTEXT_MAX_PASSAGES, ModelContextSchema } from "../ports/model.js";
-import { briefContext, loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
+import { briefContext, confirmedConstraints, loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 import { getBrief, getRun } from "./runs.js";
 const Selection = z.array(z.string().uuid()).min(1).max(MODEL_CONTEXT_MAX_PASSAGES).refine((ids) => new Set(ids).size === ids.length);
 export async function loadAssertionEvidence(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;taskId:string;passageIds:string[];selectionId?:string},versions:TaskModelVersions) {
@@ -26,7 +26,7 @@ export async function loadAssertionEvidence(db:Queryable,args:{runId:string;acco
       WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3
         AND v.account_id=$2 AND s.account_id=$2 ORDER BY p.id`,[ids,args.accountId,args.runId]);
     if (rows.rowCount !== ids.length) throw new Error("extraction_evidence_owner_mismatch");
-    const context = ModelContextSchema.safeParse({ ...briefContext(brief.originalQuestion),task:task.specification,...(selection?{evidenceSelection:selection.context}:{}),
+    const context = ModelContextSchema.safeParse({ ...briefContext(brief.originalQuestion, confirmedConstraints(brief.constraints)),task:task.specification,...(selection?{evidenceSelection:selection.context}:{}),
       passages:rows.rows.map((p) => ({ id:p.id,sourceVersionId:p.version,digest:p.digest,text:p.text,accessLevel:p.access })),
       sources:[...new Map(rows.rows.map((p) => [p.source,{ handle:p.source,title:p.title }])).values()] });
     if (!context.success) return { kind:"blocked" as const, blocked:"extraction_context_unavailable" as const };

@@ -28,6 +28,31 @@ describe("query provenance classification", () => {
     expect(auth.query.toLowerCase()).not.toContain("foobarzorp");
   });
 
+  it("treats confirmed geography as user-public without rewriting the question", () => {
+    const filing = "What is the filing deadline for employment tax?";
+    const terms = classifyQueryTerms({
+      question: filing,
+      query: `${filing} indiana`,
+      userPublicTerms: ["indiana"],
+    });
+    expect(terms.find((t) => t.token === "indiana")?.provenance).toBe("user-public");
+    expect(terms.every((t) => t.provenance !== "unclassified")).toBe(true);
+    const auth = authorizePublicQuery({
+      question: filing,
+      query: `${filing} indiana`,
+      userPublicTerms: ["indiana"],
+    });
+    expect(auth.kind).toBe("authorized");
+    expect(auth.query.toLowerCase()).toContain("indiana");
+    const invented = authorizePublicQuery({
+      question: filing,
+      query: `${filing} indiana foobarzorp`,
+      userPublicTerms: ["indiana"],
+    });
+    expect(invented.kind).toBe("blocked");
+    expect(invented.reason).toBe("unclassified_query_terms");
+  });
+
   it("allows a public-evidence-derived term with provenance", () => {
     const terms = classifyQueryTerms({
       question,

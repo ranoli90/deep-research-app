@@ -1,3 +1,7 @@
+## Wave 1 briefs port — 2026-09-19
+
+Ported A–E onto current integration (not a `git merge` of `grok-v8/fix-wave1-briefs`). Keep Wave 3 unclassified default. Confirmed geography is `userPublicTerms` / `confirmedConstraints`. Indiana production continue 1/1 on `deep_v8_wave1_port`. **Do not merge `main`.** Residual: continue still overwrites the same brief revision.
+
 ## Wave 7 public activity — 2026-09-19
 
 Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto integration after review. **Do not merge `main`.** `/events` is `public-activity.v1`; schema-fail phase is canned `researching`; RFC1918/`.internal` hosts stripped. **FP-085 not closed.** Worker-local ADR067 remapped to ADR072.

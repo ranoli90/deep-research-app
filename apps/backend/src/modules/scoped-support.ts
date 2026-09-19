@@ -16,7 +16,7 @@ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 export type CheckedAssertion=ScopedSupportResult & {claimId:string;claimRevisionId:string};
 export type SupportContext={context:ModelContext;evidenceRevision:number;premiseRevisionIds?:Record<string,string[]>;claimType?:"inference"};
 export type SupportArgs={runId:string;accountId:string;briefRevision:number;taskId:string;extractionIntentId:string};
-const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v5"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
+const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v2","model-input.v3","model-input.v4","model-input.v5","model-input.v6"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
 const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
 

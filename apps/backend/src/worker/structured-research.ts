@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
 import { loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
 import { executeConclusionChallenges } from "./conclusion-challenges.js";
@@ -24,6 +24,14 @@ import { performPublicSearch } from "./public-search.js";
 import { executeSourceRead } from "./source-reading.js";
 import { adoptSearchSources } from "../modules/search-sources.js";
 import { writeResearchReport } from "./research-writer.js";
+
+function confirmedDiscoveryQuery(brief:{originalQuestion:string;constraints:{field:string;value:string;origin?:string}[]},query:string) {
+  return withConfirmedPublicQueryTerms(query,brief.constraints);
+}
+function confirmedDiscoverySearch<T extends {action:{type:string;query?:string}}>(brief:{originalQuestion:string;constraints:{field:string;value:string;origin?:string}[]},proposal:T):T {
+  if(proposal.action.type!=="search"||typeof proposal.action.query!=="string")return proposal;
+  return {...proposal,action:{...proposal.action,query:confirmedDiscoveryQuery(brief,proposal.action.query)}};
+}
 
 /** Production structured path. No fixture catalog, scenario composer or event-as-verification fallback. */
 export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,session:FencedSession,
@@ -105,11 +113,14 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const prepared=await ensureResearchTask(pool,config,session,args);
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
   const runPublicSearch=async(proposal:unknown,sourceClass?:SourceClass)=>{
+    const expanded=proposal&&typeof proposal==="object"&&"action" in proposal
+      ?confirmedDiscoverySearch(brief,proposal as {action:{type:string;query?:string}})
+      :proposal;
     try {
-      return await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal,sourceClass});
+      return await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:expanded,sourceClass});
     } catch(error) {
       if(!(error instanceof Error)||error.message!=="document_search_requires_public_query_approval")throw error;
-      const query=typeof proposal==="object"&&proposal&&"action" in proposal?String((proposal as {action?:{query?:string}}).action?.query??brief.originalQuestion):brief.originalQuestion;
+      const query=typeof expanded==="object"&&expanded&&"action" in expanded?String((expanded as {action?:{query?:string}}).action?.query??brief.originalQuestion):brief.originalQuestion;
       const pause=await pauseForQueryApproval(query);
       if(pause==="blocked")return {kind:"blocked" as const,reason:"unapproved_public_query_terms"};
       return {kind:"paused" as const};
@@ -176,14 +187,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     const openingPlan=planSourceClass(brief.originalQuestion);
-    const alreadyOpened=queries.some((q)=>sameQuery(q,brief.originalQuestion));
+    const openingQuery=confirmedDiscoveryQuery(brief,brief.originalQuestion);
+    const alreadyOpened=queries.some((q)=>sameQuery(q,brief.originalQuestion)||sameQuery(q,openingQuery));
     if(!alreadyOpened){
       classesAttempted.push(openingPlan.primary);
-      queries.push(brief.originalQuestion);
+      queries.push(openingQuery);
       await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
         summary:"Searching public sources.",payload:{count:queries.length}}));
       const search=await runPublicSearch({
-        rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
+        rationale:"Find public evidence for the original research question.",action:{type:"search",query:openingQuery,questionKeys,
           publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}},openingPlan.primary);
       if(search.kind==="paused")return;
       if(search.kind==="pending")return pendingOrBlocked(search);
@@ -234,7 +246,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         // Official/specialized classes may pivot once onto an unused fallback (blocked regulator pages).
         if((next.kind==="search"||(plan.primary!=="generic-web"&&!classAlreadyUsed))&&queries.length<DEEP_DISCOVERY_CEILING){
           classesAttempted.push(nextClass);
-          queries.push(proposal.action.query);
+          queries.push(confirmedDiscoveryQuery(brief,proposal.action.query));
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
             summary:"Full pages were blocked; searching a different source class.",payload:{reason:"readable_evidence_unavailable",sourceClass:nextClass}}));
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
@@ -278,7 +290,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
           unresolvedCriterionKeys:prepared.task.specification.criteria.map((c)=>c.key),queries,ceiling:DEEP_DISCOVERY_CEILING});
         if(next.kind==="search"){
           const sourceClass=planSourceClass(brief.originalQuestion).primary;
-          queries.push(next.proposal.action.query);
+          queries.push(confirmedDiscoveryQuery(brief,next.proposal.action.query));
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
             summary:"Searching public sources.",payload:{count:queries.length}}));
           const search=await runPublicSearch(next.proposal,sourceClass);

@@ -6,13 +6,31 @@ export function saturationReached(searches: SearchTrace[]): boolean {
   return last.every((s) => s.newFamilies === 0 && !s.coverageProgress);
 }
 
+/** Geography/jurisdiction values that may enter a public query without rewriting originalQuestion. */
+export function confirmedPublicQueryTerms(constraints: { field: string; value: string; origin?: string }[]): string[] {
+  const terms: string[] = [];
+  for (const c of constraints) {
+    if (c.origin !== "confirmed") continue;
+    if (c.field !== "geography" && c.field !== "jurisdiction") continue;
+    const value = String(c.value ?? "").trim();
+    if (value && !terms.some((t) => t.toLowerCase() === value.toLowerCase())) terms.push(value);
+  }
+  return terms;
+}
+
+/** Append confirmed geography to a query. publicQueryBasis stays an exact original-question span. */
+export function withConfirmedPublicQueryTerms(query: string, constraints: { field: string; value: string; origin?: string }[]): string {
+  let out = query;
+  for (const value of confirmedPublicQueryTerms(constraints)) {
+    if (out.toLowerCase().includes(value.toLowerCase())) continue;
+    out = `${out} ${value}`;
+  }
+  return out;
+}
+
 /** Confirmed geography must appear in the public query so discovery cannot silently reuse another country's fixture. */
 export function queryWithGeography(state: ControllerState, query: string): string {
-  const geo = state.constraints.find((c) => c.field === "geography");
-  const value = geo ? String(geo.value).trim() : "";
-  if (!value) return query;
-  if (query.toLowerCase().includes(value.toLowerCase())) return query;
-  return `${query} ${value}`;
+  return withConfirmedPublicQueryTerms(query, state.constraints);
 }
 
 export function independentClusterCount(sources: { originCluster?: string; id: string }[]): number {

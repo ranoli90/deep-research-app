@@ -16,6 +16,7 @@ import {
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
+  constraintFromClarificationAnswer,
   extractConstraints,
   impactForCorrection,
   inferOutputPreference,
@@ -310,31 +311,30 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!answers.length) {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
-    const brief = await getBrief(pool, run.brief_id);
-    for (const answer of answers) {
-      brief.constraints = [
-        ...brief.constraints.filter((c) => c.field !== answer.field),
-        {
-          id: `${answer.field}-${answer.value.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`,
-          field: answer.field,
-          operator: "eq",
-          value: answer.value.toLowerCase(),
-          origin: "confirmed",
-          importance: "hard",
-          explanation: "Supplied after clarification",
-        },
-      ];
-      if (answer.field === "geography" && !new RegExp(`\\b${answer.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(brief.originalQuestion)) {
-        brief.originalQuestion = `${brief.originalQuestion.replace(/\s*\?+\s*$/u, "")} in ${answer.value}?`;
-      }
+    const parsedAnswers = answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
+    if (parsedAnswers.some((row) => !row.ok)) {
+      return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
+    const brief = await getBrief(pool, run.brief_id);
+    const originalQuestion = brief.originalQuestion;
+    let constraints = [...brief.constraints];
+    for (const parsed of parsedAnswers) {
+      if (!parsed.ok) continue;
+      constraints = [...constraints.filter((c) => c.field !== parsed.constraint.field), parsed.constraint];
+    }
+    const nextBrief = { ...brief, originalQuestion, constraints };
     await withTx(pool, async (db) => {
     await lockActiveAccount(db, a.accountId);
     const current = await getRun(db, id, { forUpdate: true });
     if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== run.brief_revision) {
       throw Object.assign(new Error("This run is no longer waiting for this input."), { statusCode: 409 });
     }
-    await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify(brief)]);
+    const written = await db.query(
+      `UPDATE research_briefs SET payload = $2 WHERE id = $1 AND original_question = $3`,
+      [brief.id, JSON.stringify(nextBrief), originalQuestion],
+    );
+    if (written.rowCount !== 1) throw Object.assign(new Error("original_question_mismatch"), { statusCode: 409 });
+    await db.query(`DELETE FROM research_tasks WHERE run_id = $1 AND brief_revision = $2`, [id, current.brief_revision]);
     await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
     await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
       ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,

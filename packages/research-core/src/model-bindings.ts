@@ -1,6 +1,8 @@
 import { ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { confirmedPublicQueryTerms } from "./policy.js";
 type Context = {
   question: string; task: ResearchModelOutput<"brief"> | null;
+  confirmedConstraints?: { field: string; value: string; origin?: string }[];
   passages: { id: string; text: string }[]; sources: { handle: string }[];
   assertions: ResearchModelOutput<"extract_assertions">["assertions"]; approvedClaimKeys: string[];
   calculations?:{entries:{key:string;selected:boolean}[]};
@@ -88,8 +90,11 @@ export function validateModelBindings(operation: ResearchModelOperation, raw: un
     const action = (raw as ResearchModelOutput<"propose_action">).action;
     if (action.type === "search") {
       span(action.publicQueryBasis, context.question); known(action.questionKeys, questions);
-      // No terms from document text may be silently introduced into public search.
+      // Question-span tokens plus server-owned confirmed geography. Never treat constraint text as a question span.
       const words = new Set(action.publicQueryBasis.quote.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []);
+      for (const term of confirmedPublicQueryTerms(context.confirmedConstraints ?? [])) {
+        for (const w of term.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []) words.add(w);
+      }
       if (!(action.query.match(/[\p{L}\p{N}]+/gu)?.length) || (action.query.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []).some((w) => !words.has(w))) errors.add("unapproved_public_query_terms");
     } else if (action.type === "fetch") { known([action.sourceHandle], new Set(context.sources.map((s) => s.handle))); known(action.questionKeys, questions); }
     else if (action.type === "assess_support") known(action.claimKeys, assertions);

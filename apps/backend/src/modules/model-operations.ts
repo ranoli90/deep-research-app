@@ -4,7 +4,7 @@ import { compareAssertionScopes, projectScopeComparison } from "@deep/research-c
 import { createHash } from "node:crypto";
 import type { Queryable } from "../platform/db.js";
 import type { ModelContext, PreparedModelRequest, ModelResult } from "../ports/model.js";
-import type { ResearchModelOperation } from "@deep/contracts";
+import { ConstraintSchema, type ResearchModelOperation } from "@deep/contracts";
 import { getBrief, getRun } from "./runs.js";
 
 export async function validateOwnedModelContext(db: Queryable, args: {
@@ -27,6 +27,16 @@ export async function validateOwnedModelContext(db: Queryable, args: {
   }
   const brief = await getBrief(db, run.brief_id);
   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
+  if (args.context.confirmedConstraints !== undefined) {
+    const identity = (rows: unknown) => JSON.stringify(ConstraintSchema.array().parse(rows ?? []).map((c) => ({
+      id: c.id, field: c.field, operator: c.operator, value: c.value, units: c.units ?? null,
+      origin: c.origin, importance: c.importance, explanation: c.explanation,
+      appliesTo: c.appliesTo ?? null, provenance: c.provenance ?? null,
+    })));
+    if (identity(brief.constraints.filter((c) => c.origin === "confirmed")) !== identity(args.context.confirmedConstraints)) {
+      throw new Error("model_confirmed_constraints_mismatch");
+    }
+  }
   for (const p of args.context.passages) {
     if (createHash("sha256").update(p.text).digest("hex") !== p.digest) throw new Error("model_evidence_digest_mismatch");
   }
@@ -117,10 +127,12 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 /** Metadata only: exact selected membership, never a claim of full-document coverage. */
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-  return { version:context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  const confirmed = ConstraintSchema.array().parse(context.confirmedConstraints ?? []);
+  return { version:confirmed.length?"model-input.v6":context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
     approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
+    ...(confirmed.length?{confirmedConstraintsDigest:digest(confirmed)}:{}),
     ...(context.evidenceSelection?{evidenceSelection:context.evidenceSelection}:{}),
     ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}),
     ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}) };

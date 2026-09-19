@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 1 briefs ported onto integration
+
+- Not a wholesale merge of `grok-v8/fix-wave1-briefs` (review REJECT on overlap with Wave 3 query-provenance.v2).
+- Ported: immutable `/continue` originalQuestion, Manifest v1–v6, confirmed geography on public query, `userPublicTerms` into v2 unclassified fail-close, `getBrief` column/payload mismatch fail-close.
+- Isolated PG `deep_v8_wave1_port`: brief-continue 4/4; Indiana production 1/1. research-core 291/291. Wave 5 intelligence still 3/3 on `deep_v8_wave5_merge`.
+- Residual: same `brief_revision` mutated in place. Not merged to main.
+
 ## 2026-09-19 — Wave 7 public activity merged to integration
 
 - Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto `grok-v8/research-beta-integration`. main stays `8a7b1a9`.

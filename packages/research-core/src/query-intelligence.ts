@@ -136,8 +136,9 @@ export function classifyQueryTerms(args: {
   sourceTextBait?: string;
   approvedPrivateTerms?: readonly string[];
   safeApplicationTerms?: readonly ClassifiedTerm[];
+  userPublicTerms?: readonly string[];
 }): ClassifiedTerm[] {
-  const question = setOf(args.question);
+  const question = new Set([...setOf(args.question), ...setOf((args.userPublicTerms ?? []).join(" "))]);
   const document = setOf(args.privateDocumentText);
   const publicEvidence = setOf(args.publicEvidenceText);
   const bait = setOf(args.sourceTextBait);
@@ -209,6 +210,7 @@ export function authorizePublicQuery(args: {
   privateCanaries?: readonly string[];
   sourceClass?: string;
   expand?: boolean;
+  userPublicTerms?: readonly string[];
 }): QueryAuthorization {
   const leak = queryLeaksPrivate(args.query, [...(args.privateCanaries ?? [])]);
   const publicBase = unique(tokenizeQuery(args.question)).join(" ");
@@ -241,7 +243,7 @@ export function authorizePublicQuery(args: {
     .map((t) => t.token);
   const unclassified = terms.filter((t) => t.provenance === "unclassified").map((t) => t.token);
   const bait = setOf(args.sourceTextBait);
-  const question = setOf(args.question);
+  const question = new Set([...setOf(args.question), ...setOf((args.userPublicTerms ?? []).join(" "))]);
   if ([...bait].some((t) => tokenizeQuery(expandedQuery).includes(t) && !question.has(t) && !isCanonicalPublicTerm(t))) {
     return {
       kind: "blocked",

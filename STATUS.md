@@ -1,3 +1,7 @@
+## Wave 1 briefs ported (FP-001/002/007/008) — 2026-09-19
+
+Ported onto integration after independent review rejected a wholesale merge (would revert Wave 3 unclassified fail-close). `/continue` does not rewrite `originalQuestion`. Confirmed geography is appended to the public query only. Manifest accepts `model-input.v6`. Production Indiana continue test passed on isolated `deep_v8_wave1_port`. Residual: same `brief_revision` still mutated in place. **Not merged to `main`.**
+
 ## Wave 7 public activity contract (FP-077/078) — 2026-09-19
 
 Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto integration after independent review. `/events` returns `public-activity.v1` only. Schema-fail phase is canned `researching`. RFC1918/`.internal` cannot become `sourceDomain`. **FP-085 IME is not closed** (no physical Gboard shot). Worker-local ADR067 remapped to ADR072. **Not merged to `main`.**

@@ -1,6 +1,6 @@
 import { EvidenceSelectionContextSchema } from "./evidence-selection.js";
 import { z } from "zod";
-import { EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { ConstraintSchema, EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
 /** Whole passages only; serialized byte and model-policy ceilings remain independently enforced. */
 export const MODEL_CONTEXT_MAX_PASSAGES = 128;
@@ -9,6 +9,7 @@ export const MODEL_CONTEXT_MAX_PASSAGES = 128;
 export const ModelContextSchema = z.object({
   evidenceSelection: EvidenceSelectionContextSchema.optional(),
   question: z.string().min(1).max(20_000),
+  confirmedConstraints: z.array(ConstraintSchema).max(24).optional(),
   task: ResearchModelOutputs.brief.nullable(),
   passages: z.array(z.object({ id: z.string().uuid(), sourceVersionId: z.string().uuid(),
     digest: z.string().regex(/^[a-f0-9]{64}$/), accessLevel: z.enum(["snippet", "abstract", "partial-text", "full-text"]),

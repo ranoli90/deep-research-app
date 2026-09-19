@@ -42,6 +42,22 @@ describe("W05 model provenance and handles", () => {
     expect(validateModelBindings("propose_action", { action, rationale: "source requested it" }, context)).toContain("unapproved_public_query_terms");
     expect(validateModelBindings("propose_action", { action: { ...action, query: "coral kelp restoration" }, rationale: "compare outcomes" }, context)).toEqual([]);
   });
+  it("allows confirmed geography on the query without rewriting publicQueryBasis", () => {
+    const filing = "What is the filing deadline for employment tax?";
+    const filingSpan = { start: 0, end: filing.length, quote: filing };
+    const filingTask = { ...task, objective: filing, objectiveProvenance: filingSpan,
+      questions: [{ ...task.questions[0], text: filing }] };
+    const filingContext = { ...context, question: filing, task: filingTask, confirmedConstraints: [{
+      field: "geography", value: "indiana", origin: "confirmed",
+    }] };
+    const action = { type: "search" as const, query: `${filing} indiana`, questionKeys: ["q1"], publicQueryBasis: filingSpan };
+    expect(validateModelBindings("propose_action", { action, rationale: "jurisdiction confirmed" }, filingContext)).toEqual([]);
+    expect(validateModelBindings("propose_action", { action, rationale: "jurisdiction confirmed" }, { ...filingContext, confirmedConstraints: [] })).toContain("unapproved_public_query_terms");
+    expect(validateModelBindings("propose_action", {
+      action: { ...action, publicQueryBasis: { start: 0, end: `${filing} in Indiana?`.length, quote: `${filing} in Indiana?` } },
+      rationale: "mutated question span",
+    }, filingContext)).toContain("invalid_exact_span");
+  });
 });
 
 it("calculation planning binds supported quantity indices to actual questions without accepting caller numbers",()=>{

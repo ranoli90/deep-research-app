@@ -328,6 +328,7 @@ export function authorizeDiscoveryQuery(args: {
   approvedPrivateTerms?: string[];
   privateCanaries?: string[];
   sourceClass?: SourceClass;
+  userPublicTerms?: string[];
 }): QueryAuthorization {
   const plan = planSourceClass(args.question);
   return authorizePublicQuery({
@@ -338,6 +339,7 @@ export function authorizeDiscoveryQuery(args: {
     privateCanaries: args.privateCanaries,
     sourceClass: args.sourceClass ?? plan.primary,
     expand: true,
+    userPublicTerms: args.userPublicTerms,
   });
 }
 

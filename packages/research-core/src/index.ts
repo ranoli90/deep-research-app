@@ -73,3 +73,9 @@ export {
   MATERIAL_FIELD_PROMPTS,
   extraMaterialClarifications,
 } from "./clarification-fields.js";
+export {
+  constraintFromClarificationAnswer,
+  isTypedClarificationField,
+  type ClarificationAnswerResult,
+  type TypedClarificationField,
+} from "./clarification-answer.js";

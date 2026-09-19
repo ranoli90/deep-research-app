@@ -1,7 +1,7 @@
 import {runModelVersions} from "../modules/run-model-policy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
-import { adoptResearchTask, briefContext, type ResearchTask } from "../modules/research-tasks.js";
+import { adoptResearchTask, briefContext, confirmedConstraints, type ResearchTask } from "../modules/research-tasks.js";
 import { getBrief, getRun } from "../modules/runs.js";
 import type { FencedSession } from "./fenced-session.js";
 import { STRUCTURED_MODEL_POLICY } from "../adapters/model/policy.js";
@@ -24,7 +24,7 @@ export async function ensureResearchTask(pool: pg.Pool, config: AppConfig, sessi
     const run = await getRun(db,args.runId);
     if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision) throw new Error("stale_research_task");
     const brief = await getBrief(db,run.brief_id);
-    return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion) };
+    return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion, confirmedConstraints(brief.constraints)) };
   });
   let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
   if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused && knownFinancialOutcome(result.result)) {

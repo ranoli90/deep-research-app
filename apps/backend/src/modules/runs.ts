@@ -85,9 +85,17 @@ export async function insertBrief(db: Queryable, brief: ResearchBrief, accountId
 }
 
 export async function getBrief(db: Queryable, briefId: string): Promise<ResearchBrief> {
-  const res = await db.query<{ payload: ResearchBrief }>(`SELECT payload FROM research_briefs WHERE id = $1`, [briefId]);
+  const res = await db.query<{ original_question: string; payload: ResearchBrief }>(
+    `SELECT original_question, payload FROM research_briefs WHERE id = $1`,
+    [briefId],
+  );
   if (!res.rows[0]) throw new Error("brief missing");
-  return res.rows[0].payload;
+  const payload = res.rows[0].payload;
+  const column = res.rows[0].original_question;
+  if (typeof payload?.originalQuestion === "string" && payload.originalQuestion !== column) {
+    throw new Error("original_question_mismatch");
+  }
+  return payload;
 }
 
 export async function insertRun(
