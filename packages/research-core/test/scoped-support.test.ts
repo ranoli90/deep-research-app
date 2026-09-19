@@ -107,7 +107,7 @@ it("does not ground an effective-date that the statute fragment never states",()
 it("grounds an EV range quote when the question category is electric car",()=>{
   const quote="With 303 miles of range and ample interior room, the 2026 LEAF is a standout at a price of just over $31,000.";
   const claim="The 2026 Nissan Leaf has an EPA range of 303 miles.";
-  const scope={entity:"electric car",plan:null,version:null,geography:"US",time:null,population:null};
+  const scope={entity:"electric cars",plan:null,version:null,geography:"US",time:"current",population:null};
   const result=resolveScopedSupport({assertions:[{key:"epa_range_2026_nissan_leaf",candidateKey:null,criterionKeys:["epa_range"],text:claim,scope,
     quantities:[{unit:"miles",value:"303",currency:null,qualifier:null,billingPeriod:null}],
     evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],

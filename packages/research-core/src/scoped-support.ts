@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v7";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v8";
 /** Category labels copied from the question (e.g. "laptop") are not a quoted product identity. */
 const GENERIC_ENTITY = new Set([
   "laptop", "notebook", "computer", "pc", "phone", "smartphone", "tablet", "device", "product",
@@ -14,12 +14,15 @@ const GENERIC_ENTITY = new Set([
   "federal", "national", "statutory", "wage", "minimum wage",
   "electric car", "electric vehicle", "ev",
 ]);
-/** "electric car" is still a question category; the last token "car" is not a quoted product. */
+/** "electric cars" is still a question category; the last token is not a quoted product. */
 const genericScope = (s: string): boolean => {
   const n = normalize(s);
   if (GENERIC_ENTITY.has(n)) return true;
   const words = n.split(" ").filter(Boolean);
-  return words.length > 1 && GENERIC_ENTITY.has(words[words.length - 1]!);
+  const last = words[words.length - 1];
+  if (!last) return false;
+  if (GENERIC_ENTITY.has(last)) return true;
+  return last.length > 3 && last.endsWith("s") && GENERIC_ENTITY.has(last.slice(0, -1));
 };
 const UNIT_ALIASES: Record<string, string[]> = {
   percentage: ["percentage", "percent", "%"],
