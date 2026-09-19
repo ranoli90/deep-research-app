@@ -1,6 +1,10 @@
+## Wave 7 review repair — /events canary, canned phase, public hosts — 2026-09-19
+
+Branch `grok-v8/fix-wave7-mobile-contract`. **Not merged to `main` (`8a7b1a9`).** Independent review rejected `42a2d37`. Repairs: real Fastify `GET /v1/runs/:id/events` inject canary omits `publicSummary`/`type`/`payload`; schema-fail fallback uses canned `researching` and never echoes raw phase; `sourceDomain` uses `publicSourceUrl` rules (no RFC1918/`.internal`). IME dock inset remains unit-tested only; **FP-085 is not closed** (no physical Gboard shot). Isolated PG `deep_wave7_events` 1/1; backend public-activity units 4/4; mobile 285/285; types/boundaries green. Research Beta is not declared.
+
 ## Wave 7 mobile activity contract + IME send inset — 2026-09-19
 
-Branch `grok-v8/fix-wave7-mobile-contract` SHA `42a2d37` from base `72c78ea`. **Not merged to `main` (`8a7b1a9`).** FP-077/FP-078: `GET /v1/runs/:id/events` returns `public-activity.v1` sanitized events only; mobile progress consumes `activity` and ignores leftover `type`/`publicSummary`. FP-085 (IME send occlusion listed as FP-095/IME in the assignment): Android composer dock pads by IME height plus a 48dp suggestion-strip inset so send stays tappable. Unit evidence: backend 226/226 including public-activity leak canaries; mobile 285/285 including private-summary UI exclusion and send-above-inset. Types/boundaries green. Physical Gboard screenshot remains a native gate. Research Beta is not declared.
+Branch `grok-v8/fix-wave7-mobile-contract` SHA `42a2d37` from base `72c78ea` (later review-rejected). **Not merged to `main` (`8a7b1a9`).** FP-077/FP-078 started here; see the review-repair checkpoint above for the current contract. IME inset was added as unit-tested padding only; **FP-085 is not closed.** Research Beta is not declared.
 
 ## Engineering fix-pass started — 2026-09-19
 

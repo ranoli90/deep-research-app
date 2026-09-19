@@ -123,7 +123,7 @@ Publish report blocks, citation map, run outcome and completion-notification out
 ## 10. Mobile synchronization and events
 Events persist internally: id, runId, sequence, createdAt, schemaVersion, type, publicSummary, phase, payload, relatedSource/Claim/Report IDs and snapshotRevision. Persist only observed milestones. Discovered/read/cited counts have separate definitions. No invented completion percentage or fictional agent conversation.
 
-Consumer `GET /v1/runs/:id/events` returns versioned `public-activity.v1` sanitized events: id, runId, sequence, createdAt, schemaVersion, phase, and `activity` (typed public DTO or null). Raw `type`, `publicSummary`, payloads, chain-of-thought, and URL paths are not returned. Mobile progress UI may consume only `activity`.
+Consumer `GET /v1/runs/:id/events` returns versioned `public-activity.v1` sanitized events: id, runId, sequence, createdAt, schemaVersion, phase, and `activity` (typed public DTO or null). Raw `type`, `publicSummary`, payloads, chain-of-thought, and URL paths are not returned. Envelope `phase` is one of preparing|researching|verifying|writing; unknown or oversize stored phases become canned `researching` and never echo the raw value. `activity.sourceDomain` uses the same public-host rules as `publicSourceUrl` (no RFC1918, `.internal`, localhost, or credentialed URLs). Mobile progress UI may consume only `activity`.
 
 Initial transport: authenticated snapshot plus cursor polling with backoff and foreground wake refresh. Add streaming only after native runtime/reconnect tests prove benefit; streaming is disposable. Cursor gaps return a current snapshot and a gap marker. The client deduplicates events by ID and reconciles against server revisions.
 

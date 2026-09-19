@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 7 review repair (HTTP canary, canned phase, public hosts)
+
+- Requirement IDs: FP-077, FP-078. FP-085 inset kept, **not closed**. Base `72c78ea`. Rejected SHA `42a2d37`. Branch `grok-v8/fix-wave7-mobile-contract`. main not moved (`8a7b1a9`).
+- Isolated DB `deep_wave7_events` created on local PostgreSQL 127.0.0.1:55432. Command `TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_wave7_events pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/public-activity.integration.test.ts` exit 0, 1/1, 8.01s. Shared `deep_research_test` was lock-blocked by another session; not used.
+- `vitest run --config vitest.unit.config.ts test/public-activity.unit.test.ts` exit 0, 4/4. `pnpm --filter @deep/mobile test` exit 0, 285/285. typecheck contracts/backend/mobile exit 0. boundaries=ok. validators exit 0.
+- Environment: Linux, Node 20, pnpm 9.15.9, vitest 4.1.11. No paid calls. No physical IME evidence.
+- Rollback: revert this repair commit; stored `run_events` unchanged.
+
 ## 2026-09-19 — Wave 7 FP-077/078/085 sanitized activity and IME inset
 
 - Requirement IDs: FP-077, FP-078, FP-085 (IME send occlusion). Base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. Implementation `42a2d3729bfa62b5a80ec193d7cb65eeccb55274`. Branch `grok-v8/fix-wave7-mobile-contract`. main not moved (`8a7b1a9`).

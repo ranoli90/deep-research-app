@@ -1,16 +1,22 @@
 import {
+  PUBLIC_ACTIVITY_FALLBACK_PHASE,
   PUBLIC_ACTIVITY_LABELS,
   PUBLIC_ACTIVITY_SCHEMA_VERSION,
   SanitizedRunEventSchema,
+  publicActivityPhase,
+  publicSourceHostFromText,
   type PublicActivity,
   type PublicActivityKind,
   type SanitizedRunEvent,
 } from "@deep/contracts";
 
 export {
+  PUBLIC_ACTIVITY_FALLBACK_PHASE,
   PUBLIC_ACTIVITY_KINDS,
   PUBLIC_ACTIVITY_LABELS,
   PUBLIC_ACTIVITY_SCHEMA_VERSION,
+  publicActivityPhase,
+  publicSourceHostFromText,
   type PublicActivity,
   type PublicActivityKind,
   type SanitizedRunEvent,
@@ -56,14 +62,6 @@ const TYPE_TO_KIND: Record<string, PublicActivityKind> = {
   research_unresolved: "plan_pivot",
 };
 
-function publicHost(text: string): string | null {
-  const m = text.match(/\bhttps?:\/\/([^/\s]+)/i);
-  if (!m) return null;
-  const host = m[1]!.replace(/^www\./, "");
-  if (/localhost|127\.0\.0\.1/i.test(host) || host.includes("@") || host.includes(":")) return null;
-  return host;
-}
-
 function payloadRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
   if (typeof value === "string") {
@@ -104,9 +102,9 @@ export function toPublicActivity(event: {
   return {
     kind,
     label: PUBLIC_ACTIVITY_LABELS[kind],
-    phase: event.phase,
+    phase: publicActivityPhase(event.phase),
     count,
-    sourceDomain: publicHost(event.publicSummary),
+    sourceDomain: publicSourceHostFromText(event.publicSummary),
     sourceTitle: title,
     createdAt: event.createdAt,
   };
@@ -124,10 +122,11 @@ export function toSanitizedRunEvent(row: {
 }): SanitizedRunEvent {
   const createdAt = createdAtString(row.created_at);
   const payload = payloadRecord(row.payload);
+  const phase = publicActivityPhase(row.phase);
   const activity = toPublicActivity({
     type: row.type,
     publicSummary: row.public_summary,
-    phase: row.phase,
+    phase,
     createdAt,
     payload,
   });
@@ -137,7 +136,7 @@ export function toSanitizedRunEvent(row: {
     sequence: Number(row.sequence),
     createdAt,
     schemaVersion: PUBLIC_ACTIVITY_SCHEMA_VERSION,
-    phase: row.phase,
+    phase,
     activity,
   };
   const parsed = SanitizedRunEventSchema.safeParse(candidate);
@@ -145,10 +144,10 @@ export function toSanitizedRunEvent(row: {
   return {
     id: row.id,
     runId: row.runId,
-    sequence: Number(row.sequence),
+    sequence: Number.isFinite(Number(row.sequence)) ? Number(row.sequence) : 0,
     createdAt,
     schemaVersion: PUBLIC_ACTIVITY_SCHEMA_VERSION,
-    phase: row.phase || "researching",
+    phase: PUBLIC_ACTIVITY_FALLBACK_PHASE,
     activity: null,
   };
 }

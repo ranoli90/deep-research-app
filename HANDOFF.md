@@ -1,3 +1,23 @@
+## Wave 7 review repair — 2026-09-19
+
+Branch `grok-v8/fix-wave7-mobile-contract`. **Do not merge `main`.** `main` stays `8a7b1a9`. Prior implementation `42a2d37` was rejected.
+
+### Fixes
+1. **HTTP inject canary:** `apps/backend/test/public-activity.integration.test.ts` drives real Fastify `GET /v1/runs/:id/events`. Response JSON has no `publicSummary`, `type`, or `payload` keys; CoT/private/RFC1918/`.internal` canaries are absent.
+2. **Canned phase:** `toSanitizedRunEvent` schema-fail and unknown stored phases use `PUBLIC_ACTIVITY_FALLBACK_PHASE` (`researching`). Raw phase is never echoed.
+3. **Public hosts:** `publicSourceUrl` / `publicSourceHostFromText` in contracts; RFC1918, `.internal`, localhost, and credentialed URLs cannot become `sourceDomain`.
+4. **FP-085:** IME 48dp inset kept and unit-tested. **Not closed.** Physical Gboard screenshot unproven.
+
+### Tests
+- Isolated PG `TEST_DATABASE_URL=.../deep_wave7_events` `vitest run --config vitest.integration.config.ts test/public-activity.integration.test.ts` — exit 0, **1/1**.
+- `vitest run --config vitest.unit.config.ts test/public-activity.unit.test.ts` — exit 0, **4/4**.
+- `pnpm --filter @deep/mobile test` — exit 0, **285/285**.
+- contracts/backend/mobile typecheck, `node scripts/check-boundaries.mjs`, document validators — exit 0.
+- No paid calls. No device shot.
+
+### SHA
+Recorded after commit.
+
 ## Wave 7 — sanitized activity DTO + IME send inset — 2026-09-19
 
 Branch `grok-v8/fix-wave7-mobile-contract` (base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`). **Do not merge `main`.** `main` stays `8a7b1a9`.
@@ -5,7 +25,7 @@ Branch `grok-v8/fix-wave7-mobile-contract` (base `72c78ea5bbce94b599f0fd0be876fe
 ### Issues
 - **FP-077 P0:** Mobile research activity consumes only the typed sanitized `activity` DTO. `adoptPublicEvents` drops leftover `type`/`publicSummary`/payload. Null activity never renders private-looking summaries.
 - **FP-078 P1:** `GET /v1/runs/:id/events` returns `public-activity.v1` (`id`, `runId`, `sequence`, `createdAt`, `schemaVersion`, `phase`, `activity`). Raw CoT, publicSummary, type, and URL payloads are omitted.
-- **IME send occlusion (registry FP-085; assignment “FP-095/IME”):** Functional Android dock padding = IME frame height + 48dp suggestion inset. Composer is not restyled. FP-095 follow-up `reportReady` routing was not in the owned files and is unchanged.
+- **IME send occlusion (registry FP-085; assignment “FP-095/IME”):** Functional Android dock padding = IME frame height + 48dp suggestion inset (unit-tested). **FP-085 is not closed** without a physical Gboard shot. Composer is not restyled. FP-095 follow-up `reportReady` routing was not in the owned files and is unchanged.
 
 ### Tests
 - `pnpm --filter @deep/backend test:unit` — exit 0, **226/226** (includes CoT/private canary/raw URL absent from DTO).

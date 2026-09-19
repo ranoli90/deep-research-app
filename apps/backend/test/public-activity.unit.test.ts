@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { PUBLIC_ACTIVITY_SCHEMA_VERSION, SanitizedRunEventSchema } from "@deep/contracts";
+import {
+  PUBLIC_ACTIVITY_FALLBACK_PHASE,
+  PUBLIC_ACTIVITY_SCHEMA_VERSION,
+  SanitizedRunEventSchema,
+  publicSourceHostFromText,
+  publicSourceUrl,
+} from "@deep/contracts";
 import { toPublicActivity, toSanitizedRunEvent } from "../src/modules/public-activity.js";
 
 const row = {
@@ -86,5 +92,56 @@ describe("public research activity", () => {
       count: 1,
     });
     expect(JSON.stringify(safe)).not.toMatch(/nist\.gov\/publications|publicSummary|"type"|payload/);
+  });
+
+  it("schema-fail fallback uses the canned phase and never echoes raw phase", () => {
+    const rawPhase = `CANARY:UNBOUNDED_PHASE ${"x".repeat(200)}`;
+    const failed = toSanitizedRunEvent({
+      ...row,
+      id: "not-a-uuid",
+      type: "writing",
+      public_summary: "Writing the answer",
+      phase: rawPhase,
+    });
+    expect(failed.phase).toBe(PUBLIC_ACTIVITY_FALLBACK_PHASE);
+    expect(failed.activity).toBeNull();
+    expect(JSON.stringify(failed)).not.toContain("CANARY:UNBOUNDED_PHASE");
+    expect(JSON.stringify(failed)).not.toContain(rawPhase);
+    const unknown = toSanitizedRunEvent({
+      ...row,
+      type: "writing",
+      public_summary: "Writing the answer",
+      phase: "CANARY:PHASE",
+    });
+    expect(unknown.phase).toBe(PUBLIC_ACTIVITY_FALLBACK_PHASE);
+    expect(JSON.stringify(unknown)).not.toContain("CANARY:PHASE");
+  });
+
+  it("sourceDomain uses publicSourceUrl host rules, omitting RFC1918 and .internal", () => {
+    expect(publicSourceUrl("https://nist.gov/x")).toBe("https://nist.gov/x");
+    expect(publicSourceUrl("https://10.1.2.3/secret")).toBeNull();
+    expect(publicSourceUrl("https://192.168.0.5/x")).toBeNull();
+    expect(publicSourceUrl("https://172.16.9.9/x")).toBeNull();
+    expect(publicSourceUrl("https://vault.internal/x")).toBeNull();
+    expect(publicSourceHostFromText("Opened https://10.1.2.3/secret")).toBeNull();
+    expect(publicSourceHostFromText("Opened https://vault.internal/wiki")).toBeNull();
+    expect(toPublicActivity({
+      type: "opened_source",
+      publicSummary: "Opened https://10.1.2.3/secret",
+      phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.sourceDomain).toBeNull();
+    expect(toPublicActivity({
+      type: "opened_source",
+      publicSummary: "Opened https://vault.internal/wiki",
+      phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.sourceDomain).toBeNull();
+    expect(toPublicActivity({
+      type: "opened_source",
+      publicSummary: "Opened https://nist.gov/publications/x",
+      phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.sourceDomain).toBe("nist.gov");
   });
 });

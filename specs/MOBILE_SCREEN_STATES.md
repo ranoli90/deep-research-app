@@ -28,7 +28,7 @@ Normal content: empty home shows only “What do you want to know?” plus a few
 
 Handle empty/whitespace input, long pasted text, emoji and Unicode, multiline text, pasted URLs, hardware keyboard, autocorrect, selection, dictation supplied by the operating system, and right-to-left text within a primarily English interface. Enter behavior must not surprise mobile keyboard users; explicit send remains available.
 
-Use a growing composer with a maximum visible height and internal scroll, so a long question does not cover the entire screen. The send button has a stable hit target and prevents accidental duplicate submissions with server-side idempotency, not just a disabled animation. On Android edge-to-edge, pad the composer dock by the IME frame height plus the suggestion-strip inset so send remains tappable above Gboard suggestions. This is a functional keyboard inset, not a visual restyle of the composer.
+Use a growing composer with a maximum visible height and internal scroll, so a long question does not cover the entire screen. The send button has a stable hit target and prevents accidental duplicate submissions with server-side idempotency, not just a disabled animation. On Android edge-to-edge, pad the composer dock by the IME frame height plus a 48dp suggestion-strip inset. That inset is unit-tested only; physical Gboard coverage is unproven, so FP-085 is not closed. This is a functional keyboard inset, not a visual restyle of the composer.
 
 Attach controls show permissible formats, remaining count, and size limits before upload. A removed file is detached from the brief and queued for appropriate deletion; stale upload completion callbacks must not attach it again.
 
