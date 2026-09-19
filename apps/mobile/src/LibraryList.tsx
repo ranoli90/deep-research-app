@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { api, isSupersededRequest } from "./api";
 import { breakLongTokens } from "./report-layout";
 import { libraryItemCopy, type LibraryRecord } from "./library-copy";
@@ -53,26 +53,46 @@ export function LibraryList({
       </Text>
     );
   }
-  if (items.length === 0) {
+  if (loaded.token !== token) {
     return (
       <Text style={styles.bodyText} accessibilityLabel="Saved reports">
-        {loaded.token !== token ? "Loading saved reports…" : loaded.error ?? "No reports yet."}
+        Loading saved reports…
+      </Text>
+    );
+  }
+  if (loaded.error && loaded.items.length === 0) {
+    return (
+      <Text style={styles.bodyText} accessibilityLabel="Saved reports">
+        {loaded.error}
       </Text>
     );
   }
   return (
-    <ScrollView style={styles.body} accessibilityLabel="Saved reports">
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Search saved reports"
-        accessibilityLabel="Search saved reports"
-        style={[styles.bodyText, { paddingVertical: 8 }]}
-      />
-      {items.map((it) => {
+    <FlatList
+      style={styles.body}
+      accessibilityLabel="Saved reports"
+      data={items}
+      keyExtractor={(it) => it.id}
+      initialNumToRender={12}
+      windowSize={8}
+      ListHeaderComponent={
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search saved reports"
+          accessibilityLabel="Search saved reports"
+          style={[styles.bodyText, { paddingVertical: 8 }]}
+        />
+      }
+      ListEmptyComponent={
+        <Text style={styles.bodyText}>
+          {query.trim() ? "No matching reports." : "No reports yet."}
+        </Text>
+      }
+      renderItem={({ item: it }) => {
         const copy = libraryItemCopy(it);
         return (
-          <View key={it.id} style={{ paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(0,0,0,0.08)" }}>
+          <View style={{ paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(0,0,0,0.08)" }}>
             <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
               <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}{copy.updated ? ` · ${copy.updated}` : ""}</Text>
@@ -86,7 +106,7 @@ export function LibraryList({
             )}
           </View>
         );
-      })}
-    </ScrollView>
+      }}
+    />
   );
 }

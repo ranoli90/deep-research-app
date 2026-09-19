@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { libraryItemCopy, libraryStatusLabel } from "../src/library-copy";
 
@@ -25,5 +27,12 @@ describe("library persistence metadata", () => {
     expect(copy.updated).toBeNull();
     expect(copy.version).toBeNull();
     expect(libraryStatusLabel("awaiting_input")).toBe("Needs a detail");
+  });
+
+  it("virtualizes library rows and keeps search when the filter is empty", () => {
+    const src = readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8");
+    expect(src).toContain("FlatList");
+    expect(src).toContain("No matching reports.");
+    expect(src).not.toMatch(/ScrollView style=\{styles\.body\}/);
   });
 });
