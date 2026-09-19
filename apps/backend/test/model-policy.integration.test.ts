@@ -14,6 +14,8 @@ import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POL
 import {recordPortfolioResolution} from "../src/modules/model-portfolio.js";
 import {PRODUCTION_PORTFOLIO_V1,replayPolicyIdentity} from "../src/model-governor/index.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
+// Key cap is 1e9 like other integration files. 1e6 is exhausted by leftover NULL-scope
+// provider_intents from earlier files in a shared-DB full suite, not by this policy.
 beforeAll(async()=>{if(!process.env.TEST_DATABASE_URL)throw Error("Explicit isolated test DB required");pool=createPool(process.env.TEST_DATABASE_URL);await migrate(pool);});
 afterEach(()=>{globalThis.fetch=originalFetch;});afterAll(async()=>pool.end());
 async function account(){return withTx(pool,async db=>{const a=await createDevSession(db);await grantConsent(db,a.accountId);return a;});}
@@ -34,7 +36,7 @@ it.each([STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY])("replays unknown $prov
  const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policy.id});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
  const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
- const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID(),STRUCTURED_MODEL_POLICY_ID:policy.id===STRUCTURED_MODEL_POLICY.id?AZURE_ZDR_MODEL_POLICY.id:STRUCTURED_MODEL_POLICY.id});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID(),STRUCTURED_MODEL_POLICY_ID:policy.id===STRUCTURED_MODEL_POLICY.id?AZURE_ZDR_MODEL_POLICY.id:STRUCTURED_MODEL_POLICY.id});
  const send=vi.fn(async(_input:Parameters<typeof fetch>[0],init?:RequestInit)=>{const body=JSON.parse(String(init?.body));expect(body.provider.only).toEqual([policy.provider]);throw Error("Synthetic network ambiguity");});globalThis.fetch=send;
  const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
  try{
@@ -48,7 +50,7 @@ it.each(["openrouter-azure-mini-zdr-text-v1","openrouter-azure-mini-zdr-exact-qu
  const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policyId});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
  const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
- const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
  const span={start:1,end:2,quote:question},scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
  const output={objective:question,objectiveProvenance:span,intendedOutput:"Explanation",criteria:[{key:"explain",description:question,field:"mechanism",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance:span,group:"all",groupOperator:"all",unresolvedAlternatives:[]}],questions:[{key:"q",text:question,criterionKeys:["explain"],importance:"critical",evidenceStandard:"Primary evidence"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]};
  const send=vi.fn(async()=>new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Azure",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]})));globalThis.fetch=send;
@@ -69,7 +71,7 @@ it("v2 brief repair links orphaned criteria and keeps v1 strict",async()=>{
  const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:AZURE_ZDR_EXACT_QUOTE_POLICY.id});
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
  const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
- const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
  const span={start:99,end:100,quote:question},scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
  const output={objective:question,objectiveProvenance:span,intendedOutput:"recommendation",
   criteria:[{key:"budget",description:"Stay under the stated budget",field:"budget",operator:"at_most",value:"2k",unit:null,importance:"hard",scope,provenance:{start:99,end:100,quote:"under 2k"},group:"g",groupOperator:"all",unresolvedAlternatives:[]},
@@ -97,7 +99,7 @@ it("applies cheap-first policy on unpinned new runs and fail-closes leftover str
   admission:"cheap_first_admitted",resolved_policy_id:STRUCTURED_MODEL_POLICY.id,
  });
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
- const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
  await expect(reserveLiveAttempt(pool,config,{runId:r.runId,fence,briefRevision:1,kind:"brief",route:"openrouter:test",requestDigest:"leftover-structured",reserveMicro:80_000,logicalKey:"leftover-structured"})).rejects.toThrow("verification_writing_reserve");
  const writing=await reserveLiveAttempt(pool,config,{runId:r.runId,fence,briefRevision:1,kind:"write_report",route:"openrouter:test",requestDigest:"leftover-writing",reserveMicro:80_000,logicalKey:"leftover-writing"});
  expect(writing.issue).toBe(true);
