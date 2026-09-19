@@ -230,17 +230,19 @@ export function closeSourceSheet(state: UiState): UiState {
 export function androidBack(state: UiState): { consumed: boolean; next: UiState } {
   if (state.source) return { consumed: true, next: closeSourceSheet(state) };
   if (state.tab !== "research") return { consumed: true, next: { ...state, tab: "research" } };
-  return { consumed: false, next: state };
+  if (state.run || state.report || state.pendingAdmission || state.draft.trim()) {
+    const started = startNewResearch(state);
+    if (started.ok) return { consumed: true, next: started.next };
+    return { consumed: true, next: { ...state, error: started.reason } };
+  }
+  return { consumed: true, next: state };
 }
 
-/** Decide synchronously; React may defer the state updater until after Back returns. */
+/** Decide synchronously; React may defer the state updater until after Back returns. Never leak to the previous Android activity. */
 export function handleAndroidBack(state: UiState, update: (updater: (previous: UiState) => UiState) => void, closeSource: () => void): boolean {
   if (state.source) { closeSource(); return true; }
-  if (state.tab !== "research") {
-    update(previous => androidBack(previous).next);
-    return true;
-  }
-  return false;
+  update(previous => androidBack(previous).next);
+  return true;
 }
 
 export function logout(state: UiState): UiState {

@@ -32,6 +32,25 @@ describe("P3 native journeys (structural)", () => {
     expect(r.next.source).toBeNull();
   });
 
+  it("Android Back from an active run stays in Deep on an empty home", () => {
+    const active = {
+      ...emptyState(),
+      run: { runId: "run-1", lifecycle: "awaiting_input", phase: "preparing", outcome: null, reportId: null, labeledDemo: true },
+      status: "progress" as const,
+    };
+    const r = androidBack(active);
+    expect(r.consumed).toBe(true);
+    expect(r.next.run).toBeNull();
+    expect(r.next.status).toBe("empty");
+  });
+
+  it("Android Back on empty research is consumed so the previous activity does not resume", () => {
+    const r = androidBack(emptyState());
+    expect(r.consumed).toBe(true);
+    expect(r.next.tab).toBe("research");
+    expect(r.next.run).toBeNull();
+  });
+
   it("S07 / S12 logout clears cached reports and account draft", () => {
     const s = {
       ...emptyState(),

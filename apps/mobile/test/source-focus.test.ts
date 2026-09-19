@@ -43,5 +43,5 @@ it("Android Back consumes tab navigation even when its updater is deferred", () 
   const state = { ...emptyState(), tab: "library" as const };
   expect(handleAndroidBack(state, updater => { deferred = updater; }, close)).toBe(true);
   expect(state.tab).toBe("library"); expect(deferred!(state).tab).toBe("research");
-  expect(handleAndroidBack(emptyState(), vi.fn(), close)).toBe(false);
+  expect(handleAndroidBack(emptyState(), vi.fn(), close)).toBe(true);
 });

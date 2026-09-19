@@ -173,6 +173,28 @@ describe("composer continues a finished report", () => {
     expect(result.next.status).toBe("empty");
   });
 
+  it("starts new research from an awaiting-input run", () => {
+    const waiting = {
+      ...emptyState(),
+      signedIn: true,
+      status: "progress" as const,
+      run: {
+        runId: "run-wait",
+        lifecycle: "awaiting_input",
+        phase: "preparing",
+        outcome: null,
+        reportId: null,
+        labeledDemo: true,
+        brief: { originalQuestion: "What is the filing deadline for employment tax?", constraints: [], revision: 1 },
+      },
+    };
+    const result = startNewResearch(waiting);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.next.run).toBeNull();
+    expect(result.next.status).toBe("empty");
+  });
+
   it("does not start new research over a pending admission or deletion", () => {
     expect(startNewResearch({
       ...emptyState(),

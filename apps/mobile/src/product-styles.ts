@@ -77,7 +77,7 @@ export function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark
     composerDock: { paddingHorizontal: space.md, paddingTop: space.xs, paddingBottom: space.xs, backgroundColor: theme.bg },
     composerWrap: { flexDirection: "row", alignItems: "flex-end", paddingLeft: 4, paddingRight: 4, paddingVertical: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.composer.border, backgroundColor: theme.composer.fill, borderRadius: radius.pill, shadowColor: theme.ink, shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
     composer: { flex: 1, minHeight: 36, maxHeight: 180, ...typeTokens.body, color: theme.composer.ink, paddingHorizontal: space.sm, paddingVertical: 8 },
-    headerIconHit: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+    headerIconHit: { minWidth: 48, minHeight: 48, alignItems: "center", justifyContent: "center" },
     sendBtn: { backgroundColor: theme.composer.sendFill, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, justifyContent: "center" },
     sendBtnOff: { backgroundColor: theme.composer.sendFillDisabled, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, justifyContent: "center" },
     sendBtnIcon: { backgroundColor: theme.composer.sendFill, width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },

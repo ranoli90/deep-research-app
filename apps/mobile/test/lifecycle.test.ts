@@ -153,7 +153,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toContain("Start research");
     expect(src).toContain('accessibilityLabel="Library"');
     expect(src).toContain('accessibilityLabel="New research"');
+    expect(src).toMatch(/function onNewResearch\(\) \{\s*submitting\.current = false;/);
     expect(src).toContain("androidBack(latestUi.current)");
+    expect(src).toMatch(/return true;\s*\}\);/);
     expect(src).toContain('accessibilityLabel="Open profile and settings"');
     expect(src).not.toContain("accessibilityRole=\"tablist\"");
     expect(src).not.toContain('(["research", "library"] as const).map');

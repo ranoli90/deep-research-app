@@ -169,10 +169,14 @@ function AppInner() {
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [keyboardInset, setKeyboardInset] = useState(0);
   const keyboardOpenRef = useRef(false);
+  const keyboardInsetRef = useRef(0);
   keyboardOpenRef.current = keyboardOpen;
+  keyboardInsetRef.current = keyboardInset;
   function dismissKeyboard() {
     keyboardOpenRef.current = false;
+    keyboardInsetRef.current = 0;
     setKeyboardOpen(false);
+    setKeyboardInset(0);
     Keyboard.dismiss();
   }
   const [processors, setProcessors] = useState<string[]>([]);
@@ -455,10 +459,11 @@ function AppInner() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (keyboardOpenRef.current && latestUi.current.tab === "research") {
+      if (keyboardOpenRef.current || keyboardInsetRef.current > 0) {
         dismissKeyboard();
         return true;
       }
+      Keyboard.dismiss();
       if (showAttachRef.current) {
         showAttachRef.current = false;
         setShowAttach(false);
@@ -469,8 +474,18 @@ function AppInner() {
         return handleAndroidBack(latestUi.current, update => setViewState(update), () => closeSourceRef.current());
       }
       const r = androidBack(latestUi.current);
+      if (r.next.run !== latestUi.current.run || r.next.tab !== latestUi.current.tab) {
+        stopPolling();
+        api.selectRun(null);
+        api.closeSource();
+        setSentQuestion(null);
+        setClarifyAnswer("");
+        setEditingAssumptions(false);
+        setShowAttach(false);
+        setActivityExpanded(false);
+      }
       setState(r.next);
-      return r.consumed;
+      return true;
     });
     void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (v) setState((s) => ({ ...s, reducedMotion: true }));
@@ -515,10 +530,15 @@ function AppInner() {
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
     const show = Keyboard.addListener(showEvt, (e) => {
+      const height = e.endCoordinates?.height ?? 0;
+      keyboardOpenRef.current = true;
+      keyboardInsetRef.current = height;
       setKeyboardOpen(true);
-      setKeyboardInset(e.endCoordinates?.height ?? 0);
+      setKeyboardInset(height);
     });
     const hide = Keyboard.addListener(hideEvt, () => {
+      keyboardOpenRef.current = false;
+      keyboardInsetRef.current = 0;
       setKeyboardOpen(false);
       setKeyboardInset(0);
     });
@@ -914,12 +934,16 @@ function AppInner() {
   }
 
   function onNewResearch() {
-    if (correctionPending || verificationBusy || sourceDeleteBusy || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
+    submitting.current = false;
+    correctionAttempt.current = null;
+    verifying.current = false;
+    deletingSource.current = false;
     const result = startNewResearch(latestUi.current);
     if (!result.ok) {
       setViewState((s) => ({ ...s, error: result.reason }));
       return;
     }
+    dismissKeyboard();
     stopPolling();
     api.selectRun(null);
     api.closeSource();
@@ -929,6 +953,8 @@ function AppInner() {
     setSentQuestion(null);
     setActivityExpanded(false);
     setSourceClaim(null);
+    setClarifyAnswer("");
+    setEditingAssumptions(false);
     setViewState(result.next);
   }
 
@@ -1151,7 +1177,7 @@ function AppInner() {
           </Text>
           <View style={[styles.headerSide, styles.headerSideEnd]}>
             {state.tab === "research" || state.tab === "library" ? (
-              <Pressable onPress={onNewResearch} accessibilityRole="button" accessibilityLabel="New research" hitSlop={12} style={styles.headerIconHit}>
+              <Pressable onPress={onNewResearch} accessibilityRole="button" accessibilityLabel="New research" hitSlop={16} style={styles.headerIconHit}>
                 <PencilIcon color={theme.ink} />
               </Pressable>
             ) : null}
