@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Full PG int12 501/4/505
+
+- SHA `6280f95`. Isolated `postgres://127.0.0.1:55432/deep_v8_int12`. Fabricated transport. No live spend.
+- `pnpm --filter @deep/backend test:integration` exit 1, **501 passed / 4 failed / 505**, 1071s.
+- Failures: four `W05 counterevidence production preserves original target` cases expected 1 plugin search, got 2 after Wave 5 `executeConclusionChallenges`. Original target/readSource/extraction assertions were not the failing lines.
+- Summary: `verification/v8/research-beta/logs/integration-int12.summary.txt`.
+
 ## 2026-09-19 — Wave 1 briefs ported onto integration
 
 - Not a wholesale merge of `grok-v8/fix-wave1-briefs` (review REJECT on overlap with Wave 3 query-provenance.v2).

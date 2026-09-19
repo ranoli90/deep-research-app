@@ -1,3 +1,7 @@
+## Full PG int12 — 2026-09-19
+
+SHA `6280f95` isolated `deep_v8_int12`: **501 passed / 4 failed / 505**. Failures were Wave 5 per-conclusion challenge adding a second plugin search in the counterevidence crash test (target preservation still held). Test updated to allow bounded extra challenge searches and require a `conclusion_challenges` row. **Not merged to `main`.** Research Beta is not declared.
+
 ## Wave 1 briefs ported (FP-001/002/007/008) — 2026-09-19
 
 Ported onto integration after independent review rejected a wholesale merge (would revert Wave 3 unclassified fail-close). `/continue` does not rewrite `originalQuestion`. Confirmed geography is appended to the public query only. Manifest accepts `model-input.v6`. Production Indiana continue test passed on isolated `deep_v8_wave1_port`. Residual: same `brief_revision` still mutated in place. **Not merged to `main`.**

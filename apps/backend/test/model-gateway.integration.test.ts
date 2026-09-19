@@ -23,7 +23,7 @@ import { reportCompletionCovered } from "../src/modules/publication-coverage.js"
 import { executeCoverageReview } from "../src/worker/research-coverage.js";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
-import { CorrectionRequestSchema,CreateRunRequestSchema, type CanonicalReport,type ResearchModelOutput } from "@deep/contracts";
+import { COUNTEREVIDENCE_SUFFIX,CorrectionRequestSchema,CreateRunRequestSchema, type CanonicalReport,type ResearchModelOutput } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
@@ -1683,7 +1683,11 @@ it.each([{contradiction:true,linked:true},{contradiction:false,linked:true},{con
  if(!linked)await pool.query("UPDATE counterevidence_checks SET search_intent_id=NULL WHERE run_id=$1",[x.runId]);
  await processRun(pool,enabled,x.runId);
  expect(sourceReader.readSource).toHaveBeenCalledTimes(1);
- expect(vi.mocked(fetch).mock.calls.filter(([,init])=>JSON.parse(String(init?.body)).plugins?.length)).toHaveLength(1);
+ const pluginBodies=vi.mocked(fetch).mock.calls.map(([,init])=>JSON.parse(String(init?.body))).filter((body)=>body.plugins?.length);
+ expect(pluginBodies.length).toBeGreaterThanOrEqual(1);
+ expect(pluginBodies.length).toBeLessThanOrEqual(3);
+ expect(pluginBodies.some((body)=>JSON.stringify(body).includes(COUNTEREVIDENCE_SUFFIX))).toBe(true);
+ expect((await pool.query("SELECT count(*)::int AS n FROM conclusion_challenges WHERE run_id=$1",[x.runId])).rows[0].n).toBeGreaterThanOrEqual(1);
  const report=(await pool.query("SELECT * FROM reports WHERE run_id=$1",[x.runId])).rows[0];expect(report).toBeDefined();
  expect((await getRun(pool,x.runId))!.terminal_outcome).toBe(contradiction?"completed_with_limitations":"completed");
  expect(extractionCalls).toBe(2);expect(JSON.stringify(report.blocks)).toContain(secondary);
