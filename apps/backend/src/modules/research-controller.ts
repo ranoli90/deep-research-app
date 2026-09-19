@@ -6,6 +6,7 @@ import {
   SOURCE_CLASSES,
   buildCandidateLedger,
   type CandidateLedger,
+  type CandidateLedgerCoverage,
   type EvidenceNeed,
   type LedgerEntry,
   type SourceClass,
@@ -175,12 +176,24 @@ function parseEntry(row: {
   };
 }
 
+function coverageFromStored(row: { completeness_note: string; stop_reason: string | null; stop_policy: string | null; coverage: unknown }): CandidateLedgerCoverage {
+  const stored = row.coverage && typeof row.coverage === "object" ? row.coverage as Partial<CandidateLedgerCoverage> : {};
+  const queriesAttempted = Array.isArray(stored.queriesAttempted) ? stored.queriesAttempted.map(String) : [];
+  const sourceClassesAttempted = Array.isArray(stored.sourceClassesAttempted) ? stored.sourceClassesAttempted.map(String) : [];
+  return {
+    queriesAttempted,
+    sourceClassesAttempted,
+    stop: row.stop_reason && row.stop_policy ? { reason: row.stop_reason, stopPolicy: row.stop_policy } : stored.stop ?? null,
+    reopened: stored.reopened === true || row.completeness_note.includes("constraint changed"),
+  };
+}
+
 export async function loadCandidateLedger(
   db: Queryable,
   args: { runId: string; accountId?: string },
 ): Promise<CandidateLedger | null> {
-  const header = await db.query<{ version: string; universe_complete: boolean; completeness_note: string; searches: number }>(
-    `SELECT version, universe_complete, completeness_note, searches FROM candidate_ledgers WHERE run_id=$1`,
+  const header = await db.query<{ completeness_note: string; stop_reason: string | null; stop_policy: string | null; coverage: unknown }>(
+    `SELECT completeness_note, stop_reason, stop_policy, coverage FROM candidate_ledgers WHERE run_id=$1`,
     [args.runId],
   );
   const entries = await db.query({
@@ -189,23 +202,23 @@ export async function loadCandidateLedger(
     values: [args.runId],
   });
   if (!header.rowCount && !entries.rowCount) return null;
-  const coverage = header.rows[0];
-  return buildCandidateLedger(entries.rows.map(parseEntry), coverage
-    ? { searches: coverage.searches, remainingDistinctStrategy: !coverage.universe_complete, reopened: coverage.completeness_note.includes("constraint changed") }
-    : { searches: 0, remainingDistinctStrategy: true });
+  return buildCandidateLedger(entries.rows.map(parseEntry), header.rows[0] ? coverageFromStored(header.rows[0]) : { queriesAttempted: [], sourceClassesAttempted: [] });
 }
 
 export async function persistCandidateLedger(
   db: Queryable,
-  args: { runId: string; accountId: string; briefRevision: number; ledger: CandidateLedger; searches: number },
+  args: { runId: string; accountId: string; briefRevision: number; ledger: CandidateLedger; searches: number; coverage?: CandidateLedgerCoverage },
 ): Promise<void> {
+  const coverage = args.coverage ?? { queriesAttempted: [], sourceClassesAttempted: [] };
   await db.query(
-    `INSERT INTO candidate_ledgers(run_id, account_id, brief_revision, version, universe_complete, completeness_note, searches)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)
+    `INSERT INTO candidate_ledgers(run_id, account_id, brief_revision, version, universe_complete, completeness_note, searches, stop_reason, stop_policy, coverage)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      ON CONFLICT (run_id) DO UPDATE SET
        brief_revision=EXCLUDED.brief_revision, version=EXCLUDED.version, universe_complete=EXCLUDED.universe_complete,
-       completeness_note=EXCLUDED.completeness_note, searches=EXCLUDED.searches`,
-    [args.runId, args.accountId, args.briefRevision, args.ledger.version, args.ledger.universeComplete, args.ledger.completenessNote, args.searches],
+       completeness_note=EXCLUDED.completeness_note, searches=EXCLUDED.searches, stop_reason=EXCLUDED.stop_reason,
+       stop_policy=EXCLUDED.stop_policy, coverage=EXCLUDED.coverage`,
+    [args.runId, args.accountId, args.briefRevision, args.ledger.version, args.ledger.universeComplete, args.ledger.completenessNote, args.searches,
+     coverage.stop?.reason ?? null, coverage.stop?.stopPolicy ?? null, JSON.stringify(coverage)],
   );
   await db.query("DELETE FROM candidates WHERE run_id=$1 AND candidate_key IS NOT NULL", [args.runId]);
   for (const entry of args.ledger.entries) {

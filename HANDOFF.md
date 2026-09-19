@@ -1,17 +1,18 @@
 ## Wave 5 intelligence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence` SHA `ef0b679a54514c707df00070e7b414e4e45ff4dd`. Base `b30073e`. **Do not merge `main` or integration.** Migration renamed to `046_research_controller_state.sql` so it does not collide with integration `044_query_authorization_proof.sql` or Wave 2 `045_model_operation_attempts.sql`.
+Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql`.
 
 Confirmed and implemented on the production structured worker:
 
 - FP-030 P1 / FP-049 P1: reconstruct `queries`/`classesAttempted` from durable `search_operations` (query + source_class); persist Evidence Need lifecycle and update one need when coverage changes.
-- FP-051 P0 / FP-052 completeness: wire `extractCandidates` + ledger into extraction/discovery/correction; persist on `candidates` + `candidate_ledgers`; completeness from remaining distinct strategy, not a caller boolean; relaxed budget reopens exclusions.
+- FP-051 P0 / FP-052 completeness: wire `extractCandidates` + ledger into extraction/discovery/correction; persist on `candidates` + `candidate_ledgers`; completeness from durable `queriesAttempted` + exhaustion stop proof. `remainingDistinctStrategy`/`boundedComplete` cannot stamp `universeComplete`. Relaxed budget reopens exclusions. **RB-CAND-01 remains FAIL** (not claimed PASS).
 - FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`; two consequential conclusions keep independent state. Existing `counterevidence_checks UNIQUE(run,brief,version)` untouched.
 
-Exact tests after rename (focused re-run):
+Exact tests after FP-052 completeness revision:
 
-- `vitest run --config vitest.integration.config.ts test/wave5-intelligence.integration.test.ts` — 3/3, exit 0, 54.75s
-- Prior implementation SHA `1448e78`: research-core 280/280; backend typecheck 0; existing counterevidence execution 3/3; token-budget unit 6/6
+- `pnpm --filter @deep/research-core test` — 280/280, exit 0
+- `pnpm --filter @deep/backend typecheck` — exit 0
+- `vitest run --config vitest.integration.config.ts test/wave5-intelligence.integration.test.ts` — 3/3, exit 0, 46.50s
 
 Rollback: ADR067. No merge to `main`. Full PG twice and live semantic remain separate.
 

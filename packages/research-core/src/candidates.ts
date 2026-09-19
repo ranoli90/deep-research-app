@@ -75,14 +75,16 @@ export function extractCandidates(passages: { id: string; exactText: string }[],
 
 export function discoveryStatus(args: {
   candidates: CandidateRecord[];
-  searches: number;
+  queriesAttempted: string[];
   reopened: boolean;
-  remainingDistinctStrategy: boolean;
+  stopReason?: string;
 }): "open" | "bounded-complete" | "incomplete" {
   if (args.reopened) return "open";
-  if (args.searches > 0 && !args.remainingDistinctStrategy) {
+  const exhaustion = args.stopReason === "hard_discovery_ceiling" || args.stopReason === "discovery_query_limit"
+    || args.stopReason === "no_distinct_source_strategy" || args.stopReason === "no_distinct_public_criterion_query";
+  if (exhaustion && args.queriesAttempted.length >= 2) {
     return args.candidates.length ? "bounded-complete" : "incomplete";
   }
-  if (args.candidates.length === 0 && args.searches > 0) return "incomplete";
+  if (args.candidates.length === 0 && args.queriesAttempted.length > 0) return "incomplete";
   return "open";
 }

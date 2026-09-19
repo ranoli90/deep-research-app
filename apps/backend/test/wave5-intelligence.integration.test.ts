@@ -125,7 +125,14 @@ describe("Wave 5 production intelligence persistence", () => {
       expect(afterCrash, JSON.stringify({ afterCrash, queriesSent })).toHaveLength(2);
       expect(afterCrash[0]).toBe(question);
       expect(afterCrash[1]).toBe("export");
-      expect((await pool.query("SELECT need_id, state FROM research_evidence_needs WHERE run_id=$1", [x.runId])).rowCount).toBeGreaterThan(0);
+      const needsAfterCrash = (await pool.query(
+        `SELECT need_id, state, criterion_key, next_action FROM research_evidence_needs WHERE run_id=$1 ORDER BY need_id`,
+        [x.runId],
+      )).rows as { need_id: string; state: string; criterion_key: string | null; next_action: { kind?: string; queryHint?: string } }[];
+      expect(needsAfterCrash.map((r) => r.need_id).sort(), JSON.stringify(needsAfterCrash)).toEqual(["need-c0", "need-c1"]);
+      expect(needsAfterCrash.every((r) => r.state === "missing" || r.state === "partial")).toBe(true);
+      const crashHints = needsAfterCrash.map((r) => r.next_action?.queryHint).filter(Boolean) as string[];
+      expect(new Set(crashHints).size).toBeGreaterThan(1);
       await pool.query("UPDATE run_leases SET expires_at=now()-interval '1 second' WHERE run_id=$1", [x.runId]);
       crashAtThird = false;
       await processRun(pool, x.config, x.runId);
@@ -139,6 +146,15 @@ describe("Wave 5 production intelligence persistence", () => {
       expect(afterRestart.length, JSON.stringify(afterRestart)).toBeGreaterThanOrEqual(3);
       expect(afterRestart[2]).not.toBe("export");
       expect(afterRestart[2]).not.toBe(question);
+      const needsAfterRestart = (await pool.query(
+        `SELECT need_id, state, next_action FROM research_evidence_needs WHERE run_id=$1 ORDER BY need_id`,
+        [x.runId],
+      )).rows as { need_id: string; state: string; next_action: { kind?: string; queryHint?: string } }[];
+      expect(needsAfterRestart.map((r) => r.need_id).sort()).toEqual(["need-c0", "need-c1"]);
+      for (const prior of needsAfterCrash) {
+        const again = needsAfterRestart.find((r) => r.need_id === prior.need_id);
+        expect(again?.next_action?.queryHint, JSON.stringify({ prior, again })).toBe(prior.next_action?.queryHint);
+      }
     });
   }, 60_000);
 

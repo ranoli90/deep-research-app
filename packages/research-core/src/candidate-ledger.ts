@@ -1,4 +1,5 @@
 import type { CandidateRecord } from "./candidates.js";
+import { MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
 
 export const CANDIDATE_LEDGER_VERSION = "candidate-ledger.v1";
 
@@ -9,11 +10,17 @@ export type LedgerEntry = CandidateRecord & {
   exclusionReason: string | null;
 };
 
+export type CandidateStopProof = {
+  reason: string;
+  stopPolicy: string;
+};
+
+/** Durable search coverage + stop proof. Caller booleans cannot stamp completeness. */
 export type CandidateLedgerCoverage = {
-  searches: number;
-  remainingDistinctStrategy: boolean;
+  queriesAttempted: string[];
+  sourceClassesAttempted: string[];
+  stop?: CandidateStopProof | null;
   reopened?: boolean;
-  sourceClassesAttempted?: string[];
 };
 
 export type CandidateLedger = {
@@ -23,25 +30,33 @@ export type CandidateLedger = {
   completenessNote: string;
 };
 
+const EXHAUSTION_STOPS = new Set([
+  "hard_discovery_ceiling",
+  "discovery_query_limit",
+  "no_distinct_source_strategy",
+  "no_distinct_public_criterion_query",
+]);
+
+const INCOMPLETE_NOTE = "Do not claim the option set is complete; additional eligible candidates may exist.";
+
 function completenessFromCoverage(coverage?: CandidateLedgerCoverage): Pick<CandidateLedger, "universeComplete" | "completenessNote"> {
-  const searches = coverage?.searches ?? 0;
-  const reopened = coverage?.reopened === true;
-  const remaining = coverage?.remainingDistinctStrategy !== false;
-  if (reopened) {
+  const queries = coverage?.queriesAttempted ?? [];
+  const stop = coverage?.stop ?? null;
+  if (coverage?.reopened === true) {
     return {
       universeComplete: false,
       completenessNote: "A constraint changed; previously excluded candidates must be rediscovered before a completeness claim.",
     };
   }
-  if (searches > 0 && !remaining) {
-    return {
-      universeComplete: true,
-      completenessNote: "No remaining distinct discovery strategy; this is a bounded result over the inspected set, not a claim that no option exists outside it.",
-    };
+  if (!stop || stop.stopPolicy === "continue" || !EXHAUSTION_STOPS.has(stop.reason) || queries.length < 2) {
+    return { universeComplete: false, completenessNote: INCOMPLETE_NOTE };
+  }
+  if ((stop.reason === "hard_discovery_ceiling" || stop.reason === "discovery_query_limit") && queries.length < MAX_DISCOVERY_QUERIES) {
+    return { universeComplete: false, completenessNote: INCOMPLETE_NOTE };
   }
   return {
-    universeComplete: false,
-    completenessNote: "Do not claim the option set is complete; additional eligible candidates may exist.",
+    universeComplete: true,
+    completenessNote: "Durable search coverage reached a discovery stop; this is a bounded result over the inspected set, not a claim that no option exists outside it.",
   };
 }
 

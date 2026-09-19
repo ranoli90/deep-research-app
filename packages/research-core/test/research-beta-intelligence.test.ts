@@ -179,12 +179,25 @@ describe("evidence needs and candidates", () => {
   });
 
   it("reopens exclusions when a constraint changes and refuses a caller completeness flag", () => {
-    const ledger = buildCandidateLedger([{
-      id: "dell", identity: "Dell", price: 2500, currency: "USD", discoveredFrom: "p1", feasibility: "violates", excludedBy: "budget>2000",
-    }], { searches: 1, remainingDistinctStrategy: true });
+    const excluded = [{
+      id: "dell", identity: "Dell", price: 2500, currency: "USD", discoveredFrom: "p1", feasibility: "violates" as const, excludedBy: "budget>2000",
+    }];
+    const ledger = buildCandidateLedger(excluded);
     expect(ledger.entries[0]?.status).toBe("excluded");
     expect(ledger.universeComplete).toBe(false);
-    expect(buildCandidateLedger(ledger.entries, { searches: 1, remainingDistinctStrategy: false }).universeComplete).toBe(true);
+    expect(buildCandidateLedger(excluded, { remainingDistinctStrategy: false } as never).universeComplete).toBe(false);
+    expect(buildCandidateLedger(excluded, { boundedComplete: true } as never).universeComplete).toBe(false);
+    expect(buildCandidateLedger(excluded, { searches: 1, remainingDistinctStrategy: false } as never).universeComplete).toBe(false);
+    expect(buildCandidateLedger(excluded, {
+      queriesAttempted: ["best laptop under 2k"],
+      sourceClassesAttempted: ["generic-web"],
+      stop: { reason: "hard_discovery_ceiling", stopPolicy: "safety_cap" },
+    }).universeComplete).toBe(false);
+    expect(buildCandidateLedger(excluded, {
+      queriesAttempted: ["q1", "q2", "q3"],
+      sourceClassesAttempted: ["generic-web"],
+      stop: { reason: "hard_discovery_ceiling", stopPolicy: "safety_cap" },
+    }).universeComplete).toBe(true);
     const reopened = reopenExclusions(ledger, ["budget"]);
     expect(reopened.entries[0]?.status).toBe("discovered");
     expect(reopened.universeComplete).toBe(false);

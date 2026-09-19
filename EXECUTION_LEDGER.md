@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 5 revision: durable completeness + need survival
+
+- Isolated `grok-v8/fix-wave5-intelligence`. Migration still `046_research_controller_state.sql`. Not merged.
+- FP-052: completeness requires `queriesAttempted` plus an exhaustion stop proof. Caller flags cannot stamp `universeComplete`.
+- Crash/restart asserts need-c0/need-c1 rows and preserved query hints, not only rowCount>0.
+- research-core 280/280; backend typecheck 0; wave5-intelligence.integration 3/3 in 46.50s.
+- RB-CAND-01 not claimed PASS.
+
 ## 2026-09-19 — Wave 5 intelligence persistence (FP-030/049/051/053)
 
 - Branch `grok-v8/fix-wave5-intelligence` from `b30073e`. Isolated worktree. main untouched.

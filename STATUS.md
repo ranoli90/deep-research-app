@@ -1,3 +1,7 @@
+## Wave 5 revision — completeness stop-proof (2026-09-19)
+
+Branch `grok-v8/fix-wave5-intelligence`. Migration remains `046_research_controller_state.sql`. **Do not merge `main` or integration.** `buildCandidateLedger` no longer stamps `universeComplete` from `remainingDistinctStrategy`/`boundedComplete`. Crash/restart asserts reconstructed queries and surviving Evidence Need ids/hints. **RB-CAND-01 is not PASS.**
+
 ## Engineering fix-pass started — 2026-09-19
 
 Audit ingested. Isolated implementers running for Waves 1–4 and 7. Full PG **480/480 EXIT 0** on `deep_v8_int10` (process started on the calculationKeys tree). Second fresh-DB run `deep_v8_int11` launched against `72c78ea`. **Not merged to `main`.**
@@ -107,7 +111,7 @@ Lane: Research Beta integration. Branch `grok-v8/research-beta-integration` from
 
 Branch `grok-v8/fix-wave5-intelligence` SHA `ef0b679` off `origin/grok-v8/research-beta-integration` (`b30073e`). **Do not merge `main` or integration.** Migration is `046_research_controller_state.sql` (not 044/045). FP-030/049/051/053: production structured worker reconstructs discovery queries/classes from `search_operations`, persists Evidence Needs, wires the candidate ledger with exclusion evidence, and stores independent per-conclusion challenges. Existing `counterevidence_checks` unique key is unchanged.
 
-Focused evidence after rename: Wave 5 PostgreSQL `processRun` 3/3, 54.75s, exit 0. Not a full PG twice claim and not Research Beta.
+Focused evidence after rename: Wave 5 PostgreSQL `processRun` 3/3, 54.75s, exit 0. Not a full PG twice claim and not Research Beta. **RB-CAND-01 is not PASS.**
 
 ## Subagent implementation checkpoint — 2026-09-18
 

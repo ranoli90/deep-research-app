@@ -25,8 +25,14 @@ CREATE TABLE IF NOT EXISTS candidate_ledgers (
   version text NOT NULL,
   universe_complete boolean NOT NULL DEFAULT false,
   completeness_note text NOT NULL,
-  searches integer NOT NULL DEFAULT 0
+  searches integer NOT NULL DEFAULT 0,
+  stop_reason text,
+  stop_policy text,
+  coverage jsonb
 );
+ALTER TABLE candidate_ledgers ADD COLUMN IF NOT EXISTS stop_reason text;
+ALTER TABLE candidate_ledgers ADD COLUMN IF NOT EXISTS stop_policy text;
+ALTER TABLE candidate_ledgers ADD COLUMN IF NOT EXISTS coverage jsonb;
 CREATE INDEX IF NOT EXISTS candidate_ledgers_owner ON candidate_ledgers(account_id, run_id);
 
 CREATE TABLE IF NOT EXISTS research_evidence_needs (

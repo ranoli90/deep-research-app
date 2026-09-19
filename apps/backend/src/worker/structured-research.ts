@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
 import { executeConclusionChallenges } from "./conclusion-challenges.js";
@@ -148,7 +148,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(parentLedger){
       const impact=impactForCorrection({previousConstraints:parentConstraints,nextConstraints:brief.constraints,
         reopenedDiscovery:Boolean(correction.rows[0]?.reopen_discovery),dependencyCompleteness:"unknown"});
-      await session.write((db)=>persistCandidateLedger(db,{...args,ledger:reopenExclusions(parentLedger,impact.changedInputs),searches:0}));
+      await session.write((db)=>persistCandidateLedger(db,{...args,ledger:reopenExclusions(parentLedger,impact.changedInputs),searches:0,
+        coverage:{queriesAttempted:[],sourceClassesAttempted:[],reopened:impact.changedInputs.length>0}}));
     }
   }
   const sameQuery=(a:string,b:string)=>a.trim().toLocaleLowerCase("en").replace(/\s+/gu," ")===b.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
@@ -189,12 +190,12 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       selected=await selectPassages();
     }
   }
-  const syncCandidateLedger=async(searches:number,remainingDistinctStrategy:boolean)=>{
+  const syncCandidateLedger=async(coverage:CandidateLedgerCoverage)=>{
     const {passages,readableIds}=await session.write((db)=>loadReadablePassageIds(db,args));
     const existing=(await session.write((db)=>loadCandidateLedger(db,args)))?.entries??[];
     const merged=mergeCandidateRecords(existing,extractCandidates(passages,brief.constraints),{readablePassageIds:readableIds});
-    const ledger=buildCandidateLedger(merged,{searches,remainingDistinctStrategy});
-    await session.write((db)=>persistCandidateLedger(db,{...args,ledger,searches}));
+    const ledger=buildCandidateLedger(merged,coverage);
+    await session.write((db)=>persistCandidateLedger(db,{...args,ledger,searches:coverage.queriesAttempted.length,coverage}));
     return ledger;
   };
   // Repeat actual extraction/checking after new evidence, never count search events as coverage.
@@ -292,7 +293,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const supportedNow=support.checks.some((c)=>c.decision==="supported");
     if(!supportedNow && prior)return writeFromPrior("later_support_unproven");
     if(supportedNow) prior={extraction,support,calculations:{kind:"not_applicable",reason:"pending_calculation_planning"},target:{...target,supportIntentId:support.intentId}};
-    await syncCandidateLedger(queries.length,true);
+    await syncCandidateLedger({queriesAttempted:queries,sourceClassesAttempted:classesAttempted});
     const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
     await executeConclusionChallenges(pool,config,session,{...target,supportIntentId:support.intentId},{
       task:prepared.task.specification,assertions:extraction.output.assertions,checks:support.checks,originalQuestion:brief.originalQuestion});
@@ -335,7 +336,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     let needs=storedNeeds.length?updateNeedsFromCoverage(storedNeeds,needArgs):buildEvidenceNeeds(needArgs);
     for(const key of needArgs.criterionKeys)needs=applyNeedEvidence(needs,key,!review.coverage.unresolvedCriterionKeys.includes(key));
     await session.write((db)=>persistEvidenceNeeds(db,{...args,needs}));
-    await syncCandidateLedger(queries.length,!review.coverage.complete);
+    await syncCandidateLedger({queriesAttempted:queries,sourceClassesAttempted:classesAttempted});
     if(!review.coverage.complete&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
@@ -364,7 +365,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         sourceClassesAttempted:classesAttempted.length?classesAttempted:[plan.primary],
       });
       const topNeed=highestValueNeed(needs);
-      await syncCandidateLedger(queries.length,next.kind==="search");
+      await syncCandidateLedger({
+        queriesAttempted:queries,
+        sourceClassesAttempted:classesAttempted.length?classesAttempted:[plan.primary],
+        stop:breadth.continue?null:{reason:next.kind==="search"?breadth.reason:next.reason,stopPolicy:breadth.stopPolicy},
+      });
       const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion});
       if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.privateTermsRequiringApproval.length===0) {
         if(freshnessUnmet) await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"freshness_checking",phase:"researching",
