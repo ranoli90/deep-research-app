@@ -1,3 +1,7 @@
+## Engineering fix-pass started — 2026-09-19
+
+Audit package ingested at `verification/v8/engineering-fix-pass/` against SHA `906c00f`. **UI phase deferred.** `main` stays `8a7b1a9`. 126 findings in `ISSUE_REGISTRY.csv`. Wave 1 starts with immutable originalQuestion (FP-001/002/008). Writer `calculationKeys` no longer stripped by `selected:false` (FP-073). **Not merged to `main`. Research Beta is not declared.**
+
 ## Fail-closed checkpoint (WIP) — 2026-09-19
 
 Lane `grok-v8/research-beta-integration`. **Not merged to `main` (`8a7b1a9`). Research Beta is not declared.**

@@ -59,7 +59,7 @@ export function tightenCriterionSpan(question:string,criterion:Criterion):Span|n
   ...(value&&unit?[`${value}${unit}`,`${value} ${unit}`,`${value}${unit} of ${field}`,`${value} ${unit} of ${field}`]:[]),
   ...currencyNeedles(value,unit),
   ...(value?[value]:[]),
-  ...(field.includes(" ")||field.length>10?[field]:[]),
+  ...(field.includes(" ")?[field]:[]),
  ].filter((n)=>n&&n.length>1);
  let best:Span|null=null;
  for(const needle of needles){
@@ -87,9 +87,7 @@ export function nextCriterionSearch(args:{question:string;task:ResearchModelOutp
   if(basis.start<0||basis.end<=basis.start||args.question.slice(basis.start,basis.end)!==basis.quote)throw new Error("invalid_discovery_provenance");
   if(!query||query.length>4000||seen.has(normalize(query))){
    const tight=tightenCriterionSpan(args.question,criterion);
-   const next=tight?normalize(tight.quote):"";
-   // A tighter slice of an already-issued query is not a distinct public search.
-   if(!tight||!next||seen.has(next)||[...seen].some((q)=>q.includes(next)))continue;
+   if(!tight||seen.has(normalize(tight.quote)))continue;
    basis=tight;query=tight.quote.trim();
   }
   const questionKeys=args.task.questions.filter((q)=>q.criterionKeys.includes(criterion.key)).map((q)=>q.key);

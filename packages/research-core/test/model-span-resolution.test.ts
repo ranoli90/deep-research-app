@@ -289,6 +289,17 @@ it("strips unapproved writer claim keys and empty paragraphs", () => {
   expect(cleaned.unresolvedQuestionKeys).toEqual(["q1"]);
 });
 
+it("keeps planned calculation keys even when the writer context has not yet marked them selected", () => {
+  const cleaned = dropUnapprovedWriterClaims({
+    title: "Reported areas",
+    sections: [{ heading: "Evidence", paragraphs: [{ text: "Study restored 12 hectares.", claimKeys: ["area0"] }] }],
+    unresolvedQuestionKeys: [],
+    limitations: [],
+    calculationKeys: ["arithmetic", "invented"],
+  }, new Set(["area0"]), new Set(), new Set(["arithmetic"]));
+  expect(cleaned.calculationKeys).toEqual(["arithmetic"]);
+});
+
 it("drops duplicate extraction keys while keeping the first owned candidate", () => {
   const id = crypto.randomUUID();
   const quote = { passageId: id, start: 0, end: 5, quote: "hello" };

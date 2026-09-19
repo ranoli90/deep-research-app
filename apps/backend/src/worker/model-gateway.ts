@@ -150,7 +150,8 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (result.status === "succeeded" && (args.operation === "write_report" || args.operation === "write_calculated_report")) {
       const allowedClaims = new Set(context.approvedClaimKeys.filter((k) => context.assertions.some((a) => a.key === k)));
       const allowedQuestions = new Set(context.task?.questions.map((q) => q.key) ?? []);
-      const allowedCalcs = new Set(context.calculations?.entries.filter((e) => e.selected).map((e) => e.key) ?? []);
+      // Writer context stamps selected:false until the draft chooses keys. Allow every planned calculation.
+      const allowedCalcs = new Set(context.calculations?.entries.map((e) => e.key) ?? []);
       const cleaned = dropUnapprovedWriterClaims(
         result.output as ResearchModelOutput<"write_report" | "write_calculated_report">,
         allowedClaims, allowedQuestions, allowedCalcs,
