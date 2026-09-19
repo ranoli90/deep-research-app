@@ -21,6 +21,8 @@ import { LibraryList } from "./src/LibraryList";
 import { EmptyHome } from "./src/EmptyHome";
 import { ResearchHeader } from "./src/ResearchHeader";
 import { useKeyboardInset } from "./src/use-keyboard-inset";
+import { composerDockBottomInset } from "./src/composer-keyboard";
+import { adoptPublicEvents } from "./src/research-activity";
 import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
@@ -196,7 +198,7 @@ function AppInner() {
     lifecycle: state.run?.lifecycle,
     status: state.status,
     brief: state.run?.brief,
-    clarificationSummary: state.events.find((e) => e.type === "clarify")?.publicSummary ?? "Which jurisdiction should this answer apply to?",
+    clarificationSummary: undefined,
     hasReport: Boolean(state.report),
   });
   const finishedReport = composerFollowsReport(state);
@@ -371,7 +373,7 @@ function AppInner() {
         return;
       }
       const ev = await api.events(t, runId, 0);
-      const incoming = ev.events ?? [];
+      const incoming = adoptPublicEvents(ev.events);
       const currentUi = latestUi.current;
       const sameSnapshot = currentUi.run?.runId === snap.runId
         && currentUi.run?.lifecycle === snap.lifecycle
@@ -1636,9 +1638,12 @@ function AppInner() {
           onCancel={() => void onCancel()}
           styles={{
             ...styles,
-            composerDock: [styles.composerDock, { paddingBottom: keyboardOpen
-              ? (Platform.OS === "android" ? Math.max(keyboardInset - Math.max(insets.bottom, 0), space.xs) + 16 : space.xs)
-              : Math.max(insets.bottom, space.sm) }],
+            composerDock: [styles.composerDock, { paddingBottom: composerDockBottomInset({
+              keyboardOpen,
+              keyboardHeight: keyboardInset,
+              safeBottom: insets.bottom,
+              platform: Platform.OS,
+            }) }],
           }}
         />
         ) : null}

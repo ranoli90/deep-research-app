@@ -66,10 +66,10 @@ describe("P3 native journeys (structural)", () => {
 
   it("J08 mergeEvents deduplicates by sequence", () => {
     const a = mergeEvents(
-      [{ sequence: 1, type: "accepted", publicSummary: "a" }],
+      [{ sequence: 1, activity: null }],
       [
-        { sequence: 1, type: "accepted", publicSummary: "a" },
-        { sequence: 2, type: "searched", publicSummary: "b" },
+        { sequence: 1, activity: null },
+        { sequence: 2, activity: null },
       ],
     );
     expect(a.map((e) => e.sequence)).toEqual([1, 2]);

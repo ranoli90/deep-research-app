@@ -528,3 +528,11 @@ Rollback disables new discovery admissions while retaining retrieval-intelligenc
 W05 / Research Beta: `research-intent-compiler.v1` was a useful deterministic preflight but classified general natural language as `other` unless a small regex family matched. v2 keeps that preflight for obvious hard facts, then runs a structured semantic overlay (`structured_semantic.v1`) whose every kept quote must be a substring of the original question. An external/model overlay is the same validator: ungrounded geography, invented families, and privilege fields (`public_query`, consent, tools, budget increase) are rejected and the deterministic result is kept. Admission still calls pure `compileResearchIntent` with no I/O. Typed material clarification fields exist for jurisdiction, budget, use case, population, timeframe, platform, private-search permission, and unnamed subject; the default remains assume/branch, with at most two asks.
 
 Impact: contracts identity `research-intent-compiler.v2`, research-core `semantic-intent.ts` + `clarification-fields.ts`, existing admission path. No new model operation, prompt, processor, or spend. Rollback: restore v1 compiler identity and omit overlay merge; historical briefs remain readable.
+
+## ADR067 — Consumer events are versioned sanitized activity (2026-09-19)
+
+W07 / FP-077 / FP-078 / FP-085: `/v1/runs/:id/events` was returning persisted `type` and `publicSummary` beside a sanitizer the mobile client ignored. Progress UI mapped those legacy fields, so private-looking summaries could reach the screen and typed source metadata was not authoritative.
+
+Consumer events are `public-activity.v1`: id, runId, sequence, createdAt, schemaVersion, phase, `activity`. Raw type, publicSummary, payload, CoT, and URL paths stay server-internal. Mobile `adoptPublicEvents` keeps only the DTO; null activity renders nothing. Android composer dock padding uses IME frame height plus a 48dp suggestion-strip inset so send stays tappable; this is not a visual restyle.
+
+Impact checklist: additive public schema in contracts; backend sanitizer on the existing `/events` path; mobile activity/composer inset only. No migration, dependency, prompt, processor, spend, or design-token change. Rollback: restore the previous `/events` JSON and legacy mobile mapping; historical `run_events` rows remain readable.

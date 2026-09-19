@@ -11,7 +11,7 @@ const cached=():UiState=>({...emptyState(),signedIn:true,consentGranted:true,dra
   run:{...snapshot,contentInvalidated:false,brief:{originalQuestion:"private question",constraints:[],revision:1}},
   report:{reportId:other,blocks:[{id:"answer",kind:"answer",text:"deleted source contents",claimIds:[],citationIds:[]}],limitations:[],labeledDemo:false},
   previousReport:{reportId:other,blocks:[]},readingAnchor:{reportId:other,blockId:"answer",offset:0},
-  correctionDraft:{version:"correction-draft.v1",runId,baseRevision:1,question:"correction private text",evidencePolicy:"reuse_snapshot"},events:[{sequence:1,type:"event",publicSummary:"content"}],attachments:[{filename:"private.txt",mime:"text/plain",text:"private"}]});
+  correctionDraft:{version:"correction-draft.v1",runId,baseRevision:1,question:"correction private text",evidencePolicy:"reuse_snapshot"},events:[{sequence:1,activity:null}],attachments:[{filename:"private.txt",mime:"text/plain",text:"private"}]});
 it("W03 authoritative invalidation clears current and previous content before any ancillary fetch",async()=>{
   let state=cached();const ancillary=vi.fn(async()=>{throw Error("events offline");}),save=vi.fn(async(next:UiState)=>{expect(state.report).toBeNull();expect(next.previousReport).toBeNull();});
   const handled=await applyRemoteInvalidation(state,snapshot,{current:()=>true,hide:()=>{state=redactInvalidatedContent(state,runId);},save});

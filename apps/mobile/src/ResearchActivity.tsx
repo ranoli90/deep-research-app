@@ -120,7 +120,14 @@ export function ResearchActivity({
       {expanded ? visible.map((event, index) => (
         <View key={event.sequence} style={styles.activityItem} accessibilityLabel={`Activity ${event.sequence}`}>
           <Text style={index === visible.length - 1 && inProgress ? styles.activityNow : styles.activityLine}>{event.label}</Text>
-          {event.detail ? <Text style={styles.activityDetail ?? styles.activityLine}>{event.detail}</Text> : null}
+          {event.detail ? (
+            <Text
+              style={styles.activityDetail ?? styles.activityLine}
+              accessibilityLabel={[event.sourceTitle, event.sourceDomain].filter(Boolean).join(" · ") || event.detail}
+            >
+              {event.detail}
+            </Text>
+          ) : null}
         </View>
       )) : null}
     </View>

@@ -1,3 +1,25 @@
+## Wave 7 — sanitized activity DTO + IME send inset — 2026-09-19
+
+Branch `grok-v8/fix-wave7-mobile-contract` (base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`). **Do not merge `main`.** `main` stays `8a7b1a9`.
+
+### Issues
+- **FP-077 P0:** Mobile research activity consumes only the typed sanitized `activity` DTO. `adoptPublicEvents` drops leftover `type`/`publicSummary`/payload. Null activity never renders private-looking summaries.
+- **FP-078 P1:** `GET /v1/runs/:id/events` returns `public-activity.v1` (`id`, `runId`, `sequence`, `createdAt`, `schemaVersion`, `phase`, `activity`). Raw CoT, publicSummary, type, and URL payloads are omitted.
+- **IME send occlusion (registry FP-085; assignment “FP-095/IME”):** Functional Android dock padding = IME frame height + 48dp suggestion inset. Composer is not restyled. FP-095 follow-up `reportReady` routing was not in the owned files and is unchanged.
+
+### Tests
+- `pnpm --filter @deep/backend test:unit` — exit 0, **226/226** (includes CoT/private canary/raw URL absent from DTO).
+- `pnpm --filter @deep/mobile test` — exit 0, **285/285** (private summary never reaches UI; send bottom ≥ IME+suggestion).
+- `pnpm --filter @deep/contracts typecheck`, backend typecheck, mobile typecheck — exit 0.
+- `node scripts/check-boundaries.mjs` — `boundaries=ok`.
+- Document validators exit 0. No paid calls. No native device run.
+
+### Rollback
+Revert this branch’s commit. Persisted `run_events` rows are unchanged; only the consumer projection and mobile mapping revert.
+
+### SHA
+Recorded after commit on this branch.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.

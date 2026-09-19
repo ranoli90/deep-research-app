@@ -11,7 +11,7 @@ function state():SourceDeletionState{return {...emptyState(),pendingSourceDeleti
  report:{reportId:uuid(5),blocks:[{id:"answer",kind:"text",text:"Derived private answer",claimIds:[],citationIds:[source.passageId]}],limitations:[],labeledDemo:false},
  previousReport:{reportId:uuid(6),blocks:[{id:"answer",kind:"text",text:"Previous private answer",claimIds:[],citationIds:[]}]},
  correctionDraft:{version:"correction-draft.v1",runId:uuid(4),baseRevision:1,question:"Dependent correction",evidencePolicy:"reuse_snapshot"},
- events:[{sequence:1,type:"answer",publicSummary:"Dependent activity"}],readingAnchor:{reportId:uuid(5),blockId:"answer",offset:22},clarification:["Dependent prompt"],status:"completed"};}
+ events:[{sequence:1,activity:null}],readingAnchor:{reportId:uuid(5),blockId:"answer",offset:22},clarification:["Dependent prompt"],status:"completed"};}
 
 describe("W03/W07 source deletion on device",()=>{
  it("requires an explicit valid source handle while keeping legacy sources readable",()=>{
