@@ -1,6 +1,6 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Branch `grok-v8/research-beta-integration`. Device APK `9d4dde40` / git `e941ca1` installed on `10.0.0.167:43417`; Settings collapsed, follow-up Resolve dumps removed. Full PostgreSQL 474/474 twice; lock-race W03 12/12. Hosted CI is blocked by GitHub billing lock. Live public-web Research Beta journeys are blocked pending authorization beyond `$0.40` MC-D01 frozen SQLite and release of unknown holds. Do not merge to `main`.
+Branch `grok-v8/research-beta-integration` HEAD `126d8c7`. Device APK `d13505fd` installed on `10.0.0.167:43417`. Visual FAIL items (duplicate bubble, stacked outline, bulky clarification) recaptured as fixed. Full PostgreSQL 474/474 twice; lock-race W03 12/12. Hosted CI is blocked by GitHub billing lock. Live public-web Research Beta journeys are blocked pending authorization beyond `$0.40` MC-D01 frozen SQLite and release of unknown holds. Do not merge to `main`.
 
 ## Integration merge B — 2026-09-18
 

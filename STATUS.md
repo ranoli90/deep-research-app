@@ -2,7 +2,7 @@
 
 Lane: `grok-v8/research-beta-integration` at `80e0aec`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
 
-**Executed:** Full PostgreSQL integration 474/474 twice (`deep_v8_int4` EXIT 0; prior isolated 474/474) plus W03 lock-race 12/12. EAS APK `9d4dde40` (git `e941ca1`) installed on `10.0.0.167:43417` (25098RA98G); Settings processor dump is behind How we process data; Resolve-dump follow-ups are gone; continue-thread placeholder is Ask anything. `POST /v1/runs/:id/assumptions` confirm/replace covered by p3-remaining.
+**Executed:** Full PostgreSQL 474/474 twice; W03 lock-race 12/12. EAS APK `d13505fd` (git `126d8c7`) installed on `10.0.0.167:43417`. Duplicate question bubble removed; report outline is one caption line (answer first); employment-tax fixture reaches `awaiting_input` with a compact jurisdiction prompt. `POST /v1/runs/:id/assumptions` confirm/replace covered.
 
 **True external blockers:** GitHub Actions run `35411856817` did not start (`account is locked due to a billing issue`). Live no-file public journeys are outside the recorded `$0.40` MC-D01 frozen-SQLite cap; unknown holds remain unreleased. No additional spend was inferred from a key being present.
 
