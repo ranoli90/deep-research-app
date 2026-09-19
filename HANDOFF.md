@@ -1,6 +1,6 @@
 ## Wave 5 intelligence — 2026-09-19
 
-Branch `grok-v8/fix-wave5-intelligence`. Base `b30073e`. **Do not merge `main`.**
+Branch `grok-v8/fix-wave5-intelligence` SHA `1448e789363050c066d688a3c11b51bd919fbb92`. Base `b30073e`. **Do not merge `main`.**
 
 Confirmed and implemented on the production structured worker:
 
@@ -8,7 +8,7 @@ Confirmed and implemented on the production structured worker:
 - FP-051 P0 / FP-052 completeness: wire `extractCandidates` + ledger into extraction/discovery/correction; persist on `candidates` + `candidate_ledgers`; completeness from remaining distinct strategy, not a caller boolean; relaxed budget reopens exclusions.
 - FP-053 P0: `conclusion_challenges` keyed by `(run, brief, conclusion_key)`; two consequential conclusions keep independent state. Existing `counterevidence_checks UNIQUE(run,brief,version)` untouched.
 
-Exact tests (this SHA after commit):
+Exact tests at `1448e78`:
 
 - `pnpm --filter @deep/research-core test` — 280/280, exit 0
 - `pnpm --filter @deep/backend typecheck` — exit 0
