@@ -1,3 +1,7 @@
+## Wave 2 provider attempt chain — 2026-09-19
+
+Branch `grok-v8/fix-wave2-provider` from `72c78ea`. **Not merged to `main` or `grok-v8/research-beta-integration`.** FP-011/012/014: failover persists under the fallback intent; replay restores the latest attempt; unknown fallback HOLD is never resent; `invalid_output` with `actualMicro` null does not issue `repairPass`. Isolated PG `deep_wave2_provider`: focused gateway **144/144**, model-policy **9/9**, held-intent **3/3**, source-deletion **7/7**, backend units **225/225**, backend `tsc --noEmit` exit 0. Live/native/full-PG not run. Rollback: disable new failover/repair issuance; retain attempt-chain readers, receipts and holds.
+
 ## Engineering fix-pass started — 2026-09-19
 
 Audit package ingested at `verification/v8/engineering-fix-pass/` against SHA `906c00f`. **UI phase deferred.** `main` stays `8a7b1a9`. 126 findings in `ISSUE_REGISTRY.csv`. Wave 1 starts with immutable originalQuestion (FP-001/002/008). Writer `calculationKeys` no longer stripped by `selected:false` (FP-073). **Not merged to `main`. Research Beta is not declared.**

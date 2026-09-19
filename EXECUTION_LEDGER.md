@@ -1,5 +1,18 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 2 FP-011/012/014 provider attempt chain
+
+- Task/requirement: FP-011, FP-012, FP-014. Branch `grok-v8/fix-wave2-provider` from `72c78ea`. main not updated.
+- Environment: isolated PostgreSQL `deep_wave2_provider` on `127.0.0.1:55432`; fabricated OpenRouter transport; `TEST_DATABASE_URL` only; no live key.
+- Commands:
+  - `pnpm --filter @deep/backend exec tsc -p tsconfig.json --noEmit` exit 0
+  - `pnpm --filter @deep/backend test:unit -- test/openrouter.unit.test.ts test/model-gateway.unit.test.ts` actually ran the unit config include (225 tests) exit 0
+  - `vitest run --config vitest.integration.config.ts test/model-gateway.integration.test.ts` 144/144 exit 0, 439.23s
+  - `vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts` 9/9 exit 0
+  - `vitest run --config vitest.integration.config.ts test/held-intent-continuation.integration.test.ts test/source-deletion.integration.test.ts` 10/10 exit 0
+- Failures: none in this scope. Full PG / live / native unrun.
+- Rollback: disable new failover/repair issuance; keep 045 readers, intent identities, receipts, unknown holds.
+
 ## 2026-09-19 — Fail-closed WIP checkpoint (not Research Beta)
 
 - Branch `grok-v8/research-beta-integration`. main stays `8a7b1a9`. Not a completion claim.

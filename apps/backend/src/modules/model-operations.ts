@@ -70,6 +70,42 @@ export async function saveModelOperation<K extends ResearchModelOperation>(db: Q
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, [args.intentId,args.runId,args.accountId,args.request.operation,args.briefRevision,args.evidenceRevision,
     args.request.digest,args.request.schemaVersion,args.request.promptVersion,args.request.policyId,JSON.stringify(args.result),JSON.stringify(modelInputManifest(args.context))]);
 }
+/** Policy-independent identity for one logical model operation. Failover shares it; repairPass does not. */
+export function modelOperationLogicalDigest(args: {
+  operation: string; context: ModelContext; briefRevision: number; evidenceRevision: number;
+  schemaVersion: string; promptVersion: string; repairPass?: number;
+}): string {
+  return createHash("sha256").update(JSON.stringify({
+    operation: args.operation, manifest: modelInputManifest(args.context),
+    brief: args.briefRevision, evidence: args.evidenceRevision, repairPass: args.repairPass ?? 0,
+    schema: args.schemaVersion, prompt: args.promptVersion,
+  })).digest("hex");
+}
+
+export async function recordModelOperationAttempt(db: Queryable, args: {
+  intentId: string; runId: string; accountId: string; logicalDigest: string; attemptIndex: number;
+  predecessorIntentId: string | null; reason: "primary" | "availability_failover";
+  requestDigest: string; policyId: string;
+}): Promise<void> {
+  await db.query(`INSERT INTO model_operation_attempts(
+      intent_id,run_id,account_id,logical_digest,attempt_index,predecessor_intent_id,reason,request_digest,policy_id)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (intent_id) DO NOTHING`,
+    [args.intentId,args.runId,args.accountId,args.logicalDigest,args.attemptIndex,args.predecessorIntentId,
+      args.reason,args.requestDigest,args.policyId]);
+}
+
+export async function loadLatestModelOperationAttempt(db: Queryable, args: {
+  runId: string; accountId: string; logicalDigest: string;
+}): Promise<{ intentId: string; attemptIndex: number; requestDigest: string; policyId: string; intentState: string } | null> {
+  const row = await db.query<{ intentId: string; attemptIndex: number; requestDigest: string; policyId: string; intentState: string }>(
+    `SELECT a.intent_id AS "intentId", a.attempt_index AS "attemptIndex", a.request_digest AS "requestDigest",
+            a.policy_id AS "policyId", i.state AS "intentState"
+     FROM model_operation_attempts a JOIN provider_intents i ON i.id=a.intent_id
+     WHERE a.run_id=$1 AND a.account_id=$2 AND a.logical_digest=$3
+     ORDER BY a.attempt_index DESC LIMIT 1`, [args.runId, args.accountId, args.logicalDigest]);
+  return row.rows[0] ?? null;
+}
+
 export async function loadModelOperation(db: Queryable, intentId: string, runId: string, accountId: string, digest: string, context: ModelContext, expected?:Pick<PreparedModelRequest<ResearchModelOperation>,"operation"|"schemaVersion"|"promptVersion"|"policyId">): Promise<unknown | null> {
   const result = await db.query<{ result: unknown; receipt_matches: boolean; operation:string;schema_version:string;prompt_version:string;policy_id:string }>("SELECT m.result,m.operation,m.schema_version,m.prompt_version,m.policy_id, (m.result->'receipt'=i.receipt AND i.request_digest=m.request_digest AND i.run_id=m.run_id AND m.input_manifest=$5::jsonb) AS receipt_matches FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id WHERE m.intent_id=$1 AND m.run_id=$2 AND m.account_id=$3 AND m.request_digest=$4", [intentId,runId,accountId,digest,JSON.stringify(modelInputManifest(context))]);
   const row=result.rows[0];

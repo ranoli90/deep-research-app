@@ -1,3 +1,13 @@
+## Wave 2 implementer — 2026-09-19
+
+Worker: Wave 2 provider/cost/replay. Issues **FP-011 P0**, **FP-012 P0**, **FP-014 P0**. Branch `grok-v8/fix-wave2-provider`. Worktree `/home/oranolio/.grok/worktrees/desktop-deep/subagent-01a0bb2d-fd73-7970-8296-065910efdf96`. Base `72c78ea`. **Do not merge `main` or `grok-v8/research-beta-integration`.**
+
+Files: `apps/backend/src/worker/model-gateway.ts`, `outcomes.ts`, `model-operations.ts`, `research-writer.ts`, `research-task.ts`, `access.ts`, `source-deletion.ts`, `migrations/045_model_operation_attempts.sql`, gateway/openrouter tests, ADR067.
+
+Tests (isolated `postgres://127.0.0.1:55432/deep_wave2_provider`, fabricated transport, no live spend): gateway integration 144/144 exit 0; model-policy 9/9; held-intent 3/3; source-deletion 7/7; backend units 225/225; `tsc -p apps/backend` exit 0. Failures: none in this scope.
+
+Risks: full PG not re-run here; `adoptResearchTask` still matches run-level `policy_id`, so a brief that only succeeded on Azure failover may not seed a task until a later policy-aware adopt; FP-013/015–021 remain open on this wave.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.

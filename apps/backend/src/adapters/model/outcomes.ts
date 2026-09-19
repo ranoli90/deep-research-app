@@ -18,3 +18,11 @@ export function providerIntentStateForResult(result: {
   if (result.receipt.actualMicro != null) return { state: "confirmed", confirmedMicro: result.receipt.actualMicro };
   return { state: "failed" };
 }
+
+/** Repair/second paid call only after a confirmed or known-failed financial outcome. */
+export function knownFinancialOutcome(result: {
+  status: string;
+  receipt: { actualMicro: number | null };
+}): boolean {
+  return providerIntentStateForResult(result).state !== "outcome-unknown";
+}
