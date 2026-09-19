@@ -167,6 +167,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/maxHeight: 180/);
     expect(src).toMatch(/isOfflineError/);
     expect(src).toMatch(/AppState\.addEventListener/);
+    expect(src).not.toMatch(/accessibilityLabel="Your question"/);
     expect(src).toMatch(/onContinueClarification/);
     expect(src).toMatch(/api\.continueRun/);
     expect(src).toMatch(/api\.confirmAssumptions/);

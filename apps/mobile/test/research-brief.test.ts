@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canSubmit, composerFollowsReport, emptyState, startNewResearch } from "../src/state";
 import { clarificationFieldFromPrompt, researchBriefView } from "../src/research-brief";
@@ -33,6 +35,13 @@ describe("one-sentence composer and researching-this brief", () => {
     expect(view.blocking).toBe(false);
     expect(view.objective).toContain("laptops under $2,000");
     expect(view.assumptions).toContain("Assuming U.S. pricing and new devices.");
+  });
+
+  it("blocking clarification copy is the material prompt, not a second restatement of the question", () => {
+    const src = readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8");
+    expect(src).toContain('accessibilityLabel={view.blocking ? "Clarification needed" : "Researching this"}');
+    expect(src).toContain("view.materialClarification ?? view.objective");
+    expect(src).toContain("Jurisdiction, budget, or other detail");
   });
 
   it("still shows a blocking clarification when the run is awaiting input without a stored brief", () => {

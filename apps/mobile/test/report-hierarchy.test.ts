@@ -40,5 +40,7 @@ describe("editorial report hierarchy", () => {
     expect(app).toContain("showOutline={detailed}");
     expect(report).toContain("Sources used:");
     expect(report).toContain('accessibilityLabel="Report outline"');
+    expect(report).toContain('.join(" · ")');
+    expect(report).not.toMatch(/<Text style=\{styles\.kicker\}>Outline<\/Text>/);
   });
 });

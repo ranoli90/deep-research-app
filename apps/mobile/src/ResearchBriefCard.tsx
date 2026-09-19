@@ -31,17 +31,22 @@ export function ResearchBriefCard({
   return (
     <View style={styles.card} accessibilityLabel={view.blocking ? "Clarification needed" : "Researching this"}>
       <Text style={styles.kicker}>{view.blocking ? "Need one detail" : "Researching this"}</Text>
-      <Text style={styles.bodyText}>{view.objective}</Text>
-      {view.assumptions.map((line) => (
-        <Text key={line} style={styles.kicker}>{line}</Text>
-      ))}
-      {view.materialClarification ? <Text style={styles.bodyText}>{view.materialClarification}</Text> : null}
+      {view.blocking ? (
+        <Text style={styles.bodyText}>{view.materialClarification ?? view.objective}</Text>
+      ) : (
+        <>
+          <Text style={styles.bodyText}>{view.objective}</Text>
+          {view.assumptions.map((line) => (
+            <Text key={line} style={styles.kicker}>{line}</Text>
+          ))}
+        </>
+      )}
       {view.blocking || clarifyAnswer ? (
         <>
           <TextInput
             value={clarifyAnswer}
             onChangeText={onClarify}
-            placeholder="Answer the detail above"
+            placeholder={view.blocking ? "Jurisdiction, budget, or other detail" : "Answer the detail above"}
             placeholderTextColor={muted}
             style={styles.input}
             allowFontScaling

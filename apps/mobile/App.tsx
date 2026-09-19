@@ -1246,13 +1246,7 @@ function AppInner() {
               </View>
             ) : null}
 
-            {(state.run?.brief?.originalQuestion ?? state.pendingAdmission?.question ?? sentQuestion) ? (
-              <View style={styles.userBubble} accessibilityLabel="Your question">
-                <Text style={styles.userBubbleText} numberOfLines={6}>
-                  {state.run?.brief?.originalQuestion ?? state.pendingAdmission?.question ?? sentQuestion}
-                </Text>
-              </View>
-            ) : null}
+            {/* Header already shows the question; a second bubble crowds the first viewport. */}
 
             {state.events.length > 0 || activity.inProgress ? (
               <ResearchActivity
@@ -1323,7 +1317,7 @@ function AppInner() {
                 setEditingAssumptions(true);
                 setState((s) => ({ ...s, error: null }));
               }}
-              styles={styles}
+              styles={{ ...styles, card: styles.clarifyCard }}
             />
 
             {state.report ? (

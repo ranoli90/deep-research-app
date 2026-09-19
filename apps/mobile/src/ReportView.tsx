@@ -142,15 +142,13 @@ export function ReportSections({
     <>
       {showOutline && detailed && sections.length > 1 ? (
         <View style={styles.outline} accessibilityLabel="Report outline">
-          <Text style={styles.kicker}>Outline</Text>
-          {sections.map((section) => (
-            <Text key={`outline-${section.id}`} style={styles.outlineItem}>
-              {section.title}
-            </Text>
-          ))}
-          {Object.keys(numbers).length > 0 ? (
-            <Text style={styles.kicker}>Sources used: {Object.keys(numbers).length}</Text>
-          ) : null}
+          <Text style={styles.outlineItem} numberOfLines={2}>
+            {sections
+              .filter((section) => section.id !== "answer")
+              .map((section) => section.title)
+              .join(" · ")}
+            {Object.keys(numbers).length > 0 ? ` · Sources used: ${Object.keys(numbers).length}` : ""}
+          </Text>
         </View>
       ) : null}
       {sections.map((section) => (
