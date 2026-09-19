@@ -30,6 +30,7 @@ describe("token-aware context admission", () => {
 
   it("uses operation-specific output and deadline", () => {
     expect(operationBudget("brief", STRUCTURED_MODEL_POLICY.id).deadlineMs).toBe(45_000);
+    expect(operationBudget("extract_assertions", STRUCTURED_MODEL_POLICY.id).deadlineMs).toBe(90_000);
     expect(operationBudget("write_report", STRUCTURED_MODEL_POLICY.id).maxOutputTokens).toBeGreaterThan(4096);
     expect(operationBudget("write_report", STRUCTURED_MODEL_POLICY.id).deadlineMs).toBeGreaterThan(45_000);
   });

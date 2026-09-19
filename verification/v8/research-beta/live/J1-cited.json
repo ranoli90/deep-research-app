@@ -1,0 +1,115 @@
+{
+  "id": "J1-cited",
+  "runId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+  "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "writing",
+    "outcome": "completed_with_limitations",
+    "reportId": "b19e0a4a-dd6a-496c-8bc9-ac4913b88099"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "discovery_exhausted",
+    "writing"
+  ],
+  "cost": {
+    "runId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 26557,
+    "confirmedProviderMicro": 26557,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 26557
+    },
+    "intentTotalMicro": 26557,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "id": "b19e0a4a-dd6a-496c-8bc9-ac4913b88099",
+    "outcome": "completed_with_limitations",
+    "blockCount": 5,
+    "claimCount": 0,
+    "limitations": [
+      "Some requested questions remain unresolved."
+    ],
+    "title": null,
+    "blocks": [
+      {
+        "id": "heading_0",
+        "kind": "heading",
+        "text": "Budget",
+        "claimIds": [
+          "c426d3c2-123a-4e80-8ef2-92f03a71606e"
+        ],
+        "citationIds": [
+          "b6dff45b-fe72-4cd7-85e4-34e960e809d9"
+        ]
+      },
+      {
+        "id": "paragraph_0_0",
+        "kind": "text",
+        "text": "The Acer Aspire 16 AI is available at under $700.",
+        "claimIds": [
+          "945ac23b-f08a-4b5b-8662-6bf927c9e521"
+        ],
+        "citationIds": [
+          "b6dff45b-fe72-4cd7-85e4-34e960e809d9"
+        ]
+      },
+      {
+        "id": "heading_1",
+        "kind": "heading",
+        "text": "Memory",
+        "claimIds": [
+          "e86a2d33-39ea-472c-abfd-0f34bcaabfde"
+        ],
+        "citationIds": [
+          "b6dff45b-fe72-4cd7-85e4-34e960e809d9"
+        ]
+      },
+      {
+        "id": "paragraph_1_0",
+        "kind": "text",
+        "text": "The Acer Aspire 16 AI has 16GB LPDDR5X RAM.",
+        "claimIds": [
+          "3f6b8750-f2b8-45e5-932d-700c5337fb03"
+        ],
+        "citationIds": [
+          "b6dff45b-fe72-4cd7-85e4-34e960e809d9"
+        ]
+      },
+      {
+        "id": "limitation_0",
+        "kind": "caveat",
+        "text": "This section remains unresolved because its assertions could not be verified.",
+        "claimIds": [],
+        "citationIds": [
+          "b6dff45b-fe72-4cd7-85e4-34e960e809d9"
+        ]
+      }
+    ]
+  }
+}

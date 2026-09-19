@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type pg from "pg";
 import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, type SpanResolution } from "@deep/research-core";
+import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, uniquifyExtractionKeys, dropUnapprovedWriterClaims, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { modelPolicy } from "../ports/model-policy.js";
 import { emitEvent, getRun } from "../modules/runs.js";
@@ -116,10 +116,31 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       result = { ...result, output: clarified as typeof result.output }; linkedCriteria = linked.linked;
     }
     if (args.operation === "extract_assertions") {
+      const original = result.output as ResearchModelOutput<"extract_assertions">;
+      const hadAssertions = original.assertions.length > 0;
       const owned = new Set(context.passages.map((p) => p.id));
-      result = { ...result, output: dropUnownedEvidenceHandles(result.output as ResearchModelOutput<"extract_assertions">, owned) as typeof result.output };
+      const cleaned = uniquifyExtractionKeys(dropUnresolvedExtractionSpans(
+        dropUnownedEvidenceHandles(original, owned), context.passages));
+      result = { ...result, output: cleaned as typeof result.output };
+      if (hadAssertions && !cleaned.assertions.length) {
+        result = { status: "invalid_output", reason: "unlocatable_extraction_spans", receipt: result.receipt };
+      }
     }
-    const errors = validateModelBindings(args.operation, result.output, context);
+    if (result.status === "succeeded" && (args.operation === "write_report" || args.operation === "write_calculated_report")) {
+      const allowedClaims = new Set(context.approvedClaimKeys.filter((k) => context.assertions.some((a) => a.key === k)));
+      const allowedQuestions = new Set(context.task?.questions.map((q) => q.key) ?? []);
+      const allowedCalcs = new Set(context.calculations?.entries.filter((e) => e.selected).map((e) => e.key) ?? []);
+      const cleaned = dropUnapprovedWriterClaims(
+        result.output as ResearchModelOutput<"write_report" | "write_calculated_report">,
+        allowedClaims, allowedQuestions, allowedCalcs,
+      );
+      if (!cleaned.sections.length) {
+        result = { status: "invalid_output", reason: "writer_without_approved_claims", receipt: result.receipt };
+      } else {
+        result = { ...result, output: cleaned as typeof result.output };
+      }
+    }
+    const errors = result.status === "succeeded" ? validateModelBindings(args.operation, result.output, context) : [];
     if (errors.length) result = { status: "invalid_output", reason: errors.join(","), receipt: result.receipt };
   }
   await session.write(async (db) => {
@@ -127,7 +148,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     await saveModelOperation(db, { ...args, intentId: attempt.intentId, request, result, context });
     if (resolvedSpans.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"model_span_resolution",phase:"verifying",
       summary:"Exact quoted text was located within its original question or passage.",
-      payload:{version:"unique-exact-quote-offsets.v1",intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,resolutions:resolvedSpans}});
+      payload:{version:MODEL_SPAN_RESOLUTION_VERSION,intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,resolutions:resolvedSpans}});
     if (linkedCriteria.length) await emitEvent(db, {runId:args.runId,accountId:args.accountId,type:"brief_criterion_link",phase:"preparing",
       summary:"Each research criterion was attached to an evidence-answerable question.",
       payload:{version:"brief-criterion-question-link.v1",intentId:attempt.intentId,requestDigest:request.digest,policyId:policy.id,linked:linkedCriteria}});

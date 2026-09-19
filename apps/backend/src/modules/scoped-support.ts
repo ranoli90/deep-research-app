@@ -31,14 +31,15 @@ export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:
   if (!manifest.success) throw new Error("support_extraction_manifest_unavailable");
   const basis=await loadAssertionEvidence(db,{...args,passageIds:manifest.data.passages.map((p)=>p.id),selectionId:manifest.data.evidenceSelection?.id},versions);
   if (basis.kind==="blocked") throw new Error(basis.blocked);
-  if (basis.evidenceRevision!==row.evidence_revision) throw new Error("support_extraction_basis_changed");
+  // Newer unread sources must not invalidate an already-checked extract; a lower run revision is corrupt.
+  if (basis.evidenceRevision<row.evidence_revision) throw new Error("support_extraction_basis_changed");
   const saved=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,row.request_digest,basis.context);
   const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.extract_assertions,receipt:ModelReceiptSchema}).strict().safeParse(saved);
   if (!parsed.success || validateModelBindings("extract_assertions",parsed.data.output,basis.context).length) throw new Error("invalid_extraction_for_support");
   if (!parsed.data.output.assertions.length) throw new Error("no_assertions_to_check");
   const context={...basis.context,assertions:parsed.data.output.assertions};
   await validateOwnedModelContext(db,{...args,evidenceRevision:basis.evidenceRevision,context});
-  return {context,evidenceRevision:basis.evidenceRevision};
+  return {context,evidenceRevision:row.evidence_revision};
 }
 
 /** Fenced transaction. A model verdict is recorded alongside independently executed checks. */

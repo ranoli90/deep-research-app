@@ -1,0 +1,47 @@
+{
+  "id": "J1-spans2",
+  "runId": "8cbe488c-d47a-462e-9604-c1764a47f980",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "8cbe488c-d47a-462e-9604-c1764a47f980",
+    "accountId": "84fa908d-4878-4128-9474-a672fb972632",
+    "routeMode": "controlled-research",
+    "spentMicro": 11478,
+    "confirmedProviderMicro": 11478,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 11478
+    },
+    "intentTotalMicro": 11478,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "report": null
+}

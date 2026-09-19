@@ -38,7 +38,13 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
     provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny", ...(policy.provider === "azure" ? {zdr:true} : {}),
       max_price: { prompt: policy.promptMicroPerMillion / 1_000_000, completion: policy.completionMicroPerMillion / 1_000_000, request: 0 } },
     response_format: { type: "json_schema", json_schema: { name: `research_${operation}_v1`, strict: true, schema } },
-    messages: [{ role: "system", content: modelPrompt(operation) + (extras?.repairPass ? `\nSame-evidence repair pass ${extras.repairPass}. Keep every citation and claim identity exact.` : "") }, { role: "user", content: contextText }],
+    messages: [{ role: "system", content: modelPrompt(operation) + (extras?.repairPass ? (operation === "extract_assertions"
+      ? `\nSame-evidence repair pass ${extras.repairPass}. Copy each evidence quote from one supplied passage only. Use that passage id. Do not concatenate passages or invent offsets.`
+      : operation === "assess_support"
+      ? `\nSame-evidence repair pass ${extras.repairPass}. Assess every supplied assertion key exactly once. Do not invent claim keys.`
+      : operation === "write_report" || operation === "write_calculated_report"
+      ? `\nSame-evidence repair pass ${extras.repairPass}. Cite only approved claim keys. Keep every citation and claim identity exact.`
+      : `\nSame-evidence repair pass ${extras.repairPass}. Keep every citation and claim identity exact.`) : "") }, { role: "user", content: contextText }],
     ...(extras?.sessionId ? { session_id: extras.sessionId } : {}),
   });
   admitContextTokens({ contextText, bodyText: body, operation, policyId: policy.id });

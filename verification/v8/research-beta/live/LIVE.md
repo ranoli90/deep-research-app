@@ -6,12 +6,14 @@ Hosted `verification.yml` is still billing-locked. The same steps were run local
 
 ## What executed on the production path
 
-Admission → hybrid intent → Azure ZDR brief (`openrouter-azure-mini-zdr-text-v1`) → Azure ZDR web discovery (`public-discovery-azure-zdr.v2`) → source fetch/extract.
+Admission → hybrid intent → Azure ZDR brief (`openrouter-azure-mini-zdr-text-v1`) → Azure ZDR web discovery (`public-discovery-azure-zdr.v2`) → source fetch/extract → span remapping onto unique owned passages → scoped support v4 → cited publication.
 
-Latest useful run `d0b2d2f4-b3ff-4387-9de2-8e3fd10b2272`: 3 search hits, multiple `successful_body` reads, extract+support, counterevidence. Did **not** publish a report (`extraction_invalid_output` on a later pass).
+Cited J1 run `9fd02f6c-47a2-4224-a781-7c5d438e43fe` published report `b19e0a4a-dd6a-496c-8bc9-ac4913b88099` (`completed_with_limitations`). Passage `b6dff45b-fe72-4cd7-85e4-34e960e809d9` contains both published sentences: Acer Aspire 16 AI under $700 and 16GB LPDDR5X. Artifact: `J1-cited.json`.
 
-Confirmed new provider cost on this ledger: **72,555 µ ($0.072555)**. Five earlier intents remain `outcome-unknown` (OpenAI `provider_http_404` mis-labeled, plus one search 404); those identities were not retried.
+Correction `Need at least 32GB of RAM.` admitted as child `8884f4a8-8d47-4df9-8af3-1ce507e47be3`, re-searched, then failed writing (`selection_context_mismatch` after `later_support_unproven`). Artifact: `J1-correction.json`. Parent report remains.
+
+Ledger confirmed spend is recorded in `provider_intents` (unknown holds were not retried). One extract identity (`badb7b6e-…`) remains `outcome-unknown` after a 45s deadline abort; it was not retried. Extract deadline is now 90s.
 
 ## Not a live Research Beta PASS
 
-A cited published report + correction did not complete. Remaining defect: extract/assert span validation on recovered passages. No merge to `main`.
+A first-pass cited report exists. Correction did not publish an updated report. Hosted Actions remain billing-locked. `main` is not merged.

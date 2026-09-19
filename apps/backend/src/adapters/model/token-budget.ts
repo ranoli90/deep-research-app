@@ -21,6 +21,9 @@ export function operationBudget(operation: ResearchModelOperation, policyId: str
   if (operation === "review_coverage" || operation === "review_calculated_coverage" || operation === "assess_support") {
     return { maxInputTokens: Math.min(policy.contextTokens - 1024, 64_000), maxOutputTokens: policy.outputTokens, deadlineMs: 90_000 };
   }
+  if (operation === "extract_assertions") {
+    return { maxInputTokens: Math.min(policy.contextTokens - 1024, 64_000), maxOutputTokens: policy.outputTokens, deadlineMs: 90_000 };
+  }
   return { maxInputTokens: Math.min(policy.contextTokens - 1024, 48_000), maxOutputTokens: policy.outputTokens, deadlineMs: 45_000 };
 }
 

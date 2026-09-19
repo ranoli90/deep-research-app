@@ -25,10 +25,12 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
     if(old.rowCount)args={...args,calculationPlanIntentId:undefined};
   }
   const basis=await session.write(async (db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},await runModelVersions(db,args.runId)));
-  let result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
+  const liveRevision=(await getRun(pool,args.runId))?.evidence_revision ?? args.fence;
+  const writeArgs={...args,...basis,evidenceRevision:liveRevision};
+  let result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status==="invalid_output"){
-    result=await performModelOperation(pool,config,session,{...args,...basis,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report",repairPass:1});
+    result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report",repairPass:1});
     if(result.kind!=="result")return result;
   }
   if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
@@ -64,9 +66,10 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;
     const challengeLimitations=[...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,args)];
-    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length;
     const run=await getRun(db,args.runId);
-    if(!run||run.evidence_revision!==basis.evidenceRevision)throw new Error("stale_writer_publication");
+    if(!run||run.evidence_revision<basis.evidenceRevision)throw new Error("stale_writer_publication");
+    const laterEvidence=run.evidence_revision>basis.evidenceRevision;
+    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length&&!laterEvidence;
     const cited=[...new Set(compiled.blocks.flatMap((b)=>b.citationIds))];
     const rows=await db.query<{id:string;title:string;access_level:string;origin_cluster:string}>(`SELECT DISTINCT s.id,s.title,v.access_level,s.origin_cluster
       FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
@@ -75,7 +78,11 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
       // Completion requires the separately executed coverage review and intact final assertions.
-      limitations:complete?[]:["Some requested questions remain unresolved.",...challengeLimitations],
+      limitations:complete?[]:[
+        ...((coverage.complete&&!compiled.unresolved.length)?[]:["Some requested questions remain unresolved."]),
+        ...(laterEvidence?["Additional sources were read after this evidence was checked."]:[]),
+        ...challengeLimitations,
+      ],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};
     const result=await publishReport(db,{report,accountId:args.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
     return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,coverageIntentId:reviewed.intentId,unresolvedStatements:compiled.unresolved};

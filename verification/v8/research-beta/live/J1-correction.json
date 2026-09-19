@@ -1,0 +1,61 @@
+{
+  "id": "J1-correction",
+  "parentRunId": "9fd02f6c-47a2-4224-a781-7c5d438e43fe",
+  "runId": "8884f4a8-8d47-4df9-8af3-1ce507e47be3",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "failed",
+    "reportId": null
+  },
+  "eventTypes": [
+    "correction_accepted",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "plan_pivot",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "8884f4a8-8d47-4df9-8af3-1ce507e47be3",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 47204,
+    "confirmedProviderMicro": 47204,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 47204
+    },
+    "intentTotalMicro": 47204,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": null
+}

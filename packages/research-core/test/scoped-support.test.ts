@@ -57,3 +57,20 @@ it("W05 retains directly relevant and adjacent anaphoric qualifications",()=>{
  for(const text of ["Aster supports offline editing only on paid plans.","Aster supports offline editing. Only on paid plans.","Aster supports offline editing. However, this requires a paid plan."])
   expect(check(text,"Aster supports offline editing.").decision).toBe("partially_supported");
 });
+it("does not treat a question-category entity as ungrounded when the quote names a specific product",()=>{
+  const text="The ThinkPad P14s Gen 6 AMD is shockingly good. For under $2k, I now have a mobile AI lab.";
+  const laptopScope={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
+  const comments="8 comments. This is so cool! Love seeing large AI models on a ThinkPad. You may prefer a desktop.";
+  const evidence=[{passageId:pid,start:0,end:text.length,quote:text}];
+  const result=resolveScopedSupport({
+    assertions:[{key:"a",candidateKey:null,criterionKeys:["c"],text:text,scope:laptopScope,quantities:[],evidence}],
+    passages:[
+      {id:pid,text,accessLevel:"partial-text"},
+      {id:"22222222-2222-4222-8222-222222222222",text:comments,accessLevel:"partial-text"},
+    ],
+    proposal:{assessments:[{claimKey:"a",status:"supported",scope:laptopScope,evidence,rationale:"Quoted product evidence",missingEvidence:[]}]},
+  })[0]!;
+  expect(result.decision).toBe("supported");
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.counterEvidence).toEqual([]);
+});

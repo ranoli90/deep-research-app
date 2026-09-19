@@ -163,20 +163,22 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
     if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
+    const writeFromPrior=async(reason:string)=>{
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
+        summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason}}));
+      const result=await writeResearchReport(pool,config,session,{...prior!.target,sourceSupportIntentId:prior!.support.intentId,...(prior!.calculations.kind==="calculations"&&prior!.calculations.executions.length?{calculationPlanIntentId:prior!.calculations.intentId}:{})});
+      if(result.kind!=="publication")return pendingOrBlocked(result);
+      if(!result.accepted)return unresolved(result.reason);
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
+        summary:"Answer ready."}));
+      return;
+    };
     if(extraction.kind!=="extraction"){
-      if(prior){
-        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
-          summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason:extraction.reason}}));
-        const result=await writeResearchReport(pool,config,session,{...prior.target,sourceSupportIntentId:prior.support.intentId,...(prior.calculations.kind==="calculations"&&prior.calculations.executions.length?{calculationPlanIntentId:prior.calculations.intentId}:{})});
-        if(result.kind!=="publication")return pendingOrBlocked(result);
-        if(!result.accepted)return unresolved(result.reason);
-        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
-          summary:"Answer ready."}));
-        return;
-      }
+      if(prior)return writeFromPrior(extraction.kind==="blocked"?extraction.reason:"extraction_unavailable");
       return pendingOrBlocked(extraction);
     }
     if(!extraction.output.assertions.length){
+      if(prior)return writeFromPrior("no_relevant_assertions");
       if(!recoveryEnabled||!selection)return unresolved("no_relevant_assertions");
       for(const id of selection.passageIds)inspectedIds.add(id);
       const next=nextUninspectedSelection(brief.originalQuestion,selection.inventoryPassages,[...inspectedIds]);
@@ -186,13 +188,20 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     const target={...args,taskId:prepared.task.id,extractionIntentId:extraction.intentId};
     const support=await executeAssertionSupport(pool,config,session,target);
-    if(support.kind!=="support")return pendingOrBlocked(support);
-    prior={extraction,support,calculations:{kind:"not_applicable"},target:{...target,supportIntentId:support.intentId}};
-    const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
-    if(challenge.kind==="challenge") {
-      await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
-        summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
-      if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
+    if(support.kind!=="support"){
+      if(prior)return writeFromPrior(support.kind==="blocked"?support.reason:"support_unavailable");
+      return pendingOrBlocked(support);
+    }
+    const supportedNow=support.checks.some((c)=>c.decision==="supported");
+    if(!supportedNow && prior)return writeFromPrior("later_support_unproven");
+    if(supportedNow) prior={extraction,support,calculations:{kind:"not_applicable",reason:"pending_calculation_planning"},target:{...target,supportIntentId:support.intentId}};
+    if(!supportedNow) {
+      const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
+      if(challenge.kind==="challenge") {
+        await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
+          summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
+        if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
+      }
     }
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
@@ -200,8 +209,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       if(comparison.kind!=="comparison")return unresolved(comparison.reason);
     }
     const calculations=await executeCalculationPlanning(pool,config,session,{...target,supportIntentId:support.intentId});
-    if(calculations.kind!=="calculations"&&calculations.kind!=="not_applicable")return pendingOrBlocked(calculations);
-    prior={extraction,support,calculations,target:{...target,supportIntentId:support.intentId}};
+    if(calculations.kind!=="calculations"&&calculations.kind!=="not_applicable"){
+      if(prior)return writeFromPrior(calculations.kind==="blocked"?calculations.reason:"calculation_unavailable");
+      return pendingOrBlocked(calculations);
+    }
+    if(supportedNow) prior={extraction,support,calculations,target:{...target,supportIntentId:support.intentId}};
     if(calculations.kind==="calculations"&&calculations.executions.length)await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"calculations_executed",phase:"researching",
       summary:"Requested arithmetic was evaluated against checked source quantities.",payload:{planIntentId:calculations.intentId,
        results:calculations.executions.map(e=>({key:e.key,calculationId:e.calculationId,status:e.result.status,reason:e.result.reason}))}}));
@@ -282,7 +294,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
           payload:{reason:next.kind==="search"?breadth.reason:next.reason,plannerVersion:run.research_strategy,coverageIntentId:review.intentId,unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,stopPolicy:breadth.stopPolicy}});
       });
     }
-    if(!support.checks.some((c)=>c.decision==="supported"))return unresolved("no_supported_assertions");
+    if(!support.checks.some((c)=>c.decision==="supported")){
+      if(prior)return writeFromPrior("no_supported_assertions");
+      return unresolved("no_supported_assertions");
+    }
     await session.write(async(db)=>{
       if(brief.attachmentIds.length)await reconcileOwnedDocumentClaims(db,{accountId:args.accountId,runId:args.runId,question:brief.originalQuestion,claims:extraction.output.assertions.map((a)=>({key:a.key,text:a.text}))});
       await setPhase(db,args.runId,"writing");

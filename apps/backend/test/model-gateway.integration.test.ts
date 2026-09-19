@@ -321,9 +321,23 @@ describe("W05 evidence-bound arbitrary assertion extraction", () => {
   }));
   it("rejects an invented evidence binding instead of creating assertions", async () => runCase(async (x) => {
     const prepared = await extractionCase(x);
-    prepared.output.assertions[0]!.evidence[0]!.passageId=crypto.randomUUID();
+    const fake = { passageId: prepared.p.passageId, start: 0, end: 41, quote: "invented sentence that is not on the page" };
+    prepared.output.candidates[0]!.evidence = [fake];
+    prepared.output.assertions[0]!.evidence = [fake];
     globalThis.fetch = vi.fn(async () => response(prepared.output)) as typeof fetch;
     expect(await extractEvidenceAssertions(pool,x.config,x.session,prepared.args)).toEqual({kind:"blocked",reason:"extraction_invalid_output"});
+  }));
+  it("retargets an extraction quote whose passage id is wrong but whose text is uniquely owned", async () => runCase(async (x) => {
+    const prepared = await extractionCase(x);
+    const invented = crypto.randomUUID();
+    prepared.output.candidates[0]!.evidence[0]!.passageId = invented;
+    prepared.output.assertions[0]!.evidence[0]!.passageId = invented;
+    globalThis.fetch = vi.fn(async () => response(prepared.output)) as typeof fetch;
+    const result = await extractEvidenceAssertions(pool,x.config,x.session,prepared.args);
+    expect(result.kind).toBe("extraction");
+    if (result.kind !== "extraction") return;
+    expect(result.output.assertions[0]!.evidence[0]!.passageId).toBe(prepared.p.passageId);
+    expect(result.output.assertions[0]!.evidence[0]!.quote.length).toBeGreaterThan(0);
   }));
   it("rejects wrong-task, missing passage and duplicate selection before dispatch", async () => runCase(async (x) => {
     const prepared = await extractionCase(x);
@@ -390,7 +404,7 @@ describe("W05 substantive support execution and persisted revisions",()=>{
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const rows=await pool.query("SELECT claim_revision_id,evidence_digest,scope_digest,checker_version,result FROM scoped_support_results WHERE run_id=$1",[x.runId]);
     expect(rows.rows).toHaveLength(1);
-    expect(rows.rows[0]).toMatchObject({evidence_digest:expect.stringMatching(/^[a-f0-9]{64}$/),scope_digest:expect.stringMatching(/^[a-f0-9]{64}$/),checker_version:"scoped-support.v3"});
+    expect(rows.rows[0]).toMatchObject({evidence_digest:expect.stringMatching(/^[a-f0-9]{64}$/),scope_digest:expect.stringMatching(/^[a-f0-9]{64}$/),checker_version:"scoped-support.v4"});
     expect(rows.rows[0].result.checks.length).toBeGreaterThan(5);
     expect((await pool.query("SELECT support_status FROM claims WHERE run_id=$1",[x.runId])).rows).toEqual([{support_status:"unverified"}]);
     expect((await pool.query("SELECT id FROM reports WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
@@ -632,7 +646,7 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     await pool.query("UPDATE scoped_support_results SET checker_version='scoped-support.v1' WHERE run_id=$1",[x.runId]);
     const second=await executeAssertionSupport(pool,x.config,x.session,c.args);
     expect(second).toEqual({...first,reused:true});
-    expect((await pool.query("SELECT checker_version FROM scoped_support_results WHERE run_id=$1 ORDER BY checker_version",[x.runId])).rows).toEqual([{checker_version:"scoped-support.v1"},{checker_version:"scoped-support.v3"}]);
+    expect((await pool.query("SELECT checker_version FROM scoped_support_results WHERE run_id=$1 ORDER BY checker_version",[x.runId])).rows).toEqual([{checker_version:"scoped-support.v1"},{checker_version:"scoped-support.v4"}]);
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }));
 });
