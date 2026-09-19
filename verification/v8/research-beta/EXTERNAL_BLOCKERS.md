@@ -31,7 +31,7 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 ## 3. Physical Android latest-SHA APK
 
-Device `10.0.0.167:43417` was **unlocked** at 11:18 (`mDreamingLockscreen=false`) and showed Deep empty-home. Installed package `app.deepresearch.mobile` `lastUpdateTime=2026-09-19 03:48:27` is not integration HEAD. Recapture of the **latest** UI still needs a new APK. Unlocked shots of the installed APK: `verification/v8/research-beta/visual-qa/unlocked/`. Do not send unlock/keyevents.
+EAS `5f4cd0e7` git `1021057` APK installed `adb install -r` 2026-09-19 11:46:18 on `10.0.0.167:43417`. Full v8k matrix captured. Remaining: hosted GitHub Actions owner-declined; J8 private attachment.
 
 ## After remaining blockers
 

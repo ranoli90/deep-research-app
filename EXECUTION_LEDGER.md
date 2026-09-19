@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Native APK 1021057 visual QA
+
+- EAS `5f4cd0e7-6f12-4461-80a7-968946f28690` profile device, git `1021057`.
+- APK sha256 `a3adc4deb7f0d29999f895404b08b7ae04230b5569f72779a6711501604ed1b2`.
+- `adb install -r` 11:46:18 on `10.0.0.167:43417`; no wipe.
+- v8k matrix captured and reviewed. IME bar still covers send.
+
 ## 2026-09-19 — J11/J12 live and caveat-citation tests
 
 - research-core focused 76/76; backend units 224/224 (passage-capacity now token-aware).

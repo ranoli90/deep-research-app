@@ -1,39 +1,40 @@
-# Native visual QA — APK 2eb385b / EAS 7e4b02c8
+# Native visual QA — APK 1021057 / EAS 5f4cd0e7
 
 Device: `10.0.0.167:43417` (kunzite_global / 25098RA98G), package `app.deepresearch.mobile`.
-APK sha256: `6ded85d00989a33bc89aeb186261f4d715b7f62de71aaa6781141b3d141df9cb`
-Install: `adb install -r` 2026-09-19 03:48:27 (no data wipe).
-Product git: `2eb385b871fc0465a0b4a3cfe7d0cd7705f9a7a5`.
-font_scale restored to `1.0` after the large-text capture.
-adb reverse `tcp:8787` → host `8788` restored after the offline capture.
+EAS: `5f4cd0e7-6f12-4461-80a7-968946f28690` profile `device` git `1021057e049e913ab2b1b084a2ac6eccad573607`.
+APK sha256: `a3adc4deb7f0d29999f895404b08b7ae04230b5569f72779a6711501604ed1b2`
+Install: `adb install -r` 2026-09-19 11:46:18 (no unrelated data wipe).
+Shots: `verification/v8/research-beta/visual-qa/v8k/`.
+font_scale restored to `1.0`. adb reverse `tcp:8787` → `8788` restored.
 
 ## Matrix
 
 | Shot | File | Verdict |
 |---|---|---|
-| empty light | empty-light.png | Compact composer, “Ask anything.”, example chips. Not giant display type. |
-| empty dark | empty-dark.png | Warm raised composer on near-black. Header icons remain readable. |
-| keyboard | keyboard.png | Composer sits on the keyboard; “Ask anything.” is not covered. |
-| Library | library.png | Theme hairlines; quiet Share; search field usable. |
-| Settings | settings.png | Segmented appearance; processor dump collapsed. System Switch remains. |
-| clarification | clarification.png | Composer hidden. Field “Jurisdiction or place”. Compact card. |
-| expanded activity | expanded-activity.png | Real events: Starting / Searching / Reading / Checking a conflicting claim / Writing. Not fabricated. |
-| completed report | completed-report.png | Editorial sections + table + citation chips. Fixture copy is still fixture. |
-| source sheet | source-sheet.png | Quote first, freshness/independence, Challenge/Verify, Technical details collapsed. Cited in ellipsizes. |
-| correction | correction.png | “Updating from your correction” + stop; assumptions only (no planner desiredOutcome dump). |
-| active research | active-research.png | Writing-the-answer trail with stop square during the 2026-figures correction. |
-| large text | large-text.png | font_scale 1.5; Library rows wrap; composer stays compact. Restored to 1.0. |
-| offline/error | offline-error.png | “You're offline. Retry”; draft `offline_retry` kept. |
+| empty light | v8k/empty-light.png | Compact composer, “Ask anything.”, example chips, + / send icons. Not giant display type. |
+| empty dark | v8k/empty-dark.png | Near-black field, raised composer, readable header icons. |
+| keyboard | v8k/keyboard.png | Layout resizes; IME suggestion bar still covers the send control. |
+| Library | v8k/library.png | Hairline rows, search, quiet Share. Search field is still a plain TextInput. |
+| Settings | v8k/settings.png | Segmented appearance; processor dump collapsed; system Switch remains. |
+| clarification | v8k/clarification.png | Composer hidden. Jurisdiction field + Continue research. Compact card. |
+| expanded activity | v8k/expanded-activity.png | Real events: Updating from your correction / Searching / Reading / Checking a conflicting claim / Writing. |
+| completed report | v8k/completed-report.png | Editorial sections, TOC, table, citation chips. Fixture copy still says Sample / geography=texas. |
+| source sheet | v8k/source-sheet.png | Quote first; freshness unknown not treated as current; Challenge/Verify; Technical details collapsed. |
+| correction | v8k/correction.png | Same 2026-figures correction timeline as expanded activity. |
+| active research | v8k/active-research.png | Stop square in composer; assumptions card still shown during fixture progress. |
+| large text | v8k/large-text.png | font_scale 1.5; Library rows wrap; composer stays compact. Restored to 1.0. |
+| offline/error | v8k/offline-error.png | “You're offline. Retry”; draft `offline_retry` kept. |
 
 ## Ruthless review
 
-Does **not** look like a default 44px-circle React Native prototype. Composer, empty home, activity, report, and source sheet are original enough for this APK.
+Does **not** look like a default 44px-circle React Native prototype. Empty home, composer, report, source sheet, and activity timeline are first-party enough for this APK.
 
-Remaining product-quality nits (not a reason to rebuild this APK before the two external gates):
+Remaining nits (not a reason to discard this capture):
 
+- IME suggestion bar covers the send control while the keyboard is up.
 - Library search is still an unadorned TextInput.
 - Settings uses a system Switch.
-- Active/correction `ResearchBriefCard` still shows an assumptions card.
-- Fixture reports still say “Sample” and can leak `geography=texas` in the body.
+- Fixture reports still say “Sample” and can leak `geography=texas`.
+- Active-research still shows an assumptions card.
 
-Visual identity is **device-reviewed on this APK**. It is **not** Research Beta. Live J1–J12 and hosted `verification.yml` remain blocked.
+Visual identity is **device-reviewed on APK 1021057**. Research Beta is not declared (`main` not merged).

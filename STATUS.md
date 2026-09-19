@@ -1,3 +1,7 @@
+## Native APK 1021057 visual QA — 2026-09-19
+
+EAS `5f4cd0e7` device APK git `1021057` sha256 `a3adc4de…` installed `adb -r` on `10.0.0.167:43417` (no wipe). Full v8k screenshot matrix reviewed. IME suggestion bar still covers send. **Not merged to `main`.**
+
 ## J11/J12 live + caveat tests — 2026-09-19
 
 Focused research-core 76/76 and backend units 224/224 after caveat-citation and token-admission tests. Live J12 `51f73565` published OWASP Prompt Injection `d8c5ebcc`. J11-c extract grounded 321-mile / $37,900; writer body unpublished. Ledger **1,070,594 µ**. Device unlocked; installed APK is not HEAD. **Not merged to `main`.**

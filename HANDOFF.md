@@ -1,3 +1,7 @@
+## Native APK 1021057 — 2026-09-19
+
+Installed EAS `5f4cd0e7` on `10.0.0.167:43417`. Shots in `verification/v8/research-beta/visual-qa/v8k/`. Do not merge `main`.
+
 ## J11/J12 live — 2026-09-19
 
 J12 cited OWASP prompt-injection page without following the attack string. J11 needs a writer that does not add unquoted 300-mile / $45k arithmetic. Caveat-citation unit tests 76 core / 224 backend. Do not merge `main`.
