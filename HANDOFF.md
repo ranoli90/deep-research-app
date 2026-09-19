@@ -16,7 +16,11 @@ Branch `grok-v8/fix-wave7-mobile-contract`. **Do not merge `main`.** `main` stay
 - No paid calls. No device shot.
 
 ### SHA
-Recorded after commit.
+- Base: `72c78ea5bbce94b599f0fd0be876fe205f5f8222`
+- Rejected: `42a2d3729bfa62b5a80ec193d7cb65eeccb55274`
+- Repair: `3d936a8df2c5e6b64add17f61c5d5cadacbb5b95`
+- Branch: `grok-v8/fix-wave7-mobile-contract`
+- `main` unchanged at `8a7b1a997aefc53f8b06497346c0f915e2d455a7`
 
 ## Wave 7 — sanitized activity DTO + IME send inset — 2026-09-19
 

@@ -1,6 +1,6 @@
 ## Wave 7 review repair — /events canary, canned phase, public hosts — 2026-09-19
 
-Branch `grok-v8/fix-wave7-mobile-contract`. **Not merged to `main` (`8a7b1a9`).** Independent review rejected `42a2d37`. Repairs: real Fastify `GET /v1/runs/:id/events` inject canary omits `publicSummary`/`type`/`payload`; schema-fail fallback uses canned `researching` and never echoes raw phase; `sourceDomain` uses `publicSourceUrl` rules (no RFC1918/`.internal`). IME dock inset remains unit-tested only; **FP-085 is not closed** (no physical Gboard shot). Isolated PG `deep_wave7_events` 1/1; backend public-activity units 4/4; mobile 285/285; types/boundaries green. Research Beta is not declared.
+Branch `grok-v8/fix-wave7-mobile-contract` SHA `3d936a8`. **Not merged to `main` (`8a7b1a9`).** Independent review rejected `42a2d37`. Repairs: real Fastify `GET /v1/runs/:id/events` inject canary omits `publicSummary`/`type`/`payload`; schema-fail fallback uses canned `researching` and never echoes raw phase; `sourceDomain` uses `publicSourceUrl` rules (no RFC1918/`.internal`). IME dock inset remains unit-tested only; **FP-085 is not closed** (no physical Gboard shot). Isolated PG `deep_wave7_events` 1/1; backend public-activity units 4/4; mobile 285/285; types/boundaries green. Research Beta is not declared.
 
 ## Wave 7 mobile activity contract + IME send inset — 2026-09-19
 
