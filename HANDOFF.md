@@ -1,6 +1,6 @@
 ## Wave 2 revision — 2026-09-19
 
-Review rejection: extract/support still repaired unknown-cost `invalid_output`. Now gated like brief/writer; gateway refuses `repairPass` unless the prior attempt is known-cost `invalid_output`. Tests: extract + support null-cost, plus explicit `repairPass:1` after unknown brief. Gateway integration **146/146**. ADR070. 045 kept; AGENTS still names historical 044. Branch `grok-v8/fix-wave2-provider`. Do not merge.
+Review rejection: extract/support still repaired unknown-cost `invalid_output`. Now gated like brief/writer; gateway refuses `repairPass` unless the prior attempt is known-cost `invalid_output`. Tests: extract + support null-cost, plus explicit `repairPass:1` after unknown brief. Gateway integration **146/146**. ADR070. 045 kept; AGENTS still names historical 044. Branch `grok-v8/fix-wave2-provider`. Implementation `8fcf103b67c8cb16d43ff594d8811c859381a709`. Do not merge.
 
 ## Wave 2 implementer — 2026-09-19
 

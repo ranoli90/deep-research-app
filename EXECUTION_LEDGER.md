@@ -2,7 +2,7 @@
 
 ## 2026-09-19 — Wave 2 revision: extract/support unknown-cost repair HOLD
 
-- Task: review rejection on FP-014 siblings (extract, support). Branch `grok-v8/fix-wave2-provider`.
+- Task: review rejection on FP-014 siblings (extract, support). Branch `grok-v8/fix-wave2-provider` `8fcf103`.
 - Isolated PG `deep_wave2_provider`. Fabricated transport. No live spend.
 - `tsc -p apps/backend --noEmit` exit 0
 - `vitest unit test/openrouter.unit.test.ts` 5/5 exit 0

@@ -1,6 +1,6 @@
 ## Wave 2 revision — extract/support unknown-cost repair HOLD — 2026-09-19
 
-Independent review: extract and support still issued `repairPass` on null-cost `invalid_output`. Gated those callers with `knownFinancialOutcome` and fail-closed the same check inside `performModelOperation` before a repair reserve. Null-cost extract/support tests added. ADR070 (not 067). `044_retrieval_intelligence` kept in AGENTS historical ids; 045 still follows 043. Isolated PG `deep_wave2_provider`: gateway **146/146** exit 0. Not merged.
+Independent review: extract and support still issued `repairPass` on null-cost `invalid_output`. Gated those callers with `knownFinancialOutcome` and fail-closed the same check inside `performModelOperation` before a repair reserve. Null-cost extract/support tests added. ADR070 (not 067). `044_retrieval_intelligence` kept in AGENTS historical ids; 045 still follows 043. Isolated PG `deep_wave2_provider`: gateway **146/146** exit 0. SHA `8fcf103`. Not merged.
 
 ## Wave 2 provider attempt chain — 2026-09-19
 
