@@ -3,6 +3,8 @@ import { z } from "zod";
 import { STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_DISCOVERY_POLICY,STRUCTURED_CALL_RESERVE_MICRO,modelPolicy } from "./model-policy.js";
 export const DISCOVERY_POLICY={id:"public-discovery.v1",model:STRUCTURED_MODEL_POLICY.model,engine:"exa",mode:"auto",maxResults:3,
   searchFeeMicro:7000,observedAt:"2026-09-17"} as const;
+/** New admissions: bounded task-aware result count. v1/v2 request bytes stay frozen. */
+export const DEEP_DISCOVERY_POLICY={...DISCOVERY_POLICY,id:"public-discovery.v3",maxResults:8,observedAt:"2026-09-18"} as const;
 export const DISCOVERY_RESERVE_MICRO=STRUCTURED_CALL_RESERVE_MICRO+DISCOVERY_POLICY.searchFeeMicro;
 /** Attempt reserve for a single search: Exa fee plus a small generation bound, not the full 128k-token ceiling. */
 export const DISCOVERY_ATTEMPT_RESERVE_MICRO=DISCOVERY_POLICY.searchFeeMicro+2_000;
@@ -12,9 +14,15 @@ export function discoveryPolicyForModel(modelPolicyId:unknown=STRUCTURED_MODEL_P
  const policy=modelPolicy(modelPolicyId);
  return policy.id===AZURE_ZDR_DISCOVERY_POLICY.id?AZURE_DISCOVERY_POLICY:DISCOVERY_POLICY;
 }
+/** New search attempts: v3 result bound. Replay of issued v1/v2 identities still uses discoveryPolicy(). */
+export function discoveryPolicyForNewSearch(modelPolicyId:unknown=STRUCTURED_MODEL_POLICY.id) {
+ const mapped=discoveryPolicyForModel(modelPolicyId);
+ return mapped.id===DISCOVERY_POLICY.id?DEEP_DISCOVERY_POLICY:mapped;
+}
 export function discoveryPolicy(id:unknown=DISCOVERY_POLICY.id) {
  if(id===DISCOVERY_POLICY.id)return DISCOVERY_POLICY;
  if(id===AZURE_DISCOVERY_POLICY.id)return AZURE_DISCOVERY_POLICY;
+ if(id===DEEP_DISCOVERY_POLICY.id)return DEEP_DISCOVERY_POLICY;
  throw Error("unsupported_discovery_policy");
 }
 export function discoveryModelPolicy(id:unknown=DISCOVERY_POLICY.id) {

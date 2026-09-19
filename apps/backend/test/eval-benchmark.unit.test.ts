@@ -21,6 +21,9 @@ describe("fixture baseline vs adaptive benchmark", () => {
         "negative-evidence",
         "contradictory-numerical",
         "multi-jurisdiction",
+        "wandr-like-wide-deep",
+        "browsecomp-like-multi-hop",
+        "deepresearch-bench-like",
       ]),
     );
     expect(new Set(families).size).toBeGreaterThanOrEqual(12);

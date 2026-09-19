@@ -2,7 +2,7 @@ import { prepareEvidenceSelection,usesEvidenceSelection } from "../modules/evide
 import { ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
 import { getCounterevidence } from "../modules/counterevidence.js";
-import { publicSearchDigest,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
+import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,type SourceClass } from "@deep/research-core";
@@ -121,7 +121,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
   // The search receipt may commit before its challenge pointer. Recover its purpose
   // from the exact server-owned request digest without issuing an ordinary search.
-  const challengeDigest=challengeQuery?publicSearchDigest(challengeQuery.action.query,discoveryPolicyForModel(run.model_policy_id).id):null;
+  const challengeDigest=challengeQuery?publicSearchDigest(challengeQuery.action.query,discoveryPolicyForNewSearch(run.model_policy_id).id):null;
   const priorDiscovery=await session.write((db)=>db.query(`SELECT 1 FROM search_operations s
     WHERE s.run_id=$1 AND s.account_id=$2 AND s.brief_revision=$3
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.search_intent_id=s.intent_id AND c.run_id=s.run_id AND c.account_id=s.account_id)

@@ -801,7 +801,7 @@ describe("W02/W05 durable pinned public discovery",()=>{
   const first=await performPublicSearch(pool,c.config,x.session,c.args);expect(first.kind).toBe("pending");
   await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
   expect(await performPublicSearch(pool,c.config,x.session,c.args)).toEqual(first);expect(fetch).toHaveBeenCalledTimes(1);
-  expect((await pool.query("SELECT confirmed_micro,state,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0]).toMatchObject({confirmed_micro:null,state:"outcome-unknown",reserved_max_micro:"9000"});
+  expect((await pool.query("SELECT confirmed_micro,state,reserved_max_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[x.runId])).rows[0]).toMatchObject({confirmed_micro:null,state:"outcome-unknown",reserved_max_micro:"9000"});
  }));
  it("rejects transformed private words and foreign task ownership before dispatch",async()=>runCase(async(x)=>{
   const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
@@ -827,14 +827,14 @@ describe("W02/W05 durable pinned public discovery",()=>{
   const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>{await withTx(pool,(db)=>deleteAccount(db,x.accountId));return searchReply();}) as typeof fetch;
   await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toBeInstanceOf(LostWorkerLease);
   expect((await pool.query("SELECT 1 FROM search_operations WHERE account_id=$1",[x.accountId])).rowCount).toBe(0);
-  expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rows[0].confirmed_micro).toBe("3");
+  expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[x.runId])).rows[0].confirmed_micro).toBe("3");
  }));
 });
 it("W03/W05 old processor consent cannot issue pinned discovery",async()=>runCase(async(x)=>{
  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
  await pool.query("UPDATE consent_records SET policy_version='2026-09-17' WHERE account_id=$1",[x.accountId]);
  await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("stale_or_unauthorized_attempt");
- expect(fetch).not.toHaveBeenCalled();expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.runId])).rowCount).toBe(0);
+ expect(fetch).not.toHaveBeenCalled();expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[x.runId])).rowCount).toBe(0);
 }));
 it("W03/W05 mixed document tasks require explicit public-query approval",async()=>runCase(async(x)=>{
  const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
@@ -957,7 +957,7 @@ function correctionDiscovery(model:typeof fetch,locator:string):typeof fetch {
  return vi.fn(async(input,init)=>{const body=JSON.parse(String(init?.body));return body.plugins?.length?searchReply(true,locator):model(input,init);}) as typeof fetch;
 }
 async function expectCorrectionSearch(runId:string){
- expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[runId])).rows).toEqual([{confirmed_micro:"3"}]);
+ expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[runId])).rows).toEqual([{confirmed_micro:"3"}]);
 }
 async function parentEvidence(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/correction",title:"Measured evidence",publisher:"Study",originCluster:"study"});

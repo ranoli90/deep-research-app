@@ -1,6 +1,6 @@
 import {runModelPolicy} from "./run-model-policy.js";
 import type { Queryable } from "../platform/db.js";
-import { discoveryPolicyForModel,SearchResultSchema } from "../ports/search.js";
+import { discoveryPolicyForNewSearch,SearchResultSchema } from "../ports/search.js";
 import { parseSourcePublicationDate, applySourcePolicy, policyFromRestrictions } from "@deep/research-core";
 import { getBrief, getRun } from "./runs.js";
 import { insertSource,insertVersionAndPassage } from "./evidence.js";
@@ -8,7 +8,7 @@ import { bumpEvidence } from "./runs.js";
 import { persistSourceOrigins } from "./retrieval-intelligence.js";
 /** Adopt only an owned persisted successful search, never caller-supplied hits. Caller holds its fence. */
 export async function adoptSearchSources(db:Queryable,args:{runId:string;accountId:string;briefRevision:number;taskId:string;intentId:string}) {
- const policy=discoveryPolicyForModel((await runModelPolicy(db,args.runId)).id);
+ const policy=discoveryPolicyForNewSearch((await runModelPolicy(db,args.runId)).id);
  const row=(await db.query(`SELECT s.result,(s.result->'receipt'=i.receipt AND i.run_id=s.run_id AND i.request_digest=s.request_digest) AS valid
   FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id WHERE s.intent_id=$1 AND s.run_id=$2 AND s.account_id=$3
   AND s.brief_revision=$4 AND s.task_id=$5 AND s.policy_id=$6`,[args.intentId,args.runId,args.accountId,args.briefRevision,args.taskId,policy.id])).rows[0];

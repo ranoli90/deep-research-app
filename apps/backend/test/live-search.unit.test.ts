@@ -1,7 +1,7 @@
 import { afterEach,describe,it,expect,vi } from "vitest";
 import { liveWebSearch } from "../src/adapters/retrieval/live-web.js";
 import { loadConfig } from "../src/platform/config.js";
-import {DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,discoveryPolicyForModel,pinnedSearchBody,publicSearchDigest} from "../src/ports/search.js";
+import {DISCOVERY_POLICY,DEEP_DISCOVERY_POLICY,AZURE_DISCOVERY_POLICY,DISCOVERY_RESERVE_MICRO,discoveryPolicyForModel,discoveryPolicyForNewSearch,pinnedSearchBody,publicSearchDigest} from "../src/ports/search.js";
 import {STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY} from "../src/ports/model-policy.js";
 const original=globalThis.fetch;afterEach(()=>{globalThis.fetch=original;});
 const config=loadConfig({DATABASE_URL:"postgres://localhost/test",OPENROUTER_API_KEY:"test-only",LIVE_SPEND_CAP_MICRO:"1000000"});
@@ -16,6 +16,16 @@ describe("W02/W05 bounded search transport",()=>{
    expect(publicSearchDigest(query,discoveryPolicyForModel(policy.id).id)).toBe("9fef15d94afec88128678cb3073ab7151e955d7df384dd8fa1f54582dc308c8b");
   }
   expect(()=>discoveryPolicyForModel("unknown-policy")).toThrow("unsupported_model_policy");
+ });
+ it("issues new searches under v3 with a bounded result count above the historical three",()=>{
+  expect(discoveryPolicyForNewSearch(STRUCTURED_MODEL_POLICY.id)).toEqual(DEEP_DISCOVERY_POLICY);
+  expect(DEEP_DISCOVERY_POLICY.maxResults).toBe(8);
+  expect(DISCOVERY_POLICY.maxResults).toBe(3);
+  expect(AZURE_DISCOVERY_POLICY.maxResults).toBe(3);
+  const body=pinnedSearchBody("restoration",DEEP_DISCOVERY_POLICY.id);
+  expect(body.plugins[0]).toMatchObject({id:"web",engine:"exa",mode:"auto",max_results:8});
+  expect(publicSearchDigest("restoration",DEEP_DISCOVERY_POLICY.id)).not.toBe(publicSearchDigest("restoration",DISCOVERY_POLICY.id));
+  expect(pinnedSearchBody("restoration",DISCOVERY_POLICY.id).plugins[0]?.max_results).toBe(3);
  });
  it("pins new discovery to Azure ZDR with unchanged public plugin and reserve",async()=>{
   const policy=discoveryPolicyForModel(AZURE_ZDR_DISCOVERY_POLICY.id),body=pinnedSearchBody("restoration",policy.id);
@@ -46,7 +56,7 @@ describe("W02/W05 bounded search transport",()=>{
   expect(r.hits).toEqual([]);expect(r.receipt).toMatchObject({state:"failed",actualMicro:2,failureReason:"invalid_search_output"});
  });
  it("rejects oversized citation collections and unfinished outputs",async()=>{
-  for(const choices of [[{message:{annotations:Array(4).fill(citation)}}],[{finish_reason:"length",message:{annotations:[citation]}}]]){
+  for(const choices of [[{message:{annotations:Array(13).fill(citation)}}],[{finish_reason:"length",message:{annotations:[citation]}}]]){
    transport({...envelope,choices});const r=await liveWebSearch("restoration",config);expect(r.receipt.state).toBe("failed");expect(r.receipt.actualMicro).toBe(2);expect(r.hits).toEqual([]);
   }
  });

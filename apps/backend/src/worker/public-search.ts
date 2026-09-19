@@ -9,7 +9,7 @@ import { getBrief,getRun } from "../modules/runs.js";
 import { briefContext,loadResearchTask } from "../modules/research-tasks.js";
 import { reserveLiveAttempt } from "../modules/live-spend.js";
 import { updateIntentState } from "../modules/billing.js";
-import { DISCOVERY_POLICY,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
+import { DISCOVERY_POLICY,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
 import { liveWebSearch,publicSearchDigest } from "../adapters/retrieval/live-web.js";
 import type { FencedSession } from "./fenced-session.js";
 import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
@@ -47,7 +47,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  });
  const prepared=await authorize();
  const searchQuery=transformed.success?proposal.action.query:prepared.query;
- const policy=await session.write(async db=>discoveryPolicyForModel((await runModelPolicy(db,args.runId)).id));
+ const policy=await session.write(async db=>discoveryPolicyForNewSearch((await runModelPolicy(db,args.runId)).id));
  const bodyDigest=publicSearchDigest(searchQuery,policy.id);
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:policy.id,briefRevision:args.briefRevision})).digest("hex");
  let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;

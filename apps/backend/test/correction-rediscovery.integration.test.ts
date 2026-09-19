@@ -56,7 +56,7 @@ it("W06 relaxed public constraint discovers a previously absent option and reuse
  expect((await pool.query("SELECT s.canonical_locator FROM source_read_operations op JOIN sources s ON s.id=op.source_id WHERE op.run_id=$1 AND op.state='finished'",[x.child.runId])).rows).toEqual([{canonical_locator:newUrl}]);
  expect(report!.claim_ids.some((id:string)=>x.parentReport.claim_ids.includes(id))).toBe(false);
  expect(report!.blocks.flatMap((b:{citationIds:string[]})=>b.citationIds)).toContain(x.passage.passageId);
- expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.v1'",[x.child.runId])).rows).toEqual([{confirmed_micro:"3"}]);
+ expect((await pool.query("SELECT confirmed_micro FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[x.child.runId])).rows).toEqual([{confirmed_micro:"3"}]);
  // Fresh full rerun uses the same worker/tools, with no inherited membership and two durable reads.
  read.mockImplementation(async locator=>{const text=texts[locator as keyof typeof texts];if(!text)throw Error("unexpected_source");const bytes=Buffer.from(text),digest=createHash("sha256").update(bytes).digest("hex");return{receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},bytes,extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:[{kind:"text",locator:"paragraph:0",text,rows:[]}]}};});
  const full=await admitRun(pool,x.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:relaxedQuestion,routeMode:"controlled-research"}));

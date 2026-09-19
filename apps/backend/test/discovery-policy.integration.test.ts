@@ -12,7 +12,7 @@ import {performPublicSearch} from "../src/worker/public-search.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
 import {loadConfig} from "../src/platform/config.js";
 import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY,STRUCTURED_MODEL_POLICY} from "../src/ports/model-policy.js";
-import {discoveryPolicyForModel,discoveryModelPolicy} from "../src/ports/search.js";
+import {discoveryPolicyForNewSearch,discoveryModelPolicy} from "../src/ports/search.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
 beforeAll(async()=>{if(!process.env.TEST_DATABASE_URL)throw Error("Explicit isolated test database required");pool=createPool(process.env.TEST_DATABASE_URL);await migrate(pool);});
 afterEach(()=>{globalThis.fetch=originalFetch;});afterAll(async()=>{await pool.end();});
@@ -29,7 +29,7 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
  try{
   globalThis.fetch=vi.fn(async()=>envelope("Azure",brief));
   const task=await ensureResearchTask(pool,config,session,{runId,accountId:account.accountId,fence,briefRevision:1});if(task.kind!=="task")throw Error("test_task_unavailable");
-  const searchPolicy=discoveryPolicyForModel(policy.id),provider=discoveryModelPolicy(searchPolicy.id);
+  const searchPolicy=discoveryPolicyForNewSearch(policy.id),provider=discoveryModelPolicy(searchPolicy.id);
   const send=vi.fn(async(_url:Parameters<typeof fetch>[0],init?:RequestInit)=>{
    const body=JSON.parse(String(init?.body));expect(body.provider.only).toEqual([provider.provider]);
    expect(body.provider.zdr).toBe(provider.provider==="azure"?true:undefined);
@@ -46,7 +46,7 @@ it.each([AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_DISCOVERY_POLICY])("pins and rep
   expect((await pool.query("SELECT receipt FROM provider_intents WHERE id=$1",[first.intentId])).rows[0].receipt).toEqual(originalReceipt);
   expect((await pool.query("SELECT policy_id FROM search_operations WHERE intent_id=$1",[first.intentId])).rows).toEqual([{policy_id:searchPolicy.id}]);
   const adopted=await session.write(db=>adoptSearchSources(db,{...args,intentId:first.intentId}));expect(adopted).toHaveLength(1);
-  const otherPolicy=discoveryPolicyForModel(policy.id===AZURE_ZDR_DISCOVERY_POLICY.id?AZURE_ZDR_EXACT_QUOTE_POLICY.id:AZURE_ZDR_DISCOVERY_POLICY.id);
+  const otherPolicy=discoveryPolicyForNewSearch(policy.id===AZURE_ZDR_DISCOVERY_POLICY.id?AZURE_ZDR_EXACT_QUOTE_POLICY.id:AZURE_ZDR_DISCOVERY_POLICY.id);
   await pool.query("UPDATE search_operations SET policy_id=$2 WHERE intent_id=$1",[first.intentId,otherPolicy.id]);
   await expect(session.write(db=>adoptSearchSources(db,{...args,intentId:first.intentId}))).rejects.toThrow("search_result_not_adoptable");
   await pool.query("UPDATE search_operations SET policy_id=$2 WHERE intent_id=$1",[first.intentId,searchPolicy.id]);

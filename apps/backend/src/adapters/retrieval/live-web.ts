@@ -85,6 +85,6 @@ const SearchMetadata=z.object({id:z.string().max(300).optional(),model:z.string(
 const SearchEnvelope=SearchMetadata.extend({choices:z.array(z.object({finish_reason:z.string().max(100).nullable().optional(),
   message:z.object({content:z.string().max(800_000).nullable().optional(),refusal:z.string().max(4000).nullable().optional(),
     annotations:z.array(z.object({type:z.string().max(100),url_citation:z.object({url:z.string().url().max(4000),
-      title:z.string().max(500).optional(),content:z.string().max(24000).optional(),start_index:z.number().int().optional(),end_index:z.number().int().optional()}).optional()})).max(3).default([])})})).length(1)});
+      title:z.string().max(500).optional(),content:z.string().max(24000).optional(),start_index:z.number().int().optional(),end_index:z.number().int().optional()}).optional()})).max(12).default([])})})).length(1)});
 
 export { pinnedSearchBody,publicSearchDigest } from "../../ports/search.js";
