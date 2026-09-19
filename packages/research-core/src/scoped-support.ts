@@ -9,6 +9,7 @@ const GENERIC_ENTITY = new Set([
   "software", "service", "vehicle", "car", "tool", "app", "application", "machine", "camera",
   "us", "usa", "u.s.", "u.s", "united states", "america", "american",
   "current", "today", "now", "latest", "present",
+  "employment tax", "tax", "deadline", "filing deadline",
 ]);
 const UNIT_ALIASES: Record<string, string[]> = {
   percentage: ["percentage", "percent", "%"],
@@ -114,13 +115,14 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     // Inspect cited passages plus others that share a specific (non-category) scope value.
     const citedIds = new Set(assessment.evidence.map((e) => e.passageId));
     const specificScope = Object.values(claim.scope).filter((s): s is string => s !== null && !GENERIC_ENTITY.has(normalize(s)));
-    const scopedPassages = args.passages.filter((p) => {
-      if (citedIds.has(p.id)) return true;
-      return specificScope.length > 0 && specificScope.every((s) => containsPhrase(p.text, s));
-    });
+    const extraPassages = args.passages.filter((p) => !citedIds.has(p.id) && specificScope.length > 0 && specificScope.every((s) => containsPhrase(p.text, s)));
     const currencyTokens=claim.text.match(/[$€£¥]|\b(?:USD|EUR|GBP|CAD|AUD|JPY|CHF)\b/gu)??[];
     checks.push({rule:"currency_preserved",passed:currencyTokens.every((token)=>citedText.includes(token))});
-    const literal = scopedPassages.map((p) => passageSupportsClaim(p.text,claim.text));
+    // Long statutes often contain "may"/"only" elsewhere; qualify from the cited quote, not the whole page.
+    const literal = [
+      ...quotes.map((quote) => passageSupportsClaim(quote, claim.text)),
+      ...extraPassages.map((p) => passageSupportsClaim(p.text, claim.text)),
+    ];
     const literalContradiction = literal.includes("contradicts");
     const literalSupport = literal.includes("supports");
     const qualified = literal.includes("qualifies") || (quotes.some((q) => qualifiers.test(q)) && !qualifiers.test(claim.text));
@@ -138,6 +140,7 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     if (decision === "supported" && assessment.status === "supported" && assessment.missingEvidence.length) decision="partially_supported";
     return { claimKey:claim.key,decision,modelStatus:assessment.status,evidence:assessment.evidence,scope:claim.scope,
       rationale:assessment.rationale,missingEvidence:assessment.missingEvidence,checks,
-      counterEvidence:scopedPassages.flatMap((p,i)=>literal[i]==="contradicts"||literal[i]==="qualifies"?[{passageId:p.id,decision:literal[i] as "contradicts"|"qualifies"}]:[]) };
+      counterEvidence:[...assessment.evidence.map((e,i)=>literal[i]==="contradicts"||literal[i]==="qualifies"?{passageId:e.passageId,decision:literal[i] as "contradicts"|"qualifies"}:null),
+        ...extraPassages.map((p,i)=>{const d=literal[quotes.length+i];return d==="contradicts"||d==="qualifies"?{passageId:p.id,decision:d as "contradicts"|"qualifies"}:null;})].filter((x):x is {passageId:string;decision:"contradicts"|"qualifies"}=>x!==null) };
   });
 }

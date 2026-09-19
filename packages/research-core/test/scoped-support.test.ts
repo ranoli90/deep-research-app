@@ -68,6 +68,18 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("does not treat a use-case label or a later statute 'may' as disqualifying a cited employment-tax quote",()=>{
+  const quote="Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month.";
+  const page=`${quote} You may also have to file Form 941. This calendar is only a summary.`;
+  const scope={entity:"employment tax",plan:null,version:null,geography:null,time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"frequency_of_filing",candidateKey:null,criterionKeys:["frequency_of_filing"],text:quote,scope,quantities:[],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:page,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"frequency_of_filing",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Monthly deposit rule",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(true);
+  expect(result.checks.find((c)=>c.rule==="qualification_preserved")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("grounds a percent claim whose numeric table cell omits the percent sign",()=>{
   const quote="Federal funds (effective) 1 2 3 | 3.63 | 3.63 | 3.63 | 3.63 | 3.88";
   const claim="The current US federal funds rate is 3.88 percent as of September 16, 2026.";

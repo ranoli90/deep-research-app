@@ -330,6 +330,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           explanation: "Supplied after clarification",
         },
       ];
+      if (answer.field === "geography" && !new RegExp(`\\b${answer.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(brief.originalQuestion)) {
+        brief.originalQuestion = `${brief.originalQuestion.replace(/\s*\?+\s*$/u, "")} in ${answer.value}?`;
+      }
     }
     await withTx(pool, async (db) => {
     await lockActiveAccount(db, a.accountId);
