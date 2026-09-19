@@ -2,7 +2,7 @@
 
 ## 2026-09-19 — Wave 7 FP-077/078/085 sanitized activity and IME inset
 
-- Requirement IDs: FP-077, FP-078, FP-085 (IME send occlusion). Base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. Branch `grok-v8/fix-wave7-mobile-contract`. main not moved (`8a7b1a9`).
+- Requirement IDs: FP-077, FP-078, FP-085 (IME send occlusion). Base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. Implementation `42a2d3729bfa62b5a80ec193d7cb65eeccb55274`. Branch `grok-v8/fix-wave7-mobile-contract`. main not moved (`8a7b1a9`).
 - Commands: `pnpm --filter @deep/backend test:unit` exit 0, 226 passed / 27 files. `pnpm --filter @deep/mobile test` exit 0, 285 passed / 41 files. contracts/backend/mobile `typecheck` exit 0. `node scripts/check-boundaries.mjs` exit 0. `python3 scripts/validate_review.py` and `validate_builder_handoff.py` exit 0.
 - Environment: Linux, Node 20, pnpm 9.15.9, vitest 4.1.11. Isolated worktree. No PostgreSQL integration rerun (unit projection only). No paid provider calls. No physical-device IME screenshot.
 - Scope: contracts `public-activity.v1`; backend `toSanitizedRunEvent` on `/v1/runs/:id/events`; mobile `adoptPublicEvents` + composer dock inset. ADR067. Rollback reverts the consumer projection; stored events stay.

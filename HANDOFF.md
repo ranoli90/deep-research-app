@@ -18,7 +18,10 @@ Branch `grok-v8/fix-wave7-mobile-contract` (base `72c78ea5bbce94b599f0fd0be876fe
 Revert this branch’s commit. Persisted `run_events` rows are unchanged; only the consumer projection and mobile mapping revert.
 
 ### SHA
-Recorded after commit on this branch.
+- Base: `72c78ea5bbce94b599f0fd0be876fe205f5f8222`
+- Implementation: `42a2d3729bfa62b5a80ec193d7cb65eeccb55274`
+- Branch: `grok-v8/fix-wave7-mobile-contract`
+- `main` unchanged at `8a7b1a997aefc53f8b06497346c0f915e2d455a7`
 
 ## Fail-closed WIP checkpoint — 2026-09-19
 

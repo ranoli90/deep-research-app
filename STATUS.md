@@ -1,6 +1,6 @@
 ## Wave 7 mobile activity contract + IME send inset — 2026-09-19
 
-Branch `grok-v8/fix-wave7-mobile-contract` from base `72c78ea`. **Not merged to `main` (`8a7b1a9`).** FP-077/FP-078: `GET /v1/runs/:id/events` returns `public-activity.v1` sanitized events only; mobile progress consumes `activity` and ignores leftover `type`/`publicSummary`. FP-085 (IME send occlusion listed as FP-095/IME in the assignment): Android composer dock pads by IME height plus a 48dp suggestion-strip inset so send stays tappable. Unit evidence: backend 226/226 including public-activity leak canaries; mobile 285/285 including private-summary UI exclusion and send-above-inset. Types/boundaries green. Physical Gboard screenshot remains a native gate. Research Beta is not declared.
+Branch `grok-v8/fix-wave7-mobile-contract` SHA `42a2d37` from base `72c78ea`. **Not merged to `main` (`8a7b1a9`).** FP-077/FP-078: `GET /v1/runs/:id/events` returns `public-activity.v1` sanitized events only; mobile progress consumes `activity` and ignores leftover `type`/`publicSummary`. FP-085 (IME send occlusion listed as FP-095/IME in the assignment): Android composer dock pads by IME height plus a 48dp suggestion-strip inset so send stays tappable. Unit evidence: backend 226/226 including public-activity leak canaries; mobile 285/285 including private-summary UI exclusion and send-above-inset. Types/boundaries green. Physical Gboard screenshot remains a native gate. Research Beta is not declared.
 
 ## Engineering fix-pass started — 2026-09-19
 
