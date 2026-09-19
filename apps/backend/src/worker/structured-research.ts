@@ -6,7 +6,7 @@ import { publicSearchDigest,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MI
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,type SourceClass } from "@deep/research-core";
-import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims } from "../modules/retrieval-intelligence.js";
+import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
@@ -37,6 +37,26 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
+  const pauseForQueryApproval=async():Promise<"paused"|"blocked">=>session.write(async(db)=>{
+    const auth=authorizeDiscoveryQuery({
+      question:brief.originalQuestion,
+      query:brief.originalQuestion,
+      privateDocumentText:await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision}),
+      approvedPrivateTerms:await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId}),
+    });
+    if(auth.kind==="blocked")return "blocked";
+    await recordQueryAuthorization(db,{
+      accountId:args.accountId,
+      runId:args.runId,
+      briefRevision:args.briefRevision,
+      proposedQuery:brief.originalQuestion,
+      authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval"},
+    });
+    await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing', updated_at=now() WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
+    await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarification_needed",phase:"preparing",
+      summary:"Need approval before searching the public web with this document.",payload:{reason:"document_search_requires_public_query_approval"}});
+    return "paused";
+  });
   // A document-add obligation is derived from immutable owned brief membership,
   // so deleting a change-set cannot turn unread new input into old-answer success.
   let appendedAttachmentIds:string[]=[];
@@ -62,7 +82,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const classesAttempted:SourceClass[]=[];
   let lastSourceCount=0;
   await ingestAttachments(pool,run,brief,session);
-  const publicQueryApproved=!brief.attachmentIds.length||await session.write((db)=>hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId}));
+  const publicQueryApproved=!brief.attachmentIds.length||await session.write((db)=>hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision}));
   for(const id of appendedAttachmentIds){
     const readable=await session.write(db=>db.query(`SELECT 1 FROM attachments a
       JOIN sources s ON s.canonical_locator='attachment://'||a.id::text AND s.account_id=a.account_id
@@ -96,7 +116,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     AND (s.result->'receipt'->>'requestDigest') IS DISTINCT FROM $4::text LIMIT 1`,[args.runId,args.accountId,args.briefRevision,challengeDigest]));
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
-    if(brief.attachmentIds.length&&!publicQueryApproved)return unresolved("document_search_requires_public_query_approval");
+    if(brief.attachmentIds.length&&!publicQueryApproved){
+      const pause=await pauseForQueryApproval();
+      if(pause==="blocked")return unresolved("unapproved_public_query_terms");
+      return;
+    }
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     // A bounded initial discovery pass. Completion still requires executed criterion coverage.
     const openingPlan=planSourceClass(brief.originalQuestion);

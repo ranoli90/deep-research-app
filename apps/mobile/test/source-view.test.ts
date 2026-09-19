@@ -1,8 +1,14 @@
 import { expect, it } from "vitest";
-import { readSourceDetail, publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel } from "../src/source-view";
+import { readSourceDetail, publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel, sourceFreshnessCopy, sourceIndependenceCopy } from "../src/source-view";
 import { readingOffset, readingScrollY, visibleReadingBlock } from "../src/report-layout";
 import { restoreAnchor } from "../src/state";
 const source = { passageId: "p", title: "Document", exactText: "Exact – clause\nsecond line", accessLevel: "partial-text", coverage: "partial", warnings: ["columns_unassessed"], passageLocator: { block: "page:12/block:0", rows: [], geometry: [{ text: "Exact – clause", box: [1, 2, 3, 4] }] } };
+it("does not call a null publication date current", () => {
+  expect(sourceFreshnessCopy({})).toMatch(/not treated as current/i);
+  expect(sourceFreshnessCopy({ retrievedAt: "2026-09-18T12:00:00.000Z" })).toMatch(/not treated as current/i);
+  expect(sourceFreshnessCopy({ publicationDate: "2024-06-01", retrievedAt: "2026-09-18T12:00:00.000Z" })).toContain("Published 2024-06-01");
+  expect(sourceIndependenceCopy({ originRelation: "syndicated" })).toMatch(/not an independent confirmation/i);
+});
 it("preserves exact passage, ordered tables, warnings and geometry from the source response", () => {
   const value = readSourceDetail(source);
   expect(value.exactText).toBe(source.exactText); expect(value.passageLocator).toEqual(source.passageLocator);

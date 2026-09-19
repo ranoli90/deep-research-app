@@ -85,10 +85,10 @@ export const color = {
 } as const;
 
 export const type = {
-  display: { fontSize: 32, lineHeight: 38, fontWeight: "600" as const, letterSpacing: -0.4 },
-  title: { fontSize: 22, lineHeight: 28, fontWeight: "600" as const, letterSpacing: -0.2 },
-  body: { fontSize: 17, lineHeight: 26, fontWeight: "400" as const },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: "500" as const, letterSpacing: 0.2 },
+  display: { fontSize: 22, lineHeight: 28, fontWeight: "600" as const, letterSpacing: -0.3 },
+  title: { fontSize: 18, lineHeight: 24, fontWeight: "600" as const, letterSpacing: -0.2 },
+  body: { fontSize: 16, lineHeight: 22, fontWeight: "400" as const },
+  caption: { fontSize: 12, lineHeight: 16, fontWeight: "500" as const, letterSpacing: 0.15 },
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;

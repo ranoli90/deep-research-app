@@ -41,7 +41,8 @@ describe("live source appearance", () => {
     expect(report).toContain("citationChipLabel(index)");
     expect(report).not.toMatch(/citationIds.*slice\(0,\s*8\)/);
     const sheet = readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8");
-    expect(sheet.indexOf("source.exactText")).toBeLessThan(sheet.indexOf("source.title"));
+    expect(sheet.indexOf("publisher")).toBeLessThan(sheet.indexOf("source.exactText"));
+    expect(sheet).toContain("Technical details");
   });
 
   it("activity renders source pills only from the live-source helper", () => {

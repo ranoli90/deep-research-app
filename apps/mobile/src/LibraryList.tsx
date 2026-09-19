@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { api, isSupersededRequest } from "./api";
 import { breakLongTokens } from "./report-layout";
 import { libraryItemCopy, type LibraryRecord } from "./library-copy";
@@ -67,16 +67,15 @@ export function LibraryList({
         onChangeText={setQuery}
         placeholder="Search saved reports"
         accessibilityLabel="Search saved reports"
-        style={styles.bodyText}
+        style={[styles.bodyText, { paddingVertical: 8 }]}
       />
       {items.map((it) => {
         const copy = libraryItemCopy(it);
         return (
-          <View key={it.id} style={styles.card}>
+          <View key={it.id} style={{ paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(0,0,0,0.08)" }}>
             <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
-              <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}</Text>
-              {copy.updated ? <Text style={styles.kicker}>Updated {copy.updated}</Text> : null}
+              <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}{copy.updated ? ` · ${copy.updated}` : ""}</Text>
             </Pressable>
             {it.report_id ? (
               <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12}>

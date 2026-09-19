@@ -46,6 +46,18 @@ function consequentialUnconfirmed(brief: ResearchBriefInput): boolean {
   );
 }
 
+export function clarificationFieldFromPrompt(prompt: string | null | undefined): string {
+  const p = (prompt ?? "").toLowerCase();
+  if (/jurisdiction|country|state|geography|where should/.test(p)) return "geography";
+  if (/budget|currency|price ceiling|how much/.test(p)) return "budget";
+  if (/use case|used for|workload/.test(p)) return "use_case";
+  if (/population|who is this for/.test(p)) return "population";
+  if (/timeframe|as of|which year/.test(p)) return "timeframe";
+  if (/platform|android|ios|operating system/.test(p)) return "platform";
+  if (/private search|public web|uploaded document/.test(p)) return "private_search";
+  return "detail";
+}
+
 export function researchBriefView(args: {
   lifecycle?: string;
   status?: string;

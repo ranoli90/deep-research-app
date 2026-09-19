@@ -15,6 +15,8 @@ import {productionDriver} from "../src/evaluation/production-driver.js";
 import {runMatched,stepsFor} from "../src/evaluation/runner.js";
 import type {RegisteredPlan,Authorization} from "../src/evaluation/authorization.js";
 import {matchedDocumentModel} from "./helpers/matched-model.js";
+import {operationBudget} from "../src/adapters/model/token-budget.js";
+import type {ResearchModelOperation} from "@deep/contracts";
 import * as attachmentStore from "../src/modules/attachments.js";
 import * as executor from "../src/worker/executor.js";
 import * as transport from "../src/platform/ssrf.js";
@@ -85,7 +87,10 @@ it.each([["pdf","openrouter-openai-mini-text-v1"],["html","openrouter-openai-min
   const response=await model.transport(input,init);
   const request=JSON.parse(String(init?.body));
   if(policyId.startsWith("openrouter-azure-")){
-   expect(request.provider.only).toEqual(["azure"]);expect(request.provider.zdr).toBe(true);expect(request.max_completion_tokens).toBe(4096);
+   expect(request.provider.only).toEqual(["azure"]);expect(request.provider.zdr).toBe(true);
+   const schemaName=String(request.response_format?.json_schema?.name??"");
+   const operation=schemaName.replace(/^research_/,"").replace(/_v1$/,"") as ResearchModelOperation;
+   expect(request.max_completion_tokens).toBe(operationBudget(operation, policyId).maxOutputTokens);
    const value=await response.json();if(value===null||typeof value!=="object"||Array.isArray(value))throw Error("invalid_control_envelope");return new Response(JSON.stringify({...value,provider:"Azure"}),{status:response.status});
   }
   expect(request.provider.only).toEqual(["openai"]);return response;

@@ -49,15 +49,22 @@ export async function loadPrivateCanaries(
   return out;
 }
 
-export async function loadApprovedPrivateTerms(db: Queryable, args: { accountId: string; runId: string }): Promise<string[]> {
+export async function loadApprovedPrivateTerms(db: Queryable, args: { accountId: string; runId: string; briefRevision?: number }): Promise<string[]> {
   const row = await db.query<{ approved_private_terms: unknown }>(
-    `SELECT approved_private_terms FROM query_authorizations WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false ORDER BY created_at DESC LIMIT 1`,
-    [args.accountId, args.runId],
+    `SELECT approved_private_terms FROM query_authorizations WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false AND ($3::int IS NULL OR brief_revision=$3) ORDER BY created_at DESC`,
+    [args.accountId, args.runId, args.briefRevision ?? null],
   );
-  const raw = row.rows[0]?.approved_private_terms;
-  return Array.isArray(raw) ? raw.map((t) => String(t)) : [];
+  const out: string[] = [];
+  for (const item of row.rows) out.push(...termList(item.approved_private_terms));
+  return uniqueTerms(out);
 }
 
+function termList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((t) => String(typeof t === "object" && t && "token" in t ? (t as { token: string }).token : t).normalize("NFKC").toLowerCase()).filter(Boolean);
+}
+
+/** Gate A (no digest/terms): public search granted for this brief revision. Gate B: digest + exact term set. */
 export async function hasPublicQueryApproval(db: Queryable, args: {
   accountId: string;
   runId: string;
@@ -65,22 +72,103 @@ export async function hasPublicQueryApproval(db: Queryable, args: {
   queryDigest?: string;
   terms?: string[];
 }): Promise<boolean> {
-  const row = await db.query<{ terms: unknown; query_digest: string; brief_revision: number }>(
-    `SELECT terms, query_digest, brief_revision FROM query_authorizations
+  const row = await db.query<{ terms: unknown; approved_private_terms: unknown; query_digest: string; brief_revision: number }>(
+    `SELECT terms, approved_private_terms, query_digest, brief_revision FROM query_authorizations
       WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false
       ORDER BY created_at DESC LIMIT 8`,
     [args.accountId, args.runId],
   );
+  const needed = (args.terms ?? []).map((t) => t.normalize("NFKC").toLowerCase()).filter(Boolean);
   for (const item of row.rows) {
     if (args.briefRevision != null && item.brief_revision !== args.briefRevision) continue;
     if (args.queryDigest && item.query_digest !== args.queryDigest) continue;
-    if (args.terms?.length) {
-      const approved = Array.isArray(item.terms) ? item.terms.map((t) => String(typeof t === "object" && t && "token" in t ? (t as { token: string }).token : t).toLowerCase()) : [];
-      if (!args.terms.every((t) => approved.includes(t.toLowerCase()))) continue;
+    if (needed.length) {
+      const approved = uniqueTerms([...termList(item.terms), ...termList(item.approved_private_terms)]);
+      if (!needed.every((t) => approved.includes(t))) continue;
     }
     return true;
   }
   return false;
+}
+
+function uniqueTerms(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+export async function pendingQueryAuthorization(db: Queryable, args: { accountId: string; runId: string; briefRevision: number }) {
+  const row = await db.query<{
+    id: string;
+    proposed_query: string;
+    query_digest: string;
+    brief_revision: number;
+    approved_private_terms: unknown;
+    reason: string | null;
+  }>(
+    `SELECT id, proposed_query, query_digest, brief_revision, approved_private_terms, reason
+       FROM query_authorizations
+      WHERE account_id=$1 AND run_id=$2 AND brief_revision=$3 AND kind='permission_required'
+      ORDER BY created_at DESC LIMIT 1`,
+    [args.accountId, args.runId, args.briefRevision],
+  );
+  const item = row.rows[0];
+  if (!item) return null;
+  const terms = termList(item.approved_private_terms);
+  return {
+    id: item.id,
+    proposedQuery: item.proposed_query,
+    queryDigest: item.query_digest,
+    briefRevision: item.brief_revision,
+    terms,
+    reason: item.reason,
+  };
+}
+
+export async function approveQueryAuthorization(db: Queryable, args: {
+  accountId: string;
+  runId: string;
+  briefRevision: number;
+  authorizationId: string;
+  queryDigest: string;
+  terms: string[];
+}): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const pending = await db.query<{
+    id: string;
+    query_digest: string;
+    brief_revision: number;
+    proposed_query: string;
+    authorized_query: string;
+    terms: unknown;
+    approved_private_terms: unknown;
+  }>(
+    `SELECT id, query_digest, brief_revision, proposed_query, authorized_query, terms, approved_private_terms
+       FROM query_authorizations
+      WHERE id=$1 AND account_id=$2 AND run_id=$3 AND kind='permission_required'`,
+    [args.authorizationId, args.accountId, args.runId],
+  );
+  const row = pending.rows[0];
+  if (!row) return { ok: false, reason: "query_authorization_not_found" };
+  if (row.brief_revision !== args.briefRevision) return { ok: false, reason: "stale_brief_revision" };
+  if (row.query_digest !== args.queryDigest) return { ok: false, reason: "query_digest_mismatch" };
+  const required = uniqueTerms(termList(row.approved_private_terms)).sort();
+  const offered = uniqueTerms(args.terms.map((t) => t.normalize("NFKC").toLowerCase())).sort();
+  if (required.join("\0") !== offered.join("\0")) return { ok: false, reason: "term_set_mismatch" };
+  await db.query(
+    `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind,reason)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,false,'approved',$10)`,
+    [
+      crypto.randomUUID(),
+      args.accountId,
+      args.runId,
+      args.briefRevision,
+      args.queryDigest,
+      row.proposed_query,
+      row.authorized_query,
+      JSON.stringify(row.terms),
+      JSON.stringify(args.terms),
+      "user_approved_exact_term_set",
+    ],
+  );
+  return { ok: true };
 }
 
 export async function loadRunStoredSources(db: Queryable, args: { accountId: string; runId: string }): Promise<StoredSource[]> {

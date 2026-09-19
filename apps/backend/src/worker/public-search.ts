@@ -35,10 +35,13 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
   const canaries=await loadPrivateCanaries(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const documentText=await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
-  const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId});
+  const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision});
   const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:validatedProposal.action.query,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass});
   if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":"unapproved_public_query_terms");
-  if(auth.kind==="permission_required")throw new Error("document_search_requires_public_query_approval");
+  if(auth.kind==="permission_required"){
+    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:validatedProposal.action.query,authorization:auth});
+    throw new Error("document_search_requires_public_query_approval");
+  }
   if(canaries.some((c)=>c&&auth.query.toLowerCase().includes(c.toLowerCase())))throw new Error("private_query_blocked");
   return {query:auth.query,auth,question:brief.originalQuestion};
  });

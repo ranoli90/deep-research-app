@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canSubmit, composerFollowsReport, emptyState, startNewResearch } from "../src/state";
-import { researchBriefView } from "../src/research-brief";
+import { clarificationFieldFromPrompt, researchBriefView } from "../src/research-brief";
 
 describe("one-sentence composer and researching-this brief", () => {
   it("lets a natural sentence submit with no attachments", () => {
@@ -84,6 +84,12 @@ describe("one-sentence composer and researching-this brief", () => {
     expect(view.assumptions.some((line) => /local inference/i.test(line))).toBe(true);
     expect(view.assumptions.some((line) => /current list prices/i.test(line))).toBe(true);
     expect(JSON.stringify(view)).not.toMatch(/criterionIds|traversal|model_policy/i);
+  });
+
+  it("maps material clarification prompts to typed fields", () => {
+    expect(clarificationFieldFromPrompt("Which jurisdiction should this answer apply to?")).toBe("geography");
+    expect(clarificationFieldFromPrompt("What budget and currency should apply?")).toBe("budget");
+    expect(clarificationFieldFromPrompt("What platform is this for?")).toBe("platform");
   });
 
   it("does not keep the brief once a report exists", () => {

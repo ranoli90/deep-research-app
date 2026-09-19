@@ -59,6 +59,7 @@ import { getPassageForAccount } from "../modules/evidence.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
+import { approveQueryAuthorization, pendingQueryAuthorization } from "../modules/retrieval-intelligence.js";
 import { modelPolicy } from "../ports/model-policy.js";
 import { z } from "zod";
 import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
@@ -180,6 +181,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     try {
       const created = await admitRun(pool, a.accountId, idempotencyKey, input, {
         strategy: config.structuredStrategy,
+        modelPolicyId: config.structuredModelPolicyId,
         zdrRequired: config.structuredModelPolicyId ? modelPolicy(config.structuredModelPolicyId).provider === "azure" : false,
       });
       await tryDispatchRun(pool, boss, created.runId);
@@ -226,6 +228,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       "SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion' LIMIT 1",
       [a.accountId, run.id],
     )).rowCount);
+    const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
     return {
       runId: run.id,
       contentInvalidated,
@@ -236,6 +239,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       correctionMode:run.route_mode==="fixture"&&config.fixtureRouteAllowed?"legacy":typedCorrectionsEnabled&&run.route_mode==="controlled-research"?"replace_question":"unavailable",
       correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
+      pendingQueryAuthorization: pendingQuery,
       revision: {
         briefRevision: run.brief_revision,
         evidenceRevision: run.evidence_revision,
@@ -345,6 +349,98 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     });
     await tryDispatchRun(pool, boss, id);
     return { runId: id, lifecycle: "queued" };
+  });
+
+  app.post("/v1/runs/:id/assumptions", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = (req.params as { id: string }).id;
+    const body = (req.body ?? {}) as { action?: string; values?: string[] };
+    const action = body.action === "replace" ? "replace" : "confirm";
+    const values = Array.isArray(body.values) ? body.values.map((v) => String(v).trim()).filter(Boolean).slice(0, 12) : [];
+    if (action === "replace" && !values.length) {
+      return reply.code(400).send(err("invalid_input", "Replacement assumptions cannot be empty.", crypto.randomUUID()));
+    }
+    try {
+      await withTx(pool, async (db) => {
+        await lockActiveAccount(db, a.accountId);
+        const run = await getRun(db, id, { forUpdate: true });
+        if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+        const brief = await getBrief(db, run.brief_id);
+        const current = Array.isArray(brief.assumptions) ? brief.assumptions : [];
+        const next = action === "replace"
+          ? values.map((value, index) => ({
+              ...(typeof current[index] === "object" && current[index] ? current[index] : { id: `assumption-${index}` }),
+              value,
+              userConfirmationState: "confirmed",
+            }))
+          : current.map((item) => ({ ...item, userConfirmationState: "confirmed" }));
+        await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify({ ...brief, assumptions: next })]);
+        await emitEvent(db, {
+          runId: id,
+          accountId: a.accountId,
+          type: "clarification_answered",
+          summary: action === "replace" ? "Assumptions updated." : "Assumptions confirmed.",
+          phase: "preparing",
+        });
+      });
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode;
+      if (status === 404) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      throw e;
+    }
+    return { runId: id, action };
+  });
+
+  app.post("/v1/runs/:id/query-authorizations/approve", async (req, reply) => {
+    const a = await auth(req as never);
+    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const id = (req.params as { id: string }).id;
+    const body = (req.body ?? {}) as { authorizationId?: string; queryDigest?: string; terms?: string[] };
+    const authorizationId = String(body.authorizationId ?? "").trim();
+    const queryDigest = String(body.queryDigest ?? "").trim();
+    const terms = Array.isArray(body.terms) ? body.terms.map((t) => String(t).trim()).filter(Boolean) : [];
+    if (!authorizationId || !queryDigest) {
+      return reply.code(400).send(err("invalid_input", "Exact query authorization id and digest are required.", crypto.randomUUID()));
+    }
+    try {
+      const result = await withTx(pool, async (db) => {
+        await lockActiveAccount(db, a.accountId);
+        const run = await getRun(db, id, { forUpdate: true });
+        if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+        const approved = await approveQueryAuthorization(db, {
+          accountId: a.accountId,
+          runId: id,
+          briefRevision: run.brief_revision,
+          authorizationId,
+          queryDigest,
+          terms,
+        });
+        if (!approved.ok) throw Object.assign(new Error(approved.reason), { statusCode: 409, code: approved.reason });
+        if (run.lifecycle === "awaiting_input") {
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
+            ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
+              lease_until = NULL, next_attempt_at = now()`, [id]);
+        }
+        await emitEvent(db, {
+          runId: id,
+          accountId: a.accountId,
+          type: "clarification_answered",
+          summary: "Public search terms were approved for this research only.",
+          phase: "preparing",
+        });
+        return { lifecycle: run.lifecycle === "awaiting_input" ? "queued" : run.lifecycle };
+      });
+      await tryDispatchRun(pool, boss, id);
+      return { runId: id, ...result };
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode ?? 500;
+      const code = (e as { code?: string }).code ?? "permission_denied";
+      if (status === 404) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (status === 409) return reply.code(409).send(err(code, "This approval does not match the pending query.", crypto.randomUUID()));
+      throw e;
+    }
   });
 
   app.post("/v1/runs/:id/corrections/resolve", async (req,reply) => {
@@ -549,6 +645,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       locator: row.canonical_locator,
       publisher: row.publisher,
       originCluster: row.origin_cluster,
+      originRelation: row.origin_relation ?? null,
+      publicationDate: row.publication_date ? String(row.publication_date).slice(0, 10) : null,
+      retrievedAt: row.retrieved_at ? new Date(row.retrieved_at).toISOString() : null,
       accessLevel: row.access_level,
       exactText: row.exact_text,
       passageLocator: row.locator,

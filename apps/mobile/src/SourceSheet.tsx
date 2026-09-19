@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { AccessibilityInfo, findNodeHandle, Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import { publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel, type SourceDetail } from "./source-view";
+import { publicSourceUrl, sourceDomain, sourceLocation, sourceCellLabel, sourceFreshnessCopy, sourceIndependenceCopy, type SourceDetail } from "./source-view";
 import { sameSourceDeletionTarget, sourceDeletionTarget, sourceDeletionUnavailable, type SourceDeletionTarget } from "./source-deletion";
 import { breakLongTokens } from "./report-layout";
 import { uncertaintyFromSource, uncertaintyLabel } from "./uncertainty";
@@ -17,45 +17,55 @@ export function SourceSheet({ source, canFocus, styles, onClose, onOpenOriginal,
   const heading = useRef<Text>(null);
   const focusedPassage = useRef<string | null>(null);
   const [confirmation, setConfirmation] = useState<SourceDeletionTarget | null>(null);
+  const [technicalOpen, setTechnicalOpen] = useState(false);
   const target = sourceDeletionTarget(source);
   const unavailable = sourceDeletionUnavailable({ target, offline, admissionPending, busy: deletionPending });
   const confirming = sameSourceDeletionTarget(confirmation, target);
   const url = publicSourceUrl(source.locator);
   const domain = sourceDomain(source.locator);
   const quality = uncertaintyFromSource(source);
+  const publisher = source.publisher?.trim() || domain || "Unknown publisher";
   return <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel="Source sheet">
     <ScrollView style={styles.sheetBody} nestedScrollEnabled>
-      <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
+      <Text style={styles.kicker}>{publisher}{domain && source.publisher ? ` · ${domain}` : ""}</Text>
       <Text ref={heading} onLayout={() => {
         if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
         const tag = findNodeHandle(heading.current);
         if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
       }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
-      <Text style={styles.kicker}>{domain ? `${domain} · ` : ""}{uncertaintyLabel(quality)} · Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+      <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
       {relatedClaim ? <Text style={styles.bodyText} accessibilityLabel="Related claim">Cited in: {relatedClaim}</Text> : null}
+      <Text style={styles.kicker}>{uncertaintyLabel(quality)}</Text>
+      <Text style={styles.bodyText}>{sourceFreshnessCopy(source)}</Text>
+      <Text style={styles.bodyText}>{sourceIndependenceCopy(source)}</Text>
+      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
+        <Text style={styles.link}>Open original source</Text>
+      </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
       {onChallenge ? <Pressable onPress={onChallenge} accessibilityRole="button" accessibilityLabel="Challenge this conclusion" hitSlop={12}>
         <Text style={styles.link}>Challenge this conclusion</Text>
       </Pressable> : null}
       {onVerify ? <Pressable onPress={onVerify} accessibilityRole="button" accessibilityLabel="Request targeted verification" hitSlop={12}>
         <Text style={styles.link}>Verify this conclusion</Text>
       </Pressable> : null}
-      <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
-      <Text style={styles.bodyText}>Publisher: {source.publisher ?? "unknown"}. Publication, effective and retrieval dates unavailable.</Text>
-      {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
-        <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
-        {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
+      <Pressable onPress={() => setTechnicalOpen((open) => !open)} accessibilityRole="button" accessibilityLabel={technicalOpen ? "Hide technical details" : "Show technical details"} hitSlop={12}>
+        <Text style={styles.link}>{technicalOpen ? "Hide technical details" : "Technical details"}</Text>
+      </Pressable>
+      {technicalOpen ? <View accessibilityLabel="Technical details">
+        <Text style={styles.bodyText}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>
+        <Text selectable style={styles.bodyText}>{sourceLocation(source)}</Text>
+        {source.passageLocator?.rows?.length ? <View accessibilityLabel="Extracted table rows">
+          <Text style={styles.kicker}>Extracted table (row order preserved)</Text>
+          {source.passageLocator.rows.map((row, index) => <Text key={index} selectable style={styles.bodyText}>Row {index + 1}: {row.map(sourceCellLabel).join(" | ")}</Text>)}
+        </View> : null}
+        <Text style={styles.bodyText}>Extraction: {source.extractionMethod ?? "unknown"}</Text>
+        {source.warnings?.map((warning, index) => <Text key={index} selectable style={styles.bodyText}>{warning}</Text>)}
+        {source.coverage !== "complete" ? <Text style={styles.bodyText}>This extraction may omit content or structure. The displayed passage does not establish complete document coverage.</Text> : null}
+        {source.passageLocator?.geometry?.length ? <View accessibilityLabel="Extracted passage coordinates">
+          <Text style={styles.kicker}>Extracted coordinates: {source.passageLocator.coordinates ?? "coordinate system unknown"}. No page image or highlight is available.</Text>
+          {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
+        </View> : null}
+        <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
       </View> : null}
-      <Text style={styles.bodyText}>Extraction: {source.extractionMethod ?? "unknown"}</Text>
-      {source.warnings?.map((warning, index) => <Text key={index} selectable style={styles.bodyText}>{warning}</Text>)}
-      {source.coverage !== "complete" ? <Text style={styles.bodyText}>This extraction may omit content or structure. The displayed passage does not establish complete document coverage.</Text> : null}
-      {source.passageLocator?.geometry?.length ? <View accessibilityLabel="Extracted passage coordinates">
-        <Text style={styles.kicker}>Extracted coordinates: {source.passageLocator.coordinates ?? "coordinate system unknown"}. No page image or highlight is available.</Text>
-        {source.passageLocator.geometry.map((item, index) => <Text selectable key={index} style={styles.bodyText}>{item.text} — {item.box.join(", ")}</Text>)}
-      </View> : null}
-      <Text selectable style={styles.bodyText}>Source version: {source.sourceVersionId ?? "unavailable"}</Text>
-      {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
-        <Text style={styles.link}>Open original source</Text>
-      </Pressable> : <Text style={styles.bodyText}>Original document is not available through a public web link.</Text>}
       {onDelete ? <View>
         {deletionError ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{deletionError}</Text> : null}
         {unavailable ? <Text style={styles.bodyText} accessibilityLiveRegion="polite">{unavailable}</Text> : null}

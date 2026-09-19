@@ -3,6 +3,8 @@ export type SourceDetail = {
   passageId: string; sourceId?: string; title: string; exactText: string; accessLevel: string;
   locator?: string; publisher?: string | null; sourceVersionId?: string;
   extractionMethod?: string; coverage?: string | null; warnings?: string[];
+  originCluster?: string | null; originRelation?: string | null;
+  publicationDate?: string | null; retrievedAt?: string | null;
   passageLocator?: { block?: string; kind?: string; rows?: SourceCell[][];
     geometry?: { text: string; box: [number, number, number, number] }[]; coordinates?: string };
 };
@@ -18,7 +20,7 @@ export function sourceCellLabel(cell: SourceCell): string {
 /** Validate the source response before adopting or rendering any provider-derived metadata. */
 export function readSourceDetail(value: unknown): SourceDetail {
   if (!record(value) || ![value.passageId, value.title, value.exactText, value.accessLevel].every(v => typeof v === "string")) throw new Error("The source response is unavailable or invalid.");
-  for (const key of ["sourceId", "locator", "publisher", "sourceVersionId", "extractionMethod", "coverage"])
+  for (const key of ["sourceId", "locator", "publisher", "sourceVersionId", "extractionMethod", "coverage", "originCluster", "originRelation", "publicationDate", "retrievedAt"])
     if (value[key] != null && typeof value[key] !== "string") throw new Error("The source metadata is invalid.");
   if (value.warnings != null && (!Array.isArray(value.warnings) || !value.warnings.every(v => typeof v === "string"))) throw new Error("The source warnings are invalid.");
   if (value.passageLocator != null) {
@@ -52,6 +54,26 @@ export function publicSourceUrl(value: string | undefined): string | null {
     return url.href;
   } catch { return null; }
 }
+export function sourceFreshnessCopy(source: Pick<SourceDetail, "publicationDate" | "retrievedAt">): string {
+  if (!source.publicationDate) {
+    return source.retrievedAt
+      ? `Retrieved ${source.retrievedAt.slice(0, 10)}. Publication date unknown — not treated as current.`
+      : "Publication date unknown — not treated as current.";
+  }
+  return source.retrievedAt
+    ? `Published ${source.publicationDate}. Retrieved ${source.retrievedAt.slice(0, 10)}.`
+    : `Published ${source.publicationDate}.`;
+}
+
+export function sourceIndependenceCopy(source: Pick<SourceDetail, "originRelation" | "originCluster">): string {
+  if (source.originRelation === "syndicated" || source.originRelation === "quotes" || source.originRelation === "derived-from") {
+    return "This looks like a syndicated or derived copy, not an independent confirmation.";
+  }
+  if (source.originRelation === "same-document") return "This passage is from the same work as another cited source.";
+  if (source.originCluster) return "Grouped with other sources that appear to share an origin.";
+  return "Independence not established.";
+}
+
 export function sourceLocation(source: SourceDetail): string {
   const block = source.passageLocator?.block;
   if (!block) return "Passage location unavailable.";

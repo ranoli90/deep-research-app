@@ -146,7 +146,8 @@ export async function loadEvidence(db: Queryable, runId: string): Promise<{
 
 export async function getPassageForAccount(db: Queryable, passageId: string, accountId: string) {
   const res = await db.query(
-    `SELECT p.*, s.id AS source_id, s.title, s.canonical_locator, s.publisher, s.origin_cluster, v.access_level, v.quality_warnings, v.text_coverage, r.route_mode
+    `SELECT p.*, s.id AS source_id, s.title, s.canonical_locator, s.publisher, s.origin_cluster, s.origin_relation,
+            s.publication_date, v.access_level, v.quality_warnings, v.text_coverage, v.retrieved_at, r.route_mode
      FROM passages p
      JOIN source_versions v ON v.id = p.source_version_id
      JOIN sources s ON s.id = v.source_id

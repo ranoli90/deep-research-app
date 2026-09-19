@@ -86,8 +86,30 @@ export const api = {
   resolveRunRequest: (token: string, idempotencyKey: string, verification?: { parentRunId: string; request: RequestedVerificationRequest }) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey, ...(verification ? { verification } : {}) }) }),
   attach: (token: string, filename: string, mime: string, text: string, key?: string) =>
     req("/v1/attachments", { method: "POST", token, scope: "view", headers: key ? { "idempotency-key": key } : {}, body: JSON.stringify({ filename, mime, text }) }),
-  continueRun: (token: string, id: string, geography: string) =>
-    req(`/v1/runs/${id}/continue`, { method: "POST", token, scope: "view", runId: id, body: JSON.stringify({ geography }) }),
+  continueRun: (token: string, id: string, answers: { field: string; value: string }[] | string) =>
+    req(`/v1/runs/${id}/continue`, {
+      method: "POST",
+      token,
+      scope: "view",
+      runId: id,
+      body: JSON.stringify(typeof answers === "string" ? { geography: answers } : { answers }),
+    }),
+  confirmAssumptions: (token: string, id: string, values: string[] = []) =>
+    req(`/v1/runs/${id}/assumptions`, {
+      method: "POST",
+      token,
+      scope: "view",
+      runId: id,
+      body: JSON.stringify({ action: values.length ? "replace" : "confirm", values }),
+    }),
+  approveQuery: (token: string, id: string, body: { authorizationId: string; queryDigest: string; terms: string[] }) =>
+    req(`/v1/runs/${id}/query-authorizations/approve`, {
+      method: "POST",
+      token,
+      scope: "view",
+      runId: id,
+      body: JSON.stringify(body),
+    }),
   getRun: (token: string, id: string) => req(`/v1/runs/${id}`, { token, scope: "view", runId: id }),
   events: (token: string, id: string, after = 0) => req(`/v1/runs/${id}/events?after=${after}`, { token, scope: "view", runId: id }),
   cancel: (token: string, id: string) => req(`/v1/runs/${id}/cancel`, { method: "POST", token, body: "{}" }),

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   AZURE_ZDR_EXACT_QUOTE_POLICY,
@@ -277,6 +278,8 @@ describe("cheap-first run admission", () => {
       attemptReserveMicro: 21_658,
     });
     expect(pinned).toMatchObject({ policyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id, admission: "pinned_run_policy" });
+    const api = readFileSync(new URL("../src/api/app.ts", import.meta.url), "utf8");
+    expect(api).toMatch(/modelPolicyId:\s*config\.structuredModelPolicyId/);
     const inherited = chooseAdmittedRunPolicy({
       runId: "run-child",
       parentPolicyId: AZURE_ZDR_MODEL_POLICY.id,

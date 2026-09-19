@@ -18,7 +18,8 @@ import { ResearchBriefCard } from "./src/ResearchBriefCard";
 import { ResearchComposer } from "./src/ResearchComposer";
 import { ReportSections } from "./src/ReportView";
 import { LibraryList } from "./src/LibraryList";
-import { researchBriefView } from "./src/research-brief";
+import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
+import { BackIcon, MenuIcon, PencilIcon } from "./src/icons";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions } from "./src/follow-ups";
@@ -115,6 +116,7 @@ function AppInner() {
   const [verificationBusy, setVerificationBusy] = useState(false);
   const [verificationPolicy, setVerificationPolicy] = useState<"reuse_snapshot" | "refresh_sources">("reuse_snapshot");
   const [verificationNote, setVerificationNote] = useState("");
+  const [editingAssumptions, setEditingAssumptions] = useState(false);
   useEffect(() => { setVerificationNote(""); setVerificationPolicy("reuse_snapshot"); }, [token]);
   const [sourceDeleteBusy, setSourceDeleteBusy] = useState(false);
   const pickingDocument = useRef(false);
@@ -927,14 +929,52 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
       return;
     }
-    const geography = clarifyAnswer.trim();
-    if (!geography) {
-      setViewState((s) => ({ ...s, error: "Enter a jurisdiction. The app will not assume a country." }));
+    const answer = clarifyAnswer.trim();
+    const field = clarificationFieldFromPrompt(briefView.materialClarification);
+    if (editingAssumptions) {
+      const values = clarifyAnswer.split("\n").map((line) => line.trim()).filter(Boolean);
+      if (!values.length) {
+        setViewState((s) => ({ ...s, error: "Enter the assumptions to keep." }));
+        return;
+      }
+      clarifying.current = true;
+      try {
+        await api.confirmAssumptions(token, state.run.runId, values);
+        setEditingAssumptions(false);
+        setClarifyAnswer("");
+        AccessibilityInfo.announceForAccessibility("Assumptions updated.");
+        await refreshRun(token, state.run.runId);
+      } catch (e) {
+        if (isSupersededRequest(e)) return;
+        if (isExpiredSession(e)) await onAuthFailure();
+        else if (isOfflineError(e)) {
+          setViewState((s) => ({ ...s, offline: true, error: "You are offline. The draft and last report stay on this device." }));
+        } else setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not update assumptions." }));
+      } finally { clarifying.current = false; }
+      return;
+    }
+    if (!briefView.blocking) {
+      clarifying.current = true;
+      try {
+        await api.confirmAssumptions(token, state.run.runId);
+        AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
+        await refreshRun(token, state.run.runId);
+      } catch (e) {
+        if (isSupersededRequest(e)) return;
+        if (isExpiredSession(e)) await onAuthFailure();
+        else if (isOfflineError(e)) {
+          setViewState((s) => ({ ...s, offline: true, error: "You are offline. The draft and last report stay on this device." }));
+        } else setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not confirm assumptions." }));
+      } finally { clarifying.current = false; }
+      return;
+    }
+    if (!answer) {
+      setViewState((s) => ({ ...s, error: field === "geography" ? "Enter a jurisdiction. The app will not assume a country." : "Answer the detail above to continue." }));
       return;
     }
     clarifying.current = true;
     try {
-      await api.continueRun(token, state.run.runId, geography);
+      await api.continueRun(token, state.run.runId, [{ field, value: answer }]);
       setViewState((s) => {
         const next = { ...s, status: "progress" as const, error: null };
 
@@ -1070,7 +1110,7 @@ function AppInner() {
                 hitSlop={12}
                 style={styles.headerIconHit}
               >
-                <MenuGlyph color={theme.ink} />
+                <MenuIcon color={theme.ink} />
               </Pressable>
             ) : (
               <Pressable
@@ -1080,7 +1120,7 @@ function AppInner() {
                 hitSlop={12}
                 style={styles.headerIconHit}
               >
-                <BackGlyph color={theme.ink} />
+                <BackIcon color={theme.ink} />
               </Pressable>
             )}
           </View>
@@ -1103,7 +1143,7 @@ function AppInner() {
           <View style={[styles.headerSide, styles.headerSideEnd]}>
             {state.tab === "research" || state.tab === "library" ? (
               <Pressable onPress={onNewResearch} accessibilityRole="button" accessibilityLabel="New research" hitSlop={12} style={styles.headerIconHit}>
-                <PencilGlyph color={theme.ink} />
+                <PencilIcon color={theme.ink} />
               </Pressable>
             ) : null}
             {state.tab === "research" ? (
@@ -1214,6 +1254,7 @@ function AppInner() {
                 reducedMotion={state.reducedMotion}
                 expanded={activityExpanded}
                 labeledDemo={state.run?.labeledDemo === true || state.report?.labeledDemo === true}
+                accent={theme.accent}
                 onToggle={() => setActivityExpanded((value) => !value)}
                 styles={{ ...styles, kicker: styles.activityKicker }}
               />
@@ -1231,15 +1272,46 @@ function AppInner() {
             ) : !activity.inProgress && activity.terminalNotice && state.events.length === 0 ? (
               <Text style={styles.statusText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
             ) : null}
+            {state.run?.pendingQueryAuthorization ? (
+              <View style={styles.card} accessibilityLabel="Public search approval">
+                <Text style={styles.kicker}>Approve public search</Text>
+                <Text style={styles.bodyText}>This research includes a private document. Approve the exact search terms before the app queries the public web.</Text>
+                <Text style={styles.kicker}>{state.run.pendingQueryAuthorization.proposedQuery}</Text>
+                {state.run.pendingQueryAuthorization.terms.map((term) => (
+                  <Text key={term} style={styles.bodyText}>{term}</Text>
+                ))}
+                <Pressable
+                  onPress={() => {
+                    const pending = latestUi.current.run?.pendingQueryAuthorization;
+                    if (!token || !state.run || !pending) return;
+                    void api.approveQuery(token, state.run.runId, {
+                      authorizationId: pending.id,
+                      queryDigest: pending.queryDigest,
+                      terms: pending.terms,
+                    }).then(() => refreshRun(token, state.run!.runId)).then(() => {
+                      if (token && state.run) startPolling(token, state.run.runId);
+                    }).catch((e) => {
+                      if (isSupersededRequest(e)) return;
+                      setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not approve this search." }));
+                    });
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Approve these search terms"
+                >
+                  <Text style={styles.link}>Approve these terms</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             <ResearchBriefCard
-              view={briefView.blocking ? briefView : { ...briefView, show: false }}
+              view={briefView}
               clarifyAnswer={clarifyAnswer}
               muted={theme.muted}
               onClarify={setClarifyAnswer}
               onContinue={() => { void onContinueClarification(); }}
               onEdit={() => {
-                const line = briefView.assumptions[0] ?? briefView.objective;
-                setClarifyAnswer(line);
+                setClarifyAnswer(briefView.assumptions.join("\n"));
+                setEditingAssumptions(true);
                 setState((s) => ({ ...s, error: null }));
               }}
               styles={styles}
@@ -1630,30 +1702,6 @@ function headerInitials(accountId: string | null, signedIn: boolean): string {
   return (compact.slice(0, 2) || "DR").toUpperCase();
 }
 
-function MenuGlyph({ color: ink }: { color: string }) {
-  return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: 18, height: 14, justifyContent: "space-between" }}>
-      <View style={{ height: 2, borderRadius: 1, backgroundColor: ink }} />
-      <View style={{ height: 2, borderRadius: 1, backgroundColor: ink }} />
-      <View style={{ height: 2, borderRadius: 1, backgroundColor: ink }} />
-    </View>
-  );
-}
-
-function BackGlyph({ color: ink }: { color: string }) {
-  return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: 12, height: 12, borderLeftWidth: 2, borderBottomWidth: 2, borderColor: ink, transform: [{ rotate: "45deg" }] }} />
-  );
-}
-
-function PencilGlyph({ color: ink }: { color: string }) {
-  return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: 16, height: 16, alignItems: "center", justifyContent: "center" }}>
-      <View style={{ width: 10, height: 12, borderWidth: 1.5, borderColor: ink, borderRadius: 1, transform: [{ rotate: "-20deg" }] }} />
-    </View>
-  );
-}
-
 function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg },
@@ -1667,14 +1715,14 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     statusRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, paddingVertical: space.sm, marginBottom: space.sm },
     statusText: { ...typeTokens.body, color: theme.muted, flexShrink: 1 },
     body: { flex: 1, paddingHorizontal: space.lg },
-    emptyHero: { paddingTop: 48, paddingBottom: space.lg },
-    welcomeDisplay: { ...typeTokens.title, color: theme.ink, marginBottom: space.md, fontSize: 22, lineHeight: 28 },
+    emptyHero: { paddingTop: 28, paddingBottom: space.md },
+    welcomeDisplay: { ...typeTokens.title, color: theme.ink, marginBottom: space.sm },
     exampleRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    exampleChip: { backgroundColor: theme.accentMuted, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
-    exampleChipText: { ...typeTokens.body, color: theme.ink, fontSize: 15 },
+    exampleChip: { backgroundColor: "transparent", paddingHorizontal: 2, paddingVertical: 8, minHeight: 44, justifyContent: "center" },
+    exampleChipText: { ...typeTokens.caption, color: theme.muted },
     card: { backgroundColor: theme.surface, borderColor: theme.line, borderWidth: 1, borderRadius: 20, padding: space.lg, marginBottom: space.md, overflow: "hidden" },
-    thinkingCard: { backgroundColor: theme.thinking.fill, borderColor: theme.thinking.rule, borderWidth: 1, borderRadius: 20, padding: space.lg, marginBottom: space.md, overflow: "hidden" },
-    thinkingStream: { paddingVertical: space.sm, marginBottom: space.md },
+    thinkingCard: { backgroundColor: "transparent", paddingVertical: space.sm, marginBottom: space.sm, overflow: "hidden" },
+    thinkingStream: { paddingVertical: space.xs, marginBottom: space.sm },
     sourceRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: space.sm },
     sourcePill: { backgroundColor: theme.accentMuted, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
     sourcePillText: { ...typeTokens.caption, color: theme.ink },
@@ -1720,16 +1768,16 @@ function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark"]) {
     segment: { flexDirection: "row", backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.line, borderRadius: radius.md, overflow: "hidden", marginBottom: space.sm },
     segmentOn: { color: theme.ink, fontWeight: "600", fontSize: 15 },
     segmentOff: { color: theme.muted, fontSize: 15 },
-    composerDock: { paddingHorizontal: space.md, paddingTop: space.sm, paddingBottom: space.xs, backgroundColor: theme.bg },
-    composerWrap: { flexDirection: "row", alignItems: "flex-end", paddingLeft: 6, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: theme.composer.border, backgroundColor: theme.composer.fill, borderRadius: radius.pill },
-    composer: { flex: 1, minHeight: 44, maxHeight: 180, ...typeTokens.body, color: theme.composer.ink, paddingHorizontal: space.sm, paddingVertical: 10 },
+    composerDock: { paddingHorizontal: space.md, paddingTop: space.xs, paddingBottom: space.xs, backgroundColor: theme.bg },
+    composerWrap: { flexDirection: "row", alignItems: "flex-end", paddingLeft: 4, paddingRight: 4, paddingVertical: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.composer.border, backgroundColor: theme.composer.fill, borderRadius: radius.pill, shadowColor: theme.ink, shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+    composer: { flex: 1, minHeight: 36, maxHeight: 180, ...typeTokens.body, color: theme.composer.ink, paddingHorizontal: space.sm, paddingVertical: 8 },
     headerIconHit: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-    sendBtn: { backgroundColor: theme.composer.sendFill, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
-    sendBtnOff: { backgroundColor: theme.composer.sendFillDisabled, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, minHeight: 44, justifyContent: "center" },
-    sendBtnIcon: { backgroundColor: theme.composer.sendFill, width: 44, height: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-    sendBtnIconOff: { backgroundColor: theme.composer.sendFillDisabled, width: 44, height: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-    sendBtnQuiet: { backgroundColor: "transparent", width: 44, height: 44, borderRadius: 999, borderWidth: 1, borderColor: theme.composer.border, alignItems: "center", justifyContent: "center" },
-    stopBtnIcon: { backgroundColor: theme.stop.fill, width: 44, height: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
+    sendBtn: { backgroundColor: theme.composer.sendFill, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, justifyContent: "center" },
+    sendBtnOff: { backgroundColor: theme.composer.sendFillDisabled, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, justifyContent: "center" },
+    sendBtnIcon: { backgroundColor: theme.composer.sendFill, width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+    sendBtnIconOff: { backgroundColor: theme.composer.sendFillDisabled, width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+    sendBtnQuiet: { backgroundColor: "transparent", width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+    stopBtnIcon: { backgroundColor: theme.stop.fill, width: 28, height: 28, borderRadius: 6, alignItems: "center", justifyContent: "center" },
     send: { color: theme.composer.sendInk, fontWeight: "600", fontSize: 15 },
     sendOff: { color: theme.composer.sendInkDisabled, fontWeight: "600", fontSize: 15 },
     attachMark: { color: theme.composer.ink, fontSize: 22, lineHeight: 26, width: 44, textAlign: "center" },

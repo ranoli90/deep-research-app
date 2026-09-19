@@ -27,6 +27,14 @@ export type RunSnapshot = {
     materialClarification?: boolean;
     assumptions?: { value: string; reversibility?: string; userConfirmationState?: string; impact?: string }[];
   };
+  pendingQueryAuthorization?: {
+    id: string;
+    proposedQuery: string;
+    queryDigest: string;
+    briefRevision: number;
+    terms: string[];
+    reason?: string | null;
+  } | null;
 };
 
 export type ReportBlock = {

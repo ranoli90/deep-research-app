@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import {
   collapseResearchActivity,
   currentActivityLine,
@@ -24,17 +24,34 @@ type Styles = {
   shimmer?: StyleProp<TextStyle>;
 };
 
-function Shimmer({ reduced, style }: { reduced: boolean; style?: StyleProp<TextStyle> }) {
-  const [n, setN] = useState(1);
+function ResearchPulse({ reduced, color }: { reduced: boolean; color: string }) {
+  const pulse = useRef(new Animated.Value(0.35)).current;
   useEffect(() => {
-    if (reduced) return;
-    const timer = setInterval(() => setN((value) => (value % 4) + 1), 400);
-    return () => clearInterval(timer);
-  }, [reduced]);
+    if (reduced) {
+      pulse.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.28, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse, reduced]);
   return (
-    <Text accessibilityLabel="In progress" style={[{ letterSpacing: 1 }, style]}>
-      {reduced ? "…" : "·".repeat(n).padEnd(4, " ")}
-    </Text>
+    <Animated.View
+      accessibilityLabel="In progress"
+      style={{
+        width: 7,
+        height: 7,
+        borderRadius: 4,
+        backgroundColor: color,
+        opacity: reduced ? 1 : pulse,
+        marginRight: 8,
+      }}
+    />
   );
 }
 
@@ -46,6 +63,7 @@ export function ResearchActivity({
   reducedMotion,
   expanded,
   labeledDemo = false,
+  accent = "#255F5A",
   onToggle,
   styles,
 }: {
@@ -56,6 +74,7 @@ export function ResearchActivity({
   reducedMotion: boolean;
   expanded: boolean;
   labeledDemo?: boolean;
+  accent?: string;
   onToggle(): void;
   styles: Styles;
 }) {
@@ -77,7 +96,7 @@ export function ResearchActivity({
     <View style={styles.thinkingStream} accessibilityLabel="Research progress">
       <Pressable onPress={onToggle} accessibilityRole="button" accessibilityLabel={expanded ? "Collapse research activity" : "Expand research activity"} hitSlop={8}>
         <View style={styles.row}>
-          {inProgress ? <Shimmer reduced={reducedMotion} style={styles.shimmer} /> : null}
+          {inProgress ? <ResearchPulse reduced={reducedMotion} color={accent} /> : null}
           <Text
             style={[inProgress ? styles.activityNow : styles.activityLine, { flex: 1, minWidth: 0 }]}
             accessibilityLiveRegion="polite"
@@ -85,7 +104,7 @@ export function ResearchActivity({
           >
             {headline}
           </Text>
-          {elapsed ? <Text style={styles.activityDetail ?? styles.activityLine}>{elapsed} ›</Text> : !inProgress && collapsed.expandable ? <Text style={styles.link}>›</Text> : null}
+          {elapsed ? <Text style={styles.activityDetail ?? styles.activityLine}>{elapsed}</Text> : !inProgress && collapsed.expandable ? <Text style={styles.link}>Details</Text> : null}
         </View>
       </Pressable>
       {pills.length > 0 ? (

@@ -31,3 +31,29 @@ export function CloseIcon({ color, size = 14 }: { color: string; size?: number }
     </View>
   );
 }
+
+export function MenuIcon({ color, size = 18 }: { color: string; size?: number }) {
+  return (
+    <View style={{ width: size, height: 14, justifyContent: "space-between" }}>
+      <View style={{ height: 1.5, borderRadius: 1, backgroundColor: color }} />
+      <View style={{ height: 1.5, borderRadius: 1, backgroundColor: color, width: "72%" }} />
+      <View style={{ height: 1.5, borderRadius: 1, backgroundColor: color }} />
+    </View>
+  );
+}
+
+export function BackIcon({ color, size = 14 }: { color: string; size?: number }) {
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 8, height: 8, borderLeftWidth: 1.5, borderBottomWidth: 1.5, borderColor: color, transform: [{ rotate: "45deg" }] }} />
+    </View>
+  );
+}
+
+export function PencilIcon({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 9, height: 11, borderWidth: 1.5, borderColor: color, borderRadius: 1, transform: [{ rotate: "-18deg" }] }} />
+    </View>
+  );
+}

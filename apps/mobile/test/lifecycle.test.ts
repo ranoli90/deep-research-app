@@ -165,6 +165,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/AppState\.addEventListener/);
     expect(src).toMatch(/onContinueClarification/);
     expect(src).toMatch(/api\.continueRun/);
+    expect(src).toMatch(/api\.confirmAssumptions/);
+    expect(src).toMatch(/api\.approveQuery/);
+    expect(src).toMatch(/Approve these terms/);
+    expect(src).not.toMatch(/briefView\.blocking \? briefView/);
     expect(src).toMatch(/report: null/);
     expect(src).toMatch(/attachments: \[\]/);
   });
