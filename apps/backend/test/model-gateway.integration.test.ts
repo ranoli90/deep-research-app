@@ -792,7 +792,7 @@ describe("W02/W05 durable pinned public discovery",()=>{
   const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
   const first=await performPublicSearch(pool,c.config,x.session,c.args);expect(first).toMatchObject({kind:"search",reused:false,hits:[{locator:"https://example.org/study"}]});
   const sent=JSON.parse(String(vi.mocked(fetch).mock.calls[0]![1]!.body));
-  expect(sent.plugins).toEqual([{id:"web",engine:"exa",mode:"auto",max_results:3}]);expect(sent.provider).toMatchObject({only:["openai"],allow_fallbacks:false,data_collection:"deny"});
+  expect(sent.plugins).toEqual([{id:"web",engine:"exa",mode:"auto",max_results:8}]);expect(sent.provider).toMatchObject({only:["openai"],allow_fallbacks:false,data_collection:"deny"});
   await pool.query("UPDATE runs SET evidence_revision=evidence_revision+1 WHERE id=$1",[x.runId]);
   expect(await performPublicSearch(pool,c.config,x.session,c.args)).toMatchObject({...first,reused:true});expect(fetch).toHaveBeenCalledTimes(1);
  }));
