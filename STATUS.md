@@ -1,6 +1,6 @@
 ## Wave 4 search/read (FP-029/FP-033) — 2026-09-19
 
-Lane `grok-v8/fix-wave4-search-read` `b01f37e` from `72c78ea`. **Not merged to `main` or integration.** New Azure live searches use `public-discovery-azure-zdr.v3` with `max_results=8`; frozen v1/v2 stay 3. `executeSourceRead` reports finished `full-text` as readable. Focused checks: live-search unit 16/16; discovery-policy integration 2/2; model-gateway source-read/worker 9/9; backend tsc exit 0. Isolated DB `deep_wave4_sr_01a0bb2e`. No paid live search rerun. Research Beta is not declared.
+Lane `grok-v8/fix-wave4-search-read` `b01f37e` merged to integration after independent review. **Not merged to `main`.** New Azure live searches use `public-discovery-azure-zdr.v3` with `max_results=8`; frozen v1/v2 stay 3. `executeSourceRead` reports finished `full-text` as readable. No paid live 8-hit receipt. Research Beta is not declared.
 
 ## Engineering fix-pass started — 2026-09-19
 
