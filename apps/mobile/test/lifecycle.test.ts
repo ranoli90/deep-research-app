@@ -81,6 +81,7 @@ describe("P0-N native state mapping", () => {
   it("App.tsx calls persistSession, hydrateOnLaunch, and openLibraryItem", () => {
     const src = [
       readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/product-styles.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8"),
@@ -130,6 +131,7 @@ describe("P0-N native state mapping", () => {
     expect(profile).toContain('accessibilityLabel="Open library"');
     const src = [
       readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/product-styles.ts"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/SourceSheet.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8"),
