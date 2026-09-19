@@ -1,5 +1,9 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 3 query-authorization proof
+
+- Merged `0ae1a15` after review. Migration `044_query_authorization_proof.sql`. Residual worker Gate A fail-closed. Not main.
+
 ## 2026-09-19 — Wave 6 FP-068 limited-publication coverage restoration
 
 - Branch `grok-v8/fix-wave6-publication` `5141bbd` merged to integration after review. main stays `8a7b1a9`.

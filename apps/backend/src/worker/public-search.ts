@@ -12,7 +12,7 @@ import { updateIntentState } from "../modules/billing.js";
 import { DISCOVERY_POLICY,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO,SearchResultSchema,type SearchResult } from "../ports/search.js";
 import { liveWebSearch,publicSearchDigest } from "../adapters/retrieval/live-web.js";
 import type { FencedSession } from "./fenced-session.js";
-import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
+import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,queryAuthorizationDigest,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
 import type { SourceClass } from "@deep/research-core";
 
 /** One public query per logical action, independent of unrelated evidence arrival. No private source projection. */
@@ -28,24 +28,31 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   const brief=await getBrief(db,run.brief_id),task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId));
   if(!task||task.id!==args.taskId)throw new Error("search_task_mismatch");
   if(task.planningStatus!=="ready")throw new Error("search_task_requires_clarification");
-  if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision})))throw new Error("document_search_requires_public_query_approval");
   if(transformed.success&&(!config.structuredChallengeEnabled||proposal.action.query!==`${proposal.action.publicQueryBasis.quote.trim()} ${COUNTEREVIDENCE_SUFFIX}`))throw new Error("invalid_counterevidence_query_transform");
   const validatedProposal=transformed.success?{...proposal,action:{type:"search" as const,query:proposal.action.publicQueryBasis.quote.trim(),questionKeys:proposal.action.questionKeys,publicQueryBasis:proposal.action.publicQueryBasis}}:proposal;
   const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion),task:task.specification});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
+  const proposedQuery=validatedProposal.action.query;
+  const queryDigest=queryAuthorizationDigest(proposedQuery);
   const canaries=await loadPrivateCanaries(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const documentText=await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
-  const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision});
-  const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:validatedProposal.action.query,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass});
-  if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":"unapproved_public_query_terms");
+  const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest});
+  const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass});
+  if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":auth.reason==="unclassified_query_terms"?"unclassified_query_terms":"unapproved_public_query_terms");
+  const privateTerms=auth.terms.filter((t)=>t.provenance==="private-document-derived").map((t)=>t.token);
   if(auth.kind==="permission_required"){
-    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:validatedProposal.action.query,authorization:auth});
-    throw new Error("document_search_requires_public_query_approval");
+    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery,authorization:auth});
+    return {denied:"document_search_requires_public_query_approval" as const};
+  }
+  if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest,terms:privateTerms}))){
+    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery,authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms}});
+    return {denied:"document_search_requires_public_query_approval" as const};
   }
   if(canaries.some((c)=>c&&auth.query.toLowerCase().includes(c.toLowerCase())))throw new Error("private_query_blocked");
   return {query:auth.query,auth,question:brief.originalQuestion};
  });
  const prepared=await authorize();
+ if("denied" in prepared)throw new Error(prepared.denied);
  const searchQuery=transformed.success?proposal.action.query:prepared.query;
  const policy=await session.write(async db=>discoveryPolicyForNewSearch((await runModelPolicy(db,args.runId)).id));
  const bodyDigest=publicSearchDigest(searchQuery,policy.id);
@@ -75,7 +82,8 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   await updateIntentState(db,attempt.intentId,state,state==="confirmed"?result.receipt.actualMicro:undefined);
   await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1",[attempt.intentId,JSON.stringify(result.receipt)]);
  });
- await authorize();
+ const recheck=await authorize();
+ if("denied" in recheck)throw new Error(recheck.denied);
  await session.write(async (db)=>{
   await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:proposal.action.query,authorization:{...prepared.auth,query:searchQuery}});
   await persistFreshnessPolicy(db,{accountId:args.accountId,runId:args.runId,question:prepared.question});

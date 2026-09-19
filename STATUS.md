@@ -1,3 +1,7 @@
+## Wave 3 query-privacy (FP-022–025) — 2026-09-19
+
+Merged to integration after review. Unknown tokens unclassified/blocked; pending approval consumed in place; digest+term proofs. Residual worker Gate A is fail-closed. **Not merged to main.** FP-025 not fully closed.
+
 ## Wave 6 FP-068 limited-publication coverage — 2026-09-19
 
 Lane `grok-v8/fix-wave6-publication` `5141bbd` merged to integration after independent review. **Not merged to `main`.** Limited reports restore structured coverage; dropping an unresolved critical criterion is rejected. Arithmetic tests not weakened.

@@ -1,3 +1,7 @@
+## Wave 3 query-privacy — 2026-09-19
+
+Merged `0ae1a15` after review. Exact query digest+terms. Residual Gate A recorded. **Do not merge main.**
+
 ## Wave 6 FP-068 limited publication — 2026-09-19
 
 Branch `grok-v8/fix-wave6-publication` at `5141bbd` merged to integration after review. **Do not merge `main`.** Limited publication restores coverage; crafted missing-criterion reports rejected.

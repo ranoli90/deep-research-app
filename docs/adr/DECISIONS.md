@@ -544,3 +544,7 @@ FP-068: `completed_with_limitations` returned true after challenge/selection/ver
 Limited publication now restores the same stored coverage and compiled draft as completion. Every unrestored critical question and hard criterion must appear as an explicit limitation; dropping one rejects the report. Completed reports still require complete coverage, matching blocks/claims and no limitations. Historical no-task reports and structured runs without writer/calculated coverage retain their prior limited contract. The writer emits the same deterministic disclosures it is later required to prove.
 
 Impact: `limitedCoverageLimitations` in research-core; publication-coverage and calculated completion; research-writer limitation composition. No migration, prompt, processor or spend change. Rollback disables the limited restoration branch and restores the outcome-label early return; completed-path readers, challenge/selection proofs and unknown holds stay.
+
+## ADR069 — Exact query authorization proof (2026-09-19)
+
+Unknown query tokens are unclassified and blocked unless they are in the user question, a bounded expansion, public-evidence-derived, or approved for this query digest. Pending rows are consumed in place. Migration 044. Residual original-question Gate A on mixed-document worker entry is fail-closed, not a leak.

@@ -1,11 +1,12 @@
 import { queryLeaksPrivate } from "./injection.js";
 
-export const QUERY_INTELLIGENCE_VERSION = "query-provenance.v1";
+export const QUERY_INTELLIGENCE_VERSION = "query-provenance.v2";
 export const QUERY_PROVENANCE = [
   "user-public",
   "safe-application-derived",
   "public-evidence-derived",
   "private-document-derived",
+  "unclassified",
 ] as const;
 export type QueryProvenance = (typeof QUERY_PROVENANCE)[number];
 export type ExpansionKind =
@@ -87,6 +88,19 @@ function unique(tokens: string[]): string[] {
   return out;
 }
 
+/** Stable preimage for a query authorization digest. Does not hash. */
+export function canonicalQueryIdentity(query: string): string {
+  return unique(tokenizeQuery(query)).join("\0");
+}
+
+export function canonicalPrivateTermSet(terms: readonly string[]): string[] {
+  return unique(terms.map((t) => t.normalize("NFKC").toLowerCase()).filter(Boolean)).sort();
+}
+
+export function privateTermSetsEqual(a: readonly string[], b: readonly string[]): boolean {
+  return canonicalPrivateTermSet(a).join("\0") === canonicalPrivateTermSet(b).join("\0");
+}
+
 function expansionsFor(token: string): { terms: string[]; kind: ExpansionKind } | undefined {
   return LEXICON[token];
 }
@@ -155,10 +169,8 @@ export function classifyQueryTerms(args: {
     if (document.has(token) && !question.has(token) && !isCanonicalPublicTerm(token) && !/^\d+$/.test(token) && token.length >= 6 && !STOP.has(token)) {
       return { token, provenance: "private-document-derived" as const };
     }
-    if (isCanonicalPublicTerm(token) && !bait.has(token)) {
-      return { token, provenance: "public-evidence-derived" as const, expansionKind: "canonical" };
-    }
-    return { token, provenance: "user-public" as const };
+    if (STOP.has(token)) return { token, provenance: "safe-application-derived" as const };
+    return { token, provenance: "unclassified" as const };
   });
 }
 
@@ -227,6 +239,7 @@ export function authorizePublicQuery(args: {
     .filter((t) => t.provenance === "private-document-derived")
     .filter((t) => !(args.approvedPrivateTerms ?? []).some((a) => a.normalize("NFKC").toLowerCase() === t.token))
     .map((t) => t.token);
+  const unclassified = terms.filter((t) => t.provenance === "unclassified").map((t) => t.token);
   const bait = setOf(args.sourceTextBait);
   const question = setOf(args.question);
   if ([...bait].some((t) => tokenizeQuery(expandedQuery).includes(t) && !question.has(t) && !isCanonicalPublicTerm(t))) {
@@ -235,7 +248,16 @@ export function authorizePublicQuery(args: {
       query: publicBase,
       terms,
       reason: "source_text_cannot_authorize_public_query",
-      privateTermsRequiringApproval: unapprovedPrivate,
+      privateTermsRequiringApproval: unique(unapprovedPrivate),
+    };
+  }
+  if (unclassified.length) {
+    return {
+      kind: "blocked",
+      query: publicBase,
+      terms,
+      reason: "unclassified_query_terms",
+      privateTermsRequiringApproval: unique(unapprovedPrivate),
     };
   }
   if (unapprovedPrivate.length) {

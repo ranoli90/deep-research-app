@@ -5,6 +5,7 @@ import {
   expandSafeTerms,
   QUERY_INTELLIGENCE_VERSION,
 } from "../src/query-intelligence.js";
+import { planTypedQuery } from "../src/query-planning.js";
 
 const question = "What is the current price of Zephyr Pro in Germany?";
 const canary = "CANARY:SECRET99";
@@ -14,7 +15,41 @@ describe("query provenance classification", () => {
   it("labels user-public terms from the question", () => {
     const terms = classifyQueryTerms({ question, query: "current price Zephyr Pro" });
     expect(terms.every((t) => t.provenance === "user-public")).toBe(true);
-    expect(QUERY_INTELLIGENCE_VERSION).toBe("query-provenance.v1");
+    expect(QUERY_INTELLIGENCE_VERSION).toBe("query-provenance.v2");
+  });
+
+  it("blocks model-invented tokens as unclassified instead of user-public", () => {
+    const terms = classifyQueryTerms({ question, query: "Zephyr Pro foobarzorp" });
+    expect(terms.find((t) => t.token === "foobarzorp")?.provenance).toBe("unclassified");
+    expect(terms.find((t) => t.token === "zephyr")?.provenance).toBe("user-public");
+    const auth = authorizePublicQuery({ question, query: "Zephyr Pro foobarzorp" });
+    expect(auth.kind).toBe("blocked");
+    expect(auth.reason).toBe("unclassified_query_terms");
+    expect(auth.query.toLowerCase()).not.toContain("foobarzorp");
+  });
+
+  it("allows a public-evidence-derived term with provenance", () => {
+    const terms = classifyQueryTerms({
+      question,
+      query: "Zephyr Pro ieee",
+      publicEvidenceText: "IEEE 802.11 certified radio in Zephyr Pro",
+    });
+    expect(terms.find((t) => t.token === "ieee")).toEqual(
+      expect.objectContaining({ token: "ieee", provenance: "public-evidence-derived" }),
+    );
+    const auth = authorizePublicQuery({
+      question,
+      query: "Zephyr Pro ieee",
+      publicEvidenceText: "IEEE 802.11 certified radio in Zephyr Pro",
+    });
+    expect(auth.kind).toBe("authorized");
+    expect(auth.query.toLowerCase()).toContain("ieee");
+  });
+
+  it("does not treat a bare canonical name as public evidence", () => {
+    const terms = classifyQueryTerms({ question: "best laptop under 2k", query: "kubernetes" });
+    expect(terms.find((t) => t.token === "kubernetes")?.provenance).toBe("unclassified");
+    expect(authorizePublicQuery({ question: "best laptop under 2k", query: "kubernetes" }).kind).toBe("blocked");
   });
 
   it("classifies a private-document canary as private-document-derived", () => {
@@ -116,6 +151,31 @@ describe("private-derived public-search gate", () => {
     });
     expect(canonical.kind).toBe("authorized");
     expect(canonical.query.toLowerCase()).toContain("postgresql");
+  });
+
+  it("does not authorize a private term approved for a different query", () => {
+    const queryA = authorizePublicQuery({
+      question: "What is the customer code?",
+      query: "customer Nightfall",
+      privateDocumentText: privateDoc,
+      approvedPrivateTerms: ["nightfall"],
+    });
+    expect(queryA.kind).toBe("authorized");
+    const queryB = authorizePublicQuery({
+      question: "What is the customer code?",
+      query: "Nightfall",
+      privateDocumentText: privateDoc,
+      approvedPrivateTerms: [],
+    });
+    expect(queryB.kind).toBe("permission_required");
+    expect(queryB.privateTermsRequiringApproval).toEqual(expect.arrayContaining(["nightfall"]));
+  });
+
+  it("does not plan unclassified invented terms as question-derived", () => {
+    const plan = planTypedQuery({ question, query: "Zephyr Pro foobarzorp" });
+    expect(plan.authorizationKind).toBe("blocked");
+    expect(plan.unclassifiedTerms).toEqual(expect.arrayContaining(["foobarzorp"]));
+    expect(plan.terms.find((t) => t.token === "foobarzorp")?.source).toBe("unclassified");
   });
 
   it("does not let source-text bait authorize a public query", () => {

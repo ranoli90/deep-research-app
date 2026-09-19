@@ -10,9 +10,9 @@ import { loadConfig } from "../src/platform/config.js";
 import { ensureResearchTask } from "../src/worker/research-task.js";
 import { performPublicSearch } from "../src/worker/public-search.js";
 import { adoptSearchSources } from "../src/modules/search-sources.js";
-import { persistFreshnessPolicy, persistReconciliation, persistSearchCoverage, loadRunStoredSources } from "../src/modules/retrieval-intelligence.js";
+import { persistFreshnessPolicy, persistReconciliation, persistSearchCoverage, loadRunStoredSources, queryAuthorizationDigest, recordQueryAuthorization, approveQueryAuthorization, pendingQueryAuthorization, hasPublicQueryApproval, loadApprovedPrivateTerms } from "../src/modules/retrieval-intelligence.js";
 import { prepareEvidenceSelection } from "../src/modules/evidence-selections.js";
-import { freshnessPolicyForQuestion, reconcileDocumentClaim, recordSearchCoverage, sourcesHaveUnmetFreshness } from "@deep/research-core";
+import { authorizePublicQuery, freshnessPolicyForQuestion, reconcileDocumentClaim, recordSearchCoverage, sourcesHaveUnmetFreshness } from "@deep/research-core";
 import { insertSource } from "../src/modules/evidence.js";
 
 const originalFetch = globalThis.fetch;
@@ -91,8 +91,8 @@ describe("Session B retrieval/evidence worker path", () => {
     globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     await pool.query(
       `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind)
-       VALUES($1,$2,$3,1,repeat('b',64),'coral kelp restoration','coral kelp restoration','[]','[]',false,'approved')`,
-      [crypto.randomUUID(), x.accountId, x.runId],
+       VALUES($1,$2,$3,1,$4,'coral kelp restoration','coral kelp restoration','[]','[]',false,'approved')`,
+      [crypto.randomUUID(), x.accountId, x.runId, queryAuthorizationDigest("coral kelp restoration")],
     );
     await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)", [x.runId, JSON.stringify([crypto.randomUUID()])]);
     const first = await performPublicSearch(pool, c.config, x.session, c.args);
@@ -146,5 +146,86 @@ describe("Session B retrieval/evidence worker path", () => {
     const result = await x.session.write((db) => prepareEvidenceSelection(db, { accountId: x.accountId, runId: x.runId, briefRevision: 1 }));
     expect(result.kind).toBe("blocked");
     if (result.kind === "blocked") expect(result.reason).toBe("selection_no_readable_evidence");
+  }));
+
+  it("blocks an invented query term before dispatch", async () => runCase(async (x) => {
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
+    await expect(performPublicSearch(pool, c.config, x.session, {
+      ...c.args,
+      proposal: { ...c.args.proposal, action: { ...c.args.proposal.action, query: "coral kelp restoration foobarzorp" } },
+    })).rejects.toThrow(/unapproved_public_query_terms|unclassified_query_terms|invalid_public_query/);
+    expect(fetch).not.toHaveBeenCalled();
+  }));
+
+  it("approves once, consumes pending, and is idempotent on replay", async () => runCase(async (x) => {
+    const queryA = "coral kelp restoration";
+    const terms = ["nightfall"];
+    const auth = authorizePublicQuery({
+      question,
+      query: queryA,
+      privateDocumentText: "internal customer Nightfall",
+    });
+    await x.session.write((db) => recordQueryAuthorization(db, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 1, proposedQuery: queryA,
+      authorization: { ...auth, kind: "permission_required", reason: "private_derived_terms_require_approval", privateTermsRequiringApproval: terms },
+    }));
+    const pending = await pendingQueryAuthorization(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1 });
+    expect(pending?.terms).toEqual(terms);
+    const first = await approveQueryAuthorization(pool, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 1,
+      authorizationId: pending!.id, queryDigest: pending!.queryDigest, terms,
+    });
+    expect(first).toEqual({ ok: true });
+    expect(await pendingQueryAuthorization(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1 })).toBeNull();
+    expect((await pool.query(
+      `SELECT count(*)::int AS n, count(*) FILTER (WHERE kind='permission_required')::int AS pending
+         FROM query_authorizations WHERE run_id=$1 AND query_digest=$2 AND kind IN ('permission_required','approved')`,
+      [x.runId, queryAuthorizationDigest(queryA)],
+    )).rows[0]).toEqual({ n: 1, pending: 0 });
+    expect(await approveQueryAuthorization(pool, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 1,
+      authorizationId: pending!.id, queryDigest: pending!.queryDigest, terms,
+    })).toEqual({ ok: true });
+    expect(await approveQueryAuthorization(pool, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 2,
+      authorizationId: pending!.id, queryDigest: pending!.queryDigest, terms,
+    })).toEqual({ ok: false, reason: "stale_brief_revision" });
+  }));
+
+  it("does not let query A approval authorize query B or reuse term nightfall", async () => runCase(async (x) => {
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
+    const queryA = "coral kelp restoration";
+    const queryB = "coral kelp";
+    const attachmentId = crypto.randomUUID();
+    await pool.query(
+      `INSERT INTO attachments(id,account_id,filename,mime,size_bytes,storage_ptr,sha256,extracted_text,processing_state)
+       VALUES($1,$2,'note.txt','text/plain',12,'db:x',repeat('a',64),'private customer nightfall','ready')`,
+      [attachmentId, x.accountId],
+    );
+    await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)", [x.runId, JSON.stringify([attachmentId])]);
+    await x.session.write((db) => recordQueryAuthorization(db, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 1, proposedQuery: queryA,
+      authorization: { kind: "permission_required", query: queryA, terms: [], reason: "document_search_requires_public_query_approval", privateTermsRequiringApproval: ["nightfall"] },
+    }));
+    const pending = await pendingQueryAuthorization(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1 });
+    expect(await approveQueryAuthorization(pool, {
+      accountId: x.accountId, runId: x.runId, briefRevision: 1,
+      authorizationId: pending!.id, queryDigest: queryAuthorizationDigest(queryA), terms: ["nightfall"],
+    })).toEqual({ ok: true });
+    expect(await loadApprovedPrivateTerms(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1, queryDigest: queryAuthorizationDigest(queryA) })).toEqual(["nightfall"]);
+    expect(await loadApprovedPrivateTerms(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1, queryDigest: queryAuthorizationDigest(queryB) })).toEqual([]);
+    expect(await hasPublicQueryApproval(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1, queryDigest: queryAuthorizationDigest(queryA), terms: ["nightfall"] })).toBe(true);
+    expect(await hasPublicQueryApproval(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1, queryDigest: queryAuthorizationDigest(queryB), terms: ["nightfall"] })).toBe(false);
+    expect(await hasPublicQueryApproval(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1, queryDigest: queryAuthorizationDigest(queryA), terms: [] })).toBe(false);
+    await expect(performPublicSearch(pool, c.config, x.session, {
+      ...c.args,
+      proposal: { ...c.args.proposal, action: { ...c.args.proposal.action, query: queryB } },
+    })).rejects.toThrow("document_search_requires_public_query_approval");
+    expect(fetch).not.toHaveBeenCalled();
+    const pendingB = await pendingQueryAuthorization(pool, { accountId: x.accountId, runId: x.runId, briefRevision: 1 });
+    expect(pendingB?.queryDigest).toBe(queryAuthorizationDigest(queryB));
+    expect(pendingB?.id).not.toBe(pending!.id);
   }));
 });
