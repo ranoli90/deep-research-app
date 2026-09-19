@@ -1,8 +1,8 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Lane: `grok-v8/research-beta-integration` at `92f32ba`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
+Lane: `grok-v8/research-beta-integration` at `09c5633`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
 
-**Executed:** `pnpm verify` EXIT 0; fresh+upgrade migrate; frozen extraction 9/9; W03 lock-race after discovery v3; discovery-policy 2/2. New public searches use `public-discovery.v3` (`max_results=8`); v1/v2 bytes remain frozen. Device APK `d13505fd` (`126d8c7`) still current for UI.
+**Executed:** Full PostgreSQL **475/475 twice** at this SHA (`deep_v8_int5`, `deep_v8_int6`). EAS APK `d8e69a8f` (`09c5633`) installed on `10.0.0.167:43417`; required native matrix recaptured (`v8g`). `pnpm verify` EXIT 0; frozen extraction 9/9; discovery v3 `max_results=8`.
 
 **True external blockers:** GitHub Actions run `35411856817` did not start (`account is locked due to a billing issue`). Live no-file public journeys are outside the recorded `$0.40` MC-D01 frozen-SQLite cap; unknown holds remain unreleased. No additional spend was inferred from a key being present.
 
