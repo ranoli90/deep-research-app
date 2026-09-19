@@ -1,3 +1,7 @@
+## Phase A follow-up grounded explanation — 2026-09-19
+
+Lane `grok-v8/phase-a-followup` (not `main`). `explain` follow-ups answer from owned report blocks/claims and authorized passages. No brief mutation, no invented citations, no automatic child run. Missing evidence is disclosed. Wave A stale/pending 409 and deleted-account rejection remain. See `verification/phase-a/followup/CHANGE.md`.
+
 ## P0 brief revision / cost / reconciliation — 2026-09-19
 
 Continue and assumption replace no longer mutate the same brief identity. Known-zero failures settle; unknown HOLD. Reconciliation v2 is not lexical confirmation. **Do not merge `main`.**

@@ -1,5 +1,16 @@
 # Execution ledger
 
+## 2026-09-19 — ENG-033 follow-up explain from owned evidence
+
+- `explainFromExistingEvidence` (`explain-from-existing-evidence.v1`) answers from owned report text and supporting passage exact texts; injection cannot change permissions.
+- `POST /v1/runs/:id/follow-up` explain loads latest owned report + `authorized_run_passages`. Incomplete evidence returns `needsTargetedResearch` without a child run.
+- Error handler preserves statusCode 400–599.
+- Isolated PG `deep_phase_a_followup` at `127.0.0.1:55432`. No live spend. Not full PG. Not merged to main.
+- `pnpm --filter @deep/research-core exec tsc -p tsconfig.json --noEmit` exit 0.
+- `pnpm --filter @deep/backend exec tsc -p tsconfig.json --noEmit` exit 0.
+- `pnpm --filter @deep/research-core exec vitest run --config vitest.config.ts test/explain-from-evidence.test.ts test/research-beta-intelligence.test.ts` exit 0, 28/28.
+- `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_phase_a_followup` `pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/followup-explain.integration.test.ts` exit 0, 4/4.
+
 ## 2026-09-19 — FP-003/013/060 and continue brief revision
 
 - `/continue` inserts a new `research_briefs` row and increments `runs.brief_revision`; originalQuestion unchanged. Prior brief rows keep pre-clarification constraints.

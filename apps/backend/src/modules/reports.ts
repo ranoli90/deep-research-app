@@ -1,6 +1,6 @@
 import { calculationPublicationClaims } from "./calculation-publication.js";
 import { deriveReportChanges } from "./report-changes.js";
-import type { CanonicalReport, RevisionBasis } from "@deep/contracts";
+import type { CanonicalReport, ReportBlock, RevisionBasis } from "@deep/contracts";
 import { canPublish, citationValidationFails, LATER_EVIDENCE_LIMITATION, validateMaterialCitations, type StoredClaim, type StoredPassage } from "@deep/research-core";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
@@ -146,6 +146,45 @@ export async function getLatestReportForRun(db: Queryable, runId: string, accoun
     [runId, accountId],
   );
   return res.rows[0] ?? null;
+}
+
+/** Latest owned report blocks, published claims, and authorized passage exact texts. */
+export async function loadOwnedExplanationEvidence(
+  db: Queryable,
+  args: { runId: string; accountId: string; report: { id: string; claim_ids?: string[]; blocks?: unknown } | null },
+): Promise<{
+  blocks: ReportBlock[];
+  claims: { id: string; text: string; passageIds: string[] }[];
+  passages: { id: string; exactText: string }[];
+}> {
+  if (!args.report) return { blocks: [], claims: [], passages: [] };
+  const blocks = Array.isArray(args.report.blocks) ? (args.report.blocks as ReportBlock[]) : [];
+  const passages = await db.query<{ id: string; exact_text: string }>(
+    `SELECT p.id, p.exact_text
+     FROM authorized_run_passages p
+     JOIN source_versions v ON v.id = p.source_version_id
+     JOIN sources s ON s.id = v.source_id
+     WHERE p.run_id = $1 AND p.account_id = $2 AND v.account_id = $2 AND s.account_id = $2
+       AND NOT EXISTS (SELECT 1 FROM tombstones t WHERE t.account_id=$2 AND t.object_kind='source' AND t.object_id=s.id)`,
+    [args.runId, args.accountId],
+  );
+  const claimIds = Array.isArray(args.report.claim_ids) ? args.report.claim_ids : [];
+  const claims = claimIds.length
+    ? await db.query<{ id: string; text: string; passage_ids: string[] }>(
+        `SELECT c.id::text AS id, c.text,
+           COALESCE(array_agg(e.passage_id::text) FILTER (WHERE e.passage_id IS NOT NULL AND e.decision = 'supports'), '{}') AS passage_ids
+         FROM claims c
+         LEFT JOIN claim_evidence e ON e.claim_id = c.id
+         WHERE c.run_id = $1 AND c.account_id = $2 AND c.id::text = ANY($3::text[])
+         GROUP BY c.id`,
+        [args.runId, args.accountId, claimIds],
+      )
+    : { rows: [] };
+  return {
+    blocks,
+    claims: claims.rows.map((c) => ({ id: c.id, text: c.text, passageIds: c.passage_ids ?? [] })),
+    passages: passages.rows.map((p) => ({ id: p.id, exactText: p.exact_text })),
+  };
 }
 
 export function completionDispatchPayload(runId: string, completionEpoch: number): Record<string, unknown> {

@@ -22,6 +22,7 @@ import {
   inferOutputPreference,
   parseCorrection,
   routeFollowUp,
+  explainFromExistingEvidence,
   shouldFullRerun,
   encodeSourcePolicy,
   mergeSteeringIntoPolicy,
@@ -62,7 +63,7 @@ import {
   listLibrary,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
-import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, publishReport, reportOwnsClaim } from "../modules/reports.js";
+import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, loadOwnedExplanationEvidence, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { approveQueryAuthorization, pendingQueryAuthorization } from "../modules/retrieval-intelligence.js";
@@ -90,7 +91,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const { pool, config, boss } = deps;
   app.setErrorHandler((error, _req, reply) => {
     const {code, statusCode} = error as {code?:string; statusCode?:number};
-    const status = code === "allowance_exhausted" ? 402 : statusCode && statusCode >= 400 && statusCode < 500 ? statusCode : 500;
+    const status = code === "allowance_exhausted" ? 402 : statusCode && statusCode >= 400 && statusCode <= 599 ? statusCode : 500;
     const publicCode = status === 409 ? "stale_revision" : status === 400 ? "invalid_input" : status === 402 ? "allowance_exhausted" : status === 401 || status === 403 || status === 404 ? "permission_denied" : "internal_failure";
     return reply.code(status).send(err(publicCode, status === 409 ? "The request no longer matches the current research state." : status === 500 ? "The request could not be completed." : "The request was not accepted.",crypto.randomUUID()));
   });
@@ -625,7 +626,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   app.post("/v1/runs/:id/follow-up", async (req, reply) => {
     const a = await auth(req as never);
-    if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
@@ -633,12 +634,29 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string; expectedBriefRevision?: number };
     if (!followBody.claimId && followBody.message) {
+      const report = await getLatestReportForRun(pool, id, a.accountId);
       const routed = routeFollowUp(followBody.message, {
-        reportReady: true,
+        reportReady: Boolean(report),
         runActive: run.lifecycle !== "terminal",
       });
       if (routed.kind === "explain" && !routed.mutatesBrief) {
-        return { kind: "explain", runId: id, reason: routed.reason, mutatesBrief: false };
+        const evidence = await loadOwnedExplanationEvidence(pool, { runId: id, accountId: a.accountId, report });
+        const explained = explainFromExistingEvidence({
+          message: followBody.message,
+          blocks: evidence.blocks,
+          claims: evidence.claims,
+          passages: evidence.passages,
+        });
+        return {
+          kind: "explain",
+          runId: id,
+          reason: routed.reason,
+          mutatesBrief: false,
+          answer: explained.answer,
+          citationPassageIds: explained.citationPassageIds,
+          evidenceComplete: explained.evidenceComplete,
+          ...(explained.evidenceComplete ? {} : { needsTargetedResearch: true }),
+        };
       }
       if ((routed.kind === "steer" || routed.kind === "add_source") && !routed.mutatesBrief) {
         const revised = await withTx(pool, async (db) => {
