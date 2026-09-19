@@ -35,6 +35,18 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     await settleRun(db,args.accountId,args.runId,run.spent_micro);
   });
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+  const CONCURRENT_SOURCE_READS=3;
+  const readAdoptedSources=async(taskId:string,handles:string[],questionKeys:string[],rationale:string)=>{
+    for(let i=0;i<handles.length;i+=CONCURRENT_SOURCE_READS){
+      const batch=handles.slice(i,i+CONCURRENT_SOURCE_READS);
+      await Promise.all(batch.map(async(sourceHandle)=>{
+        const read=await executeSourceRead(config,session,{...args,taskId,proposal:{
+          rationale,action:{type:"fetch",sourceHandle,questionKeys}}});
+        if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
+          summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
+      }));
+    }
+  };
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
   const pauseForQueryApproval=async():Promise<"paused"|"blocked">=>session.write(async(db)=>{
@@ -131,12 +143,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
     if(search.kind!=="search")return pendingOrBlocked(search);
     const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
-    for(const sourceHandle of sources) {
-      const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
-        rationale:"Read the discovered source before assessing its assertions.",action:{type:"fetch",sourceHandle,questionKeys}}});
-      if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
-        summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
-    }
+    await readAdoptedSources(prepared.task.id,sources,questionKeys,"Read the discovered source before assessing its assertions.");
     selected=await selectPassages();
   }
   // Repeat actual extraction/checking after new evidence, never count search events as coverage.
@@ -213,12 +220,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass:nextClass});
         if(search.kind!=="search")return pendingOrBlocked(search);
         const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
-        for(const sourceHandle of adopted) {
-          const read=await executeSourceRead(config,session,{...args,taskId:prepared.task.id,proposal:{
-            rationale:"Read evidence for an unresolved criterion.",action:{type:"fetch",sourceHandle,questionKeys:next.proposal.action.questionKeys}}});
-          if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
-            summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
-        }
+        await readAdoptedSources(prepared.task.id,adopted,next.proposal.action.questionKeys,"Read evidence for an unresolved criterion.");
         selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
         continue;
       }
