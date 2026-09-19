@@ -1,3 +1,7 @@
+## Consumer brief card APK 2eb385b — 2026-09-19
+
+EAS `7e4b02c8` installed. Source-sheet cited-in now ellipsizes. Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers.
+
 ## Native APK 4a4948e — 2026-09-19
 
 EAS `d2a06da7` installed on `10.0.0.167:43417`. Visual matrix `visual-qa/v8i/`. Do not merge to `main`. Live J1–J12 and hosted `verification.yml` remain the two user-side blockers.

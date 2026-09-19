@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-19 — Consumer brief card APK 2eb385b
+
+- EAS `7e4b02c8` FINISHED; APK sha256 `6ded85d00989a33bc89aeb186261f4d715b7f62de71aaa6781141b3d141df9cb` on `10.0.0.167:43417`.
+- Source sheet “Cited in” ellipsizes on device. Brief card no longer restates planner desiredOutcome.
+- main not merged. Research Beta not declared.
+
 ## 2026-09-19 — Native APK 4a4948e visual QA
 
 - EAS `d2a06da7` FINISHED; APK sha256 `1becfe79fc548dc2591a5d55744b91b25275d5b4e2402b16373b4579fcbc397e` installed on `10.0.0.167:43417`.
