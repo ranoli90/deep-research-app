@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
@@ -84,9 +84,20 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   if(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length&&!config.structuredDiscoveryEnabled)return unresolved("correction_rediscovery_disabled");
   const recoveryPolicy=(await session.write(db=>db.query("SELECT evidence_recovery_policy FROM runs WHERE id=$1 AND account_id=$2 AND brief_revision=$3",[args.runId,args.accountId,args.briefRevision]))).rows[0]?.evidence_recovery_policy;
   if(!["none.v1",EMPTY_SELECTION_RECOVERY_VERSION].includes(recoveryPolicy))return unresolved("evidence_recovery_policy_unavailable");
+  const intent=compileResearchIntent(brief.originalQuestion,{knownConstraints:brief.constraints});
+  if(intent.clarificationDecision.ask){
+    await session.write(async(db)=>{
+      await setPhase(db,args.runId,"preparing");
+      const first=intent.clarificationDecision.questions[0];
+      await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarify",phase:"preparing",
+        summary:first?.prompt??"Which jurisdiction should this answer apply to?",
+        payload:{questions:intent.clarificationDecision.questions}});
+      await db.query(`UPDATE runs SET lifecycle='awaiting_input' WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
+    });
+    return;
+  }
   const prepared=await ensureResearchTask(pool,config,session,args);
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
-  if(prepared.task.planningStatus!=="ready")return unresolved("task_requires_clarification");
   const requiredProof=await session.write(db=>db.query(`SELECT 1 FROM runs r WHERE r.id=$1 AND r.account_id=$2 AND r.counterevidence_required_revision=$3
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");

@@ -1608,3 +1608,17 @@ it("W05 counterevidence disabled legacy run needs no proof, but an event alone c
  expect((await counterevidenceLimitations(pool,c.args))[0]).toContain("required counterevidence check cannot be restored");
  await expect(executeCounterevidence(pool,c.config,x.session,c.args)).rejects.toThrow("required_challenge_proof_missing");
 }));
+it("pauses structured research for a jurisdiction clarification before any public search",async()=>{
+ const tax="What is the filing deadline for employment tax?";
+ await runCase(async x=>{
+  await releaseForWorker(x);
+  globalThis.fetch=vi.fn(async()=>{throw new Error("clarification must not spend a model call");});
+  await processRun(pool,x.config,x.runId);
+  expect((await getRun(pool,x.runId))?.lifecycle).toBe("awaiting_input");
+  const events=(await pool.query("SELECT type, public_summary FROM run_events WHERE run_id=$1",[x.runId])).rows as {type:string;public_summary:string}[];
+  expect(events.some((e)=>e.type==="clarify")).toBe(true);
+  expect(JSON.stringify(events)).toMatch(/jurisdiction/i);
+  expect(events.some((e)=>e.type==="searching")).toBe(false);
+  expect(globalThis.fetch).not.toHaveBeenCalled();
+ },tax);
+});
