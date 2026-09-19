@@ -33,6 +33,8 @@ describe("library persistence metadata", () => {
     const src = readFileSync(join(import.meta.dirname, "../src/LibraryList.tsx"), "utf8");
     expect(src).toContain("FlatList");
     expect(src).toContain("No matching reports.");
+    expect(src).toContain("styles.libraryRow");
+    expect(src).not.toContain("rgba(0,0,0,0.08)");
     expect(src).not.toMatch(/ScrollView style=\{styles\.body\}/);
   });
 });

@@ -12,6 +12,18 @@ describe("public research activity", () => {
     });
     expect(ok).toMatchObject({ kind: "evidence_checked", label: "Checked the evidence", sourceDomain: "nist.gov", count: 3 });
     expect(toPublicActivity({
+      type: "source_read",
+      publicSummary: "Source reading finished.",
+      phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.kind).toBe("source_reading");
+    expect(toPublicActivity({
+      type: "intent_compiled",
+      publicSummary: "Understood the question.",
+      phase: "preparing",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.kind).toBe("intent_ready");
+    expect(toPublicActivity({
       type: "searching",
       publicSummary: "prompt: system you are a helpful assistant",
       phase: "researching",

@@ -20,6 +20,8 @@ export function makeStyles(theme: (typeof color)["light"] | (typeof color)["dark
     statusRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, paddingVertical: space.sm, marginBottom: space.sm },
     statusText: { ...typeTokens.body, color: theme.muted, flexShrink: 1 },
     body: { flex: 1, paddingHorizontal: space.lg },
+    libraryRow: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line },
+    librarySearch: { ...typeTokens.body, color: theme.ink, paddingVertical: 10, marginBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line },
     emptyHero: { paddingTop: 28, paddingBottom: space.md },
     welcomeDisplay: { ...typeTokens.title, color: theme.ink, marginBottom: space.sm },
     exampleRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

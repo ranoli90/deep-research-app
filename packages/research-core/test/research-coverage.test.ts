@@ -48,5 +48,7 @@ describe("W05 criterion discovery policy",()=>{
  it("stops explicitly for repeated questions or the query ceiling",()=>{
   expect(nextCriterionSearch({question,task,unresolvedCriterionKeys:["area"],queries:[question.toUpperCase()]})).toEqual({kind:"stop",reason:"no_distinct_public_criterion_query"});
   expect(nextCriterionSearch({question,task,unresolvedCriterionKeys:["area"],queries:["one","two","three"]})).toEqual({kind:"stop",reason:"discovery_query_limit"});
+  const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};
+  expect(nextCriterionSearch({question,task:{...task,criteria:[{...task.criteria[0]!,provenance}]},unresolvedCriterionKeys:["area"],queries:["one","two","three"],ceiling:6})).toMatchObject({kind:"search",proposal:{action:{query:"Reef-X"}}});
  });
 });

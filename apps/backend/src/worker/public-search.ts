@@ -51,7 +51,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  const bodyDigest=publicSearchDigest(searchQuery,policy.id);
  const digest=createHash("sha256").update(JSON.stringify({bodyDigest,policy:policy.id,briefRevision:args.briefRevision})).digest("hex");
  let attempt:Awaited<ReturnType<typeof reserveLiveAttempt>>;
- try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}`,kind:"search",
+ try {attempt=await reserveLiveAttempt(pool,config,{...args,requiredConsentPolicy:CONSENT_POLICY_VERSION,logicalKey:`public-search:${digest}:${args.sourceClass??"default"}`,kind:"search",
   route:`openrouter:${policy.model}:${policy.id}`,requestDigest:digest,reserveMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,maxRunRouteAttempts:DEEP_DISCOVERY_CEILING});}
  catch(error){if(error instanceof Error&&error.message==="route_attempt_limit")return {kind:"blocked" as const,reason:"discovery_query_limit"};throw error;}
  const finish=(result:SearchResult,reused:boolean)=>result.receipt.state==="confirmed"&&result.receipt.actualMicro!==undefined

@@ -5,10 +5,11 @@ export const DISCOVERY_PLANNER_VERSION="criterion-discovery.v1";
 export const MAX_DISCOVERY_QUERIES=3;
 export const DEEP_DISCOVERY_CEILING=6;
 /** Narrow discovery to unmet criteria without copying any source text into public queries. */
-export function nextCriterionSearch(args:{question:string;task:ResearchModelOutput<"brief">;unresolvedCriterionKeys:string[];queries:string[]}) {
+export function nextCriterionSearch(args:{question:string;task:ResearchModelOutput<"brief">;unresolvedCriterionKeys:string[];queries:string[];ceiling?:number}) {
  const normalize=(text:string)=>text.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
  const seen=new Set(args.queries.map(normalize));
- if(seen.size>=MAX_DISCOVERY_QUERIES)return {kind:"stop" as const,reason:"discovery_query_limit"};
+ const ceiling=args.ceiling??MAX_DISCOVERY_QUERIES;
+ if(seen.size>=ceiling)return {kind:"stop" as const,reason:"discovery_query_limit"};
  for(const criterion of args.task.criteria) {
   if(!args.unresolvedCriterionKeys.includes(criterion.key))continue;
   const basis=criterion.provenance,query=basis.quote.trim();

@@ -98,6 +98,8 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
     await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",
       summary: "Research accepted. Closing the app will not stop the server job." });
+    await emitEvent(db, { runId, accountId, type: "intent_compiled", phase: "preparing",
+      summary: "Understood the question." });
     return { runId, brief, reused: false };
   });
 }

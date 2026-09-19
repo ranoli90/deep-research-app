@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,type SourceClass } from "@deep/research-core";
+import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
@@ -138,11 +138,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const openingPlan=planSourceClass(brief.originalQuestion);
     classesAttempted.push(openingPlan.primary);
     queries.push(brief.originalQuestion);
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
+      summary:"Searching public sources.",payload:{count:1}}));
     const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,sourceClass:openingPlan.primary,proposal:{
       rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
         publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
     if(search.kind!=="search")return pendingOrBlocked(search);
     const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+      summary:"Found sources.",payload:{count:sources.length}}));
     await readAdoptedSources(prepared.task.id,sources,questionKeys,"Read the discovered source before assessing its assertions.");
     selected=await selectPassages();
   }
@@ -188,7 +192,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
     if(!review.coverage.complete&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
-        unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries});
+        unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
       const plan=planSourceClass(brief.originalQuestion);
       const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
       const failedQueries=Number((await pool.query(`SELECT count(*)::int AS n FROM search_operations s WHERE s.run_id=$1 AND s.account_id=$2 AND COALESCE(jsonb_array_length(s.result->'hits'),0)=0`,[args.runId,args.accountId])).rows[0]?.n??0);
@@ -221,14 +225,28 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
       });
       const topNeed=highestValueNeed(needs);
-      if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search") {
+      const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion});
+      const questionKeys=next.kind==="search"?next.proposal.action.questionKeys:Object.keys(prepared.task.questionIds);
+      const continuation=next.kind==="search"?next.proposal:{
+        rationale:"Continue public discovery with a distinct source class while keeping the original question wording.",
+        action:{type:"search" as const,query:brief.originalQuestion,questionKeys,
+          publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}},
+      };
+      const classAlreadyUsed=next.kind!=="search"&&classesAttempted.includes(nextClass);
+      if(!classAlreadyUsed&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.privateTermsRequiringApproval.length===0) {
+        if(freshnessUnmet) await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"freshness_checking",phase:"researching",
+          summary:"Checking how current the evidence is."}));
         classesAttempted.push(nextClass);
-        queries.push(next.proposal.action.query);
+        queries.push(continuation.action.query);
         lastSourceCount=sources.length;
-        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass:nextClass});
+        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
+          summary:"Searching public sources.",payload:{count:queries.length}}));
+        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:continuation,sourceClass:nextClass});
         if(search.kind!=="search")return pendingOrBlocked(search);
         const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
-        await readAdoptedSources(prepared.task.id,adopted,next.proposal.action.questionKeys,"Read evidence for an unresolved criterion.");
+        await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+          summary:"Found sources.",payload:{count:adopted.length}}));
+        await readAdoptedSources(prepared.task.id,adopted,continuation.action.questionKeys,"Read evidence for an unresolved criterion.");
         selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();
         continue;
       }
@@ -249,6 +267,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId,...(calculations.kind==="calculations"&&calculations.executions.length?{calculationPlanIntentId:calculations.intentId}:{})});
     if(result.kind!=="publication")return pendingOrBlocked(result);
     if(!result.accepted)return unresolved(result.reason);
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
+      summary:"Answer ready."}));
     return;
   }
   return unresolved("research_iteration_limit");

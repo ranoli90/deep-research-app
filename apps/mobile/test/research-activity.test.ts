@@ -17,7 +17,10 @@ describe("research activity from persisted events", () => {
     expect(labelResearchEvent({ sequence: 2, type: "searched", publicSummary: "Searched: laptops under 2000" })?.label).toBe("Searching");
     expect(labelResearchEvent({ sequence: 3, type: "opened_source", publicSummary: "Opened manufacturer spec." })?.label).toBe("Reading a source");
     expect(labelResearchEvent({ sequence: 4, type: "disconfirm_search", publicSummary: "Looked for contrary pricing." })?.label).toBe("Checking a conflicting claim");
-    expect(labelResearchEvent({ sequence: 5, type: "writing", publicSummary: "Drafting the report." })?.label).toBe("Writing the report");
+    expect(labelResearchEvent({ sequence: 5, type: "writing", publicSummary: "Drafting the report." })?.label).toBe("Writing the answer");
+    expect(labelResearchEvent({ sequence: 10, type: "intent_compiled", publicSummary: "Understood the question." })?.label).toBe("Understood the question");
+    expect(labelResearchEvent({ sequence: 11, type: "searching", publicSummary: "Searching public sources." })?.label).toBe("Searching public sources");
+    expect(labelResearchEvent({ sequence: 12, type: "report_ready", publicSummary: "Answer ready." })?.label).toBe("Answer ready");
     expect(labelResearchEvent({ sequence: 6, type: "chain_of_thought", publicSummary: "Let me think step by step" })).toBeNull();
     expect(labelResearchEvent({ sequence: 7, type: "prompt", publicSummary: "system prompt leaked" })).toBeNull();
     expect(labelResearchEvent({ sequence: 8, type: "mystery", publicSummary: "{\"internal\":true}" })).toBeNull();

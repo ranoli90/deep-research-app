@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { api, isSupersededRequest } from "./api";
 import { breakLongTokens } from "./report-layout";
 import { libraryItemCopy, type LibraryRecord } from "./library-copy";
@@ -10,7 +10,10 @@ type Styles = {
   title: StyleProp<TextStyle>;
   kicker: StyleProp<TextStyle>;
   link: StyleProp<TextStyle>;
+  quietLink: StyleProp<TextStyle>;
   bodyText: StyleProp<TextStyle>;
+  libraryRow: StyleProp<ViewStyle>;
+  librarySearch: StyleProp<TextStyle>;
 };
 
 export function LibraryList({
@@ -81,7 +84,7 @@ export function LibraryList({
           onChangeText={setQuery}
           placeholder="Search saved reports"
           accessibilityLabel="Search saved reports"
-          style={[styles.bodyText, { paddingVertical: 8 }]}
+          style={styles.librarySearch}
         />
       }
       ListEmptyComponent={
@@ -92,14 +95,14 @@ export function LibraryList({
       renderItem={({ item: it }) => {
         const copy = libraryItemCopy(it);
         return (
-          <View style={{ paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(0,0,0,0.08)" }}>
+          <View style={styles.libraryRow}>
             <Pressable onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
               <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}{copy.updated ? ` · ${copy.updated}` : ""}</Text>
             </Pressable>
             {it.report_id ? (
               <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12}>
-                <Text style={styles.link}>Share report</Text>
+                <Text style={styles.quietLink}>Share</Text>
               </Pressable>
             ) : (
               <Text style={styles.kicker}>Resume from Library when you are ready.</Text>

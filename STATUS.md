@@ -1,3 +1,9 @@
+## Public activity + deep discovery wiring — 2026-09-19
+
+Lane: `grok-v8/research-beta-integration`. **Not merged to `main`.**
+
+**Applied:** Mobile activity labels now include intent/search/source/evidence/report events that the worker actually emits. Admission records `intent_compiled`. Discovery continuation can use the deep ceiling (6) and a distinct source class without repeating a spent class. Library rows use theme hairlines (no hardcoded black). Tests: research-core coverage ceiling, mobile activity/library, public-activity mapping.
+
 ## Hybrid intent compiler v2 — 2026-09-19
 
 Lane: `grok-v8/research-beta-integration`. **Not merged to `main`.** Research Beta is not declared.
