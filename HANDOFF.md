@@ -1,3 +1,11 @@
+## Wave 3 query privacy — 2026-09-19
+
+Branch `grok-v8/fix-wave3-query-privacy` based on `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. **Do not merge `main`.** Research Beta is **not** complete.
+
+FP-022 P0, FP-023 P1, FP-024 P1, FP-025 P1 applied on the production classify/authorize/search path. Unknown tokens are `unclassified` (`query-provenance.v2`) and `authorizePublicQuery` blocks them. `hasPublicQueryApproval` / `loadApprovedPrivateTerms` require this query digest and the exact private-term set. `approveQueryAuthorization` updates the pending row to approved; replay of the same id/digest/terms is idempotent; stale brief revision is denied. Mixed-document search still needs that exact proof. Migration `044_query_authorization_proof.sql`.
+
+Rollback: disable new mixed-document discovery; keep proof readers, deletion, and historical rows. Do not restore the user-public default or revision-wide term union.
+
 ## Fail-closed WIP checkpoint — 2026-09-19
 
 Branch `grok-v8/research-beta-integration`. **Do not merge `main`.** Research Beta is **not** complete.

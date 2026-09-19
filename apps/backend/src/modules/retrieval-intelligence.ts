@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
 import {
   authorizePublicQuery,
+  canonicalQueryIdentity,
+  canonicalPrivateTermSet,
   clusterSourceOrigins,
   evaluateFreshness,
   freshnessPolicyForQuestion,
   planSourceClass,
+  privateTermSetsEqual,
   reconcileDocumentClaim,
   recordSearchCoverage,
   type QueryAuthorization,
@@ -16,6 +19,11 @@ import {
 import type { Queryable } from "../platform/db.js";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+
+/** SHA-256 of the canonical proposed-query identity. Not a union of prior queries. */
+export function queryAuthorizationDigest(query: string): string {
+  return digest(canonicalQueryIdentity(query));
+}
 
 export async function loadPrivateDocumentText(
   db: Queryable,
@@ -49,14 +57,21 @@ export async function loadPrivateCanaries(
   return out;
 }
 
-export async function loadApprovedPrivateTerms(db: Queryable, args: { accountId: string; runId: string; briefRevision?: number }): Promise<string[]> {
+export async function loadApprovedPrivateTerms(db: Queryable, args: {
+  accountId: string;
+  runId: string;
+  briefRevision?: number;
+  queryDigest: string;
+}): Promise<string[]> {
+  if (!args.queryDigest) return [];
   const row = await db.query<{ approved_private_terms: unknown }>(
-    `SELECT approved_private_terms FROM query_authorizations WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false AND ($3::int IS NULL OR brief_revision=$3) ORDER BY created_at DESC`,
-    [args.accountId, args.runId, args.briefRevision ?? null],
+    `SELECT approved_private_terms FROM query_authorizations
+      WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false
+        AND query_digest=$3 AND ($4::int IS NULL OR brief_revision=$4)
+      ORDER BY created_at DESC LIMIT 1`,
+    [args.accountId, args.runId, args.queryDigest, args.briefRevision ?? null],
   );
-  const out: string[] = [];
-  for (const item of row.rows) out.push(...termList(item.approved_private_terms));
-  return uniqueTerms(out);
+  return canonicalPrivateTermSet(termList(row.rows[0]?.approved_private_terms));
 }
 
 function termList(value: unknown): string[] {
@@ -64,35 +79,25 @@ function termList(value: unknown): string[] {
   return value.map((t) => String(typeof t === "object" && t && "token" in t ? (t as { token: string }).token : t).normalize("NFKC").toLowerCase()).filter(Boolean);
 }
 
-/** Gate A (no digest/terms): public search granted for this brief revision. Gate B: digest + exact term set. */
+/** Exact query proof only. Missing digest is deny. Search 2 cannot borrow search 1. */
 export async function hasPublicQueryApproval(db: Queryable, args: {
   accountId: string;
   runId: string;
   briefRevision?: number;
-  queryDigest?: string;
-  terms?: string[];
+  queryDigest: string;
+  terms: readonly string[];
 }): Promise<boolean> {
-  const row = await db.query<{ terms: unknown; approved_private_terms: unknown; query_digest: string; brief_revision: number }>(
-    `SELECT terms, approved_private_terms, query_digest, brief_revision FROM query_authorizations
-      WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false
-      ORDER BY created_at DESC LIMIT 8`,
-    [args.accountId, args.runId],
+  if (!args.queryDigest) return false;
+  const row = await db.query<{ approved_private_terms: unknown; brief_revision: number }>(
+    `SELECT approved_private_terms, brief_revision FROM query_authorizations
+      WHERE account_id=$1 AND run_id=$2 AND kind='approved' AND permission_required=false AND query_digest=$3
+      ORDER BY created_at DESC LIMIT 1`,
+    [args.accountId, args.runId, args.queryDigest],
   );
-  const needed = (args.terms ?? []).map((t) => t.normalize("NFKC").toLowerCase()).filter(Boolean);
-  for (const item of row.rows) {
-    if (args.briefRevision != null && item.brief_revision !== args.briefRevision) continue;
-    if (args.queryDigest && item.query_digest !== args.queryDigest) continue;
-    if (needed.length) {
-      const approved = uniqueTerms([...termList(item.terms), ...termList(item.approved_private_terms)]);
-      if (!needed.every((t) => approved.includes(t))) continue;
-    }
-    return true;
-  }
-  return false;
-}
-
-function uniqueTerms(values: string[]): string[] {
-  return [...new Set(values)];
+  const item = row.rows[0];
+  if (!item) return false;
+  if (args.briefRevision != null && item.brief_revision !== args.briefRevision) return false;
+  return privateTermSetsEqual(termList(item.approved_private_terms), args.terms);
 }
 
 export async function pendingQueryAuthorization(db: Queryable, args: { accountId: string; runId: string; briefRevision: number }) {
@@ -133,41 +138,32 @@ export async function approveQueryAuthorization(db: Queryable, args: {
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
   const pending = await db.query<{
     id: string;
+    kind: string;
     query_digest: string;
     brief_revision: number;
-    proposed_query: string;
-    authorized_query: string;
-    terms: unknown;
     approved_private_terms: unknown;
   }>(
-    `SELECT id, query_digest, brief_revision, proposed_query, authorized_query, terms, approved_private_terms
+    `SELECT id, kind, query_digest, brief_revision, approved_private_terms
        FROM query_authorizations
-      WHERE id=$1 AND account_id=$2 AND run_id=$3 AND kind='permission_required'`,
+      WHERE id=$1 AND account_id=$2 AND run_id=$3 AND kind IN ('permission_required','approved')
+      FOR UPDATE`,
     [args.authorizationId, args.accountId, args.runId],
   );
   const row = pending.rows[0];
   if (!row) return { ok: false, reason: "query_authorization_not_found" };
   if (row.brief_revision !== args.briefRevision) return { ok: false, reason: "stale_brief_revision" };
   if (row.query_digest !== args.queryDigest) return { ok: false, reason: "query_digest_mismatch" };
-  const required = uniqueTerms(termList(row.approved_private_terms)).sort();
-  const offered = uniqueTerms(args.terms.map((t) => t.normalize("NFKC").toLowerCase())).sort();
-  if (required.join("\0") !== offered.join("\0")) return { ok: false, reason: "term_set_mismatch" };
-  await db.query(
-    `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind,reason)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,false,'approved',$10)`,
-    [
-      crypto.randomUUID(),
-      args.accountId,
-      args.runId,
-      args.briefRevision,
-      args.queryDigest,
-      row.proposed_query,
-      row.authorized_query,
-      JSON.stringify(row.terms),
-      JSON.stringify(args.terms),
-      "user_approved_exact_term_set",
-    ],
+  const offered = canonicalPrivateTermSet(args.terms);
+  if (!privateTermSetsEqual(termList(row.approved_private_terms), offered)) return { ok: false, reason: "term_set_mismatch" };
+  if (row.kind === "approved") return { ok: true };
+  const updated = await db.query(
+    `UPDATE query_authorizations
+        SET kind='approved', permission_required=false, approved_private_terms=$2::jsonb, reason='user_approved_exact_term_set'
+      WHERE id=$1 AND account_id=$3 AND run_id=$4 AND kind='permission_required'
+      RETURNING id`,
+    [row.id, JSON.stringify(offered), args.accountId, args.runId],
   );
+  if (!updated.rowCount) return { ok: false, reason: "query_authorization_not_found" };
   return { ok: true };
 }
 
@@ -196,23 +192,42 @@ export async function recordQueryAuthorization(
   db: Queryable,
   args: { accountId: string; runId: string; briefRevision: number; proposedQuery: string; authorization: QueryAuthorization },
 ): Promise<void> {
+  const queryDigest = queryAuthorizationDigest(args.proposedQuery);
+  const privateTerms = canonicalPrivateTermSet(args.authorization.privateTermsRequiringApproval);
+  const values = [
+    crypto.randomUUID(),
+    args.accountId,
+    args.runId,
+    args.briefRevision,
+    queryDigest,
+    args.proposedQuery,
+    args.authorization.query,
+    JSON.stringify(args.authorization.terms),
+    JSON.stringify(privateTerms),
+    args.authorization.kind === "permission_required",
+    args.authorization.kind,
+    args.authorization.reason ?? null,
+  ];
+  if (args.authorization.kind === "permission_required") {
+    await db.query(
+      `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind,reason)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       ON CONFLICT (run_id, brief_revision, query_digest) WHERE kind IN ('permission_required','approved')
+       DO UPDATE SET
+         proposed_query=EXCLUDED.proposed_query,
+         authorized_query=EXCLUDED.authorized_query,
+         terms=EXCLUDED.terms,
+         approved_private_terms=EXCLUDED.approved_private_terms,
+         reason=EXCLUDED.reason
+       WHERE query_authorizations.kind='permission_required'`,
+      values,
+    );
+    return;
+  }
   await db.query(
     `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind,reason)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-    [
-      crypto.randomUUID(),
-      args.accountId,
-      args.runId,
-      args.briefRevision,
-      digest(args.authorization.query),
-      args.proposedQuery,
-      args.authorization.query,
-      JSON.stringify(args.authorization.terms),
-      JSON.stringify(args.authorization.privateTermsRequiringApproval),
-      args.authorization.kind === "permission_required",
-      args.authorization.kind,
-      args.authorization.reason ?? null,
-    ],
+    values,
   );
 }
 

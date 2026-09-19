@@ -6,7 +6,7 @@ import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERV
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,policyFromRestrictions,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
-import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
+import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
@@ -49,24 +49,26 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   };
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
-  const pauseForQueryApproval=async():Promise<"paused"|"blocked">=>session.write(async(db)=>{
+  const pauseForQueryApproval=async(proposedQuery=brief.originalQuestion):Promise<"paused"|"blocked">=>session.write(async(db)=>{
+    const queryDigest=queryAuthorizationDigest(proposedQuery);
     const auth=authorizeDiscoveryQuery({
       question:brief.originalQuestion,
-      query:brief.originalQuestion,
+      query:proposedQuery,
       privateDocumentText:await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision}),
-      approvedPrivateTerms:await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId}),
+      approvedPrivateTerms:await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest}),
     });
     if(auth.kind==="blocked")return "blocked";
+    const privateTerms=auth.terms.filter((t)=>t.provenance==="private-document-derived").map((t)=>t.token);
     await recordQueryAuthorization(db,{
       accountId:args.accountId,
       runId:args.runId,
       briefRevision:args.briefRevision,
-      proposedQuery:brief.originalQuestion,
-      authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval"},
+      proposedQuery,
+      authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms},
     });
     await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing', updated_at=now() WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarification_needed",phase:"preparing",
-      summary:"Need approval before searching the public web with this document.",payload:{reason:"document_search_requires_public_query_approval"}});
+      summary:"Need approval before searching the public web with this document.",payload:{reason:"document_search_requires_public_query_approval",queryDigest}});
     return "paused";
   });
   // A document-add obligation is derived from immutable owned brief membership,
@@ -98,6 +100,17 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   }
   const prepared=await ensureResearchTask(pool,config,session,args);
   if(prepared.kind!=="task")return pendingOrBlocked(prepared);
+  const runPublicSearch=async(proposal:unknown,sourceClass?:SourceClass)=>{
+    try {
+      return await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal,sourceClass});
+    } catch(error) {
+      if(!(error instanceof Error)||error.message!=="document_search_requires_public_query_approval")throw error;
+      const query=typeof proposal==="object"&&proposal&&"action" in proposal?String((proposal as {action?:{query?:string}}).action?.query??brief.originalQuestion):brief.originalQuestion;
+      const pause=await pauseForQueryApproval(query);
+      if(pause==="blocked")return {kind:"blocked" as const,reason:"unapproved_public_query_terms"};
+      return {kind:"paused" as const};
+    }
+  };
   const requiredProof=await session.write(db=>db.query(`SELECT 1 FROM runs r WHERE r.id=$1 AND r.account_id=$2 AND r.counterevidence_required_revision=$3
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
@@ -105,7 +118,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const classesAttempted:SourceClass[]=[];
   let lastSourceCount=0;
   await ingestAttachments(pool,run,brief,session);
-  const publicQueryApproved=!brief.attachmentIds.length||await session.write((db)=>hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision}));
+  const openingDigest=queryAuthorizationDigest(brief.originalQuestion);
+  const publicQueryApproved=!brief.attachmentIds.length||await session.write((db)=>hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest:openingDigest,terms:[]}));
   for(const id of appendedAttachmentIds){
     const readable=await session.write(db=>db.query(`SELECT 1 FROM attachments a
       JOIN sources s ON s.canonical_locator='attachment://'||a.id::text AND s.account_id=a.account_id
@@ -151,9 +165,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     queries.push(brief.originalQuestion);
     await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
       summary:"Searching public sources.",payload:{count:1}}));
-    const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,sourceClass:openingPlan.primary,proposal:{
+    const search=await runPublicSearch({
       rationale:"Find public evidence for the original research question.",action:{type:"search",query:brief.originalQuestion,questionKeys,
-        publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}}});
+        publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}},openingPlan.primary);
+    if(search.kind==="paused")return;
     if(search.kind==="pending")return pendingOrBlocked(search);
     if(search.kind==="search"){
       const sources=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
@@ -192,7 +207,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
             summary:"Full pages were blocked; searching a different source class.",payload:{reason:"readable_evidence_unavailable",sourceClass:nextClass}}));
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
             summary:"Searching public sources.",payload:{count:queries.length}}));
-          const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal,sourceClass:nextClass});
+          const search=await runPublicSearch(proposal,nextClass);
+          if(search.kind==="paused")return;
           if(search.kind==="pending")return pendingOrBlocked(search);
           if(search.kind==="search"){
             const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
@@ -233,7 +249,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
           queries.push(next.proposal.action.query);
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
             summary:"Searching public sources.",payload:{count:queries.length}}));
-          const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass});
+          const search=await runPublicSearch(next.proposal,sourceClass);
+          if(search.kind==="paused")return;
           if(search.kind==="pending")return pendingOrBlocked(search);
           if(search.kind==="search"){
             const adopted=await session.write((db)=>adoptSearchSources(db,{...args,taskId:prepared.task.id,intentId:search.intentId}));
@@ -325,7 +342,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       });
       const topNeed=highestValueNeed(needs);
       const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion});
-      if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.privateTermsRequiringApproval.length===0) {
+      if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.authorizationKind==="authorized"&&!planned.privateTermsRequiringApproval.length&&!planned.unclassifiedTerms.length) {
         if(freshnessUnmet) await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"freshness_checking",phase:"researching",
           summary:"Checking how current the evidence is."}));
         classesAttempted.push(nextClass);
@@ -333,7 +350,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         lastSourceCount=sources.length;
         await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
           summary:"Searching public sources.",payload:{count:queries.length}}));
-        const search=await performPublicSearch(pool,config,session,{...args,taskId:prepared.task.id,proposal:next.proposal,sourceClass:nextClass});
+        const search=await runPublicSearch(next.proposal,nextClass);
+        if(search.kind==="paused")return;
         if(search.kind==="pending")return pendingOrBlocked(search);
         if(search.kind!=="search"){
           await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"search_failed",phase:"researching",

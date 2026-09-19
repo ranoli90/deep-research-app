@@ -1,3 +1,7 @@
+## Wave 3 query-privacy proof — 2026-09-19
+
+Lane `grok-v8/fix-wave3-query-privacy` from `72c78ea`. **Not merged to `main`.** FP-022–025 (and the FP-026 uniqueness needed to consume pending) are implemented: unknown query tokens are `unclassified` and blocked; approvals bind `query_digest` + exact private-term set; pending is consumed in place; search 2 cannot borrow search 1. ADR067. Isolated PostgreSQL `deep_research_wave3_query`.
+
 ## Engineering fix-pass started — 2026-09-19
 
 Audit package ingested at `verification/v8/engineering-fix-pass/` against SHA `906c00f`. **UI phase deferred.** `main` stays `8a7b1a9`. 126 findings in `ISSUE_REGISTRY.csv`. Wave 1 starts with immutable originalQuestion (FP-001/002/008). Writer `calculationKeys` no longer stripped by `selected:false` (FP-073). **Not merged to `main`. Research Beta is not declared.**

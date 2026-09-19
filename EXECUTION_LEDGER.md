@@ -1,5 +1,23 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 3 query-privacy (FP-022–025)
+
+- Task/requirement: FP-022 P0, FP-023 P1, FP-024 P1, FP-025 P1 (schema uniqueness FP-026 required for consume-pending).
+- Branch `grok-v8/fix-wave3-query-privacy` from base `72c78ea5bbce94b599f0fd0be876fe205f5f8222`. main not updated.
+- Environment: local worktree; isolated PostgreSQL `postgres://127.0.0.1:55432/deep_research_wave3_query`; no paid calls.
+- Commands/results:
+  - `pnpm --filter @deep/research-core test` exit 0, **283/283** (19.18s)
+  - `pnpm --filter @deep/research-core typecheck` exit 0
+  - `pnpm --filter @deep/backend typecheck` exit 0
+  - `pnpm --filter @deep/backend test:unit` exit 0, **225/225** (24.99s)
+  - `TEST_DATABASE_URL=... vitest ... test/retrieval-evidence.integration.test.ts` exit 0, **7/7** (14.95s) including invented-term block, approve-once/idempotent/stale-revision, search-2-cannot-borrow-search-1
+  - `... test/model-gateway.integration.test.ts -t mixed document|private words|pins engine|W02/W05 durable pinned` exit 0, **7 passed / 133 skipped**
+  - `... test/discovery-policy.integration.test.ts` exit 0, **2/2**
+  - `python3 scripts/validate_review.py` exit 0
+  - `python3 scripts/validate_builder_handoff.py` exit 1 (`P0 local evidence artifact mismatch`) — pre-existing missing verification/v6 log files in this worktree, not this change
+- Scope: research-core query-intelligence/planning, backend retrieval-intelligence + public-search + structured-research pause, migration 044, ADR067. model-gateway.ts and mobile styling untouched.
+- Native/live/hosted: not run. FP-027 counterevidence categorical mixed-doc block left unchanged.
+
 ## 2026-09-19 — Fail-closed WIP checkpoint (not Research Beta)
 
 - Branch `grok-v8/research-beta-integration`. main stays `8a7b1a9`. Not a completion claim.
