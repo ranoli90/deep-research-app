@@ -23,12 +23,20 @@ const containsPhrase = (text:string,phrase:string) => {
   return new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`,"u").test(normalize(text));
 };
 const CURRENCY_SIGNS: Record<string, string[]> = { usd: ["usd", "$"], eur: ["eur", "€"], gbp: ["gbp", "£"], jpy: ["jpy", "¥"] };
+const MEASURE_UNIT = "%|GB|GiB|MB|MiB|TB|TiB|kg|hectares?|acres?|USD|EUR|GBP|Hz|kHz|MHz|GHz|W|Wh|kWh|hours?|years?|months?|days?|mm|cm|inches|inch|lbs?|pounds?";
 /** Grouped prices such as $2,699.99 are one number; comma-split fragments are not the quantity. */
 const numbers = (s:string):string[] => {
   const found = new Set<string>();
   const grouped = /-?\d{1,3}(?:,\d{3})+(?:\.\d+)?/gu;
   for (const g of s.match(grouped) ?? []) found.add(g.replace(/,/gu, ""));
   for (const n of s.replace(grouped, " ").match(/-?\d+(?:\.\d+)?/gu) ?? []) found.add(n);
+  return [...found];
+};
+/** Product names like "Stealth 16" are not RAM/price quantities. */
+const measuredNumbers = (s:string):string[] => {
+  const found = new Set<string>();
+  for (const m of s.matchAll(/[$€£¥]\s*(-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|-?\d+(?:\.\d+)?)/gu)) found.add(m[1]!.replace(/,/gu, ""));
+  for (const m of s.matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*(?:${MEASURE_UNIT})`,"giu"))) found.add(m[1]!);
   return [...found];
 };
 const quantityAttrs = (q: Assertion["quantities"][number], claimText: string): string[] => {
@@ -60,11 +68,11 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
       {rule:"scope_matches_claim",passed:Object.entries(claim.scope).every(([key,value]) => normalize(value ?? "") === normalize(assessment.scope[key as keyof Assertion["scope"]] ?? ""))},
       {rule:"readable_evidence",passed:passages.length > 0 && passages.every((p) => ["partial-text","full-text"].includes(p.accessLevel))},
       {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || GENERIC_ENTITY.has(normalize(s)))},
-      {rule:"numbers_grounded",passed:numbers(claim.text).every((n) => numbers(citedText).includes(n))},
+      {rule:"numbers_grounded",passed:measuredNumbers(claim.text).every((n) => numbers(citedText).includes(n) || measuredNumbers(citedText).includes(n))},
       {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) =>
         numbers(quote).includes(q.value.replace(/,/gu, "")) && quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote))))}];
     // A numeric unit cannot disappear merely because the extraction omitted quantities.
-    const pairs = [...claim.text.matchAll(/(-?\d+(?:\.\d+)?)\s*(%|[\p{L}]+)(?=\s|[.,;:!?)]|$)/gu)];
+    const pairs = [...claim.text.matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*(?:${MEASURE_UNIT})`,"giu"))];
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
     // Inspect cited passages plus others that share a specific (non-category) scope value.
     const citedIds = new Set(assessment.evidence.map((e) => e.passageId));

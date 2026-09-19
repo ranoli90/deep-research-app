@@ -68,6 +68,19 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("does not treat a model name number as an ungrounded RAM quantity",()=>{
+  const claim="The MSI Stealth 16 AI+ has 32GB of DDR5 RAM.";
+  const quote="RAM 32GB DDR5 at 5600 MT/s (2 SO-DIMM slots, up to 128GB)";
+  const laptop={entity:"laptop",plan:null,version:null,geography:null,time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"ram",candidateKey:null,criterionKeys:["ram"],text:claim,scope:laptop,
+    quantities:[{unit:"GB",value:"32",currency:null,qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"ram",status:"supported",scope:laptop,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"32GB RAM",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="numbers_grounded")!.passed).toBe(true);
+  expect(result.checks.find((c)=>c.rule==="numeric_context_preserved")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("grounds grouped prices and RAM quantities without requiring unquoted criterion qualifiers",()=>{
   const price="The Stealth 16 AI+ B3WF currently lists for $2,699.99 at Best Buy.";
   const ram="The MSI Stealth 16 AI+ pairs an RTX 5060 GPU (8GB VRAM), 32GB of DDR5 RAM, and a 16-inch display.";

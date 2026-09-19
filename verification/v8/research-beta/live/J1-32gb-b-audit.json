@@ -1,0 +1,24 @@
+{
+  "id": "J1-32gb-b-audit",
+  "runId": "37a8bb54-2502-4076-8278-4d6cb518fa81",
+  "reportId": "0ed12c14-18c8-4c28-bc44-21cbb6214514",
+  "question": "best laptop for local AI under $2k with at least 32GB of RAM",
+  "outcome": "completed_with_limitations",
+  "spentMicro": 51610,
+  "unknownHolds": 0,
+  "discoverySearches": 3,
+  "publishedClaims": [
+    {
+      "text": "The MSI Stealth 16 AI+ can run local AI models well when you match the model to its 8GB of VRAM.",
+      "supportedByExactSpan": true,
+      "passageId": "d1296d72-e9ec-4621-86c1-9ea0516c0d16",
+      "locator": "https://techy101.com/2026/08/01/msi-stealth-16-ai-review-local-ai-on-a-thin-lightweight-laptop-built-to-do-it-all/"
+    }
+  ],
+  "hardConstraints": {
+    "budgetUnder2k": {"met": false, "note": "Extracted $2,699.99 remained disputed; writer limitation did not publish as a cited price."},
+    "ram32gb": {"met": false, "note": "Quote 'RAM 32GB DDR5 at 5600 MT/s' existed. Claim 'The MSI Stealth 16 AI+ has 32GB of DDR5 RAM' was insufficient because numbers_grounded required 16 from the model name to appear in the RAM spec quote. Fix: measure number+unit pairs only."}
+  },
+  "userRepairRequired": "A useful 32GB purchase answer must publish the 32GB quote and exclude or qualify the $2,699 candidate against the $2k cap.",
+  "evaluator": "deterministic owned passage/claim/support audit; not independent human validation"
+}

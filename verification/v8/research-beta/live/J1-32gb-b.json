@@ -1,0 +1,87 @@
+{
+  "id": "J1-32gb-b",
+  "question": "best laptop for local AI under $2k with at least 32GB of RAM",
+  "runId": "37a8bb54-2502-4076-8278-4d6cb518fa81",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": "completed_with_limitations",
+    "reportId": "0ed12c14-18c8-4c28-bc44-21cbb6214514"
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "evidence_checked",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "plan_pivot"
+  ],
+  "cost": {
+    "runId": "37a8bb54-2502-4076-8278-4d6cb518fa81",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 51610,
+    "confirmedProviderMicro": 51610,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 51610
+    },
+    "intentTotalMicro": 51610,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": {
+    "reportId": "0ed12c14-18c8-4c28-bc44-21cbb6214514",
+    "outcome": "completed_with_limitations",
+    "limitations": [
+      "Some requested questions remain unresolved.",
+      "Additional sources were read after this evidence was checked.",
+      "This assessment selected 84 of 415 available passages. The 331 omitted passages were not included in the model assessment; additional qualifications or counterevidence may remain."
+    ],
+    "blockCount": 3,
+    "claimCount": 0,
+    "texts": [
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ],
+      [
+        "text",
+        "The MSI Stealth 16 AI+ can run local AI models well when you match the model to its 8GB of VRAM."
+      ],
+      [
+        "caveat",
+        "This section remains unresolved because its assertions could not be verified."
+      ]
+    ]
+  }
+}
