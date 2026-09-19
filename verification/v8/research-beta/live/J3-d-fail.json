@@ -1,0 +1,50 @@
+{
+  "id": "J3-d",
+  "question": "What is the current US federal funds rate?",
+  "runId": "84f0ef78-f932-4b28-96d9-5af303d4b954",
+  "after": {
+    "lifecycle": "terminal",
+    "phase": "researching",
+    "outcome": null,
+    "reportId": null
+  },
+  "eventTypes": [
+    "accepted",
+    "intent_compiled",
+    "model_span_resolution",
+    "model_span_resolution",
+    "criteria_prepared",
+    "searching",
+    "sources_found",
+    "source_read",
+    "source_read",
+    "source_read",
+    "model_span_resolution",
+    "research_unresolved"
+  ],
+  "cost": {
+    "runId": "84f0ef78-f932-4b28-96d9-5af303d4b954",
+    "accountId": "f2e2f1c9-0316-4202-9169-cd3ab5967d06",
+    "routeMode": "controlled-research",
+    "spentMicro": 11380,
+    "confirmedProviderMicro": 11380,
+    "heldProviderMicro": 0,
+    "unknownProviderIntents": 0,
+    "simulatedFixtureMicro": 0,
+    "allowanceReconciled": true,
+    "costScope": "provider_receipts_only",
+    "reservationAmountMicro": 100000,
+    "reservationState": "settled",
+    "breakdown": {
+      "search": 0,
+      "fetch": 0,
+      "synthesize": 0,
+      "other": 11380
+    },
+    "intentTotalMicro": 11380,
+    "reconciled": true,
+    "tariffVersion": null,
+    "effectiveProcessor": "openrouter"
+  },
+  "reportPreview": null
+}

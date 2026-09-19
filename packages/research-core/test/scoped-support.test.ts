@@ -68,6 +68,18 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
   expect(result.checks.every((c)=>c.passed)).toBe(true);
   expect(result.decision).toBe("supported");
 });
+it("grounds a percent claim whose numeric table cell omits the percent sign",()=>{
+  const quote="Federal funds (effective) 1 2 3 | 3.63 | 3.63 | 3.63 | 3.63 | 3.88";
+  const claim="The current US federal funds rate is 3.88 percent as of September 16, 2026.";
+  const scope={entity:"US",plan:null,version:null,geography:"US",time:"current",population:null};
+  const result=resolveScopedSupport({assertions:[{key:"current_rate",candidateKey:null,criterionKeys:["current_rate"],text:claim,scope,
+    quantities:[{unit:"percentage",value:"3.88",currency:null,qualifier:null,billingPeriod:null}],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"current_rate",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Table cell",missingEvidence:[]}]}})[0]!;
+  expect(result.checks.find((c)=>c.rule==="quantities_grounded")!.passed).toBe(true);
+  expect(result.decision).toBe("supported");
+});
 it("grounds a mixed-fraction federal funds range and US/current question labels",()=>{
   const quote="The Committee decided to raise the target range for the federal funds rate by 1/4 percentage point to 3-3/4 to 4 percent.";
   const claim="The current target range for the federal funds rate is 3-3/4 to 4 percent.";

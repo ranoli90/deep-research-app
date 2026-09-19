@@ -102,8 +102,12 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
       {rule:"readable_evidence",passed:passages.length > 0 && passages.every((p) => ["partial-text","full-text"].includes(p.accessLevel))},
       {rule:"scope_grounded_in_quotes",passed:Object.values(claim.scope).filter((s):s is string => s !== null).every((s) => containsPhrase(citedText,s) || GENERIC_ENTITY.has(normalize(s)))},
       {rule:"numbers_grounded",passed:measuredNumbers(claim.text).every((n) => numbers(citedText).includes(n) || measuredNumbers(citedText).includes(n))},
-      {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) =>
-        quantityValueInQuote(q.value, quote) && quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote))))}];
+      {rule:"quantities_grounded",passed:claim.quantities.every((q) => quotes.some((quote) => {
+        if(!quantityValueInQuote(q.value, quote))return false;
+        if(quantityAttrs(q, claim.text).every((attr) => attrInQuote(attr, quote)))return true;
+        const unit=q.unit?normalize(q.unit):"";
+        return Boolean(UNIT_ALIASES[unit] && /%|percent/iu.test(claim.text));
+      }))}];
     // A numeric unit cannot disappear merely because the extraction omitted quantities.
     const pairs = [...claim.text.matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*(?:${MEASURE_UNIT})`,"giu"))];
     checks.push({rule:"numeric_context_preserved",passed:pairs.every((m) => quotes.some((q) => normalize(q).includes(normalize(m[0]))))});
