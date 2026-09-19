@@ -1,5 +1,7 @@
 import {
   AZURE_ZDR_DISCOVERY_POLICY,
+  AZURE_ZDR_STRICT_POLICY,
+  STRUCTURED_STRICT_POLICY,
   AZURE_ZDR_EXACT_QUOTE_POLICY,
   AZURE_ZDR_MODEL_POLICY,
   STRUCTURED_MODEL_POLICY,
@@ -36,6 +38,8 @@ export type PrivacyRequirement = {
 
 /** Admission metadata for registered policies. Request bytes stay in prepareModelRequest. */
 export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilities> = {
+  [STRUCTURED_STRICT_POLICY.id]: { ...STRUCTURED_STRICT_POLICY, policyId: STRUCTURED_STRICT_POLICY.id, tier: 1, structuredOutput: true, zdr: false, dataCollection: "deny", cacheSticky: false, available: true },
+  [AZURE_ZDR_STRICT_POLICY.id]: { ...AZURE_ZDR_STRICT_POLICY, policyId: AZURE_ZDR_STRICT_POLICY.id, tier: 1, structuredOutput: true, zdr: true, dataCollection: "deny", cacheSticky: false, available: true },
   [STRUCTURED_MODEL_POLICY.id]: {
     policyId: STRUCTURED_MODEL_POLICY.id,
     model: STRUCTURED_MODEL_POLICY.model,
@@ -47,7 +51,7 @@ export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilit
     dataCollection: "deny",
     promptMicroPerMillion: STRUCTURED_MODEL_POLICY.promptMicroPerMillion,
     completionMicroPerMillion: STRUCTURED_MODEL_POLICY.completionMicroPerMillion,
-    cacheSticky: true,
+    cacheSticky: false,
     available: true,
   },
   [AZURE_ZDR_MODEL_POLICY.id]: {
@@ -61,7 +65,7 @@ export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilit
     dataCollection: "deny",
     promptMicroPerMillion: AZURE_ZDR_MODEL_POLICY.promptMicroPerMillion,
     completionMicroPerMillion: AZURE_ZDR_MODEL_POLICY.completionMicroPerMillion,
-    cacheSticky: true,
+    cacheSticky: false,
     available: true,
   },
   [AZURE_ZDR_EXACT_QUOTE_POLICY.id]: {
@@ -75,7 +79,7 @@ export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilit
     dataCollection: "deny",
     promptMicroPerMillion: AZURE_ZDR_EXACT_QUOTE_POLICY.promptMicroPerMillion,
     completionMicroPerMillion: AZURE_ZDR_EXACT_QUOTE_POLICY.completionMicroPerMillion,
-    cacheSticky: true,
+    cacheSticky: false,
     available: true,
   },
   [AZURE_ZDR_DISCOVERY_POLICY.id]: {
@@ -89,7 +93,7 @@ export const REGISTERED_ROUTE_CAPABILITIES: Record<ModelPolicyId, RouteCapabilit
     dataCollection: "deny",
     promptMicroPerMillion: AZURE_ZDR_DISCOVERY_POLICY.promptMicroPerMillion,
     completionMicroPerMillion: AZURE_ZDR_DISCOVERY_POLICY.completionMicroPerMillion,
-    cacheSticky: true,
+    cacheSticky: false,
     available: true,
   },
 };
@@ -108,6 +112,8 @@ export const PRODUCTION_PORTFOLIO_V1: PortfolioCatalog = {
   maxEscalationDepth: MAX_ESCALATION_DEPTH,
   maxFanout: MAX_DEFAULT_FANOUT,
   candidates: [
+    REGISTERED_ROUTE_CAPABILITIES[STRUCTURED_STRICT_POLICY.id],
+    REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_STRICT_POLICY.id],
     REGISTERED_ROUTE_CAPABILITIES[STRUCTURED_MODEL_POLICY.id],
     REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_MODEL_POLICY.id],
     REGISTERED_ROUTE_CAPABILITIES[AZURE_ZDR_EXACT_QUOTE_POLICY.id],

@@ -122,3 +122,29 @@ it("records immutable portfolio resolutions and still replays historical policy 
  expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
  await cancelRun(pool,r.runId);
 });
+
+it("ENG-006/009 persists operation admission before issue; retirement blocks fresh spend and preserves unknown replay",async()=>{
+ const a=await account(),question="Explain database transactions.";
+ const policy=STRUCTURED_MODEL_POLICY;
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policy.id});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
+ const send=vi.fn(async()=>{
+  expect((await pool.query("SELECT policy_id,operation,reserve_micro FROM model_operation_routes WHERE run_id=$1",[r.runId])).rows).toEqual([{policy_id:policy.id,operation:"brief",reserve_micro:expect.any(String)}]);
+  throw Error("Synthetic unknown provider outcome");
+ });globalThis.fetch=send;
+ try{
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",result:{status:"outcome_unknown"}});
+  await pool.query("UPDATE model_route_health SET state='retired',reason='operator_retired' WHERE policy_id=$1",[policy.id]);
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",reused:true,result:{status:"outcome_unknown"}});
+  await expect(performModelOperation(pool,config,session,{...args,operation:"review_coverage"})).rejects.toThrow("model_route_unavailable");
+  expect(send).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1",[r.runId])).rows).toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
+  await expect(pool.query("UPDATE model_operation_routes SET policy_id=$2 WHERE run_id=$1",[r.runId,AZURE_ZDR_MODEL_POLICY.id])).rejects.toThrow("immutable");
+ }finally{
+  await pool.query("UPDATE model_route_health SET state='healthy',reason='registered' WHERE policy_id=$1",[policy.id]);
+  session.stop();await cancelRun(pool,r.runId);
+ }
+});

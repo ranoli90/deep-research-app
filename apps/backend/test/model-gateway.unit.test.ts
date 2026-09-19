@@ -151,3 +151,14 @@ it("keeps missing cost unconfirmed rather than relabeling the reserve", async ()
   expect(result.receipt.actualMicro).not.toBe(STRUCTURED_CALL_RESERVE_MICRO);
 });
 
+
+it("ENG-030 strict repair receives only exact structural diagnostics, with historical bytes unchanged", () => {
+ const diagnostics={version:"model-validation-diagnostics.v1",stage:"output_schema",issues:[{code:"invalid_type",path:["questions",0,"status"]}],truncated:false};
+ const extras={repairPass:1,repairDiagnostics:diagnostics,repairCodes:["missing_question_review","private text"]};
+ const strict=prepareModelRequest("review_coverage",context,"openrouter-openai-mini-strict-v4",extras);
+ expect(strict.body).toContain("missing_question_review");
+ expect(JSON.parse(strict.body).messages[0].content).toContain(JSON.stringify(diagnostics));
+ expect(strict.body).not.toContain("private text");
+ expect(prepareModelRequest("review_coverage",context,undefined,extras).body).not.toContain("Validator failures");
+ expect(()=>prepareModelRequest("review_coverage",context,"openrouter-openai-mini-strict-v4",{...extras,repairDiagnostics:{...diagnostics,issues:[{code:"invalid_type",path:["private text"]}]}})).toThrow();
+});

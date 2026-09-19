@@ -48,7 +48,7 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
   await db.query("DELETE FROM run_evidence_membership WHERE account_id=$1 AND (run_id=ANY($2::uuid[]) OR source_version_id=ANY($3::uuid[]))",[accountId,runIds,versions]);
   for(const table of ["query_authorizations","source_origin_links","criterion_freshness_policies","document_web_reconciliations","search_coverage","selection_inventory_checks","evidence_selections","requested_verifications","research_change_sets","conclusion_challenges","research_evidence_needs","candidate_ledgers","counterevidence_checks","source_read_operations","search_operations","calculated_report_coverage",
    "research_drafts","calculation_plans","calculation_claims","evidence_calculations","scope_comparisons","research_coverage",
-   "scoped_support_results","extracted_assertions","research_tasks","model_operation_attempts","model_operation_results","model_portfolio_resolutions","support_assessments","report_derivations","claim_revisions"])
+   "scoped_support_results","extracted_assertions","research_tasks","model_operation_routes","model_operation_attempts","model_operation_results","model_portfolio_resolutions","support_assessments","report_derivations","claim_revisions"])
    await db.query(`DELETE FROM ${table} WHERE account_id=$1 AND run_id=ANY($2::uuid[])`,[accountId,runIds]);
   await db.query("DELETE FROM claim_evidence WHERE claim_id IN(SELECT id FROM claims WHERE account_id=$1 AND run_id=ANY($2::uuid[]))",[accountId,runIds]);
   await db.query("UPDATE claims SET text='[deleted]',support_status='unverified' WHERE account_id=$1 AND run_id=ANY($2::uuid[])",[accountId,runIds]);

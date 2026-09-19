@@ -29,8 +29,13 @@ export const AZURE_ZDR_MODEL_POLICY = {
 } as const;
 export const AZURE_ZDR_EXACT_QUOTE_POLICY = { ...AZURE_ZDR_MODEL_POLICY, id: "openrouter-azure-mini-zdr-exact-quote-v2" } as const;
 export const AZURE_ZDR_DISCOVERY_POLICY = { ...AZURE_ZDR_EXACT_QUOTE_POLICY, id: "openrouter-azure-mini-zdr-discovery-v3" } as const;
-export type ModelPolicyId = typeof STRUCTURED_MODEL_POLICY.id | typeof AZURE_ZDR_MODEL_POLICY.id | typeof AZURE_ZDR_EXACT_QUOTE_POLICY.id | typeof AZURE_ZDR_DISCOVERY_POLICY.id;
+export const STRUCTURED_STRICT_POLICY = { ...STRUCTURED_MODEL_POLICY, id: "openrouter-openai-mini-strict-v4" } as const;
+export const AZURE_ZDR_STRICT_POLICY = { ...AZURE_ZDR_DISCOVERY_POLICY, id: "openrouter-azure-mini-zdr-strict-v4" } as const;
+export function isStrictModelPolicy(id: string): boolean { return id === STRUCTURED_STRICT_POLICY.id || id === AZURE_ZDR_STRICT_POLICY.id; }
+export type ModelPolicyId = typeof STRUCTURED_MODEL_POLICY.id | typeof AZURE_ZDR_MODEL_POLICY.id | typeof AZURE_ZDR_EXACT_QUOTE_POLICY.id | typeof AZURE_ZDR_DISCOVERY_POLICY.id | typeof STRUCTURED_STRICT_POLICY.id | typeof AZURE_ZDR_STRICT_POLICY.id;
 export function modelPolicy(id:unknown = STRUCTURED_MODEL_POLICY.id) {
+  if (id === STRUCTURED_STRICT_POLICY.id) return STRUCTURED_STRICT_POLICY;
+  if (id === AZURE_ZDR_STRICT_POLICY.id) return AZURE_ZDR_STRICT_POLICY;
   if (id === STRUCTURED_MODEL_POLICY.id) return STRUCTURED_MODEL_POLICY;
   if (id === AZURE_ZDR_MODEL_POLICY.id) return AZURE_ZDR_MODEL_POLICY;
   if (id === AZURE_ZDR_EXACT_QUOTE_POLICY.id) return AZURE_ZDR_EXACT_QUOTE_POLICY;

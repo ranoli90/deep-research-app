@@ -34,7 +34,7 @@ describe("live adapter contracts (nonbillable)", () => {
   });
 
   it("null-cost HTTP 404 is known-zero; 429 and malformed JSON HOLD", () => {
-    expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: null } })).toEqual({ state: "failed", confirmedMicro: 0 });
+    expect(providerIntentStateForResult({ status: "permanent_failure", reason:"provider_http_404", receipt: { actualMicro: null, httpStatus:404 } })).toEqual({ state: "failed", confirmedMicro: 0 });
     expect(providerIntentStateForResult({ status: "permanent_failure", receipt: { actualMicro: 0 } })).toEqual({ state: "confirmed", confirmedMicro: 0 });
     expect(providerIntentStateForResult({ status: "transient_failure", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(providerIntentStateForResult({ status: "outcome_unknown", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
@@ -42,7 +42,7 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(providerIntentStateForResult({ status: "invalid_output", receipt: { actualMicro: null } })).toEqual({ state: "outcome-unknown" });
     expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: null } })).toBe(false);
     expect(knownFinancialOutcome({ status: "invalid_output", receipt: { actualMicro: 2 } })).toBe(true);
-    expect(knownFinancialOutcome({ status: "permanent_failure", receipt: { actualMicro: null } })).toBe(true);
+    expect(knownFinancialOutcome({ status: "permanent_failure", reason:"provider_http_404", receipt: { actualMicro: null, httpStatus:404 } })).toBe(true);
     expect(knownFinancialOutcome({ status: "transient_failure", receipt: { actualMicro: null } })).toBe(false);
     expect(knownFinancialOutcome({ status: "outcome_unknown", receipt: { actualMicro: null } })).toBe(false);
   });
@@ -55,4 +55,10 @@ describe("live adapter contracts (nonbillable)", () => {
     expect(canIssueLiveCall({ capMicro: 5_000_000, usedMicro: 100_000 }).ok).toBe(true);
     expect(canIssueLiveCall({ capMicro: 5_000_000, usedMicro: 100_000 }).remainingMicro).toBe(4_900_000);
   });
+});
+
+it("keeps missing cost held even when text succeeded or route identity failed",()=>{
+ for(const status of ["succeeded","permanent_failure","invalid_output"]) {
+ expect(providerIntentStateForResult({status,receipt:{actualMicro:null,httpStatus:200}})).toEqual({state:"outcome-unknown"});
+ }
 });

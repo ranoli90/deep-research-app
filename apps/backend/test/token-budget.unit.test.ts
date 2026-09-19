@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { admitContextTokens, estimateTokens, operationBudget, reserveMicroForOperation, routeStringFor } from "../src/adapters/model/token-budget.js";
+import { MODEL_CONTEXT_OVERHEAD_TOKENS, admitContextTokens, estimateTokens, operationBudget, reserveMicroForOperation, routeStringFor } from "../src/adapters/model/token-budget.js";
 import { STRUCTURED_CALL_RESERVE_MICRO, STRUCTURED_MODEL_POLICY } from "../src/ports/model-policy.js";
 import { prepareModelRequest } from "../src/adapters/model/openrouter.js";
 
@@ -51,4 +51,28 @@ describe("token-aware context admission", () => {
       policyId: STRUCTURED_MODEL_POLICY.id,
     })).toThrow(/model_context/);
   });
+});
+
+it("ENG-004 never clamps a large writer reserve below its worst-case configured cost", () => {
+ const budget=operationBudget("write_report",STRUCTURED_MODEL_POLICY.id);
+ const body="x".repeat(300_000);
+ const worst=Math.ceil(((STRUCTURED_MODEL_POLICY.contextTokens-budget.maxOutputTokens)*STRUCTURED_MODEL_POLICY.promptMicroPerMillion+budget.maxOutputTokens*STRUCTURED_MODEL_POLICY.completionMicroPerMillion)/1_000_000);
+ expect(reserveMicroForOperation({operation:"write_report",policyId:STRUCTURED_MODEL_POLICY.id,bodyText:body})).toBeGreaterThanOrEqual(Math.ceil(worst*1.25)+1);
+ expect(worst).toBeGreaterThan(STRUCTURED_CALL_RESERVE_MICRO);
+});
+it("ENG-005 includes output and protocol overhead at the exact context boundary", () => {
+ const operation="write_report";
+ const budget=operationBudget(operation,STRUCTURED_MODEL_POLICY.id);
+ const available=STRUCTURED_MODEL_POLICY.contextTokens-budget.maxOutputTokens-MODEL_CONTEXT_OVERHEAD_TOKENS;
+ const args={operation,policyId:STRUCTURED_MODEL_POLICY.id,contextText:"x",bodyText:"x".repeat(available*3)} as const;
+ expect(()=>admitContextTokens(args)).not.toThrow();
+ expect(()=>admitContextTokens({...args,bodyText:args.bodyText+"x"})).toThrow("model_context_exceeds_policy");
+});
+
+it("ENG-005 strict admission bounds tokens for multilingual input without a tokenizer guess",()=>{
+ const policyId="openrouter-openai-mini-strict-v4",operation="write_report";
+ const budget=operationBudget(operation,policyId),available=128000-budget.maxOutputTokens-MODEL_CONTEXT_OVERHEAD_TOKENS;
+ const bodyText="x".repeat(available);
+ expect(()=>admitContextTokens({contextText:"x",bodyText,operation,policyId})).not.toThrow();
+ expect(()=>admitContextTokens({contextText:"x",bodyText:bodyText+"字",operation,policyId})).toThrow("model_context_exceeds_policy");
 });

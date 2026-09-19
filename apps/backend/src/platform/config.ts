@@ -1,4 +1,4 @@
-import {modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
+import {STRUCTURED_STRICT_POLICY,modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
 import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
 
@@ -70,7 +70,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     fixtureRouteAllowed,
     liveRouteEnabled,
     structuredModelEnabled: env.STRUCTURED_MODEL_ENABLED === "true",
-    structuredModelPolicyId: modelPolicy(env.STRUCTURED_MODEL_POLICY_ID).id,
+    structuredModelPolicyId: modelPolicy(env.STRUCTURED_MODEL_POLICY_ID ?? STRUCTURED_STRICT_POLICY.id).id,
     structuredStrategy: researchStrategy(env.STRUCTURED_RESEARCH_STRATEGY),
     structuredDiscoveryEnabled: env.STRUCTURED_DISCOVERY_ENABLED === "true",
     structuredChallengeEnabled: env.STRUCTURED_CHALLENGE_ENABLED === "true",

@@ -58,6 +58,7 @@ const unstructuredCheap: RouteCapabilities = {
 const stronger: RouteCapabilities = {
   ...zdrRoute,
   policyId: "test-strong-v1",
+  model: "test/independent-strong-model",
   tier: 3,
   promptMicroPerMillion: 2_000_000,
   completionMicroPerMillion: 8_000_000,
@@ -307,12 +308,12 @@ describe("hierarchical reserves and cache stickiness", () => {
     expect(writing.ok).toBe(true);
   });
 
-  it("keeps cache session stickiness on the same policy and breaks it on quality escalation", () => {
+  it("does not claim explicit cache reuse without verified transport support", () => {
     const sticky = cacheSessionPolicy({ runId: "run-1", lastPolicyId: "test-zdr-v1", nextPolicyId: "test-zdr-v1", qualityEscalation: false });
-    expect(sticky.reuseCache).toBe(true);
+    expect(sticky).toMatchObject({sessionId:null,reuseCache:false,reason:"explicit_cache_not_supported"});
     const escalate = cacheSessionPolicy({ runId: "run-1", lastPolicyId: "test-zdr-v1", nextPolicyId: "test-strong-v1", qualityEscalation: true });
     expect(escalate.reuseCache).toBe(false);
-    expect(escalate.reason).toBe("intentional_quality_transition");
+    expect(escalate.reason).toBe("explicit_cache_not_supported");
   });
 });
 
@@ -323,14 +324,14 @@ describe("cheap-first run admission", () => {
       remainingBudgetMicro: 100_000,
       attemptReserveMicro: 21_658,
     });
-    expect(chosen).toMatchObject({ policyId: STRUCTURED_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    expect(chosen).toMatchObject({ policyId: "openrouter-openai-mini-strict-v4", admission: "cheap_first_admitted" });
     const zdr = chooseAdmittedRunPolicy({
       runId: "run-zdr",
       zdrRequired: true,
       remainingBudgetMicro: 100_000,
       attemptReserveMicro: 21_658,
     });
-    expect(zdr).toMatchObject({ policyId: AZURE_ZDR_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    expect(zdr).toMatchObject({ policyId: "openrouter-azure-mini-zdr-strict-v4", admission: "cheap_first_admitted" });
     const pinned = chooseAdmittedRunPolicy({
       runId: "run-pin",
       requestedPolicyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id,
