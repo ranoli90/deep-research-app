@@ -1,0 +1,6 @@
+deep_v8_int11 full pnpm test:integration EXIT 1
+473 passed / 7 failed / 480
+All 7 failures: test/model-policy.integration.test.ts
+Error: provider_key_cap_exhausted (live-spend.ts) — LIVE_KEY_SPEND_CAP summed all openrouter provider_intents in this DB after other files ran first.
+int10 ran model-policy first and was 480/480. This is test-order key-cap pollution, not a Wave 4 product regression.
+Not twice-green. Do not merge main.
