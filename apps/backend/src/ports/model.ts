@@ -1,15 +1,25 @@
 import { EvidenceSelectionContextSchema } from "./evidence-selection.js";
 import { z } from "zod";
-import { ConstraintSchema, EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
+import { AssumptionSchema, ResearchBriefSchema, type ResearchBrief, ConstraintSchema, EvidenceCalculationResultSchema, AssertionScopeSchema, ScopeComparisonContextSchema, ScopeComparisonResultSchema, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 
 /** Whole passages only; serialized byte and model-policy ceilings remain independently enforced. */
 export const MODEL_CONTEXT_MAX_PASSAGES = 128;
+
+export const BriefPlanningStateSchema = ResearchBriefSchema.omit({ id: true, conversationId: true, revision: true, consentPolicyVersion: true }).extend({
+  assumptions: z.array(AssumptionSchema.omit({ userConfirmationState: true })),
+}).strict();
+/** Confirmation alone is metadata; values, scope and source/output policy affect planning. */
+export function briefPlanningState(brief: ResearchBrief) {
+  const { id: _id, conversationId: _conversation, revision: _revision, consentPolicyVersion: _consent, ...state } = brief;
+  return BriefPlanningStateSchema.parse({ ...state, assumptions: state.assumptions.map(({ userConfirmationState: _confirmation, ...assumption }) => assumption) });
+}
 
 /** Explicit projection, not controller/database serialization. Ownership is rechecked by the coordinator. */
 export const ModelContextSchema = z.object({
   evidenceSelection: EvidenceSelectionContextSchema.optional(),
   question: z.string().min(1).max(20_000),
   confirmedConstraints: z.array(ConstraintSchema).max(24).optional(),
+  planningState: BriefPlanningStateSchema.optional(),
   task: ResearchModelOutputs.brief.nullable(),
   passages: z.array(z.object({ id: z.string().uuid(), sourceVersionId: z.string().uuid(),
     digest: z.string().regex(/^[a-f0-9]{64}$/), accessLevel: z.enum(["snippet", "abstract", "partial-text", "full-text"]),

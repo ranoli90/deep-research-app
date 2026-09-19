@@ -16,6 +16,7 @@ function reject(code: string): never { throw Object.assign(new Error(code), { co
 
 /** Account -> conversation -> run -> allowance is the admission lock order. No external I/O. */
 export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId; zdrRequired?: boolean } = {}) {
+  if (!key || !key.trim() || key.length > 200) reject("invalid_input");
   const digest = createHash("sha256").update(JSON.stringify({ ...input, attachmentIds: [...input.attachmentIds].sort() })).digest("hex");
   return withTx(pool, async (db) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);

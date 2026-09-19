@@ -123,7 +123,7 @@ describe("production continue after geography clarification", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${session.token}` },
-      payload: { geography: "Indiana" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "Indiana" },
     });
     expect(cont.statusCode).toBe(200);
 

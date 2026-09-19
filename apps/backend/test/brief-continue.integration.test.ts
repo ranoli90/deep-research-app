@@ -68,6 +68,71 @@ afterAll(async () => {
   await pool.end();
 });
 
+describe("ENG-001/003/034–036 state and transport regressions", () => {
+  it("binds clarification to exact pending identity and prevents sibling endpoints from resuming it", async () => {
+    const { token } = await authed();
+    const runId = (await createRun(token, ORIGINAL)).json().runId;
+    await processRun(pool, config, runId);
+    const run = (await getRun(pool,runId))!;
+    const headers = { authorization: `Bearer ${token}` };
+    const snapshot = (await app.inject({ method:"GET",url:`/v1/runs/${runId}`,headers })).json();
+    expect(snapshot.pendingInput).toEqual({id:run.pending_input_id,type:"clarification",briefRevision:run.brief_revision});
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:crypto.randomUUID(),expectedBriefRevision:run.brief_revision }})).statusCode).toBe(409);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:run.pending_input_id,expectedBriefRevision:run.brief_revision+1 }})).statusCode).toBe(409);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"replace",values:["France"],expectedBriefRevision:run.brief_revision}})).statusCode).toBe(409);
+    await pool.query("UPDATE runs SET pending_input_type='query_authorization' WHERE id=$1",[runId]);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:run.pending_input_id,expectedBriefRevision:run.brief_revision }})).statusCode).toBe(409);
+    expect((await getRun(pool,runId))!.lifecycle).toBe("awaiting_input");
+  });
+  it("commits source steering to a new brief and rejects stale replay without mutating prior identities", async () => {
+    const { token } = await authed();
+    const runId = (await createRun(token,"Compare battery technologies")).json().runId;
+    const before = (await getRun(pool,runId))!;
+    const original = await getBrief(pool,before.brief_id);
+    const request = {method:"POST" as const,url:`/v1/runs/${runId}/follow-up`,headers:{authorization:`Bearer ${token}`},payload:{message:"Only use official sources",expectedBriefRevision:before.brief_revision}};
+    const changed = await app.inject(request);
+    expect(changed.statusCode).toBe(200);
+    const after = (await getRun(pool,runId))!;
+    expect(after.brief_revision).toBeGreaterThan(before.brief_revision);
+    expect(after.brief_id).not.toBe(before.brief_id);
+    expect(await getBrief(pool,before.brief_id)).toEqual(original);
+    expect((await getBrief(pool,after.brief_id)).originalQuestion).toBe(original.originalQuestion);
+    expect((await getBrief(pool,after.brief_id)).sourceRestrictions).not.toEqual(original.sourceRestrictions);
+    expect((await app.inject(request)).statusCode).toBe(409);
+    expect((await getRun(pool,runId))!.brief_id).toBe(after.brief_id);
+  });
+  it("terminal source additions admit one idempotent child and preserve the published parent", async () => {
+    const {token}=await authed();const headers={authorization:`Bearer ${token}`,"idempotency-key":crypto.randomUUID()};
+    const runId=(await createRun(token,"Compare battery technologies")).json().runId;
+    await pool.query("UPDATE runs SET lifecycle='terminal',terminal_outcome='completed' WHERE id=$1",[runId]);
+    const before=(await getRun(pool,runId))!;
+    const request={method:"POST" as const,url:`/v1/runs/${runId}/follow-up`,headers,payload:{message:"Add https://vendor.example/spec",expectedBriefRevision:before.brief_revision}};
+    const first=await app.inject(request);expect(first.statusCode).toBe(200);
+    const second=await app.inject(request);expect(second.statusCode).toBe(200);
+    expect(first.json().runId).toBe(second.json().runId);expect(first.json().runId).not.toBe(runId);
+    expect((await getRun(pool,runId))!.brief_id).toBe(before.brief_id);
+    const child=(await getRun(pool,first.json().runId))!;expect(child.parent_run_id).toBe(runId);
+    expect((await getBrief(pool,child.brief_id)).sourceRestrictions).toContain("url:https://vendor.example/spec");
+  });
+  it("rejects malformed cursors, object ids, raw-cast bodies and missing live idempotency", async () => {
+    const {token}=await authed();const headers={authorization:`Bearer ${token}`};
+    const runId=(await createRun(token,"Compare battery technologies")).json().runId;
+    for(const after of ["-1","NaN","1.5","9007199254740992","1&after=2"])
+      expect((await app.inject({method:"GET",url:`/v1/runs/${runId}/events?after=${after}`,headers})).statusCode).toBe(400);
+    expect((await app.inject({method:"GET",url:"/v1/runs/not-a-uuid",headers})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"anything"}})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:"/v1/consent",headers,payload:{grant:true,admin:true}})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:"/v1/runs",headers,payload:{question:"Compare battery technologies",routeMode:"controlled-research"}})).statusCode).toBe(400);
+  });
+  it("centrally rejects deleted tokens on every sibling read endpoint",async()=>{
+    const {token,accountId}=await authed();const headers={authorization:`Bearer ${token}`};
+    const runId=(await createRun(token,"Compare battery technologies")).json().runId;
+    await pool.query("UPDATE accounts SET deleted_at=now() WHERE id=$1",[accountId]);
+    for(const url of ["/v1/session","/v1/library","/v1/settings",`/v1/runs/${runId}/events`,`/v1/runs/${runId}`])
+      expect((await app.inject({method:"GET",url,headers})).statusCode).toBe(401);
+  });
+});
+
 describe("FP-001/002/007/008 continue brief invariants", () => {
   it("keeps original_question column and payload byte-identical after geography clarification", async () => {
     const { token } = await authed();
@@ -86,7 +151,7 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { geography: "Germany" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "Germany" },
     });
     expect(cont.statusCode).toBe(200);
 
@@ -120,7 +185,7 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { geography: "France" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "France" },
     });
     expect(cont.statusCode).toBe(200);
     const run = await getRun(pool, runId);
@@ -143,7 +208,7 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: {
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision,
         answers: [
           { field: "budget", value: "under $2,000 USD" },
           { field: "currency", value: "USD" },

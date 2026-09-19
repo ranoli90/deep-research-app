@@ -3,7 +3,7 @@ import { calculationWriterContext } from "./calculation-plans.js";
 import { compareAssertionScopes, projectScopeComparison } from "@deep/research-core";
 import { createHash } from "node:crypto";
 import type { Queryable } from "../platform/db.js";
-import type { ModelContext, PreparedModelRequest, ModelResult } from "../ports/model.js";
+import { briefPlanningState, type ModelContext, type PreparedModelRequest, type ModelResult } from "../ports/model.js";
 import { ConstraintSchema, type ResearchModelOperation } from "@deep/contracts";
 import { getBrief, getRun } from "./runs.js";
 
@@ -27,6 +27,7 @@ export async function validateOwnedModelContext(db: Queryable, args: {
   }
   const brief = await getBrief(db, run.brief_id);
   if (!brief || brief.originalQuestion !== args.context.question) throw new Error("model_question_mismatch");
+  if (args.context.planningState && JSON.stringify(briefPlanningState(brief)) !== JSON.stringify(args.context.planningState)) throw new Error("model_planning_state_mismatch");
   if (args.context.confirmedConstraints !== undefined) {
     const identity = (rows: unknown) => JSON.stringify(ConstraintSchema.array().parse(rows ?? []).map((c) => ({
       id: c.id, field: c.field, operator: c.operator, value: c.value, units: c.units ?? null,
@@ -128,11 +129,12 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   const confirmed = ConstraintSchema.array().parse(context.confirmedConstraints ?? []);
-  return { version:confirmed.length?"model-input.v6":context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  return { version:context.planningState?"model-input.v7":confirmed.length?"model-input.v6":context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
     approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
     ...(confirmed.length?{confirmedConstraintsDigest:digest(confirmed)}:{}),
+    ...(context.planningState?{planningStateDigest:digest(context.planningState)}:{}),
     ...(context.evidenceSelection?{evidenceSelection:context.evidenceSelection}:{}),
     ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}),
     ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}) };

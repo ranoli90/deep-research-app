@@ -1,14 +1,14 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs, type Constraint, type ResearchModelOutput } from "@deep/contracts";
+import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs, type ResearchBrief, type Constraint, type ResearchModelOutput } from "@deep/contracts";
 import { compileResearchIntent, validateModelBindings } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
-import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
+import { briefPlanningState, ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { modelInputManifest } from "./model-operations.js";
 import { getBrief, getRun } from "./runs.js";
 
 export interface TaskModelVersions { promptVersion: string; policyId: string }
-export const RESEARCH_TASK_VERSION = "research-task.v1";
+export const RESEARCH_TASK_VERSION = "research-task.v2";
 const IdMap = z.record(z.string().uuid());
 export interface ResearchTask {
   id: string;
@@ -24,25 +24,26 @@ export interface ResearchTask {
 export function confirmedConstraints(constraints: Constraint[] | undefined): Constraint[] {
   return (constraints ?? []).filter((c) => c.origin === "confirmed");
 }
-export function briefContext(question: string, confirmed: Constraint[] = []): ModelContext {
+export function briefContext(question: string, confirmed: Constraint[] = [], brief?: ResearchBrief): ModelContext {
   return {
     question,
+    ...(brief ? { planningState: briefPlanningState(brief) } : {}),
     ...(confirmed.length ? { confirmedConstraints: confirmed } : {}),
     task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [], draft: null,
   };
 }
 const digest = (question: string) => createHash("sha256").update(question).digest("hex");
-async function ownedBrief(db: Queryable, runId: string, accountId: string, revision: number): Promise<{ originalQuestion: string; constraints: Constraint[] }> {
+async function ownedBrief(db: Queryable, runId: string, accountId: string, revision: number): Promise<ResearchBrief> {
   const run = await getRun(db, runId);
   const account = await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL", [accountId]);
   if (!run || account.rowCount !== 1 || run.account_id !== accountId || run.brief_revision !== revision) throw new Error("stale_research_task");
   const brief = await getBrief(db, run.brief_id);
-  return { originalQuestion: brief.originalQuestion, constraints: brief.constraints };
+  return brief;
 }
 
 /** Only an owned successful, version-pinned, receipt-bound model result can seed a task. */
-async function checkedProposal(db: Queryable, runId: string, accountId: string, revision: number, question: string, confirmed: Constraint[], versions: TaskModelVersions, intentId?: string) {
-  const context = briefContext(question, confirmed);
+async function checkedProposal(db: Queryable, runId: string, accountId: string, revision: number, brief: ResearchBrief, versions: TaskModelVersions, intentId?: string) {
+  const context = briefContext(brief.originalQuestion, confirmedConstraints(brief.constraints), brief);
   const result = await db.query<{ intent_id: string; result: unknown }>(`SELECT m.intent_id,m.result
     FROM model_operation_results m JOIN provider_intents i ON i.id=m.intent_id
     WHERE m.run_id=$1 AND m.account_id=$2 AND m.brief_revision=$3 AND m.operation='brief'
@@ -70,8 +71,8 @@ export async function loadResearchTask(db: Queryable, runId: string, accountId: 
   const brief = await ownedBrief(db,runId,accountId,revision);
   const row = (await db.query(`SELECT * FROM research_tasks WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3`, [runId,accountId,revision])).rows[0];
   if (!row) return null;
-  if (row.version !== RESEARCH_TASK_VERSION || row.question_digest !== digest(brief.originalQuestion)) throw new Error("stale_research_task_version");
-  const proposal = await checkedProposal(db,runId,accountId,revision,brief.originalQuestion,confirmedConstraints(brief.constraints),versions,row.model_intent_id);
+  if (row.version !== RESEARCH_TASK_VERSION || row.question_digest !== digest(brief.originalQuestion) || row.planning_manifest_digest !== digest(JSON.stringify(briefPlanningState(brief)))) throw new Error("stale_research_task_version");
+  const proposal = await checkedProposal(db,runId,accountId,revision,brief,versions,row.model_intent_id);
   if (!proposal || JSON.stringify(ResearchModelOutputs.brief.parse(row.specification)) !== JSON.stringify(proposal.specification)) throw new Error("invalid_research_task_proposal");
   const criterionIds = checkedIds(row.criterion_ids, proposal.specification.criteria.map((c) => c.key));
   const questionIds = checkedIds(row.question_ids, proposal.specification.questions.map((q) => q.key));
@@ -85,12 +86,12 @@ export async function adoptResearchTask(db: Queryable, runId: string, accountId:
   const existing = await loadResearchTask(db,runId,accountId,revision,versions);
   if (existing) return existing;
   const brief = await ownedBrief(db,runId,accountId,revision);
-  const proposal = await checkedProposal(db,runId,accountId,revision,brief.originalQuestion,confirmedConstraints(brief.constraints),versions);
+  const proposal = await checkedProposal(db,runId,accountId,revision,brief,versions);
   if (!proposal) return null;
   const criterionIds = Object.fromEntries(proposal.specification.criteria.map((c) => [c.key,crypto.randomUUID()]));
   const questionIds = Object.fromEntries(proposal.specification.questions.map((q) => [q.key,crypto.randomUUID()]));
-  await db.query(`INSERT INTO research_tasks(run_id,account_id,brief_revision,model_intent_id,version,question_digest,specification,criterion_ids,question_ids)
-    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(run_id,brief_revision) DO NOTHING`,
-    [runId,accountId,revision,proposal.intentId,RESEARCH_TASK_VERSION,digest(brief.originalQuestion),JSON.stringify(proposal.specification),JSON.stringify(criterionIds),JSON.stringify(questionIds)]);
+  await db.query(`INSERT INTO research_tasks(run_id,account_id,brief_revision,model_intent_id,version,question_digest,specification,criterion_ids,question_ids,planning_manifest_digest)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(run_id,brief_revision) DO NOTHING`,
+    [runId,accountId,revision,proposal.intentId,RESEARCH_TASK_VERSION,digest(brief.originalQuestion),JSON.stringify(proposal.specification),JSON.stringify(criterionIds),JSON.stringify(questionIds),digest(JSON.stringify(briefPlanningState(brief)))]);
   return loadResearchTask(db,runId,accountId,revision,versions);
 }

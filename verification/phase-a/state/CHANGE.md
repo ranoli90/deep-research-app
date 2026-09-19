@@ -1,0 +1,14 @@
+# Phase A state identity change
+
+Requirements: ENG-001, ENG-002, ENG-003, ENG-034, ENG-035, ENG-036.
+Base: d0ddbb264b5b93ee123ee37760beb77db926a0dc. Branch: codex/phase-a-state.
+
+Impact review: migration 047 adds nullable task planning digest and exact pending input fields with consistency checks; no historical request bytes, provider identity, receipts or unknown holds change. Existing waiting inputs gain an identity without granting query authority. Brief preparation uses model-input.v7 / research-task.v2; old tasks are not silently upgraded or reused. The planning projection includes question, constraints, assumption values, source restrictions, output/freshness/scope, attachments and non-goals. Confirmation-only metadata is excluded. No dependency, service or model route is added. ModelContext changes remain backend-only; no source content can create permission.
+
+Transport changes: snapshot pendingInput is {id,type,briefRevision}; continue requires pendingInputId and expectedBriefRevision. Assumption replacement and source steering require expectedBriefRevision. Terminal source/assumption changes require an explicit idempotency-key and admit a separately reserved child. Query approval retains its exact authorizationId/queryDigest/terms payload and can only resume its matching pending type. Active steering expires the prior lease, creates a new brief and evidence basis, and queues work without changing prior briefs or paid attempts. Duplicate stale active edits return 409. Terminal child admission replays the same key without another child/reservation.
+
+Every consumer endpoint receives central deleted-account rejection. Former cast-only V8 bodies and cursor/ID parameters pass strict bounded Zod validation. Controlled-research run admission requires an explicit key before attempting admission. No provider call or deployment is part of this change.
+
+Regression ownership: brief-continue integration tests cover immutable prior briefs, stale edits, exact input ID/type/revision, sibling endpoint resume denial, terminal child replay, malformed inputs and deleted tokens. Model-gateway task tests corrupt source policy, assumptions, constraints and output requirements and require restore rejection without a new provider call. Brief-context units distinguish semantics from confirmation metadata. Existing continuation/deletion race tests now send the required current identity while retaining their original assertions.
+
+Rollback: disable new admissions/steering if necessary; retain migration fields, strict deleted-account/query/ownership gates, outstanding holds, immutable historical rows and publication fences. Do not roll back to the prior in-place mutation or accept absent pending identity. v1 tasks remain unavailable to v2 restore rather than being silently relabeled. Parent session owns canonical STATUS, handoff, acceptance matrix and final exact-SHA verification.

@@ -55,6 +55,7 @@ import {
   getBrief,
   getRun,
   insertBrief,
+  insertChildBriefRevision,
   insertConversation,
   insertRun,
   listEvents,
@@ -87,6 +88,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
   app.addContentTypeParser("application/octet-stream", { parseAs: "buffer", bodyLimit: MAX_ATTACHMENT_BYTES }, (_req, body, done) => done(null, body));
   const { pool, config, boss } = deps;
+  app.setErrorHandler((error, _req, reply) => {
+    const {code, statusCode} = error as {code?:string; statusCode?:number};
+    const status = code === "allowance_exhausted" ? 402 : statusCode && statusCode >= 400 && statusCode < 500 ? statusCode : 500;
+    const publicCode = status === 409 ? "stale_revision" : status === 400 ? "invalid_input" : status === 402 ? "allowance_exhausted" : status === 401 || status === 403 || status === 404 ? "permission_denied" : "internal_failure";
+    return reply.code(status).send(err(publicCode, status === 409 ? "The request no longer matches the current research state." : status === 500 ? "The request could not be completed." : "The request was not accepted.",crypto.randomUUID()));
+  });
   const typedCorrectionsEnabled=Boolean(config.structuredModelEnabled&&config.liveRouteEnabled&&config.openRouterApiKey&&config.liveSpendCapMicro>0&&(config.liveKeySpendCapMicro??0)>0);
 
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
@@ -110,13 +117,50 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   async function auth(req: { headers: Record<string, unknown> }) {
     const header = String(req.headers.authorization ?? "");
-    if (config.authMode === "development") return accountFromBearer(pool, header);
+    if (config.authMode === "development") { const account = await accountFromBearer(pool, header); return account?.deleted ? null : account; }
     if (!config.supabaseAuth || !header.startsWith("Bearer ")) return null;
     const identity = await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth);
     if (identity.status === "unavailable") throw Object.assign(new Error("Sign-in verification is temporarily unavailable."), { statusCode: 503 });
     if (identity.status !== "verified") return null;
-    return accountForIdentity(pool, identity.identity);
+    const account = await accountForIdentity(pool, identity.identity);
+    return account?.deleted ? null : account;
   }
+
+  // A single strict transport boundary covers the formerly cast-only endpoints.
+  const boundedText = z.string().trim().min(1).max(4000);
+  const revision = z.number().int().positive();
+  const bodySchemas: Record<string, z.ZodTypeAny> = {
+    "/v1/dev/session": z.object({ email: z.string().email().max(254).optional() }).strict(),
+    "/v1/consent": z.object({ grant: z.boolean() }).strict(),
+    "/v1/runs/:id/cancel": z.object({}).strict(),
+    "/v1/account/deletion": z.object({}).strict(),
+    "/v1/purchases/restore": z.object({}).strict(),
+    "/v1/purchases/verify": z.object({receipt: z.string().max(10000).optional()}).strict(),
+    "/v1/billing/webhooks": z.object({eventId: z.string().max(300).optional(), product: z.string().max(100).optional()}).strict(),
+    "/v1/runs/:id/continue": z.object({ pendingInputId: z.string().uuid(), expectedBriefRevision: revision,
+      geography: z.string().trim().min(1).max(300).optional(), answers: z.array(z.object({ field: z.string().min(1).max(100), value: boundedText }).strict()).min(1).max(24).optional() }).strict(),
+    "/v1/runs/:id/assumptions": z.object({ action: z.enum(["confirm","replace"]), values: z.array(boundedText).max(12).optional(), expectedBriefRevision: revision.optional() }).strict(),
+    "/v1/runs/:id/query-authorizations/approve": z.object({ authorizationId: z.string().uuid(), queryDigest: z.string().regex(/^[a-f0-9]{64}$/), terms: z.array(z.string().min(1).max(1000)).max(200) }).strict(),
+    "/v1/runs/:id/follow-up": z.union([RequestedVerificationRequestSchema,
+      z.object({ message: boundedText, expectedBriefRevision: revision.optional() }).strict(),
+      z.object({ claimId: z.string().uuid().optional(), note: boundedText.optional() }).strict()]),
+    "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional() }).strict(),
+  };
+  app.addHook("preValidation", async (req, reply) => {
+    const route = req.routeOptions.url ?? "";
+    if (route.includes(":id") && !z.object({ id: z.string().uuid() }).strict().safeParse(req.params).success)
+      return reply.code(400).send(err("invalid_input", "A valid object identity is required.", crypto.randomUUID()));
+    if (req.method === "GET" && route.startsWith("/v1/")) {
+      const query = route.endsWith("/events") ? z.object({ after: z.string().regex(/^(0|[1-9][0-9]{0,15})$/).refine((v) => Number.isSafeInteger(Number(v))).optional() }).strict() : z.object({}).strict();
+      if (!query.safeParse(req.query).success) return reply.code(400).send(err("invalid_input", "Invalid query or event cursor.", crypto.randomUUID()));
+    }
+    const schema = bodySchemas[route];
+    if (schema) {
+      const parsed = schema.safeParse(req.body ?? {});
+      if (!parsed.success) return reply.code(400).send(err("invalid_input", "Invalid request fields.", crypto.randomUUID()));
+      req.body = parsed.data;
+    }
+  });
 
   app.get("/v1/session", async (req, reply) => {
     const account = await auth(req as never);
@@ -153,11 +197,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const correlationId = crypto.randomUUID();
     const a = await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", correlationId));
-    const parsed = CreateRunRequestSchema.safeParse(req.body ?? {});
+    const parsed = CreateRunRequestSchema.strict().safeParse(req.body ?? {});
     if (!parsed.success) {
       return reply.code(400).send(err("invalid_input", parsed.error.issues[0]?.message ?? "invalid", correlationId));
     }
     const input = parsed.data;
+    const suppliedKey = z.string().min(1).max(200).regex(/^[A-Za-z0-9_-]+$/).safeParse(req.headers["idempotency-key"]);
+    if ((input.routeMode === "controlled-research" || req.headers["idempotency-key"] !== undefined) && !suppliedKey.success)
+      return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
     if (input.routeMode === "fixture" && !config.fixtureRouteAllowed) {
       return reply.code(403).send(err("permission_denied", "Fixture route is disabled.", correlationId));
     }
@@ -182,7 +229,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));
     }
-    const idempotencyKey = String(req.headers["idempotency-key"] ?? crypto.randomUUID());
+    const idempotencyKey = suppliedKey.success ? suppliedKey.data : crypto.randomUUID();
     try {
       const created = await admitRun(pool, a.accountId, idempotencyKey, input, {
         strategy: config.structuredStrategy,
@@ -245,6 +292,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
       pendingQueryAuthorization: pendingQuery,
+      pendingInput: run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision } : null,
       revision: {
         briefRevision: run.brief_revision,
         evidenceRevision: run.evidence_revision,
@@ -304,7 +352,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (run.lifecycle !== "awaiting_input") {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
     }
-    const body = (req.body ?? {}) as { geography?: string; answers?: { field?: string; value?: string }[] };
+    const body = (req.body ?? {}) as { pendingInputId: string; expectedBriefRevision: number; geography?: string; answers?: { field?: string; value?: string }[] };
+    if (run.pending_input_type !== "clarification" || run.pending_input_id !== body.pendingInputId || run.brief_revision !== body.expectedBriefRevision)
+      return reply.code(409).send(err("stale_revision", "This answer does not match the pending clarification.", crypto.randomUUID()));
     const answers = [
       ...(body.answers ?? []).map((a) => ({ field: String(a.field ?? "").trim(), value: String(a.value ?? "").trim() })),
       ...(body.geography ? [{ field: "geography", value: body.geography.trim() }] : []),
@@ -326,7 +376,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     await withTx(pool, async (db) => {
     await lockActiveAccount(db, a.accountId);
     const current = await getRun(db, id, { forUpdate: true });
-    if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== run.brief_revision) {
+    if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== body.expectedBriefRevision || current.pending_input_id !== body.pendingInputId || current.pending_input_type !== "clarification") {
       throw Object.assign(new Error("This run is no longer waiting for this input."), { statusCode: 409 });
     }
     await commitBriefRevision(db, {
@@ -356,7 +406,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    const body = (req.body ?? {}) as { action?: string; values?: string[] };
+    const body = (req.body ?? {}) as { action: "confirm" | "replace"; values?: string[]; expectedBriefRevision?: number };
     const action = body.action === "replace" ? "replace" : "confirm";
     const values = Array.isArray(body.values) ? body.values.map((v) => String(v).trim()).filter(Boolean).slice(0, 12) : [];
     if (action === "replace" && !values.length) {
@@ -368,6 +418,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         const run = await getRun(db, id, { forUpdate: true });
         if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
         const brief = await getBrief(db, run.brief_id);
+        if (action === "replace" && (body.expectedBriefRevision !== run.brief_revision || run.lifecycle === "awaiting_input"))
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
         const current = Array.isArray(brief.assumptions) ? brief.assumptions : [];
         const nextAssumptions = action === "replace"
           ? values.map((value, index) => ({
@@ -393,35 +445,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
         }
         if (run.lifecycle === "terminal") {
-          const revision = Number((await db.query(
-            "SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",
-            [run.conversation_id],
-          )).rows[0]?.revision ?? brief.revision + 1);
-          const childBrief = { ...brief, id: crypto.randomUUID(), revision, assumptions: nextAssumptions, originalQuestion: brief.originalQuestion };
-          await insertBrief(db, childBrief, a.accountId);
-          const childId = crypto.randomUUID();
-          const key = `assumptions-${id}-${revision}-${createHash("sha256").update(JSON.stringify(values)).digest("hex").slice(0, 12)}`;
-          const consent = await currentConsent(db, a.accountId);
-          if (!consent || consent.revoked) throw Object.assign(new Error("consent_required"), { statusCode: 403 });
-          await insertRun(db, {
-            id: childId, accountId: a.accountId, conversationId: run.conversation_id, briefId: childBrief.id,
-            parentRunId: run.id, routeMode: run.route_mode, briefRevision: revision, consentEpoch: consent.epoch,
-            idempotencyKey: key, budgetMicro: DEFAULT_RUN_BUDGET_MICRO,
-          });
-          await reserveAllowance(db, a.accountId, childId, DEFAULT_RUN_BUDGET_MICRO);
-          await emitEvent(db, {
-            runId: childId, accountId: a.accountId, type: "clarification_answered",
-            summary: "Assumptions updated on a new research revision. The prior report is unchanged.",
-            phase: "preparing", payload: { parentRunId: id, briefRevision: revision },
-          });
-          return { runId: childId, action, briefRevision: revision, parentRunId: id };
+          return { action, ...await insertChildBriefRevision(db, {accountId:a.accountId,parent:run,expectedRevision:body.expectedBriefRevision!,next:{...brief,assumptions:nextAssumptions},
+            idempotencyKey:String(req.headers["idempotency-key"] ?? "")}) };
         }
         const committed = await commitBriefRevision(db, {
           accountId: a.accountId, runId: id, expectedRevision: run.brief_revision,
           originalQuestion: brief.originalQuestion, next: { ...brief, assumptions: nextAssumptions },
         });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1`, [id]);
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -432,7 +464,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         });
         return { runId: id, action, briefRevision: committed.briefRevision };
       });
-      if (result.parentRunId) await tryDispatchRun(pool, boss, result.runId);
+      if ("parentRunId" in result) await tryDispatchRun(pool, boss, result.runId);
       else if (action === "replace") await tryDispatchRun(pool, boss, result.runId);
       return result;
     } catch (e) {
@@ -460,6 +492,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         await lockActiveAccount(db, a.accountId);
         const run = await getRun(db, id, { forUpdate: true });
         if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+        if (run.lifecycle === "awaiting_input" && (run.pending_input_type !== "query_authorization" || run.pending_input_id !== authorizationId || run.pending_input_revision !== run.brief_revision))
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409, code: "stale_revision" });
         const approved = await approveQueryAuthorization(db, {
           accountId: a.accountId,
           runId: id,
@@ -470,7 +504,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         });
         if (!approved.ok) throw Object.assign(new Error(approved.reason), { statusCode: 409, code: approved.reason });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1`, [id]);
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -510,7 +544,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    const parsed = CorrectionRequestSchema.safeParse(req.body ?? {});
+    const parsed = CorrectionRequestSchema.strict().safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send(err("invalid_input", "Invalid correction.", crypto.randomUUID()));
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
@@ -597,7 +631,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!run || run.account_id !== a.accountId) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
-    const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string };
+    const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string; expectedBriefRevision?: number };
     if (!followBody.claimId && followBody.message) {
       const routed = routeFollowUp(followBody.message, {
         reportReady: true,
@@ -607,28 +641,37 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         return { kind: "explain", runId: id, reason: routed.reason, mutatesBrief: false };
       }
       if ((routed.kind === "steer" || routed.kind === "add_source") && !routed.mutatesBrief) {
-        await withTx(pool, async (db) => {
+        const revised = await withTx(pool, async (db) => {
           await lockActiveAccount(db, a.accountId);
           const current = await getRun(db, id, { forUpdate: true });
           if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
           const brief = await getBrief(db, current.brief_id);
           const nextPolicy = mergeSteeringIntoPolicy(policyFromRestrictions(brief.sourceRestrictions), followBody.message!);
           const originalQuestion = brief.originalQuestion;
-          await db.query(`UPDATE research_briefs SET payload = $2 WHERE id = $1`, [brief.id, JSON.stringify({
-            ...brief,
-            originalQuestion,
-            sourceRestrictions: encodeSourcePolicy(nextPolicy),
-          })]);
+          if (current.lifecycle === "terminal") return insertChildBriefRevision(db,{accountId:a.accountId,parent:current,
+            expectedRevision:followBody.expectedBriefRevision!,next:{...brief,sourceRestrictions:encodeSourcePolicy(nextPolicy)},idempotencyKey:String(req.headers["idempotency-key"] ?? "")});
+          if (current.brief_revision !== followBody.expectedBriefRevision || !["queued","running"].includes(current.lifecycle))
+            throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+          const committed = await commitBriefRevision(db, { accountId: a.accountId, runId: id, expectedRevision: followBody.expectedBriefRevision!, originalQuestion,
+            next: { ...brief, sourceRestrictions: encodeSourcePolicy(nextPolicy) } });
+          // Expire the old worker lease. Its late receipts may settle, but it can
+          // neither issue another operation nor publish on the superseded brief.
+          await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
+          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
+            SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
           await emitEvent(db, {
             runId: id,
             accountId: a.accountId,
             type: "plan_pivot",
             summary: routed.kind === "add_source" ? "A source URL was added for later research steps." : "Source preferences were updated for later research steps.",
             phase: current.phase,
-            payload: { kind: routed.kind, mutatesIssuedIdentities: false },
+            payload: { kind: routed.kind, mutatesIssuedIdentities: false, briefRevision: committed.briefRevision },
           });
+          return {runId:id,briefRevision:committed.briefRevision};
         });
-        return { kind: routed.kind, runId: id, reason: routed.reason, mutatesBrief: false, mutatesIssuedIdentities: false };
+        await tryDispatchRun(pool, boss, revised.runId);
+        return { kind: routed.kind, ...revised, reason: routed.reason, mutatesBrief: true, mutatesIssuedIdentities: false };
       }
     }
     if(run.route_mode==="controlled-research"){
