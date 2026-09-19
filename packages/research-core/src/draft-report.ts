@@ -1,5 +1,5 @@
 import type { ReportBlock } from "@deep/contracts";
-import { UNRESOLVED_SECTION } from "./citations.js";
+import { isReportSectionLabel, UNRESOLVED_SECTION } from "./citations.js";
 import type { DraftStatement } from "./draft-assertions.js";
 import type { ScopedSupportResult } from "./scoped-support.js";
 import type { StoredClaim } from "./types.js";
@@ -14,7 +14,8 @@ export function compileCheckedDraft(statements:DraftStatement[],checks:(ScopedSu
     const check=matching[0]!;
     if(check.decision!=="supported") {
       if(statement.kind==="heading") {
-        blocks.push({id:statement.key,kind:"heading",text:statement.text,claimIds:[],citationIds:[]});
+        const text=isReportSectionLabel(statement.text)?statement.text:"Answer";
+        blocks.push({id:statement.key,kind:"heading",text,claimIds:[],citationIds:[]});
         continue;
       }
       unresolved.push(statement.key);

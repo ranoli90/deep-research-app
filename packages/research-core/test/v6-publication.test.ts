@@ -50,6 +50,11 @@ describe("W01 / V6-F01 production citation regressions", () => {
     const blocks = [{ ...args.blocks[0]!, kind, claimIds: [], text: "Atlas costs 0 EUR worldwide." }];
     expect(citationValidationFails(validateMaterialCitations({ ...args, blocks }))).toBe(true);
   });
+  it("allows an application section label heading without claim bindings", () => {
+    const args = input();
+    const blocks = [{ id: "heading_0", kind: "heading" as const, text: "Answer", claimIds: [], citationIds: [] }, args.blocks[0]!];
+    expect(citationValidationFails(validateMaterialCitations({ ...args, blocks }))).toBe(false);
+  });
   it("a claim type label cannot substitute for supporting evidence", () => {
     const args = input();
     args.claims[0]!.type = "limitation";
