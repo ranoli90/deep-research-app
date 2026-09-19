@@ -15,6 +15,12 @@ describe("token-aware context admission", () => {
     expect(estimateTokens("abcd")).not.toBe(Buffer.byteLength("abcd"));
   });
 
+  it("discovery continuation uses Evidence Needs instead of coverage-incomplete alone", () => {
+    const src = readFileSync(new URL("../src/worker/structured-research.ts", import.meta.url), "utf8");
+    expect(src).toMatch(/highestValueNeed/);
+    expect(src).toMatch(/topNeed\?\.nextAction\.kind==="search"/);
+  });
+
   it("gives same-evidence repair a new request identity", () => {
     const first = prepareModelRequest("write_report", context);
     const repair = prepareModelRequest("write_report", context, STRUCTURED_MODEL_POLICY.id, { repairPass: 1 });

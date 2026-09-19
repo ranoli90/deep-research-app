@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForModel,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,type SourceClass } from "@deep/research-core";
+import { counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
@@ -213,7 +213,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         queriesAttempted:queries,
         sourceClassesAttempted:classesAttempted.length?classesAttempted:[plan.primary],
       });
-      if(next.kind==="search"&&breadth.continue) {
+      const needs=buildEvidenceNeeds({
+        originalQuestion:brief.originalQuestion,
+        criterionKeys:review.coverage.unresolvedCriterionKeys,
+        unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,
+        remainingBudgetMicro:Math.max(0,Number(run.budget_micro)-Number(run.spent_micro)),
+        nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
+      });
+      const topNeed=highestValueNeed(needs);
+      if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search") {
         classesAttempted.push(nextClass);
         queries.push(next.proposal.action.query);
         lastSourceCount=sources.length;
