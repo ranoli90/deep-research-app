@@ -211,6 +211,9 @@ describe("source policy and query planning", () => {
     expect(encodeSourcePolicy(steered)).toEqual(expect.arrayContaining(["mode:prefer_primary", "exclude:reddit.com"]));
     expect(policyFromRestrictions(encodeSourcePolicy(steered)).excludedDomains).toContain("reddit.com");
     expect(applySourcePolicy({ ...policy, trustedDomains: ["nist.gov"] }, "https://csrc.nist.gov/x")).toBe("prefer");
+    expect(applySourcePolicy(policy, "https://uscode.house.gov/view.xhtml?req=title:29")).toBe("prefer");
+    expect(applySourcePolicy(policy, "https://www.ncontracts.com/nsight-blog/laws")).toBe("exclude");
+    expect(applySourcePolicy(policy, "https://scarincihollenbeck.com/law-firm-insights/guidance")).toBe("exclude");
   });
 
   it("keeps private terms unexpanded without approval", () => {

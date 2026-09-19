@@ -32,6 +32,31 @@ function hostOf(url: string): string | null {
   }
 }
 
+/** Government and intergovernmental hosts for "only official sources" / prefer_primary. */
+export function isOfficialPrimaryHost(host: string): boolean {
+  const h = host.replace(/^www\./, "").toLowerCase();
+  return (
+    h.endsWith(".gov") ||
+    h.endsWith(".mil") ||
+    h === "gov.uk" ||
+    h.endsWith(".gov.uk") ||
+    h === "gc.ca" ||
+    h.endsWith(".gc.ca") ||
+    h === "europa.eu" ||
+    h.endsWith(".europa.eu") ||
+    h === "who.int" ||
+    h.endsWith(".who.int") ||
+    h === "un.org" ||
+    h.endsWith(".un.org") ||
+    h === "oecd.org" ||
+    h.endsWith(".oecd.org") ||
+    h === "imf.org" ||
+    h.endsWith(".imf.org") ||
+    h === "worldbank.org" ||
+    h.endsWith(".worldbank.org")
+  );
+}
+
 export function applySourcePolicy(policy: SourcePolicy, locator: string): "admit" | "prefer" | "exclude" {
   const host = hostOf(locator);
   if (!host) return "exclude";
@@ -40,7 +65,7 @@ export function applySourcePolicy(policy: SourcePolicy, locator: string): "admit
     return policy.allowedDomains.some((d) => host === d || host.endsWith(`.${d}`)) ? "admit" : "exclude";
   }
   if (policy.trustedDomains.some((d) => host === d || host.endsWith(`.${d}`))) return "prefer";
-  if (policy.mode === "prefer_primary") return "admit";
+  if (policy.mode === "prefer_primary") return isOfficialPrimaryHost(host) ? "prefer" : "exclude";
   return "admit";
 }
 

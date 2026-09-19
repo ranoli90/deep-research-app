@@ -13,6 +13,10 @@ export function compileCheckedDraft(statements:DraftStatement[],checks:(ScopedSu
     if(matching.length!==1)throw new Error("missing_or_duplicate_writer_support");
     const check=matching[0]!;
     if(check.decision!=="supported") {
+      if(statement.kind==="heading") {
+        blocks.push({id:statement.key,kind:"heading",text:statement.text,claimIds:[],citationIds:[]});
+        continue;
+      }
       unresolved.push(statement.key);
       blocks.push({id:statement.key,kind:"caveat",text:UNRESOLVED_SECTION,claimIds:[],
         citationIds:[...new Set([...check.evidence.map((e)=>e.passageId),...check.counterEvidence.map((e)=>e.passageId)])]});

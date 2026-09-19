@@ -1,0 +1,42 @@
+{
+  "id": "J10-c-audit",
+  "runId": "52cb153f-cc45-454f-b1b4-414659fc7f4b",
+  "reportId": "b28aec58-9e5d-4336-a792-ebfb0184db81",
+  "question": "What is the official US federal minimum wage?",
+  "steer": "Only use official sources from here.",
+  "steerResponse": {
+    "kind": "steer",
+    "mutatesBrief": false,
+    "mutatesIssuedIdentities": false,
+    "reason": "active_steering"
+  },
+  "persistedPolicy": "mode:prefer_primary",
+  "originalQuestionUnchanged": true,
+  "outcome": "completed_with_limitations",
+  "spentMicro": 41444,
+  "checkerVersion": "scoped-support.v5",
+  "consequentialClaims": [
+    {
+      "text": "The current federal minimum wage in the United States is $7.25 an hour.",
+      "passageId": "c0dfe6dc-fd4b-4f5f-99e5-8accdfdbba5d",
+      "title": "29 USC 206: Minimum wage",
+      "locator": "https://uscode.house.gov/view.xhtml?req=(title:29+section:206+edition:prelim)",
+      "exactText": "(C) $7.25 an hour, beginning 24 months after that 60th day;",
+      "supportedByExactSpan": true,
+      "note": "Rate is in the owned US Code fragment. Geography/entity are question labels, not quoted product identities."
+    },
+    {
+      "text": "The federal minimum wage has not changed since the last update.",
+      "passageId": "c0dfe6dc-fd4b-4f5f-99e5-8accdfdbba5d",
+      "supportedByExactSpan": false,
+      "note": "Writer caveat reused the $7.25 extract quote. The fragment does not say the rate is unchanged. Date 2009-07-24 was correctly not published."
+    }
+  ],
+  "unofficialSourcesAdoptedAfterSteer": [
+    "https://www.ncontracts.com/nsight-blog/laws-vs-regulations-vs-guidance-new-interagency-statement-provides-clarification",
+    "https://scarincihollenbeck.com/law-firm-insights/guidance-and-regulation-difference"
+  ],
+  "unofficialSourcesCited": false,
+  "userRepairRequired": "Do not treat the unchanged-since-last-update caveat as source-backed. prefer_primary must not adopt commercial blogs after an official-sources steer.",
+  "evaluator": "deterministic owned passage/claim audit; not independent human validation"
+}

@@ -2,7 +2,7 @@ import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import { passageSupportsClaim } from "./support.js";
 
-export const SCOPED_SUPPORT_VERSION = "scoped-support.v5";
+export const SCOPED_SUPPORT_VERSION = "scoped-support.v6";
 /** Category labels copied from the question (e.g. "laptop") are not a quoted product identity. */
 const GENERIC_ENTITY = new Set([
   "laptop", "notebook", "computer", "pc", "phone", "smartphone", "tablet", "device", "product",
@@ -137,6 +137,8 @@ export function resolveScopedSupport(args:{ assertions:Assertion[]; passages:Pas
     else if (assessment.status === "contradicted" && literalSupport && /\b(not (?:included|part of)|no longer|removed from|is not in|deprecated)\b/i.test(claim.text) && checks.every((c) => c.passed) && !literalContradiction) decision="supported";
     else if (assessment.status === "contradicted" && literalSupport) decision="disputed";
     else if (qualified && assessment.status === "supported") decision="partially_supported";
+    else if (assessment.status === "supported" && !literalSupport && literal.length > 0 && literal.every((d) => d === "unsupported")
+      && claim.quantities.length === 0 && measuredNumbers(claim.text).length === 0) decision="insufficient";
     else if (assessment.status === "supported" && checks.some((c) => !c.passed)) decision="insufficient";
     else if (assessment.status === "partially_supported" && checks.every((c) => c.passed) && !qualified && !literalContradiction) decision="supported";
     // A model that claimed full support while listing missing evidence cannot keep that grant.

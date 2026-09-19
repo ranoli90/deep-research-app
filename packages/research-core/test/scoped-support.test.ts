@@ -104,6 +104,16 @@ it("does not ground an effective-date that the statute fragment never states",()
   expect(result.checks.find((c)=>c.rule==="scope_grounded_in_quotes")!.passed).toBe(false);
   expect(result.decision).toBe("out_of_scope");
 });
+it("does not treat an unquoted 'has not changed' caveat as supported by a wage-rate fragment",()=>{
+  const quote="$7.25 an hour, beginning 24 months after that 60th day;";
+  const claim="The federal minimum wage has not changed since the last update.";
+  const scope={entity:"federal",plan:null,version:null,geography:"United States",time:null,population:null};
+  const result=resolveScopedSupport({assertions:[{key:"limitation_0",candidateKey:null,criterionKeys:["minimum_wage"],text:claim,scope,quantities:[],
+    evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
+    passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
+    proposal:{assessments:[{claimKey:"limitation_0",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Support reused the extracted claim evidence after the model omitted a usable assessment.",missingEvidence:[]}]}})[0]!;
+  expect(result.decision).toBe("insufficient");
+});
 it("does not treat a use-case label or a later statute 'may' as disqualifying a cited employment-tax quote",()=>{
   const quote="Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month.";
   const page=`${quote} You may also have to file Form 941. This calendar is only a summary.`;

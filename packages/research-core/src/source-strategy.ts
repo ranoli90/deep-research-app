@@ -88,6 +88,14 @@ export function planSourceClass(question: string): SourcePlan {
   };
 }
 
+const UNOFFICIAL_CLASSES = new Set<SourceClass>(["generic-web", "community", "independent-review"]);
+
+/** "Only official sources" must not pivot into blogs or community pages. */
+export function constrainSourcePlan(plan: SourcePlan, mode: string | undefined): SourcePlan {
+  if (mode !== "prefer_primary" && mode !== "allowed_domains" && mode !== "trusted_domains") return plan;
+  return { ...plan, fallbacks: plan.fallbacks.filter((c) => !UNOFFICIAL_CLASSES.has(c)) };
+}
+
 export function nextSourceClass(plan: SourcePlan, attempted: readonly string[], evidence: {
   weak: boolean;
   duplicative: boolean;

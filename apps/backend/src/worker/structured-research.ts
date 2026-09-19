@@ -5,7 +5,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,planTypedQuery,policyFromRestrictions,DEEP_DISCOVERY_CEILING,type SourceClass } from "@deep/research-core";
 import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms } from "../modules/retrieval-intelligence.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
@@ -178,7 +178,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
     if(!selected.rowCount){
       if(config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled){
-        const plan=planSourceClass(brief.originalQuestion);
+        const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);
         const nextClass=nextSourceClass(plan,classesAttempted,{weak:true,duplicative:false,stale:false});
         const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
           unresolvedCriterionKeys:prepared.task.specification.criteria.map((c)=>c.key),queries,ceiling:DEEP_DISCOVERY_CEILING});
@@ -298,7 +298,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(!review.coverage.complete&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
-      const plan=planSourceClass(brief.originalQuestion);
+      const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);
       const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
       const failedQueries=Number((await pool.query(`SELECT count(*)::int AS n FROM search_operations s WHERE s.run_id=$1 AND s.account_id=$2 AND COALESCE(jsonb_array_length(s.result->'hits'),0)=0`,[args.runId,args.accountId])).rows[0]?.n??0);
       const policy=freshnessPolicyForQuestion(brief.originalQuestion);
