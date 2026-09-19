@@ -6,7 +6,7 @@ import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperati
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { modelPolicy } from "../ports/model-policy.js";
-import { emitEvent, getRun } from "../modules/runs.js";
+import { emitEvent, getBrief, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ModelContextSchema, ModelReceiptSchema, ModelValidationDiagnosticsSchema, type ModelResult } from "../ports/model.js";
@@ -113,7 +113,9 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (args.operation === "brief") {
       const linked = repairBriefCriterionLinks(result.output as ResearchModelOutput<"brief">);
       const provenanced = repairBriefProvenanceFromQuestion(linked.output, context.question);
-      const clarified = suppressUnneededBriefClarifications(provenanced, context.question);
+      const owned=await getRun(pool,args.runId);
+      const constraints=owned? (await getBrief(pool,owned.brief_id)).constraints : [];
+      const clarified = suppressUnneededBriefClarifications(provenanced, context.question, constraints);
       result = { ...result, output: clarified as typeof result.output }; linkedCriteria = linked.linked;
     }
     if (args.operation === "assess_support") {

@@ -1,4 +1,4 @@
-import type { ResearchModelOutput } from "@deep/contracts";
+import type { Constraint, ResearchModelOutput } from "@deep/contracts";
 import { compileResearchIntent } from "./intent-compiler.js";
 
 export const BRIEF_CRITERION_LINK_VERSION = "brief-criterion-question-link.v1";
@@ -7,8 +7,9 @@ export const BRIEF_CRITERION_LINK_VERSION = "brief-criterion-question-link.v1";
 export function suppressUnneededBriefClarifications(
   output: ResearchModelOutput<"brief">,
   question: string,
+  knownConstraints: Constraint[] = [],
 ): ResearchModelOutput<"brief"> {
-  const intent = compileResearchIntent(question);
+  const intent = compileResearchIntent(question, { knownConstraints });
   if (intent.clarificationDecision.ask) return output;
   return {
     ...output,

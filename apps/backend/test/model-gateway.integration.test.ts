@@ -214,9 +214,9 @@ describe("W05 durable versioned research task", () => {
     expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",reused:true });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }));
-  it("does not promote material ambiguity to a ready task", async () => runCase(async (x) => {
+  it("does not let leftover model interview prompts block a comparison the compiler already approved", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response({ ...brief,openAmbiguities:[{question:"Which coastline?",whyMaterial:"Restoration outcomes vary by site"}] })) as typeof fetch;
-    expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",task:{ planningStatus:"needs_clarification" } });
+    expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",task:{ planningStatus:"ready" } });
   }));
   it("does not create a task from invalid output or resend its failed logical attempt", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response({ ...brief,objectiveProvenance:{ ...span,quote:"fabricated" } })) as typeof fetch;

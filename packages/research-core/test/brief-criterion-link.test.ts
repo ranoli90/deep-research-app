@@ -9,6 +9,29 @@ const criterion = (key: string, quote: string, start = 99, end = 100) => ({
   unresolvedAlternatives: [],
 });
 
+it("clears leftover model ambiguities after a confirmed jurisdiction constraint", () => {
+  const tax = "What is the filing deadline for employment tax?";
+  const raw = {
+    objective: tax,
+    objectiveProvenance: { quote: tax, start: 0, end: tax.length },
+    intendedOutput: "legal_rule",
+    criteria: [criterion("filing_deadline", tax, 0, tax.length)],
+    questions: [{
+      key: "q1", text: tax, criterionKeys: ["filing_deadline"],
+      importance: "critical" as const, evidenceStandard: "primary law",
+    }],
+    assumptions: [],
+    openAmbiguities: [{ question: "Which jurisdiction should this answer apply to?", whyMaterial: "filing rules" }],
+    explicitExclusions: [],
+  };
+  expect(suppressUnneededBriefClarifications(raw, tax).openAmbiguities).toHaveLength(1);
+  const confirmed = suppressUnneededBriefClarifications(raw, tax, [{
+    id: "geography-indiana", field: "geography", operator: "eq", value: "indiana",
+    origin: "confirmed", importance: "hard", explanation: "Supplied after clarification",
+  }]);
+  expect(confirmed.openAmbiguities).toEqual([]);
+});
+
 it("clears model interview prompts when the intent compiler already decided not to ask", () => {
   const raw = {
     objective: question,

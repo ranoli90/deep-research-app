@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs, type ResearchModelOutput } from "@deep/contracts";
-import { validateModelBindings } from "@deep/research-core";
+import { RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs, type Constraint, type ResearchModelOutput } from "@deep/contracts";
+import { compileResearchIntent, validateModelBindings } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { modelInputManifest } from "./model-operations.js";
@@ -53,9 +53,8 @@ function checkedIds(raw: unknown, keys: string[]): Record<string, string> {
   if (Object.keys(ids).length !== keys.length || keys.some((key) => !Object.hasOwn(ids,key)) || new Set(Object.values(ids)).size !== keys.length) throw new Error("invalid_research_task_ids");
   return ids;
 }
-function planningStatus(specification: ResearchModelOutput<"brief">): ResearchTask["planningStatus"] {
-  return specification.openAmbiguities.length || specification.criteria.some((c) => c.importance === "hard" && c.unresolvedAlternatives.length)
-    ? "needs_clarification" : "ready";
+function planningStatus(question: string, constraints: Constraint[] = []): ResearchTask["planningStatus"] {
+  return compileResearchIntent(question, { knownConstraints: constraints }).clarificationDecision.ask ? "needs_clarification" : "ready";
 }
 
 /** Call from a fenced transaction for worker use; read endpoints must independently authenticate. */
@@ -69,8 +68,9 @@ export async function loadResearchTask(db: Queryable, runId: string, accountId: 
   const criterionIds = checkedIds(row.criterion_ids, proposal.specification.criteria.map((c) => c.key));
   const questionIds = checkedIds(row.question_ids, proposal.specification.questions.map((q) => q.key));
   if (new Set([...Object.values(criterionIds),...Object.values(questionIds)]).size !== Object.keys(criterionIds).length+Object.keys(questionIds).length) throw new Error("invalid_research_task_ids");
+  const brief = await getBrief(db, (await getRun(db, runId))!.brief_id);
   return { id: row.id, runId, briefRevision: revision, version: RESEARCH_TASK_VERSION, modelIntentId: row.model_intent_id,
-    specification: proposal.specification, criterionIds, questionIds, planningStatus: planningStatus(proposal.specification) };
+    specification: proposal.specification, criterionIds, questionIds, planningStatus: planningStatus(question, brief.constraints) };
 }
 
 /** Adopt existing output after a crash without another model call. Caller owns the account/run fence locks. */
