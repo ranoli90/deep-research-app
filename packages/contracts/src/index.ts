@@ -192,6 +192,7 @@ export const CanonicalReportSchema = z.object({
 });
 export type CanonicalReport = z.infer<typeof CanonicalReportSchema>;
 
+/** Persisted worker event. Consumer GET /v1/runs/:id/events returns SanitizedRunEventSchema. */
 export const PublicEventSchema = z.object({
   id: IdSchema,
   runId: IdSchema,
@@ -313,3 +314,4 @@ export * from "./evidence-calculation.js";
 export * from "./counterevidence.js";
 export * from "./requested-verification.js";
 export * from "./research-intent.js";
+export * from "./public-activity.js";

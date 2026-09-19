@@ -1,3 +1,7 @@
+## Wave 7 public activity contract (FP-077/078) — 2026-09-19
+
+Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto integration after independent review. `/events` returns `public-activity.v1` only. Schema-fail phase is canned `researching`. RFC1918/`.internal` cannot become `sourceDomain`. **FP-085 IME is not closed** (no physical Gboard shot). Worker-local ADR067 remapped to ADR072. **Not merged to `main`.**
+
 ## Wave 2 provider attempt chain (FP-011/012/014) — 2026-09-19
 
 Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto integration after independent review. Extract/support `repairPass` requires known-cost `invalid_output`; unknown HOLD is not resent. Migration `045_model_operation_attempts.sql`. Worker-local ADR070 remapped to ADR071. **Not merged to `main`.**

@@ -163,7 +163,7 @@ describe("composer continues a finished report", () => {
         reportId: "r",
         labeledDemo: true,
       },
-      events: [{ sequence: 1, type: "accepted", publicSummary: "ok" }],
+      events: [{ sequence: 1, activity: null }],
     };
     const result = startNewResearch(finished);
     expect(result.ok).toBe(true);

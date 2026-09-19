@@ -44,7 +44,7 @@ import {
 } from "../modules/access.js";
 import { reserveAllowance } from "../modules/billing.js";
 import { pinRouteCapabilities } from "../modules/route-capabilities.js";
-import { toPublicActivity } from "../modules/public-activity.js";
+import { toSanitizedRunEvent } from "../modules/public-activity.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import {
   cancelOwnedRun,
@@ -265,24 +265,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const after = Number((req.query as { after?: string }).after ?? 0);
     const events = await listEvents(pool, id, after);
     return {
-      events: events.map((e) => {
-        const activity = toPublicActivity({
-          type: e.type,
-          publicSummary: e.public_summary,
-          phase: e.phase,
-          createdAt: String(e.created_at),
-        });
-        return {
+      events: events.map((e) =>
+        toSanitizedRunEvent({
           id: e.id,
           runId: id,
           sequence: Number(e.sequence),
           type: e.type,
-          publicSummary: e.public_summary,
+          public_summary: e.public_summary,
           phase: e.phase,
-          createdAt: e.created_at,
-          activity,
-        };
-      }),
+          created_at: e.created_at,
+          payload: e.payload,
+        }),
+      ),
     };
   });
 

@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-19 — Wave 7 public activity merged to integration
+
+- Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto `grok-v8/research-beta-integration`. main stays `8a7b1a9`.
+- `/events` is `public-activity.v1`. Schema-fail phase canned `researching`. RFC1918/`.internal` hosts stripped. FP-085 not closed.
+- Worker-local ADR067 remapped to ADR072.
+
 ## 2026-09-19 — Wave 2 provider attempt chain merged to integration
 
 - Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto `grok-v8/research-beta-integration`. main stays `8a7b1a9`.

@@ -39,7 +39,7 @@ describe("research status one-liners", () => {
     expect(researchStatusLine({
       ...emptyState(),
       run,
-      events: [{ sequence: 1, type: "accepted", publicSummary: "accepted" }],
+      events: [{ sequence: 1, activity: null }],
     })).toBeNull();
   });
 

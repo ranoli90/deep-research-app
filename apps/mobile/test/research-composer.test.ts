@@ -19,6 +19,8 @@ describe("one-sentence composer copy", () => {
     expect(app).toContain("Ask anything.");
     expect(app).not.toContain("Ask anything. One sentence is enough. Files are optional.");
     expect(app).toContain("<ResearchComposer");
+    expect(app).toContain("composerDockBottomInset");
+    expect(app).toContain("keyboardInset");
     expect(app).toMatch(/placeholder=\{composerContinues \? "Ask anything" : "What should I research\?"\}/);
     expect(app).toMatch(/sendAccessLabel=\{composerContinues \? "Send follow-up" : "Start research"\}/);
     expect(app).toContain("inProgress={activity.inProgress}");

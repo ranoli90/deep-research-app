@@ -13,24 +13,21 @@ describe("live source appearance", () => {
     expect(extractPublicUrl("ftp://files.example/a")).toBeNull();
   });
 
-  it("builds during-search pills only when events carry a real URL, deduped by domain", () => {
+  it("builds during-search pills only from typed source_reading domains", () => {
     expect(liveSourcePillsFromEvents([
-      { sequence: 1, type: "accepted", publicSummary: "Research accepted." },
-      { sequence: 2, type: "searched", publicSummary: "Searched: pricing" },
-      { sequence: 3, type: "opened_source", publicSummary: "Opened manufacturer spec." },
+      { sequence: 1, activity: { kind: "intent_ready", label: "Understood the question", phase: "preparing", count: null, sourceDomain: null, sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
+      { sequence: 2, activity: { kind: "searching", label: "Searching public sources", phase: "researching", count: null, sourceDomain: "docs.python.org", sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
+      { sequence: 3, activity: { kind: "source_reading", label: "Reading a source", phase: "researching", count: null, sourceDomain: null, sourceTitle: "Untitled", createdAt: "2026-09-18T00:00:00Z" } },
     ])).toEqual([]);
 
-    expect(liveSourcePillsFromEvents([
-      { sequence: 1, type: "searched", publicSummary: "Searched https://docs.python.org/3/" },
-    ])).toEqual([]);
     const pills = liveSourcePillsFromEvents([
-      { sequence: 1, type: "searched", publicSummary: "Searched https://docs.python.org/3/" },
-      { sequence: 2, type: "opened_source", publicSummary: "Opened https://docs.python.org/3/library/sqlite3.html" },
-      { sequence: 3, type: "opened_source", publicSummary: "Opened https://developer.mozilla.org/en-US/" },
-      { sequence: 4, type: "writing", publicSummary: "Writing https://example.com should not pill" },
+      { sequence: 1, activity: { kind: "searching", label: "Searching public sources", phase: "researching", count: null, sourceDomain: "docs.python.org", sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
+      { sequence: 2, activity: { kind: "source_reading", label: "Reading a source", phase: "researching", count: null, sourceDomain: "docs.python.org", sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
+      { sequence: 3, activity: { kind: "source_reading", label: "Reading a source", phase: "researching", count: null, sourceDomain: "developer.mozilla.org", sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
+      { sequence: 4, activity: { kind: "writing", label: "Writing the answer", phase: "writing", count: null, sourceDomain: "example.com", sourceTitle: null, createdAt: "2026-09-18T00:00:00Z" } },
     ]);
     expect(pills.map((p) => p.domain)).toEqual(["docs.python.org", "developer.mozilla.org"]);
-    expect(pills.every((p) => p.faviconUri === null)).toBe(true);
+    expect(pills.every((p) => p.faviconUri === null && p.url === null)).toBe(true);
   });
 
   it("after-search citation chips stay numbered without UUIDs; domain is optional and known-only", () => {

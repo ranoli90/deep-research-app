@@ -3,6 +3,7 @@ import type { PendingVerificationRequest } from "./verification-request";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
 import type { CorrectionDraft } from "./correction-draft";
+import { adoptPublicEvents, type ResearchEvent } from "./research-activity";
 export type RouteMode = "fixture" | "controlled-research";
 
 export type ScreenName = "research" | "library" | "settings" | "source";
@@ -70,7 +71,7 @@ export type UiState = {
     changeSummary?: { evidenceUpdated: boolean; conclusionChanged: boolean; newlyFeasible?: string[]; newlyInfeasible?: string[]; notes: string } | null;
   } | null;
   previousReport: { reportId: string; blocks: ReportBlock[] } | null;
-  events: { sequence: number; type: string; publicSummary: string; phase?: string; createdAt?: string }[];
+  events: ResearchEvent[];
   source: SourceDetail | null;
   readingAnchor: { reportId: string; blockId: string; offset: number } | null;
   attachments: AttachmentDraft[];
@@ -208,10 +209,7 @@ export function mergeEvents(
   existing: UiState["events"],
   incoming: UiState["events"],
 ): UiState["events"] {
-  const bySeq = new Map<number, UiState["events"][number]>();
-  for (const e of existing) bySeq.set(e.sequence, e);
-  for (const e of incoming) bySeq.set(e.sequence, e);
-  return [...bySeq.values()].sort((a, b) => a.sequence - b.sequence);
+  return adoptPublicEvents([...existing, ...incoming]);
 }
 
 export function restoreAnchor(

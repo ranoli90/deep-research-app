@@ -568,3 +568,13 @@ Fix: persist each paid attempt under its own intent. Migration `045_model_operat
 Worker-lane ADR070 remapped here to ADR071 because integration already used ADR070 for the Wave 5 research controller.
 
 Rollback disables new failover/repair issuance while retaining attempt-chain readers, primary/fallback identities, receipts and holds. No live provider, prompt or public schema change.
+
+## ADR072 — Consumer events are versioned sanitized activity (2026-09-19)
+
+W07 / FP-077 / FP-078 / FP-085: `/v1/runs/:id/events` was returning persisted `type` and `publicSummary` beside a sanitizer the mobile client ignored. Progress UI mapped those legacy fields, so private-looking summaries could reach the screen and typed source metadata was not authoritative.
+
+Consumer events are `public-activity.v1`: id, runId, sequence, createdAt, schemaVersion, phase, `activity`. Raw type, publicSummary, payload, CoT, and URL paths stay server-internal. Envelope phase is an enum; sanitizer schema failure uses canned `researching` and never echoes raw phase. `sourceDomain` uses `publicSourceUrl` host rules (no RFC1918/`.internal`). Mobile `adoptPublicEvents` keeps only the DTO; null activity renders nothing. Android composer dock padding uses IME frame height plus a 48dp suggestion-strip inset (unit-tested). FP-085 remains open until a physical Gboard screenshot proves send is clear. This is not a visual restyle.
+
+Worker-lane ADR067 remapped here to ADR072 because integration already used ADR067 for Azure discovery v3.
+
+Impact checklist: additive public schema in contracts; backend sanitizer on the existing `/events` path; mobile activity/composer inset only. No migration, dependency, prompt, processor, spend, or design-token change. Rollback: restore the previous `/events` JSON and legacy mobile mapping; historical `run_events` rows remain readable.

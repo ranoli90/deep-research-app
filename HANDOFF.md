@@ -1,3 +1,7 @@
+## Wave 7 public activity — 2026-09-19
+
+Merged `grok-v8/fix-wave7-mobile-contract` `c3d7da1` (repair `3d936a8`) onto integration after review. **Do not merge `main`.** `/events` is `public-activity.v1`; schema-fail phase is canned `researching`; RFC1918/`.internal` hosts stripped. **FP-085 not closed.** Worker-local ADR067 remapped to ADR072.
+
 ## Wave 2 provider — 2026-09-19
 
 Merged `grok-v8/fix-wave2-provider` `7d78510` (impl `8fcf103`) onto integration after review. **Do not merge `main`.** Extract/support refuse `repairPass` unless prior is known-cost `invalid_output`. Gateway holds the same gate. Migration `045`. Worker-local ADR070 remapped to ADR071. Isolated worker PG gateway 146/146. Post-merge verification required.

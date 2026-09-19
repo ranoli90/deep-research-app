@@ -1,97 +1,93 @@
-/** Semantic activity labels from persisted run events. Never invent work. */
+import {
+  PublicActivitySchema,
+  type PublicActivity,
+  type PublicActivityKind,
+} from "@deep/contracts";
 
+/** Client event after /events sanitization. Legacy type/publicSummary are not authority. */
 export type ResearchEvent = {
   sequence: number;
-  type: string;
-  publicSummary: string;
-  phase?: string;
   createdAt?: string;
+  phase?: string;
+  activity: PublicActivity | null;
 };
 
-const PRIVATE_TYPES = new Set([
-  "thinking",
-  "thought",
-  "chain_of_thought",
-  "cot",
-  "raw_prompt",
-  "prompt",
-  "model_reasoning",
-  "hidden",
-]);
-
-const TYPE_LABELS: Record<string, string> = {
-  accepted: "Starting research",
-  intent_compiled: "Understood the question",
-  criteria_prepared: "Research questions are ready",
-  clarification_needed: "Need one detail before continuing",
-  clarify: "Need one detail before continuing",
-  clarification_answered: "Saved your clarification",
-  attachment_processing: "Reading your document",
-  attachment_processed: "Finished reading your document",
-  searching: "Searching public sources",
-  searched: "Searching",
-  sources_found: "Found sources",
-  opened_source: "Reading a source",
-  source_reading: "Reading a source",
-  source_read: "Reading a source",
-  source_unreadable: "Could not read a source",
-  evidence_selected: "Selected evidence",
-  evidence_checked: "Checked the evidence",
-  counterevidence_checked: "Checking for disagreements",
-  contradiction_found: "Found a disagreement",
-  freshness_checking: "Checking how current the evidence is",
-  discovery_exhausted: "Changed the search plan",
-  source_pivot: "Research plan updated",
-  calculations_executed: "Checked the numbers",
-  disconfirm_search: "Checking a conflicting claim",
-  writing: "Writing the answer",
-  report_ready: "Answer ready",
-  correction_accepted: "Updating from your correction",
-  follow_up_accepted: "Rechecking the claim",
-  cancel_requested: "Stopping new work",
-  cancelled: "Research cancelled",
-  stop_policy: "Reached a research limit",
-  step_limit: "Reached a research limit",
-  action_rejected: "Skipped a blocked step",
-  deleted: "This research was removed",
+export type VisibleResearchEvent = ResearchEvent & {
+  kind: PublicActivityKind;
+  label: string;
+  detail: string | null;
+  sourceTitle: string | null;
+  sourceDomain: string | null;
+  count: number | null;
 };
 
-function looksLikePrivateProse(text: string): boolean {
-  return /^\s*[{[]/.test(text) || /\b(system prompt|chain of thought|hidden reasoning)\b/i.test(text);
+function parseActivity(value: unknown): PublicActivity | null {
+  const parsed = PublicActivitySchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+/** Keep sequence/activity only. Ignore leftover type, publicSummary, and payload. */
+export function adoptPublicEvents(raw: unknown): ResearchEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const bySeq = new Map<number, ResearchEvent>();
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const sequence = Number(rec.sequence);
+    if (!Number.isInteger(sequence) || sequence < 0) continue;
+    bySeq.set(sequence, {
+      sequence,
+      createdAt: typeof rec.createdAt === "string" ? rec.createdAt : undefined,
+      phase: typeof rec.phase === "string" ? rec.phase : undefined,
+      activity: parseActivity(rec.activity),
+    });
+  }
+  return [...bySeq.values()].sort((a, b) => a.sequence - b.sequence);
+}
+
+function activityDetail(activity: PublicActivity): string | null {
+  const parts: string[] = [];
+  if (activity.sourceTitle) parts.push(activity.sourceTitle);
+  if (activity.sourceDomain) parts.push(activity.sourceDomain);
+  if (activity.count != null && parts.length === 0) parts.push(String(activity.count));
+  return parts.length ? parts.join(" · ") : null;
 }
 
 export function labelResearchEvent(event: ResearchEvent): { label: string; detail: string | null } | null {
-  if (PRIVATE_TYPES.has(event.type.toLowerCase())) return null;
-  const summary = event.publicSummary.trim();
-  if (looksLikePrivateProse(summary)) return null;
-  const mapped = TYPE_LABELS[event.type];
-  if (!mapped) return null;
-  const hideDetail = event.type === "source_pivot" || event.type === "action_rejected" || event.type === "stop_policy";
-  const detail = !hideDetail && summary && summary.toLowerCase() !== mapped.toLowerCase() ? summary : null;
-  return { label: mapped, detail };
+  if (!event.activity) return null;
+  return { label: event.activity.label, detail: activityDetail(event.activity) };
 }
 
-export function visibleResearchEvents(events: ResearchEvent[]): Array<ResearchEvent & { label: string; detail: string | null }> {
+export function visibleResearchEvents(events: ResearchEvent[]): VisibleResearchEvent[] {
   return events
     .slice()
     .sort((a, b) => a.sequence - b.sequence)
-    .map((event) => {
-      const labeled = labelResearchEvent(event);
-      return labeled ? { ...event, ...labeled } : null;
-    })
-    .filter((event): event is ResearchEvent & { label: string; detail: string | null } => event !== null);
+    .flatMap((event) => {
+      if (!event.activity) return [];
+      return [{
+        ...event,
+        activity: event.activity,
+        kind: event.activity.kind,
+        label: event.activity.label,
+        detail: activityDetail(event.activity),
+        sourceTitle: event.activity.sourceTitle,
+        sourceDomain: event.activity.sourceDomain,
+        count: event.activity.count,
+      }];
+    });
 }
 
 function sourceCount(events: ResearchEvent[]): number {
-  const opened = events.filter((e) => e.type === "opened_source");
-  const read = events.filter((e) => e.type === "source_read");
-  const counted = opened.length > 0 ? opened : read;
-  return new Set(counted.map((e) => e.sequence)).size;
+  const reads = events.filter((e) => e.activity?.kind === "source_reading");
+  return new Set(reads.map((e) => e.sequence)).size;
 }
 
 function eventTimes(events: ResearchEvent[]): number[] {
   return events
-    .map((e) => (e.createdAt ? Date.parse(e.createdAt) : Number.NaN))
+    .map((e) => {
+      const stamp = e.createdAt ?? e.activity?.createdAt;
+      return stamp ? Date.parse(stamp) : Number.NaN;
+    })
     .filter((n) => Number.isFinite(n));
 }
 
@@ -133,7 +129,7 @@ export function collapseResearchActivity(args: {
   const sources = sourceCount(args.events);
   const elapsed = elapsedLabel(args.events);
   const parts: string[] = [];
-  if (args.outcome === "cancelled" || args.events.some((e) => e.type === "cancelled")) {
+  if (args.outcome === "cancelled") {
     parts.push("Research cancelled");
   } else if (args.lifecycle === "awaiting_input") {
     parts.push("Waiting for a detail");
