@@ -1,7 +1,7 @@
 import {runModelPolicy} from "./run-model-policy.js";
 import type { Queryable } from "../platform/db.js";
 import { discoveryPolicyForNewSearch,SearchResultSchema } from "../ports/search.js";
-import { parseSourcePublicationDate, applySourcePolicy, policyFromRestrictions } from "@deep/research-core";
+import { parseSourcePublicationDate, applySourcePolicy, admitUserSuppliedUrl, policyFromRestrictions } from "@deep/research-core";
 import { getBrief, getRun } from "./runs.js";
 import { insertSource,insertVersionAndPassage } from "./evidence.js";
 import { bumpEvidence } from "./runs.js";
@@ -32,5 +32,24 @@ export async function adoptSearchSources(db:Queryable,args:{runId:string;account
  }
  if(changed)await bumpEvidence(db,args.runId);
  await persistSourceOrigins(db,{accountId:args.accountId,runId:args.runId});
+ return sourceIds;
+}
+
+/** Persist user-supplied locators as owned sources so the worker can read them. Search hits are not a substitute. */
+export async function adoptDirectUrls(db:Queryable,args:{runId:string;accountId:string}) {
+ const run=await getRun(db,args.runId);
+ const brief=run?await getBrief(db,run.brief_id):null;
+ const policy=policyFromRestrictions(brief?.sourceRestrictions);
+ const sourceIds:string[]=[];
+ for(const locator of policy.userSuppliedUrls){
+  if(!admitUserSuppliedUrl(policy,locator))continue;
+  const prior=(await db.query("SELECT id FROM sources WHERE account_id=$1 AND run_id=$2 AND canonical_locator=$3",[args.accountId,args.runId,locator])).rows[0];
+  if(prior){sourceIds.push(prior.id);continue;}
+  let host="source";
+  try { host=new URL(locator).hostname.replace(/^www\./,"").toLowerCase(); } catch { continue; }
+  const id=await insertSource(db,{accountId:args.accountId,runId:args.runId,locator,title:host,publisher:host,originCluster:`direct:${host}`,sourceType:"web"});
+  sourceIds.push(id);
+ }
+ if(sourceIds.length)await bumpEvidence(db,args.runId);
  return sourceIds;
 }

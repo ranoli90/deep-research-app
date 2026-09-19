@@ -5,7 +5,7 @@ import { applyExternalSemanticOverlay, compileSemanticOverlay, pickTaskFamily } 
 import { extraMaterialClarifications } from "../src/clarification-fields.js";
 import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion, applyNeedEvidence } from "../src/evidence-needs.js";
 import { routeFollowUp } from "../src/follow-up-router.js";
-import { applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
+import { admitUserSuppliedUrl, applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
 import { buildCandidateLedger, reopenExclusions } from "../src/candidate-ledger.js";
 import { planTypedQuery } from "../src/query-planning.js";
 import { evaluateDiscoveryContinuation } from "../src/adaptive-breadth.js";
@@ -267,6 +267,11 @@ describe("source policy and query planning", () => {
     expect(applySourcePolicy(policy, "https://uscode.house.gov/view.xhtml?req=title:29")).toBe("prefer");
     expect(applySourcePolicy(policy, "https://www.ncontracts.com/nsight-blog/laws")).toBe("exclude");
     expect(applySourcePolicy(policy, "https://scarincihollenbeck.com/law-firm-insights/guidance")).toBe("exclude");
+    const withUrl = mergeSteeringIntoPolicy(defaultSourcePolicy(), "Only use official sources. Check this URL too https://vendor.example/spec");
+    expect(withUrl.userSuppliedUrls).toContain("https://vendor.example/spec");
+    expect(applySourcePolicy(withUrl, "https://vendor.example/spec")).toBe("exclude");
+    expect(admitUserSuppliedUrl(withUrl, "https://vendor.example/spec")).toBe(true);
+    expect(admitUserSuppliedUrl(mergeSteeringIntoPolicy(withUrl, "Exclude vendor.example"), "https://vendor.example/spec")).toBe(false);
   });
 
   it("keeps private terms unexpanded without approval", () => {

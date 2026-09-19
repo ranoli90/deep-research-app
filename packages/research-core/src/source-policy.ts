@@ -57,6 +57,14 @@ export function isOfficialPrimaryHost(host: string): boolean {
   );
 }
 
+/** Explicit user URLs are fetched unless the host is excluded or the locator is invalid. prefer_primary does not drop them. */
+export function admitUserSuppliedUrl(policy: SourcePolicy, locator: string): boolean {
+  const host = hostOf(locator);
+  if (!host) return false;
+  if (policy.excludedDomains.some((d) => host === d || host.endsWith(`.${d}`))) return false;
+  return policy.userSuppliedUrls.includes(locator);
+}
+
 export function applySourcePolicy(policy: SourcePolicy, locator: string): "admit" | "prefer" | "exclude" {
   const host = hostOf(locator);
   if (!host) return "exclude";

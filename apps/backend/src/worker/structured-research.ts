@@ -22,7 +22,7 @@ import { executeAssertionSupport } from "./support-execution.js";
 import { executeCoverageReview } from "./research-coverage.js";
 import { performPublicSearch } from "./public-search.js";
 import { executeSourceRead } from "./source-reading.js";
-import { adoptSearchSources } from "../modules/search-sources.js";
+import { adoptSearchSources, adoptDirectUrls } from "../modules/search-sources.js";
 import { writeResearchReport } from "./research-writer.js";
 
 function confirmedDiscoveryQuery(brief:{originalQuestion:string;constraints:{field:string;value:string;origin?:string}[]},query:string) {
@@ -154,6 +154,16 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1
     AND v.access_level IN ('partial-text','full-text') ORDER BY p.id LIMIT $3`,[args.accountId,args.runId,selectionEnabled?1:null]));
   let selected=await selectPassages();
+  const sourcePolicy=policyFromRestrictions(brief.sourceRestrictions);
+  if(sourcePolicy.userSuppliedUrls.length&&config.liveRetrievalEnabled){
+    const direct=await session.write((db)=>adoptDirectUrls(db,args));
+    if(direct.length){
+      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"sources_found",phase:"researching",
+        summary:"Opened a user-supplied source.",payload:{count:direct.length}}));
+      await readAdoptedSources(prepared.task.id,direct,Object.keys(prepared.task.questionIds),"Read the user-supplied source.");
+      selected=await selectPassages();
+    }
+  }
   const savedChallenge=await session.write(db=>getCounterevidence(db,args));
   const challengeQuery=savedChallenge?counterevidenceSearch(brief.originalQuestion,savedChallenge.action.questionKeys):null;
   // The search receipt may commit before its challenge pointer. Recover its purpose
