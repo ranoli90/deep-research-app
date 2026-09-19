@@ -45,11 +45,16 @@ const mixedFractionValues = (s:string):string[] => {
   }
   return [...found];
 };
+const quoteNumbers = (quote:string):number[] =>
+  [...numbers(quote),...measuredNumbers(quote),...mixedFractionValues(quote)].map(Number).filter((n)=>Number.isFinite(n));
 const quantityValueInQuote = (value:string, quote:string):boolean => {
   const v=value.replace(/,/gu,"");
-  if(numbers(quote).includes(v)||measuredNumbers(quote).includes(v)||mixedFractionValues(quote).includes(v))return true;
+  const wanted=Number(v);
+  if(Number.isFinite(wanted)&&quoteNumbers(quote).some((n)=>n===wanted))return true;
   const range=v.match(/^(-?\d+(?:\.\d+)?)\s*[-–—to]+\s*(-?\d+(?:\.\d+)?)$/u);
-  return Boolean(range&&numbers(quote).includes(range[1]!)&&numbers(quote).includes(range[2]!));
+  if(!range)return false;
+  const a=Number(range[1]), b=Number(range[2]), found=quoteNumbers(quote);
+  return Number.isFinite(a)&&Number.isFinite(b)&&found.includes(a)&&found.includes(b);
 };
 /** Grouped prices such as $2,699.99 are one number; comma-split fragments are not the quantity. */
 const numbers = (s:string):string[] => {

@@ -70,10 +70,13 @@ it("does not hide a grounded RAM paragraph because the model asked for an unrela
 });
 it("grounds a mixed-fraction federal funds range and US/current question labels",()=>{
   const quote="The Committee decided to raise the target range for the federal funds rate by 1/4 percentage point to 3-3/4 to 4 percent.";
-  const claim="The target range for the federal funds rate is 3-3/4 to 4 percent.";
+  const claim="The current target range for the federal funds rate is 3-3/4 to 4 percent.";
   const scope={entity:"US",plan:null,version:null,geography:"United States",time:"current",population:null};
   const result=resolveScopedSupport({assertions:[{key:"current_rate",candidateKey:null,criterionKeys:["current_rate"],text:claim,scope,
-    quantities:[{unit:"percentage",value:"3.75",currency:null,qualifier:"target range",billingPeriod:null}],
+    quantities:[
+      {unit:"percentage",value:"3.75",currency:null,qualifier:"lower bound",billingPeriod:null},
+      {unit:"percentage",value:"4.00",currency:null,qualifier:"upper bound",billingPeriod:null},
+    ],
     evidence:[{passageId:pid,start:0,end:quote.length,quote}]}],
     passages:[{id:pid,text:quote,accessLevel:"partial-text"}],
     proposal:{assessments:[{claimKey:"current_rate",status:"supported",scope,evidence:[{passageId:pid,start:0,end:quote.length,quote}],rationale:"Fed target range",missingEvidence:[]}]}})[0]!;
