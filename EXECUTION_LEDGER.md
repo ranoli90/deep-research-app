@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-18 — Research Beta integration native QA + consumer chrome
+
+- Isolated `grok-v8/research-beta-integration` from `main@8a7b1a9`; merged C/A/B; canonical 042/043. Not merged to main.
+- Full PostgreSQL 474/474 on `deep_v8_int4` EXIT 0 (second full 474 on earlier isolated DB); W03 lock-race 12/12.
+- EAS `7ef789a2` (`942a65e`) installed on `10.0.0.167:43417`; visual matrix + short-report gfxinfo (0.31% janky).
+- `80e0aec`: Settings processor dump behind How we process data; follow-ups skip process-meta caveats; continue-thread placeholder Ask anything.
+- External blockers unchanged: GitHub Actions billing lock `35411856817`; live journeys outside `$0.40` MC-D01 frozen SQLite + unknown holds.
+
 ## 2026-09-18 — Session C visual overhaul (consumer chrome)
 
 - Removed bottom Research/Library tabs. Header: Library, Deep/question, New research, avatar Settings. Android back: keyboard → attach → source → tab; never cancel.

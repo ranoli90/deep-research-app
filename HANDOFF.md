@@ -1,6 +1,6 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Branch `grok-v8/research-beta-integration` HEAD `cb6f3b0` (pushed). Device APK proven for keyboard: EAS `3494e414` / git `422fa9a`. Later commits include steering, Evidence Needs continuation, Library `FlatList`, and injection cases. Hosted CI is blocked by GitHub billing lock. Live public-web Research Beta journeys are blocked pending authorization beyond `$0.40` MC-D01 frozen SQLite and release of unknown holds. Do not merge to `main`.
+Branch `grok-v8/research-beta-integration` HEAD `80e0aec`. Device APK `7ef789a2` / git `942a65e` installed on `10.0.0.167:43417`; keyboard, empty, Library, report, source sheet, Settings, offline, large text captured. Full PostgreSQL 474/474 twice; lock-race W03 12/12. Hosted CI is blocked by GitHub billing lock. Live public-web Research Beta journeys are blocked pending authorization beyond `$0.40` MC-D01 frozen SQLite and release of unknown holds. Do not merge to `main`.
 
 ## Integration merge B — 2026-09-18
 

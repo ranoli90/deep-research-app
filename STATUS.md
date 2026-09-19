@@ -1,8 +1,8 @@
 ## Research Beta integration checkpoint — 2026-09-18
 
-Lane: `grok-v8/research-beta-integration` at `cb6f3b0`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
+Lane: `grok-v8/research-beta-integration` at `80e0aec`. Starts at `main@8a7b1a9`. Merged C `0a694f9`, final A `8abcffd`, current B `e0b00df`. Canonical migrations `042_model_portfolio.sql` then `043_retrieval_intelligence.sql`. **Not merged to `main`.** Research Beta is not declared.
 
-**Executed:** Azure exact-quote extraction cases pass after pinning `STRUCTURED_MODEL_POLICY_ID` on API admission. Physical device `10.0.0.167:43417` (25098RA98G) has APK `3494e414` (`422fa9a`); composer sits above the keyboard. Cleartext is device-profile-only. Evidence Needs now gate extra searches. Steering persists `sourceRestrictions` without rewriting the original question.
+**Executed:** Full PostgreSQL integration 474/474 twice (`deep_v8_int4` EXIT 0; prior isolated 474/474) plus W03 lock-race 12/12. EAS APK `7ef789a2` (git `942a65e`) installed on `10.0.0.167:43417` (25098RA98G); native matrix captured (empty light/dark, keyboard above composer, Library, report, source sheet, Settings, correction composer, expanded activity, large text, offline Retry). `80e0aec` hides processor dump behind How we process data and drops Resolve-dump follow-ups; that SHA is not in `7ef789a2`.
 
 **True external blockers:** GitHub Actions run `35411856817` did not start (`account is locked due to a billing issue`). Live no-file public journeys are outside the recorded `$0.40` MC-D01 frozen-SQLite cap; unknown holds remain unreleased. No additional spend was inferred from a key being present.
 
