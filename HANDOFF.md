@@ -1,3 +1,7 @@
+## Closure gate SHA 71a14a3 — 2026-09-20
+
+Product SHA **`71a14a3`**. `pnpm verify` EXIT 0. PG **541/541** twice on `deep_resume_pg1` / `deep_resume_pg2`. Singleton-section scope comparison omitted on hierarchical writes. Native current-HEAD APK still blocked (wireless debugging down). Live J8/J11 not granted. **Do not merge `main`.** Phase A/B not complete.
+
 ## Contract closures — 2026-09-20
 
 CL-01 continue identity, CL-02 assumption revision/child, CL-03 deepen handler, CL-07 canonical section keys. See `verification/v8/CLOSURE_LEDGER.md`. Do not merge `main`.

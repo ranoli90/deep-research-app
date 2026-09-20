@@ -1,5 +1,15 @@
 # Execution ledger
 
+## 2026-09-20 — closure gate at 71a14a3
+
+- Product SHA `71a14a39d0b30174835f9875a8019ee0ed234f15` on `grok-v8/research-beta-integration`. `main` stayed `8a7b1a9`.
+- Defect: comparison jobs section-write with one claim per section while keeping the job-level `scopeComparison`; `validateOwnedModelContext` called `compareAssertionScopes` with `claimKeys.length === 1` and failed Zod min(2). Wave 5 “creates independent challenge state for two consequential conclusions” was 540/541 at `0075431`.
+- Repair: `sectionScopeComparison` / `sectionWriterContext` omit comparison below two assertions and reproject when a section still has two-plus claims. `validateOwnedModelContext` fail-closes leftover comparison on a singleton context.
+- `pnpm verify` EXIT 0 at this SHA, porcelain 0: core 314, backend unit 245, mobile 316, governance 6, boundaries ok.
+- Isolated PG `TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_resume_pg1` **541/541** EXIT 0 (1052s). Same command on `deep_resume_pg2` **541/541** EXIT 0 (1068s).
+- Focused Wave 5 file 3/3 EXIT 0 after the repair. ADB `10.0.0.167:43417` connection refused (retry 2026-09-20T02:17:50-06:00); not native PASS.
+- Not merged to main. No GHA. No new paid spend. Phase A/B not declared complete.
+
 ## 2026-09-20 — CL-01/02/03/07 contract closures
 
 - Continue/assumption bodies built by `continueRunRequest` / `assumptionsRequest` against shared Zod schemas; old `{answers}`-only continue fails the schema.

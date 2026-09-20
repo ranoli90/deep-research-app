@@ -1,3 +1,9 @@
+## Closure gate SHA 71a14a3 — 2026-09-20
+
+`grok-v8/research-beta-integration` product SHA **`71a14a39d0b30174835f9875a8019ee0ed234f15`**. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. Phase A and Phase B are not complete.
+
+At this SHA: `pnpm verify` EXIT 0 (research-core **314**, backend unit **245**, mobile **316**, governance **6/6**, boundaries ok). Isolated `TEST_DATABASE_URL` PG **541/541** twice — `deep_resume_pg1` 1052s EXIT 0 and `deep_resume_pg2` 1068s EXIT 0. Hierarchical comparison writes omit job-level `scopeComparison` on singleton sections, so Wave 5 independent-challenge no longer fails `claimKeys` min-2. `wave5-intelligence.integration` **3/3** on the shipped writer. Wireless ADB `10.0.0.167:43417` still connection refused (host pings). Historical `f627b2b` PG and `95432e9` APK are not this SHA.
+
 ## Contract closures CL-01–CL-03/CL-07 — 2026-09-20
 
 Shared `ContinueRunRequestSchema` / `AssumptionsRequestSchema` / `routeFollowUp` in `@deep/contracts`. Mobile continue now sends server-issued `pendingInputId` + `expectedBriefRevision` + typed `field`. Assumption replace sends revision and adopts a child run. Deepen no longer falls into verification. Hierarchical write plans from the original assertion basis with deduped section keys. Mobile **311/311**. Backend unit **242/242**. brief-continue **9/9**. followup-explain **4/4**. **Not merged to `main`.** Native current-HEAD APK still blocked. Exact-SHA PG 541/541 still `f627b2b`. Live J8/J11 not rerun.
