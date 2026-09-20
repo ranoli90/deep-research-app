@@ -4,7 +4,7 @@ import { limitedCoverageDisclosed,resolveResearchCoverage,validateModelBindings 
 import type { Queryable } from "../platform/db.js";
 import type { TaskModelVersions } from "./research-tasks.js";
 import type { SupportArgs } from "./scoped-support.js";
-import { CALCULATED_REPORT_PROMPT_VERSION } from "../ports/model-policy.js";
+import { CALCULATED_REPORT_PROMPT_VERSION, modelPolicy } from "../ports/model-policy.js";
 import { ModelReceiptSchema } from "../ports/model.js";
 import { loadModelOperation } from "./model-operations.js";
 import { assembleCalculatedDraft } from "./calculated-draft.js";
@@ -13,10 +13,10 @@ type Args=SupportArgs&{supportIntentId:string;modelIntentId:string};
 
 export async function persistCalculatedCoverage(db:Queryable,args:Args,versions:TaskModelVersions,requireStored=false) {
  const basis=await assembleCalculatedDraft(db,args,versions);
- const row=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
+ const row=(await db.query(`SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
   AND brief_revision=$4 AND evidence_revision=$5`,[args.modelIntentId,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision])).rows[0];
  if(!row||!basis.context.task)throw new Error("calculated_coverage_owner_or_basis_mismatch");
- const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,row.request_digest,basis.context,{operation:"review_calculated_coverage",schemaVersion:CALCULATED_REPORT_SCHEMA_VERSION,promptVersion:CALCULATED_REPORT_PROMPT_VERSION,policyId:versions.policyId});
+ const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,row.request_digest,basis.context,{operation:"review_calculated_coverage",schemaVersion:CALCULATED_REPORT_SCHEMA_VERSION,promptVersion:CALCULATED_REPORT_PROMPT_VERSION,policyId:modelPolicy(row.policy_id).id});
  const proposal=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.review_calculated_coverage,receipt:ModelReceiptSchema}).strict().parse(raw).output;
  if(validateModelBindings("review_calculated_coverage",proposal,basis.context).length)throw new Error("invalid_calculated_coverage_bindings");
  const entries=basis.context.calculations.entries;

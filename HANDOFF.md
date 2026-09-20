@@ -1,3 +1,7 @@
+## R-02 / CL-07 writer restore — 2026-09-20
+
+Isolated branch `grok-v8/r02-cl07-writer-restore` from parent `9677232`. Restore accepted failover writes under the recorded policy identity; do not relabel as primary. Persist composition after each section; completed replay must not shrink; resume after a crash between sections. Tests call production `createResearchDraft` / `restoreWriterDraft` on isolated Postgres `deep_r02_a0bfe8` **4/4**. **Do not merge `main`.** No GHA. Rollback: revert this commit.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

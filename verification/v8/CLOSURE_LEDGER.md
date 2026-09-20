@@ -7,7 +7,7 @@ Parent requirements from the independent review of `75dee72` are **not** closed 
 | ID | Implemented now | Evidence class | Remaining |
 |---|---|---|---|
 | R-01 / CL-03 budget | Typed change on follow-up; original question kept | HTTP follow-up + intent/candidates unit | Full PG; native current-SHA APK; live correction usefulness |
-| R-02 / CL-07 sections | `sectionWrite` in context/manifest; persist each section; restore without primary policy filter | Production `createResearchDraft` + DB restore 1/1 | Fallback-policy restore HTTP; interruption races; live J11 |
+| R-02 / CL-07 sections | `sectionWrite` in context/manifest; persist each section; restore recorded fallback policy without relabeling primary; prefix replay cannot shrink | Production `createResearchDraft` / `restoreWriterDraft` / DB 4/4 | Live J11 |
 | R-03 / CL-04 journal | SHA-256 key; no overwrite; explain does not clear mutation; require runId | Mobile unit + App wiring | Component callback failure matrix; device double-tap |
 | R-04 / CL-01 continue | Extra/conflict/mixed-field 400; null field reissue | HTTP continue 12/12 | Concurrent answer/cancel; declared multi-field pause |
 | R-05 / CL-03 deepen | Investigation `desiredOutcome`; not command assumption | HTTP deepen + desiredOutcome | Deepen planning/evidence difference; synthetic J8/J11 production; live grant |

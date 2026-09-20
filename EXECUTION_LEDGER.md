@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-20 — R-02 / CL-07 fallback-policy restore and composition races
+
+- `loadSupportContext`, writer `restoreWriterDraft`, support/coverage loaders use the stored `model_operation_results.policy_id`. They do not require `versions.policyId` and do not rewrite it to the run primary.
+- `persistResearchDraftComposition` inserts on conflict-do-nothing, locks the row, extends a prefix, and keeps a longer completed composition.
+- `recordResearchDraft` treats a stored prefix-superset as keep so a prefix replay cannot shrink.
+- Tests execute production `createResearchDraft` / `restoreWriterDraft` / `loadSupportContext` / `writeResearchReport` against Postgres, not source greps.
+- Isolated DB `deep_r02_a0bfe8` on `127.0.0.1:55432`. Focused vitest **4/4**. Hierarchy units **6/6**. Backend tsc 0. Not merged to main. No GHA.
+
 ## 2026-09-20 — device live, Stop completion, brief quote location
 
 - Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.

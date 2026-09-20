@@ -1,7 +1,7 @@
 import { applySelectionInventorySupport } from "./selection-inventory-support.js";
 import { EvidenceSelectionContextSchema } from "../ports/evidence-selection.js";
 import { calculationWriterContext } from "./calculation-plans.js";
-import { CALCULATED_REPORT_PROMPT_VERSION } from "../ports/model-policy.js";
+import { CALCULATED_REPORT_PROMPT_VERSION, modelPolicy } from "../ports/model-policy.js";
 import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -19,13 +19,16 @@ export type SupportArgs={runId:string;accountId:string;briefRevision:number;task
 const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v2","model-input.v3","model-input.v4","model-input.v5","model-input.v6","model-input.v7","model-input.v8"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
 const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
+/** Accepted failover keeps its own policy id; restore must not require the run's primary policy. */
+function recordedPolicyId(policyId:unknown):string { return modelPolicy(policyId).id; }
 
 /** Restore only the exact owned extraction basis, not client-supplied assertions. */
 export async function loadSupportContext(db:Queryable,args:SupportArgs,versions:TaskModelVersions):Promise<SupportContext> {
   const row=(await db.query(`SELECT * FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
-    AND operation IN ('extract_assertions','write_report','write_calculated_report') AND brief_revision=$4 AND ((schema_version=$5 AND prompt_version=$6 AND operation!='write_calculated_report') OR (schema_version=$8 AND prompt_version=$9 AND operation='write_calculated_report')) AND policy_id=$7`,
-    [args.extractionIntentId,args.runId,args.accountId,args.briefRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,CALCULATED_REPORT_SCHEMA_VERSION,CALCULATED_REPORT_PROMPT_VERSION])).rows[0];
+    AND operation IN ('extract_assertions','write_report','write_calculated_report') AND brief_revision=$4 AND ((schema_version=$5 AND prompt_version=$6 AND operation!='write_calculated_report') OR (schema_version=$7 AND prompt_version=$8 AND operation='write_calculated_report'))`,
+    [args.extractionIntentId,args.runId,args.accountId,args.briefRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,CALCULATED_REPORT_SCHEMA_VERSION,CALCULATED_REPORT_PROMPT_VERSION])).rows[0];
   if (!row) throw new Error("support_extraction_owner_or_version_mismatch");
+  recordedPolicyId(row.policy_id);
   if(row.operation==="write_report"||row.operation==="write_calculated_report") return loadWriterAssertionContext(db,args,versions);
   const manifest=Manifest.safeParse(row.input_manifest);
   if (!manifest.success) throw new Error("support_extraction_manifest_unavailable");
@@ -48,11 +51,12 @@ export async function persistScopedSupport(db:Queryable,args:SupportArgs & {mode
   if (basis.evidenceRevision!==args.evidenceRevision || digest(basis.context)!==digest(args.context)) throw new Error("stale_support_context");
   const task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,versions);
   if (!task || task.id!==args.taskId) throw new Error("support_task_mismatch");
-  const model=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
-    AND operation='assess_support' AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,
-    [args.modelIntentId,args.runId,args.accountId,args.briefRevision,args.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId])).rows[0];
+  const model=(await db.query(`SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
+    AND operation='assess_support' AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7`,
+    [args.modelIntentId,args.runId,args.accountId,args.briefRevision,args.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion])).rows[0];
   if (!model) throw new Error("missing_support_execution");
-  const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,model.request_digest,basis.context);
+  const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,model.request_digest,basis.context,{
+    operation:"assess_support",schemaVersion:RESEARCH_MODEL_SCHEMA_VERSION,promptVersion:versions.promptVersion,policyId:recordedPolicyId(model.policy_id)});
   const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.assess_support,receipt:ModelReceiptSchema}).strict().safeParse(raw);
   if (!parsed.success) throw new Error("invalid_support_execution");
   const outcomes=resolveScopedSupport({assertions:basis.context.assertions,passages:basis.context.passages,proposal:parsed.data.output});
@@ -147,7 +151,8 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
       const model=(await db.query("SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4 AND evidence_revision=$5",
         [recorded.intentId,args.runId,args.accountId,operation,row.evidence_revision])).rows[0];
       if(!model)throw new Error("writer_result_unavailable");
-      const raw=await loadModelOperation(db,recorded.intentId,args.runId,args.accountId,model.request_digest,sectionContext);
+      const raw=await loadModelOperation(db,recorded.intentId,args.runId,args.accountId,model.request_digest,sectionContext,{
+        operation,schemaVersion:RESEARCH_MODEL_SCHEMA_VERSION,promptVersion:versions.promptVersion,policyId:recordedPolicyId(model.policy_id)});
       const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.write_report,receipt:ModelReceiptSchema}).strict().safeParse(raw);
       if(!parsed.success||validateModelBindings("write_report",parsed.data.output,sectionContext).length)throw new Error("invalid_writer_result");
       drafts.push(parsed.data.output);
@@ -156,9 +161,12 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
     if(validateModelBindings("write_report",draft,basis.context).length)throw new Error("invalid_writer_result");
     return {basis,draft,calculationKeys:[] as string[]};
   }
-  const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4",[args.extractionIntentId,args.runId,args.accountId,operation])).rows[0];
+  const model=(await db.query("SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4",[args.extractionIntentId,args.runId,args.accountId,operation])).rows[0];
   if(!model)throw new Error("writer_result_unavailable");
-  const raw=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,model.request_digest,basis.context);
+  const schemaVersion=calculated?CALCULATED_REPORT_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION;
+  const promptVersion=calculated?CALCULATED_REPORT_PROMPT_VERSION:versions.promptVersion;
+  const raw=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,model.request_digest,basis.context,{
+    operation,schemaVersion,promptVersion,policyId:recordedPolicyId(model.policy_id)});
   const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs[operation],receipt:ModelReceiptSchema}).strict().safeParse(raw);
   if(!parsed.success||validateModelBindings(operation,parsed.data.output,basis.context).length)throw new Error("invalid_writer_result");
   const {calculationKeys=[],...draft}=parsed.data.output as typeof parsed.data.output & {calculationKeys?:string[]};
