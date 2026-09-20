@@ -68,6 +68,13 @@ describe("criterion-specific freshness", () => {
     ).toBe("stale");
     const history = freshnessPolicyForQuestion("When was the 2011 founding of Zephyr recorded?");
     expect(history.class).toBe("historical");
+    expect(freshnessPolicyForQuestion("when was Taco Bell founded").class).toBe("historical");
+    expect(
+      sourcesHaveUnmetFreshness(freshnessPolicyForQuestion("when was Taco Bell founded"), [
+        { publicationDate: new Date("2015-03-01T00:00:00Z"), retrievedAt: now },
+        { publicationDate: null, retrievedAt: now },
+      ], now),
+    ).toBe(false);
     expect(
       evaluateFreshness(history, {
         observedAt: now,

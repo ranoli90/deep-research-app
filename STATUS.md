@@ -1,3 +1,7 @@
+## Founded-year freshness — 2026-09-20
+
+`when was Taco Bell founded` was classified as generic (1-year freshness) because the historical matcher required `founding`, not `founded`. Old official pages then looked stale and discovery kept going. Matcher now includes founded/established/incorporated. Not merged to `main`.
+
 ## Device live path, Stop completion, brief quote location — 2026-09-20
 
 `grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS. Research Beta is not declared.

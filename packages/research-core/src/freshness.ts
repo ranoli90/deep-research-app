@@ -43,7 +43,7 @@ export function freshnessPolicyForQuestion(question: string, criterionKey?: stri
       rationale: "Software compatibility needs the currently applicable version/release.",
     };
   }
-  if (/\b(history|historical|founding|outbreak|war of|treaty of)\b/i.test(q) && !/current|today|price|pricing/i.test(q)) {
+  if (/\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of)\b/i.test(q) && !/current|today|price|pricing/i.test(q)) {
     return {
       version: FRESHNESS_POLICY_VERSION,
       class: "historical",
