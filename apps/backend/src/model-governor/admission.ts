@@ -1,4 +1,4 @@
-import { modelPolicy, type ModelPolicyId } from "../ports/model-policy.js";
+import { strictPolicyForNewAdmission, modelPolicy, type ModelPolicyId } from "../ports/model-policy.js";
 import { capabilitiesFor, type PrivacyRequirement } from "./portfolio.js";
 import { cacheSessionPolicy, resolveOperationRoute } from "./routing.js";
 
@@ -24,7 +24,9 @@ function pinRejection(policyId: string, privacy: PrivacyRequirement, structuredO
 
 /**
  * New runs take the cheap-first admitted route. Explicit eval/operator pins stay
- * only when that policy itself is privacy-admitted. Parent identity is inherited.
+ * only when that policy itself is privacy-admitted. A child run is a new admission
+ * of the parent's processor under current strict semantics; the parent policy id
+ * is not rewritten.
  */
 export function chooseAdmittedRunPolicy(args: {
   runId: string;
@@ -35,7 +37,7 @@ export function chooseAdmittedRunPolicy(args: {
   attemptReserveMicro: number;
 }): RunPolicyChoice {
   if (args.parentPolicyId) {
-    const policyId = modelPolicy(args.parentPolicyId).id;
+    const policyId = strictPolicyForNewAdmission(args.parentPolicyId);
     return {
       policyId,
       admission: "inherited_parent_policy",

@@ -54,6 +54,8 @@ describe("token-aware context admission", () => {
 });
 
 it("ENG-004 never clamps a large writer reserve below its worst-case configured cost", () => {
+ const src=readFileSync(new URL("../src/adapters/model/token-budget.ts", import.meta.url), "utf8");
+ expect(src).not.toMatch(/STRUCTURED_CALL_RESERVE_MICRO/);
  const budget=operationBudget("write_report",STRUCTURED_MODEL_POLICY.id);
  const body="x".repeat(300_000);
  const worst=Math.ceil(((STRUCTURED_MODEL_POLICY.contextTokens-budget.maxOutputTokens)*STRUCTURED_MODEL_POLICY.promptMicroPerMillion+budget.maxOutputTokens*STRUCTURED_MODEL_POLICY.completionMicroPerMillion)/1_000_000);

@@ -13,7 +13,7 @@ import { getBrief, getRun } from "../src/modules/runs.js";
 import { createDevSession, grantConsent } from "../src/modules/access.js";
 import { processRun } from "../src/worker/executor.js";
 import { loadSupportContext } from "../src/modules/scoped-support.js";
-import { TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
+import { runModelVersions } from "../src/modules/run-model-policy.js";
 import * as publicTransport from "../src/platform/ssrf.js";
 import * as extraction from "../src/adapters/extraction/offline.js";
 
@@ -238,6 +238,6 @@ describe("production continue after geography clarification", () => {
       briefRevision: continued!.brief_revision,
       taskId: task.rows[0]!.id,
       extractionIntentId: extract.rows[0]!.intent_id,
-    }, TASK_MODEL_VERSIONS)).resolves.toMatchObject({ evidenceRevision: expect.any(Number) });
+    }, await runModelVersions(pool, runId))).resolves.toMatchObject({ evidenceRevision: expect.any(Number) });
   }, 60_000);
 });

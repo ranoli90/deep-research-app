@@ -1276,7 +1276,7 @@ describe("W05 executed scope comparisons",()=>{
   expect(await executeScopeComparison(x.session,{...c.args,action:{type:"compare_scopes",claimKeys:[...c.args.action.claimKeys].reverse()}})).toEqual({...result,reused:true});
   const row=(await pool.query("SELECT * FROM scope_comparisons WHERE id=$1",[result.id])).rows[0];
   expect(row.claim_revision_ids).toEqual(c.support.checks.map(c=>c.claimRevisionId));expect(row.input_digest).toMatch(/^[a-f0-9]{64}$/);
-  const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+  const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
   expect(writer.context.scopeComparison).toMatchObject({version:"scope-comparison-context.v1",claimKeys:["area","area_rephrased"],groups:[{relations:["equal","unknown","unknown","unknown","equal","unknown"],pairs:[[0,1]]}],entailment:"not_assessed",quantityCompatibility:"not_assessed"});expect(provider).not.toHaveBeenCalled();
  }));
  it("rejects foreign owners, wrong revisions, unknown targets and extra authority",async()=>runCase(async x=>{
@@ -1291,7 +1291,7 @@ describe("W05 executed scope comparisons",()=>{
   const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
   await pool.query("UPDATE scope_comparisons SET result=jsonb_set(result,'{pairs,0,status}','\"scope_matches\"') WHERE run_id=$1",[x.runId]);
   await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_comparison_mismatch");
-  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_comparison_mismatch");
+  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId))).rejects.toThrow("stored_scope_comparison_mismatch");
  }));
  it("changed claim revision invalidates a comparison and deletion removes derived records",async()=>runCase(async x=>{
   const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
@@ -1328,7 +1328,7 @@ it("W05 oversized structured context is an explicit blocked outcome before provi
 }));
 it("W05 legacy comparison preserves its original writer representation even with an unknown attempt",async()=>runCase(async x=>{
  const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
- const basis=await loadSupportContext(pool,c.args,TASK_MODEL_VERSIONS);
+ const basis=await loadSupportContext(pool,c.args,await runModelVersions(pool,x.runId));
  // Frozen pre-migration026 identity construction: seed the exact prior format, not a new-format alias.
  const legacyInput={action:c.args.action,taskId:c.args.taskId,briefRevision:1,evidenceRevision:basis.evidenceRevision,evidence:modelInputManifest(basis.context),
   claims:c.support.checks.map(c=>({key:c.claimKey,claimRevisionId:c.claimRevisionId,decision:c.decision})),supportCheckerVersion:SCOPED_SUPPORT_VERSION};
@@ -1338,7 +1338,7 @@ it("W05 legacy comparison preserves its original writer representation even with
  const writerArgs={...c.args,sourceSupportIntentId:c.support.intentId};
  expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
  expect(await executeScopeComparison(x.session,c.args)).toMatchObject({id:created.id,reused:true,writerContextVersion:"scope-comparison.v1"});
- const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
  expect(writer.context.scopeComparison).toEqual(created.result);expect(modelInputManifest(writer.context).version).toBe("model-input.v2");
  expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
  expect(provider).toHaveBeenCalledTimes(1);
@@ -1347,7 +1347,7 @@ it("W05 legacy comparison preserves its original writer representation even with
 }));
 it("W05 projection metadata and model-bound pair tampering fail closed",async()=>runCase(async x=>{
  const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
- const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
  if(writer.context.scopeComparison?.version!=="scope-comparison-context.v1")throw new Error("missing compact context");
  writer.context.scopeComparison.groups[0]!.relations[0]="different";
  const provider=vi.fn();globalThis.fetch=provider;
@@ -1355,7 +1355,7 @@ it("W05 projection metadata and model-bound pair tampering fail closed",async()=
  expect(provider).not.toHaveBeenCalled();
  await pool.query("UPDATE scope_comparisons SET writer_context_version='scope-comparison.v1' WHERE id=$1",[created.id]);
  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_context_version_mismatch");
- await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_context_version_mismatch");
+ await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId))).rejects.toThrow("stored_scope_context_version_mismatch");
 }));
 
 async function calculationCase(x:Parameters<Parameters<typeof runCase>[0]>[0],wrongBinding=false) {

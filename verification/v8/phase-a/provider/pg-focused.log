@@ -1,13 +1,104 @@
 
-> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
-> vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts test/model-gateway.integration.test.ts -t 'ENG-006|availability failover|unknown fallback|primary 429|issued reservation|does not resend|known-zero|repair'
-
-
  RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
 
+ ✓ test/model-gateway.integration.test.ts (154 tests) 307937ms
+     ✓ performs and stores scoped checks with stable claim revisions on replay  469ms
+     ✓ persists a deterministic veto when the model approves changed units  304ms
+     ✓ records uncertainty instead of turning missing evidence into full support  306ms
+     ✓ rejects missing bindings without a support record  348ms
+     ✓ does not issue a support repair pass when invalid_output cost is unknown  325ms
+     ✓ does not reuse corrupted claim revisions or support receipts  558ms
+     ✓ purges scoped assertions and support results on deletion  395ms
+     ✓ publishes a checked paraphrase and preserves canonical assertion identity on reopen  484ms
+     ✓ does not fall back to literal support when a managed assertion is partial  542ms
+     ✓ rejects stale support even if the caller updates the report's revision  428ms
+     ✓ rejects altered assertion text and unmapped extra prose  560ms
+     ✓ rejects a missing stored check despite a caller-supplied approval object  408ms
+     ✓ refuses corrupted persisted checks instead of trusting an approval flag  470ms
+     ✓ writes changed prose, checks it separately, publishes and reopens its premise lineage  2461ms
+     ✓ keeps supported synthesis while blocking a made-up heading, paragraph and limitation  2528ms
+     ✓ reuses a durable draft after restart without another writer request  1026ms
+     ✓ does not send a writer repair pass when invalid_output cost is unknown  746ms
+     ✓ rejects invented premise keys and publishes no report  719ms
+     ✓ writes from a selected extract after later evidence without selection mismatch  4122ms
+     ✓ blocks an oversized final assertion set without truncation or a second paid attempt  738ms
+     ✓ rejects draft self-reference before dispatch  779ms
+     ✓ purges drafts and composed claim text on account deletion  2840ms
+     ✓ adds a new checker result without overwriting an older version or paying again  844ms
+     ✓ executes review once, stores exact claim revisions and revalidates replay  1475ms
+     ✓ vetoes supported coverage when named assertions failed substantive checks  741ms
+     ✓ rejects missing question reviews without recording coverage  585ms
+     ✓ rejects changed evidence before saving coverage while retaining cost  650ms
+     ✓ purges saved coverage on account deletion  725ms
+     ✓ completes and reopens a report only after final assertion coverage executes  4347ms
+     ✓ does not publish when the required review returns invalid output  1482ms
+     ✓ W05 limited publication restores coverage and rejects a crafted report missing an unresolved critical criterion  5165ms
+   ✓ W05 publication rejects a forged complete outcome without a review while preserving limited publication  632ms
+     ✓ runs arbitrary evidence through criteria, extraction, substantive checks and cited publication  5558ms
+     ✓ does not turn a failed assertion into a verified event or template report  1431ms
+   ✓ W05 structured writing pause supports resume without repeating evidence work  6488ms
+   ✓ W05 structured writing pause supports cancel without repeating evidence work  1459ms
+     ✓ revalidates saved receipt and purges discovery output on deletion  454ms
+     ✓ late deletion retains actual cost but discards search content  309ms
+     ✓ persists read provenance once and reuses the exact version  331ms
+     ✓ production worker reads discovered evidence; readable=true  7247ms
+     ✓ production worker reads discovered evidence; readable=false  304ms
+     ✓ production worker completes after executeSourceRead reports finished full-text as readable  5439ms
+   ✓ W05 unresolved criteria trigger a distinct public query and rechecked synthesis  10928ms
+   ✓ W02/W05 concurrent distinct searches obey the durable per-run query ceiling  630ms
+     ✓ reuses exact passage/version identities but recomputes child claims through production worker  11106ms
+   ✓ W06 fresh cited versions change evidence without claiming changed assertion wording  10960ms
+   ✓ W06 missing parent publication cannot produce an unchanged comparison  5116ms
+     ✓ persists exact revisions and reuses the result without a provider call; writer receives it  728ms
+     ✓ rejects foreign owners, wrong revisions, unknown targets and extra authority  510ms
+     ✓ corrupt comparison output cannot be reused or passed to the writer  714ms
+     ✓ changed claim revision invalidates a comparison and deletion removes derived records  606ms
+   ✓ W05 concurrent scope comparison execution produces one durable result  694ms
+   ✓ W02/W05 unknown prior writer attempt blocks a context upgrade without releasing its hold  505ms
+   ✓ W05 legacy comparison preserves its original writer representation even with an unknown attempt  1206ms
+   ✓ W05 projection metadata and model-bound pair tampering fail closed  846ms
+     ✓ computes from exact supported revisions, binds numeric spans and replays without provider work  578ms
+     ✓ a model-supported year cannot masquerade as an area input  480ms
+     ✓ rejects foreign/versioned targets, caller values and corrupt results  593ms
+     ✓ changed input revision invalidates the proof and account deletion removes it  592ms
+     ✓ concurrent attempts share one durable calculation  592ms
+     ✓ recomputes, publishes and reopens exact arithmetic with input citations and canonical lineage  987ms
+     ✓ rejects changed wording, omitted operands/citations, type laundering and forged completion  1609ms
+     ✓ wrong owner or basis cannot prepare a derived claim; changed stored operands invalidate publication  721ms
+     ✓ stored derivation text tampering is rejected rather than recanonicalized silently  766ms
+     ✓ uses separately versioned gateway output, executes real arithmetic and reuses both records  1208ms
+     ✓ unknown quantities remain executed unknown results, not model-supplied numbers  789ms
+     ✓ invalid references and injected values never create calculations  552ms
+     ✓ unknown plan outcomes retain their reservation and are never resent  705ms
+     ✓ does not introduce planning over an existing writer's unknown outcome  676ms
+   ✓ W05 production worker executes selected quantities rather than a calculation progress event alone  3926ms
+   ✓ W02/W05 cached planning cannot ignore tampered schema/prompt/route metadata  947ms
+   ✓ W05/W06 production arithmetic report reopens, rejects dropped output and recomputes a typed corrected ratio from the same source versions  50393ms
+   ✓ W05 calculated writer remains limited for omitCalculation despite a positive review  23115ms
+   ✓ W05 calculated writer remains limited for wrongQuantity despite a positive review  21425ms
+   ✓ W05 calculated writer remains limited for unsupportedProse despite a positive review  22480ms
+     ✓ executes search, read and exact original-target support: contradictory  1223ms
+     ✓ executes search, read and exact original-target support: supportive  1088ms
+     ✓ executes search, read and exact original-target support: qualified  1179ms
+     ✓ preserves unknown search reservation and does not resend on replay  629ms
+     ✓ rejects changed target revision and foreign owner before a new request  909ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=true linked=true  10502ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=false linked=true  9978ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=true linked=false  10414ms
+   ✓ W05 counterevidence production preserves original target when re-extraction omits it; contradiction=false linked=false  10612ms
+   ✓ W05 counterevidence limited publication fails closed when required proof is lost, even with a warning  708ms
+   ✓ W05 counterevidence rejects late source content after cancel  627ms
+   ✓ W05 counterevidence rejects late source content after delete  629ms
+   ✓ W05 counterevidence cannot replace its real result with an optimistic stored flag  1082ms
+   ✓ W05 counterevidence retains an unknown support outcome without another model send  858ms
+   ✓ W05 counterevidence race cannot double-send its search and shares the three-query ceiling  1253ms
+   ✓ W05 counterevidence disabled legacy run needs no proof, but an event alone cannot satisfy an admitted check  456ms
+ ✓ test/model-policy.integration.test.ts (11 tests) 2032ms
+   ✓ pins new admission, preserves idempotent policy and parent inheritance, and denies mutation  491ms
 
  Test Files  2 passed (2)
-      Tests  12 passed | 152 skipped (164)
-   Start at  17:20:06
-   Duration  14.98s (transform 5.65s, setup 0ms, import 7.31s, tests 6.86s, environment 1ms)
+      Tests  165 passed (165)
+   Start at  18:02:33
+   Duration  312.38s (transform 1.33s, setup 0ms, import 2.01s, tests 309.97s, environment 0ms)
 
+PG_EXIT:0

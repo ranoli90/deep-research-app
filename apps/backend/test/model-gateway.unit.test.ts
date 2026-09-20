@@ -159,6 +159,8 @@ it("ENG-030 strict repair receives only exact structural diagnostics, with histo
  expect(strict.body).toContain("missing_question_review");
  expect(JSON.parse(strict.body).messages[0].content).toContain(JSON.stringify(diagnostics));
  expect(strict.body).not.toContain("private text");
+ expect(JSON.parse(strict.body)).not.toHaveProperty("session_id");
  expect(prepareModelRequest("review_coverage",context,undefined,extras).body).not.toContain("Validator failures");
+ expect(JSON.parse(prepareModelRequest("review_coverage",context).body)).not.toHaveProperty("session_id");
  expect(()=>prepareModelRequest("review_coverage",context,"openrouter-openai-mini-strict-v4",{...extras,repairDiagnostics:{...diagnostics,issues:[{code:"invalid_type",path:["private text"]}]}})).toThrow();
 });
