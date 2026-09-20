@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 import { evaluateDiscoveryContinuation, furtherHistoricalSourceReadsNeeded, HISTORICAL_FACT_READABLE_CONFIRMATIONS } from "../src/adaptive-breadth.js";
 import { applyNeedEvidence, buildEvidenceNeeds } from "../src/evidence-needs.js";
 import {
+  criterionBoundFreshnessUnmet,
   discoveryContinuationGaps,
+  freshnessPolicyForCriterion,
   freshnessPolicyForQuestion,
   isHistoricalFactQuestion,
-  sourcesHaveUnmetFreshness,
+  isSimpleHistoricalLookup,
+  type FreshnessBoundSource,
+  type FreshnessCriterionInput,
 } from "../src/freshness.js";
 import type { StoredSource } from "../src/types.js";
 
@@ -42,6 +46,18 @@ function readable(id: string, host: string, extra: Partial<StoredSource> = {}): 
   };
 }
 
+function criterionFor(question: string, key: string): FreshnessCriterionInput {
+  const field = key.replace(/[_-]+/g, " ");
+  const quote = question.includes(field) ? field : question.includes(key) ? key : field;
+  const start = question.indexOf(quote);
+  return {
+    key,
+    field,
+    importance: "hard",
+    provenance: start >= 0 ? { start, end: start + quote.length, quote: question.slice(start, start + quote.length) } : undefined,
+  };
+}
+
 function gaps(args: {
   question: string;
   coverageUnresolvedKeys: readonly string[];
@@ -49,16 +65,20 @@ function gaps(args: {
   freshnessUnmet?: boolean;
   hasSupportedAssertions: boolean;
 }) {
+  const siblings = args.allCriterionKeys.map((key) => criterionFor(args.question, key));
   return discoveryContinuationGaps({
-    question: args.question,
-    coverageUnresolvedKeys: args.coverageUnresolvedKeys,
-    allCriterionKeys: args.allCriterionKeys,
-    freshnessUnmet: args.freshnessUnmet ?? sourcesHaveUnmetFreshness(
-      freshnessPolicyForQuestion(args.question),
-      [{ publicationDate: dated2015, retrievedAt: now }],
-      now,
-    ),
-    hasSupportedAssertions: args.hasSupportedAssertions,
+    now,
+    criteria: args.allCriterionKeys.map((key) => {
+      const coverageUnresolved = args.coverageUnresolvedKeys.includes(key);
+      const hasSupportedEvidence = args.allCriterionKeys.length === 1
+        ? args.hasSupportedAssertions
+        : args.hasSupportedAssertions && !coverageUnresolved;
+      const policy = freshnessPolicyForCriterion(args.question, criterionFor(args.question, key), siblings);
+      const boundSources: FreshnessBoundSource[] = hasSupportedEvidence
+        ? [{ publicationDate: dated2015, retrievedAt: now }]
+        : [];
+      return { key, policy, coverageUnresolved, hasSupportedEvidence, disputed: false, boundSources };
+    }),
   });
 }
 
@@ -89,7 +109,8 @@ describe("BB02-01 sufficient single historical fact may stop", () => {
         allCriterionKeys: ["origin"],
         hasSupportedAssertions: true,
       });
-      expect(result, question).toEqual({ unresolvedCriterionKeys: [], freshnessUnmet: false });
+      expect(result.unresolvedCriterionKeys, question).toEqual([]);
+      expect(result.freshnessUnmet, question).toBe(false);
       expect(continuation(question, result.unresolvedCriterionKeys, result.freshnessUnmet).continue, question).toBe(false);
       expect(continuation(question, result.unresolvedCriterionKeys, result.freshnessUnmet).reason, question).toBe("simple_or_resolved_question");
     }
@@ -173,13 +194,18 @@ describe("BB02-03 founded plus latest headcount is not timeless throughout", () 
 
   it("keeps criterion-specific freshness: founding may be timeless while latest/as-of/version is not", () => {
     const old = [{ publicationDate: dated2012, retrievedAt: now }];
-    expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(NORTHSTAR, "founding_year"), old, now)).toBe(false);
-    expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(MIXED_LATEST, "founding_year"), old, now)).toBe(false);
-    expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(MIXED_LATEST, "latest_headcount"), old, now)).toBe(true);
-    expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(MIXED_ASOF, "employee_count_as_of"), old, now)).toBe(true);
-    expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(MIXED_VERSION, "latest_firmware_version"), old, now)).toBe(true);
-    expect(freshnessPolicyForQuestion(MIXED_LATEST, "latest_headcount").class).not.toBe("historical");
-    expect(freshnessPolicyForQuestion(MIXED_ASOF, "employee_count_as_of").class).not.toBe("historical");
+    const northstarFounding = criterionFor(NORTHSTAR, "founding_year");
+    const mixedFounding = criterionFor(MIXED_LATEST, "founding_year");
+    const mixedHeadcount = criterionFor(MIXED_LATEST, "latest_headcount");
+    const asOfCount = criterionFor(MIXED_ASOF, "employee_count_as_of");
+    const firmware = criterionFor(MIXED_VERSION, "latest_firmware_version");
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(NORTHSTAR, northstarFounding), old, now)).toBe(false);
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_LATEST, mixedFounding, [mixedFounding, mixedHeadcount]), old, now)).toBe(false);
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_LATEST, mixedHeadcount, [mixedFounding, mixedHeadcount]), old, now)).toBe(true);
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount), old, now)).toBe(true);
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_VERSION, firmware), old, now)).toBe(true);
+    expect(freshnessPolicyForCriterion(MIXED_LATEST, mixedHeadcount, [mixedFounding, mixedHeadcount]).class).not.toBe("historical");
+    expect(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount).class).not.toBe("historical");
   });
 
   it("retains the current criterion after a supported founding assertion, including when freshness is unmet", () => {
@@ -205,6 +231,7 @@ describe("BB02-04 two readable pages are not relevance, coverage, or completion"
 
   it("does not stop further reads on a comparison or mixed task merely because two independent pages were readable", () => {
     expect(HISTORICAL_FACT_READABLE_CONFIRMATIONS).toBe(2);
+    expect(isSimpleHistoricalLookup({ question: TWO_COMPANY, criteria: ["helix_founding", "nimbus_founding", "expansion_comparison"].map((key) => criterionFor(TWO_COMPANY, key)) })).toBe(false);
     expect(furtherHistoricalSourceReadsNeeded({ question: TWO_COMPANY, sources: weather })).toBe(true);
     expect(furtherHistoricalSourceReadsNeeded({ question: MIXED_LATEST, sources: weather })).toBe(true);
     expect(furtherHistoricalSourceReadsNeeded({ question: TWO_DISTILLERY, sources: weather })).toBe(true);
@@ -215,8 +242,11 @@ describe("BB02-04 two readable pages are not relevance, coverage, or completion"
       readable("a", "northstar.example", { title: "Northstar Bakery charter", publicationDate: dated2015 }),
       readable("b", "city-archive.example", { title: "Incorporation index", accessLevel: "partial-text" }),
     ];
-    expect(furtherHistoricalSourceReadsNeeded({ question: NORTHSTAR, sources: pages })).toBe(false);
-    expect(furtherHistoricalSourceReadsNeeded({ question: NORTHSTAR, sources: [pages[0]!] })).toBe(true);
+    const origin = criterionFor(NORTHSTAR, "origin");
+    origin.field = "Northstar Bakery";
+    origin.provenance = { start: NORTHSTAR.indexOf("Northstar Bakery"), end: NORTHSTAR.indexOf("Northstar Bakery") + "Northstar Bakery".length, quote: "Northstar Bakery" };
+    expect(furtherHistoricalSourceReadsNeeded({ question: NORTHSTAR, sources: pages, criteria: [origin], historicalLookupSatisfied: false, readPhase: "cap" })).toBe(false);
+    expect(furtherHistoricalSourceReadsNeeded({ question: NORTHSTAR, sources: [pages[0]!], criteria: [origin], historicalLookupSatisfied: false, readPhase: "cap" })).toBe(true);
   });
 });
 
@@ -261,12 +291,20 @@ describe("BB02-07 freshness policy must not erase unanswered facts", () => {
   });
 
   it("current-price freshness still forces the price criterion unresolved", () => {
+    const question = "What is the current price of Zephyr Pro?";
+    const price = criterionFor(question, "price");
+    price.field = "current price";
+    price.provenance = { start: question.indexOf("current price"), end: question.indexOf("current price") + "current price".length, quote: "current price" };
     const result = discoveryContinuationGaps({
-      question: "What is the current price of Zephyr Pro?",
-      coverageUnresolvedKeys: [],
-      allCriterionKeys: ["price"],
-      freshnessUnmet: true,
-      hasSupportedAssertions: true,
+      now,
+      criteria: [{
+        key: "price",
+        policy: freshnessPolicyForCriterion(question, price),
+        coverageUnresolved: false,
+        hasSupportedEvidence: true,
+        disputed: false,
+        boundSources: [],
+      }],
     });
     expect(result.freshnessUnmet).toBe(true);
     expect(result.unresolvedCriterionKeys).toEqual(["price"]);
@@ -361,7 +399,7 @@ describe("BB02-10 bounded stop with remaining gaps is not a false complete", () 
 
 describe("discoveryContinuationGaps never wipes every criterion after any supported assertion", () => {
   it("rejects the historical-and-any-supported shortcut on held-out comparison wording", () => {
-    const result = discoveryContinuationGaps({
+    const result = gaps({
       question: TWO_COMPANY,
       coverageUnresolvedKeys: ["nimbus_founding", "expansion_comparison"],
       allCriterionKeys: ["helix_founding", "nimbus_founding", "expansion_comparison"],

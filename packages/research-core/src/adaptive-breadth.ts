@@ -1,5 +1,5 @@
 import { DEEP_DISCOVERY_CEILING, MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
-import { freshnessPolicyForQuestion } from "./freshness.js";
+import { isSimpleHistoricalLookup, type FreshnessCriterionInput } from "./freshness.js";
 import { independentConfirmationCount } from "./independence.js";
 import type { StoredSource } from "./types.js";
 import type { SourceClass } from "./source-strategy.js";
@@ -12,12 +12,17 @@ export const HISTORICAL_FACT_READABLE_CONFIRMATIONS = 2;
 
 const READABLE_ACCESS = new Set(["full-text", "partial-text"]);
 
-/** Snippet hits stay queued. Stop further fetches only after two independent readable historical sources. */
+/** Snippet hits stay queued. Cap/drain apply only to a simple historical lookup; mixed work keeps reading. */
 export function furtherHistoricalSourceReadsNeeded(args: {
   question: string;
   sources: ReadonlyArray<StoredSource>;
+  criteria?: ReadonlyArray<FreshnessCriterionInput>;
+  historicalLookupSatisfied?: boolean;
+  readPhase?: "cap" | "drain";
 }): boolean {
-  if (freshnessPolicyForQuestion(args.question).class !== "historical") return true;
+  if (!isSimpleHistoricalLookup({ question: args.question, criteria: args.criteria })) return true;
+  if (args.historicalLookupSatisfied) return false;
+  if ((args.readPhase ?? "cap") === "drain") return true;
   const readable = args.sources.filter((s) => READABLE_ACCESS.has(s.accessLevel));
   return independentConfirmationCount(readable) < HISTORICAL_FACT_READABLE_CONFIRMATIONS;
 }
