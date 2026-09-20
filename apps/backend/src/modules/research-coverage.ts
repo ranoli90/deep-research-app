@@ -3,6 +3,7 @@ import { RESEARCH_MODEL_SCHEMA_VERSION,ResearchModelOutputs } from "@deep/contra
 import { RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION,resolveResearchCoverage } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { ModelReceiptSchema } from "../ports/model.js";
+import { modelPolicy } from "../ports/model-policy.js";
 import { loadModelOperation } from "./model-operations.js";
 import { loadSupportContext,persistScopedSupport,type SupportArgs } from "./scoped-support.js";
 import type { TaskModelVersions } from "./research-tasks.js";
@@ -17,11 +18,12 @@ export async function loadCoverageContext(db:Queryable,args:CoverageArgs,version
 /** Fenced transaction; saved review and support are restored before deterministic closure. */
 export async function persistResearchCoverage(db:Queryable,args:CoverageArgs&{modelIntentId:string},versions:TaskModelVersions,requireStored=false) {
   const basis=await loadCoverageContext(db,args,versions);
-  const row=(await db.query(`SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
-    AND operation='review_coverage' AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7 AND policy_id=$8`,
-    [args.modelIntentId,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId])).rows[0];
+  const row=(await db.query(`SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3
+    AND operation='review_coverage' AND brief_revision=$4 AND evidence_revision=$5 AND schema_version=$6 AND prompt_version=$7`,
+    [args.modelIntentId,args.runId,args.accountId,args.briefRevision,basis.evidenceRevision,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion])).rows[0];
   if(!row)throw new Error("coverage_owner_or_basis_mismatch");
-  const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,row.request_digest,basis.context);
+  const raw=await loadModelOperation(db,args.modelIntentId,args.runId,args.accountId,row.request_digest,basis.context,{
+    operation:"review_coverage",schemaVersion:RESEARCH_MODEL_SCHEMA_VERSION,promptVersion:versions.promptVersion,policyId:modelPolicy(row.policy_id).id});
   const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.review_coverage,receipt:ModelReceiptSchema}).strict().safeParse(raw);
   if(!parsed.success||!basis.context.task)throw new Error("invalid_coverage_execution");
   const result=resolveResearchCoverage({...basis.context,task:basis.context.task,checks:basis.checks,proposal:parsed.data.output});

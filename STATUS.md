@@ -1,3 +1,11 @@
+## R-02 / CL-07 hierarchical writer restore — 2026-09-20
+
+Isolated worktree from `9677232` on `grok-v8/r02-cl07-writer-restore`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS.
+
+Restore of an accepted write now uses the recorded attempt policy, not the run’s primary `model_policy_id`. Failover Azure results stay Azure; the run stamp stays Structured. Composition is inserted after each section, locked with `FOR UPDATE`, and a completed row cannot shrink on a prefix replay. A crash after the first section leaves a one-section composition that `restoreWriterDraft` refuses; `createResearchDraft` resumes, extends, and restores the full stitch. Calculated reports remain a single `write_report`. `sectionWrite` stays on ModelContext / `model-input.v8`. `planHierarchicalWrite` still dedupes section `claimKeys`.
+
+Focused evidence on isolated `TEST_DATABASE_URL=.../deep_r02_a0bfe8`: production `createResearchDraft` / `restoreWriterDraft` **4/4** (distinct section purposes, fallback-policy restore + publication, crash-between-sections resume, completed-composition keep). Writer hierarchy units **6/6**. Backend `tsc` 0. Full `pnpm verify` and two PG suites were **not** run. Live J11 not granted.
+
 ## R-04 / CL-01 continue races and declared fields — 2026-09-20
 
 Isolated worktree on `grok-v8/r04-cl01-continue` from `9677232`. **Not merged to `main`.** No GHA. No EAS.
@@ -36,6 +44,7 @@ Mutating follow-up, assumption replace/confirm, and text correction now persist 
 
 `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap and current-HEAD APK remain unrun. Rollback: revert this commit.
 >>>>>>> grok-v8/r04-cl01-continue
+>>>>>>> grok-v8/r02-cl07-writer-restore
 
 ## Founded-year freshness — 2026-09-20
 

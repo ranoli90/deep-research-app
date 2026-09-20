@@ -34,6 +34,7 @@ import { claimLease,getRun,cancelRun,emitEvent } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { fencedSession, LostWorkerLease } from "../src/worker/fenced-session.js";
+import { persistResearchDraftComposition } from "../src/modules/research-drafts.js";
 import { createResearchDraft,writeResearchReport } from "../src/worker/research-writer.js";
 import { executeAssertionSupport } from "../src/worker/support-execution.js";
 import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
@@ -653,6 +654,80 @@ describe("W01/W05 scoped support at the real publication gate",()=>{
 });
 
 
+async function hierarchicalWriterPrep(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+  const hierarchicalBrief={
+    ...brief,
+    intendedOutput:"comparison" as const,
+    criteria:[
+      brief.criteria[0]!,
+      { ...brief.criteria[0]!, key:"c2", description:"Why eligibility matters", field:"eligibility_reason" },
+    ],
+    questions:[
+      { key:"q1", text:"Is the option eligible?", criterionKeys:["c1"], importance:"critical" as const, evidenceStandard:"documented outcomes" },
+      { key:"q2", text:"Why does that eligibility matter?", criterionKeys:["c1"], importance:"useful" as const, evidenceStandard:"documented outcomes" },
+      { key:"q3", text:"What else is known?", criterionKeys:["c2"], importance:"useful" as const, evidenceStandard:"documented outcomes" },
+    ],
+  };
+  globalThis.fetch=vi.fn(async()=>response(hierarchicalBrief)) as typeof fetch;
+  const task=await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+  if(task.kind!=="task") throw new Error("task missing");
+  const entity=`Reef-${crypto.randomUUID().slice(0,8)}`;
+  const text=`${entity} restored 12 hectares in 2024. Monitoring did not measure long-term survival.`;
+  const sourceId=await insertSource(pool,{ accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",title:"Restoration observations",publisher:"Test",originCluster:"study" });
+  const p=await insertVersionAndPassage(pool,{ sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",text,accessLevel:"partial-text" });
+  const q1={ passageId:p.passageId,start:0,end:text.indexOf(".")+1,quote:text.slice(0,text.indexOf(".")+1) };
+  const q2={ passageId:p.passageId,start:text.indexOf(".")+2,end:text.length,quote:text.slice(text.indexOf(".")+2) };
+  const output:ResearchModelOutput<"extract_assertions">={
+    candidates:[{key:"new_entity",label:entity,evidence:[q1]}],
+    assertions:[
+      { key:"area", candidateKey:"new_entity", criterionKeys:["c1"], text:q1.quote, scope:{...scope,entity,time:"2024"},
+        quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}], evidence:[q1] },
+      { key:"reason", candidateKey:"new_entity", criterionKeys:["c2"], text:q2.quote, scope:{...scope,entity,time:"2024"},
+        quantities:[], evidence:[q2] },
+    ],
+    limitations:["Long-term survival was not measured."],
+  };
+  globalThis.fetch=vi.fn(async()=>response(output)) as typeof fetch;
+  const extraction=await extractEvidenceAssertions(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,passageIds:[p.passageId],selectionId:undefined });
+  if(extraction.kind!=="extraction") throw new Error("missing extraction");
+  const proposal={ assessments:output.assertions.map((a)=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
+    rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[] as string[] })) };
+  globalThis.fetch=vi.fn(async()=>response(proposal)) as typeof fetch;
+  const support=await executeAssertionSupport(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId });
+  if(support.kind!=="support") throw new Error("missing source support");
+  return {
+    q1,q2,output,
+    args:{ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,sourceSupportIntentId:support.intentId },
+  };
+}
+function hierarchicalWriteFetch(q1:{quote:string},q2:{quote:string},opts:{failoverWrite?:boolean}={}) {
+  const reply=(output:unknown,providerName:"OpenAI"|"Azure"="OpenAI")=>new Response(JSON.stringify({
+    id:"provider-test-id", model:"openai/gpt-4o-mini", provider:providerName, usage:{ cost:"0.000001" },
+    choices:[{ finish_reason:"stop", message:{ content:JSON.stringify(output) } }],
+  }),{ status:200 });
+  return vi.fn(async(_input,init)=>{
+    const request=JSON.parse(String(init?.body));
+    const name=request.response_format.json_schema.name;
+    const provider=request.provider?.only?.[0];
+    const reported=provider==="azure"?"Azure":"OpenAI";
+    if(name==="research_write_report_v1"){
+      if(opts.failoverWrite && provider==="openai") return new Response("{}",{ status:404 });
+      const context=JSON.parse(request.messages[1].content) as { approvedClaimKeys:string[] };
+      const keys=context.approvedClaimKeys;
+      const paragraph=keys.includes("area")?q1.quote:q2.quote;
+      return reply({ title:"Answer", sections:[{ heading:"Answer", paragraphs:[{ text:paragraph, claimKeys:keys }] }], unresolvedQuestionKeys:[], limitations:[] }, reported);
+    }
+    if(name==="research_review_coverage_v1"){
+      const context=JSON.parse(request.messages[1].content);
+      return reply({ questions:context.task.questions.map((q:{key:string})=>({ questionKey:q.key,status:"unresolved_at_limit",
+        assertionKeys:context.approvedClaimKeys,reason:"Fabricated coverage judgment for boundary control" })), omittedRequirements:[] }, reported);
+    }
+    if(name!=="research_assess_support_v1") throw new Error("unexpected operation");
+    const context=JSON.parse(request.messages[1].content);
+    return reply({ assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
+      rationale:"Optimistic test response; independent guards must still reject invalid text.",missingEvidence:[] })) }, reported);
+  }) as typeof fetch;
+}
 async function writerCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
   const prepared=await supportCase(x);
   globalThis.fetch=vi.fn(async()=>response(prepared.proposal)) as typeof fetch;
@@ -813,6 +888,79 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(second).toMatchObject({ kind:"draft", reused:true });
     expect(seen.filter((row)=>row.startsWith("q1:")).length).toBe(1);
   }));
+  it("restores an accepted fallback writer under a different policy identity without relabeling the run",async()=>runCase(async(x)=>{
+    await pool.query("UPDATE model_route_health SET state='healthy',reason='registered'");
+    const prepared=await hierarchicalWriterPrep(x);
+    globalThis.fetch=hierarchicalWriteFetch(prepared.q1,prepared.q2,{failoverWrite:true});
+    const first=await createResearchDraft(pool,x.config,x.session,prepared.args);
+    if(first.kind!=="draft") throw new Error(`writer failed: ${JSON.stringify(first)}`);
+    const versions=await runModelVersions(pool,x.runId);
+    expect(versions.policyId).toBe(STRUCTURED_MODEL_POLICY.id);
+    expect((await pool.query("SELECT model_policy_id FROM runs WHERE id=$1",[x.runId])).rows[0].model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
+    const writes=await pool.query("SELECT intent_id,policy_id,result->>'status' AS status FROM model_operation_results WHERE run_id=$1 AND operation='write_report' ORDER BY created_at",[x.runId]);
+    const succeeded=writes.rows.filter((row:{status:string})=>row.status==="succeeded");
+    expect(writes.rows.some((row:{policy_id:string;status:string})=>row.policy_id===STRUCTURED_MODEL_POLICY.id && row.status==="permanent_failure")).toBe(true);
+    expect(succeeded.length).toBeGreaterThanOrEqual(2);
+    expect(succeeded.every((row:{policy_id:string})=>row.policy_id===AZURE_ZDR_MODEL_POLICY.id)).toBe(true);
+    expect(succeeded.some((row:{policy_id:string})=>row.policy_id===STRUCTURED_MODEL_POLICY.id)).toBe(false);
+    const restored=await restoreWriterDraft(pool,{ ...prepared.args,extractionIntentId:first.writerIntentId },versions);
+    expect(restored.draft.sections.length).toBeGreaterThanOrEqual(2);
+    const basis=await loadSupportContext(pool,{ ...prepared.args,extractionIntentId:first.writerIntentId },versions);
+    expect(basis.context.draft).toEqual(restored.draft);
+    const published=await writeResearchReport(pool,x.config,x.session,prepared.args);
+    expect(published).toMatchObject({kind:"publication",accepted:true});
+    expect((await pool.query("SELECT model_policy_id FROM runs WHERE id=$1",[x.runId])).rows[0].model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
+    expect((await pool.query("SELECT policy_id FROM model_operation_results WHERE intent_id=ANY($1::uuid[])",[succeeded.map((row:{intent_id:string})=>row.intent_id)])).rows
+      .every((row:{policy_id:string})=>row.policy_id===AZURE_ZDR_MODEL_POLICY.id)).toBe(true);
+  },question,{modelPolicyId:STRUCTURED_MODEL_POLICY.id}), 90_000);
+  it("persists composition after each section and resumes after a crash between sections",async()=>runCase(async(x)=>{
+    const prepared=await hierarchicalWriterPrep(x);
+    globalThis.fetch=hierarchicalWriteFetch(prepared.q1,prepared.q2);
+    const originalWrite=x.session.write.bind(x.session);
+    let crashed=false;
+    x.session.write= (async (fn, finishingRevoked) => {
+      const result=await originalWrite(fn, finishingRevoked);
+      const row=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0];
+      if(!crashed && row?.composition?.sections?.length===1) {
+        crashed=true;
+        throw new Error("crash_between_sections");
+      }
+      return result;
+    }) as typeof x.session.write;
+    await expect(createResearchDraft(pool,x.config,x.session,prepared.args)).rejects.toThrow("crash_between_sections");
+    x.session.write=originalWrite;
+    const partial=(await pool.query("SELECT writer_intent_id,composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0];
+    expect(partial.composition.sections).toHaveLength(1);
+    await expect(restoreWriterDraft(pool,{ ...prepared.args,extractionIntentId:partial.writer_intent_id },await runModelVersions(pool,x.runId)))
+      .rejects.toThrow("writer_composition_mismatch");
+    const resumed=await createResearchDraft(pool,x.config,x.session,prepared.args);
+    if(resumed.kind!=="draft") throw new Error(`resume failed: ${JSON.stringify(resumed)}`);
+    const complete=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0].composition;
+    expect(complete.sections.length).toBeGreaterThan(partial.composition.sections.length);
+    const restored=await restoreWriterDraft(pool,{ ...prepared.args,extractionIntentId:resumed.writerIntentId },await runModelVersions(pool,x.runId));
+    expect(restored.draft.sections.length).toBe(complete.sections.length);
+  }), 60_000);
+  it("replay of a completed composition does not shrink the restored draft",async()=>runCase(async(x)=>{
+    const prepared=await hierarchicalWriterPrep(x);
+    globalThis.fetch=hierarchicalWriteFetch(prepared.q1,prepared.q2);
+    const first=await createResearchDraft(pool,x.config,x.session,prepared.args);
+    if(first.kind!=="draft") throw new Error(`writer failed: ${JSON.stringify(first)}`);
+    const stored=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0].composition;
+    expect(stored.sections.length).toBeGreaterThanOrEqual(2);
+    const prefix={ ...stored, sections: stored.sections.slice(0,1) };
+    await x.session.write(async(db)=>persistResearchDraftComposition(db,{
+      ...prepared.args,writerIntentId:first.writerIntentId,composition:prefix,
+    },await runModelVersions(db,x.runId)));
+    const afterPrefix=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0].composition;
+    expect(afterPrefix.sections.length).toBe(stored.sections.length);
+    const restored=await restoreWriterDraft(pool,{ ...prepared.args,extractionIntentId:first.writerIntentId },await runModelVersions(pool,x.runId));
+    expect(restored.draft.sections.length).toBe(stored.sections.length);
+    const replay=await createResearchDraft(pool,x.config,x.session,prepared.args);
+    expect(replay).toMatchObject({ kind:"draft", reused:true });
+    const afterReplay=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0].composition;
+    expect(afterReplay.sections.length).toBe(stored.sections.length);
+    expect(afterReplay.sections.length).toBeGreaterThan(prefix.sections.length);
+  }), 60_000);
   it("does not send a writer repair pass when invalid_output cost is unknown",async()=>runCase(async(x)=>{
     const c=await writerCase(x);
     globalThis.fetch=vi.fn(async(_input,init)=>{

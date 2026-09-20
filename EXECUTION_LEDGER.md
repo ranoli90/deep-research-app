@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-20 — R-02 / CL-07 fallback-policy restore and composition races
+
+- `loadSupportContext`, writer `restoreWriterDraft`, support/coverage loaders use the stored `model_operation_results.policy_id`. They do not require `versions.policyId` and do not rewrite it to the run primary.
+- `persistResearchDraftComposition` inserts on conflict-do-nothing, locks the row, extends a prefix, and keeps a longer completed composition.
+- `recordResearchDraft` treats a stored prefix-superset as keep so a prefix replay cannot shrink.
+- Tests execute production `createResearchDraft` / `restoreWriterDraft` / `loadSupportContext` / `writeResearchReport` against Postgres, not source greps.
+- Isolated DB `deep_r02_a0bfe8` on `127.0.0.1:55432`. Focused vitest **4/4**. Hierarchy units **6/6**. Backend tsc 0. Not merged to main. No GHA.
+
 ## 2026-09-20 — R-04/CL-01 concurrent continue/cancel and declared field set
 
 - Continue resume is `UPDATE … WHERE lifecycle='awaiting_input' AND pending_input_id AND cancellation_epoch`; zero rows 409 and roll back the brief insert.
@@ -31,6 +39,7 @@
 - Same persist-before-POST recovery for assumption confirm/replace and text correction. SHA-256 `mutatingFollowUpKey` kept. App `newId()` kept (no `crypto.randomUUID()` call). `scripts/check-boundaries.mjs` now rejects mobile imports of `@deep/research-core`.
 - Tests: `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `node scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap unrun. Rollback: revert this commit.
 >>>>>>> grok-v8/r04-cl01-continue
+>>>>>>> grok-v8/r02-cl07-writer-restore
 
 ## 2026-09-20 — device live, Stop completion, brief quote location
 

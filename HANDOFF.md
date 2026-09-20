@@ -1,3 +1,7 @@
+## R-02 / CL-07 writer restore — 2026-09-20
+
+Isolated branch `grok-v8/r02-cl07-writer-restore` from parent `9677232`. Restore accepted failover writes under the recorded policy identity; do not relabel as primary. Persist composition after each section; completed replay must not shrink; resume after a crash between sections. Tests call production `createResearchDraft` / `restoreWriterDraft` on isolated Postgres `deep_r02_a0bfe8` **4/4**. **Do not merge `main`.** No GHA. Rollback: revert this commit.
+
 ## R-04 / CL-01 continue — 2026-09-20
 
 Worktree isolated from `9677232` on `grok-v8/r04-cl01-continue`. Do not merge `main`. Do not dispatch GHA.
@@ -24,6 +28,7 @@ Isolated worktree. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.
 
 `runMutatingFollowUp`, `runAssumptionsMutation`, and `runPendingCorrection` persist prepared/sent/accepted/adopted (or rejected/withdrawn) before POST. Unresolved journals block a different mutation. Explain uses `recordFollowUpExplain` and does not clear pending follow-up. SHA-256 keys and `newId()` remain. Mobile unit **340/340**, typecheck 0, boundaries ok. Device double-tap still required for native proof.
 >>>>>>> grok-v8/r04-cl01-continue
+>>>>>>> grok-v8/r02-cl07-writer-restore
 
 ## Device live + Stop — 2026-09-20
 
