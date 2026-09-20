@@ -1883,6 +1883,21 @@ it("W05 counterevidence race cannot double-send its search and shares the three-
  }
  expect(await performPublicSearch(pool,c.config,x.session,{...searchArgs,proposal:{...searchArgs.proposal,action:{...searchArgs.proposal.action,query:"restoration"}}})).toEqual({kind:"blocked",reason:"discovery_query_limit"});
 }));
+it("W05 extra discovery beyond three counterevidence reads is bounded and unrestorable rows fail closed",async()=>runCase(async x=>{
+ const c=await counterevidenceCase(x);
+ const hits=["https://example.org/a","https://example.org/b","https://example.org/c","https://example.org/d"];
+ globalThis.fetch=vi.fn(async(_input,init)=>{
+  if(JSON.parse(String(init?.body)).plugins?.length)return new Response(JSON.stringify({id:"nonbillable-search",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:hits.map((url)=>({type:"url_citation",url_citation:{url,title:"Study",content:"Restoration findings"}}))}}]}));
+  return searchReply();
+ }) as typeof fetch;
+ vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>readControl(url,c.output.assertions[0]!.text));
+ expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"unresolved_at_limit"});
+ expect((await pool.query("SELECT state,reason,jsonb_array_length(read_operations) AS n FROM counterevidence_checks WHERE run_id=$1",[x.runId])).rows[0]).toEqual({state:"blocked",reason:"counterevidence_read_limit",n:0});
+ const four=hits.map(()=>({operationId:crypto.randomUUID(),sourceVersionId:crypto.randomUUID(),readable:true}));
+ await pool.query("UPDATE counterevidence_checks SET read_operations=$2::jsonb WHERE run_id=$1",[x.runId,JSON.stringify(four)]);
+ expect((await counterevidenceLimitations(pool,c.args))[0]).toContain("required counterevidence check cannot be restored");
+ expect(await executeCounterevidence(pool,c.config,x.session,c.args)).toMatchObject({kind:"challenge",outcome:"unresolved_at_limit"});
+}),60_000);
 it("W05 counterevidence disabled legacy run needs no proof, but an event alone cannot satisfy an admitted check",async()=>runCase(async x=>{
  expect(await counterevidenceLimitations(pool,{...x,briefRevision:1})).toEqual([]);
  const c=await counterevidenceCase(x);

@@ -14,7 +14,12 @@ import { performModelOperation } from "./model-gateway.js";
 export async function executeCounterevidence(pool:pg.Pool,config:AppConfig,session:FencedSession,args:SupportArgs&{supportIntentId:string;fence:number}) {
  if(!config.structuredChallengeEnabled)return {kind:"not_applicable" as const,reason:"counterevidence_disabled"};
  const startingRevision=await session.write(async db=>(await getRun(db,args.runId))!.evidence_revision);
- let saved=await session.write(db=>getCounterevidence(db,args));
+ let saved;
+ try {saved=await session.write(db=>getCounterevidence(db,args));}
+ catch(error){
+  if(!(error instanceof Error)||error.message!=="challenge_proof_unreadable")throw error;
+  return {kind:"challenge" as const,id:args.runId,outcome:"unresolved_at_limit",evidenceChanged:false,version:COUNTEREVIDENCE_VERSION};
+ }
  if(!saved){
   const prior=await session.write(db=>db.query("SELECT 1 FROM run_actions WHERE run_id=$1 AND brief_revision=$2 AND kind IN ('write_report','write_calculated_report') LIMIT 1",[args.runId,args.briefRevision]));
   if(prior.rowCount)return {kind:"not_applicable" as const,reason:"legacy_writer_context_preserved"};
@@ -40,13 +45,16 @@ export async function executeCounterevidence(pool:pg.Pool,config:AppConfig,sessi
   }
   if(search.kind!=="search")return finish(search.kind==="pending"?"unknown":"blocked",search.kind==="pending"?"outcome_unknown":search.reason==="discovery_query_limit"?"unresolved_at_limit":"blocked",search.kind==="pending"?"search_outcome_unknown":search.reason);
   await session.write(db=>db.query("UPDATE counterevidence_checks SET search_intent_id=$2 WHERE id=$1",[saved.id,search.intentId]));
+  if(search.hits.length>3)return finish("blocked","unresolved_at_limit","counterevidence_read_limit");
   const sources=await session.write(db=>adoptSearchSources(db,{...args,intentId:search.intentId}));
+  if(sources.length>3)return finish("blocked","unresolved_at_limit","counterevidence_read_limit");
   const reads:{operationId:string;sourceVersionId:string;readable:boolean}[]=[];
   for(const sourceHandle of sources){
    const read=await executeSourceRead(config,session,{...args,proposal:{rationale:"Read the admitted counterevidence search result.",action:{type:"fetch",sourceHandle,questionKeys:saved.action.questionKeys}}});
    if(read.kind!=="read")return finish(read.kind==="pending"?"unknown":"blocked",read.kind==="pending"?"outcome_unknown":"blocked",read.kind==="pending"?"source_read_outcome_unknown":read.reason);
    reads.push({operationId:read.operationId,sourceVersionId:read.sourceVersionId,readable:read.readable});evidenceChanged ||= !read.reused;
   }
+  if(reads.length>3)return finish("blocked","unresolved_at_limit","counterevidence_read_limit");
   await session.write(db=>db.query("UPDATE counterevidence_checks SET state='read',read_operations=$2 WHERE id=$1",[saved.id,JSON.stringify(reads)]));
   if(reads.length!==search.hits.length||!reads.length||reads.some(r=>!r.readable))return finish("blocked","unresolved_at_limit","counterevidence_readable_evidence_unavailable");
  }

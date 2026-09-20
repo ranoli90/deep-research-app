@@ -27,7 +27,10 @@ type SavedCounterevidence=z.infer<typeof CounterevidenceRow>;
 export async function getCounterevidence(db:Queryable,args:{runId:string;accountId:string;briefRevision:number}) {
  const rows=await db.query("SELECT * FROM counterevidence_checks WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3",[args.runId,args.accountId,args.briefRevision]);
  if(rows.rowCount&& (rows.rowCount!==1||rows.rows[0].version!==COUNTEREVIDENCE_VERSION))throw new Error("unsupported_challenge_version");
- return rows.rows[0]?CounterevidenceRow.parse(rows.rows[0]):null;
+ if(!rows.rows[0])return null;
+ const parsed=CounterevidenceRow.safeParse(rows.rows[0]);
+ if(!parsed.success)throw new Error("challenge_proof_unreadable");
+ return parsed.data;
 }
 /** Persist original targets before any evidence-changing action. Never recover them from re-extraction. */
 export async function prepareCounterevidence(db:Queryable,args:SupportArgs&{supportIntentId:string}) {
@@ -152,11 +155,18 @@ export async function requiredCounterevidenceMissing(db:Queryable,args:{runId:st
   AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=$2 AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]);
  return Boolean(required.rowCount);
 }
+const unrestorableChallengeLimitation="The required counterevidence check cannot be restored. Its conclusions remain unresolved.";
 /** Publication independently restores proof. Missing/blocked/unknown challenge can never improve support. */
 export async function counterevidenceLimitations(db:Queryable,args:{runId:string;accountId:string;briefRevision:number}) {
- const row=await getCounterevidence(db,args);
+ let row:SavedCounterevidence|null;
+ try {row=await getCounterevidence(db,args);}
+ catch(error){
+  if(error instanceof Error&&(error.message==="challenge_proof_unreadable"||error.message==="unsupported_challenge_version"))
+   return [unrestorableChallengeLimitation];
+  throw error;
+ }
  if(!row){
-  return await requiredCounterevidenceMissing(db,args)?["The required counterevidence check cannot be restored. Its conclusions remain unresolved."]:[];
+  return await requiredCounterevidenceMissing(db,args)?[unrestorableChallengeLimitation]:[];
  }
  const targets=await validateTargets(db,row);
  if(row.state!=="checked")return targets.map(t=>`Counterevidence search for “${t.assertion.text}” remains unresolved (${row.reason??"check_incomplete"}).`);

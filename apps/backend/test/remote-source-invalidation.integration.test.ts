@@ -26,7 +26,7 @@ it("W03 exposes owned remote source invalidation and hides deleted report withou
 });
 it("W03 ordinary cancellation does not imply source invalidation",async()=>{
  const a=await setup();expect((await app.inject({method:"POST",url:`/v1/runs/${a.runId}/cancel`,headers:a.headers})).statusCode).toBe(200);
- const response=await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:a.headers});expect(response.statusCode).toBe(200);expect(response.json()).toMatchObject({contentInvalidated:false,lifecycle:"cancelling",outcome:null});
+ const response=await app.inject({method:"GET",url:`/v1/runs/${a.runId}`,headers:a.headers});expect(response.statusCode).toBe(200);expect(response.json()).toMatchObject({contentInvalidated:false,lifecycle:"terminal",outcome:"cancelled"});
 });
 it("W03 account deletion denies session and run snapshot using revoked credentials",async()=>{
  const a=await setup();await deleteAccount(pool,a.accountId);

@@ -1,0 +1,352 @@
+{
+  "id": "J-simple-taco",
+  "sha": "9677232cd0e741a0b7521c39b062d9597584e410",
+  "question": "when was Taco Bell founded",
+  "originalQuestionUnchanged": true,
+  "originalQuestion": "when was Taco Bell founded",
+  "runId": "e96499ef-e664-412f-9d44-041ee675c8f0",
+  "outcome": null,
+  "lifecycle": "running",
+  "phase": "researching",
+  "reportId": null,
+  "elapsedSecPoll": 600.3,
+  "elapsedSecLastEvent": 166.4,
+  "confirmed_micro": 42443,
+  "spent_micro": 42443,
+  "citationCount": 0,
+  "sourceReadCount": 12,
+  "searchCount": 3,
+  "searches": [
+    {
+      "query": "when was Taco Bell founded",
+      "policy_id": "public-discovery-azure-zdr.v3"
+    },
+    {
+      "query": "when was Taco Bell founded contradictions limitations exceptions",
+      "policy_id": "public-discovery-azure-zdr.v3"
+    },
+    {
+      "query": "when was Taco Bell founded contradictions limitations exceptions",
+      "policy_id": "public-discovery-azure-zdr.v3"
+    }
+  ],
+  "costReceipts": [
+    {
+      "id": "e4821860-012c-472e-82fe-41fc3328c985",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:brief",
+      "state": "confirmed",
+      "confirmed_micro": 352,
+      "reserved_max_micro": 4481,
+      "created_at": "2026-09-20T17:42:15.433Z"
+    },
+    {
+      "id": "e2e0b939-a52a-4456-a4d4-ebc77cdf2b54",
+      "route": "openrouter:openai/gpt-4o-mini:public-discovery-azure-zdr.v3",
+      "state": "confirmed",
+      "confirmed_micro": 7215,
+      "reserved_max_micro": 9000,
+      "created_at": "2026-09-20T17:42:21.795Z"
+    },
+    {
+      "id": "9364ba6e-b69d-40ad-8d5f-db38f318a51c",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:extract_assertions",
+      "state": "confirmed",
+      "confirmed_micro": 1822,
+      "reserved_max_micro": 9808,
+      "created_at": "2026-09-20T17:42:38.950Z"
+    },
+    {
+      "id": "a2ad8c2c-1c98-434d-a7d7-905b16297965",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 1745,
+      "reserved_max_micro": 9699,
+      "created_at": "2026-09-20T17:43:09.182Z"
+    },
+    {
+      "id": "da00644e-c498-478b-976b-46f78bc2099c",
+      "route": "openrouter:openai/gpt-4o-mini:public-discovery-azure-zdr.v3",
+      "state": "confirmed",
+      "confirmed_micro": 7597,
+      "reserved_max_micro": 9000,
+      "created_at": "2026-09-20T17:43:16.273Z"
+    },
+    {
+      "id": "db511c12-4548-4daa-9897-de8753c5dcc8",
+      "route": "openrouter:openai/gpt-4o-mini:public-discovery-azure-zdr.v3",
+      "state": "confirmed",
+      "confirmed_micro": 7627,
+      "reserved_max_micro": 9000,
+      "created_at": "2026-09-20T17:43:52.033Z"
+    },
+    {
+      "id": "a01bae51-7301-42b0-b571-d4c616966d59",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 953,
+      "reserved_max_micro": 9603,
+      "created_at": "2026-09-20T17:44:03.154Z"
+    },
+    {
+      "id": "1032d0e0-ae51-468e-9544-9cd115472a41",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 997,
+      "reserved_max_micro": 9609,
+      "created_at": "2026-09-20T17:44:09.590Z"
+    },
+    {
+      "id": "bc2a0c0d-ef78-458e-9b19-5161caf5699c",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:extract_assertions",
+      "state": "confirmed",
+      "confirmed_micro": 2486,
+      "reserved_max_micro": 13484,
+      "created_at": "2026-09-20T17:44:20.763Z"
+    },
+    {
+      "id": "41b97c55-84a6-48b9-bc5d-d6ba39ab1ff3",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 2522,
+      "reserved_max_micro": 13333,
+      "created_at": "2026-09-20T17:44:33.650Z"
+    },
+    {
+      "id": "ee650f1f-e569-4578-8cdd-9e30fe18ccb0",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 2443,
+      "reserved_max_micro": 13373,
+      "created_at": "2026-09-20T17:44:43.139Z"
+    },
+    {
+      "id": "c150193a-0897-4aa6-b00e-2e7bdb233805",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:write_report",
+      "state": "confirmed",
+      "confirmed_micro": 1644,
+      "reserved_max_micro": 12694,
+      "created_at": "2026-09-20T17:45:03.052Z"
+    },
+    {
+      "id": "e9f09ab3-d2a8-4696-8a87-839e067c8984",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 1191,
+      "reserved_max_micro": 10111,
+      "created_at": "2026-09-20T17:45:11.008Z"
+    },
+    {
+      "id": "47771a43-7013-4b78-9693-06e1672af790",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:assess_support",
+      "state": "confirmed",
+      "confirmed_micro": 2112,
+      "reserved_max_micro": 10156,
+      "created_at": "2026-09-20T17:45:18.011Z"
+    },
+    {
+      "id": "b7dafe35-085a-47bd-9278-d1e8138836a2",
+      "route": "openrouter:openai/gpt-4o-mini:openrouter-azure-mini-zdr-strict-v4:review_coverage",
+      "state": "confirmed",
+      "confirmed_micro": 1737,
+      "reserved_max_micro": 10024,
+      "created_at": "2026-09-20T17:45:34.215Z"
+    }
+  ],
+  "timeline": [
+    {
+      "sequence": 1,
+      "type": "accepted",
+      "phase": "preparing",
+      "publicSummary": "Research accepted. Closing the app will not stop the server job.",
+      "createdAt": "2026-09-20T17:42:14.288Z"
+    },
+    {
+      "sequence": 2,
+      "type": "intent_compiled",
+      "phase": "preparing",
+      "publicSummary": "Understood the question.",
+      "createdAt": "2026-09-20T17:42:14.288Z"
+    },
+    {
+      "sequence": 3,
+      "type": "model_span_resolution",
+      "phase": "verifying",
+      "publicSummary": "Exact quoted text was located within its original question or passage.",
+      "createdAt": "2026-09-20T17:42:21.082Z"
+    },
+    {
+      "sequence": 4,
+      "type": "criteria_prepared",
+      "phase": "researching",
+      "publicSummary": "Research questions and criteria are ready.",
+      "createdAt": "2026-09-20T17:42:21.296Z"
+    },
+    {
+      "sequence": 5,
+      "type": "searching",
+      "phase": "researching",
+      "publicSummary": "Searching public sources.",
+      "createdAt": "2026-09-20T17:42:21.620Z"
+    },
+    {
+      "sequence": 6,
+      "type": "sources_found",
+      "phase": "researching",
+      "publicSummary": "Found sources.",
+      "createdAt": "2026-09-20T17:42:26.212Z"
+    },
+    {
+      "sequence": 7,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "The source could not provide readable evidence.",
+      "createdAt": "2026-09-20T17:42:26.760Z"
+    },
+    {
+      "sequence": 8,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "The source could not provide readable evidence.",
+      "createdAt": "2026-09-20T17:42:29.419Z"
+    },
+    {
+      "sequence": 9,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:42:30.240Z"
+    },
+    {
+      "sequence": 10,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "The source could not provide readable evidence.",
+      "createdAt": "2026-09-20T17:42:30.863Z"
+    },
+    {
+      "sequence": 11,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:42:33.490Z"
+    },
+    {
+      "sequence": 12,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:42:34.065Z"
+    },
+    {
+      "sequence": 13,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "The source could not provide readable evidence.",
+      "createdAt": "2026-09-20T17:42:34.726Z"
+    },
+    {
+      "sequence": 14,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:42:37.552Z"
+    },
+    {
+      "sequence": 15,
+      "type": "model_span_resolution",
+      "phase": "verifying",
+      "publicSummary": "Exact quoted text was located within its original question or passage.",
+      "createdAt": "2026-09-20T17:43:07.818Z"
+    },
+    {
+      "sequence": 16,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:43:28.515Z"
+    },
+    {
+      "sequence": 17,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "The source could not provide readable evidence.",
+      "createdAt": "2026-09-20T17:43:41.076Z"
+    },
+    {
+      "sequence": 18,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:43:43.995Z"
+    },
+    {
+      "sequence": 19,
+      "type": "source_read",
+      "phase": "researching",
+      "publicSummary": "Source reading finished; extracted evidence retains its access limitations.",
+      "createdAt": "2026-09-20T17:43:49.978Z"
+    },
+    {
+      "sequence": 20,
+      "type": "model_span_resolution",
+      "phase": "verifying",
+      "publicSummary": "Exact quoted text was located within its original question or passage.",
+      "createdAt": "2026-09-20T17:44:14.549Z"
+    },
+    {
+      "sequence": 21,
+      "type": "counterevidence_checked",
+      "phase": "researching",
+      "publicSummary": "A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",
+      "createdAt": "2026-09-20T17:44:15.035Z"
+    },
+    {
+      "sequence": 22,
+      "type": "model_span_resolution",
+      "phase": "verifying",
+      "publicSummary": "Exact quoted text was located within its original question or passage.",
+      "createdAt": "2026-09-20T17:44:27.329Z"
+    },
+    {
+      "sequence": 23,
+      "type": "plan_pivot",
+      "phase": "researching",
+      "publicSummary": "A later evidence pass failed; writing from previously checked evidence.",
+      "createdAt": "2026-09-20T17:45:00.676Z"
+    }
+  ],
+  "job": {
+    "id": "65e343c7-dc31-4338-be35-13c908ec8e59",
+    "state": "completed",
+    "retry_count": 1,
+    "created_on": "2026-09-20T17:42:14.507Z",
+    "started_on": "2026-09-20T17:45:51.597Z",
+    "completed_on": "2026-09-20T17:45:51.618Z",
+    "start_after": "2026-09-20T17:45:50.743Z"
+  },
+  "lease": {
+    "owner": "device-live-worker:51d53206-b184-43de-8ca0-4665fce2f268",
+    "expires_at": "2026-09-20T17:46:19.604Z"
+  },
+  "counterevidence": {
+    "state": "blocked",
+    "reason": "counterevidence_readable_evidence_unavailable",
+    "outcome": "unresolved_at_limit",
+    "reads": 4
+  },
+  "publicationAttempts": [],
+  "failureReason": "counterevidence_read_operations_exceed_max_3",
+  "diagnosis": {
+    "productionCause": "Azure ZDR v3 counterevidence search stored 4 read_operations; publication getCounterevidence Zod max(3) threw. Job retry no-op'd while lease still held (executeLeasedRun expires lease only on LostWorkerLease). Run left running with no report.",
+    "extraDiscovery": true,
+    "invalid_exact_span": false,
+    "readable_evidence_unavailable": true,
+    "storedReads": 4,
+    "jobRetryCount": 1,
+    "jobState": "completed"
+  },
+  "labeledDemo": false,
+  "routeMode": "controlled-research",
+  "live": true,
+  "fixture": false
+}

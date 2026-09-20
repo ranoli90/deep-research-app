@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { isStrictModelPolicy, modelPolicy, AZURE_ZDR_EXACT_QUOTE_POLICY, AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
+import { isStrictModelPolicy, modelPolicy, AZURE_ZDR_MODEL_POLICY, AZURE_ZDR_EXACT_QUOTE_POLICY, AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
 import { emitEvent, getBrief, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
@@ -143,11 +143,16 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
     if (next.status !== "succeeded") return { result: next, resolvedSpans, linkedCriteria };
     const salvageBrief = activePolicy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id || activePolicy.id === AZURE_ZDR_DISCOVERY_POLICY.id;
-    const resolved = resolveModelSpans(args.operation, next.output, context);
-    next = { ...next, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    const locateOwnedBriefQuotes = activePolicy.id !== AZURE_ZDR_MODEL_POLICY.id && activePolicy.id !== STRUCTURED_MODEL_POLICY.id;
+    if (args.operation !== "brief" || locateOwnedBriefQuotes) {
+      const resolved = resolveModelSpans(args.operation, next.output, context);
+      next = { ...next, output: resolved.output }; resolvedSpans = resolved.resolutions;
+    }
     if (args.operation === "brief") {
       let briefOut = next.output as ResearchModelOutput<"brief">;
-      briefOut = repairBriefProvenanceFromQuestion(briefOut, context.question);
+      if (locateOwnedBriefQuotes) {
+        briefOut = repairBriefProvenanceFromQuestion(briefOut, context.question);
+      }
       if (salvageBrief) {
         const linked = repairBriefCriterionLinks(briefOut);
         briefOut = repairBriefProvenanceFromQuestion(linked.output, context.question);
