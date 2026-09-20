@@ -88,7 +88,10 @@ export function LibraryList({
           value={query}
           onChangeText={setQuery}
           placeholder="Search saved reports"
+          placeholderTextColor={ink}
           accessibilityLabel="Search saved reports"
+          allowFontScaling
+          maxFontSizeMultiplier={2}
           style={styles.librarySearch}
         />
       }

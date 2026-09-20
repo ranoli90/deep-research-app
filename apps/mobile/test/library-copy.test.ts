@@ -38,6 +38,8 @@ describe("library persistence metadata", () => {
     expect(src).toContain("FlatList");
     expect(src).toContain("No matching reports.");
     expect(src).toContain("styles.libraryRow");
+    expect(src).toContain("placeholderTextColor={ink}");
+    expect(src).toContain("maxFontSizeMultiplier={2}");
     expect(src).toContain("ShareIcon");
     expect(src).toContain("copy.preview");
     expect(src).not.toContain("rgba(0,0,0,0.08)");

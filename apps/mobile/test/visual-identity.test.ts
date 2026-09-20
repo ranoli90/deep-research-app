@@ -36,6 +36,8 @@ describe("original visual identity", () => {
     expect(composer).toContain("productHaptic");
     expect(composer).toContain("sendHit");
     expect(composer).not.toContain("@expo/vector-icons");
+    expect(styles).toMatch(/librarySearch:\s*\{[^}]*borderRadius: radius\.md/);
+    expect(styles).not.toMatch(/librarySearch:\s*\{[^}]*borderBottomWidth/);
   });
 
   it("activity uses an event rail and citations are not teal pills", () => {
