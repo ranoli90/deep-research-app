@@ -117,6 +117,18 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     const row = await pool.query("SELECT result FROM model_operation_results WHERE run_id=$1", [x.runId]);
     expect(row.rows[0].result.output).toBeUndefined();
   }));
+  it("locates unique owned question quotes when the model returns the wrong offsets", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response({
+      ...brief,
+      objectiveProvenance: { start: 99, end: 100, quote: question },
+      criteria: [{ ...brief.criteria[0]!, provenance: { start: 99, end: 100, quote: question } }],
+    })) as typeof fetch;
+    const result = await performModelOperation(pool, x.config, x.session, operation(x));
+    expect(result).toMatchObject({ kind: "result", result: { status: "succeeded" } });
+    if (result.kind === "result" && result.result.status === "succeeded") {
+      expect(result.result.output.objectiveProvenance).toEqual(span);
+    }
+  }));
   it("persists reason-only schema diagnostics and replays rejection without another provider call", async () => runCase(async (x) => {
     const secret="private-rejected-objective-never-retain";
     globalThis.fetch=vi.fn(async()=>response({...brief,objective:{[secret]:secret}})) as typeof fetch;

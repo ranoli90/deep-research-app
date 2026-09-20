@@ -143,12 +143,11 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     let linkedCriteria: { criterionKey: string; questionKey: string; attachedToExisting: boolean }[] = [];
     if (next.status !== "succeeded") return { result: next, resolvedSpans, linkedCriteria };
     const salvageBrief = activePolicy.id === AZURE_ZDR_EXACT_QUOTE_POLICY.id || activePolicy.id === AZURE_ZDR_DISCOVERY_POLICY.id;
-    if (args.operation !== "brief" || salvageBrief) {
-      const resolved = resolveModelSpans(args.operation, next.output, context);
-      next = { ...next, output: resolved.output }; resolvedSpans = resolved.resolutions;
-    }
+    const resolved = resolveModelSpans(args.operation, next.output, context);
+    next = { ...next, output: resolved.output }; resolvedSpans = resolved.resolutions;
     if (args.operation === "brief") {
       let briefOut = next.output as ResearchModelOutput<"brief">;
+      briefOut = repairBriefProvenanceFromQuestion(briefOut, context.question);
       if (salvageBrief) {
         const linked = repairBriefCriterionLinks(briefOut);
         briefOut = repairBriefProvenanceFromQuestion(linked.output, context.question);

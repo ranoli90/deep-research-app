@@ -180,7 +180,8 @@ export function ResearchActivity({
   const pills = inProgress ? visibleLiveSourcePills(liveSourcePillsFromEvents(events)) : { visible: [], overflow: 0 };
   const sections = researchTraceSections(visible);
   if (!inProgress && visible.length === 0) return null;
-  const rawHeadline = inProgress ? current : collapsed.summary;
+  const liveHeadline = lifecycle === "cancelling" ? "Stopping" : current;
+  const rawHeadline = inProgress ? liveHeadline : collapsed.summary;
   const labeled = labeledDemo ? (rawHeadline.toLowerCase().startsWith("sample") ? rawHeadline : `Sample · ${rawHeadline}`) : rawHeadline;
   const headline = collapsed.expandable ? displayCollapsedSummary(labeled) : labeled;
   const wasExpanded = expandedRef.current;

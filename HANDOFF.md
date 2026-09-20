@@ -1,3 +1,11 @@
+## Device live + Stop — 2026-09-20
+
+Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.
+
+To leave Demo on the phone: Settings → Demo mode off, sign in, grant AI processing. Point `adb reverse tcp:8787` at a live API (`8789` / `deep_v8_device_live`), not fixture `8788`. Start the production worker with `EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime`. Do not kill 8788 or J12 `8790`.
+
+Stop completes when no worker lease/`issued` call remains. A live in-flight cancel aborts the fence and finishes after the lease expires. Brief unique-quote location now runs on strict-v4 so a public-web question can get past preparing. Native APK is still `75dee72`; Stopping copy is in this tree only.
+
 ## Typed constraint / continue / section / journal repairs — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

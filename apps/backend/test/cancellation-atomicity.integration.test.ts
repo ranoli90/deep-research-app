@@ -5,7 +5,7 @@ import type { FastifyInstance } from "fastify";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
 import { createPool,migrate,withTx } from "../src/platform/db.js";
 import { createDevSession,grantConsent,deleteAccount } from "../src/modules/access.js";
-import { insertConversation,insertBrief,insertRun,emitEvent } from "../src/modules/runs.js";
+import { insertConversation,insertBrief,insertRun,emitEvent,finishCancellationIfIdle,getRun } from "../src/modules/runs.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig } from "../src/platform/config.js";
 import { buildApp } from "../src/api/app.js";
@@ -40,8 +40,14 @@ it("W02 concurrent cancellation API requests atomically preserve distinct event 
   await until(async()=>Number((await pool.query("SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=current_database() AND cardinality(pg_blocking_pids(pid))>0")).rows[0].n)>=2);
   await lock.release();released=true;
   const responses=await Promise.all([first,second]);expect(responses.map(r=>r.statusCode)).toEqual([200,200]);
-  expect((await pool.query("SELECT sequence::int,type FROM run_events WHERE run_id=$1 ORDER BY sequence",[x.runId])).rows).toEqual([{sequence:1,type:"cancel_requested"},{sequence:2,type:"cancel_requested"}]);
-  expect((await pool.query("SELECT lifecycle,cancellation_epoch::int FROM runs WHERE id=$1",[x.runId])).rows[0]).toEqual({lifecycle:"cancelling",cancellation_epoch:2});
+  expect((await pool.query("SELECT sequence::int,type FROM run_events WHERE run_id=$1 ORDER BY sequence",[x.runId])).rows).toEqual([
+    {sequence:1,type:"cancel_requested"},
+    {sequence:2,type:"cancelled"},
+    {sequence:3,type:"cancel_requested"},
+  ]);
+  expect((await pool.query("SELECT lifecycle,terminal_outcome,cancellation_epoch::int FROM runs WHERE id=$1",[x.runId])).rows[0]).toEqual({
+    lifecycle:"terminal",terminal_outcome:"cancelled",cancellation_epoch:2,
+  });
  }finally{if(!released)await lock.release();if(pending)await pending;await gate.cleanup();await deleteAccount(pool,x.accountId);}
 });
 it("W02 cancellation cannot recreate events after account deletion races its event insertion",async()=>{
@@ -77,6 +83,48 @@ it("W02 event writers using Pool retain the sequence lock through insertion",asy
   expect((await Promise.allSettled([first,second])).map(r=>r.status)).toEqual(["fulfilled","fulfilled"]);
   expect((await pool.query("SELECT sequence::int FROM run_events WHERE run_id=$1 ORDER BY sequence",[x.runId])).rows).toEqual([{sequence:1},{sequence:2}]);
  }finally{if(!released)await lock.release();if(pending)await pending;await gate.cleanup();await deleteAccount(pool,x.accountId);}
+});
+it("W02 stop completes immediately when no worker lease or issued provider call remains",async()=>{
+ const x=await setup();
+ try{
+  const response=await cancel(x);
+  expect(response.statusCode).toBe(200);
+  expect(response.json()).toMatchObject({runId:x.runId,lifecycle:"terminal"});
+  expect((await pool.query("SELECT lifecycle,terminal_outcome,cancellation_epoch::int FROM runs WHERE id=$1",[x.runId])).rows[0]).toEqual({
+    lifecycle:"terminal",terminal_outcome:"cancelled",cancellation_epoch:1,
+  });
+  expect((await pool.query("SELECT sequence::int,type FROM run_events WHERE run_id=$1 ORDER BY sequence",[x.runId])).rows).toEqual([
+    {sequence:1,type:"cancel_requested"},
+    {sequence:2,type:"cancelled"},
+  ]);
+ }finally{await deleteAccount(pool,x.accountId);}
+});
+it("W02 stop stays cancelling while a worker lease or issued provider call is still open",async()=>{
+ const x=await setup();
+ try{
+  await pool.query(`INSERT INTO run_leases(run_id,fence,owner,expires_at) VALUES($1,1,'active-worker',clock_timestamp()+interval '1 hour')`,[x.runId]);
+  const leased=await cancel(x);
+  expect(leased.statusCode).toBe(200);
+  expect(leased.json()).toMatchObject({runId:x.runId,lifecycle:"cancelling"});
+  expect((await pool.query("SELECT lifecycle,terminal_outcome FROM runs WHERE id=$1",[x.runId])).rows[0]).toEqual({
+    lifecycle:"cancelling",terminal_outcome:null,
+  });
+  await pool.query("DELETE FROM run_leases WHERE run_id=$1",[x.runId]);
+  await pool.query(`INSERT INTO provider_intents(id,run_id,correlation_id,route,request_digest,reserved_max_micro,state)
+    VALUES($1,$2,$3,'openrouter:test','digest',1000,'issued')`,[crypto.randomUUID(),x.runId,crypto.randomUUID()]);
+  const held=await cancel(x);
+  expect(held.statusCode).toBe(200);
+  expect(held.json()).toMatchObject({lifecycle:"cancelling"});
+  expect((await pool.query("SELECT lifecycle,terminal_outcome,cancellation_epoch::int FROM runs WHERE id=$1",[x.runId])).rows[0]).toEqual({
+    lifecycle:"cancelling",terminal_outcome:null,cancellation_epoch:2,
+  });
+  const blocked=await withTx(pool,async db=>finishCancellationIfIdle(db,(await getRun(db,x.runId,{forUpdate:true}))!));
+  expect(blocked.lifecycle).toBe("cancelling");
+  await pool.query("UPDATE provider_intents SET state='confirmed', confirmed_micro=0 WHERE run_id=$1",[x.runId]);
+  const finished=await withTx(pool,async db=>finishCancellationIfIdle(db,(await getRun(db,x.runId,{forUpdate:true}))!));
+  expect(finished.lifecycle).toBe("terminal");
+  expect(finished.terminal_outcome).toBe("cancelled");
+ }finally{await deleteAccount(pool,x.accountId);}
 });
 it("W03 cancellation rejects another account and an already deleted session without mutation",async()=>{
  const x=await setup(),foreign=await setup();try{

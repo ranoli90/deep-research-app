@@ -3,7 +3,7 @@ import type { AppConfig } from "../platform/config.js";
 import { withTx, type Queryable } from "../platform/db.js";
 import { consentAllowsProcessing } from "../modules/access.js";
 import { settleRun } from "../modules/billing.js";
-import { claimLease, getRun, markTerminal, emitEvent } from "../modules/runs.js";
+import { claimLease, finishOwnedCancellationIfIdle, getRun, markTerminal, emitEvent } from "../modules/runs.js";
 import { fencedSession, LostWorkerLease } from "./fenced-session.js";
 import type { ProcessOptions } from "./execution-options.js";
 
@@ -28,6 +28,7 @@ export async function executeLeasedRun(pool: pg.Pool, config: AppConfig, runId: 
   } finally {
     session.stop();
     if (graceful) await pool.query("UPDATE run_leases SET expires_at = now() WHERE run_id = $1 AND owner = $2 AND fence = $3", [runId, workerId, fence]);
+    await finishOwnedCancellationIfIdle(pool, runId).catch(() => undefined);
   }
 }
 

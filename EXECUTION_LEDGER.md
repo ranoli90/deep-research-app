@@ -1,5 +1,14 @@
 # Execution ledger
 
+## 2026-09-20 — device live, Stop completion, brief quote location
+
+- Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.
+- Dedicated live: DB `deep_v8_device_live`, API `127.0.0.1:8789`, worker `device-live-worker`, `LIVE_BUDGET_SCOPE=device-live-20260920`, spend/key cap 2_000_000 µ, `EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime`. Reverse `tcp:8787→tcp:8789`. Did not kill 8788 or 8790/J12. MC-D01 hold untouched.
+- `cancelOwnedRun` finishes to terminal cancelled when no active lease and no `issued` intent. Worker `executeLeasedRun` finishes the same after dropping the lease. Fence renew aborts when lifecycle is `cancelling`.
+- Brief `resolveModelSpans` + `repairBriefProvenanceFromQuestion` run on admitted strict-v4. Invented quotes still `invalid_exact_span`.
+- Device: Demo off, account `ddea1363`, consent granted. Live run `e447ae6f` searched public web and extracted sources (no Sample prefix). Stop requested cancel; after lease expiry the run is terminal cancelled.
+- Tests: cancellation-atomicity 7/7 on `deep_cancel_idle`. Gateway invented-quote + unique-offset 2/2 on `deep_brief_span`. Mobile research-activity 14/14, lifecycle 12/12. Frozen `21190ed` PG 544/544 twice (`/tmp/deep-closure-pg1.log`, `pg2`). Not merged to main.
+
 ## 2026-09-20 — R-01/R-02/R-03/R-04/R-05/R-06 production repairs
 
 - R-01: `parseCorrection` + follow-up `change_constraint` keep `originalQuestion`; budget 2000→1500 with geography retained. Fixture `/corrections` no longer concatenates `Correction:` onto the question.

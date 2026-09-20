@@ -1,3 +1,15 @@
+## Device live path, Stop completion, brief quote location — 2026-09-20
+
+`grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS. Research Beta is not declared.
+
+The installed APK still defaults to Demo (`routeMode=fixture`) and talks to `127.0.0.1:8787` via adb reverse. Sample headlines are fixture runs. Stop appeared broken because cancel set `cancelling` and nothing finished the run when no diagnostic worker was on the fixture DB, and a live worker that hit `LostWorkerLease` after Stop left the run cancelling.
+
+This SHA: idle Stop completes when there is no active lease and no `issued` provider call; the worker aborts the fenced session when lifecycle is `cancelling` and finishes that cancel after the lease drops; unique owned question quotes are located for brief on the admitted strict-v4 route (invented quotes still fail). Sign-in keeps the device Demo/Research switch. Activity shows Stopping while cancel is in flight.
+
+Device live stack (do not kill 8788 fixture or 8790 J12): API `127.0.0.1:8789`, DB `deep_v8_device_live`, `LIVE_BUDGET_SCOPE=device-live-20260920`, `EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime`, adb reverse `tcp:8787 -> tcp:8789`. Phone: Demo off, signed in, AI processing on. Live Taco Bell run searched and read public sources (no Sample prefix). Stop on that run requested cancel; after the lease dropped the run is terminal cancelled.
+
+Focused tests: cancellation-atomicity **7/7**, model-gateway brief offset locate **1/1** plus invented-quote still invalid, mobile research-activity **14/14**, lifecycle **12/12**. Full `pnpm verify` and two PG are **not** this SHA. Frozen `21190ed` PG **544/544** twice remains prior evidence. Installed APK is still `75dee72` (no new EAS). iOS unavailable.
+
 ## Typed constraint, continue cardinality, section purpose, follow-up journal — 2026-09-20
 
 `grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS. Research Beta is not declared.

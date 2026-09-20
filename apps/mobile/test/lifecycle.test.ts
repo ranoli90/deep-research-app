@@ -164,6 +164,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toContain("Start research");
     expect(src).toContain('accessibilityLabel="Library"');
     expect(src).toContain('accessibilityLabel="New research"');
+    expect(src).toContain("routeMode: prev.routeMode, reducedMotion: prev.reducedMotion");
     expect(src).toMatch(/function onNewResearch\(\) \{\s*submitting\.current = false;/);
     expect(src).toContain("androidBack(latestUi.current)");
     expect(src).toMatch(/return true;\s*\}\);/);

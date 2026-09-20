@@ -317,7 +317,7 @@ function AppInner() {
       if (accepted.current()) setAccountId(s.accountId);
       setState((prev) => {
         if (!accepted.current()) return prev;
-        const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null };
+        const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null, routeMode: prev.routeMode, reducedMotion: prev.reducedMotion };
 
         return next;
       });

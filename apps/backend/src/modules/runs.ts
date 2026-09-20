@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { reserveAllowance } from "./billing.js";
+import { reserveAllowance, settleRun } from "./billing.js";
 import {strictPolicyForNewAdmission,modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
 import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import type { ClarificationField, Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
@@ -347,8 +347,41 @@ export async function cancelOwnedRun(pool: pg.Pool, accountId: string, runId: st
       runId, accountId, type: "cancel_requested", phase: updated.phase,
       summary: "Stopping new work. An already-issued provider call may still finish accounting.",
     });
-    return updated;
+    if (updated.lifecycle === "terminal") return updated;
+    return finishCancellationIfIdle(db, updated);
   });
+}
+
+export async function finishOwnedCancellationIfIdle(pool: pg.Pool, runId: string): Promise<RunRow | null> {
+  return withTx(pool, async (db) => {
+    const peek = await getRun(db, runId);
+    if (!peek || peek.lifecycle !== "cancelling") return peek;
+    await lockActiveAccount(db, peek.account_id);
+    const latest = await getRun(db, runId, { forUpdate: true });
+    if (!latest) return null;
+    return finishCancellationIfIdle(db, latest);
+  });
+}
+
+/** Complete a requested stop once no worker lease or in-flight issued call remains. Unknown holds stay held. */
+export async function finishCancellationIfIdle(db: Queryable, run: RunRow): Promise<RunRow> {
+  if (run.lifecycle !== "cancelling") return run;
+  const activeLease = await db.query(
+    `SELECT 1 FROM run_leases WHERE run_id = $1 AND expires_at > clock_timestamp() LIMIT 1`,
+    [run.id],
+  );
+  const issued = await db.query(
+    `SELECT 1 FROM provider_intents WHERE run_id = $1 AND state = 'issued' LIMIT 1`,
+    [run.id],
+  );
+  if ((activeLease.rowCount ?? 0) > 0 || (issued.rowCount ?? 0) > 0) return run;
+  await markTerminal(db, run.id, "cancelled");
+  await settleRun(db, run.account_id, run.id, run.spent_micro);
+  await emitEvent(db, {
+    runId: run.id, accountId: run.account_id, type: "cancelled", phase: run.phase,
+    summary: "Run cancelled. No new work will be issued. Partial evidence is retained unless deleted.",
+  });
+  return (await getRun(db, run.id, { forUpdate: true })) ?? run;
 }
 
 export async function cancelRun(db: Queryable, runId: string): Promise<RunRow | null> {

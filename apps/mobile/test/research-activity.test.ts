@@ -151,6 +151,13 @@ describe("research activity from sanitized events", () => {
     expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail ›");
   });
 
+  it("shows Stopping while cancel is in flight instead of the last sample headline", () => {
+    const events = [evt(1, "intent_ready")];
+    expect(collapseResearchActivity({ events, lifecycle: "cancelling" }).summary).toBe("Stopping ›");
+    const src = readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8");
+    expect(src).toContain('lifecycle === "cancelling" ? "Stopping"');
+  });
+
   it("does not repeat consecutive identical consumer labels", () => {
     const visible = visibleResearchEvents([
       evt(1, "intent_ready", { phase: "preparing" }),

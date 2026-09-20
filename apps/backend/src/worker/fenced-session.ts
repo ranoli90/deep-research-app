@@ -24,6 +24,8 @@ export function fencedSession(pool: pg.Pool, args: {
     renewing = true;
     try {
       if (!await renewLease(pool, args.runId, args.owner, args.fence, args.leaseMs)) abort.abort();
+      const latest = await getRun(pool, args.runId);
+      if (latest?.lifecycle === "cancelling") abort.abort();
     } catch { abort.abort(); }
     finally { renewing = false; }
   }, Math.max(10, Math.floor(args.leaseMs / 3)));
