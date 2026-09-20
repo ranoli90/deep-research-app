@@ -8,8 +8,8 @@ Gate at this SHA (porcelain 0): `pnpm verify` EXIT 0 (core 314 / backend unit 24
 |---|---|---|---|---|---|---|
 | CL-01 | P0 | serializer + PG 541/541 | closed for API/mobile contract | Mobile `{answers}`-only continue | `ContinueRunRequestSchema` + `continueRunRequest()` | Native Continue |
 | CL-02 | P0 | serializer + PG 541/541 | closed for contract | Missing `expectedBriefRevision`; child not adopted | `AssumptionsRequestSchema` + child `selectRun` | Native replace |
-| CL-03 | P0 | unit + PG 541/541 | closed deepen/explain; constraint delta keeps original question | deepen fell into verification; replace_question dropped the goal | Shared `routeFollowUp`; deepen handler; `revisedQuestionForConstraintDelta` | Device journeys |
-| CL-04 | P1 | unit | partial | no idempotency; child refresh without select | `mutatingFollowUpKey` + `selectRun` before refresh | Full admission journal |
+| CL-03 | P0 | HTTP follow-up 5/5 + PG 541/541 | closed deepen/explain; constraint delta keeps original question | deepen fell into verification; replace_question dropped the goal | Shared `routeFollowUp`; deepen handler; HTTP `kind:"deepen"` child keeps `originalQuestion` | Device journeys |
+| CL-04 | P1 | unit drives shipped helper | closed child adopt for follow-up and assumption replace | no idempotency; child refresh without select | `mutatingFollowUpKey` + `adoptReturnedChild` (select/refresh/poll child, never parent) | Full admission journal |
 | CL-05 | P0 | unit canaries | closed for in-memory/persist | unbound React state | `followUpExplain` on UiState; `visibleFollowUpExplain`; persist parse | Conversation history UX |
 | CL-06 | P0 | unit | partial | first claim in block | `claimIdForReportBlock` + sheet `onFollowUp(claimId)` | Multi-claim choice UI |
 | CL-07 | P0 | executed `canonicalSectionContexts` + PG 541/541 | closed for plan/write/restore match | flattened `[a1,a1,a2]`; leftover job-level `scopeComparison` on singleton sections | Deduped keys; `sectionScopeComparison` omits/reprojects; write/restore share `canonicalSectionContexts` | Durable composition table; live J11 |

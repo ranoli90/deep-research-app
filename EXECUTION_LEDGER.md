@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-20 — deepen HTTP and child-adoption helper
+
+- `followup-explain.integration.test.ts` injects POST `/v1/runs/:id/follow-up` `{message:"Go deeper on battery life",expectedBriefRevision}` after a published report on `controlled-research`; asserts 200 `kind:"deepen"`, child `runId`, unchanged `originalQuestion`, no verification identity. Deleting the deepen branch in `app.ts` falls through to `RequestedVerificationRequestSchema` 400.
+- `adoptReturnedChild` in `constraint-delta.ts` is called from `onExplainFollowUp` and assumption replace. Unit test records select/refresh/poll and fails if `parent-run` is used when the body returns `child-run`. Mobile 318/318. followup-explain 5/5 on `deep_resume_pg1`.
+- Not merged to main.
+
 ## 2026-09-20 — closure gate at 71a14a3
 
 - Product SHA `71a14a39d0b30174835f9875a8019ee0ed234f15` on `grok-v8/research-beta-integration`. `main` stayed `8a7b1a9`.

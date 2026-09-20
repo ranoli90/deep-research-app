@@ -200,6 +200,41 @@ describe("ENG-033 follow-up explain from owned evidence", () => {
     })).statusCode).toBe(409);
   });
 
+  it("POST Go deeper on battery life deepens a child without rewriting originalQuestion or falling into verification", async () => {
+    const { token, accountId } = await authed();
+    const headers = { authorization: `Bearer ${token}`, "idempotency-key": crypto.randomUUID() };
+    const runId = (await createRun(token, QUESTION)).json().runId as string;
+    const before = (await getRun(pool, runId))!;
+    const original = await getBrief(pool, before.brief_id);
+    await publishOwned(accountId, runId, DELL_TEXT);
+    await pool.query(
+      "UPDATE runs SET lifecycle='terminal', terminal_outcome='completed', route_mode='controlled-research' WHERE id=$1",
+      [runId],
+    );
+
+    const deepened = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/follow-up`,
+      headers,
+      payload: { message: "Go deeper on battery life", expectedBriefRevision: before.brief_revision },
+    });
+    expect(deepened.statusCode).toBe(200);
+    expect(deepened.statusCode).not.toBe(400);
+    expect(deepened.json()).toMatchObject({
+      kind: "deepen",
+      parentRunId: runId,
+      mutatesBrief: false,
+    });
+    expect(deepened.json().runId).toBeTruthy();
+    expect(deepened.json().runId).not.toBe(runId);
+    expect(deepened.json().verificationId).toBeUndefined();
+    const child = (await getRun(pool, deepened.json().runId as string))!;
+    expect(child.parent_run_id).toBe(runId);
+    expect((await getBrief(pool, child.brief_id)).originalQuestion).toBe(original.originalQuestion);
+    expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(QUESTION);
+    expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(original.originalQuestion);
+  });
+
   it("rejects a deleted account on follow-up explain", async () => {
     const { token, accountId } = await authed();
     const runId = (await createRun(token, QUESTION)).json().runId as string;

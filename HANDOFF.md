@@ -1,3 +1,7 @@
+## Deepen HTTP + child adoption — 2026-09-20
+
+HTTP deepen follow-up 5/5. `adoptReturnedChild` used by explain-follow-up and assumption replace. **Do not merge `main`.**
+
 ## Closure gate SHA 71a14a3 — 2026-09-20
 
 Product SHA **`71a14a3`**. `pnpm verify` EXIT 0. PG **541/541** twice on `deep_resume_pg1` / `deep_resume_pg2`. Singleton-section scope comparison omitted on hierarchical writes. Native current-HEAD APK still blocked (wireless debugging down). Live J8/J11 not granted. **Do not merge `main`.** Phase A/B not complete.

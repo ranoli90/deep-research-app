@@ -34,7 +34,7 @@ import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { bindFollowUpExplain, visibleFollowUpExplain } from "./src/follow-up-explain";
-import { mutatingFollowUpKey, revisedQuestionForConstraintDelta } from "./src/constraint-delta";
+import { adoptReturnedChild, mutatingFollowUpKey, revisedQuestionForConstraintDelta } from "./src/constraint-delta";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -981,10 +981,13 @@ function AppInner() {
         setEditingAssumptions(false);
         setClarifyAnswer("");
         AccessibilityInfo.announceForAccessibility("Assumptions updated.");
-        const nextId = typeof result.runId === "string" ? result.runId : state.run.runId;
-        if (nextId !== state.run.runId) api.selectRun(nextId);
-        await refreshRun(token, nextId);
-        if (nextId !== state.run.runId) startPolling(token, nextId);
+        await adoptReturnedChild({
+          parentRunId: state.run.runId,
+          body: result,
+          selectRun: api.selectRun,
+          refresh: (runId) => refreshRun(token, runId),
+          poll: (runId) => startPolling(token, runId),
+        });
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
@@ -1089,11 +1092,14 @@ function AppInner() {
         setViewState((s) => ({ ...s, draft: "", error: null, followUpExplain: bound }));
         return;
       }
-      const runId = typeof body.runId === "string" ? body.runId : current.run.runId;
-      if (runId !== current.run.runId) api.selectRun(runId);
       setViewState((s) => ({ ...s, draft: "", error: null }));
-      await refreshRun(token, runId);
-      startPolling(token, runId);
+      await adoptReturnedChild({
+        parentRunId: current.run.runId,
+        body,
+        selectRun: api.selectRun,
+        refresh: (runId) => refreshRun(token, runId),
+        poll: (runId) => startPolling(token, runId),
+      });
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
