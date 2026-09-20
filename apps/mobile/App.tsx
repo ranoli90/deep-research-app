@@ -28,7 +28,7 @@ import { useKeyboardInset } from "./src/use-keyboard-inset";
 import { composerDockBottomInset } from "./src/composer-keyboard";
 import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
-import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
+import { clarificationFieldFromPrompt, clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions } from "./src/follow-ups";
@@ -217,7 +217,7 @@ function AppInner() {
     lifecycle: state.run?.lifecycle,
     status: state.status,
     brief: state.run?.brief,
-    clarificationSummary: undefined,
+    clarificationSummary: clarificationPromptFromEvents(state.events),
     hasReport: Boolean(state.report),
   });
   const finishedReport = composerFollowsReport(state);

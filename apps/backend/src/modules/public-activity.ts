@@ -62,6 +62,14 @@ const TYPE_TO_KIND: Record<string, PublicActivityKind> = {
   research_unresolved: "plan_pivot",
 };
 
+/** Consumer-safe needed-detail text. Never copy URLs, prompts, or private markers into the label. */
+function consumerClarificationLabel(summary: string): string {
+  const text = summary.trim().replace(/\s+/g, " ");
+  if (!text || text.length > 200) return PUBLIC_ACTIVITY_LABELS.clarification;
+  if (PRIVATE.test(text) || /https?:\/\//i.test(text)) return PUBLIC_ACTIVITY_LABELS.clarification;
+  return text;
+}
+
 function payloadRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
   if (typeof value === "string") {
@@ -101,7 +109,7 @@ export function toPublicActivity(event: {
       : null;
   return {
     kind,
-    label: PUBLIC_ACTIVITY_LABELS[kind],
+    label: kind === "clarification" ? consumerClarificationLabel(event.publicSummary) : PUBLIC_ACTIVITY_LABELS[kind],
     phase: publicActivityPhase(event.phase),
     count,
     sourceDomain: publicSourceHostFromText(event.publicSummary),

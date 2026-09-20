@@ -38,6 +38,7 @@ describe("phase B consumer chrome", () => {
     expect(report).toContain("reportNeedsOutline");
     expect(report).toContain("motion.appear");
     expect(app).toContain("reducedMotion={state.reducedMotion}");
+    expect(app).toContain("clarificationPromptFromEvents");
     expect(app).toContain("liveActivityFollowsLatest");
     expect(sheet).toContain("Technical details ›");
     expect(sheet).toContain("motion.sheet");

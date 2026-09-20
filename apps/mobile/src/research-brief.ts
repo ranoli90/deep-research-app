@@ -73,6 +73,19 @@ export function clarificationPlaceholder(prompt: string | null | undefined): str
   }
 }
 
+/** Last public clarification label. Empty when no typed clarification activity exists. */
+export function clarificationPromptFromEvents(
+  events: { activity?: { kind?: string; label?: string } | null }[],
+): string | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const activity = events[i]?.activity;
+    if (activity?.kind !== "clarification") continue;
+    const label = activity.label?.trim();
+    if (label) return label;
+  }
+  return null;
+}
+
 export function researchBriefView(args: {
   lifecycle?: string;
   status?: string;

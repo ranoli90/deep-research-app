@@ -52,6 +52,31 @@ describe("public research activity", () => {
     })).toBeNull();
   });
 
+  it("clarification activity carries the consumer-safe needed-detail text", () => {
+    const asked = toPublicActivity({
+      type: "clarify",
+      publicSummary: "Which jurisdiction should this answer apply to?",
+      phase: "preparing",
+      createdAt: "2026-09-18T00:00:00Z",
+    });
+    expect(asked).toMatchObject({
+      kind: "clarification",
+      label: "Which jurisdiction should this answer apply to?",
+    });
+    expect(toPublicActivity({
+      type: "clarify",
+      publicSummary: "prompt: system message which jurisdiction",
+      phase: "preparing",
+      createdAt: "2026-09-18T00:00:00Z",
+    })).toBeNull();
+    expect(toPublicActivity({
+      type: "clarify",
+      publicSummary: "See https://intranet.example/secret",
+      phase: "preparing",
+      createdAt: "2026-09-18T00:00:00Z",
+    })?.label).toBe("Needed a detail");
+  });
+
   it("omits CoT, private canaries, raw summaries, and URL payloads from the consumer DTO", () => {
     const cot = toSanitizedRunEvent({
       ...row,

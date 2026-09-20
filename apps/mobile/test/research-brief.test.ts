@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canSubmit, composerFollowsReport, emptyState, startNewResearch } from "../src/state";
-import { clarificationFieldFromPrompt, researchBriefView } from "../src/research-brief";
+import { clarificationFieldFromPrompt, clarificationPromptFromEvents, researchBriefView } from "../src/research-brief";
 
 describe("one-sentence composer and researching-this brief", () => {
   it("lets a natural sentence submit with no attachments", () => {
@@ -99,6 +99,17 @@ describe("one-sentence composer and researching-this brief", () => {
     expect(view.assumptions.some((line) => /local inference/i.test(line))).toBe(true);
     expect(view.assumptions.some((line) => /current list prices/i.test(line))).toBe(true);
     expect(JSON.stringify(view)).not.toMatch(/criterionIds|traversal|model_policy/i);
+  });
+
+  it("reads the needed-detail prompt from the last clarification activity", () => {
+    expect(clarificationPromptFromEvents([])).toBeNull();
+    expect(clarificationPromptFromEvents([
+      { activity: { kind: "intent_ready", label: "Understood the question" } },
+      { activity: { kind: "clarification", label: "Which jurisdiction should this answer apply to?" } },
+    ])).toBe("Which jurisdiction should this answer apply to?");
+    const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    expect(app).toContain("clarificationPromptFromEvents(state.events)");
+    expect(app).not.toMatch(/clarificationSummary:\s*undefined/);
   });
 
   it("maps material clarification prompts to typed fields", () => {
