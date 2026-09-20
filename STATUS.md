@@ -2,7 +2,7 @@
 
 `grok-v8/research-beta-integration` product SHA **`75dee72a1ba77717262a0ca683a6b5a52c965d97`**. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. Phase A engineering for these contracts is implemented and locally verified; Phase B chrome repairs (Stop-with-draft, quote-first sheet, settings order) shipped in the same tree. Native current-HEAD APK not yet rebuilt. PG 544/544 ran on this code immediately before the commit.
 
-`pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice — `deep_closure_pg1` 1092s EXIT 0 and `deep_closure_pg2` 935s EXIT 0. Focused brief-continue **10/10**, followup-explain **6/6**. Wireless ADB is reachable at `10.0.0.167:41299` (port `43417` still refused). Live J8/J11 not granted.
+`pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice — `deep_closure_pg1` 1092s EXIT 0 and `deep_closure_pg2` 935s EXIT 0. Focused brief-continue **10/10**, followup-explain **6/6**. EAS **`16412bce`** git **`9ae92fe`** (docs on product `75dee72`) sha256 `c888095a…` **installed** on `10.0.0.167:41299`. Device lockscreen blocked visual recapture. Live J8/J11 not granted.
 
 ## Deepen HTTP + child adoption tests — 2026-09-20
 

@@ -12,7 +12,7 @@
 - Phase B: Stop remains beside Send when a draft exists; quote is first on the source sheet; settings order Account / Appearance / Research / Sources / Privacy / Help / About.
 - `pnpm verify` EXIT 0: core 314 / backend unit 246 / mobile 321 / governance 6 / boundaries ok.
 - Isolated PG `deep_closure_pg1` **544/544** EXIT 0 (1092s). `deep_closure_pg2` **544/544** EXIT 0 (935s). Extraction **55/55**. Fresh migrate 50 including `051`; upgrade 49→50.
-- ADB device `10.0.0.167:41299` is attached. Current-HEAD APK not built in this ledger row. Live J8/J11 not granted. Not merged to main.
+- ADB device `10.0.0.167:41299` attached. EAS `16412bce-2bb5-4ca1-8f0f-1dd771779757` profile `device` FINISHED git `9ae92fe` (docs on product `75dee72`). APK sha256 `c888095a21e838ef8c4596b9b7b2533b2b797f34e2f8f87b95a6144933fbad6b`. `adb install -r` Success. Lockscreen blocked visual recapture; not bypassed. Live J8/J11 not granted. Not merged to main.
 
 ## 2026-09-20 — deepen HTTP and child-adoption helper
 

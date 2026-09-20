@@ -17,7 +17,7 @@ Product SHA `75dee72a1ba77717262a0ca683a6b5a52c965d97` on `ab337c6` plus this re
 | ENG-032 | P1 | mapped CL-07 | implemented on shipped writer | | | Live J11 |
 | ENG-033 | P1 | mapped CL-03 | implemented | | | |
 | ENG-038 | P0 | exact-SHA PG | closed for this tree | | `deep_closure_pg1` / `pg2` 544/544 | Docs SHA if committed after |
-| ENG-039 / Native HEAD APK | P0 | ADB | device reachable | Wireless port moved to `10.0.0.167:41299` | Current-HEAD APK not yet built/installed | EAS/current APK |
+| ENG-039 / Native HEAD APK | P0 | ADB + EAS | installed; visual blocked | Lockscreen | EAS `16412bce` sha256 `c888095a…` on `10.0.0.167:41299` | User unlock for recapture |
 | ENG-041 / RB-PERF-01 | P1 | helper + not device | PARTIAL | | 100-block vitest | Device gfxinfo |
 | J8/J11 live | P0 | grant | blocked | remaining-cap / MC-D01 hold | Deterministic J11 pipeline not live | Explicit grant |
 | Hosted GHA | — | owner-declined | blocked | | | |
