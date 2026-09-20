@@ -1,0 +1,9 @@
+
+> deep-research-mobile@0.1.0 db:migrate /home/oranolio/Desktop/deep-v8-integration
+> pnpm --filter @deep/backend db:migrate
+
+
+> @deep/backend@0.1.0 db:migrate /home/oranolio/Desktop/deep-v8-integration/apps/backend
+> tsx src/platform/migrate.ts
+
+{"level":"info","event":"migrated","database":"postgres://deep:***@127.0.0.1:55432/deep_phase_a_upgrade_f627","t":"2026-09-20T01:48:12.275Z"}

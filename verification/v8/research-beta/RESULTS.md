@@ -5,19 +5,14 @@ Filled kit `35_ACCEPTANCE_MATRIX.csv` lives next to this file.
 | Item | Value |
 |---|---|
 | Integration branch | `grok-v8/research-beta-integration` |
+| Phase A engineering SHA | `f627b2b5e8d6700b76e1bf3fa9ddde556b81436d` |
 | Docs HEAD at fill | (commit of this file) |
-| Product APK git | `2eb385b871fc0465a0b4a3cfe7d0cd7705f9a7a5` |
-| EAS | `7e4b02c8-6118-4307-8dc0-7593690e2a92` |
-| APK sha256 | `6ded85d00989a33bc89aeb186261f4d715b7f62de71aaa6781141b3d141df9cb` |
-| Device | `10.0.0.167:43417` kunzite_global 25098RA98G |
+| Product APK git | historical `2eb385b` — **not this SHA**; Phase A did not change mobile functional code |
 | `main` | `8a7b1a997aefc53f8b06497346c0f915e2d455a7` **unmerged** |
-| Session A | `8abcffdda35f85ff7500f221375d64a24691e435` unchanged |
-| Session B | `e0b00df8d945088a623445349ffe2e2dab9da067` (kit pin `d100b86` stale) |
-| Session C | `0a694f90660b144fdb975826f7d0353b7d97f092` unchanged |
-| Migrations | `042_model_portfolio.sql` then `043_retrieval_intelligence.sql` |
-| Last full PG | **475/475 twice** `deep_v8_int5` / `deep_v8_int6` at SHA `09c5633` |
-| `pnpm verify` | EXIT 0 (core 231 / backend 223 / mobile 277 / governance 6) at that suite |
-| Extraction | 9 passed / 8 skipped frozen |
+| Migrations | `042`…`046` plus Phase A `047_state_identity` `048_provider_admission` `049_retrieval_recovery` `050_phase_a_invariants` |
+| Last full PG | **541/541 twice** `deep_v8_pg1` / `deep_v8_pg2` at SHA `f627b2b` |
+| `pnpm verify` | EXIT 0 twice (core 312 / backend 240 / mobile 291 / governance 6) at `f627b2b` |
+| Extraction | **55/55 EXIT 0** at `f627b2b` |
 | Intent NL | **52** unique questions; 32 focused tests EXIT 0 2026-09-19 |
 
 **Research Beta is not declared.** Two genuine external blockers remain: GitHub Actions billing lock (RB-CI-01) and live public-web J1–J12 spend/hold (RB-LIVE-01/02/03). See `EXTERNAL_BLOCKERS.md`.

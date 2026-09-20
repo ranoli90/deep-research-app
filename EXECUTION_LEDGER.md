@@ -1,5 +1,17 @@
 # Execution ledger
 
+## 2026-09-19 — Phase A Wave I exact-SHA verification `f627b2b`
+
+- Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration` SHA `f627b2b5e8d6700b76e1bf3fa9ddde556b81436d`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend.
+- `pnpm verify` twice EXIT 0: research-core 312, backend unit 240, mobile 291, governance 6/6. Logs `verification/v8/research-beta/logs/verify-f627b2b-*.tail.txt`.
+- Fresh migrate `deep_phase_a_fresh_f627` EXIT 0, 49 rows, tail `050_phase_a_invariants`.
+- Upgrade: main-era `001`–`046` (45 files; no `032`) then migrate on `deep_phase_a_upgrade_f627` EXIT 0, 49 rows including `047`–`050`.
+- `TEST_DATABASE_URL=…/deep_v8_pg1 pnpm --filter @deep/backend test:integration` **541/541 EXIT 0**.
+- `TEST_DATABASE_URL=…/deep_v8_pg2 pnpm --filter @deep/backend test:integration` **541/541 EXIT 0**.
+- `EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime TEST_DATABASE_URL=…/deep_v8_extract2 pnpm --filter @deep/backend test:extraction` **55/55 EXIT 0**.
+- Product repairs on this SHA: verification proof first at publication; fixture limitation disclosure; fixture `/cost` tariff; assertion-only `conclusionChanged`; negated exhaustive ranking prose; “what firmware” is not unmet compatibility freshness.
+- Historical `d88cf62` 505/505 and APK `435d1bf`/`2eb385b` are not this SHA. Mobile functional code unchanged; no new APK. Phase B not started.
+
 ## 2026-09-19 — Phase A Wave D retrieval ENG-011–021
 
 - Lane `codex/phase-a-retrieval` merged onto integration. Isolated Postgres `127.0.0.1:55432/deep_phase_a_retrieval_waved`. Fabricated OpenRouter. No live spend. Not merged to main.

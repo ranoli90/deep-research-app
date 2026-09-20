@@ -1,3 +1,7 @@
+## Phase A Wave I — 2026-09-19
+
+Engineering SHA **`f627b2b`**. `pnpm verify` twice EXIT 0. Fresh+upgrade migrate 49/`050`. PG **541/541** twice on `deep_v8_pg1` and `deep_v8_pg2`. Extraction **55/55**. See `verification/v8/phase-a/WAVE_I.md`. **Do not merge `main`.** No GHA. No new paid spend. Phase B not started. Research Beta is not declared.
+
 ## Phase A Wave D retrieval — 2026-09-19
 
 Lane `codex/phase-a-retrieval` merged onto integration. ENG-011–021 on the production structured worker and `executeSourceRead`. Keep exact query-approval pauses for attached-document challenges. Migration `049`. Isolated tests on `deep_phase_a_retrieval_waved`. **Do not merge `main`.** No live spend.

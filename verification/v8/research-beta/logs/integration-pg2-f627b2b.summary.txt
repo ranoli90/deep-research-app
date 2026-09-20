@@ -1,0 +1,28 @@
+SHA f627b2b5e8d6700b76e1bf3fa9ddde556b81436d DB deep_v8_pg2 started 2026-09-19T20:06:01-06:00
+EXIT:0
+ and binds adoption  369ms
+ ✓ test/question-patch.integration.test.ts (6 tests) 1046ms
+ ✓ test/cancellation-atomicity.integration.test.ts (5 tests) 959ms
+ ✓ test/held-intent-continuation.integration.test.ts (3 tests) 948ms
+ ✓ test/v6-publication.integration.test.ts (19 tests) 939ms
+ ✓ test/remote-source-invalidation.integration.test.ts (4 tests) 854ms
+ ✓ test/phase-a-privacy.integration.test.ts (3 tests) 695ms
+     ✓ ENG-010 requires suffix-specific approval and replays the exact approved challenge without sending twice  421ms
+stdout | test/model-context.integration.test.ts > W02 batches complete evidence authorization without accepting a changed binding or deleted owner
+{"evidenceClass":"real PostgreSQL, synthetic evidence, no model transport","passages":25,"queryCount":4,"elapsedMs":36.62692100000004}
+
+ ✓ test/model-context.integration.test.ts (1 test) 640ms
+   ✓ W02 batches complete evidence authorization without accepting a changed binding or deleted owner  434ms
+ ✓ test/v6-identity.integration.test.ts (3 tests) 652ms
+ ✓ test/research-strategy.integration.test.ts (1 test) 662ms
+ ✓ test/v6-upload.integration.test.ts (2 tests) 442ms
+ ✓ test/html-upload.integration.test.ts (1 test) 442ms
+ ✓ test/v6-ingestion.integration.test.ts (1 test) 329ms
+ ✓ test/pinned-http.integration.test.ts (3 tests) 95ms
+
+ Test Files  45 passed (45)
+      Tests  541 passed (541)
+   Start at  20:06:01
+   Duration  1138.01s (transform 2.87s, setup 0ms, import 17.46s, tests 1112.52s, environment 7ms)
+
+

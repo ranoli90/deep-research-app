@@ -1,0 +1,20 @@
+   ✓ W04 preserves strike qualification in every emitted table copy  704ms
+   ✓ W04 marker-aware table normalization does not promote source comments  703ms
+   ✓ W04 supplemental list omits comment content while retaining its following text  674ms
+ ✓ test/pdf.extraction.test.ts (4 tests) 6744ms
+   ✓ W04 parses original digital PDF bytes into page-bound text with honest layout limitations  1441ms
+   ✓ W04 empty, malformed and pasted PDF inputs cannot manufacture documentary support  3042ms
+   ✓ W04 encrypted PDF remains explicitly unavailable without password guessing  793ms
+   ✓ W04 binds a late-drawn bold negation to its physical sentence, with recoverable cell geometry  1466ms
+ ✓ test/html-lists.extraction.test.ts (5 tests) 3815ms
+   ✓ W04 preserves generic ol restrictions omitted by main-content heuristics  727ms
+   ✓ W04 preserves generic ul restrictions omitted by main-content heuristics  704ms
+   ✓ W04 supplemental list excludes navigation/aside and retains nested order plus struck-through qualification  694ms
+   ✓ W04 whole lists already retained by main extraction are not duplicated as supplements  868ms
+   ✓ W04 bounded list supplementation labels omissions and keeps old extractor versions readable  819ms
+
+ Test Files  8 passed (8)
+      Tests  55 passed (55)
+   Start at  19:39:06
+   Duration  460.72s (transform 1.46s, setup 0ms, import 3.27s, tests 456.14s, environment 1ms)
+

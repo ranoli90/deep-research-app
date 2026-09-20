@@ -1,3 +1,9 @@
+## Phase A Wave I engineering SHA — 2026-09-19
+
+`grok-v8/research-beta-integration` **`f627b2b`**. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared.
+
+At this SHA: `pnpm verify` twice EXIT 0 (core 312 / backend unit 240 / mobile 291 / governance 6/6); fresh migrate 49 including `050`; upgrade from main-era `001`–`046` to `050`; PG full **541/541** twice (`deep_v8_pg1`, `deep_v8_pg2`); extraction **55/55**. Mobile functional code unchanged; historical APKs are not this SHA. Phase B UI has not started.
+
 ## Phase A Wave D retrieval (ENG-011–021) — 2026-09-19
 
 Lane `codex/phase-a-retrieval` merged onto integration. Durable iteration bounds, confirmed+held remaining (not lagging `spent_micro`), per-source read degrade, unknown abandoned reads, URL canonicalization, redirect policy, prefer vs only, curated vendor/standards primary hosts, required unknown freshness, effective date/version metadata, and best authorized source version. Attachment challenge searches still use exact query approval (not a permanent block). Migration `049_retrieval_recovery.sql`. **Not merged to `main`.** Isolated PG `deep_phase_a_retrieval_waved`; no live spend.
