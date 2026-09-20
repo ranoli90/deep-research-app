@@ -27,6 +27,10 @@ describe("CL-01/CL-02 mobile continue and assumption contracts", () => {
     expect(ContinueRunRequestSchema.parse(body).answers?.[0]?.field).toBe("budget");
     expect(() => continueRunRequest({ pendingInput: null, value: "x" })).toThrow(/not waiting/);
     expect(() => continueRunRequest({ pendingInput: { ...pending, field: undefined }, value: "Texas" })).toThrow(/typed clarification field/);
+    expect(() => continueRunRequest({
+      pendingInput: { id: pending.id, type: "query_authorization", briefRevision: 2 },
+      value: "nightfall",
+    })).toThrow(/not waiting for a clarification/);
   });
 
   it("rejects extra and conflicting answers for a single-field pause", () => {

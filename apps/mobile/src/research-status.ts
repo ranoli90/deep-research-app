@@ -49,7 +49,8 @@ export function researchStatusLine(state: StatusInput): ResearchStatusLine | nul
     return null;
   }
 
-  if (!["queued", "running", "cancelling", "awaiting_input"].includes(run.lifecycle)) return null;
+  if (run.lifecycle === "cancelling") return null;
+  if (!["queued", "running", "awaiting_input"].includes(run.lifecycle)) return null;
   const eventCount = Array.isArray(state.events) ? state.events.length : 0;
   if (eventCount > 0) return null;
   return { kind: "waiting", line: RESEARCH_STATUS_LINE.waiting, retry: true };

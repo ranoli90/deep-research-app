@@ -1,3 +1,17 @@
+## Phase B remaining functional UI — 2026-09-20
+
+Isolated worktree `grok-v8/phase-b-functional-ui` from parent `9677232`. **Not merged to `main`.** No GHA. No new UI libraries. No EAS rebuild.
+
+Functional consumer UI remaining after the existing Stop-beside-Send / Demo / Stopping / Reduce Motion / claim-picker / settings-order work:
+
+- Android IME: `composerDockBottomInset` still lifts Send and Stop when adjustResize reports height 0, so the Gboard suggestion strip cannot cover the controls. Unit tests prove Send/Stop clearance.
+- Query authorization: pending exact terms are the only approve body; stuck pending cannot continue as a clarification or start a silent search. Malformed pending fails closed.
+- Cancelling copy is Stopping; terminal copy is `Research cancelled.`
+- Follow-up explain stays enabled when a report exists even if paid correction is unavailable.
+- Multi-claim citation picker uses `pickUniqueClaimId` and never sends `claimIds[0]` for several conclusions.
+
+Installed APK remains `75dee72` (no EAS). Device IME recapture is a leftover. iOS unavailable.
+
 ## Simple historical-fact discovery stop — 2026-09-20
 
 Isolated worktree from `9677232` (`grok-v8/research-beta-integration`). **Not merged to `main` (`8a7b1a9`).** No GHA. No live OpenRouter.

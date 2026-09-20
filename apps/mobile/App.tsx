@@ -2,7 +2,7 @@ import { applyRemoteInvalidation, redactInvalidatedContent } from "./src/remote-
 import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot, type CorrectionSelection } from "./src/correction-documents-flow";
 import { prepareCorrectionDocuments, submitCorrectionDocuments } from "./src/correction-documents";
 import { ProfilePanel } from "./src/ProfilePanel";
-import { claimIdForReportBlock, claimsForReportBlock, uniqueAnswerClaimId, prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
+import { claimIdForReportBlock, claimsForReportBlock, pickUniqueClaimId, uniqueAnswerClaimId, prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
 import { submitSourceDeletion } from "./src/source-deletion-flow";
 import { createSourceFocus } from "./src/source-focus";
@@ -30,6 +30,7 @@ import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
 import { clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
 import { assumptionsRequest, continueRunRequest } from "./src/pending-input";
+import { queryAuthorizationApproveBody, queryAuthorizationPending } from "./src/query-authorization";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
@@ -225,7 +226,9 @@ function AppInner() {
     brief: state.run?.brief,
     clarificationSummary: clarificationPromptFromEvents(state.events),
     hasReport: Boolean(state.report),
+    pendingInputType: state.run?.pendingInput?.type,
   });
+  const queryApprovalPending = queryAuthorizationPending(state.run);
   const finishedReport = composerFollowsReport(state);
   const composerContinues = finishedReport;
   const blocks: ReportBlock[] = useMemo(
@@ -406,6 +409,9 @@ function AppInner() {
         && currentUi.run?.outcome === snap.outcome
         && currentUi.run?.reportId === snap.reportId
         && currentUi.run?.brief?.revision === snap.brief?.revision
+        && currentUi.run?.pendingQueryAuthorization?.id === snap.pendingQueryAuthorization?.id
+        && currentUi.run?.pendingInput?.id === snap.pendingInput?.id
+        && currentUi.run?.pendingInput?.type === snap.pendingInput?.type
         && (incoming.at(-1)?.sequence ?? -1) === (currentUi.events.at(-1)?.sequence ?? -1)
         && (!snap.reportId || currentUi.report?.reportId === snap.reportId);
       if (sameSnapshot && !currentUi.offline) return;
@@ -418,7 +424,12 @@ function AppInner() {
         if (!guard.current() || s.pendingContentInvalidation) return s;
         if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
         const sameRun = s.run?.runId === snap.runId;
-        let next = applySnapshot(s, snap);
+        let next: typeof s;
+        try {
+          next = applySnapshot(s, snap);
+        } catch (error) {
+          return { ...s, error: error instanceof Error ? error.message : "Pending search approval is invalid. Public search will not continue." };
+        }
         next = { ...next, events: sameRun ? mergeEvents(s.events, incoming) : incoming };
         if (report) {
           next = {
@@ -962,6 +973,10 @@ function AppInner() {
 
   async function onContinueClarification() {
     if (!token || !state.run || clarifying.current) return;
+    if (queryAuthorizationPending(latestUi.current.run) || queryAuthorizationPending(state.run)) {
+      setViewState((s) => ({ ...s, error: "Approve the exact search terms before public search can continue." }));
+      return;
+    }
     if (latestUi.current.offline) {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
       return;
@@ -1175,6 +1190,10 @@ function AppInner() {
     const current = latestUi.current;
     const text = (submitted ?? current.draft).trim();
     if (!text) return;
+    if (queryAuthorizationPending(current.run)) {
+      setViewState((s) => ({ ...s, error: "Approve the exact search terms before public search can continue." }));
+      return;
+    }
     const runActive = current.run?.lifecycle === "queued" || current.run?.lifecycle === "running";
     const reportReady = composerFollowsReport(current);
     const routed = routeFollowUp(text, { reportReady, runActive });
@@ -1413,6 +1432,7 @@ function AppInner() {
                   conversationScroll.current?.scrollToEnd({ animated: !latestUi.current.reducedMotion });
                 }}
                 onToggle={() => setActivityExpanded((value) => !value)}
+                pendingInputType={state.run?.pendingInput?.type}
                 styles={{ ...styles, kicker: styles.activityKicker }}
               />
             ) : null}
@@ -1429,34 +1449,48 @@ function AppInner() {
             ) : !activity.inProgress && activity.terminalNotice && state.events.length === 0 ? (
               <Text style={styles.statusText} accessibilityLiveRegion="polite">{activity.terminalNotice}</Text>
             ) : null}
-            {state.run?.pendingQueryAuthorization ? (
+            {queryApprovalPending ? (
               <View style={styles.card} accessibilityLabel="Public search approval">
                 <Text style={styles.kicker}>Approve public search</Text>
                 <Text style={styles.bodyText}>This research includes a private document. Approve the exact search terms before the app queries the public web.</Text>
-                <Text style={styles.kicker}>{state.run.pendingQueryAuthorization.proposedQuery}</Text>
-                {state.run.pendingQueryAuthorization.terms.map((term) => (
-                  <Text key={term} style={styles.bodyText}>{term}</Text>
-                ))}
-                <Pressable
-                  onPress={() => {
-                    const pending = latestUi.current.run?.pendingQueryAuthorization;
-                    if (!token || !state.run || !pending) return;
-                    void api.approveQuery(token, state.run.runId, {
-                      authorizationId: pending.id,
-                      queryDigest: pending.queryDigest,
-                      terms: pending.terms,
-                    }).then(() => refreshRun(token, state.run!.runId)).then(() => {
-                      if (token && state.run) startPolling(token, state.run.runId);
-                    }).catch((e) => {
-                      if (isSupersededRequest(e)) return;
-                      setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not approve this search." }));
-                    });
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Approve these search terms"
-                >
-                  <Text style={styles.link}>Approve these terms</Text>
-                </Pressable>
+                {state.run?.pendingQueryAuthorization ? (
+                  <>
+                    <Text style={styles.kicker}>{state.run.pendingQueryAuthorization.proposedQuery}</Text>
+                    {state.run.pendingQueryAuthorization.terms.map((term) => (
+                      <Text key={term} style={styles.bodyText}>{term}</Text>
+                    ))}
+                    <Pressable
+                      onPress={() => {
+                        const pending = latestUi.current.run?.pendingQueryAuthorization;
+                        if (!token || !state.run || !pending) {
+                          setViewState((s) => ({ ...s, error: "Exact search terms are not available. Public search will not continue." }));
+                          return;
+                        }
+                        let body;
+                        try {
+                          body = queryAuthorizationApproveBody(pending);
+                        } catch (error) {
+                          setViewState((s) => ({ ...s, error: error instanceof Error ? error.message : "Exact search terms are not available. Public search will not continue." }));
+                          return;
+                        }
+                        void api.approveQuery(token, state.run.runId, body).then(() => refreshRun(token, state.run!.runId)).then(() => {
+                          if (token && latestUi.current.run && !queryAuthorizationPending(latestUi.current.run)) {
+                            startPolling(token, latestUi.current.run.runId);
+                          }
+                        }).catch((e) => {
+                          if (isSupersededRequest(e)) return;
+                          setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not approve this search." }));
+                        });
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Approve these search terms"
+                    >
+                      <Text style={styles.link}>Approve these terms</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Text style={styles.bodyText}>Exact search terms are not available. Public search will not continue.</Text>
+                )}
               </View>
             ) : null}
 
@@ -1499,7 +1533,7 @@ function AppInner() {
                     setSourceClaim(blockId ? {
                       blockId,
                       claimIds,
-                      selectedClaimId: claimIds.length === 1 ? claimIds[0]! : null,
+                      selectedClaimId: pickUniqueClaimId(claimIds),
                       text: claimTexts[0]?.text ?? block?.text.slice(0, 180) ?? "",
                       claimTexts,
                     } : null);
@@ -1553,7 +1587,7 @@ function AppInner() {
                                 setSourceClaim({
                                   blockId,
                                   claimIds,
-                                  selectedClaimId: claimIds.length === 1 ? claimIds[0]! : null,
+                                  selectedClaimId: pickUniqueClaimId(claimIds),
                                   text: claimTexts[0]?.text ?? block?.text.slice(0, 180) ?? "",
                                   claimTexts,
                                 });
@@ -1845,7 +1879,7 @@ function AppInner() {
             ))}
           </View>
         ) : null}
-        {state.tab === "research" && !state.source && state.run?.lifecycle !== "awaiting_input" ? (
+        {state.tab === "research" && !state.source && state.run?.lifecycle !== "awaiting_input" && !queryApprovalPending ? (
         <ResearchComposer
           draft={state.draft}
           muted={theme.composer.placeholder}

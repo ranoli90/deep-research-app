@@ -1,5 +1,14 @@
 # Execution ledger
 
+## 2026-09-20 — Phase B remaining functional consumer UI
+
+- Isolated branch `grok-v8/phase-b-functional-ui` from parent `9677232`. Not merged to main. No GHA. No new UI libraries. No EAS.
+- IME: Android open+height 0 still adds the Gboard suggestion inset so Send and Stop share dock clearance above the strip. `keyboardInsetFromFrame` keeps IME open on adjustResize zero-height change frames.
+- Query authorization: `readPendingQueryAuthorization` / `queryAuthorizationApproveBody` send only server-issued terms. Clarification continue is hidden and rejected while `pendingInput.type==='query_authorization'`. `canSubmit` and composer stay fail-closed until approval.
+- Cancelling headline remains Stopping; terminal status/trace use `Research cancelled.`
+- `composerFollowsReport` still enables explain when `correctionMode` is unavailable. `pickUniqueClaimId` replaces multi-claim `claimIds[0]`.
+- Docs: STATUS.md, HANDOFF.md. Native leftover: installed APK `75dee72` cannot be rebuilt here.
+
 ## 2026-09-20 — simple historical-fact discovery stop
 
 - Defect: `when was Taco Bell founded` still issued extra public searches after founded→historical, because coverage-incomplete plus `freshnessUnmet?all criterion keys` kept `unresolvedConsequential` true.

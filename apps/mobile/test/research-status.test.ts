@@ -57,4 +57,16 @@ describe("research status one-liners", () => {
       run: { ...run, lifecycle: "terminal", outcome: "cancelled", contentInvalidated: true },
     })).toBeNull();
   });
+
+  it("does not call an in-flight cancel Research cancelled", () => {
+    expect(researchStatusLine({
+      ...emptyState(),
+      run: { ...run, lifecycle: "cancelling", outcome: null },
+      events: [],
+    })).toBeNull();
+    expect(researchStatusLine({
+      ...emptyState(),
+      run: { ...run, lifecycle: "terminal", outcome: "cancelled" },
+    })?.line).toBe("Research cancelled.");
+  });
 });

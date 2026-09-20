@@ -128,7 +128,7 @@ describe("research activity from sanitized events", () => {
   it("does not claim a source count when none were opened", () => {
     const events = [evt(1, "intent_ready")];
     expect(collapseResearchActivity({ events, outcome: "completed" }).summary).toBe("Research complete ›");
-    expect(collapseResearchActivity({ events, outcome: "cancelled" }).summary).toBe("Research cancelled ›");
+    expect(collapseResearchActivity({ events, outcome: "cancelled" }).summary).toBe("Research cancelled. ›");
   });
 
   it("shows elapsed time while running from the first recorded event", () => {
@@ -143,7 +143,7 @@ describe("research activity from sanitized events", () => {
 
   it("does not call a failed run complete", () => {
     const events = [evt(1, "intent_ready")];
-    expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed ›");
+    expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed. ›");
   });
 
   it("does not call a clarification pause complete", () => {
@@ -154,8 +154,19 @@ describe("research activity from sanitized events", () => {
   it("shows Stopping while cancel is in flight instead of the last sample headline", () => {
     const events = [evt(1, "intent_ready")];
     expect(collapseResearchActivity({ events, lifecycle: "cancelling" }).summary).toBe("Stopping ›");
+    expect(collapseResearchActivity({ events: [], lifecycle: "cancelling" }).summary).toBe("Stopping");
     const src = readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8");
-    expect(src).toContain('lifecycle === "cancelling" ? "Stopping"');
+    expect(src).toContain('lifecycle === "cancelling"');
+    expect(src).toContain('"Stopping"');
+    expect(src).toContain("Waiting for search approval");
+  });
+
+  it("does not keep a searching headline while query approval is pending", () => {
+    const events = [evt(1, "searching")];
+    expect(collapseResearchActivity({
+      events, lifecycle: "awaiting_input", pendingInputType: "query_authorization",
+    }).summary).toBe("Waiting for search approval ›");
+    expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail ›");
   });
 
   it("does not repeat consecutive identical consumer labels", () => {

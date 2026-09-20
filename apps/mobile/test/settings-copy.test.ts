@@ -21,5 +21,9 @@ describe("human settings copy", () => {
     expect(profile).toContain("About");
     expect(profile).toContain("Deep Research");
     expect(profile).toContain("settingsRow");
+    const order = ["Account", "Appearance", "Research preferences", "Source preferences", "Privacy & data", "Help", "About"];
+    const indexes = order.map((label) => profile.indexOf(`>${label}<`));
+    expect(indexes.every((index) => index >= 0)).toBe(true);
+    expect([...indexes].sort((a, b) => a - b)).toEqual(indexes);
   });
 });

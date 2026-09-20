@@ -108,6 +108,7 @@ export function researchBriefView(args: {
   brief?: ResearchBriefInput | null;
   clarificationSummary?: string | null;
   hasReport?: boolean;
+  pendingInputType?: string | null;
 }): ResearchBriefView {
   const hidden: ResearchBriefView = {
     show: false,
@@ -116,6 +117,7 @@ export function researchBriefView(args: {
     assumptions: [],
     materialClarification: null,
   };
+  if (args.pendingInputType === "query_authorization") return hidden;
   const awaiting = args.lifecycle === "awaiting_input" || args.status === "awaiting_input";
   if (args.hasReport && !awaiting) return hidden;
   const brief = args.brief;

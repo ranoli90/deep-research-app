@@ -131,9 +131,14 @@ export function collapseResearchActivity(args: {
   events: ResearchEvent[];
   lifecycle?: string;
   outcome?: string | null;
+  pendingInputType?: string | null;
 }): { summary: string; expandable: boolean } {
   const visible = visibleResearchEvents(args.events);
   if (visible.length === 0) {
+    if (args.lifecycle === "cancelling") return { summary: "Stopping", expandable: false };
+    if (args.lifecycle === "awaiting_input" && args.pendingInputType === "query_authorization") {
+      return { summary: "Waiting for search approval", expandable: false };
+    }
     if (args.lifecycle && args.lifecycle !== "terminal") {
       return { summary: "Waiting for the server.", expandable: false };
     }
@@ -143,13 +148,15 @@ export function collapseResearchActivity(args: {
   const elapsed = elapsedLabel(args.events);
   const parts: string[] = [];
   if (args.outcome === "cancelled") {
-    parts.push("Research cancelled");
+    parts.push("Research cancelled.");
   } else if (args.lifecycle === "cancelling") {
     parts.push("Stopping");
+  } else if (args.lifecycle === "awaiting_input" && args.pendingInputType === "query_authorization") {
+    parts.push("Waiting for search approval");
   } else if (args.lifecycle === "awaiting_input") {
     parts.push("Waiting for a detail");
   } else if (args.outcome === "failed") {
-    parts.push("Research failed");
+    parts.push("Research failed.");
   } else if (sources > 0) {
     parts.push(`Researched ${sources} source${sources === 1 ? "" : "s"}`);
   } else {

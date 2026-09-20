@@ -142,6 +142,7 @@ export function ResearchActivity({
   events,
   lifecycle,
   outcome,
+  pendingInputType,
   inProgress,
   reducedMotion,
   expanded,
@@ -155,6 +156,7 @@ export function ResearchActivity({
   events: ResearchEvent[];
   lifecycle?: string;
   outcome?: string | null;
+  pendingInputType?: string | null;
   inProgress: boolean;
   reducedMotion: boolean;
   expanded: boolean;
@@ -174,13 +176,17 @@ export function ResearchActivity({
     return () => clearInterval(timer);
   }, [inProgress]);
   const visible = visibleResearchEvents(events);
-  const collapsed = collapseResearchActivity({ events, lifecycle, outcome });
+  const collapsed = collapseResearchActivity({ events, lifecycle, outcome, pendingInputType });
   const current = visible.at(-1)?.label ?? currentActivityLine([]);
   const elapsed = inProgress && lifecycle === "running" ? runningElapsedLabel(events, nowMs) : null;
   const pills = inProgress ? visibleLiveSourcePills(liveSourcePillsFromEvents(events)) : { visible: [], overflow: 0 };
   const sections = researchTraceSections(visible);
   if (!inProgress && visible.length === 0) return null;
-  const liveHeadline = lifecycle === "cancelling" ? "Stopping" : current;
+  const liveHeadline = lifecycle === "cancelling"
+    ? "Stopping"
+    : pendingInputType === "query_authorization"
+      ? "Waiting for search approval"
+      : current;
   const rawHeadline = inProgress ? liveHeadline : collapsed.summary;
   const labeled = labeledDemo ? (rawHeadline.toLowerCase().startsWith("sample") ? rawHeadline : `Sample · ${rawHeadline}`) : rawHeadline;
   const headline = collapsed.expandable ? displayCollapsedSummary(labeled) : labeled;
