@@ -149,7 +149,7 @@ P0 implements publication/outbox identity and deterministic fault tests only if 
 | GET /v1/runs/:id/events?after=cursor | Ownership; ordered paged events; retention-gap signal; never another user’s diagnostics. |
 | POST /v1/runs/:id/corrections | Expected briefRevision and idempotency key; conflict on stale edit; new revision/impact request. |
 | POST /v1/runs/:id/cancel | Idempotent request; phase-independent cancellation policy and current authoritative outcome. |
-| POST /v1/runs/:id/continue | Explicit scope/allowance policy and valid consent; child run lineage; not automatic resurrection. |
+| POST /v1/runs/:id/continue | Explicit scope/allowance policy and valid consent; child run lineage; not automatic resurrection. `ContinueRunRequestSchema` / `clarificationAnswersFromContinue` is the only decoder. A single declared pending field still 400s extras; an explicit multi-field pause identity accepts only that set. Concurrent cancel cannot resurrect the pause or corrupt brief, pending identity, or budget. Original question is immutable. |
 | POST /v1/attachments; POST /v1/attachments/bytes; GET /v1/attachments/:id | Explicit pasted notes or bounded binary upload, MIME/magic/UTF-8/size validation, owned processing metadata and honest extraction limits. |
 | GET /v1/reports/:id and /sources/:id | Ownership/retention; canonical blocks, evidence access labels and signed short-lived artifact URLs where needed. |
 | POST /v1/reports/:id/challenges | Claim/block reference, feedback category and task scope; not unrestricted raw SQL or source instructions. |

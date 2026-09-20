@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-20 — R-04/CL-01 concurrent continue/cancel and declared field set
+
+- Continue resume is `UPDATE … WHERE lifecycle='awaiting_input' AND pending_input_id AND cancellation_epoch`; zero rows 409 and roll back the brief insert.
+- `clarificationAnswersFromContinue` takes a declared field set. Single `pending_input_field` still 400s extras. An explicit multi-field identity accepts only those fields and requires each one.
+- Cancel/terminal clear pending identity. GET `pendingInput` only while `awaiting_input`. Dispatch only if still queued after commit.
+- Sibling follow-up and assumption replace stay 409 on a clarification pause. Confirm does not resume. Child continue leaves the parent brief/budget untouched.
+- Isolated PG `deep_r04_cl01_7f3a`: brief-continue 19/19, production continue 1/1, followup-explain 8/8, cancellation-atomicity 7/7. Mobile pending-input 5/5. Not merged to main.
+
 ## 2026-09-20 — Phase B remaining functional consumer UI
 
 - Isolated branch `grok-v8/phase-b-functional-ui` from parent `9677232`. Not merged to main. No GHA. No new UI libraries. No EAS.
@@ -22,6 +30,7 @@
 - `runMutatingFollowUp` persists prepared then sent before POST, then accepted before adopt, then adopted. 401 keeps sent. 409 persists rejected. Empty mutating body keeps sent. Superseded view does not POST. Adopt failure keeps accepted and retries without a second POST. Double-tap reuses request identity. Unresolved journal blocks a different mutation. Explain uses `recordFollowUpExplain` and does not set `pendingFollowUp: null`.
 - Same persist-before-POST recovery for assumption confirm/replace and text correction. SHA-256 `mutatingFollowUpKey` kept. App `newId()` kept (no `crypto.randomUUID()` call). `scripts/check-boundaries.mjs` now rejects mobile imports of `@deep/research-core`.
 - Tests: `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `node scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap unrun. Rollback: revert this commit.
+>>>>>>> grok-v8/r04-cl01-continue
 
 ## 2026-09-20 — device live, Stop completion, brief quote location
 

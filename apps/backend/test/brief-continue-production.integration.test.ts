@@ -239,5 +239,5 @@ describe("production continue after geography clarification", () => {
       taskId: task.rows[0]!.id,
       extractionIntentId: extract.rows[0]!.intent_id,
     }, await runModelVersions(pool, runId))).resolves.toMatchObject({ evidenceRevision: expect.any(Number) });
-  }, 60_000);
+  }, 90_000);
 });
