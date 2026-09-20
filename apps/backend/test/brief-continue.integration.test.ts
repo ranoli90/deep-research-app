@@ -114,6 +114,25 @@ describe("ENG-001/003/034–036 state and transport regressions", () => {
     const child=(await getRun(pool,first.json().runId))!;expect(child.parent_run_id).toBe(runId);
     expect((await getBrief(pool,child.brief_id)).sourceRestrictions).toContain("url:https://vendor.example/spec");
   });
+  it("terminal assumption replace with expectedBriefRevision admits a child and keeps the original question", async () => {
+    const {token}=await authed();
+    const headers={authorization:`Bearer ${token}`,"idempotency-key":crypto.randomUUID()};
+    const runId=(await createRun(token,"best laptop for local AI under 2k")).json().runId as string;
+    await pool.query("UPDATE runs SET lifecycle='terminal',terminal_outcome='completed' WHERE id=$1",[runId]);
+    const before=(await getRun(pool,runId))!;
+    const original=await getBrief(pool,before.brief_id);
+    const replaced=await app.inject({
+      method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,
+      payload:{action:"replace",values:["Quiet fans"],expectedBriefRevision:before.brief_revision},
+    });
+    expect(replaced.statusCode).toBe(200);
+    expect(replaced.json().runId).toBeTruthy();
+    expect(replaced.json().runId).not.toBe(runId);
+    const child=(await getRun(pool,replaced.json().runId as string))!;
+    expect(child.parent_run_id).toBe(runId);
+    expect((await getBrief(pool,child.brief_id)).originalQuestion).toBe(original.originalQuestion);
+    expect((await getBrief(pool,before.brief_id)).originalQuestion).toBe(original.originalQuestion);
+  });
   it("rejects malformed cursors, object ids, raw-cast bodies and missing live idempotency", async () => {
     const {token}=await authed();const headers={authorization:`Bearer ${token}`};
     const runId=(await createRun(token,"Compare battery technologies")).json().runId;
@@ -121,6 +140,8 @@ describe("ENG-001/003/034–036 state and transport regressions", () => {
       expect((await app.inject({method:"GET",url:`/v1/runs/${runId}/events?after=${after}`,headers})).statusCode).toBe(400);
     expect((await app.inject({method:"GET",url:"/v1/runs/not-a-uuid",headers})).statusCode).toBe(400);
     expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"anything"}})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{answers:[{field:"geography",value:"Texas"}]}})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"replace",values:["Quiet fans"]}})).statusCode).toBe(400);
     expect((await app.inject({method:"POST",url:"/v1/consent",headers,payload:{grant:true,admin:true}})).statusCode).toBe(400);
     expect((await app.inject({method:"POST",url:"/v1/runs",headers,payload:{question:"Compare battery technologies",routeMode:"controlled-research"}})).statusCode).toBe(400);
   });

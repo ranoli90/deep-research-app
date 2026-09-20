@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSectionContexts, compareAssertionScopes, planHierarchicalWrite, projectScopeComparison } from "@deep/research-core";
+import { canonicalSectionContexts, compareAssertionScopes, planHierarchicalWrite, projectScopeComparison, stitchSectionDrafts } from "@deep/research-core";
 
 const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
 const assertions = [
@@ -32,6 +32,19 @@ describe("ENG-032 canonical section write/restore", () => {
     expect(write.map((ctx) => ctx.assertions)).toHaveLength(3);
     expect(write[0]?.assertions).toHaveLength(1);
     expect(write[1]?.assertions).toHaveLength(1);
+    expect(write.some((ctx) => ctx.assertions.map((a) => a.key).join(",") === "a1,a1,a2")).toBe(false);
+    expect(write.every((ctx) => new Set(ctx.assertions.map((a) => a.key)).size === ctx.assertions.length)).toBe(true);
+    const drafts = write.map((ctx, index) => ({
+      title: "Answer",
+      sections: [{
+        heading: plan.sections[index]!.heading,
+        paragraphs: ctx.assertions.map((a) => ({ text: a.text, claimKeys: [a.key] })),
+      }],
+      unresolvedQuestionKeys: [] as string[],
+      limitations: [] as string[],
+    }));
+    const stitched = stitchSectionDrafts(drafts);
+    expect(stitched.sections).toHaveLength(3);
     expect(JSON.stringify(write)).toEqual(JSON.stringify(restore));
   });
 
