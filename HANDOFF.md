@@ -1,3 +1,11 @@
+## Typed constraint / continue / section / journal repairs — 2026-09-20
+
+Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.
+
+Keep original questions. Constraint changes go through follow-up `change_constraint`, not concatenated `replace_question`. Continue accepts only the declared pending field. Section writes include `sectionWrite` in the model context. Follow-up journal uses SHA-256 payload binding and does not overwrite an unresolved mutation.
+
+Native captures on the installed `75dee72` APK are in `verification/v8/research-beta/visual-qa/v8-closure-75dee72/`. Rebuild is required before those journeys prove this code. Full local gate (`pnpm verify`, two PG) still required on the frozen product SHA.
+
 ## Remaining CL closures — 2026-09-20
 
 Product SHA **`75dee72`**. Typed pending-input field, revision-bound confirm, exhaustive follow-up kinds, persist-before-charge mutating follow-up, explanation conversation, unique-claim targeting, hierarchical composition restore. `pnpm verify` EXIT 0. PG **544/544** twice. Extraction **55/55**. EAS `16412bce` APK sha256 `c888095a…` installed on `10.0.0.167:41299`; unlock required for visual journeys. **Do not merge `main`.** Live J8/J11 not granted.

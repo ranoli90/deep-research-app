@@ -43,7 +43,8 @@ function parseState(raw: string | null, accountId: string): UiState | null {
     if (s.run !== null && (!record(s.run) || ![s.run.runId, s.run.lifecycle, s.run.phase].every((v) => typeof v === "string") ||
       typeof s.run.labeledDemo !== "boolean" || !(s.run.reportId === null || typeof s.run.reportId === "string"))) return null;
     if (s.report !== null && (!record(s.report) || typeof s.report.reportId !== "string" || !blocks(s.report.blocks) ||
-      !strings(s.report.limitations) || typeof s.report.labeledDemo !== "boolean")) return null;
+      !strings(s.report.limitations) || typeof s.report.labeledDemo !== "boolean" ||
+      (s.report.claims != null && !(Array.isArray(s.report.claims) && s.report.claims.every((row) => record(row) && typeof row.id === "string" && typeof row.text === "string"))))) return null;
     if (s.previousReport !== null && (!record(s.previousReport) || typeof s.previousReport.reportId !== "string" || !blocks(s.previousReport.blocks))) return null;
     if (s.readingAnchor !== null && (!record(s.readingAnchor) || typeof s.readingAnchor.reportId !== "string" ||
       typeof s.readingAnchor.blockId !== "string" || typeof s.readingAnchor.offset !== "number" || !Number.isFinite(s.readingAnchor.offset))) return null;

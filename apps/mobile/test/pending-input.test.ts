@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AssumptionsRequestSchema, ContinueRunRequestSchema } from "@deep/contracts";
+import { AssumptionsRequestSchema, ContinueRunRequestSchema, clarificationAnswersFromContinue } from "@deep/contracts";
 import { assumptionsRequest, continueRunRequest } from "../src/pending-input";
 
 const pending = {
@@ -27,6 +27,23 @@ describe("CL-01/CL-02 mobile continue and assumption contracts", () => {
     expect(ContinueRunRequestSchema.parse(body).answers?.[0]?.field).toBe("budget");
     expect(() => continueRunRequest({ pendingInput: null, value: "x" })).toThrow(/not waiting/);
     expect(() => continueRunRequest({ pendingInput: { ...pending, field: undefined }, value: "Texas" })).toThrow(/typed clarification field/);
+  });
+
+  it("rejects extra and conflicting answers for a single-field pause", () => {
+    expect(clarificationAnswersFromContinue({ answers: [{ field: "geography", value: "Indiana" }] }, "geography")).toEqual({
+      ok: true, answers: [{ field: "geography", value: "Indiana" }],
+    });
+    expect(clarificationAnswersFromContinue({ answers: [{ field: "budget", value: "1500" }] }, "geography").ok).toBe(false);
+    expect(clarificationAnswersFromContinue({
+      answers: [{ field: "geography", value: "Indiana" }, { field: "budget", value: "1500" }],
+    }, "geography")).toMatchObject({ ok: false, reason: "extra_field" });
+    expect(clarificationAnswersFromContinue({
+      geography: "Indiana",
+      answers: [{ field: "geography", value: "France" }],
+    }, "geography")).toMatchObject({ ok: false, reason: "conflicting_values" });
+    expect(clarificationAnswersFromContinue({ answers: [{ field: "geography", value: "Indiana" }] }, undefined)).toMatchObject({
+      ok: false, reason: "pending_field_required",
+    });
   });
 
   it("requires expectedBriefRevision to replace assumptions and not for confirm-only", () => {

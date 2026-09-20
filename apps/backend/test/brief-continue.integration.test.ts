@@ -222,39 +222,92 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
     expect(manifest).toHaveProperty("confirmedConstraintsDigest");
   });
 
-  it("persists typed budget/currency/timeframe/platform/private_search answers on /continue", async () => {
+  it("rejects extra, conflicting, and mixed-field continue answers without mutating the brief", async () => {
     const { token } = await authed();
     const created = await createRun(token, ORIGINAL);
     const runId = created.json().runId as string;
     await processRun(pool, config, runId);
+    const before = (await getRun(pool, runId))!;
+    const original = await getBrief(pool, before.brief_id);
+    const headers = { authorization: `Bearer ${token}` };
+    const pending = { pendingInputId: before.pending_input_id, expectedBriefRevision: before.brief_revision };
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers })).json().pendingInput.field).toBe("geography");
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { ...pending, answers: [{ field: "budget", value: "under $2,000 USD" }] },
+    })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { ...pending, answers: [
+        { field: "geography", value: "Germany" },
+        { field: "budget", value: "under $2,000 USD" },
+      ] },
+    })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { ...pending, answers: [
+        { field: "geography", value: "Germany" },
+        { field: "geography", value: "France" },
+      ] },
+    })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { ...pending, geography: "Germany", answers: [{ field: "geography", value: "France" }] },
+    })).statusCode).toBe(400);
+    const after = (await getRun(pool, runId))!;
+    expect(after.lifecycle).toBe("awaiting_input");
+    expect(after.brief_id).toBe(before.brief_id);
+    expect(after.brief_revision).toBe(before.brief_revision);
+    expect(after.pending_input_id).toBe(before.pending_input_id);
+    expect(await getBrief(pool, after.brief_id)).toEqual(original);
+    const valid = await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { ...pending, answers: [{ field: "geography", value: "Germany" }] },
+    });
+    expect(valid.statusCode).toBe(200);
+    const resumed = (await getRun(pool, runId))!;
+    expect(resumed.lifecycle).toBe("queued");
+    expect((await getBrief(pool, resumed.brief_id)).originalQuestion).toBe(ORIGINAL);
+    expect((await getBrief(pool, resumed.brief_id)).constraints.some((c) => c.field === "geography" && /germany/i.test(String(c.value)))).toBe(true);
+  });
+
+  it("omits pending field when the column is null and refuses to apply a guessed answer", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, ORIGINAL);
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    await pool.query("UPDATE runs SET pending_input_field=NULL WHERE id=$1", [runId]);
+    const headers = { authorization: `Bearer ${token}` };
+    const snap = (await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers })).json();
+    expect(snap.pendingInput.field).toBeUndefined();
+    const before = (await getRun(pool, runId))!;
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${runId}/continue`, headers,
+      payload: { pendingInputId: before.pending_input_id, expectedBriefRevision: before.brief_revision, geography: "Germany" },
+    })).statusCode).toBe(409);
+    expect((await getRun(pool, runId))!.lifecycle).toBe("awaiting_input");
+  });
+
+  it("persists a typed budget answer only when budget is the pending field", async () => {
+    const { token } = await authed();
+    const created = await createRun(token, ORIGINAL);
+    const runId = created.json().runId as string;
+    await processRun(pool, config, runId);
+    await pool.query("UPDATE runs SET pending_input_field='budget' WHERE id=$1", [runId]);
+    const run = (await getRun(pool, runId))!;
     const cont = await app.inject({
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision,
-        answers: [
-          { field: "budget", value: "under $2,000 USD" },
-          { field: "currency", value: "USD" },
-          { field: "timeframe", value: "2020-2024" },
-          { field: "platform", value: "iPhone" },
-          { field: "private_search", value: "No" },
-          { field: "geography", value: "Germany" },
-        ],
-      },
+      payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision,
+        answers: [{ field: "budget", value: "under $2,000 USD" }] },
     });
     expect(cont.statusCode).toBe(200);
-    const run = await getRun(pool, runId);
-    const brief = await getBrief(pool, run!.brief_id);
+    const brief = await getBrief(pool, (await getRun(pool, runId))!.brief_id);
     expect(brief.originalQuestion).toBe(ORIGINAL);
-    const byField = Object.fromEntries(brief.constraints.filter((c) => c.origin === "confirmed").map((c) => [c.field, c]));
-    expect(byField.budget).toMatchObject({ operator: "lte", value: "2000", units: "USD" });
-    expect(byField.budget?.value).not.toBe("under $2,000 usd");
-    expect(byField.currency).toMatchObject({ value: "USD" });
-    expect(byField.timeframe).toMatchObject({ operator: "between", value: "2020-2024" });
-    expect(byField.platform).toMatchObject({ value: "iPhone" });
-    expect(byField.platform?.value).not.toBe("iphone");
-    expect(byField.private_search).toMatchObject({ value: "no" });
-    expect(byField.geography).toBeTruthy();
+    expect(brief.constraints.find((c) => c.field === "budget" && c.origin === "confirmed")).toMatchObject({
+      operator: "lte", value: "2000", units: "USD",
+    });
   });
 
   it("fails restore and admission when original_question column and payload diverge", async () => {

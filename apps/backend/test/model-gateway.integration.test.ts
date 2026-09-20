@@ -718,6 +718,89 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     expect((await pool.query("SELECT * FROM research_drafts WHERE run_id=$1",[x.runId])).rows).toHaveLength(1);
   }));
+  it("writes distinct section purposes that share evidence and restores the recorded composition",async()=>runCase(async(x)=>{
+    const hierarchicalBrief={
+      ...brief,
+      intendedOutput:"comparison" as const,
+      criteria:[
+        brief.criteria[0]!,
+        { ...brief.criteria[0]!, key:"c2", description:"Why eligibility matters", field:"eligibility_reason" },
+      ],
+      questions:[
+        { key:"q1", text:"Is the option eligible?", criterionKeys:["c1"], importance:"critical" as const, evidenceStandard:"documented outcomes" },
+        { key:"q2", text:"Why does that eligibility matter?", criterionKeys:["c1"], importance:"useful" as const, evidenceStandard:"documented outcomes" },
+        { key:"q3", text:"What else is known?", criterionKeys:["c2"], importance:"useful" as const, evidenceStandard:"documented outcomes" },
+      ],
+    };
+    globalThis.fetch=vi.fn(async()=>response(hierarchicalBrief)) as typeof fetch;
+    const task=await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 });
+    if(task.kind!=="task") throw new Error("task missing");
+    const entity=`Reef-${crypto.randomUUID().slice(0,8)}`;
+    const text=`${entity} restored 12 hectares in 2024. Monitoring did not measure long-term survival.`;
+    const sourceId=await insertSource(pool,{ accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",title:"Restoration observations",publisher:"Test",originCluster:"study" });
+    const p=await insertVersionAndPassage(pool,{ sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/study",text,accessLevel:"partial-text" });
+    const q1={ passageId:p.passageId,start:0,end:text.indexOf(".")+1,quote:text.slice(0,text.indexOf(".")+1) };
+    const q2={ passageId:p.passageId,start:text.indexOf(".")+2,end:text.length,quote:text.slice(text.indexOf(".")+2) };
+    const output:ResearchModelOutput<"extract_assertions">={
+      candidates:[{key:"new_entity",label:entity,evidence:[q1]}],
+      assertions:[
+        { key:"area", candidateKey:"new_entity", criterionKeys:["c1"], text:q1.quote, scope:{...scope,entity,time:"2024"},
+          quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}], evidence:[q1] },
+        { key:"reason", candidateKey:"new_entity", criterionKeys:["c2"], text:q2.quote, scope:{...scope,entity,time:"2024"},
+          quantities:[], evidence:[q2] },
+      ],
+      limitations:["Long-term survival was not measured."],
+    };
+    globalThis.fetch=vi.fn(async()=>response(output)) as typeof fetch;
+    const extraction=await extractEvidenceAssertions(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,passageIds:[p.passageId],selectionId:undefined });
+    if(extraction.kind!=="extraction") throw new Error("missing extraction");
+    const proposal={ assessments:output.assertions.map((a)=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
+      rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[] as string[] })) };
+    globalThis.fetch=vi.fn(async()=>response(proposal)) as typeof fetch;
+    const support=await executeAssertionSupport(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,passageIds:[p.passageId] });
+    if(support.kind!=="support") throw new Error("missing source support");
+    const seen:string[]=[];
+    globalThis.fetch=vi.fn(async(_input,init)=>{
+      const request=JSON.parse(String(init?.body));
+      if(request.response_format.json_schema.name==="research_write_report_v1"){
+        const context=JSON.parse(request.messages[1].content) as { sectionWrite?: { questionText: string; questionKey: string }; approvedClaimKeys: string[] };
+        seen.push(`${context.sectionWrite?.questionKey}:${context.sectionWrite?.questionText}:${context.approvedClaimKeys.join(",")}`);
+        const keys=context.approvedClaimKeys;
+        const paragraph=keys.includes("area")?q1.quote:q2.quote;
+        return response({ title:"Answer", sections:[{ heading:"Answer", paragraphs:[{ text:paragraph, claimKeys:keys }] }], unresolvedQuestionKeys:[], limitations:[] });
+      }
+      if(request.response_format.json_schema.name==="research_review_coverage_v1"){
+        const context=JSON.parse(request.messages[1].content);
+        return response({ questions:context.task.questions.map((q:{key:string})=>({ questionKey:q.key,status:"unresolved_at_limit",
+          assertionKeys:context.approvedClaimKeys,reason:"Fabricated coverage judgment for boundary control" })), omittedRequirements:[] });
+      }
+      if(request.response_format.json_schema.name!=="research_assess_support_v1") throw new Error("unexpected operation");
+      const context=JSON.parse(request.messages[1].content);
+      return response({ assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
+        rationale:"Optimistic test response; independent guards must still reject invalid text.",missingEvidence:[] })) });
+    }) as typeof fetch;
+    const args={ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,sourceSupportIntentId:support.intentId,passageIds:[p.passageId] };
+    const first=await createResearchDraft(pool,x.config,x.session,args);
+    if(first.kind!=="draft") throw new Error(`writer failed: ${JSON.stringify(first)}`);
+    expect(seen.filter((row)=>row.startsWith("q1:")).length).toBe(1);
+    expect(seen.filter((row)=>row.startsWith("q2:")).length).toBe(1);
+    expect(seen.some((row)=>row.startsWith("q1:Is the option eligible?:area"))).toBe(true);
+    expect(seen.some((row)=>row.startsWith("q2:Why does that eligibility matter?:area"))).toBe(true);
+    expect(seen.find((row)=>row.startsWith("q1:"))).not.toBe(seen.find((row)=>row.startsWith("q2:")));
+    const writes=await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report' ORDER BY created_at",[x.runId]);
+    expect(writes.rows.length).toBeGreaterThanOrEqual(2);
+    expect(writes.rows.map((row:{input_manifest:{version:string;sectionWrite?:{questionText:string}}})=>row.input_manifest.version).every((v:string)=>v==="model-input.v8")).toBe(true);
+    expect(writes.rows[0].input_manifest.sectionWrite.questionText).toBe("Is the option eligible?");
+    expect(writes.rows[1].input_manifest.sectionWrite.questionText).toBe("Why does that eligibility matter?");
+    expect(JSON.stringify(writes.rows[0].input_manifest)).not.toEqual(JSON.stringify(writes.rows[1].input_manifest));
+    const draftRow=(await pool.query("SELECT composition FROM research_drafts WHERE run_id=$1",[x.runId])).rows[0];
+    expect(draftRow.composition.sections.length).toBeGreaterThanOrEqual(2);
+    const restored=await restoreWriterDraft(pool,{ ...args,extractionIntentId:first.writerIntentId },await runModelVersions(pool,x.runId));
+    expect(restored.draft.sections.length).toBeGreaterThanOrEqual(2);
+    const second=await createResearchDraft(pool,x.config,x.session,args);
+    expect(second).toMatchObject({ kind:"draft", reused:true });
+    expect(seen.filter((row)=>row.startsWith("q1:")).length).toBe(1);
+  }));
   it("does not send a writer repair pass when invalid_output cost is unknown",async()=>runCase(async(x)=>{
     const c=await writerCase(x);
     globalThis.fetch=vi.fn(async(_input,init)=>{

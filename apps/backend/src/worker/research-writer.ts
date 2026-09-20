@@ -12,7 +12,7 @@ import type { AppConfig } from "../platform/config.js";
 import { createHash } from "node:crypto";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { modelInputManifest } from "../modules/model-operations.js";
-import { recordResearchDraft } from "../modules/research-drafts.js";
+import { persistResearchDraftComposition, recordResearchDraft } from "../modules/research-drafts.js";
 import { getBrief, getRun } from "../modules/runs.js";
 import { loadRunStoredSources } from "../modules/retrieval-intelligence.js";
 import { publishReport } from "../modules/reports.js";
@@ -55,6 +55,8 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
     const drafts=[];
     const sections=[];
     const contexts=canonicalSectionContexts(context,outline);
+    const planDigest=createHash("sha256").update(JSON.stringify(outline)).digest("hex");
+    let firstIntent:string|undefined;
     for(let i=0;i<outline.sections.length;i++){
       const section=outline.sections[i]!;
       const sectionContext=contexts[i]!;
@@ -62,7 +64,8 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
       if(result.kind!=="result")return result;
       if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
       drafts.push(result.result.output);
-      writerIntentId=result.intentId;
+      if(!firstIntent) firstIntent=result.intentId;
+      writerIntentId=firstIntent;
       reused=reused||result.reused;
       sections.push({
         questionKey:section.questionKey,
@@ -71,6 +74,8 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
         intentId:result.intentId,
         inputDigest:createHash("sha256").update(JSON.stringify(modelInputManifest(sectionContext))).digest("hex"),
       });
+      const partial=draftComposition({ planDigest, sections:[...sections] });
+      await session.write(async (db)=>persistResearchDraftComposition(db,{...args,writerIntentId:firstIntent!,composition:partial},await runModelVersions(db,args.runId)));
     }
     try { draftStatements(stitchSectionDrafts(drafts),basis.context.assertions,basis.context.approvedClaimKeys); }
     catch(error) {
@@ -79,7 +84,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
       throw error;
     }
     composition=draftComposition({
-      planDigest:createHash("sha256").update(JSON.stringify(outline)).digest("hex"),
+      planDigest,
       sections,
     });
   } else {

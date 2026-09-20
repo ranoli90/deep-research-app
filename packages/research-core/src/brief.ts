@@ -266,7 +266,44 @@ export function parseCorrection(text: string): CorrectionIntent {
     const units = /^mg|milligram/i.test(dose[2]!) ? "mg" : "g";
     return { kind: "constraint_change", field: "dose", value: dose[1], units, relaxedHardConstraint: false, unknownDependencies: false };
   }
-  const budget = text.match(/\bbudget\s+is\s+(\d+(?:[.,]\d+)?)/i) ?? text.match(/\bbudget\s+(\d+(?:[.,]\d+)?)/i);
+  if (/\b(no budget|drop (the )?budget|without a budget|budget does not apply)\b/i.test(text)) {
+    return { kind: "constraint_change", field: "budget", drop: true, relaxedHardConstraint: true, unknownDependencies: false };
+  }
+  const negatedBudget = /\b(not|no longer|don't|do not|without)\b[\s\S]{0,40}\b(under|below|budget|\$|€|£)\b/i.test(text)
+    && !/\b(drop (the )?budget|no budget|without a budget)\b/i.test(text);
+  const explicitCeiling = /\b(under|below|at most|less than|<=|budget is|raise(?: the)? budget|lower(?: the)? budget|change(?: the)? budget)\b/i.test(text);
+  const ceiling = !negatedBudget && explicitCeiling ? parseBudgetCeiling(text) : null;
+  if (ceiling) {
+    return {
+      kind: "constraint_change",
+      field: "budget",
+      value: ceiling.value,
+      units: ceiling.units,
+      relaxedHardConstraint: true,
+      unknownDependencies: false,
+    };
+  }
+  const raised = !negatedBudget
+    ? text.match(/\b(?:raise|lower|change|set)\s+(?:the\s+)?budget\s+to\s+(\$|€|£)?\s*(\d+(?:[.,]\d+)?)(?:\s*(k))?(?:\s*(USD|EUR|GBP))?\b/i)
+    : null;
+  if (raised) {
+    const n = parseBudgetNumber(raised[2]!);
+    if (n != null) {
+      const scaled = raised[3] ? Math.round(n * 1000) : n;
+      const units = unitsFromSymbol(raised[1] ?? raised[4]);
+      return {
+        kind: "constraint_change",
+        field: "budget",
+        value: String(scaled),
+        ...(units ? { units } : {}),
+        relaxedHardConstraint: true,
+        unknownDependencies: false,
+      };
+    }
+  }
+  const budget = !negatedBudget
+    ? (text.match(/\bbudget\s+is\s+(\d+(?:[.,]\d+)?)/i) ?? text.match(/\bbudget\s+(\d+(?:[.,]\d+)?)/i))
+    : null;
   if (budget) {
     return { kind: "constraint_change", field: "budget", value: budget[1]!.replace(",", ""), relaxedHardConstraint: true, unknownDependencies: false };
   }
@@ -322,23 +359,31 @@ export function applyCorrectionToConstraints(
       });
     }
   }
-  if (parsed.field === "budget" && parsed.value) {
+  if (parsed.field === "budget" && parsed.drop) {
+    const kept = next.filter((c) => c.field !== "budget");
+    if (kept.length !== next.length) reopenedDiscovery = true;
+    next.splice(0, next.length, ...kept);
+  } else if (parsed.field === "budget" && parsed.value) {
     const existing = next.find((c) => c.field === "budget");
     const prev = existing ? Number(existing.value) : undefined;
     const incoming = Number(parsed.value);
     if (existing) {
       existing.value = parsed.value;
+      existing.operator = "lte";
+      if (parsed.units) existing.units = parsed.units;
       existing.origin = "confirmed";
-      existing.explanation = `Corrected budget to ${parsed.value}`;
+      existing.explanation = `Corrected budget to ${parsed.value}${parsed.units ? ` ${parsed.units}` : ""}`;
     } else {
       next.push({
         id: "budget",
         field: "budget",
         operator: "lte",
         value: parsed.value,
+        ...(parsed.units ? { units: parsed.units } : {}),
         origin: "confirmed",
         importance: "hard",
         explanation: "Budget supplied in correction",
+        provenance: provenanceFromOrigin("confirmed"),
       });
     }
     if (prev !== undefined && incoming > prev) reopenedDiscovery = true;

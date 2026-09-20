@@ -130,7 +130,7 @@ export async function loadModelOperation(db: Queryable, intentId: string, runId:
 export function modelInputManifest(context: ModelContext) {
   const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   const confirmed = ConstraintSchema.array().parse(context.confirmedConstraints ?? []);
-  return { version:context.planningState?"model-input.v7":confirmed.length?"model-input.v6":context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
+  return { version:context.sectionWrite?"model-input.v8":context.planningState?"model-input.v7":confirmed.length?"model-input.v6":context.evidenceSelection?"model-input.v5":context.calculations?"model-input.v4":context.scopeComparison?.version==="scope-comparison-context.v1"?"model-input.v3":context.scopeComparison?"model-input.v2":"model-input.v1", questionDigest:digest(context.question), taskDigest:digest(context.task),
     passages:context.passages.map(({ id,sourceVersionId,digest,accessLevel }) => ({ id,sourceVersionId,digest,accessLevel })),
     sourceHandles:context.sources.map((s) => s.handle), assertionsDigest:digest(context.assertions),
     approvedClaimKeys:context.approvedClaimKeys, draftDigest:digest(context.draft),
@@ -138,5 +138,6 @@ export function modelInputManifest(context: ModelContext) {
     ...(context.planningState?{planningStateDigest:digest(context.planningState)}:{}),
     ...(context.evidenceSelection?{evidenceSelection:context.evidenceSelection}:{}),
     ...(context.scopeComparison?{scopeComparisonDigest:digest(context.scopeComparison)}:{}),
-    ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}) };
+    ...(context.calculations?{calculationsDigest:digest(context.calculations)}:{}),
+    ...(context.sectionWrite?{sectionWriteDigest:digest(context.sectionWrite),sectionWrite:context.sectionWrite}:{}) };
 }

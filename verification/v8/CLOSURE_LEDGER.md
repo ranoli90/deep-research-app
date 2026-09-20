@@ -1,5 +1,26 @@
 # Closure ledger — grok-v8/research-beta-integration
 
+## 2026-09-20 continuation (this tree, pre-full-gate)
+
+Parent requirements from the independent review of `75dee72` are **not** closed by helper-only tests. Mapping of production repairs vs remaining gates:
+
+| ID | Implemented now | Evidence class | Remaining |
+|---|---|---|---|
+| R-01 / CL-03 budget | Typed change on follow-up; original question kept | HTTP follow-up + intent/candidates unit | Full PG; native current-SHA APK; live correction usefulness |
+| R-02 / CL-07 sections | `sectionWrite` in context/manifest; persist each section; restore without primary policy filter | Production `createResearchDraft` + DB restore 1/1 | Fallback-policy restore HTTP; interruption races; live J11 |
+| R-03 / CL-04 journal | SHA-256 key; no overwrite; explain does not clear mutation; require runId | Mobile unit + App wiring | Component callback failure matrix; device double-tap |
+| R-04 / CL-01 continue | Extra/conflict/mixed-field 400; null field reissue | HTTP continue 12/12 | Concurrent answer/cancel; declared multi-field pause |
+| R-05 / CL-03 deepen | Investigation `desiredOutcome`; not command assumption | HTTP deepen + desiredOutcome | Deepen planning/evidence difference; synthetic J8/J11 production; live grant |
+| R-06–07 / CL-05–06 | Claim wording on GET + picker; citation unavailable state | HTTP claims + SourceSheet unit | Device multi-claim; 100-block gfxinfo |
+| Native HEAD APK | 75dee72 installed; unlocked recapture | Screenshots of that APK | New EAS/local APK of this SHA |
+| Hosted GHA | OWNER_DECLINED | — | Owner reversal |
+| iOS | unavailable | — | Device |
+| Live J8/J11 | not rerun | — | Verified remaining grant vs MC-D01 hold |
+
+Historical 544/544 PG is product code immediately before `75dee72`, not this tree. Log hashes are not a Git SHA.
+
+## 75dee72 snapshot (historical)
+
 Product SHA `75dee72a1ba77717262a0ca683a6b5a52c965d97` on `ab337c6` plus this repair. `main` stays `8a7b1a9`. Historical PG/verify at `f627b2b` / `71a14a3` are not this SHA. Native `95432e9` APK is not this SHA.
 
 `pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49 rows, no `032`) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice (`deep_closure_pg1` 1092s EXIT 0, `deep_closure_pg2` 935s EXIT 0). Focused brief-continue **10/10**, followup-explain **6/6**. ADB `10.0.0.167:41299` attached; current-HEAD APK not rebuilt.
@@ -17,7 +38,7 @@ Product SHA `75dee72a1ba77717262a0ca683a6b5a52c965d97` on `ab337c6` plus this re
 | ENG-032 | P1 | mapped CL-07 | implemented on shipped writer | | | Live J11 |
 | ENG-033 | P1 | mapped CL-03 | implemented | | | |
 | ENG-038 | P0 | exact-SHA PG | closed for this tree | | `deep_closure_pg1` / `pg2` 544/544 | Docs SHA if committed after |
-| ENG-039 / Native HEAD APK | P0 | ADB + EAS | installed; visual blocked | Lockscreen | EAS `16412bce` sha256 `c888095a…` on `10.0.0.167:41299` | User unlock for recapture |
+| ENG-039 / Native HEAD APK | P0 | ADB + EAS | installed; unlocked recapture of that APK | Lockscreen cleared | EAS `16412bce` sha256 `c888095a…` on `10.0.0.167:41299` | APK is 75dee72, not later repairs |
 | ENG-041 / RB-PERF-01 | P1 | helper + not device | PARTIAL | | 100-block vitest | Device gfxinfo |
 | J8/J11 live | P0 | grant | blocked | remaining-cap / MC-D01 hold | Deterministic J11 pipeline not live | Explicit grant |
 | Hosted GHA | — | owner-declined | blocked | | | |

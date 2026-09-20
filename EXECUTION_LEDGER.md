@@ -1,5 +1,16 @@
 # Execution ledger
 
+## 2026-09-20 — R-01/R-02/R-03/R-04/R-05/R-06 production repairs
+
+- R-01: `parseCorrection` + follow-up `change_constraint` keep `originalQuestion`; budget 2000→1500 with geography retained. Fixture `/corrections` no longer concatenates `Correction:` onto the question.
+- R-04: `clarificationAnswersFromContinue` in `/continue`. Extra/conflict/mixed-field 400. Null pending field GET omits field; continue 409 reissue.
+- R-02: `sectionWrite` in ModelContext and `model-input.v8`. `createResearchDraft` persists composition after each section. Restore matches current or legacy digest and does not require `versions.policyId`.
+- R-03: `mutatingFollowUpKey` is SHA-256 of canonical payload. `unresolvedFollowUp` blocks a different mutation. Explain does not clear pending. Adoption requires `runId`.
+- R-05: deepen writes `desiredOutcome` investigation text, not an assumption equal to the command.
+- R-06: report GET includes claims `{id,text}`; SourceSheet shows claim text; missing explanation citations show unavailable.
+- Tests: core 317, backend unit 247, mobile 323. `TEST_DATABASE_URL=.../deep_r01_continue` brief-continue 12/12, followup-explain 8/8. Writer “distinct section purposes” 1/1.
+- Device: unlocked kunzite `10.0.0.167:41299`. Captures on installed 75dee72 APK. No new EAS. Not merged to main.
+
 ## 2026-09-20 — remaining CL-01–CL-08 closures
 
 - CL-01: `runs.pending_input_field` (migration `051`). Fixture and structured workers stamp `compileResearchIntent` field. GET prefers the column. `continueRunRequest` requires the server field. Budget answer on a geography pause is HTTP 400.

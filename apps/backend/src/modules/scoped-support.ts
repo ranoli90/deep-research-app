@@ -16,7 +16,7 @@ import { loadResearchTask, type TaskModelVersions } from "./research-tasks.js";
 export type CheckedAssertion=ScopedSupportResult & {claimId:string;claimRevisionId:string};
 export type SupportContext={context:ModelContext;evidenceRevision:number;premiseRevisionIds?:Record<string,string[]>;claimType?:"inference"};
 export type SupportArgs={runId:string;accountId:string;briefRevision:number;taskId:string;extractionIntentId:string};
-const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v2","model-input.v3","model-input.v4","model-input.v5","model-input.v6","model-input.v7"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
+const Manifest = z.object({version:z.enum(["model-input.v1","model-input.v2","model-input.v3","model-input.v4","model-input.v5","model-input.v6","model-input.v7","model-input.v8"]),evidenceSelection:EvidenceSelectionContextSchema.optional(),passages:z.array(z.object({id:z.string().uuid()})).min(1).max(MODEL_CONTEXT_MAX_PASSAGES)});
 const digest=(value:unknown)=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const textDigest=(value:string)=>createHash("sha256").update(value).digest("hex");
 
@@ -138,21 +138,25 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
       const planned=outline.sections[i]!;
       if(recorded.questionKey!==planned.questionKey || recorded.heading!==planned.heading || JSON.stringify(recorded.claimKeys)!==JSON.stringify(planned.claimKeys))
         throw new Error("writer_composition_mismatch");
-      const inputDigest=digest(modelInputManifest(contexts[i]!));
-      if(recorded.inputDigest!==inputDigest) throw new Error("writer_composition_mismatch");
-      const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7 AND evidence_revision=$8",
-        [recorded.intentId,args.runId,args.accountId,operation,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,row.evidence_revision])).rows[0];
+      const current=contexts[i]!;
+      const legacy={...current,sectionWrite:undefined};
+      const currentDigest=digest(modelInputManifest(current));
+      const legacyDigest=digest(modelInputManifest(legacy));
+      const sectionContext=recorded.inputDigest===currentDigest?current:recorded.inputDigest===legacyDigest?legacy:null;
+      if(!sectionContext) throw new Error("writer_composition_mismatch");
+      const model=(await db.query("SELECT request_digest, policy_id FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4 AND evidence_revision=$5",
+        [recorded.intentId,args.runId,args.accountId,operation,row.evidence_revision])).rows[0];
       if(!model)throw new Error("writer_result_unavailable");
-      const raw=await loadModelOperation(db,recorded.intentId,args.runId,args.accountId,model.request_digest,contexts[i]!);
+      const raw=await loadModelOperation(db,recorded.intentId,args.runId,args.accountId,model.request_digest,sectionContext);
       const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.write_report,receipt:ModelReceiptSchema}).strict().safeParse(raw);
-      if(!parsed.success||validateModelBindings("write_report",parsed.data.output,contexts[i]!).length)throw new Error("invalid_writer_result");
+      if(!parsed.success||validateModelBindings("write_report",parsed.data.output,sectionContext).length)throw new Error("invalid_writer_result");
       drafts.push(parsed.data.output);
     }
     const draft=stitchSectionDrafts(drafts);
     if(validateModelBindings("write_report",draft,basis.context).length)throw new Error("invalid_writer_result");
     return {basis,draft,calculationKeys:[] as string[]};
   }
-  const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND operation=$5 AND schema_version=$2 AND prompt_version=$3 AND policy_id=$4",[args.extractionIntentId,calculated?CALCULATED_REPORT_SCHEMA_VERSION:RESEARCH_MODEL_SCHEMA_VERSION,calculated?CALCULATED_REPORT_PROMPT_VERSION:versions.promptVersion,versions.policyId,operation])).rows[0];
+  const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4",[args.extractionIntentId,args.runId,args.accountId,operation])).rows[0];
   if(!model)throw new Error("writer_result_unavailable");
   const raw=await loadModelOperation(db,args.extractionIntentId,args.runId,args.accountId,model.request_digest,basis.context);
   const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs[operation],receipt:ModelReceiptSchema}).strict().safeParse(raw);

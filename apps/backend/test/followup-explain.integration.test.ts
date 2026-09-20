@@ -233,6 +233,73 @@ describe("ENG-033 follow-up explain from owned evidence", () => {
     expect((await getBrief(pool, child.brief_id)).originalQuestion).toBe(original.originalQuestion);
     expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(QUESTION);
     expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(original.originalQuestion);
+    const childBrief = await getBrief(pool, child.brief_id);
+    expect(childBrief.desiredOutcome).toMatch(/battery life/i);
+    expect(childBrief.assumptions.some((row) => row.value === "Go deeper on battery life")).toBe(false);
+  });
+
+  it("applies a typed budget change without rewriting the original question or dropping geography", async () => {
+    const { token, accountId } = await authed();
+    const headers = { authorization: `Bearer ${token}`, "idempotency-key": crypto.randomUUID() };
+    const runId = (await createRun(token, QUESTION)).json().runId as string;
+    const before = (await getRun(pool, runId))!;
+    const original = await getBrief(pool, before.brief_id);
+    const geo = {
+      id: "geo-indiana",
+      field: "geography",
+      operator: "eq",
+      value: "Indiana",
+      origin: "confirmed",
+      importance: "hard",
+      explanation: "Confirmed geography",
+    };
+    await pool.query(
+      `UPDATE research_briefs SET payload = jsonb_set(payload, '{constraints}', $2::jsonb) WHERE id=$1`,
+      [original.id, JSON.stringify([...original.constraints.filter((c) => c.field !== "geography"), geo])],
+    );
+    await publishOwned(accountId, runId, DELL_TEXT);
+    await pool.query(
+      "UPDATE runs SET lifecycle='terminal', terminal_outcome='completed', route_mode='controlled-research' WHERE id=$1",
+      [runId],
+    );
+    const changed = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/follow-up`,
+      headers,
+      payload: { message: "Actually, under $1,500", expectedBriefRevision: before.brief_revision },
+    });
+    expect(changed.statusCode).toBe(200);
+    expect(changed.json()).toMatchObject({ kind: "change_constraint", parentRunId: runId });
+    expect(changed.json().runId).not.toBe(runId);
+    const child = (await getRun(pool, changed.json().runId as string))!;
+    const childBrief = await getBrief(pool, child.brief_id);
+    expect(childBrief.originalQuestion).toBe(QUESTION);
+    expect(childBrief.originalQuestion).not.toMatch(/Actually/i);
+    const budget = childBrief.constraints.find((c) => c.field === "budget");
+    expect(budget).toMatchObject({ operator: "lte", value: "1500", units: "USD", origin: "confirmed" });
+    expect(budget?.value).not.toBe("2000");
+    expect(childBrief.constraints.find((c) => c.field === "geography")).toMatchObject({ value: "Indiana", origin: "confirmed" });
+    expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(QUESTION);
+    const stale = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/follow-up`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { message: "Actually, under $2,500", expectedBriefRevision: before.brief_revision + 5 },
+    });
+    expect(stale.statusCode).toBe(409);
+  });
+
+  it("returns authorized claim wording on GET /v1/reports/:id", async () => {
+    const { token, accountId } = await authed();
+    const runId = (await createRun(token, QUESTION)).json().runId as string;
+    const { reportId } = await publishOwned(accountId, runId, DELL_TEXT);
+    const report = await app.inject({
+      method: "GET",
+      url: `/v1/reports/${reportId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(report.statusCode).toBe(200);
+    expect(report.json().claims).toEqual(expect.arrayContaining([expect.objectContaining({ text: DELL_TEXT })]));
   });
 
   it("does not treat a verify message as verification or a diagnostic child", async () => {

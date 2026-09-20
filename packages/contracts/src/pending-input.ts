@@ -62,3 +62,31 @@ export const FollowUpMessageRequestSchema = z.object({
   expectedBriefRevision: revision.optional(),
 }).strict();
 export type FollowUpMessageRequest = z.infer<typeof FollowUpMessageRequestSchema>;
+
+export type ClarificationAnswerRow = { field: ClarificationField; value: string };
+
+/** Single-field pauses accept only that field. Extra or conflicting answers are rejected. */
+export function clarificationAnswersFromContinue(
+  body: { geography?: string; answers?: { field?: string; value?: string }[] },
+  pendingField: ClarificationField | null | undefined,
+): { ok: true; answers: ClarificationAnswerRow[] } | { ok: false; reason: string } {
+  const rows: ClarificationAnswerRow[] = [];
+  for (const row of body.answers ?? []) {
+    const field = pendingClarificationField(row.field);
+    const value = String(row.value ?? "").trim();
+    if (!field || !value) return { ok: false, reason: "invalid_answer" };
+    rows.push({ field, value });
+  }
+  if (body.geography?.trim()) {
+    rows.push({ field: "geography", value: body.geography.trim() });
+  }
+  if (!rows.length) return { ok: false, reason: "missing_answer" };
+  if (!pendingField) return { ok: false, reason: "pending_field_required" };
+  const allowed = new Set<ClarificationField>([pendingField]);
+  if ([...new Set(rows.map((row) => row.field))].some((field) => !allowed.has(field))) {
+    return { ok: false, reason: "extra_field" };
+  }
+  const values = [...new Set(rows.filter((row) => row.field === pendingField).map((row) => row.value))];
+  if (values.length !== 1) return { ok: false, reason: "conflicting_values" };
+  return { ok: true, answers: [{ field: pendingField, value: values[0]! }] };
+}

@@ -34,8 +34,8 @@ import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { appendFollowUpExplain, bindFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
-import { adoptReturnedChild, revisedQuestionForConstraintDelta } from "./src/constraint-delta";
-import { preparePendingFollowUp, submitPendingFollowUp } from "./src/follow-up-admission";
+import { adoptReturnedChild } from "./src/constraint-delta";
+import { preparePendingFollowUp, submitPendingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -140,7 +140,7 @@ function AppInner() {
   const [followLiveActivity, setFollowLiveActivity] = useState(true);
   const followLiveRef = useRef(true);
   const liveScrollY = useRef(0);
-  const [sourceClaim, setSourceClaim] = useState<{ blockId: string; claimIds: string[]; selectedClaimId: string | null; text: string } | null>(null);
+  const [sourceClaim, setSourceClaim] = useState<{ blockId: string; claimIds: string[]; selectedClaimId: string | null; text: string; claimTexts: { id: string; text: string }[] } | null>(null);
   const [flagClaimId, setFlagClaimId] = useState<string | null>(null);
   const followUpBusy = useRef(false);
   const announcedReport = useRef<string | null>(null);
@@ -427,6 +427,10 @@ function AppInner() {
               reportId: report.reportId,
               version: report.version,
               blocks: report.blocks,
+              claims: Array.isArray(report.claims)
+                ? report.claims.filter((row: { id?: unknown; text?: unknown }) => typeof row?.id === "string" && typeof row?.text === "string")
+                  .map((row: { id: string; text: string }) => ({ id: row.id, text: row.text }))
+                : undefined,
               limitations: report.limitations ?? [],
               labeledDemo: report.labeledDemo,
               changeSummary: report.changeSummary ?? null,
@@ -1074,32 +1078,41 @@ function AppInner() {
     const runActive = current.run.lifecycle === "queued" || current.run.lifecycle === "running";
     const reportReady = composerFollowsReport(current);
     const routed = routeFollowUp(text, { reportReady, runActive });
-    const mutates = routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source";
+    const mutates = routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source" || routed.kind === "change_constraint";
     const guard = api.captureView();
     followUpBusy.current = true;
     try {
       const revision = current.run.brief?.revision;
-      let body: { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; citationPassageIds?: unknown };
+      if (mutates && unresolvedFollowUp(current.pendingFollowUp)
+        && (current.pendingFollowUp!.parentRunId !== current.run.runId || current.pendingFollowUp!.message !== text)) {
+        throw new Error("Retry the saved follow-up before sending a different request.");
+      }
+      let body: { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
       if (mutates) {
         if (typeof revision !== "number") throw new Error("Refresh this run before sending additional research.");
         const pending = current.pendingFollowUp && current.pendingFollowUp.parentRunId === current.run.runId && current.pendingFollowUp.message === text
           ? current.pendingFollowUp
-          : preparePendingFollowUp({ parentRunId: current.run.runId, message: text, expectedBriefRevision: revision });
+          : preparePendingFollowUp({
+            parentRunId: current.run.runId,
+            message: text,
+            expectedBriefRevision: revision,
+            kind: routed.kind as MutatingFollowUpKind,
+          });
         body = await submitPendingFollowUp(pending, {
           current: guard.current,
           save: async (saved) => {
-            await sessionStorage.persistRequired(token, { ...current, pendingFollowUp: saved });
+            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: saved });
             if (!guard.current()) throw new SupersededRequest();
             setState((s) => ({ ...s, pendingFollowUp: saved }));
           },
           post: (runId, message, expectedBriefRevision, idempotencyKey) =>
             api.explainFollowUp(token, runId, { message, expectedBriefRevision }, idempotencyKey),
-        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; citationPassageIds?: unknown };
+        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
       } else {
         body = await api.explainFollowUp(token, current.run.runId, {
           message: text,
           expectedBriefRevision: revision,
-        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; citationPassageIds?: unknown };
+        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
       }
       if (!guard.current()) throw new SupersededRequest();
       if (body.kind === "explain") {
@@ -1117,19 +1130,36 @@ function AppInner() {
           ...s,
           draft: s.draft.trim() === text ? "" : s.draft,
           error: null,
-          pendingFollowUp: null,
           followUpExplains: appendFollowUpExplain(s.followUpExplains, bound),
         }));
         return;
       }
-      setViewState((s) => ({ ...s, draft: s.draft.trim() === text ? "" : s.draft, error: null, pendingFollowUp: null }));
-      await adoptReturnedChild({
-        parentRunId: current.run.runId,
-        body,
-        selectRun: api.selectRun,
-        refresh: (runId) => refreshRun(token, runId),
-        poll: (runId) => startPolling(token, runId),
-      });
+      if (mutates) {
+        if (typeof body.runId !== "string" || !body.runId) {
+          throw new Error("Follow-up was not accepted. Retry the saved request.");
+        }
+        const accepted = current.pendingFollowUp
+          ? { ...current.pendingFollowUp, phase: "accepted" as const, acceptedRunId: body.runId, acceptedBriefRevision: typeof body.briefRevision === "number" ? body.briefRevision : current.pendingFollowUp.expectedBriefRevision }
+          : null;
+        if (accepted) {
+          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: accepted });
+          if (!guard.current()) throw new SupersededRequest();
+          setState((s) => ({ ...s, pendingFollowUp: accepted, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
+        }
+        await adoptReturnedChild({
+          parentRunId: current.run.runId,
+          body,
+          requireRunId: true,
+          selectRun: api.selectRun,
+          refresh: (runId) => refreshRun(token, runId),
+          poll: (runId) => startPolling(token, runId),
+        });
+        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: null });
+        if (!guard.current()) throw new SupersededRequest();
+        setViewState((s) => ({ ...s, pendingFollowUp: null, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
+        return;
+      }
+      throw new Error("Follow-up was not accepted. Retry the saved request.");
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1153,7 +1183,7 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "Additional research is not available on this route. You can still ask for an explanation from this report." }));
       return;
     }
-    if (routed.kind === "explain" || routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source") {
+    if (routed.kind === "explain" || routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source" || routed.kind === "change_constraint") {
       await onExplainFollowUp(text);
       return;
     }
@@ -1171,11 +1201,6 @@ function AppInner() {
       latestUi.current = next;
       setViewState(() => next);
       void onSend();
-      return;
-    }
-    if (routed.kind === "change_constraint") {
-      const original = current.run?.brief?.originalQuestion ?? "";
-      await onCorrect(revisedQuestionForConstraintDelta(original, text));
       return;
     }
     await onCorrect(text);
@@ -1470,11 +1495,13 @@ function AppInner() {
                   onOpenSource={(id, blockId) => {
                     const block = blocks.find((item) => item.id === blockId);
                     const claimIds = claimsForReportBlock(blocks, blockId);
+                    const claimTexts = (state.report?.claims ?? []).filter((claim) => claimIds.includes(claim.id));
                     setSourceClaim(blockId ? {
                       blockId,
                       claimIds,
                       selectedClaimId: claimIds.length === 1 ? claimIds[0]! : null,
-                      text: block?.text.slice(0, 180) ?? "",
+                      text: claimTexts[0]?.text ?? block?.text.slice(0, 180) ?? "",
+                      claimTexts,
                     } : null);
                     void onOpenSource(id, blockId);
                   }}
@@ -1515,12 +1542,28 @@ function AppInner() {
                           return (
                             <Pressable
                               key={passageId}
-                              onPress={() => { if (blockId) void onOpenSource(passageId, blockId); }}
+                              onPress={() => {
+                                if (!blockId) {
+                                  setViewState((s) => ({ ...s, error: "That citation is not available in this report." }));
+                                  return;
+                                }
+                                const block = blocks.find((item) => item.id === blockId);
+                                const claimIds = claimsForReportBlock(blocks, blockId);
+                                const claimTexts = (state.report?.claims ?? []).filter((claim) => claimIds.includes(claim.id));
+                                setSourceClaim({
+                                  blockId,
+                                  claimIds,
+                                  selectedClaimId: claimIds.length === 1 ? claimIds[0]! : null,
+                                  text: claimTexts[0]?.text ?? block?.text.slice(0, 180) ?? "",
+                                  claimTexts,
+                                });
+                                void onOpenSource(passageId, blockId);
+                              }}
                               accessibilityRole="button"
-                              accessibilityLabel={n ? `Open citation ${n}` : "Open cited passage"}
+                              accessibilityLabel={n ? `Open citation ${n}` : blockId ? "Open cited passage" : "Cited passage unavailable"}
                               hitSlop={12}
                             >
-                              <Text style={styles.link}>{n ? `[${n}]` : "Cited passage"}</Text>
+                              <Text style={styles.link}>{blockId ? (n ? `[${n}]` : "Cited passage") : "Citation unavailable"}</Text>
                             </Pressable>
                           );
                         })}
@@ -1629,7 +1672,14 @@ function AppInner() {
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
             relatedClaim={sourceClaim?.text ?? null}
-            claimChoices={sourceClaim && sourceClaim.claimIds.length > 1 ? sourceClaim.claimIds : []}
+            claimChoices={sourceClaim && sourceClaim.claimIds.length > 1
+              ? sourceClaim.claimIds.map((id) => ({
+                id,
+                text: sourceClaim.claimTexts.find((claim) => claim.id === id)?.text
+                  ?? state.report?.claims?.find((claim) => claim.id === id)?.text
+                  ?? "Claim text is unavailable for this conclusion.",
+              }))
+              : []}
             selectedClaimId={sourceClaim?.selectedClaimId ?? null}
             onSelectClaim={(claimId) => setSourceClaim((current) => current ? { ...current, selectedClaimId: claimId } : current)}
             onChallenge={() => {
@@ -1645,12 +1695,12 @@ function AppInner() {
             }}
             onVerify={() => {
               const claimId = sourceClaim?.selectedClaimId;
-              api.closeSource();
-              setState(s => ({ ...s, source: null }));
               if (!claimId) {
                 setViewState((s) => ({ ...s, error: "Choose which conclusion to verify." }));
                 return;
               }
+              api.closeSource();
+              setState(s => ({ ...s, source: null }));
               void onFollowUp(claimId);
             }}
             onOpenOriginal={(url) => {

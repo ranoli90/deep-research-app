@@ -50,3 +50,11 @@ export function routeFollowUp(message: string, opts: { reportReady: boolean; run
   }
   return { version: FOLLOW_UP_ROUTER_VERSION, kind: "explain", mutatesBrief: false, reason: "default_explain_existing" };
 }
+
+/** Subtopic taken from a deepen message. The original question stays on the brief. */
+export function deepenFocus(message: string): string {
+  const text = message.trim();
+  const matched = text.match(/^(?:go deeper|more detail|dig into|expand on|also research)\s+(?:on\s+)?(.+)$/i);
+  const focus = (matched?.[1] ?? text).trim().replace(/[.?!]+$/u, "");
+  return focus || text;
+}

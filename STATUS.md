@@ -1,3 +1,20 @@
+## Typed constraint, continue cardinality, section purpose, follow-up journal — 2026-09-20
+
+`grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS. Research Beta is not declared.
+
+Production repairs on this tree (uncommitted until the product SHA below):
+
+- **R-01 / CL-03 budget:** `parseCorrection` reads the change message’s ceiling. Follow-up `change_constraint` applies `applyCorrectionToConstraints` and keeps `originalQuestion`. Mobile no longer concatenates via `onCorrect`. HTTP test: `$2k` → `$1,500` with Indiana retained.
+- **R-04 / CL-01 continue:** `clarificationAnswersFromContinue` rejects extra/conflicting/mixed fields. GET omits `field` when the column is null (no clarify-event fallback). Rejections leave brief/pending unchanged.
+- **R-02 / CL-07 sections:** `sectionWrite` (question text + responsibility) is in ModelContext, provider body, and `model-input.v8`. Distinct questions sharing evidence get distinct manifests. Restore uses the recorded attempt’s policy, not only the primary policy id. Composition is persisted after each section and kept on replay.
+- **R-03 / CL-04 journal:** SHA-256 payload digest (Aa vs BB no longer collide). Unresolved mutation is not replaced. Explain does not clear a pending mutation. Mutating success requires a run id before adoption.
+- **R-05 deepen:** child `desiredOutcome` carries the focus; command text is not stored as an assumption.
+- **R-06 claims:** GET `/v1/reports/:id` returns `{id,text}`; picker shows claim wording; verify without a selection leaves the sheet open.
+
+Focused evidence: research-core **317**, backend unit **247**, mobile **323**, tsc 0. Isolated HTTP `deep_r01_continue`: brief-continue **12/12**, followup-explain **8/8**. Writer production test for shared-evidence section purposes **1/1**. Full `pnpm verify` and two PG suites are **not** this SHA yet.
+
+Installed APK remains EAS `16412bce` git `9ae92fe` / product `75dee72`. Device unlocked; captures in `verification/v8/research-beta/visual-qa/v8-closure-75dee72/`. That APK does not contain these repairs. Live J8/J11 and hosted GHA still blocked. iOS unavailable.
+
 ## Remaining CL closures — 2026-09-20
 
 `grok-v8/research-beta-integration` product SHA **`75dee72a1ba77717262a0ca683a6b5a52c965d97`**. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. Phase A engineering for these contracts is implemented and locally verified; Phase B chrome repairs (Stop-with-draft, quote-first sheet, settings order) shipped in the same tree. Native current-HEAD APK not yet rebuilt. PG 544/544 ran on this code immediately before the commit.

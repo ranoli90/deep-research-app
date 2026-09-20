@@ -68,9 +68,19 @@ type Task = ResearchModelOutput<"brief">;
 type Assertion = ResearchModelOutput<"extract_assertions">["assertions"][number];
 type WriterScopeComparison = ScopeComparisonResult | ScopeComparisonContext;
 
+export type SectionWrite = {
+  planVersion: typeof HIERARCHICAL_WRITE_VERSION;
+  questionKey: string;
+  questionText: string;
+  heading: string;
+  responsibility: string;
+};
+
 export type HierarchicalSection = {
   questionKey: string;
   heading: string;
+  questionText?: string;
+  responsibility?: string;
   claimKeys: string[];
 };
 
@@ -102,12 +112,22 @@ export function planHierarchicalWrite(args: {
     sections.push({
       questionKey: question.key,
       heading: question.importance === "critical" ? "Answer" : "Evidence",
+      questionText: question.text,
+      responsibility: question.importance === "critical"
+        ? `Answer this section question using only this section's approved claims: ${question.text}`
+        : `Provide supporting evidence for: ${question.text}`,
       claimKeys,
     });
   }
   const unusedClaimKeys = assertions.map((a) => a.key).filter((key) => !assigned.has(key));
   if (unusedClaimKeys.length) {
-    sections.push({ questionKey: "retained_evidence", heading: "Evidence", claimKeys: unusedClaimKeys });
+    sections.push({
+      questionKey: "retained_evidence",
+      heading: "Evidence",
+      questionText: "Retained approved evidence not assigned to a brief question.",
+      responsibility: "Preserve unused approved claims without mixing them into other section answers.",
+      claimKeys: unusedClaimKeys,
+    });
   }
   const complex = questions.length >= 3 || assertions.length >= 6 || (args.task?.intendedOutput === "comparison");
   return { version: HIERARCHICAL_WRITE_VERSION, complex, sections: sections.filter((s) => s.claimKeys.length), unusedClaimKeys };
@@ -124,7 +144,20 @@ export function sectionScopeComparison(
   return current.version === "scope-comparison-context.v1" ? projectScopeComparison(computed, list) : computed;
 }
 
-/** Context for one section write: only that section's approved claims. */
+export function sectionWriteIdentity(section: HierarchicalSection): SectionWrite {
+  const questionText = section.questionText?.trim() || section.heading;
+  const responsibility = section.responsibility?.trim()
+    || `Write the ${section.heading} section for ${section.questionKey}: ${questionText}`;
+  return {
+    planVersion: HIERARCHICAL_WRITE_VERSION,
+    questionKey: section.questionKey,
+    questionText,
+    heading: section.heading,
+    responsibility,
+  };
+}
+
+/** Context for one section write: only that section's approved claims, plus stable section purpose. */
 export function sectionWriterContext<T extends {
   approvedClaimKeys: readonly string[];
   assertions: readonly Assertion[];
@@ -132,7 +165,7 @@ export function sectionWriterContext<T extends {
 }>(
   context: T,
   section: HierarchicalSection,
-): T {
+): T & { sectionWrite: SectionWrite } {
   const allowed = new Set(section.claimKeys);
   const assertions = context.assertions.filter((assertion) => allowed.has(assertion.key));
   return {
@@ -140,14 +173,19 @@ export function sectionWriterContext<T extends {
     approvedClaimKeys: [...allowed],
     assertions,
     scopeComparison: sectionScopeComparison(assertions, context.scopeComparison),
+    sectionWrite: sectionWriteIdentity(section),
   };
 }
 
 /** Same procedure for execution and restoration. Never flatten keys across sections first. */
-export function canonicalSectionContexts<T extends { approvedClaimKeys: readonly string[]; assertions: readonly Assertion[] }>(
+export function canonicalSectionContexts<T extends {
+  approvedClaimKeys: readonly string[];
+  assertions: readonly Assertion[];
+  scopeComparison?: WriterScopeComparison;
+}>(
   context: T,
   plan: HierarchicalWritePlan,
-): T[] {
+): Array<T & { sectionWrite: SectionWrite }> {
   return plan.sections.map((section) => sectionWriterContext(context, section));
 }
 

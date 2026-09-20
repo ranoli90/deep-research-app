@@ -19,7 +19,7 @@ type Props = {
   offline?: boolean;
   admissionPending?: boolean;
   relatedClaim?: string | null;
-  claimChoices?: string[];
+  claimChoices?: { id: string; text: string }[];
   selectedClaimId?: string | null;
   onSelectClaim?(claimId: string): void;
   onChallenge?(): void;
@@ -98,17 +98,17 @@ export function SourceSheet({
         {claimChoices.length > 1 ? (
           <View style={styles.sheetField} accessibilityLabel="Choose conclusion">
             <Text style={styles.kicker}>Which conclusion?</Text>
-            {claimChoices.map((claimId, index) => (
+            {claimChoices.map((claim) => (
               <Pressable
-                key={claimId}
-                onPress={() => onSelectClaim?.(claimId)}
+                key={claim.id}
+                onPress={() => onSelectClaim?.(claim.id)}
                 accessibilityRole="button"
-                accessibilityState={{ selected: selectedClaimId === claimId }}
-                accessibilityLabel={`Conclusion ${index + 1}`}
+                accessibilityState={{ selected: selectedClaimId === claim.id }}
+                accessibilityLabel={claim.text}
                 hitSlop={12}
               >
-                <Text style={selectedClaimId === claimId ? styles.link : styles.bodyText}>
-                  {selectedClaimId === claimId ? "Selected · " : ""}Conclusion {index + 1}
+                <Text style={selectedClaimId === claim.id ? styles.link : styles.bodyText}>
+                  {selectedClaimId === claim.id ? "Selected · " : ""}{claim.text}
                 </Text>
               </Pressable>
             ))}

@@ -12,6 +12,8 @@ import {
   DEFAULT_RUN_BUDGET_MICRO,
   DELETION_VS_SUBSCRIPTION,
   FollowUpMessageRequestSchema,
+  clarificationAnswersFromContinue,
+  deepenFocus,
   pendingClarificationField,
   MAX_ATTACHMENT_BYTES,
   OUTPUT_REPORT_CATEGORIES,
@@ -21,7 +23,6 @@ import {
 import {
   applyCorrectionToConstraints,
   constraintFromClarificationAnswer,
-  extractConstraints,
   impactForCorrection,
   inferOutputPreference,
   parseCorrection,
@@ -285,14 +286,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       [a.accountId, run.id],
     )).rowCount);
     const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
-    let pendingField = run.pending_input_field ?? undefined;
-    if (!pendingField && run.pending_input_id && run.pending_input_type === "clarification") {
-      const ev = await pool.query<{ payload: { questions?: { field?: string }[] } }>(
-        `SELECT payload FROM run_events WHERE run_id=$1 AND account_id=$2 AND type='clarify' ORDER BY sequence DESC LIMIT 1`,
-        [run.id, a.accountId],
-      );
-      pendingField = pendingClarificationField(ev.rows[0]?.payload?.questions?.[0]?.field);
-    }
+    const pendingField = pendingClarificationField(run.pending_input_field);
     return {
       runId: run.id,
       contentInvalidated,
@@ -364,20 +358,27 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (run.lifecycle !== "awaiting_input") {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
     }
-    const body = (req.body ?? {}) as { pendingInputId: string; expectedBriefRevision: number; geography?: string; answers?: { field?: string; value?: string }[] };
-    if (run.pending_input_type !== "clarification" || run.pending_input_id !== body.pendingInputId || run.brief_revision !== body.expectedBriefRevision)
-      return reply.code(409).send(err("stale_revision", "This answer does not match the pending clarification.", crypto.randomUUID()));
-    const answers = [
-      ...(body.answers ?? []).map((a) => ({ field: String(a.field ?? "").trim(), value: String(a.value ?? "").trim() })),
-      ...(body.geography ? [{ field: "geography", value: body.geography.trim() }] : []),
-    ].filter((a) => a.field && a.value);
-    if (!answers.length) {
+    const parsedBody = ContinueRunRequestSchema.safeParse(req.body ?? {});
+    if (!parsedBody.success) {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
-    if (run.pending_input_field && !answers.some((row) => row.field === run.pending_input_field)) {
-      return reply.code(400).send(err("invalid_input", "Answer the pending typed clarification field.", crypto.randomUUID()));
+    const body = parsedBody.data;
+    if (run.pending_input_type !== "clarification" || run.pending_input_id !== body.pendingInputId || run.brief_revision !== body.expectedBriefRevision)
+      return reply.code(409).send(err("stale_revision", "This answer does not match the pending clarification.", crypto.randomUUID()));
+    const pendingField = pendingClarificationField(run.pending_input_field);
+    if (!pendingField) {
+      return reply.code(409).send(err("stale_revision", "Refresh this clarification. The pending field must be reissued.", crypto.randomUUID()));
     }
-    const parsedAnswers = answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
+    const accepted = clarificationAnswersFromContinue(body, pendingField);
+    if (!accepted.ok) {
+      const message = accepted.reason === "extra_field"
+        ? "Answer only the pending clarification field."
+        : accepted.reason === "conflicting_values"
+          ? "Conflicting answers for the pending field are not accepted."
+          : "A material clarification answer is required to continue.";
+      return reply.code(400).send(err("invalid_input", message, crypto.randomUUID()));
+    }
+    const parsedAnswers = accepted.answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
     if (parsedAnswers.some((row) => !row.ok)) {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
@@ -602,7 +603,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       const brief = {
         ...parentBrief,
         id: briefId,
-        originalQuestion: `${parentBrief.originalQuestion}\n\nCorrection: ${parsed.data.correctionText}`,
+        originalQuestion: parentBrief.originalQuestion,
         constraints: applied.next,
         revision,
       };
@@ -715,22 +716,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           const current = await getRun(db, id, { forUpdate: true });
           if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
           const brief = await getBrief(db, current.brief_id);
-          const nextAssumptions = [
-            ...(Array.isArray(brief.assumptions) ? brief.assumptions : []),
-            {
-              id: `deepen-${current.brief_revision}`,
-              value: followBody.message!,
-              reversibility: "reversible" as const,
-              impact: "Bounded additional investigation of the existing subject.",
-              userConfirmationState: "accepted" as const,
-            },
-          ];
+          const focus = deepenFocus(followBody.message!);
+          const investigation = `Investigate ${focus} in more depth while keeping the original question.`;
+          const desiredOutcome = brief.desiredOutcome?.includes(investigation)
+            ? brief.desiredOutcome
+            : [brief.desiredOutcome, investigation].filter(Boolean).join(" ");
+          const nextBrief = { ...brief, originalQuestion: brief.originalQuestion, desiredOutcome };
           if (current.lifecycle === "terminal") {
             return insertChildBriefRevision(db, {
               accountId: a.accountId,
               parent: current,
               expectedRevision: followBody.expectedBriefRevision!,
-              next: { ...brief, originalQuestion: brief.originalQuestion, assumptions: nextAssumptions },
+              next: nextBrief,
               idempotencyKey: String(req.headers["idempotency-key"] ?? ""),
             });
           }
@@ -742,7 +739,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
             runId: id,
             expectedRevision: followBody.expectedBriefRevision!,
             originalQuestion: brief.originalQuestion,
-            next: { ...brief, originalQuestion: brief.originalQuestion, assumptions: nextAssumptions },
+            next: nextBrief,
           });
           await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
           await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
@@ -753,8 +750,66 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         await tryDispatchRun(pool, boss, deepened.runId);
         return { kind: "deepen", ...deepened, reason: routed.reason, mutatesBrief: false, mutatesIssuedIdentities: false, parentRunId: id };
       }
-      if (routed.kind === "change_constraint" || routed.kind === "new_research") {
-        return reply.code(409).send(err("unsupported_follow_up", "Use the correction or new-research path for this message.", crypto.randomUUID()));
+      if (routed.kind === "change_constraint") {
+        if (followBody.expectedBriefRevision == null) return reply.code(400).send(err("invalid_input", "expectedBriefRevision is required to change a constraint.", crypto.randomUUID()));
+        const parsedChange = parseCorrection(followBody.message!);
+        if (parsedChange.kind !== "constraint_change" || (!parsedChange.field && !parsedChange.drop && !parsedChange.value)) {
+          return reply.code(409).send(err("unsupported_follow_up", "Restate the budget, place, or requirement. The original question is unchanged.", crypto.randomUUID()));
+        }
+        const changed = await withTx(pool, async (db) => {
+          await lockActiveAccount(db, a.accountId);
+          const current = await getRun(db, id, { forUpdate: true });
+          if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+          const brief = await getBrief(db, current.brief_id);
+          const applied = applyCorrectionToConstraints(brief.constraints, followBody.message!);
+          const next = { ...brief, originalQuestion: brief.originalQuestion, constraints: applied.next };
+          if (current.lifecycle === "terminal") {
+            return insertChildBriefRevision(db, {
+              accountId: a.accountId,
+              parent: current,
+              expectedRevision: followBody.expectedBriefRevision!,
+              next,
+              idempotencyKey: String(req.headers["idempotency-key"] ?? ""),
+            });
+          }
+          if (current.brief_revision !== followBody.expectedBriefRevision || !["queued", "running"].includes(current.lifecycle)) {
+            throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+          }
+          const committed = await commitBriefRevision(db, {
+            accountId: a.accountId,
+            runId: id,
+            expectedRevision: followBody.expectedBriefRevision!,
+            originalQuestion: brief.originalQuestion,
+            next,
+          });
+          await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
+          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
+            SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
+          await emitEvent(db, {
+            runId: id,
+            accountId: a.accountId,
+            type: "plan_pivot",
+            summary: "A constraint was updated without rewriting the original question.",
+            phase: current.phase,
+            payload: {
+              kind: "change_constraint",
+              field: parsedChange.field ?? null,
+              value: parsedChange.value ?? null,
+              units: parsedChange.units ?? null,
+              operator: parsedChange.field === "budget" ? "lte" : parsedChange.field === "geography" || parsedChange.field === "platform" ? "eq" : null,
+              drop: parsedChange.drop === true,
+              acceptedChange: followBody.message,
+              briefRevision: committed.briefRevision,
+            },
+          });
+          return { runId: id, briefRevision: committed.briefRevision };
+        });
+        await tryDispatchRun(pool, boss, changed.runId);
+        return { kind: "change_constraint", ...changed, reason: routed.reason, mutatesBrief: true, mutatesIssuedIdentities: false, parentRunId: id };
+      }
+      if (routed.kind === "new_research") {
+        return reply.code(409).send(err("unsupported_follow_up", "Start a new research question from the composer. Private attachments are not inherited.", crypto.randomUUID()));
       }
       if (routed.kind === "verify_challenge") {
         return reply.code(409).send(err("unsupported_follow_up", "Select the conclusion to verify. A follow-up message is not a verification target.", crypto.randomUUID()));
@@ -827,12 +882,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+    const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: a.accountId, report });
     return {
       reportId: report.id,
       runId: report.run_id,
       version: report.version,
       outcome: report.outcome,
       blocks: report.blocks,
+      claims: evidence.claims.map((claim) => ({ id: claim.id, text: claim.text })),
       limitations: report.limitations,
       sourceAccessSummary: report.source_access_summary,
       changeSummary: report.change_summary,

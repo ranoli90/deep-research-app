@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canonicalSectionContexts, compareAssertionScopes, draftComposition, parseDraftComposition, planHierarchicalWrite, projectScopeComparison, stitchSectionDrafts } from "@deep/research-core";
+import { modelInputManifest } from "../src/modules/model-operations.js";
 
 const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
 const assertions = [
@@ -46,6 +47,42 @@ describe("ENG-032 canonical section write/restore", () => {
     const stitched = stitchSectionDrafts(drafts);
     expect(stitched.sections).toHaveLength(3);
     expect(JSON.stringify(write)).toEqual(JSON.stringify(restore));
+    expect(write[0]?.sectionWrite?.questionText).toBe("One");
+    expect(write[1]?.sectionWrite?.questionText).toBe("Two");
+    expect(write[0]?.sectionWrite?.questionText).not.toBe(write[1]?.sectionWrite?.questionText);
+    expect(JSON.stringify(write[0])).not.toEqual(JSON.stringify(write[1]));
+  });
+
+  it("distinguishes eligibility vs why-it-matters sections that share the same evidence", () => {
+    const reproduction = {
+      ...task,
+      questions: [
+        { key: "q1", text: "Is the option eligible?", criterionKeys: ["c1"], importance: "critical" as const, evidenceStandard: "docs" },
+        { key: "q2", text: "Why does that eligibility matter?", criterionKeys: ["c1"], importance: "useful" as const, evidenceStandard: "docs" },
+        { key: "q3", text: "What else is known?", criterionKeys: ["c2"], importance: "useful" as const, evidenceStandard: "docs" },
+      ],
+    };
+    const plan = planHierarchicalWrite({ task: reproduction as never, approvedClaimKeys: ["a1", "a2"], assertions });
+    const contexts = canonicalSectionContexts({ approvedClaimKeys: ["a1", "a2"], assertions }, plan);
+    expect(contexts[0]?.approvedClaimKeys).toEqual(["a1"]);
+    expect(contexts[1]?.approvedClaimKeys).toEqual(["a1"]);
+    expect(contexts[0]?.sectionWrite?.questionText).toBe("Is the option eligible?");
+    expect(contexts[1]?.sectionWrite?.questionText).toBe("Why does that eligibility matter?");
+    expect(JSON.stringify(contexts[0])).not.toEqual(JSON.stringify(contexts[1]));
+    const base = {
+      question: "Is the option eligible?",
+      task: reproduction as never,
+      passages: [] as const,
+      sources: [] as const,
+      assertions,
+      approvedClaimKeys: ["a1", "a2"] as const,
+      draft: null,
+    };
+    const write = canonicalSectionContexts(base, plan);
+    expect(modelInputManifest(write[0] as never).version).toBe("model-input.v8");
+    expect(modelInputManifest(write[0] as never)).not.toEqual(modelInputManifest(write[1] as never));
+    expect((modelInputManifest(write[0] as never) as { sectionWrite?: { questionText: string } }).sectionWrite?.questionText).toBe("Is the option eligible?");
+    expect((modelInputManifest(write[1] as never) as { sectionWrite?: { questionText: string } }).sectionWrite?.questionText).toBe("Why does that eligibility matter?");
   });
 
   it("drops job-level scope comparison from singleton section writes and restore matches", () => {

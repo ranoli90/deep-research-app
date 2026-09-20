@@ -76,6 +76,7 @@ export type UiState = {
     reportId: string;
     version?: number;
     blocks: ReportBlock[];
+    claims?: { id: string; text: string }[];
     limitations: string[];
     labeledDemo: boolean;
     changeSummary?: { evidenceUpdated: boolean; conclusionChanged: boolean; newlyFeasible?: string[]; newlyInfeasible?: string[]; notes: string } | null;

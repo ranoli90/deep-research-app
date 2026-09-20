@@ -109,6 +109,7 @@ function toState(
       };
     });
   const correctionTail = brief.originalQuestion.split("Correction:")[1] ?? "";
+  const confirmedBudget = brief.constraints.some((c) => c.field === "budget" && c.origin === "confirmed");
   const state: ControllerState = {
     runId: run.id,
     brief,
@@ -151,7 +152,7 @@ function toState(
     budgetMicro: run.budget_micro || DEFAULT_RUN_BUDGET_MICRO,
     deleted,
     privateCanaries,
-    reopenedDiscovery: Boolean(run.parent_run_id) && /budget/i.test(correctionTail),
+    reopenedDiscovery: Boolean(run.parent_run_id) && (confirmedBudget || /budget/i.test(correctionTail)),
     dependencyCompleteness: /unknown/i.test(correctionTail) ? "unknown" : run.parent_run_id ? "partial" : "known",
     issuedDedupeKeys: searchEvents
       .map((e) => (e.payload as { dedupeKey?: string } | null)?.dedupeKey)

@@ -33,6 +33,13 @@ export const ModelContextSchema = z.object({
     calculationId:z.string().uuid(),claimId:z.string().uuid().nullable(),claimRevisionId:z.string().uuid().nullable(),text:z.string().nullable(),
     result:EvidenceCalculationResultSchema,scope:AssertionScopeSchema,criterionKeys:z.array(z.string()).max(24),selected:z.boolean()}).strict()).max(6)}).strict().optional(),
   scopeComparison: z.union([ScopeComparisonResultSchema,ScopeComparisonContextSchema]).optional(),
+  sectionWrite: z.object({
+    planVersion: z.literal("hierarchical-write.v1"),
+    questionKey: z.string().min(1).max(100),
+    questionText: z.string().min(1).max(4000),
+    heading: z.string().min(1).max(200),
+    responsibility: z.string().min(1).max(4000),
+  }).strict().optional(),
 }).strict();
 export type ModelContext = z.infer<typeof ModelContextSchema>;
 
