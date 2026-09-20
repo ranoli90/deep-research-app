@@ -195,7 +195,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     globalThis.fetch = vi.fn(async (_input, init) => {
       const body = JSON.parse(String(init?.body));
       providers.push(body.provider.only);
-      if (body.provider.only[0] === "openai") return new Response("{}", { status: 429 });
+      if (body.provider.only[0] === "openai") return new Response("{}", { status: 404 });
       return new Response(JSON.stringify({ id: "fallback-test-id", model: "openai/gpt-4o-mini", provider: "Azure", usage: { cost: "0.000001" },
         choices: [{ finish_reason: "stop", message: { content: JSON.stringify(brief) } }] }), { status: 200 });
     }) as typeof fetch;
@@ -213,17 +213,24 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     expect(attempts[1].intent_id).not.toBe(attempts[0].intent_id);
     const saved = (await pool.query("SELECT intent_id,policy_id,result->>'status' AS status FROM model_operation_results WHERE run_id=$1 ORDER BY created_at", [x.runId])).rows;
     expect(saved).toEqual([
-      { intent_id: attempts[0].intent_id, policy_id: STRUCTURED_MODEL_POLICY.id, status: "transient_failure" },
+      { intent_id: attempts[0].intent_id, policy_id: STRUCTURED_MODEL_POLICY.id, status: "permanent_failure" },
       { intent_id: first.intentId, policy_id: AZURE_ZDR_MODEL_POLICY.id, status: "succeeded" },
     ]);
     await pool.query("DELETE FROM model_operation_results WHERE intent_id=$1", [first.intentId]);
     expect(await performModelOperation(pool, x.config, x.session, operation(x))).toEqual({ kind: "pending", intentId: first.intentId });
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
+  it("holds a primary 429 without dispatching an availability fallback", async () => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => new Response("{}", { status: 429 }));
+    expect(await performModelOperation(pool,x.config,x.session,operation(x))).toMatchObject({kind:"result",result:{status:"transient_failure"}});
+    expect(await performModelOperation(pool,x.config,x.session,operation(x))).toMatchObject({kind:"result",reused:true,result:{status:"transient_failure"}});
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1",[x.runId])).rows).toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
+  }));
   it("holds an unknown fallback attempt on restart and never resends it", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async (_input, init) => {
       const body = JSON.parse(String(init?.body));
-      if (body.provider.only[0] === "openai") return new Response("{}", { status: 429 });
+      if (body.provider.only[0] === "openai") return new Response("{}", { status: 404 });
       throw new Error("lost acknowledgement");
     }) as typeof fetch;
     const first = await performModelOperation(pool, x.config, x.session, operation(x));
@@ -238,7 +245,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     expect(first.intentId).not.toBe(attempts[0].intent_id);
     const held = (await pool.query("SELECT id,state,confirmed_micro FROM provider_intents WHERE run_id=$1 ORDER BY id", [x.runId])).rows;
     expect(held).toHaveLength(2);
-    expect(held.find((row: { id: string }) => row.id === attempts[0].intent_id)).toMatchObject({ state: "outcome-unknown", confirmed_micro: null });
+    expect(held.find((row: { id: string }) => row.id === attempts[0].intent_id)).toMatchObject({ state: "failed", confirmed_micro: "0" });
     expect(held.find((row: { id: string }) => row.id === first.intentId)).toMatchObject({ state: "outcome-unknown", confirmed_micro: null });
   }, question, { modelPolicyId: STRUCTURED_MODEL_POLICY.id }));
   it("does not issue a repair pass for schema-invalid output with unknown cost", async () => runCase(async (x) => {
@@ -1281,7 +1288,7 @@ describe("W05 executed scope comparisons",()=>{
   expect(await executeScopeComparison(x.session,{...c.args,action:{type:"compare_scopes",claimKeys:[...c.args.action.claimKeys].reverse()}})).toEqual({...result,reused:true});
   const row=(await pool.query("SELECT * FROM scope_comparisons WHERE id=$1",[result.id])).rows[0];
   expect(row.claim_revision_ids).toEqual(c.support.checks.map(c=>c.claimRevisionId));expect(row.input_digest).toMatch(/^[a-f0-9]{64}$/);
-  const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+  const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
   expect(writer.context.scopeComparison).toMatchObject({version:"scope-comparison-context.v1",claimKeys:["area","area_rephrased"],groups:[{relations:["equal","unknown","unknown","unknown","equal","unknown"],pairs:[[0,1]]}],entailment:"not_assessed",quantityCompatibility:"not_assessed"});expect(provider).not.toHaveBeenCalled();
  }));
  it("rejects foreign owners, wrong revisions, unknown targets and extra authority",async()=>runCase(async x=>{
@@ -1296,7 +1303,7 @@ describe("W05 executed scope comparisons",()=>{
   const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
   await pool.query("UPDATE scope_comparisons SET result=jsonb_set(result,'{pairs,0,status}','\"scope_matches\"') WHERE run_id=$1",[x.runId]);
   await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_comparison_mismatch");
-  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_comparison_mismatch");
+  await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId))).rejects.toThrow("stored_scope_comparison_mismatch");
  }));
  it("changed claim revision invalidates a comparison and deletion removes derived records",async()=>runCase(async x=>{
   const c=await comparisonCase(x);await executeScopeComparison(x.session,c.args);
@@ -1333,7 +1340,7 @@ it("W05 oversized structured context is an explicit blocked outcome before provi
 }));
 it("W05 legacy comparison preserves its original writer representation even with an unknown attempt",async()=>runCase(async x=>{
  const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
- const basis=await loadSupportContext(pool,c.args,TASK_MODEL_VERSIONS);
+ const basis=await loadSupportContext(pool,c.args,await runModelVersions(pool,x.runId));
  // Frozen pre-migration026 identity construction: seed the exact prior format, not a new-format alias.
  const legacyInput={action:c.args.action,taskId:c.args.taskId,briefRevision:1,evidenceRevision:basis.evidenceRevision,evidence:modelInputManifest(basis.context),
   claims:c.support.checks.map(c=>({key:c.claimKey,claimRevisionId:c.claimRevisionId,decision:c.decision})),supportCheckerVersion:SCOPED_SUPPORT_VERSION};
@@ -1343,7 +1350,7 @@ it("W05 legacy comparison preserves its original writer representation even with
  const writerArgs={...c.args,sourceSupportIntentId:c.support.intentId};
  expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
  expect(await executeScopeComparison(x.session,c.args)).toMatchObject({id:created.id,reused:true,writerContextVersion:"scope-comparison.v1"});
- const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
  expect(writer.context.scopeComparison).toEqual(created.result);expect(modelInputManifest(writer.context).version).toBe("model-input.v2");
  expect(await createResearchDraft(pool,x.config,x.session,writerArgs)).toEqual({kind:"blocked",reason:"writer_outcome_unknown"});
  expect(provider).toHaveBeenCalledTimes(1);
@@ -1352,7 +1359,7 @@ it("W05 legacy comparison preserves its original writer representation even with
 }));
 it("W05 projection metadata and model-bound pair tampering fail closed",async()=>runCase(async x=>{
  const c=await comparisonCase(x);const created=await executeScopeComparison(x.session,c.args);if(created.kind!=="comparison")throw new Error("missing comparison");
- const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS);
+ const writer=await loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId));
  if(writer.context.scopeComparison?.version!=="scope-comparison-context.v1")throw new Error("missing compact context");
  writer.context.scopeComparison.groups[0]!.relations[0]="different";
  const provider=vi.fn();globalThis.fetch=provider;
@@ -1360,7 +1367,7 @@ it("W05 projection metadata and model-bound pair tampering fail closed",async()=
  expect(provider).not.toHaveBeenCalled();
  await pool.query("UPDATE scope_comparisons SET writer_context_version='scope-comparison.v1' WHERE id=$1",[created.id]);
  await expect(executeScopeComparison(x.session,c.args)).rejects.toThrow("stored_scope_context_version_mismatch");
- await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},TASK_MODEL_VERSIONS)).rejects.toThrow("stored_scope_context_version_mismatch");
+ await expect(loadWriterSourceContext(pool,{...c.args,sourceSupportIntentId:c.support.intentId},await runModelVersions(pool,x.runId))).rejects.toThrow("stored_scope_context_version_mismatch");
 }));
 
 async function calculationCase(x:Parameters<Parameters<typeof runCase>[0]>[0],wrongBinding=false) {

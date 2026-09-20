@@ -1,3 +1,4 @@
+import { persistOperationRoute, recordModelRouteOutcome } from "../modules/model-operation-routing.js";
 import {runModelPolicy} from "../modules/run-model-policy.js";
 import { createHash } from "node:crypto";
 import type pg from "pg";
@@ -5,7 +6,7 @@ import { z } from "zod";
 import { CONSENT_POLICY_VERSION, ResearchModelOutputs, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings, resolveModelSpans, repairBriefCriterionLinks, repairBriefProvenanceFromQuestion, suppressUnneededBriefClarifications, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
-import { modelPolicy, AZURE_ZDR_EXACT_QUOTE_POLICY, AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
+import { isStrictModelPolicy, modelPolicy, AZURE_ZDR_EXACT_QUOTE_POLICY, AZURE_ZDR_DISCOVERY_POLICY } from "../ports/model-policy.js";
 import { emitEvent, getBrief, getRun } from "../modules/runs.js";
 import { withTx } from "../platform/db.js";
 import type { FencedSession } from "./fenced-session.js";
@@ -52,7 +53,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   let policy:Awaited<ReturnType<typeof runModelPolicy>>;
   try { policy=await session.write(db=>runModelPolicy(db,args.runId)); } catch(error) { if(error instanceof Error&&error.message==="unsupported_model_policy")return {kind:"blocked",reason:"unsupported_model_policy"};throw error; }
   const context = ModelContextSchema.parse(args.context);
-  const extras = args.repairPass ? { repairPass: args.repairPass } : undefined;
+  let extras: Parameters<typeof prepareModelRequest>[3] = args.repairPass ? { repairPass: args.repairPass } : undefined;
   let prepared: ReturnType<typeof prepareModelRequest<K>>;
   try { prepared = prepareModelRequest(args.operation, context,policy.id, extras); }
   catch(error) {
@@ -60,7 +61,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       return {kind:"blocked",reason:error.message};
     throw error;
   }
-  const request: ActiveRequest<K> = { ...prepared, digest: requestDigest(prepared, args.briefRevision, args.evidenceRevision) };
+  let request: ActiveRequest<K> = { ...prepared, digest: requestDigest(prepared, args.briefRevision, args.evidenceRevision) };
   const historical=Boolean(args.historical);
   const logicalDigest = modelOperationLogicalDigest({
     operation: args.operation, context, briefRevision: args.briefRevision, evidenceRevision: args.evidenceRevision,
@@ -83,10 +84,18 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (parsed.result.status !== "invalid_output" || !knownFinancialOutcome(parsed.result)) {
       return { kind: "result", intentId: prior.intentId, reused: true, result: parsed.result };
     }
+    if (isStrictModelPolicy(policy.id)) {
+      extras = { repairPass: args.repairPass, repairDiagnostics: parsed.result.diagnostics, repairCodes: parsed.result.reason.split(",") };
+      prepared = prepareModelRequest(args.operation, context, policy.id, extras);
+      request = { ...prepared, digest: requestDigest(prepared, args.briefRevision, args.evidenceRevision) };
+    }
   }
+  await session.write(db => persistOperationRoute(db, { ...args, logicalDigest, attemptIndex: 0,
+    policyId: policy.id, requestDigest: request.digest,
+    reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }) }));
   const attempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${request.digest}`, kind: args.operation,
-    route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }), historical });
+    modelPolicyId: policy.id, route: routeStringFor(policy.id, args.operation), requestDigest: request.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: policy.id, bodyText: request.body }), historical });
   await session.write((db) => recordModelOperationAttempt(db, {
     intentId: attempt.intentId, runId: args.runId, accountId: args.accountId, logicalDigest, attemptIndex: 0,
     predecessorIntentId: null, reason: "primary", requestDigest: request.digest, policyId: policy.id,
@@ -99,8 +108,9 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (parsed.kind === "blocked") return parsed;
     return { kind: "result", intentId, reused: true, result: parsed.result };
   };
-  const settle = async (intentId: string, result: ModelResult<K>) => {
+  const settle = async (intentId: string, result: ModelResult<K>, activePolicyId: string) => {
     await withTx(pool, async (db) => {
+      await recordModelRouteOutcome(db, activePolicyId, result.status === "succeeded" ? undefined : result.reason);
       const settled = providerIntentStateForResult(result);
       await updateIntentState(db, intentId, settled.state, settled.confirmedMicro);
       await db.query("UPDATE provider_intents SET receipt=$2 WHERE id=$1", [intentId, JSON.stringify(result.receipt)]);
@@ -202,7 +212,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   if (!attempt.issue) {
     const restored = await restore(attempt.intentId, request);
     if (restored.kind !== "result") return restored;
-    if (restored.result.status === "outcome_unknown" || !isAvailabilityFailure(restored.result)) return restored;
+    if (!knownFinancialOutcome(restored.result) || !isAvailabilityFailure(restored.result)) return restored;
     primaryResult = restored.result;
   } else {
     primaryResult = await executeModelRequest(request, { apiKey: config.openRouterApiKey!, signal: session.signal });
@@ -210,9 +220,9 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     const finalized = primaryResult.status === "succeeded" ? await finalizeSucceeded(primaryResult, policy) : { result: primaryResult, resolvedSpans: [] as SpanResolution[], linkedCriteria: [] };
     primaryResult = finalized.result;
     // Financial receipts survive a lost lease/deletion; private model output does not.
-    await settle(attempt.intentId, primaryResult);
+    await settle(attempt.intentId, primaryResult, policy.id);
     await persist(attempt.intentId, request, primaryResult, policy.id, finalized.resolvedSpans, finalized.linkedCriteria);
-    if (primaryResult.status === "outcome_unknown" || !isAvailabilityFailure(primaryResult)) {
+    if (!knownFinancialOutcome(primaryResult) || !isAvailabilityFailure(primaryResult)) {
       return { kind: "result", intentId: attempt.intentId, reused: false, result: primaryResult };
     }
   }
@@ -229,9 +239,12 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   }
   const altPrepared = prepareModelRequest(args.operation, context, failover.nextPolicyId, extras);
   const altRequest: ActiveRequest<K> = { ...altPrepared, digest: requestDigest(altPrepared, args.briefRevision, args.evidenceRevision) };
+  await session.write(db => persistOperationRoute(db, { ...args, logicalDigest, attemptIndex: 1,
+    policyId: failover.nextPolicyId, requestDigest: altRequest.digest,
+    reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }) }));
   const altAttempt = await reserveLiveAttempt(pool, config, { runId: args.runId, fence: args.fence, briefRevision: args.briefRevision,
     evidenceRevision: args.evidenceRevision, requiredConsentPolicy: CONSENT_POLICY_VERSION, logicalKey: `model:${args.operation}:${altRequest.digest}`, kind: args.operation,
-    route: routeStringFor(failover.nextPolicyId, args.operation), requestDigest: altRequest.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }), historical });
+    modelPolicyId: failover.nextPolicyId, route: routeStringFor(failover.nextPolicyId, args.operation), requestDigest: altRequest.digest, reserveMicro: reserveMicroForOperation({ operation: args.operation, policyId: failover.nextPolicyId, bodyText: altRequest.body }), historical });
   await session.write((db) => recordModelOperationAttempt(db, {
     intentId: altAttempt.intentId, runId: args.runId, accountId: args.accountId, logicalDigest, attemptIndex: 1,
     predecessorIntentId: attempt.intentId, reason: "availability_failover", requestDigest: altRequest.digest, policyId: failover.nextPolicyId,
@@ -243,7 +256,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   const altPolicy = modelPolicy(failover.nextPolicyId);
   const altFinal = altResult.status === "succeeded" ? await finalizeSucceeded(altResult, altPolicy) : { result: altResult, resolvedSpans: [] as SpanResolution[], linkedCriteria: [] };
   altResult = altFinal.result;
-  await settle(altAttempt.intentId, altResult);
+  await settle(altAttempt.intentId, altResult, failover.nextPolicyId);
   await persist(altAttempt.intentId, altRequest, altResult, failover.nextPolicyId, altFinal.resolvedSpans, altFinal.linkedCriteria);
   return { kind: "result", intentId: altAttempt.intentId, reused: false, result: altResult };
 }

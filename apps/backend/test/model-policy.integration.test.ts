@@ -10,7 +10,7 @@ import {runModelVersions} from "../src/modules/run-model-policy.js";
 import {performModelOperation} from "../src/worker/model-gateway.js";
 import {fencedSession} from "../src/worker/fenced-session.js";
 import {loadConfig} from "../src/platform/config.js";
-import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_MODEL_POLICY,STRUCTURED_MODEL_POLICY,modelPolicy} from "../src/ports/model-policy.js";
+import {AZURE_ZDR_EXACT_QUOTE_POLICY,AZURE_ZDR_MODEL_POLICY,AZURE_ZDR_STRICT_POLICY,STRUCTURED_MODEL_POLICY,STRUCTURED_STRICT_POLICY,modelPolicy} from "../src/ports/model-policy.js";
 import {recordPortfolioResolution} from "../src/modules/model-portfolio.js";
 import {PRODUCTION_PORTFOLIO_V1,replayPolicyIdentity} from "../src/model-governor/index.js";
 let pool:pg.Pool;const originalFetch=globalThis.fetch;
@@ -26,10 +26,37 @@ it("pins new admission, preserves idempotent policy and parent inheritance, and 
  expect(await admitRun(pool,a.accountId,key,input,{modelPolicyId:STRUCTURED_MODEL_POLICY.id})).toMatchObject({runId:parent.runId,reused:true});
  await expect(pool.query("UPDATE runs SET model_policy_id=$2 WHERE id=$1",[parent.runId,STRUCTURED_MODEL_POLICY.id])).rejects.toThrow("model_policy_immutable");
  const child=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({...input,parentRunId:parent.runId}),{modelPolicyId:STRUCTURED_MODEL_POLICY.id});
- expect((await getRun(pool,child.runId))?.model_policy_id).toBe(AZURE_ZDR_MODEL_POLICY.id);
+ expect((await getRun(pool,child.runId))?.model_policy_id).toBe(AZURE_ZDR_STRICT_POLICY.id);
+ expect((await getRun(pool,parent.runId))?.model_policy_id).toBe(AZURE_ZDR_MODEL_POLICY.id);
  await migrate(pool);expect((await getRun(pool,parent.runId))?.model_policy_id).toBe(AZURE_ZDR_MODEL_POLICY.id);
- expect(await runModelVersions(pool,child.runId)).toMatchObject({policyId:AZURE_ZDR_MODEL_POLICY.id});
- await cancelRun(pool,child.runId);await cancelRun(pool,parent.runId);
+ expect(await runModelVersions(pool,child.runId)).toMatchObject({policyId:AZURE_ZDR_STRICT_POLICY.id});
+ expect(await runModelVersions(pool,parent.runId)).toMatchObject({policyId:AZURE_ZDR_MODEL_POLICY.id});
+ const question=input.question,span={start:0,end:question.length,quote:question};
+ const scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+ const output={objective:question,objectiveProvenance:span,intendedOutput:"Explanation",criteria:[{key:"explain",description:question,field:"mechanism",operator:"explain",value:null,unit:null,importance:"hard",scope,provenance:span,group:"all",groupOperator:"all",unresolvedAlternatives:[]}],questions:[{key:"q",text:question,criterionKeys:["explain"],importance:"critical",evidenceStandard:"Primary evidence"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+ const policies:string[]=[];
+ globalThis.fetch=vi.fn(async(_input:Parameters<typeof fetch>[0],init?:RequestInit)=>{
+  const body=JSON.parse(String(init?.body));
+  expect(body.provider.only).toEqual(["azure"]);
+  expect(body).not.toHaveProperty("session_id");
+  policies.push(body.provider.only[0]);
+  return new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Azure",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]}));
+ });
+ const parentRow=await getRun(pool,parent.runId),childRow=await getRun(pool,child.runId);
+ const parentOwner=crypto.randomUUID(),parentFence=(await claimLease(pool,parent.runId,parentOwner,30000))!;
+ const childOwner=crypto.randomUUID(),childFence=(await claimLease(pool,child.runId,childOwner,30000))!;
+ const parentSession=fencedSession(pool,{runId:parent.runId,accountId:a.accountId,owner:parentOwner,fence:parentFence,briefRevision:parentRow!.brief_revision,leaseMs:30000});
+ const childSession=fencedSession(pool,{runId:child.runId,accountId:a.accountId,owner:childOwner,fence:childFence,briefRevision:childRow!.brief_revision,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const context={question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null};
+ try{
+  expect(await performModelOperation(pool,config,parentSession,{runId:parent.runId,accountId:a.accountId,fence:parentFence,briefRevision:parentRow!.brief_revision,evidenceRevision:0,operation:"brief",context})).toMatchObject({kind:"result",result:{status:"succeeded"}});
+  expect(await performModelOperation(pool,config,childSession,{runId:child.runId,accountId:a.accountId,fence:childFence,briefRevision:childRow!.brief_revision,evidenceRevision:0,operation:"brief",context})).toMatchObject({kind:"result",result:{status:"succeeded"}});
+  expect((await pool.query("SELECT policy_id FROM model_operation_routes WHERE run_id=$1",[parent.runId])).rows).toEqual([{policy_id:AZURE_ZDR_MODEL_POLICY.id}]);
+  expect((await pool.query("SELECT policy_id FROM model_operation_routes WHERE run_id=$1",[child.runId])).rows).toEqual([{policy_id:AZURE_ZDR_STRICT_POLICY.id}]);
+  expect((await getRun(pool,parent.runId))?.model_policy_id).toBe(AZURE_ZDR_MODEL_POLICY.id);
+  expect(policies).toEqual(["azure","azure"]);
+ }finally{parentSession.stop();childSession.stop();await cancelRun(pool,child.runId);await cancelRun(pool,parent.runId);}
 });
 it.each([STRUCTURED_MODEL_POLICY,AZURE_ZDR_MODEL_POLICY])("replays unknown $provider requests under their immutable policy after a config change",async policy=>{
  const a=await account(),question="Explain database transactions.";
@@ -94,9 +121,9 @@ it("v2 brief repair links orphaned criteria and keeps v1 strict",async()=>{
 it("applies cheap-first policy on unpinned new runs and fail-closes leftover structured spend",async()=>{
  const a=await account();
  const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:"Policy cheap first",routeMode:"controlled-research"}));
- expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
+ expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_STRICT_POLICY.id);
  expect((await pool.query("SELECT admission,resolved_policy_id FROM model_portfolio_resolutions WHERE run_id=$1",[r.runId])).rows[0]).toEqual({
-  admission:"cheap_first_admitted",resolved_policy_id:STRUCTURED_MODEL_POLICY.id,
+  admission:"cheap_first_admitted",resolved_policy_id:STRUCTURED_STRICT_POLICY.id,
  });
  const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
  const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
@@ -121,4 +148,51 @@ it("records immutable portfolio resolutions and still replays historical policy 
  expect(modelPolicy(AZURE_ZDR_MODEL_POLICY.id).id).toBe(AZURE_ZDR_MODEL_POLICY.id);
  expect((await getRun(pool,r.runId))?.model_policy_id).toBe(STRUCTURED_MODEL_POLICY.id);
  await cancelRun(pool,r.runId);
+});
+
+it("ENG-009 processor mismatch retires the route without rewriting historical policy or replay",async()=>{
+ const a=await account(),question="Explain database transactions.";
+ const policy=STRUCTURED_MODEL_POLICY;
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policy.id});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
+ globalThis.fetch=vi.fn(async()=>new Response(JSON.stringify({id:`nonbillable-${crypto.randomUUID()}`,model:"openai/gpt-4o-mini",provider:"Different Provider",usage:{cost:0.001},choices:[{finish_reason:"stop",message:{content:"{}"}}]})));
+ try{
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",result:{status:"permanent_failure",reason:"provider_route_mismatch"}});
+  expect((await pool.query("SELECT state,reason FROM model_route_health WHERE policy_id=$1",[policy.id])).rows[0]).toEqual({state:"retired",reason:"provider_route_mismatch"});
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",reused:true,result:{status:"permanent_failure",reason:"provider_route_mismatch"}});
+  await expect(performModelOperation(pool,config,session,{...args,operation:"review_coverage"})).rejects.toThrow("model_route_unavailable");
+  expect((await getRun(pool,r.runId))?.model_policy_id).toBe(policy.id);
+  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+ }finally{
+  await pool.query("UPDATE model_route_health SET state='healthy',reason='registered' WHERE policy_id=$1",[policy.id]);
+  session.stop();await cancelRun(pool,r.runId);
+ }
+});
+it("ENG-006/009 persists operation admission before issue; retirement blocks fresh spend and preserves unknown replay",async()=>{
+ const a=await account(),question="Explain database transactions.";
+ const policy=STRUCTURED_MODEL_POLICY;
+ const r=await admitRun(pool,a.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question,routeMode:"controlled-research"}),{modelPolicyId:policy.id});
+ const owner=crypto.randomUUID(),fence=(await claimLease(pool,r.runId,owner,30000))!;
+ const session=fencedSession(pool,{runId:r.runId,accountId:a.accountId,owner,fence,briefRevision:1,leaseMs:30000});
+ const config=loadConfig({DATABASE_URL:process.env.TEST_DATABASE_URL!,LIVE_ROUTE_ENABLED:"true",STRUCTURED_MODEL_ENABLED:"true",OPENROUTER_API_KEY:`nonbillable-${crypto.randomUUID()}`,LIVE_SPEND_CAP_MICRO:"1000000",LIVE_KEY_SPEND_CAP_MICRO:"1000000000",LIVE_BUDGET_SCOPE:crypto.randomUUID()});
+ const args={runId:r.runId,accountId:a.accountId,fence,briefRevision:1,evidenceRevision:0,operation:"brief" as const,context:{question,task:null,passages:[],sources:[],assertions:[],approvedClaimKeys:[],draft:null}};
+ const send=vi.fn(async()=>{
+  expect((await pool.query("SELECT policy_id,operation,reserve_micro FROM model_operation_routes WHERE run_id=$1",[r.runId])).rows).toEqual([{policy_id:policy.id,operation:"brief",reserve_micro:expect.any(String)}]);
+  throw Error("Synthetic unknown provider outcome");
+ });globalThis.fetch=send;
+ try{
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",result:{status:"outcome_unknown"}});
+  await pool.query("UPDATE model_route_health SET state='retired',reason='operator_retired' WHERE policy_id=$1",[policy.id]);
+  expect(await performModelOperation(pool,config,session,args)).toMatchObject({kind:"result",reused:true,result:{status:"outcome_unknown"}});
+  await expect(performModelOperation(pool,config,session,{...args,operation:"review_coverage"})).rejects.toThrow("model_route_unavailable");
+  expect(send).toHaveBeenCalledTimes(1);
+  expect((await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1",[r.runId])).rows).toEqual([{state:"outcome-unknown",confirmed_micro:null}]);
+  await expect(pool.query("UPDATE model_operation_routes SET policy_id=$2 WHERE run_id=$1",[r.runId,AZURE_ZDR_MODEL_POLICY.id])).rejects.toThrow("immutable");
+ }finally{
+  await pool.query("UPDATE model_route_health SET state='healthy',reason='registered' WHERE policy_id=$1",[policy.id]);
+  session.stop();await cancelRun(pool,r.runId);
+ }
 });

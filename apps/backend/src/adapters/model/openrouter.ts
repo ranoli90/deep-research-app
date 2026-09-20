@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { ResearchModelOutputs, CALCULATED_REPORT_SCHEMA_VERSION, CALCULATION_PLANNING_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, type ResearchModelOperation, type ResearchModelOutput } from "@deep/contracts";
-import { ModelContextSchema, ModelDiagnosticFieldSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
+import { ModelContextSchema, ModelValidationDiagnosticsSchema, ModelDiagnosticFieldSchema, type PreparedModelRequest, type ModelResult, type ModelReceipt } from "../../ports/model.js";
 import { costToMicro } from "./usage.js";
 import { MODEL_PROMPT_VERSION, modelPrompt } from "./prompts.js";
-import { modelPolicy,STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
+import { modelPolicy, isStrictModelPolicy,STRUCTURED_MODEL_POLICY } from "../../ports/model-policy.js";
 import { admitContextTokens, operationBudget } from "./token-budget.js";
 
 const Envelope = z.object({
@@ -27,12 +27,16 @@ const Envelope = z.object({
 
 /** Canonical schemas generate the provider contract; local validation remains mandatory.
  * Optional extras (session stickiness) must not be passed for historical policy replay. */
-export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string; repairPass?: number }): PreparedModelRequest<K> {
+export function prepareModelRequest<K extends ResearchModelOperation>(operation: K, context: unknown, policyId: string = STRUCTURED_MODEL_POLICY.id, extras?: { sessionId?: string; repairPass?: number; repairDiagnostics?: unknown; repairCodes?: string[] }): PreparedModelRequest<K> {
   const policy=modelPolicy(policyId);
   const budget = operationBudget(operation, policy.id);
   const contextText = JSON.stringify(ModelContextSchema.parse(context));
   if (!contextText) throw new Error("model_context_too_large");
   const schema = zodToJsonSchema(ResearchModelOutputs[operation], { $refStrategy: "none" });
+  const repairFeedback = isStrictModelPolicy(policy.id) && extras?.repairPass ? JSON.stringify({
+    diagnostics: extras.repairDiagnostics ? ModelValidationDiagnosticsSchema.parse(extras.repairDiagnostics) : null,
+    codes: (extras.repairCodes ?? []).filter(code => /^[a-z_]{1,80}$/.test(code)).slice(0,32),
+  }) : null;
   const body = JSON.stringify({
     model: policy.model, [policy.provider === "azure" ? "max_completion_tokens" : "max_tokens"]: budget.maxOutputTokens, temperature: 0, stream: false, plugins: [],
     provider: { only: [policy.provider], allow_fallbacks: false, require_parameters: true, data_collection: "deny", ...(policy.provider === "azure" ? {zdr:true} : {}),
@@ -44,7 +48,7 @@ export function prepareModelRequest<K extends ResearchModelOperation>(operation:
       ? `\nSame-evidence repair pass ${extras.repairPass}. Assess every supplied assertion key exactly once. Do not invent claim keys.`
       : operation === "write_report" || operation === "write_calculated_report"
       ? `\nSame-evidence repair pass ${extras.repairPass}. Cite only approved claim keys. Keep every citation and claim identity exact.`
-      : `\nSame-evidence repair pass ${extras.repairPass}. Keep every citation and claim identity exact.`) : "") }, { role: "user", content: contextText }],
+      : `\nSame-evidence repair pass ${extras.repairPass}. Keep every citation and claim identity exact.`) : "") + (repairFeedback ? `\nValidator failures from the prior attempt: ${repairFeedback}` : "") }, { role: "user", content: contextText }],
     ...(extras?.sessionId ? { session_id: extras.sessionId } : {}),
   });
   admitContextTokens({ contextText, bodyText: body, operation, policyId: policy.id });

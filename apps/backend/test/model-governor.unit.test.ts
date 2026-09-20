@@ -1,9 +1,13 @@
+import { loadConfig } from "../src/platform/config.js";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  AZURE_ZDR_DISCOVERY_POLICY,
   AZURE_ZDR_EXACT_QUOTE_POLICY,
   AZURE_ZDR_MODEL_POLICY,
+  AZURE_ZDR_STRICT_POLICY,
   STRUCTURED_MODEL_POLICY,
+  STRUCTURED_STRICT_POLICY,
   modelPolicy,
 } from "../src/ports/model-policy.js";
 import {
@@ -58,6 +62,7 @@ const unstructuredCheap: RouteCapabilities = {
 const stronger: RouteCapabilities = {
   ...zdrRoute,
   policyId: "test-strong-v1",
+  model: "test/independent-strong-model",
   tier: 3,
   promptMicroPerMillion: 2_000_000,
   completionMicroPerMillion: 8_000_000,
@@ -307,12 +312,13 @@ describe("hierarchical reserves and cache stickiness", () => {
     expect(writing.ok).toBe(true);
   });
 
-  it("keeps cache session stickiness on the same policy and breaks it on quality escalation", () => {
+  it("does not claim explicit cache reuse without verified transport support", () => {
     const sticky = cacheSessionPolicy({ runId: "run-1", lastPolicyId: "test-zdr-v1", nextPolicyId: "test-zdr-v1", qualityEscalation: false });
-    expect(sticky.reuseCache).toBe(true);
+    expect(sticky).toMatchObject({sessionId:null,reuseCache:false,reason:"explicit_cache_not_supported"});
     const escalate = cacheSessionPolicy({ runId: "run-1", lastPolicyId: "test-zdr-v1", nextPolicyId: "test-strong-v1", qualityEscalation: true });
     expect(escalate.reuseCache).toBe(false);
-    expect(escalate.reason).toBe("intentional_quality_transition");
+    expect(escalate.reason).toBe("explicit_cache_not_supported");
+    expect(readFileSync(new URL("../src/worker/model-gateway.ts", import.meta.url), "utf8")).not.toMatch(/sessionId/);
   });
 });
 
@@ -323,14 +329,14 @@ describe("cheap-first run admission", () => {
       remainingBudgetMicro: 100_000,
       attemptReserveMicro: 21_658,
     });
-    expect(chosen).toMatchObject({ policyId: STRUCTURED_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    expect(chosen).toMatchObject({ policyId: STRUCTURED_STRICT_POLICY.id, admission: "cheap_first_admitted", cacheSessionId: null });
     const zdr = chooseAdmittedRunPolicy({
       runId: "run-zdr",
       zdrRequired: true,
       remainingBudgetMicro: 100_000,
       attemptReserveMicro: 21_658,
     });
-    expect(zdr).toMatchObject({ policyId: AZURE_ZDR_MODEL_POLICY.id, admission: "cheap_first_admitted" });
+    expect(zdr).toMatchObject({ policyId: AZURE_ZDR_STRICT_POLICY.id, admission: "cheap_first_admitted", cacheSessionId: null });
     const pinned = chooseAdmittedRunPolicy({
       runId: "run-pin",
       requestedPolicyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id,
@@ -347,7 +353,27 @@ describe("cheap-first run admission", () => {
       remainingBudgetMicro: 100_000,
       attemptReserveMicro: 21_658,
     });
-    expect(inherited).toMatchObject({ policyId: AZURE_ZDR_MODEL_POLICY.id, admission: "inherited_parent_policy" });
+    expect(inherited).toMatchObject({ policyId: AZURE_ZDR_STRICT_POLICY.id, admission: "inherited_parent_policy", cacheSessionId: null });
+    expect(chooseAdmittedRunPolicy({
+      runId: "run-child-openai",
+      parentPolicyId: STRUCTURED_MODEL_POLICY.id,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    })).toMatchObject({ policyId: STRUCTURED_STRICT_POLICY.id, admission: "inherited_parent_policy" });
+    expect(chooseAdmittedRunPolicy({
+      runId: "run-child-discovery",
+      parentPolicyId: AZURE_ZDR_DISCOVERY_POLICY.id,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    })).toMatchObject({ policyId: AZURE_ZDR_STRICT_POLICY.id, admission: "inherited_parent_policy" });
+    expect(chooseAdmittedRunPolicy({
+      runId: "run-child-strict",
+      parentPolicyId: AZURE_ZDR_STRICT_POLICY.id,
+      remainingBudgetMicro: 100_000,
+      attemptReserveMicro: 21_658,
+    })).toMatchObject({ policyId: AZURE_ZDR_STRICT_POLICY.id, admission: "inherited_parent_policy" });
+    expect(replayPolicyIdentity(AZURE_ZDR_MODEL_POLICY.id).id).toBe(AZURE_ZDR_MODEL_POLICY.id);
+    expect(replayPolicyIdentity(AZURE_ZDR_DISCOVERY_POLICY.id).id).toBe(AZURE_ZDR_DISCOVERY_POLICY.id);
     expect(() => chooseAdmittedRunPolicy({
       runId: "run-broke",
       remainingBudgetMicro: 10,
@@ -361,4 +387,26 @@ describe("cheap-first run admission", () => {
       attemptReserveMicro: 21_658,
     })).toThrow("zdr_incompatible_unavailable");
   });
+});
+
+it("advances production new admissions to strict semantics without changing the configured processor",()=>{
+ expect(loadConfig({DATABASE_URL:"postgres://unused/nonbillable",STRUCTURED_MODEL_POLICY_ID:"openrouter-azure-mini-zdr-discovery-v3"}).structuredModelPolicyId).toBe(AZURE_ZDR_STRICT_POLICY.id);
+ expect(loadConfig({DATABASE_URL:"postgres://unused/nonbillable",STRUCTURED_MODEL_POLICY_ID:STRUCTURED_MODEL_POLICY.id}).structuredModelPolicyId).toBe(STRUCTURED_STRICT_POLICY.id);
+ expect(replayPolicyIdentity(AZURE_ZDR_DISCOVERY_POLICY.id).id).toBe(AZURE_ZDR_DISCOVERY_POLICY.id);
+ expect(modelPolicy(AZURE_ZDR_MODEL_POLICY.id).id).toBe(AZURE_ZDR_MODEL_POLICY.id);
+});
+
+it("ENG-007 Beta production routes are one gpt-4o-mini family, not quality tiers",()=>{
+ expect(new Set(PRODUCTION_PORTFOLIO_V1.candidates.map((c)=>c.model))).toEqual(new Set(["openai/gpt-4o-mini"]));
+ expect(new Set(PRODUCTION_PORTFOLIO_V1.candidates.map((c)=>c.tier))).toEqual(new Set([1]));
+ expect(PRODUCTION_PORTFOLIO_V1.candidates.every((c)=>c.cacheSticky===false)).toBe(true);
+ const admitted=resolveOperationRoute({
+  operation:"brief",operationClass:"structured",privacy:{zdrRequired:false,dataCollection:"deny"},
+  structuredOutputRequired:true,remainingBudgetMicro:1_000_000,attemptReserveMicro:21_658,
+ });
+ expect(admitted).toMatchObject({admitted:true,policyId:STRUCTURED_STRICT_POLICY.id,escalationEligible:false,cacheSessionId:null});
+ expect(nextAttemptDecision({
+  outcome:"invalid_output",trigger:"schema_validation_failure",currentDepth:0,remainingBudgetMicro:100_000,
+  attemptReserveMicro:1,portfolio:PRODUCTION_PORTFOLIO_V1,currentPolicyId:STRUCTURED_STRICT_POLICY.id,
+ })).toMatchObject({action:"stop",retry:false,escalate:false,reason:"no_registered_higher_tier"});
 });

@@ -9,6 +9,7 @@ import { MODEL_PROMPT_VERSION } from "../adapters/model/prompts.js";
 import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
 import { performModelOperation } from "./model-gateway.js";
 
+/** Historical text-v1 fixture for negative tests. Live loads must use runModelVersions. */
 export const TASK_MODEL_VERSIONS = { promptVersion: MODEL_PROMPT_VERSION, policyId: STRUCTURED_MODEL_POLICY.id } as const;
 
 type TaskOutcome = { kind: "task"; task: ResearchTask; reused: boolean }

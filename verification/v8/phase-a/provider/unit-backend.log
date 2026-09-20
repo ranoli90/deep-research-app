@@ -1,0 +1,13 @@
+
+> @deep/backend@0.1.0 test:unit /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+> vitest run --config vitest.unit.config.ts
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+
+
+ Test Files  28 passed (28)
+      Tests  235 passed (235)
+   Start at  17:18:45
+   Duration  35.97s (transform 12.64s, setup 0ms, import 39.03s, tests 33.16s, environment 24ms)
+

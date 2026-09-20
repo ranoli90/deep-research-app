@@ -1,3 +1,4 @@
+import { assertModelRouteHealthy } from "./model-operation-routing.js";
 import { createHash } from "node:crypto";
 import { LIVE_CALL_RESERVE_MICRO } from "@deep/contracts";
 import type { Queryable } from "../platform/db.js";
@@ -71,7 +72,7 @@ export async function assertLiveCallAllowed(db: Queryable, config: AppConfig, es
 /** One logical action, one issued attempt until its outcome is reconciled. */
 export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args: {
   runId: string; fence: number; briefRevision: number; evidenceRevision?: number; requiredConsentPolicy?: string; logicalKey: string;
-  kind: string; route: string; requestDigest: string; reserveMicro: number; maxRunRouteAttempts?: number; historical?: boolean;
+  kind: string; route: string; requestDigest: string; reserveMicro: number; modelPolicyId?: string; maxRunRouteAttempts?: number; historical?: boolean;
 }): Promise<{ intentId: string; issue: boolean }> {
   return withTx(pool, async (db) => {
     const identity = await getRun(db, args.runId);
@@ -92,6 +93,11 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     if (prior.rows[0]) {
       if (prior.rows[0].request_digest !== args.requestDigest) throw new Error("logical_action_conflict");
       return { intentId: prior.rows[0].id, issue: false };
+    }
+    if (args.modelPolicyId) {
+      await assertModelRouteHealthy(db, args.modelPolicyId);
+      const route = await db.query("SELECT 1 FROM model_operation_routes WHERE run_id=$1 AND policy_id=$2 AND request_digest=$3 AND reserve_micro=$4", [args.runId,args.modelPolicyId,args.requestDigest,args.reserveMicro]);
+      if (!route.rowCount) throw new Error("model_operation_route_required");
     }
     if(args.maxRunRouteAttempts!==undefined) {
       if(!Number.isSafeInteger(args.maxRunRouteAttempts)||args.maxRunRouteAttempts<1)throw new Error("invalid_route_attempt_limit");

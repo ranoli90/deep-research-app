@@ -1,0 +1,49 @@
+
+> @deep/backend@0.1.0 test:integration /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+> vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts test/model-gateway.integration.test.ts -t 'ENG-006|availability failover|unknown fallback|primary 429|issued reservation|does not resend|known-zero|repair'
+
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+
+ ❯ test/model-gateway.integration.test.ts (154 tests | 154 skipped) 345ms
+ ❯ test/model-policy.integration.test.ts (10 tests | 10 skipped) 287ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/model-gateway.integration.test.ts [ test/model-gateway.integration.test.ts ]
+error: relation "model_route_health" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/model-gateway.integration.test.ts:49:151
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/model-policy.integration.test.ts [ test/model-policy.integration.test.ts ]
+error: relation "model_route_health" already exists
+ ❯ ../../node_modules/pg-pool/index.js:45:11
+ ❯ migrate src/platform/db.ts:23:5
+     21|   for (const file of files) {
+     22|     const sql = readFileSync(join(dir, file), "utf8");
+     23|     await pool.query(sql);
+       |     ^
+     24|     const id = file.replace(/\.sql$/, "");
+     25|     await pool.query("INSERT INTO schema_migrations (id) VALUES ($1) O…
+ ❯ test/model-policy.integration.test.ts:19:152
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  164 skipped (164)
+   Start at  17:18:14
+   Duration  4.45s (transform 2.31s, setup 0ms, import 3.29s, tests 632ms, environment 0ms)
+
+/home/oranolio/Desktop/deep-phase-a-provider/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @deep/backend@0.1.0 test:integration: `vitest run --config vitest.integration.config.ts test/model-policy.integration.test.ts test/model-gateway.integration.test.ts -t 'ENG-006|availability failover|unknown fallback|primary 429|issued reservation|does not resend|known-zero|repair'`
+Exit status 1

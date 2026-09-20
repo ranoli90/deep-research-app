@@ -1,3 +1,4 @@
+import { isStrictModelPolicy } from "../ports/model-policy.js";
 import {
   MAX_DEFAULT_FANOUT,
   PRODUCTION_PORTFOLIO_V1,
@@ -169,12 +170,10 @@ export function cacheSessionPolicy(args: {
   lastPolicyId?: string;
   nextPolicyId: string;
   qualityEscalation: boolean;
-}): { sessionId: string; reuseCache: boolean; reason: string } {
-  const sessionId = `run:${args.runId}:policy:${args.nextPolicyId}`;
-  if (args.qualityEscalation || (args.lastPolicyId && args.lastPolicyId !== args.nextPolicyId)) {
-    return { sessionId, reuseCache: false, reason: "intentional_quality_transition" };
-  }
-  return { sessionId, reuseCache: true, reason: "sticky_same_policy" };
+}): { sessionId: string | null; reuseCache: boolean; reason: string } {
+  // No registered transport has verified explicit cache-session semantics.
+  void args;
+  return { sessionId: null, reuseCache: false, reason: "explicit_cache_not_supported" };
 }
 
 export type AttemptDecision =
@@ -221,7 +220,7 @@ export function nextAttemptDecision(args: {
   const current = portfolio.candidates.find((c) => c.policyId === args.currentPolicyId) ?? capabilitiesFor(args.currentPolicyId);
   const privacy = { zdrRequired: current.zdr, dataCollection: current.dataCollection };
   const stronger = portfolio.candidates
-    .filter((c) => c.available && c.tier > current.tier && c.structuredOutput && privacyOk(c, privacy))
+    .filter((c) => c.available && c.model !== current.model && c.tier > current.tier && c.structuredOutput && privacyOk(c, privacy))
     .sort((a, b) => a.tier - b.tier || price(a) - price(b))[0];
   if (!stronger) {
     return {
@@ -277,7 +276,7 @@ export function availabilityFailover(args: {
   const current = portfolio.candidates.find((c) => c.policyId === args.currentPolicyId) ?? capabilitiesFor(args.currentPolicyId);
   const privacy = { zdrRequired: current.zdr, dataCollection: current.dataCollection };
   const alternative = portfolio.candidates
-    .filter((c) => c.available && c.policyId !== current.policyId && c.structuredOutput && privacyOk(c, privacy) && c.tier <= current.tier && c.model === current.model)
+    .filter((c) => c.available && c.policyId !== current.policyId && isStrictModelPolicy(c.policyId) === isStrictModelPolicy(current.policyId) && c.structuredOutput && privacyOk(c, privacy) && c.tier <= current.tier && c.model === current.model)
     .sort((a, b) => price(a) - price(b) || a.tier - b.tier)[0];
   if (!alternative) {
     return { action: "stop", retry: false, failover: false, reason: "no_compatible_availability_route" };

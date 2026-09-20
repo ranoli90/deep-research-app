@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /home/oranolio/Desktop/deep-phase-a-provider/apps/backend
+
+ ✓ test/token-budget.unit.test.ts (9 tests) 89ms
+ ✓ test/model-gateway.unit.test.ts (28 tests) 342ms
+ ✓ test/model-governor.unit.test.ts (16 tests) 44ms
+ ✓ test/openrouter.unit.test.ts (6 tests) 20ms
+
+ Test Files  4 passed (4)
+      Tests  59 passed (59)
+   Start at  18:08:08
+   Duration  4.03s (transform 4.56s, setup 0ms, import 6.91s, tests 495ms, environment 2ms)
+
+UNIT_EXIT:0
