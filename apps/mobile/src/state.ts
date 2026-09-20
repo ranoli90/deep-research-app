@@ -1,12 +1,12 @@
 import { redactInvalidatedContent } from "./remote-invalidation";
 import type { FollowUpExplain } from "./follow-up-explain";
-import type { PendingFollowUp } from "./follow-up-admission";
+import { unresolvedJournalPhase, type PendingFollowUp } from "./follow-up-admission";
 import type { PendingVerificationRequest } from "./verification-request";
-import { readPendingInput } from "./pending-input";
+import { readPendingInput, type PendingAssumptions } from "./pending-input";
 import { queryAuthorizationPending, readPendingQueryAuthorization } from "./query-authorization";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
-import type { CorrectionDraft } from "./correction-draft";
+import type { CorrectionDraft, PendingCorrection } from "./correction-draft";
 import { adoptPublicEvents, type ResearchEvent } from "./research-activity";
 export type RouteMode = "fixture" | "controlled-research";
 
@@ -68,6 +68,8 @@ export type UiState = {
   pendingSourceDeletion: string | null;
   pendingVerification: PendingVerificationRequest | null;
   pendingFollowUp: PendingFollowUp | null;
+  pendingAssumptions: PendingAssumptions | null;
+  pendingCorrection: PendingCorrection | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -106,6 +108,8 @@ export function emptyState(): UiState {
     pendingSourceDeletion: null,
     pendingVerification: null,
     pendingFollowUp: null,
+    pendingAssumptions: null,
+    pendingCorrection: null,
     consentGranted: false,
     signedIn: false,
     offline: false,
@@ -149,7 +153,6 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
     status,
     error: null,
     followUpExplains: state.followUpExplains.filter((row) => row.runId === run.runId),
-    pendingFollowUp: state.pendingFollowUp?.parentRunId === run.runId ? state.pendingFollowUp : null,
   };
   return run.contentInvalidated === true ? redactInvalidatedContent(next, run.runId) : next;
 }
@@ -193,7 +196,9 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting new research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting new research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting new research." };
-  if (state.pendingFollowUp) return { ok: false, reason: "Retry the saved follow-up before starting new research." };
+  if (unresolvedJournalPhase(state.pendingFollowUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting new research." };
+  if (unresolvedJournalPhase(state.pendingAssumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting new research." };
+  if (unresolvedJournalPhase(state.pendingCorrection?.phase)) return { ok: false, reason: "Retry the saved correction before starting new research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting new research." };
   if (state.pendingAdmission) return { ok: false, reason: "Check or withdraw the saved request before starting new research." };
   return {
@@ -208,6 +213,8 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
       events: [],
       followUpExplains: [],
       pendingFollowUp: null,
+      pendingAssumptions: null,
+      pendingCorrection: null,
       source: null,
       readingAnchor: null,
       correctionDraft: null,
@@ -224,6 +231,9 @@ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
+  if (unresolvedJournalPhase(state.pendingFollowUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting research." };
+  if (unresolvedJournalPhase(state.pendingAssumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting research." };
+  if (unresolvedJournalPhase(state.pendingCorrection?.phase)) return { ok: false, reason: "Retry the saved correction before starting research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
   if (queryAuthorizationPending(state.run)) return { ok: false, reason: "Approve the exact search terms before public search can continue." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };

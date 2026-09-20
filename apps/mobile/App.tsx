@@ -11,7 +11,7 @@ import { nativeDocumentDigest } from "./src/native-document-digest";
 import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from "./src/admission-retry";
 import { SourceSheet } from "./src/SourceSheet";
 import { readSourceDetail } from "./src/source-view";
-import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft } from "./src/correction-draft";
+import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft, runPendingCorrection } from "./src/correction-draft";
 import { AttachmentPanel } from "./src/AttachmentPanel";
 import { ResearchActivity } from "./src/ResearchActivity";
 import { ResearchBriefCard } from "./src/ResearchBriefCard";
@@ -29,14 +29,14 @@ import { composerDockBottomInset } from "./src/composer-keyboard";
 import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
 import { clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
-import { assumptionsRequest, continueRunRequest } from "./src/pending-input";
+import { continueRunRequest, runAssumptionsMutation } from "./src/pending-input";
 import { queryAuthorizationApproveBody, queryAuthorizationPending } from "./src/query-authorization";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
-import { appendFollowUpExplain, bindFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
+import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
 import { adoptReturnedChild } from "./src/constraint-delta";
-import { preparePendingFollowUp, submitPendingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
+import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -901,39 +901,55 @@ function AppInner() {
     }
     const attempt=Symbol("correction"),guard=api.captureView();correctionAttempt.current=attempt;setCorrectionPending(true);
     try {
-      const child = await api.correct(token, current.run.runId, current.run.brief.revision, text,
-        correctionMode==="replace_question"?{kind:"replace_question",question:text,evidencePolicy}:undefined);
-      if(!guard.current())throw new SupersededRequest();
-      api.selectRun(child.runId);
-      api.closeSource();
-      setShowAttach(false);
-      setSentQuestion(text);
-      setViewState((s) => {
-        const next = {
-          ...s,
-          status: "progress" as const,
-          correctionDraft: null,
-          draft: "",
-          error: null,
-          events: [],
-          source: null,
-          readingAnchor: null,
-          report: null,
-          previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
-          run: {
-            runId: child.runId,
-            lifecycle: "queued",
-            phase: "preparing",
-            outcome: null,
-            reportId: null,
-            labeledDemo: s.run?.labeledDemo === true,
-          },
-        };
-
-        return next;
+      const adopted = await runPendingCorrection({
+        pending: current.pendingCorrection,
+        parentRunId: current.run.runId,
+        question: text,
+        expectedBriefRevision: current.run.brief.revision,
+        evidencePolicy,
+        current: guard.current,
+        save: async (saved) => {
+          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingCorrection: saved });
+          if (!guard.current()) throw new SupersededRequest();
+          setState((s) => ({ ...s, pendingCorrection: saved }));
+        },
+        post: (parentRunId, question, expectedBriefRevision, policy, idempotencyKey) =>
+          api.correct(token, parentRunId, expectedBriefRevision, question,
+            correctionMode==="replace_question"?{kind:"replace_question",question,evidencePolicy:policy}:undefined,
+            idempotencyKey),
+        adopt: async (body) => {
+          api.selectRun(body.runId);
+          api.closeSource();
+          setShowAttach(false);
+          setSentQuestion(text);
+          setViewState((s) => ({
+            ...s,
+            status: "progress" as const,
+            correctionDraft: null,
+            draft: "",
+            error: null,
+            events: [],
+            source: null,
+            readingAnchor: null,
+            report: null,
+            previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
+            run: {
+              runId: body.runId,
+              lifecycle: "queued",
+              phase: "preparing",
+              outcome: null,
+              reportId: null,
+              labeledDemo: s.run?.labeledDemo === true,
+            },
+          }));
+          await refreshRun(token, body.runId);
+          startPolling(token, body.runId);
+        },
       });
-      await refreshRun(token, child.runId);
-      startPolling(token, child.runId);
+      if (!guard.current()) throw new SupersededRequest();
+      await sessionStorage.persistRequired(token, { ...latestUi.current, pendingCorrection: adopted.phase === "adopted" ? null : adopted });
+      if (!guard.current()) throw new SupersededRequest();
+      setViewState((s) => ({ ...s, pendingCorrection: null, error: null }));
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -981,6 +997,7 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
       return;
     }
+    const runId = state.run.runId;
     const answer = clarifyAnswer.trim();
     const field = state.run.pendingInput?.field;
     if (editingAssumptions) {
@@ -990,49 +1007,82 @@ function AppInner() {
         return;
       }
       clarifying.current = true;
+      const guard = api.captureView();
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before replacing assumptions.");
-        const result = await api.confirmAssumptions(
-          token,
-          state.run.runId,
-          assumptionsRequest({ action: "replace", values, expectedBriefRevision: revision }),
-          `${state.run.runId}-assumptions-${revision}`,
-        ) as { runId?: string; parentRunId?: string };
-        setEditingAssumptions(false);
-        setClarifyAnswer("");
-        AccessibilityInfo.announceForAccessibility("Assumptions updated.");
-        await adoptReturnedChild({
-          parentRunId: state.run.runId,
-          body: result,
-          selectRun: api.selectRun,
-          refresh: (runId) => refreshRun(token, runId),
-          poll: (runId) => startPolling(token, runId),
+        const adopted = await runAssumptionsMutation({
+          pending: latestUi.current.pendingAssumptions,
+          parentRunId: runId,
+          action: "replace",
+          values,
+          expectedBriefRevision: revision,
+          current: guard.current,
+          save: async (saved) => {
+            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
+            if (!guard.current()) throw new SupersededRequest();
+            setState((s) => ({ ...s, pendingAssumptions: saved }));
+          },
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          adopt: async (body) => {
+            setEditingAssumptions(false);
+            setClarifyAnswer("");
+            AccessibilityInfo.announceForAccessibility("Assumptions updated.");
+            await adoptReturnedChild({
+              parentRunId: runId,
+              body,
+              requireRunId: true,
+              selectRun: api.selectRun,
+              refresh: (runId) => refreshRun(token, runId),
+              poll: (runId) => startPolling(token, runId),
+            });
+          },
         });
+        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted });
+        if (!guard.current()) throw new SupersededRequest();
+        setViewState((s) => ({ ...s, pendingAssumptions: null, error: null }));
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
         else if (isOfflineError(e)) {
           setViewState((s) => ({ ...s, offline: true, error: "You are offline. The draft and last report stay on this device." }));
         } else setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not update assumptions." }));
-      } finally { clarifying.current = false; }
+      } finally { clarifying.current = false; guard.release(); }
       return;
     }
     if (!briefView.blocking) {
       clarifying.current = true;
+      const guard = api.captureView();
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before confirming assumptions.");
-        await api.confirmAssumptions(token, state.run.runId, assumptionsRequest({ action: "confirm", expectedBriefRevision: revision }));
-        AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
-        await refreshRun(token, state.run.runId);
+        const adopted = await runAssumptionsMutation({
+          pending: latestUi.current.pendingAssumptions,
+          parentRunId: runId,
+          action: "confirm",
+          expectedBriefRevision: revision,
+          current: guard.current,
+          save: async (saved) => {
+            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
+            if (!guard.current()) throw new SupersededRequest();
+            setState((s) => ({ ...s, pendingAssumptions: saved }));
+          },
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          adopt: async () => {
+            AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
+            await refreshRun(token, runId);
+          },
+        });
+        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted });
+        if (!guard.current()) throw new SupersededRequest();
+        setViewState((s) => ({ ...s, pendingAssumptions: null, error: null }));
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
         else if (isOfflineError(e)) {
           setViewState((s) => ({ ...s, offline: true, error: "You are offline. The draft and last report stay on this device." }));
         } else setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not confirm assumptions." }));
-      } finally { clarifying.current = false; }
+      } finally { clarifying.current = false; guard.release(); }
       return;
     }
     if (!answer) {
@@ -1090,30 +1140,27 @@ function AppInner() {
     if (!token || !current.run || followUpBusy.current) return;
     const text = message.trim();
     if (!text) return;
+    followUpBusy.current = true;
+    const parentRunId = current.run.runId;
     const runActive = current.run.lifecycle === "queued" || current.run.lifecycle === "running";
     const reportReady = composerFollowsReport(current);
     const routed = routeFollowUp(text, { reportReady, runActive });
     const mutates = routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source" || routed.kind === "change_constraint";
     const guard = api.captureView();
-    followUpBusy.current = true;
     try {
       const revision = current.run.brief?.revision;
-      if (mutates && unresolvedFollowUp(current.pendingFollowUp)
-        && (current.pendingFollowUp!.parentRunId !== current.run.runId || current.pendingFollowUp!.message !== text)) {
-        throw new Error("Retry the saved follow-up before sending a different request.");
-      }
-      let body: { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
       if (mutates) {
         if (typeof revision !== "number") throw new Error("Refresh this run before sending additional research.");
-        const pending = current.pendingFollowUp && current.pendingFollowUp.parentRunId === current.run.runId && current.pendingFollowUp.message === text
-          ? current.pendingFollowUp
-          : preparePendingFollowUp({
-            parentRunId: current.run.runId,
-            message: text,
-            expectedBriefRevision: revision,
-            kind: routed.kind as MutatingFollowUpKind,
-          });
-        body = await submitPendingFollowUp(pending, {
+        if (unresolvedFollowUp(current.pendingFollowUp)
+          && (current.pendingFollowUp!.parentRunId !== parentRunId || current.pendingFollowUp!.message !== text)) {
+          throw new Error("Retry the saved follow-up before sending a different request.");
+        }
+        const adopted = await runMutatingFollowUp({
+          pending: current.pendingFollowUp,
+          parentRunId,
+          message: text,
+          expectedBriefRevision: revision,
+          kind: routed.kind as MutatingFollowUpKind,
           current: guard.current,
           save: async (saved) => {
             await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: saved });
@@ -1122,56 +1169,47 @@ function AppInner() {
           },
           post: (runId, message, expectedBriefRevision, idempotencyKey) =>
             api.explainFollowUp(token, runId, { message, expectedBriefRevision }, idempotencyKey),
-        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
-      } else {
-        body = await api.explainFollowUp(token, current.run.runId, {
-          message: text,
-          expectedBriefRevision: revision,
-        }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
+          adopt: async (body) => {
+            await adoptReturnedChild({
+              parentRunId,
+              body,
+              requireRunId: true,
+              selectRun: api.selectRun,
+              refresh: (runId) => refreshRun(token, runId),
+              poll: (runId) => startPolling(token, runId),
+            });
+          },
+        });
+        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: adopted.phase === "adopted" ? null : adopted });
+        if (!guard.current()) throw new SupersededRequest();
+        setViewState((s) => ({ ...s, pendingFollowUp: null, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
+        return;
       }
+      const body = await api.explainFollowUp(token, parentRunId, {
+        message: text,
+        expectedBriefRevision: revision,
+      }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
       if (!guard.current()) throw new SupersededRequest();
       if (body.kind === "explain") {
         if (!accountId) throw new Error("Sign in required.");
         const bound = bindFollowUpExplain({
           accountId,
-          runId: current.run.runId,
+          runId: parentRunId,
           reportId: current.report?.reportId ?? null,
           question: text,
           answer: typeof body.answer === "string" ? body.answer : "This report does not establish that.",
           evidenceComplete: body.evidenceComplete === true,
           citationPassageIds: body.citationPassageIds,
         });
-        setViewState((s) => ({
-          ...s,
-          draft: s.draft.trim() === text ? "" : s.draft,
-          error: null,
-          followUpExplains: appendFollowUpExplain(s.followUpExplains, bound),
-        }));
-        return;
-      }
-      if (mutates) {
-        if (typeof body.runId !== "string" || !body.runId) {
-          throw new Error("Follow-up was not accepted. Retry the saved request.");
-        }
-        const accepted = current.pendingFollowUp
-          ? { ...current.pendingFollowUp, phase: "accepted" as const, acceptedRunId: body.runId, acceptedBriefRevision: typeof body.briefRevision === "number" ? body.briefRevision : current.pendingFollowUp.expectedBriefRevision }
-          : null;
-        if (accepted) {
-          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: accepted });
-          if (!guard.current()) throw new SupersededRequest();
-          setState((s) => ({ ...s, pendingFollowUp: accepted, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
-        }
-        await adoptReturnedChild({
-          parentRunId: current.run.runId,
-          body,
-          requireRunId: true,
-          selectRun: api.selectRun,
-          refresh: (runId) => refreshRun(token, runId),
-          poll: (runId) => startPolling(token, runId),
+        setViewState((s) => {
+          const recorded = recordFollowUpExplain(s, bound);
+          return {
+            ...s,
+            draft: s.draft.trim() === text ? "" : s.draft,
+            error: null,
+            followUpExplains: recorded.followUpExplains,
+          };
         });
-        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: null });
-        if (!guard.current()) throw new SupersededRequest();
-        setViewState((s) => ({ ...s, pendingFollowUp: null, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
         return;
       }
       throw new Error("Follow-up was not accepted. Retry the saved request.");

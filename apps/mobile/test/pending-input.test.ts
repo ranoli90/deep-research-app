@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { AssumptionsRequestSchema, ContinueRunRequestSchema, clarificationAnswersFromContinue } from "@deep/contracts";
-import { assumptionsRequest, continueRunRequest } from "../src/pending-input";
+import { ApiError } from "../src/api";
+import {
+  assumptionsRequest,
+  bindPendingAssumptions,
+  continueRunRequest,
+  mutatingAssumptionsKey,
+  preparePendingAssumptions,
+  runAssumptionsMutation,
+  unresolvedAssumptions,
+} from "../src/pending-input";
 
 const pending = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -55,5 +64,88 @@ describe("CL-01/CL-02 mobile continue and assumption contracts", () => {
     const replace = assumptionsRequest({ action: "replace", values: ["Quiet fans"], expectedBriefRevision: 3 });
     expect(replace).toEqual({ action: "replace", values: ["Quiet fans"], expectedBriefRevision: 3 });
     expect(assumptionsRequest({ action: "confirm", expectedBriefRevision: 3 }).action).toBe("confirm");
+  });
+
+  it("persists assumption replace before POST and survives the callback failure matrix", async () => {
+    const parentRunId = "11111111-1111-4111-8111-111111111111";
+    const childRunId = "22222222-2222-4222-8222-222222222222";
+    const values = ["Quiet fans"];
+    const pending = preparePendingAssumptions({ parentRunId, action: "replace", values, expectedBriefRevision: 3 });
+    expect(pending.idempotencyKey).toBe(mutatingAssumptionsKey(parentRunId, 3, "replace", values));
+    expect(unresolvedAssumptions(pending)).toBe(true);
+    const saved: { phase: string }[] = [];
+    await expect(runAssumptionsMutation({
+      pending,
+      parentRunId,
+      action: "replace",
+      values,
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async (value) => { saved.push({ phase: value.phase }); },
+      post: async () => { throw new Error("response lost"); },
+      adopt: async () => undefined,
+    })).rejects.toThrow("response lost");
+    expect(saved.map((row) => row.phase)).toEqual(["prepared", "sent"]);
+    await expect(runAssumptionsMutation({
+      pending,
+      parentRunId,
+      action: "replace",
+      values: ["Different assumption"],
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async () => undefined,
+      post: async () => ({ runId: childRunId }),
+      adopt: async () => undefined,
+    })).rejects.toThrow(/Retry the saved assumption/);
+    expect(bindPendingAssumptions(pending, { parentRunId, action: "replace", values, expectedBriefRevision: 3 }).requestId).toBe(pending.requestId);
+    const recovered: string[] = [];
+    await expect(runAssumptionsMutation({
+      pending: { ...pending, phase: "sent" },
+      parentRunId,
+      action: "replace",
+      values,
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async () => undefined,
+      post: async () => { throw new ApiError(401, "Sign in required."); },
+      adopt: async () => undefined,
+    })).rejects.toMatchObject({ status: 401 });
+    const conflict: string[] = [];
+    await expect(runAssumptionsMutation({
+      pending: { ...pending, phase: "sent" },
+      parentRunId,
+      action: "replace",
+      values,
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async (value) => { conflict.push(value.phase); },
+      post: async () => { throw new ApiError(409, "stale_revision"); },
+      adopt: async () => undefined,
+    })).rejects.toMatchObject({ status: 409 });
+    expect(conflict.at(-1)).toBe("rejected");
+    await expect(runAssumptionsMutation({
+      pending: { ...pending, phase: "sent" },
+      parentRunId,
+      action: "replace",
+      values,
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async () => undefined,
+      post: async () => ({}),
+      adopt: async () => undefined,
+    })).rejects.toThrow(/not accepted/i);
+    const adopted = await runAssumptionsMutation({
+      pending: { ...pending, phase: "accepted", acceptedRunId: childRunId },
+      parentRunId,
+      action: "replace",
+      values,
+      expectedBriefRevision: 3,
+      current: () => true,
+      save: async () => undefined,
+      post: async () => { recovered.push("posted"); return { runId: childRunId }; },
+      adopt: async (body) => { recovered.push(body.runId ?? "missing"); },
+    });
+    expect(recovered).toEqual([childRunId]);
+    expect(adopted.phase).toBe("adopted");
   });
 });

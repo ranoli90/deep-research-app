@@ -102,6 +102,7 @@ describe("constraint delta and mutating follow-up identity", () => {
     expect(pending.idempotencyKey).not.toBe(other.idempotencyKey);
     const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
     expect(app).toContain("Retry the saved follow-up before sending a different request.");
+    expect(app).toContain("runMutatingFollowUp");
     expect(app).toMatch(/if \(body\.kind === "explain"\) \{[\s\S]{0,900}followUpExplains/);
     expect(app).not.toMatch(/if \(body\.kind === "explain"\) \{[\s\S]{0,900}pendingFollowUp: null/);
   });

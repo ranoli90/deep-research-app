@@ -7,6 +7,8 @@ import { readAdmissionDraft, type AdmissionDraft } from "./admission-retry";
 import { parseCorrectionDraft } from "./correction-draft";
 import { readFollowUpExplains } from "./follow-up-explain";
 import { readPendingFollowUp } from "./follow-up-admission";
+import { readPendingAssumptions } from "./pending-input";
+import { readPendingCorrection } from "./correction-draft";
 
 export type KeyValueStore = {
   getItem(key: string): Promise<string | null>;
@@ -22,8 +24,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 function storedState(state: UiState) {
-  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
-  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
+  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
+  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -54,6 +56,8 @@ function parseState(raw: string | null, accountId: string): UiState | null {
       correctionDraft: parseCorrectionDraft(s.correctionDraft),
       followUpExplains: readFollowUpExplains(s.followUpExplains ?? s.followUpExplain),
       pendingFollowUp: s.pendingFollowUp == null ? null : readPendingFollowUp(s.pendingFollowUp),
+      pendingAssumptions: s.pendingAssumptions == null ? null : readPendingAssumptions(s.pendingAssumptions),
+      pendingCorrection: s.pendingCorrection == null ? null : readPendingCorrection(s.pendingCorrection),
       signedIn: true,
     };
   } catch { return null; }
@@ -259,11 +263,13 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
             state.pendingSourceDeletion = readPendingSourceDeletion(envelope.state.pendingSourceDeletion);
             state.pendingVerification = readPendingVerificationRequest(envelope.state.pendingVerification);
             state.pendingFollowUp = readPendingFollowUp(envelope.state.pendingFollowUp);
+            state.pendingAssumptions = readPendingAssumptions(envelope.state.pendingAssumptions);
+            state.pendingCorrection = readPendingCorrection(envelope.state.pendingCorrection);
             state.followUpExplains = readFollowUpExplains(envelope.state.followUpExplains ?? envelope.state.followUpExplain);
             if (state.pendingSourceDeletion) {
               state.run = null; state.report = null; state.previousReport = null; state.source = null;
               state.readingAnchor = null; state.correctionDraft = null; state.pendingCorrectionDocuments = null; state.events = []; state.attachments = []; state.status = "empty";
-              state.followUpExplains = []; state.pendingFollowUp = null;
+              state.followUpExplains = [];
             }
           }
         }
