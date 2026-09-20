@@ -1,6 +1,6 @@
 # Closure ledger — grok-v8/research-beta-integration
 
-Working tree after CL-01–CL-08 remaining repairs on `ab337c6`. `main` stays `8a7b1a9`. Historical PG/verify at `f627b2b` / `71a14a3` are not this tree. Native `95432e9` APK is not this tree.
+Product SHA `75dee72a1ba77717262a0ca683a6b5a52c965d97` on `ab337c6` plus this repair. `main` stays `8a7b1a9`. Historical PG/verify at `f627b2b` / `71a14a3` are not this SHA. Native `95432e9` APK is not this SHA.
 
 `pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49 rows, no `032`) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice (`deep_closure_pg1` 1092s EXIT 0, `deep_closure_pg2` 935s EXIT 0). Focused brief-continue **10/10**, followup-explain **6/6**. ADB `10.0.0.167:41299` attached; current-HEAD APK not rebuilt.
 

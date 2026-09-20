@@ -1,6 +1,6 @@
 ## Remaining CL closures — 2026-09-20
 
-Typed pending-input field, revision-bound confirm, exhaustive follow-up kinds, persist-before-charge mutating follow-up, explanation conversation, unique-claim targeting, hierarchical composition restore. `pnpm verify` EXIT 0. PG **544/544** twice. Extraction **55/55**. **Do not merge `main`.** Native current-HEAD APK not rebuilt. Live J8/J11 not granted.
+Product SHA **`75dee72`**. Typed pending-input field, revision-bound confirm, exhaustive follow-up kinds, persist-before-charge mutating follow-up, explanation conversation, unique-claim targeting, hierarchical composition restore. `pnpm verify` EXIT 0. PG **544/544** twice. Extraction **55/55**. **Do not merge `main`.** Native current-HEAD APK not rebuilt. Live J8/J11 not granted.
 
 ## Deepen HTTP + child adoption — 2026-09-20
 
