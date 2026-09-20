@@ -10,7 +10,6 @@ import { verificationContext,restoreVerificationCheck,verificationReportContent 
 import { modelInputManifest } from "../modules/model-operations.js";
 import { insertSource } from "../modules/evidence.js";
 import { publishReport } from "../modules/reports.js";
-import { researchPublicationLimitations } from "../modules/publication-coverage.js";
 import { ensureResearchTask } from "./research-task.js";
 import { executeSourceRead } from "./source-reading.js";
 import { ingestAttachments } from "./attachment-ingestion.js";
@@ -66,12 +65,10 @@ export async function processRequestedVerification(pool:pg.Pool,config:AppConfig
  });
  await session.write(async db=>{
   const content=await verificationReportContent(db,args),run=(await getRun(db,args.runId))!;
-  const extraLimitations=await researchPublicationLimitations(db,{accountId:args.accountId,runId:args.runId});
-  const limitations=[...content.limitations,...extraLimitations.filter(l=>!content.limitations.includes(l))];
   const report:CanonicalReport={reportId:crypto.randomUUID(),version:1,runId:args.runId,routeMode:"controlled-research",
-   outcome:limitations.length?"completed_with_limitations":content.outcome,
+   outcome:content.outcome,
    basis:{briefRevision:run.brief_revision,evidenceRevision:run.evidence_revision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:run.worker_lease_fence},
-   blocks:content.blocks,claimIds:content.claims.map(c=>c.id),limitations,sourceAccessSummary:[]};
+   blocks:content.blocks,claimIds:content.claims.map(c=>c.id),limitations:content.limitations,sourceAccessSummary:[]};
   const passages=(await db.query(`SELECT p.id,p.source_version_id,p.exact_text,v.source_id,s.title,v.access_level FROM authorized_run_passages p
    JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id WHERE p.run_id=$1 AND p.account_id=$2 AND p.id=ANY($3::uuid[])`,[args.runId,args.accountId,content.context.passages.map(p=>p.id)])).rows;
   report.sourceAccessSummary=[...new Map(passages.map(p=>[p.source_id,{sourceId:p.source_id,title:p.title,accessLevel:p.access_level}])).values()];

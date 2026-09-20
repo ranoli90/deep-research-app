@@ -10,6 +10,8 @@ it("ENG-023 refuses unbounded rankings regardless of exhausted discovery budget"
  expect(candidateClaimsBounded(["This is the best laptop."])).toBe(false);
  expect(candidateClaimsBounded(["The best laptop among the inspected candidates is A."])).toBe(true);
  expect(candidateClaimsBounded(["We found all available options."])).toBe(false);
+ expect(candidateClaimsBounded(["This is a bounded fixture, not an exhaustive market survey."])).toBe(true);
+ expect(candidateClaimsBounded(["This is the best laptop and not an exhaustive survey."])).toBe(false);
  expect(buildCandidateLedger([],{queriesAttempted:["a","b","c","d","e","f"],sourceClassesAttempted:["vendor-docs"],stop:{reason:"hard_discovery_ceiling",stopPolicy:"cap"}}).universeComplete).toBe(false);
 });
 it("ENG-022 ranks consequential freshness/candidate gaps over cheap low-impact evidence",()=>{

@@ -113,7 +113,7 @@ it("W03 DELETE source is authenticated, owner-bound and idempotent; source reade
  expect((await app.inject({method:"GET",url:`/v1/sources/${target.passageId}`,headers})).json().sourceId).toBe(target.sourceId);
  expect((await app.inject({method:"DELETE",url:path})).statusCode).toBe(401);
  expect((await app.inject({method:"DELETE",url:path,headers:{authorization:`Bearer ${foreign.token}`}})).statusCode).toBe(404);
- expect((await app.inject({method:"DELETE",url:"/v1/sources/not-a-uuid",headers})).statusCode).toBe(404);
+ expect((await app.inject({method:"DELETE",url:"/v1/sources/not-a-uuid",headers})).statusCode).toBe(400);
  expect((await getPassageForAccount(pool,target.passageId,owner.accountId)).exact_text).toBe(canary);
  await revokeConsent(pool,owner.accountId); // Privacy removal must remain available without processing consent.
  const first=await app.inject({method:"DELETE",url:path,headers});expect(first.statusCode).toBe(200);expect(first.json()).toMatchObject({deleted:true,alreadyDeleted:false,fileCleanupPending:false});

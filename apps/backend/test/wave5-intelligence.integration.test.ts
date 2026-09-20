@@ -117,7 +117,8 @@ describe("Wave 5 production intelligence persistence", () => {
       const firstOutcome = await first.then(() => "resolved").catch((e: Error) => e.message);
       const firstMeta = { firstOutcome, pluginCalls, queriesSent, terminal: (await getRun(pool, x.runId))?.terminal_outcome,
         events: (await pool.query("SELECT type, payload FROM run_events WHERE run_id=$1 ORDER BY sequence", [x.runId])).rows };
-      expect(firstOutcome, JSON.stringify(firstMeta)).toBe("stale_worker");
+      expect(firstOutcome, JSON.stringify(firstMeta)).toBe("resolved");
+      expect(firstMeta.terminal, JSON.stringify(firstMeta)).toBeNull();
       const afterCrash = (await pool.query(
         `SELECT s.query FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id
           WHERE s.run_id=$1 AND s.query IS NOT NULL ORDER BY i.created_at, s.intent_id`,

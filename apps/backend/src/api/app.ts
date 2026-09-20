@@ -145,7 +145,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/runs/:id/follow-up": z.union([RequestedVerificationRequestSchema,
       z.object({ message: boundedText, expectedBriefRevision: revision.optional() }).strict(),
       z.object({ claimId: z.string().uuid().optional(), note: boundedText.optional() }).strict()]),
-    "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional() }).strict(),
+    "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional(), excerptText: z.string().max(4000).optional() }).strict(),
   };
   app.addHook("preValidation", async (req, reply) => {
     const route = req.routeOptions.url ?? "";

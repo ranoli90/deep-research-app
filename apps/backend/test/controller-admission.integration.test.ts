@@ -218,7 +218,7 @@ describe("controller admission on the fixture worker path", () => {
     expect(intent.confirmed_micro).toBe(outcome === "prior_confirmed_attempt" ? "500" : null);
     expect(intent.state).toBe(outcome === "prior_confirmed_attempt" ? "confirmed" : outcome === "prior_attempt" ? "issued" : outcome === "http_failure" ? "failed" : "outcome-unknown");
     if (!outcome.startsWith("prior_")) expect(intent.receipt.state).toBe(intent.state);
-    expect((await pool.query("SELECT state FROM reservations WHERE run_id = $1", [runId])).rows[0].state).toBe(outcome === "prior_confirmed_attempt" ? "settled" : "reserved");
+    expect((await pool.query("SELECT state FROM reservations WHERE run_id = $1", [runId])).rows[0].state).toBe(outcome === "prior_confirmed_attempt" || outcome === "http_failure" ? "settled" : "reserved");
   });
 
   it("default run allowance blocks a larger provider reserve before any network call", async () => {
@@ -239,18 +239,29 @@ describe("controller admission on the fixture worker path", () => {
     expect(events.some((event) => event.type === "searched" || event.type === "published")).toBe(false);
   });
 
-  it("issued then failed live intents still consume the reservation", async () => {
+  it("issued then unknown live intents still consume the reservation; known-zero failures do not", async () => {
     const runId = crypto.randomUUID();
-    const intentId = await recordIntent(pool, runId, {
+    const before = await liveSpendUsedMicro(pool);
+    const failedId = await recordIntent(pool, runId, {
       correlationId: crypto.randomUUID(),
       route: "openrouter:openai/gpt-4o-mini:web",
-      digest: "probe",
+      digest: "probe-failed",
       reserved: 4_000_000,
       state: "issued",
     });
-    await updateIntentState(pool, intentId, "failed");
+    expect(await liveSpendUsedMicro(pool)).toBe(before + 4_000_000);
+    await updateIntentState(pool, failedId, "failed");
+    expect(await liveSpendUsedMicro(pool)).toBe(before);
+    const unknownId = await recordIntent(pool, runId, {
+      correlationId: crypto.randomUUID(),
+      route: "openrouter:openai/gpt-4o-mini:web",
+      digest: "probe-unknown",
+      reserved: 4_000_000,
+      state: "issued",
+    });
+    await updateIntentState(pool, unknownId, "outcome-unknown");
     const used = await liveSpendUsedMicro(pool);
-    expect(used).toBeGreaterThanOrEqual(4_000_000);
-    expect(canIssueLiveCall({ capMicro: 5_000_000, usedMicro: used, estimatedMicro: 1_200_000 }).ok).toBe(false);
+    expect(used).toBe(before + 4_000_000);
+    expect(canIssueLiveCall({ capMicro: used + 1_000_000, usedMicro: used, estimatedMicro: 1_200_000 }).ok).toBe(false);
   });
 });

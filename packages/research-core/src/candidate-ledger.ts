@@ -126,11 +126,15 @@ export function reopenExclusions(ledger: CandidateLedger, changedFields: string[
   };
 }
 
+const RANKING_CLAIM = /\b(best|winner|unmatched|unbeatable|exhaustive|only (?:option|choice)|all (?:available )?(?:options|candidates))\b/iu;
+const RANKING_SCOPE = /\b(?:among|of|within) (?:the )?(?:inspected|reviewed|tested|compared) (?:options|candidates|products|sources)\b/iu;
+const NEGATED_EXHAUSTIVE = /\bnot (?:an? )?exhaustive\b/giu;
+
 /** A bounded discovery stop never licenses a universal ranking in final prose. */
 export function candidateClaimsBounded(texts: readonly string[]): boolean {
   return texts.every(text => {
-    const ranks=/\b(best|winner|unmatched|unbeatable|exhaustive|only (?:option|choice)|all (?:available )?(?:options|candidates))\b/iu.test(text);
-    return !ranks || /\b(?:among|of|within) (?:the )?(?:inspected|reviewed|tested|compared) (?:options|candidates|products|sources)\b/iu.test(text);
+    const rankingText = text.replace(NEGATED_EXHAUSTIVE, " ");
+    return !RANKING_CLAIM.test(rankingText) || RANKING_SCOPE.test(text);
   });
 }
 export const CANDIDATE_SCOPE_LIMITATION="This comparison covers inspected candidates only; additional eligible options may exist.";

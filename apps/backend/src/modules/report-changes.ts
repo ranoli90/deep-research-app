@@ -47,7 +47,7 @@ export async function deriveReportChanges(db:Queryable,accountId:string,report:C
  const claims=diff(before,after),criteriaDiff=diff(oldCriteria,newCriteria);
  const reuse=(await db.query("SELECT DISTINCT source_version_id FROM run_evidence_membership WHERE run_id=$1 AND account_id=$2 AND source_version_id=ANY($3::uuid[])",[report.runId,accountId,newVersions])).rows.map((r)=>r.source_version_id as string).sort();
  const reportStateChanged=prior.outcome!==report.outcome||stable(prior.limitations)!==stable(report.limitations);
- return {managed:true,summary:{evidenceUpdated:stable(oldVersions)!==stable(newVersions),conclusionChanged:!!(claims.added.length||claims.removed.length||reportStateChanged),newlyFeasible:[],newlyInfeasible:[],
+ return {managed:true,summary:{evidenceUpdated:stable(oldVersions)!==stable(newVersions),conclusionChanged:!!(claims.added.length||claims.removed.length),newlyFeasible:[],newlyInfeasible:[],
   notes:`Assertions: ${claims.added.length} added, ${claims.removed.length} removed, ${claims.unchanged} unchanged. Criteria: ${criteriaDiff.added.length} added, ${criteriaDiff.removed.length} removed. Reused cited source versions: ${reuse.length}. ${reportStateChanged?"Report outcome or limitations changed. ":""}Comparison uses exact wording and recorded scope; paraphrases may count as changes.`,
   comparison:{version:"report-changes.v1",parentReportId:prior.id,addedClaimRevisionIds:claims.added,removedClaimRevisionIds:claims.removed,unchangedAssertions:claims.unchanged,
    addedCriterionIds:criteriaDiff.added,removedCriterionIds:criteriaDiff.removed,reusedCitedSourceVersionIds:reuse,newlyCitedSourceVersionIds:newVersions.filter((id)=>!oldVersions.includes(id)),reportStateChanged}}};

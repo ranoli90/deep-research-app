@@ -37,6 +37,9 @@ import { consentAllowsProcessing } from "../modules/access.js";
 import { recordIntent, settleRun, updateIntentState } from "../modules/billing.js";
 import { insertSource, insertVersionAndPassage, insertExtractedVersion, loadEvidence } from "../modules/evidence.js";
 import { publishReport } from "../modules/reports.js";
+import { researchPublicationLimitations } from "../modules/publication-coverage.js";
+import { counterevidenceLimitations } from "../modules/counterevidence.js";
+import { evidenceSelectionLimitations } from "../modules/evidence-selections.js";
 import {
   addSpent,
   bumpEvidence,
@@ -709,6 +712,18 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
         controllerVersion: "research-controller.v1",
       }),
     ]));
+    const extraLimitations = await session.write(async (db) => {
+      const challengeBasis = { runId, accountId: latest.account_id, briefRevision: latest.brief_revision };
+      return [
+        ...await researchPublicationLimitations(db, challengeBasis),
+        ...await counterevidenceLimitations(db, challengeBasis),
+        ...await evidenceSelectionLimitations(db, { ...challengeBasis, evidenceRevision: latest.evidence_revision }),
+      ];
+    });
+    for (const limitation of extraLimitations) {
+      if (!report.limitations.includes(limitation)) report.limitations.push(limitation);
+    }
+    if (report.limitations.length && report.outcome === "completed") report.outcome = "completed_with_limitations";
     const claims: StoredClaim[] = state2.claims;
     const passages: StoredPassage[] = state2.passages;
 

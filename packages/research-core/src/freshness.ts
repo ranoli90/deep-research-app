@@ -33,7 +33,7 @@ export function freshnessPolicyForQuestion(question: string, criterionKey?: stri
       rationale: "Law needs the current effective rule for the named jurisdiction, not merely a recent article.",
     };
   }
-  if (/compatib|supported (on|with)|firmware|version/i.test(q)) {
+  if (/compatib|supported (on|with)|current (firmware|version)|which versions? (?:is|are) (?:supported|compatible)/i.test(q)) {
     return {
       version: FRESHNESS_POLICY_VERSION,
       class: "compatibility",

@@ -139,7 +139,7 @@ describe("G07 / M10 in-app output reporting and privacy disclosure", () => {
     const unpublishedClaim = crypto.randomUUID();
     await pool.query("INSERT INTO claims (id,run_id,account_id,text,type,support_status) VALUES ($1,$2,$3,'unpublished assertion','fact','unverified')",
       [unpublishedClaim, created.json().runId, accountId]);
-    for (const rejectedId of [foreignClaim, unpublishedClaim, crypto.randomUUID(), "answer"]) {
+    for (const rejectedId of [foreignClaim, unpublishedClaim, crypto.randomUUID()]) {
       const challenge = await app.inject({ method: "POST", url: `/v1/reports/${reportId}/challenges`,
         headers: { authorization: `Bearer ${token}` }, payload: { claimId: rejectedId, category: "claim", note: "wrong binding" } });
       expect(challenge.statusCode).toBe(404);
@@ -147,6 +147,9 @@ describe("G07 / M10 in-app output reporting and privacy disclosure", () => {
         headers: { authorization: `Bearer ${token}` }, payload: { claimId: rejectedId, note: "wrong binding" } });
       expect(follow.statusCode).toBe(404);
     }
+    const malformed = await app.inject({ method: "POST", url: `/v1/reports/${reportId}/challenges`,
+      headers: { authorization: `Bearer ${token}` }, payload: { claimId: "answer", category: "claim", note: "wrong binding" } });
+    expect(malformed.statusCode).toBe(400);
     expect((await pool.query("SELECT id FROM runs WHERE parent_run_id=$1", [created.json().runId])).rowCount).toBe(0);
   });
 

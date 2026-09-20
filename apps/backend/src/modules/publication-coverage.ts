@@ -32,6 +32,9 @@ export async function researchPublicationLimitations(db:Queryable,args:{accountI
 /** No caller completion flag or saved model verdict substitutes for current coverage of this exact report. */
 export async function reportCompletionCovered(db:Queryable,accountId:string,report:CanonicalReport):Promise<boolean> {
   const challengeBasis={runId:report.runId,accountId,briefRevision:report.basis.briefRevision};
+  // Requested verification has its own restored proof. Ranking/freshness/candidate checks cannot override it.
+  const verification=await verificationReportMatches(db,accountId,report);
+  if(verification!==null)return verification;
   // Missing targets cannot establish which conclusions need qualification.
   if(await requiredCounterevidenceMissing(db,challengeBasis))return false;
   // Limited publication must carry every independently restored target warning too.
@@ -39,8 +42,6 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   const challengeLimitations=[...await researchPublicationLimitations(db,challengeBasis),...await counterevidenceLimitations(db,challengeBasis),...await evidenceSelectionLimitations(db,{...challengeBasis,evidenceRevision:report.basis.evidenceRevision})];
   if(!candidateClaimsBounded(report.blocks.map(b=>b.text)))return false;
   if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
-  const verification=await verificationReportMatches(db,accountId,report);
-  if(verification!==null)return verification;
   const completed=report.outcome==="completed";
   if(!completed&&report.outcome!=="completed_with_limitations")return true;
   if(completed&&challengeLimitations.length)return false;

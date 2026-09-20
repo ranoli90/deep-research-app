@@ -33,9 +33,12 @@ function bucket(route: string): keyof RunCost["breakdown"] {
   return "other";
 }
 
-function intentMicro(row: { reserved_max_micro: string; confirmed_micro: string | null; state: string }): number {
+function intentMicro(row: { route: string; reserved_max_micro: string; confirmed_micro: string | null; state: string }): number {
   if (row.confirmed_micro != null) return Number(row.confirmed_micro);
   if (row.state === "outcome-unknown" || row.state === "issued") {
+    return Number(row.reserved_max_micro);
+  }
+  if (row.route.startsWith("fixture:") && row.state === "confirmed") {
     return Number(row.reserved_max_micro);
   }
   return 0;

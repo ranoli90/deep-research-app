@@ -403,7 +403,7 @@ describe("launch-scope fixture/postgres cases", () => {
       method: "POST",
       url: `/v1/reports/${reportId}/challenges`,
       headers: { authorization: `Bearer ${other.token}` },
-      payload: { claimId: "answer", category: "claim", note: "not mine" },
+      payload: { claimId: crypto.randomUUID(), category: "claim", note: "not mine" },
     });
     expect([403, 404]).toContain(stolen.statusCode);
     const exp = await app.inject({

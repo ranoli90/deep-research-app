@@ -44,6 +44,7 @@ describe('ENG-015–019 retrieval policy',()=>{
   expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion('applicable law'),[{effectiveDate:now}],now)).toBe(false);
   expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion('firmware compatibility'),[{publicationDate:now}],now)).toBe(true);
   expect(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion('firmware compatibility'),[{version:'4.2'}],now)).toBe(false);
+  expect(freshnessPolicyForQuestion('What firmware does Ardent require for offline recording?').requiresVersion).toBe(false);
   expect(parseSourcePublicationDate('2026-02-30')).toBeNull();
  });
 });

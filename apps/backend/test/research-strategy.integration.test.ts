@@ -27,9 +27,10 @@ it("W08 API pins server strategy; idempotent retries and corrections inherit it 
  expect((await getRun(pool,runId))?.research_strategy).toBe("iterative-baseline.v1");
  const corrected=await adaptive.inject({method:"POST",url:`/v1/runs/${runId}/corrections`,headers,payload:{expectedBriefRevision:1,correctionText:"Require archive export.",patch:{kind:"replace_question",question:"Which option supports archive export?",evidencePolicy:"refresh"}}});
  expect(corrected.statusCode).toBe(200);expect((await getRun(pool,corrected.json().runId))?.research_strategy).toBe("iterative-baseline.v1");
- const fresh=await adaptive.inject({method:"POST",url:"/v1/runs",headers,payload});expect(fresh.statusCode).toBe(200);expect((await getRun(pool,fresh.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
- const injected=await adaptive.inject({method:"POST",url:"/v1/runs",headers,payload:{...payload,researchStrategy:"iterative-baseline.v1"}});expect(injected.statusCode).toBe(200);expect((await getRun(pool,injected.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
- expect((await pool.query("SELECT count(*)::int n FROM run_dispatch_outbox WHERE run_id=ANY($1::uuid[])",[[runId,corrected.json().runId,fresh.json().runId]])).rows[0].n).toBe(3);
+ const fresh=await adaptive.inject({method:"POST",url:"/v1/runs",headers:{...headers,"idempotency-key":crypto.randomUUID()},payload});expect(fresh.statusCode).toBe(200);expect((await getRun(pool,fresh.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
+ const injected=await adaptive.inject({method:"POST",url:"/v1/runs",headers:{...headers,"idempotency-key":crypto.randomUUID()},payload:{...payload,researchStrategy:"iterative-baseline.v1"}});expect(injected.statusCode).toBe(400);
+ const pinned=await adaptive.inject({method:"POST",url:"/v1/runs",headers:{...headers,"idempotency-key":crypto.randomUUID()},payload});expect(pinned.statusCode).toBe(200);expect((await getRun(pool,pinned.json().runId))?.research_strategy).toBe("criterion-adaptive.v1");
+ expect((await pool.query("SELECT count(*)::int n FROM run_dispatch_outbox WHERE run_id=ANY($1::uuid[])",[[runId,corrected.json().runId,fresh.json().runId,pinned.json().runId]])).rows[0].n).toBe(4);
  expect((await pool.query("SELECT 1 FROM provider_intents i JOIN runs r ON r.id=i.run_id WHERE r.account_id=$1",[session.accountId])).rowCount).toBe(0);
  await baseline.inject({method:"POST",url:"/v1/account/deletion",headers});
 });

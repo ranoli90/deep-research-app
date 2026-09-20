@@ -93,14 +93,14 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
       // Completion requires the separately executed coverage review and intact final assertions.
-      limitations:complete?[]:[
+      limitations:complete?[]:[...new Set([
         ...((coverage.complete&&!compiled.unresolved.length)?[]:["Some requested questions remain unresolved."]),
         ...(basis.context.task?limitedCoverageLimitations(coverage,basis.context.task):[]),
         ...(laterEvidence?[LATER_EVIDENCE_LIMITATION]:[]),
         ...(snippetCited?["Some cited sources could only be read as search snippets after the full page was blocked."]:[]),
         ...(freshnessLimitation?[freshnessLimitation]:[]),
         ...challengeLimitations,
-      ],
+      ])],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};
     const result=await publishReport(db,{report,accountId:args.accountId,loaded:report.basis,claims:compiled.claims,passages:[],deleted:false});
     return {kind:"publication" as const,...result,writerIntentId:draft.writerIntentId,supportIntentId:support.intentId,coverageIntentId:reviewed.intentId,unresolvedStatements:compiled.unresolved};
