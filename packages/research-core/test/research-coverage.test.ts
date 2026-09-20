@@ -1,4 +1,5 @@
-import { nextCriterionSearch } from "../src/discovery-planning.js";
+import { nextCriterionSearch, openingDiscoveryFromBrief } from "../src/discovery-planning.js";
+import { investigationInstruction } from "../src/follow-up-router.js";
 import { describe,it,expect } from "vitest";
 import type { ResearchModelOutput } from "@deep/contracts";
 import { limitedCoverageDisclosed,limitedCoverageLimitations,resolveResearchCoverage,unresolvedCriticalCriterionLimitation } from "../src/research-coverage.js";
@@ -47,6 +48,23 @@ describe("W05 criterion-linked answer coverage",()=>{
  });
 });
 
+describe("R-05 deepen opening discovery",()=>{
+ it("uses a unique original-question span for an investigation focus and never invents query terms",()=>{
+  const question="best laptop for local AI under $2k with long battery life";
+  const outcome=investigationInstruction("battery life");
+  const opened=openingDiscoveryFromBrief({originalQuestion:question,desiredOutcome:outcome});
+  expect(opened.investigationFocus).toBe("battery life");
+  expect(opened.query).toBe("battery life");
+  expect(question.slice(opened.publicQueryBasis.start,opened.publicQueryBasis.end)).toBe("battery life");
+  expect(opened.publicQueryBasis.quote).toBe("battery life");
+  const absent=openingDiscoveryFromBrief({originalQuestion:"best laptop for local AI under $2k",desiredOutcome:outcome});
+  expect(absent.query).toBe("best laptop for local AI under $2k");
+  expect(absent.publicQueryBasis.quote).toBe("best laptop for local AI under $2k");
+  const parent=openingDiscoveryFromBrief({originalQuestion:question});
+  expect(parent.query).toBe(question);
+  expect(parent.investigationFocus).toBeNull();
+ });
+});
 describe("W05 criterion discovery policy",()=>{
  it("uses only an unmet criterion's exact original-question span",()=>{
   const start=question.indexOf("Reef-X"),provenance={start,end:start+6,quote:"Reef-X"};

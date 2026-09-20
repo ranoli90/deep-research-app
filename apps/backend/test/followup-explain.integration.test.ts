@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
 import pg from "pg";
-import { EXPLAIN_EVIDENCE_INCOMPLETE } from "@deep/research-core";
+import { EXPLAIN_EVIDENCE_INCOMPLETE, investigationInstruction } from "@deep/research-core";
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
@@ -234,8 +234,10 @@ describe("ENG-033 follow-up explain from owned evidence", () => {
     expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(QUESTION);
     expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(original.originalQuestion);
     const childBrief = await getBrief(pool, child.brief_id);
+    expect(childBrief.desiredOutcome).toContain(investigationInstruction("battery life"));
     expect(childBrief.desiredOutcome).toMatch(/battery life/i);
     expect(childBrief.assumptions.some((row) => row.value === "Go deeper on battery life")).toBe(false);
+    expect((await pool.query("SELECT verification_required_revision FROM runs WHERE id=$1", [child.id])).rows[0].verification_required_revision).toBeNull();
   });
 
   it("applies a typed budget change without rewriting the original question or dropping geography", async () => {

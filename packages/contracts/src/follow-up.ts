@@ -58,3 +58,22 @@ export function deepenFocus(message: string): string {
   const focus = (matched?.[1] ?? text).trim().replace(/[.?!]+$/u, "");
   return focus || text;
 }
+
+/** Investigation instruction stored on desiredOutcome. Not an assumption and not a rewritten question. */
+export function investigationInstruction(focus: string): string {
+  const trimmed = focus.trim().replace(/[.?!]+$/u, "");
+  return `Investigate ${trimmed} in more depth while keeping the original question.`;
+}
+
+export function investigationFocusFromOutcome(desiredOutcome: string | undefined | null): string | null {
+  if (!desiredOutcome) return null;
+  const matches = [...desiredOutcome.matchAll(/Investigate (.+?) in more depth while keeping the original question\.?/gi)];
+  const focus = matches.at(-1)?.[1]?.trim();
+  return focus || null;
+}
+
+export function applyInvestigationOutcome(desiredOutcome: string | undefined, focus: string): string {
+  const instruction = investigationInstruction(focus);
+  if (desiredOutcome?.includes(instruction)) return desiredOutcome;
+  return [desiredOutcome?.trim(), instruction].filter(Boolean).join(" ");
+}

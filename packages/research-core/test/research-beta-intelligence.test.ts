@@ -4,7 +4,7 @@ import { evaluateClarificationValue } from "../src/clarification-value.js";
 import { applyExternalSemanticOverlay, compileSemanticOverlay, pickTaskFamily } from "../src/semantic-intent.js";
 import { extraMaterialClarifications } from "../src/clarification-fields.js";
 import { buildEvidenceNeeds, highestValueNeed, falsificationForConclusion, applyNeedEvidence } from "../src/evidence-needs.js";
-import { routeFollowUp } from "../src/follow-up-router.js";
+import { applyInvestigationOutcome, deepenFocus, investigationFocusFromOutcome, investigationInstruction, routeFollowUp } from "../src/follow-up-router.js";
 import { admitUserSuppliedUrl, applySourcePolicy, defaultSourcePolicy, encodeSourcePolicy, mergeSteeringIntoPolicy, parseDirectUrls, policyFromRestrictions } from "../src/source-policy.js";
 import { buildCandidateLedger, reopenExclusions } from "../src/candidate-ledger.js";
 import { planTypedQuery } from "../src/query-planning.js";
@@ -262,6 +262,18 @@ describe("follow-up vs correction", () => {
     expect(routeFollowUp("Check this URL too https://example.com/spec", { reportReady: true, runActive: true }).kind).toBe("add_source");
     expect(routeFollowUp("Only use official sources", { reportReady: false, runActive: true }).kind).toBe("steer");
     expect(parseDirectUrls("also https://vendor.example/docs")).toEqual(["https://vendor.example/docs"]);
+  });
+
+  it("stores deepen as an investigation instruction, not a rewritten question or command assumption", () => {
+    expect(routeFollowUp("Go deeper on battery life", { reportReady: true, runActive: false }).kind).toBe("deepen");
+    expect(deepenFocus("Go deeper on battery life")).toBe("battery life");
+    const instruction = investigationInstruction("battery life");
+    expect(instruction).toBe("Investigate battery life in more depth while keeping the original question.");
+    expect(investigationFocusFromOutcome(instruction)).toBe("battery life");
+    expect(applyInvestigationOutcome("Recommend eligible laptops.", "battery life")).toBe(
+      "Recommend eligible laptops. Investigate battery life in more depth while keeping the original question.",
+    );
+    expect(applyInvestigationOutcome(instruction, "battery life")).toBe(instruction);
   });
 });
 

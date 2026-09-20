@@ -6,20 +6,16 @@ Parent requirements from the independent review of `75dee72` are **not** closed 
 
 | ID | Implemented now | Evidence class | Remaining |
 |---|---|---|---|
-| R-01 / CL-03 budget | Typed change on follow-up; original question kept | HTTP follow-up + intent/candidates unit | Full PG; native current-SHA APK; live correction usefulness |
+| R-01 / CL-03 budget | Typed change on follow-up; original question kept | HTTP follow-up + intent/candidates unit | Live correction usefulness |
 | R-02 / CL-07 sections | `sectionWrite` in context/manifest; persist each section; restore recorded fallback policy without relabeling primary; prefix replay cannot shrink | Production `createResearchDraft` / `restoreWriterDraft` / DB 4/4 | Live J11 |
-| R-03 / CL-04 journal | SHA-256 key; no overwrite; explain does not clear mutation; require runId | Mobile unit + App wiring | Component callback failure matrix; device double-tap |
+| R-03 / CL-04 journal | SHA-256 key; persist prepared/sent/accepted/adopted/rejected/withdrawn; explain does not clear mutation; require runId; same recovery for assumptions/corrections | Mobile unit + App wiring | Device double-tap on current APK |
 | R-04 / CL-01 continue | Extra/conflict/mixed-field 400; null field reissue; concurrent answer/cancel fail-closed; declared field-set decoder | HTTP continue 19/19, production 1/1, cancellation 7/7 | Native Continue |
-
-| R-03 / CL-04 journal | SHA-256 key; persist prepared/sent/accepted/adopted/rejected/withdrawn; no overwrite; explain does not clear mutation; require runId; same recovery for assumptions/corrections | Mobile unit + App wiring (340) | Device double-tap |
-| R-04 / CL-01 continue | Extra/conflict/mixed-field 400; null field reissue | HTTP continue 12/12 | Concurrent answer/cancel; declared multi-field pause |
->>>>>>> grok-v8/r04-cl01-continue
-| R-05 / CL-03 deepen | Investigation `desiredOutcome`; not command assumption | HTTP deepen + desiredOutcome | Deepen planning/evidence difference; synthetic J8/J11 production; live grant |
+| R-05 / CL-03 deepen | Investigation instruction on child `desiredOutcome`; opening search uses unique original-question span | HTTP + processStructuredResearch parent/child difference; synthetic J8 attachment + J11 hierarchical writer | Live J8/J11 grant |
 | R-06–07 / CL-05–06 | Claim wording on GET + picker; citation unavailable state | HTTP claims + SourceSheet unit | Device multi-claim; 100-block gfxinfo |
-| Native HEAD APK | 75dee72 installed; unlocked recapture | Screenshots of that APK | New EAS/local APK of this SHA |
+| Native HEAD APK | Local Gradle APK of 9677232 installed | Device journeys + Stop | Store signing / iOS |
 | Hosted GHA | OWNER_DECLINED | — | Owner reversal |
 | iOS | unavailable | — | Device |
-| Live J8/J11 | not rerun | — | Verified remaining grant vs MC-D01 hold |
+| Live J8/J11 | synthetic production paths | Isolated tests | Live grant vs MC-D01 hold |
 
 Historical 544/544 PG is product code immediately before `75dee72`, not this tree. Log hashes are not a Git SHA.
 

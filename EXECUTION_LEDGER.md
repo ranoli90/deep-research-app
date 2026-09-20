@@ -1,5 +1,15 @@
 # Execution ledger
 
+## 2026-09-20 — R-05 deepen investigation + synthetic J8/J11 production
+
+- Deepen child keeps `originalQuestion` and writes `investigationInstruction` onto `desiredOutcome`.
+- `openingDiscoveryFromBrief` selects a unique original-question span for the investigation focus; missing or ambiguous focus keeps the original question as the query.
+- Extract includes planning state when an investigation is present so document deepen can change which owned sentence is extracted.
+- Synthetic J8: attachment-only `processStructuredResearch` plus follow-up deepen; canary is not searched.
+- Synthetic J11: hierarchical `createResearchDraft` / `writeResearchReport` publishes owned 321-mile / $37,900 quotes without unquoted eligibility arithmetic.
+- Isolated `TEST_DATABASE_URL=.../deep_r05_01a0bfe8`: research-core coverage+intelligence 35/35, r05-deepen-j8-j11 3/3, followup-explain 8/8. Fabricated/nonbillable transport only.
+- Live J8/J11 were not rerun. Not merged to main.
+
 ## 2026-09-20 — R-02 / CL-07 fallback-policy restore and composition races
 
 - `loadSupportContext`, writer `restoreWriterDraft`, support/coverage loaders use the stored `model_operation_results.policy_id`. They do not require `versions.policyId` and do not rewrite it to the run primary.
@@ -38,8 +48,6 @@
 - `runMutatingFollowUp` persists prepared then sent before POST, then accepted before adopt, then adopted. 401 keeps sent. 409 persists rejected. Empty mutating body keeps sent. Superseded view does not POST. Adopt failure keeps accepted and retries without a second POST. Double-tap reuses request identity. Unresolved journal blocks a different mutation. Explain uses `recordFollowUpExplain` and does not set `pendingFollowUp: null`.
 - Same persist-before-POST recovery for assumption confirm/replace and text correction. SHA-256 `mutatingFollowUpKey` kept. App `newId()` kept (no `crypto.randomUUID()` call). `scripts/check-boundaries.mjs` now rejects mobile imports of `@deep/research-core`.
 - Tests: `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `node scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap unrun. Rollback: revert this commit.
->>>>>>> grok-v8/r04-cl01-continue
->>>>>>> grok-v8/r02-cl07-writer-restore
 
 ## 2026-09-20 — device live, Stop completion, brief quote location
 

@@ -1,3 +1,11 @@
+## R-05 deepen investigation + synthetic J8/J11 production — 2026-09-20
+
+Isolated worktree from `9677232`. **Not merged to `main` (`8a7b1a9`).** No GHA. No live OpenRouter. Research Beta is not declared.
+
+Deepen is an investigation instruction on the child `desiredOutcome`. `originalQuestion` is unchanged. Opening public discovery uses a unique original-question span of that focus when one exists; otherwise the original question remains the query. Extract context includes planning state for that investigation. Deepen does not fall through into requested verification.
+
+Synthetic J8 (private attachment) and J11 (hierarchical writer) now run through `processStructuredResearch` / `createResearchDraft` / follow-up deepen with fabricated nonbillable transport. Focused isolated PG `deep_r05_01a0bfe8`: research-core coverage+intelligence **35/35**, r05-deepen-j8-j11 **3/3**, followup-explain **8/8**. Live J8 still needs a user attachment. Live J11 writer quality is still grant-gated.
+
 ## R-02 / CL-07 hierarchical writer restore — 2026-09-20
 
 Isolated worktree from `9677232` on `grok-v8/r02-cl07-writer-restore`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS.
@@ -43,8 +51,6 @@ Isolated worktree from `9677232` on `grok-v8/r03-followup-journal`. **Not merged
 Mutating follow-up, assumption replace/confirm, and text correction now persist journal phases `prepared` → `sent` → `accepted` → `adopted` (or `rejected` / `withdrawn`) before POST and before clearing. Callback failures, double-tap reuse, 401, 409, empty mutating bodies, and superseded views keep the last durable phase. An unresolved journal blocks a different mutation. Read-only explain records the answer without clearing a pending mutation. SHA-256 `mutatingFollowUpKey` is unchanged. Hermes still uses `newId()`, not `crypto.randomUUID()`. Mobile still cannot import `@deep/research-core` (boundary checker).
 
 `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap and current-HEAD APK remain unrun. Rollback: revert this commit.
->>>>>>> grok-v8/r04-cl01-continue
->>>>>>> grok-v8/r02-cl07-writer-restore
 
 ## Founded-year freshness — 2026-09-20
 
