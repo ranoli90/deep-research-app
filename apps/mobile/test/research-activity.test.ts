@@ -99,20 +99,20 @@ describe("research activity from sanitized events", () => {
       evt(4, "writing", { createdAt: "2026-09-18T12:02:18.000Z", phase: "writing" }),
     ];
     const collapsed = collapseResearchActivity({ events, lifecycle: "terminal", outcome: "completed" });
-    expect(collapsed.summary).toBe("Researched 2 sources · 2m 18s");
+    expect(collapsed.summary).toBe("Researched 2 sources · 2m 18s ›");
     expect(collapsed.expandable).toBe(true);
     const liveReads = [
       evt(1, "intent_ready", { createdAt: "2026-09-18T12:00:00.000Z" }),
       evt(2, "source_reading", { createdAt: "2026-09-18T12:00:10.000Z" }),
       evt(3, "source_reading", { createdAt: "2026-09-18T12:00:20.000Z" }),
     ];
-    expect(collapseResearchActivity({ events: liveReads, outcome: "completed" }).summary).toBe("Researched 2 sources · 20s");
+    expect(collapseResearchActivity({ events: liveReads, outcome: "completed" }).summary).toBe("Researched 2 sources · 20s ›");
   });
 
   it("does not claim a source count when none were opened", () => {
     const events = [evt(1, "intent_ready")];
-    expect(collapseResearchActivity({ events, outcome: "completed" }).summary).toBe("Research complete");
-    expect(collapseResearchActivity({ events, outcome: "cancelled" }).summary).toBe("Research cancelled");
+    expect(collapseResearchActivity({ events, outcome: "completed" }).summary).toBe("Research complete ›");
+    expect(collapseResearchActivity({ events, outcome: "cancelled" }).summary).toBe("Research cancelled ›");
   });
 
   it("shows elapsed time while running from the first recorded event", () => {
@@ -127,12 +127,12 @@ describe("research activity from sanitized events", () => {
 
   it("does not call a failed run complete", () => {
     const events = [evt(1, "intent_ready")];
-    expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed");
+    expect(collapseResearchActivity({ events, outcome: "failed" }).summary).toBe("Research failed ›");
   });
 
   it("does not call a clarification pause complete", () => {
     const events = [evt(1, "clarification")];
-    expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail");
+    expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail ›");
   });
 
   it("progress UI modules do not treat type or publicSummary as authority", () => {

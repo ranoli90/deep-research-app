@@ -26,6 +26,7 @@ import { CorrectionPanel } from "./src/CorrectionPanel";
 import { productHaptic } from "./src/haptics";
 import { useKeyboardInset } from "./src/use-keyboard-inset";
 import { composerDockBottomInset } from "./src/composer-keyboard";
+import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents } from "./src/research-activity";
 import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
 import { humanChangeSummary } from "./src/correction-copy";
@@ -1558,7 +1559,7 @@ function AppInner() {
           editable={hydrated && !verificationBusy && !sourceDeleteBusy && uploadStatus === null && !correctionPending && state.run?.lifecycle !== "awaiting_input"}
           sendDisabled={!hydrated || documentPending || uploadStatus !== null || sourceDeleteBusy || !!state.pendingSourceDeletion || correctionPending || verificationBusy || state.offline || state.run?.lifecycle === "awaiting_input" || (composerContinues && !correctionReady)}
           pendingAdmission={!!state.pendingAdmission}
-          placeholder={composerContinues ? "Ask anything" : "What should I research?"}
+          placeholder={composerPlaceholder({ inProgress: activity.inProgress && state.run?.lifecycle !== "awaiting_input", continues: composerContinues })}
           sendAccessLabel={composerContinues ? "Send follow-up" : "Start research"}
           attachOpen={attachVisible}
           inProgress={activity.inProgress && state.run?.lifecycle !== "awaiting_input"}

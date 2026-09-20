@@ -8,8 +8,9 @@ describe("one-sentence composer copy", () => {
     const app = [
       readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchHeader.tsx"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/composer-copy.ts"), "utf8"),
     ].join("\n");
-    expect(composer).toContain('placeholder = "What should I research?"');
+    expect(composer).toContain('placeholder = "Ask anything…"');
     expect(composer).toContain('sendAccessLabel = "Start research"');
     expect(composer).toContain('sendLabel ?? (pendingAdmission ? "Retry" : "Research")');
     expect(composer).toContain("iconSend");
@@ -21,7 +22,8 @@ describe("one-sentence composer copy", () => {
     expect(app).toContain("<ResearchComposer");
     expect(app).toContain("composerDockBottomInset");
     expect(app).toContain("keyboardInset");
-    expect(app).toMatch(/placeholder=\{composerContinues \? "Ask anything" : "What should I research\?"\}/);
+    expect(app).toContain("composerPlaceholder");
+    expect(app).toContain("Ask or refine research");
     expect(app).toMatch(/sendAccessLabel=\{composerContinues \? "Send follow-up" : "Start research"\}/);
     expect(app).toContain("inProgress={activity.inProgress}");
     expect(app).toContain("onCancel={() => void onCancel()}");

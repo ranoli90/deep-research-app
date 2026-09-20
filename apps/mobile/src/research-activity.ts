@@ -141,7 +141,9 @@ export function collapseResearchActivity(args: {
     parts.push("Research complete");
   }
   if (elapsed) parts.push(elapsed);
-  return { summary: parts.join(" · "), expandable: visible.length > 0 };
+  const expandable = visible.length > 0;
+  const summary = parts.join(" · ");
+  return { summary: expandable ? `${summary} ›` : summary, expandable };
 }
 
 export function currentActivityLine(events: ResearchEvent[]): string {

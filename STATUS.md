@@ -1,3 +1,7 @@
+## Phase B product-state map — 2026-09-19
+
+Phase A gate held at engineering SHA `f627b2b` (docs `3c8383e`). Product-state → UI-state map is `verification/v8/phase-b/PRODUCT_STATE_UI.md`. Composer placeholders and collapsed Research Trace copy follow specs 14–15. Mobile 292/292. **Not merged to `main`.** No new APK yet. Native visual loop not done.
+
 ## Phase A Wave I engineering SHA — 2026-09-19
 
 `grok-v8/research-beta-integration` **`f627b2b`**. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared.
