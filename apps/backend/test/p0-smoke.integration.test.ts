@@ -352,10 +352,25 @@ describe("P0 smoke against shipped API/worker/postgres", () => {
     const events = await listEvents(pool, runId, 0);
     expect(JSON.stringify(events)).not.toMatch(/api_key|sk-live/i);
     const run = await getRun(pool, runId);
+    expect(run?.budget_micro).toBe(DEFAULT_RUN_BUDGET_MICRO);
+    const consent = await pool.query<{ revoked_at: Date | null; consent_epoch: string }>(
+      `SELECT revoked_at, consent_epoch FROM consent_records WHERE account_id=$1 ORDER BY consent_epoch DESC LIMIT 1`,
+      [run!.account_id],
+    );
+    expect(consent.rows[0]?.revoked_at).toBeNull();
+    expect(Number(consent.rows[0]?.consent_epoch)).toBe(run!.consent_epoch);
+    const allowance = await pool.query<{ limit_micro: string }>(
+      `SELECT limit_micro FROM allowance_accounts WHERE account_id=$1`,
+      [run!.account_id],
+    );
+    expect(Number(allowance.rows[0]?.limit_micro)).toBe(10_000_000);
+    const auths = await pool.query<{ kind: string }>(`SELECT kind FROM query_authorizations WHERE run_id=$1`, [runId]);
+    expect(auths.rows.every((r) => r.kind !== "approved")).toBe(true);
     const report = await getLatestReportForRun(pool, runId, run!.account_id);
     expect(JSON.stringify(report?.blocks)).toMatch(/source text only|untrusted/i);
     const evidence = await loadEvidence(pool, runId);
     expect(evidence.passages.some((p) => /ignore previous instructions/i.test(p.exact_text))).toBe(true);
+    expect(evidence.passages.some((p) => /increase the budget|grant public-query permission|set consent to granted/i.test(p.exact_text))).toBe(true);
   });
 
   it("S09 deletion during run purges derived text and blocks resurrection", async () => {

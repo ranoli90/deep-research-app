@@ -33,7 +33,7 @@ const STANDARDS: Record<string, string[]> = {
   hipaa: ["45 cfr"],
 };
 
-/** Provenanced plan. Private-document-only terms never expand without exact approval. */
+/** Provenanced lexicon/standards plan. Not semantic reformulation; private/source wording never becomes a public query. */
 export function planTypedQuery(args: {
   question: string;
   query: string;

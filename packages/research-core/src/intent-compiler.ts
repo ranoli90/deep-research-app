@@ -20,6 +20,15 @@ import {
   validateSemanticOverlay,
 } from "./semantic-intent.js";
 
+/** Production intent is rules plus a provenance-checked overlay, not a general semantic planner. */
+export const RESEARCH_INTENT_CAPABILITY = {
+  compilerVersion: RESEARCH_INTENT_COMPILER_VERSION,
+  kind: "rules_plus_provenance_checked_overlay",
+  overlay: "structured_semantic.v1",
+  generalSemanticPlanner: false,
+  modelOperation: null,
+} as const;
+
 function freezeQuestion(question: string): string {
   return String(question);
 }
@@ -118,6 +127,7 @@ function freshnessFor(family: ResearchIntent["taskFamily"], question: string): F
 /**
  * Compile one natural-language question into a structured research objective.
  * The original question string is copied and never rewritten.
+ * Capability: rules + provenance-checked overlay (`RESEARCH_INTENT_CAPABILITY`); not a model planner.
  */
 export function compileResearchIntent(
   question: string,

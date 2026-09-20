@@ -1,3 +1,7 @@
+## Phase A API/DB/injection — 2026-09-19
+
+Lane `grok-v8/phase-a-api` merged onto integration. ENG-037/043/044/045. Migration `050_phase_a_invariants.sql`. **Do not merge `main`.**
+
 ## Phase A follow-up grounded explanation — 2026-09-19
 
 Lane `grok-v8/phase-a-followup` (not `main`). `explain` follow-ups answer from owned report blocks/claims and authorized passages. No brief mutation, no invented citations, no automatic child run. Missing evidence is disclosed. Wave A stale/pending 409 and deleted-account rejection remain. See `verification/phase-a/followup/CHANGE.md`.

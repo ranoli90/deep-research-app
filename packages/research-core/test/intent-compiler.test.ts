@@ -5,6 +5,7 @@ import {
   inferTaskFamily,
   isCosmeticClarification,
   RESEARCH_INTENT_COMPILER_VERSION,
+  RESEARCH_INTENT_CAPABILITY,
 } from "../src/intent-compiler.js";
 import { neededClarifications } from "../src/brief.js";
 
@@ -14,10 +15,21 @@ function assertImmutableOriginal(question: string) {
   const intent = compileResearchIntent(question);
   expect(intent.originalQuestion).toBe(question);
   expect(intent.compilerVersion).toBe(RESEARCH_INTENT_COMPILER_VERSION);
+  expect(intent.compilerVersion).toBe(RESEARCH_INTENT_CAPABILITY.compilerVersion);
   expect(Object.isFrozen ? true : true).toBe(true);
   const again = compileResearchIntent(question);
   expect(again).toEqual(intent);
 }
+
+describe("research intent capability label", () => {
+  it("declares rules plus provenance-checked overlay, not a general semantic planner", () => {
+    expect(RESEARCH_INTENT_CAPABILITY.generalSemanticPlanner).toBe(false);
+    expect(RESEARCH_INTENT_CAPABILITY.modelOperation).toBeNull();
+    expect(RESEARCH_INTENT_CAPABILITY.kind).toBe("rules_plus_provenance_checked_overlay");
+    expect(RESEARCH_INTENT_CAPABILITY.overlay).toBe("structured_semantic.v1");
+    expect(RESEARCH_INTENT_CAPABILITY.compilerVersion).toBe(RESEARCH_INTENT_COMPILER_VERSION);
+  });
+});
 
 describe("research intent compiler — five prompt families", () => {
   it("underspecified purchase: laptop AI under 2k keeps the original sentence and a hard budget", () => {

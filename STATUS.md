@@ -1,3 +1,7 @@
+## Phase A API/DB/injection (ENG-037/043/044/045) — 2026-09-19
+
+Lane `grok-v8/phase-a-api` merged onto integration. Additive migration `050_phase_a_invariants.sql`. Owner/spend FKs and CHECKs on 042–046 tables are `NOT VALID`; historical rows are not rewritten. Source-injection S01 extended. Intent compiler labeled `rules_plus_provenance_checked_overlay`. `planTypedQuery` does not copy private/source wording. **Not merged to `main`.** Research Beta is not declared.
+
 ## Phase A follow-up grounded explanation — 2026-09-19
 
 Lane `grok-v8/phase-a-followup` on Wave A SHA `73d5526`. **Not merged to `main`.** ENG-033: `POST /v1/runs/:id/follow-up` kind `explain` now answers from the latest owned report and authorized passage exact texts (`explain-from-existing-evidence.v1`). It does not mutate the brief, invent citations, or admit a child run. Incomplete owned evidence returns an honest answer plus `needsTargetedResearch`. Error handler preserves HTTP 400–599.

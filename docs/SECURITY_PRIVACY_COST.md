@@ -9,7 +9,7 @@ Prompt-injection defenses require privilege separation and data-flow controls, n
 ## Threat → control → required test
 | Threat | Deterministic boundary | Acceptance evidence to obtain |
 |---|---|---|
-| Malicious source demands secret upload or new tools | Source treated as data; tool allowlist + argument/auth/policy validation | Injection fixture yields no unauthorized tool call, query leakage or policy change |
+| Malicious source demands secret upload or new tools | Source treated as data; tool allowlist + argument/auth/policy validation | Injection fixture and S01 worker path yield no unauthorized tool call, query approval, budget change, consent change, or policy change |
 | Private text leaks into public search | Query-minimization/classification with explicit user processing scope | Canary private phrases never reach search logs/adapter in protected tasks |
 | SSRF or malicious redirect | Network-target resolution and revalidation; isolated fetch service; byte/time limits | Loopback, metadata, IPv6, redirect and DNS-change suites in deployed-like egress |
 | Cross-user report/evidence access | Tenant-scoped queries, ownership at every entry, signed limited artifact access | Two-user negative tests over guessed IDs, versions, event cursors and exports |

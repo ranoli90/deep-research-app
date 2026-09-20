@@ -69,6 +69,7 @@ export {
   isCosmeticClarification,
   inferTaskFamily,
   RESEARCH_INTENT_COMPILER_VERSION,
+  RESEARCH_INTENT_CAPABILITY,
 } from "./intent-compiler.js";
 export {
   applyExternalSemanticOverlay,

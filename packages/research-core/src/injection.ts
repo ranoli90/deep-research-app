@@ -28,6 +28,13 @@ const INJECTION_PATTERNS = [
   /override (the )?(system|safety|tool) (prompt|policy|allowlist)/i,
   /exfiltrate (the )?(user|private) (data|files|documents)/i,
   /approve this query without the user/i,
+  /approve (this |the )?(public[- ]query|query authorization)/i,
+  /raise (the )?spend cap/i,
+  /spendCapOverride/i,
+  /publicQueryPermission/i,
+  /bypassConsent/i,
+  /budgetMicro/i,
+  /grant consent to (the )?(model|agent|tool|run|system)/i,
 ];
 
 const PRIVILEGE_ESCALATION = [
@@ -36,6 +43,13 @@ const PRIVILEGE_ESCALATION = [
   /grant me a new .{0,40}tool/i,
   /increase (the )?(budget|spend|allowance)/i,
   /grant public[- ]query permission/i,
+  /approve (this |the )?(public[- ]query|query authorization)/i,
+  /raise (the )?spend cap/i,
+  /spendCapOverride/i,
+  /publicQueryPermission/i,
+  /bypassConsent/i,
+  /budgetMicro/i,
+  /grant consent to (the )?(model|agent|tool|run|system)/i,
   /bypass consent/i,
   /self[- ]verif(y|ies|ication)/i,
   /SYSTEM:\s*ignore/i,
