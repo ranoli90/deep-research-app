@@ -62,11 +62,17 @@ export type PendingAssumptions = {
 };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const hexDigest = /^[a-f0-9]{64}$/;
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const assumptionKeys = [
   "parentRunId", "action", "values", "expectedBriefRevision", "idempotencyKey",
   "requestId", "payloadDigest", "phase", "acceptedRunId", "acceptedBriefRevision",
 ];
+const ASSUMPTION_DEVICE_CLEANUP = "Saved assumption request is invalid. Device cleanup is required before new research.";
+
+function failAssumption(): never {
+  throw new Error(ASSUMPTION_DEVICE_CLEANUP);
+}
 
 export function assumptionsPayloadDigest(
   runId: string,
@@ -97,35 +103,52 @@ export function unresolvedAssumptions(pending: PendingAssumptions | null | undef
 
 export function readPendingAssumptions(value: unknown): PendingAssumptions | null {
   if (value == null) return null;
-  if (!record(value) || Object.keys(value).some((k) => !assumptionKeys.includes(k)) ||
-      typeof value.parentRunId !== "string" || !uuid.test(value.parentRunId) ||
-      (value.action !== "confirm" && value.action !== "replace") ||
-      typeof value.expectedBriefRevision !== "number" || !Number.isSafeInteger(value.expectedBriefRevision) || value.expectedBriefRevision <= 0 ||
-      typeof value.idempotencyKey !== "string" || !value.idempotencyKey.trim() || value.idempotencyKey.length > 200)
-    throw new Error("Saved assumption request is invalid. Device cleanup is required before new research.");
-  const values = Array.isArray(value.values) && value.values.every((row) => typeof row === "string")
-    ? value.values.map((row) => row.trim()).filter(Boolean)
-    : undefined;
-  if (value.action === "replace" && !values?.length) throw new Error("Saved assumption request is invalid. Device cleanup is required before new research.");
-  const payloadDigest = typeof value.payloadDigest === "string" && value.payloadDigest.length === 64
-    ? value.payloadDigest
-    : assumptionsPayloadDigest(value.parentRunId, value.expectedBriefRevision, value.action, values ?? []);
-  const requestId = typeof value.requestId === "string" && uuid.test(value.requestId) ? value.requestId : newFollowUpRequestId();
-  const phase = FOLLOW_UP_JOURNAL_PHASES.includes(value.phase as FollowUpJournalPhase)
-    ? value.phase as FollowUpJournalPhase
-    : "prepared";
-  const acceptedRunId = typeof value.acceptedRunId === "string" && uuid.test(value.acceptedRunId) ? value.acceptedRunId : undefined;
-  const acceptedBriefRevision = typeof value.acceptedBriefRevision === "number" && Number.isSafeInteger(value.acceptedBriefRevision) && value.acceptedBriefRevision > 0
-    ? value.acceptedBriefRevision
-    : undefined;
+  if (!record(value) || Object.keys(value).some((k) => !assumptionKeys.includes(k))) failAssumption();
+  if (typeof value.parentRunId !== "string" || !uuid.test(value.parentRunId)) failAssumption();
+  if (value.action !== "confirm" && value.action !== "replace") failAssumption();
+  if (typeof value.expectedBriefRevision !== "number" || !Number.isSafeInteger(value.expectedBriefRevision) || value.expectedBriefRevision <= 0) failAssumption();
+  if (typeof value.idempotencyKey !== "string" || !value.idempotencyKey.trim() || value.idempotencyKey.length > 200) failAssumption();
+  if (typeof value.requestId !== "string" || !uuid.test(value.requestId)) failAssumption();
+  if (typeof value.payloadDigest !== "string" || !hexDigest.test(value.payloadDigest)) failAssumption();
+  if (typeof value.phase !== "string" || !FOLLOW_UP_JOURNAL_PHASES.includes(value.phase as FollowUpJournalPhase)) failAssumption();
+  let values: string[] | undefined;
+  if (value.action === "replace") {
+    if (!Array.isArray(value.values) || value.values.length < 1 || value.values.length > 12 ||
+        !value.values.every((row) => typeof row === "string" && row.trim().length > 0 && row.trim().length <= 4000)) failAssumption();
+    values = value.values.map((row) => (row as string).trim());
+  } else if (value.values !== undefined) {
+    failAssumption();
+  }
+  const parentRunId = value.parentRunId;
+  const expectedBriefRevision = value.expectedBriefRevision;
+  const action = value.action;
+  const digestValues = action === "replace" ? values! : [];
+  if (value.payloadDigest !== assumptionsPayloadDigest(parentRunId, expectedBriefRevision, action, digestValues)) failAssumption();
+  if (value.idempotencyKey !== mutatingAssumptionsKey(parentRunId, expectedBriefRevision, action, digestValues)) failAssumption();
+  const phase = value.phase as FollowUpJournalPhase;
+  const acceptedRunId = value.acceptedRunId === undefined || value.acceptedRunId === null
+    ? undefined
+    : typeof value.acceptedRunId === "string" && uuid.test(value.acceptedRunId)
+      ? value.acceptedRunId
+      : failAssumption();
+  const acceptedBriefRevision = value.acceptedBriefRevision === undefined || value.acceptedBriefRevision === null
+    ? undefined
+    : typeof value.acceptedBriefRevision === "number" && Number.isSafeInteger(value.acceptedBriefRevision) && value.acceptedBriefRevision > 0
+      ? value.acceptedBriefRevision
+      : failAssumption();
+  if (phase === "accepted" || phase === "adopted") {
+    if (!acceptedRunId) failAssumption();
+  } else if (acceptedRunId !== undefined || acceptedBriefRevision !== undefined) {
+    failAssumption();
+  }
   return {
-    parentRunId: value.parentRunId,
-    action: value.action,
+    parentRunId,
+    action,
     ...(values ? { values } : {}),
-    expectedBriefRevision: value.expectedBriefRevision,
+    expectedBriefRevision,
     idempotencyKey: value.idempotencyKey,
-    requestId,
-    payloadDigest,
+    requestId: value.requestId,
+    payloadDigest: value.payloadDigest,
     phase,
     ...(acceptedRunId ? { acceptedRunId } : {}),
     ...(acceptedBriefRevision ? { acceptedBriefRevision } : {}),
@@ -160,14 +183,20 @@ export function bindPendingAssumptions(pending: PendingAssumptions | null | unde
   values?: string[];
   expectedBriefRevision: number;
 }): PendingAssumptions {
-  const next = preparePendingAssumptions(args);
-  if (unresolvedAssumptions(pending)) {
-    if (pending!.idempotencyKey !== next.idempotencyKey) {
+  // Every extant durable record is parsed before deciding whether it is terminal.
+  // Incomplete legacy records cannot prove request identity and are not migrated.
+  const restored = pending == null ? null : readPendingAssumptions(pending);
+  if (unresolvedAssumptions(restored)) {
+    const values = (args.values ?? []).map((row) => row.trim()).filter(Boolean);
+    const digestValues = args.action === "replace" ? values : [];
+    const expectedDigest = assumptionsPayloadDigest(args.parentRunId, args.expectedBriefRevision, args.action, digestValues);
+    const expectedKey = mutatingAssumptionsKey(args.parentRunId, args.expectedBriefRevision, args.action, digestValues);
+    if (restored!.payloadDigest !== expectedDigest || restored!.idempotencyKey !== expectedKey) {
       throw new Error("Retry the saved assumption change before sending a different request.");
     }
-    return readPendingAssumptions(pending)!;
+    return restored!;
   }
-  return next;
+  return preparePendingAssumptions(args);
 }
 
 function withAssumptionsPhase(

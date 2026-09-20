@@ -19,6 +19,8 @@ import {
 import { createSessionStorage, memoryStore } from "../src/persist";
 import { readPendingQueryAuthorization } from "../src/query-authorization";
 import { emptyState, startNewResearch } from "../src/state";
+import { preparePendingAssumptions, readPendingAssumptions } from "../src/pending-input";
+import { preparePendingCorrection, readPendingCorrection } from "../src/correction-draft";
 
 const SNAPSHOT_KEY = "deep.ui.v2";
 const ACCOUNT = "acct-a";
@@ -558,12 +560,32 @@ describe("BB-03 controls", () => {
     expect(FOLLOW_UP_JOURNAL_PHASES).toEqual(["prepared", "sent", "accepted", "adopted", "rejected", "withdrawn"]);
   });
 
-  it("documents sibling assumption/correction coerce until AG07; this wave does not gate on them", () => {
-    const assumptions = readFileSync(join(import.meta.dirname, "../src/pending-input.ts"), "utf8");
-    const correction = readFileSync(join(import.meta.dirname, "../src/correction-draft.ts"), "utf8");
-    expect(assumptions).toContain("value.payloadDigest.length === 64");
-    expect(correction).toContain("value.payloadDigest.length === 64");
-    expect(assumptions).toContain("newFollowUpRequestId()");
-    expect(correction).toContain("newFollowUpRequestId()");
+  it("sibling parsers reject missing immutable identities and unknown phases instead of coercing them", () => {
+    const assumptions = preparePendingAssumptions({
+      parentRunId,
+      action: "replace",
+      values: ["Quiet fans"],
+      expectedBriefRevision,
+      requestId,
+    });
+    const correction = preparePendingCorrection({
+      parentRunId,
+      question: "Compare battery life in cold weather",
+      expectedBriefRevision,
+      evidencePolicy: "reuse_snapshot",
+      requestId,
+    });
+    for (const row of [assumptions, correction]) {
+      const missingRequest = { ...row } as Record<string, unknown>;
+      delete missingRequest.requestId;
+      const unknownPhase = { ...row, phase: "posting" };
+      if ("action" in row) {
+        expect(() => readPendingAssumptions(missingRequest)).toThrow(/Device cleanup/);
+        expect(() => readPendingAssumptions(unknownPhase)).toThrow(/Device cleanup/);
+      } else {
+        expect(() => readPendingCorrection(missingRequest)).toThrow(/Device cleanup/);
+        expect(() => readPendingCorrection(unknownPhase)).toThrow(/Device cleanup/);
+      }
+    }
   });
 });

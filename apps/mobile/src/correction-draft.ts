@@ -59,11 +59,17 @@ export type PendingCorrection = {
 };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const hexDigest = /^[a-f0-9]{64}$/;
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const correctionKeys = [
   "parentRunId", "question", "expectedBriefRevision", "evidencePolicy", "idempotencyKey",
   "requestId", "payloadDigest", "phase", "acceptedRunId", "acceptedBriefRevision",
 ];
+const CORRECTION_DEVICE_CLEANUP = "Saved correction request is invalid. Device cleanup is required before new research.";
+
+function failCorrection(): never {
+  throw new Error(CORRECTION_DEVICE_CLEANUP);
+}
 
 export function correctionPayloadDigest(
   runId: string,
@@ -94,33 +100,45 @@ export function unresolvedCorrection(pending: PendingCorrection | null | undefin
 
 export function readPendingCorrection(value: unknown): PendingCorrection | null {
   if (value == null) return null;
-  if (!record(value) || Object.keys(value).some((k) => !correctionKeys.includes(k)) ||
-      typeof value.parentRunId !== "string" || !uuid.test(value.parentRunId) ||
-      typeof value.question !== "string" || !value.question.trim() || value.question.length > 20_000 ||
-      typeof value.expectedBriefRevision !== "number" || !Number.isSafeInteger(value.expectedBriefRevision) || value.expectedBriefRevision <= 0 ||
-      (value.evidencePolicy !== "reuse_snapshot" && value.evidencePolicy !== "refresh") ||
-      typeof value.idempotencyKey !== "string" || !value.idempotencyKey.trim() || value.idempotencyKey.length > 200)
-    throw new Error("Saved correction request is invalid. Device cleanup is required before new research.");
+  if (!record(value) || Object.keys(value).some((k) => !correctionKeys.includes(k))) failCorrection();
+  if (typeof value.parentRunId !== "string" || !uuid.test(value.parentRunId)) failCorrection();
+  if (typeof value.question !== "string" || !value.question.trim() || value.question.trim().length > 20_000) failCorrection();
+  if (typeof value.expectedBriefRevision !== "number" || !Number.isSafeInteger(value.expectedBriefRevision) || value.expectedBriefRevision <= 0) failCorrection();
+  if (value.evidencePolicy !== "reuse_snapshot" && value.evidencePolicy !== "refresh") failCorrection();
+  if (typeof value.idempotencyKey !== "string" || !value.idempotencyKey.trim() || value.idempotencyKey.length > 200) failCorrection();
+  if (typeof value.requestId !== "string" || !uuid.test(value.requestId)) failCorrection();
+  if (typeof value.payloadDigest !== "string" || !hexDigest.test(value.payloadDigest)) failCorrection();
+  if (typeof value.phase !== "string" || !FOLLOW_UP_JOURNAL_PHASES.includes(value.phase as FollowUpJournalPhase)) failCorrection();
   const question = value.question.trim();
-  const payloadDigest = typeof value.payloadDigest === "string" && value.payloadDigest.length === 64
-    ? value.payloadDigest
-    : correctionPayloadDigest(value.parentRunId, value.expectedBriefRevision, question, value.evidencePolicy);
-  const requestId = typeof value.requestId === "string" && uuid.test(value.requestId) ? value.requestId : newFollowUpRequestId();
-  const phase = FOLLOW_UP_JOURNAL_PHASES.includes(value.phase as FollowUpJournalPhase)
-    ? value.phase as FollowUpJournalPhase
-    : "prepared";
-  const acceptedRunId = typeof value.acceptedRunId === "string" && uuid.test(value.acceptedRunId) ? value.acceptedRunId : undefined;
-  const acceptedBriefRevision = typeof value.acceptedBriefRevision === "number" && Number.isSafeInteger(value.acceptedBriefRevision) && value.acceptedBriefRevision > 0
-    ? value.acceptedBriefRevision
-    : undefined;
+  const parentRunId = value.parentRunId;
+  const expectedBriefRevision = value.expectedBriefRevision;
+  const evidencePolicy = value.evidencePolicy;
+  if (value.payloadDigest !== correctionPayloadDigest(parentRunId, expectedBriefRevision, question, evidencePolicy)) failCorrection();
+  if (value.idempotencyKey !== mutatingCorrectionKey(parentRunId, expectedBriefRevision, question, evidencePolicy)) failCorrection();
+  const phase = value.phase as FollowUpJournalPhase;
+  const acceptedRunId = value.acceptedRunId === undefined || value.acceptedRunId === null
+    ? undefined
+    : typeof value.acceptedRunId === "string" && uuid.test(value.acceptedRunId)
+      ? value.acceptedRunId
+      : failCorrection();
+  const acceptedBriefRevision = value.acceptedBriefRevision === undefined || value.acceptedBriefRevision === null
+    ? undefined
+    : typeof value.acceptedBriefRevision === "number" && Number.isSafeInteger(value.acceptedBriefRevision) && value.acceptedBriefRevision > 0
+      ? value.acceptedBriefRevision
+      : failCorrection();
+  if (phase === "accepted" || phase === "adopted") {
+    if (!acceptedRunId) failCorrection();
+  } else if (acceptedRunId !== undefined || acceptedBriefRevision !== undefined) {
+    failCorrection();
+  }
   return {
-    parentRunId: value.parentRunId,
+    parentRunId,
     question,
-    expectedBriefRevision: value.expectedBriefRevision,
-    evidencePolicy: value.evidencePolicy,
+    expectedBriefRevision,
+    evidencePolicy,
     idempotencyKey: value.idempotencyKey,
-    requestId,
-    payloadDigest,
+    requestId: value.requestId,
+    payloadDigest: value.payloadDigest,
     phase,
     ...(acceptedRunId ? { acceptedRunId } : {}),
     ...(acceptedBriefRevision ? { acceptedBriefRevision } : {}),
@@ -155,14 +173,18 @@ export function bindPendingCorrection(pending: PendingCorrection | null | undefi
   expectedBriefRevision: number;
   evidencePolicy: "reuse_snapshot" | "refresh";
 }): PendingCorrection {
-  const next = preparePendingCorrection(args);
-  if (unresolvedCorrection(pending)) {
-    if (pending!.idempotencyKey !== next.idempotencyKey) {
+  // Parse before inspecting phase so malformed or ambiguous records can never
+  // be bypassed by creating a new request with a fresh identity.
+  const restored = pending == null ? null : readPendingCorrection(pending);
+  if (unresolvedCorrection(restored)) {
+    const expectedDigest = correctionPayloadDigest(args.parentRunId, args.expectedBriefRevision, args.question, args.evidencePolicy);
+    const expectedKey = mutatingCorrectionKey(args.parentRunId, args.expectedBriefRevision, args.question, args.evidencePolicy);
+    if (restored!.payloadDigest !== expectedDigest || restored!.idempotencyKey !== expectedKey) {
       throw new Error("Retry the saved correction before sending a different request.");
     }
-    return readPendingCorrection(pending)!;
+    return restored!;
   }
-  return next;
+  return preparePendingCorrection(args);
 }
 
 function withCorrectionPhase(
