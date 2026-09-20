@@ -175,7 +175,7 @@ export function ResearchActivity({
   const visible = visibleResearchEvents(events);
   const collapsed = collapseResearchActivity({ events, lifecycle, outcome });
   const current = visible.at(-1)?.label ?? currentActivityLine([]);
-  const elapsed = inProgress && lifecycle !== "cancelling" ? runningElapsedLabel(events, nowMs) : null;
+  const elapsed = inProgress && lifecycle === "running" ? runningElapsedLabel(events, nowMs) : null;
   const pills = inProgress ? visibleLiveSourcePills(liveSourcePillsFromEvents(events)) : { visible: [], overflow: 0 };
   const sections = researchTraceSections(visible);
   if (!inProgress && visible.length === 0) return null;

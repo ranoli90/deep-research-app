@@ -2,6 +2,10 @@
 
 `grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. Composer optical sizes (52pt dock, 36px send, 44px hit, 4-line cap), live Research Trace (phase groups from public-activity.v1, row/collapse motion, follow-latest unless the user scrolls up), long-report TOC, quote-first sheet with `Technical details ›`, Library preview/share, Settings 56pt rows + Help/About. **No new dependencies.** `pnpm --filter @deep/mobile test` **300/300**. Typecheck 0. **Not merged to `main`.** No APK; native screenshots remain a parent-owned visual loop. Rollback: revert this feat(mobile) commit.
 
+## Phase B consumer chrome — 2026-09-19
+
+SHA **`8266c91`** plus elapsed-clock fix on this commit. Product-state map, composer/trace/report/library chrome, no new UI libraries. Mobile **300/300**. EAS Android `device` **`d06aa7f7-0ff9-4546-873f-b824dfda29bb`** FINISHED; APK sha256 `4c678aef…` installed on `10.0.0.167:43417`. Captures: empty home, library, settings, clarification. UI DoD **not** closed (IME, dark, report, Gboard). **Not merged to `main`.**
+
 ## Phase B product-state map — 2026-09-19
 
 Phase A gate held at engineering SHA `f627b2b` (docs `3c8383e`). Product-state → UI-state map is `verification/v8/phase-b/PRODUCT_STATE_UI.md`. Composer placeholders and collapsed Research Trace copy follow specs 14–15. Mobile 292/292. **Not merged to `main`.** No new APK yet. Native visual loop not done.
