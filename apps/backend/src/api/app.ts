@@ -363,57 +363,66 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
     const body = parsedBody.data;
-    if (run.pending_input_type !== "clarification" || run.pending_input_id !== body.pendingInputId || run.brief_revision !== body.expectedBriefRevision)
-      return reply.code(409).send(err("stale_revision", "This answer does not match the pending clarification.", crypto.randomUUID()));
-    const pendingField = pendingClarificationField(run.pending_input_field);
-    if (!pendingField) {
-      return reply.code(409).send(err("stale_revision", "Refresh this clarification. The pending field must be reissued.", crypto.randomUUID()));
+    try {
+      await withTx(pool, async (db) => {
+        await lockActiveAccount(db, a.accountId);
+        const current = await getRun(db, id, { forUpdate: true });
+        if (!current || current.account_id !== a.accountId) {
+          throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+        }
+        if (current.lifecycle !== "awaiting_input" || current.pending_input_type !== "clarification" || current.pending_input_id !== body.pendingInputId || current.brief_revision !== body.expectedBriefRevision) {
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+        }
+        const pendingField = pendingClarificationField(current.pending_input_field);
+        if (!pendingField) {
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409, code: "stale_revision", message: "Refresh this clarification. The pending field must be reissued." });
+        }
+        const accepted = clarificationAnswersFromContinue(body, pendingField);
+        if (!accepted.ok) {
+          const message = accepted.reason === "extra_field"
+            ? "Answer only the pending clarification field."
+            : accepted.reason === "conflicting_values"
+              ? "Conflicting answers for the pending field are not accepted."
+              : "A material clarification answer is required to continue.";
+          throw Object.assign(new Error("invalid_input"), { statusCode: 400, message });
+        }
+        const parsedAnswers = accepted.answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
+        if (parsedAnswers.some((row) => !row.ok)) {
+          throw Object.assign(new Error("invalid_input"), { statusCode: 400 });
+        }
+        const brief = await getBrief(db, current.brief_id);
+        const originalQuestion = brief.originalQuestion;
+        let constraints = [...brief.constraints];
+        for (const parsed of parsedAnswers) {
+          if (!parsed.ok) continue;
+          constraints = [...constraints.filter((c) => c.field !== parsed.constraint.field), parsed.constraint];
+        }
+        await commitBriefRevision(db, {
+          accountId: a.accountId,
+          runId: id,
+          expectedRevision: current.brief_revision,
+          originalQuestion,
+          next: { ...brief, originalQuestion, constraints },
+        });
+        await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
+        await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
+          ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
+            lease_until = NULL, next_attempt_at = now()`, [id]);
+        await emitEvent(db, {
+          runId: id,
+          accountId: a.accountId,
+          type: "clarification_answered",
+          summary: "Clarification recorded. Research will continue.",
+          phase: "preparing",
+        });
+      });
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode ?? 500;
+      if (status === 404) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (status === 409) return reply.code(409).send(err("stale_revision", (e as Error).message === "Refresh this clarification. The pending field must be reissued." ? (e as Error).message : "This answer does not match the pending clarification.", crypto.randomUUID()));
+      if (status === 400) return reply.code(400).send(err("invalid_input", (e as Error).message && (e as Error).message !== "invalid_input" ? (e as Error).message : "A material clarification answer is required to continue.", crypto.randomUUID()));
+      throw e;
     }
-    const accepted = clarificationAnswersFromContinue(body, pendingField);
-    if (!accepted.ok) {
-      const message = accepted.reason === "extra_field"
-        ? "Answer only the pending clarification field."
-        : accepted.reason === "conflicting_values"
-          ? "Conflicting answers for the pending field are not accepted."
-          : "A material clarification answer is required to continue.";
-      return reply.code(400).send(err("invalid_input", message, crypto.randomUUID()));
-    }
-    const parsedAnswers = accepted.answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
-    if (parsedAnswers.some((row) => !row.ok)) {
-      return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
-    }
-    const brief = await getBrief(pool, run.brief_id);
-    const originalQuestion = brief.originalQuestion;
-    let constraints = [...brief.constraints];
-    for (const parsed of parsedAnswers) {
-      if (!parsed.ok) continue;
-      constraints = [...constraints.filter((c) => c.field !== parsed.constraint.field), parsed.constraint];
-    }
-    await withTx(pool, async (db) => {
-    await lockActiveAccount(db, a.accountId);
-    const current = await getRun(db, id, { forUpdate: true });
-    if (!current || current.account_id !== a.accountId || current.lifecycle !== "awaiting_input" || current.brief_revision !== body.expectedBriefRevision || current.pending_input_id !== body.pendingInputId || current.pending_input_type !== "clarification") {
-      throw Object.assign(new Error("This run is no longer waiting for this input."), { statusCode: 409 });
-    }
-    await commitBriefRevision(db, {
-      accountId: a.accountId,
-      runId: id,
-      expectedRevision: current.brief_revision,
-      originalQuestion,
-      next: { ...brief, originalQuestion, constraints },
-    });
-    await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
-    await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
-      ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
-        lease_until = NULL, next_attempt_at = now()`, [id]);
-    await emitEvent(db, {
-      runId: id,
-      accountId: a.accountId,
-      type: "clarification_answered",
-      summary: "Clarification recorded. Research will continue.",
-      phase: "preparing",
-    });
-    });
     await tryDispatchRun(pool, boss, id);
     return { runId: id, lifecycle: "queued" };
   });

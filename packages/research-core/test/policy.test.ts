@@ -85,6 +85,17 @@ describe("R02 geography in search query", () => {
     expect(d.type).toBe("search");
     expect(String(d.arguments.query)).toMatch(/france/i);
   });
+
+  it("puts a confirmed budget into the public query without rewriting originalQuestion", () => {
+    const b = brief("Compare managed Postgres options in Germany under 50 EUR as of 2026-03-01");
+    b.constraints = [{
+      id: "budget", field: "budget", operator: "lte", value: "120", units: "EUR",
+      origin: "confirmed", importance: "hard", explanation: "Corrected budget to 120 EUR",
+    }];
+    const s = state({ brief: b, constraints: b.constraints, phase: "researching" });
+    expect(b.originalQuestion).not.toMatch(/120/);
+    expect(queryWithGeography(s, b.originalQuestion)).toMatch(/120 EUR/);
+  });
 });
 
 describe("E02 support", () => {

@@ -6,14 +6,22 @@ export function saturationReached(searches: SearchTrace[]): boolean {
   return last.every((s) => s.newFamilies === 0 && !s.coverageProgress);
 }
 
-/** Geography/jurisdiction values that may enter a public query without rewriting originalQuestion. */
-export function confirmedPublicQueryTerms(constraints: { field: string; value: string; origin?: string }[]): string[] {
+/** Confirmed values that may enter a public query without rewriting originalQuestion. */
+export function confirmedPublicQueryTerms(constraints: { field: string; value: string; units?: string; origin?: string }[]): string[] {
   const terms: string[] = [];
   for (const c of constraints) {
     if (c.origin !== "confirmed") continue;
-    if (c.field !== "geography" && c.field !== "jurisdiction") continue;
-    const value = String(c.value ?? "").trim();
-    if (value && !terms.some((t) => t.toLowerCase() === value.toLowerCase())) terms.push(value);
+    if (c.field === "geography" || c.field === "jurisdiction") {
+      const value = String(c.value ?? "").trim();
+      if (value && !terms.some((t) => t.toLowerCase() === value.toLowerCase())) terms.push(value);
+      continue;
+    }
+    if (c.field === "budget") {
+      const value = String(c.value ?? "").trim();
+      const units = String(c.units ?? "").trim();
+      const term = [value, units].filter(Boolean).join(" ");
+      if (term && !terms.some((t) => t.toLowerCase() === term.toLowerCase())) terms.push(term);
+    }
   }
   return terms;
 }
