@@ -16,6 +16,7 @@ export async function validateOwnedModelContext(db: Queryable, args: {
   if (args.historical ? run.evidence_revision < args.evidenceRevision : run.evidence_revision !== args.evidenceRevision) throw new Error("stale_model_context");
   if(args.context.evidenceSelection)await validateSelectionContext(db,{...args,selection:args.context.evidenceSelection,passageIds:args.context.passages.map(p=>p.id)});
   if(args.context.scopeComparison) {
+    if(args.context.assertions.length<2)throw new Error("model_scope_comparison_mismatch");
     const computed=compareAssertionScopes({type:"compare_scopes",claimKeys:args.context.assertions.map(a=>a.key)},args.context.assertions);
     const expected=args.context.scopeComparison.version==="scope-comparison-context.v1"?projectScopeComparison(computed,args.context.assertions):computed;
     if(JSON.stringify(expected)!==JSON.stringify(args.context.scopeComparison))throw new Error("model_scope_comparison_mismatch");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSectionContexts, planHierarchicalWrite } from "@deep/research-core";
+import { canonicalSectionContexts, compareAssertionScopes, planHierarchicalWrite, projectScopeComparison } from "@deep/research-core";
 
 const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
 const assertions = [
@@ -33,6 +33,48 @@ describe("ENG-032 canonical section write/restore", () => {
     expect(write[0]?.assertions).toHaveLength(1);
     expect(write[1]?.assertions).toHaveLength(1);
     expect(JSON.stringify(write)).toEqual(JSON.stringify(restore));
+  });
+
+  it("drops job-level scope comparison from singleton section writes and restore matches", () => {
+    const result = compareAssertionScopes({ type: "compare_scopes", claimKeys: ["a1", "a2"] }, assertions);
+    const basis = {
+      approvedClaimKeys: ["a1", "a2"],
+      assertions,
+      scopeComparison: projectScopeComparison(result, assertions),
+    };
+    const plan = planHierarchicalWrite({ task: task as never, approvedClaimKeys: basis.approvedClaimKeys, assertions });
+    const write = canonicalSectionContexts(basis, plan);
+    const restore = canonicalSectionContexts(basis, plan);
+    expect(write.every((ctx) => ctx.assertions.length === 1 && ctx.scopeComparison === undefined)).toBe(true);
+    expect(JSON.stringify(write)).toEqual(JSON.stringify(restore));
+  });
+
+  it("reprojects scope comparison onto a section that still has two claims", () => {
+    const shared = [
+      { ...assertions[0]!, key: "a1", criterionKeys: ["c1"] },
+      { ...assertions[0]!, key: "a1b", criterionKeys: ["c1"] },
+      assertions[1]!,
+    ];
+    const result = compareAssertionScopes({ type: "compare_scopes", claimKeys: shared.map((a) => a.key) }, shared);
+    const basis = {
+      approvedClaimKeys: shared.map((a) => a.key),
+      assertions: shared,
+      scopeComparison: projectScopeComparison(result, shared),
+    };
+    const plan = planHierarchicalWrite({ task: task as never, approvedClaimKeys: basis.approvedClaimKeys, assertions: shared });
+    const write = canonicalSectionContexts(basis, plan);
+    const twoClaim = write.find((ctx) => ctx.assertions.length === 2);
+    const oneClaim = write.find((ctx) => ctx.assertions.length === 1);
+    expect(twoClaim).toBeDefined();
+    expect(oneClaim).toBeDefined();
+    expect(twoClaim?.scopeComparison).toEqual(
+      projectScopeComparison(
+        compareAssertionScopes({ type: "compare_scopes", claimKeys: twoClaim!.assertions.map((a) => a.key) }, [...twoClaim!.assertions]),
+        [...twoClaim!.assertions],
+      ),
+    );
+    expect(oneClaim?.scopeComparison).toBeUndefined();
+    expect(JSON.stringify(write)).toEqual(JSON.stringify(canonicalSectionContexts(basis, plan)));
   });
 
   it("keeps a one-question draft on the single-write path", () => {
