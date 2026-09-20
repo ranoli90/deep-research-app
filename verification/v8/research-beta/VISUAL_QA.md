@@ -1,3 +1,35 @@
+# Native visual QA — APK 45ccf87 / EAS e84cccbb
+
+Device: `10.0.0.167:43417` (kunzite_global / 25098RA98G), package `app.deepresearch.mobile`.
+EAS: `e84cccbb-02e0-4386-b125-733c303a04c1` profile `device` git `45ccf874e280532a592898d9db9fa1066ffe8a67`.
+APK sha256: `baf4f06ad0a3328b1ae7190db2a4b39e038c5e6c1778fcd057ff8020036c9cb5`
+Install: `adb install -r` Success. Shots: `verification/v8/research-beta/visual-qa/v8-phase-b-45ccf87/`.
+font_scale restored to `1.0`. adb reverse `tcp:8787` → `8788`.
+
+HEAD `ae395ef` (TOC 1800/12) is **not** this APK. Historical `435d1bf` / `1021057` / `b3e3a82` are not this SHA.
+
+## Matrix
+
+| Shot | File | Verdict |
+|---|---|---|
+| empty light | v8-phase-b-45ccf87/07-empty-light.png | Compact composer, “Ask anything.”, examples. Not giant display type. |
+| keyboard | v8-phase-b-45ccf87/08-keyboard-ime.png | Composer above Gboard suggestion strip; send fully visible. |
+| Library | v8-phase-b-45ccf87/02-library-dark.png | Paper field; sentence-case meta; newline titles collapsed. |
+| Settings | v8-phase-b-45ccf87/06-settings-light.png | Grouped Appearance/Privacy; native-feeling. |
+| clarification | v8-phase-b-45ccf87/01-clarification-dark.png | Composer hidden; no stale elapsed. Generic prompt (not jurisdiction). |
+| expanded activity | v8-phase-b-45ccf87/04-expanded-activity-dark.png | Real phases; duplicate understood-the-question collapsed. |
+| completed report | v8-phase-b-45ccf87/03-completed-report-dark.png | Answer-first; `[1]`; chevron-only collapse. TOC still present on this 8-block fixture report. |
+| source sheet | v8-phase-b-45ccf87/05-source-sheet-dark.png | Quote first; unknown date not current; Technical details collapsed. |
+| offline | v8-phase-b-b3e3a82/17-offline-dark.png | “You're offline. Retry”; draft kept (same copy on 45ccf87). |
+
+## Ruthless review
+
+Does **not** look like a default React Native prototype. Remaining: short-report TOC (fixed in `ae395ef`, not this APK), generic clarification prompt, fixture Sample labels, iOS.
+
+Research Beta is not declared. No competitor-superiority claim.
+
+## Prior APK 1021057 / EAS 5f4cd0e7 (not HEAD)
+
 # Native visual QA — APK 1021057 / EAS 5f4cd0e7
 
 Device: `10.0.0.167:43417` (kunzite_global / 25098RA98G), package `app.deepresearch.mobile`.

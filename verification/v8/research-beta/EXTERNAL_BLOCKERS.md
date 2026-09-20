@@ -35,7 +35,7 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 ## 3. Physical Android latest-SHA APK
 
-EAS `5f4cd0e7` git `1021057` APK installed `adb install -r` 2026-09-19 11:46:18 on `10.0.0.167:43417`. Full v8k matrix captured. Remaining: hosted GitHub Actions owner-declined; J8 private attachment.
+EAS `e84cccbb` git `45ccf87` sha256 `baf4f06a…` installed `adb install -r` on `10.0.0.167:43417`. Captures in `visual-qa/v8-phase-b-45ccf87/`. HEAD `ae395ef` TOC gate is not that APK. iOS not available. Remaining: hosted GitHub Actions owner-declined; J8 private attachment; live J11 writer not rerun (MC-D01 hold / remaining-cap).
 
 ## After remaining blockers
 

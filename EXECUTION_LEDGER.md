@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-19 — Phase B native loop on 45ccf87 APK
+
+- Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend.
+- EAS `e84cccbb-02e0-4386-b125-733c303a04c1` git `45ccf874e280532a592898d9db9fa1066ffe8a67` FINISHED. APK sha256 `baf4f06ad0a3328b1ae7190db2a4b39e038c5e6c1778fcd057ff8020036c9cb5`. `adb install -r` Success on `10.0.0.167:43417`.
+- Device: IME send visible; Library sentence-case meta; chevron-only collapse; consecutive identical labels gone; quote-first sheet; empty light/dark; clarification composer hidden (generic prompt); offline Retry on prior APK.
+- `pnpm --filter @deep/mobile test` **303/303**. HEAD `ae395ef` raises TOC to 1800 chars / 12 blocks after the 8-block fixture report still showed a TOC.
+- Rollback: revert the feat/fix(mobile) commits. Do not treat `435d1bf` / `b3e3a82` APKs as this SHA.
+
 ## 2026-09-19 — Phase B remaining consumer chrome
 
 - Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend. No EAS.
