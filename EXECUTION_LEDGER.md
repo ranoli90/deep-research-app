@@ -1,5 +1,16 @@
 # Execution ledger
 
+## 2026-09-20 — REC-01/REC-02 isolated recovery and semantic test union
+
+- Refreshed origin without moving branches: main `d89afe3`, integration/base `bb80cfd`, parser refs `fa24808`/`b818a1c` with identical tree `95a68b6`, BB-02 `3116f6e`, independent tests `8debb14`; all 12 older side tips remain integration ancestors.
+- Created `/home/oranolio/Desktop/deep-v8-recovery-20260920` on local `codex/v8-recovery-20260920`. Source branches, main, existing worktrees and active services were not changed or pushed.
+- Imported independent commits `065d77f`/`8debb14`, renamed the three collisions at 100% similarity, then imported one parser commit (`b818a1c`) and BB-02 tests/implementation (`55ea76c`/`3116f6e`). Functional head `f358fd5`, tree `fb7ce593`; all seven source-test blobs match their source refs and both sides are discovered.
+- Dirty `codex/phase-a-state@73d5526`: exactly `apps/backend/src/api/app.ts` and `apps/backend/test/model-gateway.integration.test.ts`; both edits are already semantically present on integration, so neither was imported or modified. Preserved 18 unique untracked visual-QA files in the integration checkout and active listeners 8787/8788/8790.
+- Offline setup: `pnpm install --offline --frozen-lockfile --ignore-scripts`, EXIT 0, zero downloads. Core tests **386/386**, EXIT 0. Mobile tests **443 pass / 10 fail / 1 skip**, EXIT 1; all failures are retained BB-01 accepted-child handoff/recovery cases.
+- `pnpm typecheck`, EXIT 2: packages pass; backend collision suites retain return-shape inference errors for `searchQueries`/`readUrls`. Focused fabricated-transport PostgreSQL on unique DB `deep_rec02_20260920_1737`: implementation suite **4/4**, independent suite **3/6**; BB02-02/03/08 remain red because needs are incorrectly satisfied. No live/provider/network spend.
+- Independent review approved REC-02 preservation only. It requires positive sibling-parser behavior, corrected employee/`now` semantics with historical-as-of controls, compound-obligation evidence needs, and real persisted-v2 resume immutability before behavioral acceptance.
+- Artifact: `verification/v8/recovery-rec01-rec02/RESULTS.json`. Rollback reverts only the local recovery commits in reverse order while preserving source refs, dirty lanes, evidence, holds and all fail-closed gates.
+
 ## 2026-09-20 — R-05 deepen investigation + synthetic J8/J11 production
 
 - Deepen child keeps `originalQuestion` and writes `investigationInstruction` onto `desiredOutcome`.

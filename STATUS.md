@@ -1,3 +1,11 @@
+## REC-01/REC-02 recovery union — 2026-09-20
+
+Isolated branch `codex/v8-recovery-20260920` was created from refreshed integration `bb80cfd2d2a3b14e224e516b165871fc60e58105`. Main remains `d89afe3d8ae4c57682cb603d79c2c23605c4e9e0` and was not edited. `fa24808` and `b818a1c` share tree `95a68b6`; only the correctly named `b818a1c` BB-03 parser patch was imported. BB-02 commits `55ea76c`/`3116f6e` and independent tests `065d77f`/`8debb14` are staged. The three add/add suites coexist under implementation and `.independent` names with their original blobs and discoverable Vitest suffixes; independent review approved recovery preservation.
+
+Functional/test-union head is `f358fd597fc7272a8203284ad5ac8bc549a7b5fc` (tree `fb7ce593`). Deterministic evidence is intentionally red: core **386/386**; mobile **443 pass / 10 BB-01 fail / 1 skip**; focused isolated PostgreSQL **7 pass / 3 BB-02 fail** on `deep_rec02_20260920_1737`; workspace typecheck exits 2 on candidate-test harness return-shape inference in both backend collision suites. The three worker failures falsely mark unresolved needs satisfied. No assertion was weakened, no paid/live call ran, and active services/shared databases were not used.
+
+The dirty `codex/phase-a-state` files were inspected read-only and left untouched; both two-line edits already exist semantically in integration. Main dirt, 18 unique integration visual-QA artifacts, source branches, stale worktree metadata, active ports 8787/8788/8790, and the MC-D01 hold are preserved. REC-02 is review-ready as a recovery union, not as accepted behavior. BB-01/02/03 implementation lanes must replace the parser anti-fix/skip with sibling behavioral coverage, correct present-tense employee/`now` semantics while retaining historical-as-of controls, add compound-obligation and persisted-v2 replay coverage, and turn the retained reds green on the integrated candidate. Exact inventory, commands and rollback: `verification/v8/recovery-rec01-rec02/RESULTS.json`.
+
 ## R-05 deepen investigation + synthetic J8/J11 production — 2026-09-20
 
 Isolated worktree from `9677232`. **Not merged to `main` (`8a7b1a9`).** No GHA. No live OpenRouter. Research Beta is not declared.

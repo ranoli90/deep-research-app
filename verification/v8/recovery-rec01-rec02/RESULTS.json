@@ -1,0 +1,175 @@
+{
+  "schema": "recovery-integration-results.v1",
+  "generatedAt": "2026-09-20T17:41:06-06:00",
+  "requirements": [
+    "REC-01",
+    "REC-02"
+  ],
+  "evidenceClass": "local deterministic recovery and test-union evidence",
+  "repository": "ranoli90/deep-research-app",
+  "worktree": {
+    "path": "/home/oranolio/Desktop/deep-v8-recovery-20260920",
+    "branch": "codex/v8-recovery-20260920",
+    "base": "bb80cfd2d2a3b14e224e516b165871fc60e58105",
+    "functionalHead": "f358fd597fc7272a8203284ad5ac8bc549a7b5fc",
+    "functionalTree": "fb7ce593aa6a8deaaa83e26ed48545601cb2ae32"
+  },
+  "refInventoryAfterFetch": {
+    "main": "d89afe3d8ae4c57682cb603d79c2c23605c4e9e0",
+    "integration": "bb80cfd2d2a3b14e224e516b165871fc60e58105",
+    "bb01MisnamedParser": "fa24808fe5605823409eb68fdef4f26d99e5d06b",
+    "bb03Parser": "b818a1c07354b78d30cd8ed88bf1d37a36dfa70f",
+    "bb02Candidate": "3116f6e88074b51cd8f222e775ffcb2fdb8d4d9d",
+    "independentTests": "8debb14cd574e7fd566a3a0c56a5e27c8fb5ac92",
+    "duplicateParserTree": "95a68b6db1509982c8bd0f766329f9b79dbd7285",
+    "duplicateTreeVerified": true,
+    "olderSideTipsChecked": 12,
+    "olderSideTipsAllAncestorsOfIntegration": true
+  },
+  "preservedLocalState": {
+    "mainWorktree": "Dirty before recovery; left untouched.",
+    "integrationWorktree": "Two unique untracked visual-QA directories with 18 files were left untouched; active services/listeners on ports 8788 and 8790 were not disturbed.",
+    "v7ProductWorktree": "Active listener on port 8787 was not disturbed.",
+    "phaseAState": {
+      "path": "/home/oranolio/Desktop/deep-phase-a-state",
+      "branch": "codex/phase-a-state",
+      "head": "73d55263ef6006bf06c525d02e44330934dfeee7",
+      "dirtyFiles": [
+        "apps/backend/src/api/app.ts",
+        "apps/backend/test/model-gateway.integration.test.ts"
+      ],
+      "fileMtime": "2026-09-19T17:25:21-06:00",
+      "activeOwnerProcessObserved": false,
+      "assessment": "Both uncommitted two-line changes are already represented semantically on integration: statusCode < 600 is equivalent to <= 599, and the briefContext-bound replay call is present. Nothing was copied, reset, stashed, cleaned, or modified."
+    },
+    "staleWorktreeMetadata": "Six missing /tmp worktrees remained prunable and were not cleaned.",
+    "bb03TemporaryCheckout": "Its untracked parser test is blob-identical to the independent branch and was not imported separately."
+  },
+  "integration": {
+    "sourceCommits": [
+      "065d77fd820207e5acccf6f827daf62ac7c72d18",
+      "8debb14cd574e7fd566a3a0c56a5e27c8fb5ac92",
+      "b818a1c07354b78d30cd8ed88bf1d37a36dfa70f",
+      "55ea76c4d3d80b38bddce16f453ce60d38b42d1f",
+      "3116f6e88074b51cd8f222e775ffcb2fdb8d4d9d"
+    ],
+    "localCommits": [
+      "8e72974",
+      "917494e",
+      "bc8a7f7",
+      "95f1696",
+      "c3af519",
+      "f358fd5"
+    ],
+    "parserSource": "b818a1c07354b78d30cd8ed88bf1d37a36dfa70f",
+    "misnamedDuplicateImported": false,
+    "collisionResolution": "The three independent suites were renamed at 100% similarity before applying implementation suites at their canonical paths. No assertion was edited or deleted.",
+    "testBlobs": {
+      "mobileImplementation": "2ae79a06927c89538667bf3cfb1e72e1b069a514",
+      "mobileIndependent": "d0e62871ea101145ebc7d26d1810ae676f92b726",
+      "mobileBb01Guard": "909307eff8c768a3982856705c7b76ded456f83a",
+      "coreImplementation": "098831c8851ac76159d2de271f09e6a51c719420",
+      "coreIndependent": "1d4dea23dfcf922091882637ee0ecda49c4ad375",
+      "backendImplementation": "bd8c287c4423f658f7d0640a2cd6091a4aec5198",
+      "backendIndependent": "daaf35948599aad5ae84db005b17a20427547d9e"
+    },
+    "independentReview": "Recovery preservation approved. All seven test blobs are exact and all renamed suites match configured Vitest globs. Approval is for the recovery union only, not behavioral acceptance."
+  },
+  "commands": [
+    {
+      "command": "git fetch --prune origin",
+      "exitCode": 0,
+      "environment": "existing repository, passwordless HTTPS credential path",
+      "scope": "refresh remote refs only"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "environment": "recovery worktree; pnpm 9.15.9; offline store; 0 downloads",
+      "scope": "deterministic local test setup"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "environment": "functional head f358fd5; no network/provider calls",
+      "scope": "53 files; 443 passed, 10 failed, 1 skipped; all failures are the preserved BB-01 accepted-child transition defect"
+    },
+    {
+      "command": "pnpm --filter @deep/research-core test",
+      "exitCode": 0,
+      "environment": "functional head f358fd5; no network/provider calls",
+      "scope": "33 files; 386 passed"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 2,
+      "environment": "functional head f358fd5; no network/provider calls",
+      "scope": "contracts/design/core passed; backend failed on preserved candidate-test harness return-shape typing in both historical-shortcut collision suites"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<unique-local-db> pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.integration.test.ts test/historical-shortcut-heldout.independent.integration.test.ts",
+      "exitCode": 1,
+      "environment": "functional head f358fd5; PostgreSQL database deep_rec02_20260920_1737; fabricated transports; no paid/live calls",
+      "scope": "2 files; 7 passed, 3 failed. Implementation suite passed 4/4. Independent suite failed BB02-02, BB02-03, and BB02-08 because needs were falsely marked satisfied."
+    },
+    {
+      "command": "git diff --check bb80cfd2d2a3b14e224e516b165871fc60e58105..f358fd597fc7272a8203284ad5ac8bc549a7b5fc",
+      "exitCode": 0,
+      "environment": "recovery worktree",
+      "scope": "integrated functional/test union"
+    },
+    {
+      "command": "jq empty verification/v8/recovery-rec01-rec02/RESULTS.json",
+      "exitCode": 127,
+      "environment": "recovery worktree",
+      "scope": "tool unavailable; superseded by successful Node JSON parse"
+    },
+    {
+      "command": "node -e JSON.parse(readFileSync(RESULTS.json))",
+      "exitCode": 0,
+      "environment": "recovery worktree; Node local runtime",
+      "scope": "REC-01/REC-02 results JSON syntax"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "environment": "recovery documentation head",
+      "scope": "review-package metadata only; application_tests_run=0"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exitCode": 0,
+      "environment": "recovery documentation head",
+      "scope": "16 review-validator tests passed"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "environment": "recovery documentation head",
+      "scope": "revision-3 handoff document integrity only; application_tests_run=0"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "exitCode": 0,
+      "environment": "recovery documentation head",
+      "scope": "12 builder-handoff validator tests passed"
+    }
+  ],
+  "remainingRedEvidence": [
+    "BB-01: ten real-scope parent-to-child adoption/recovery cases still fail with SupersededRequest; same-run and negative controls remain.",
+    "BB-02: three independent production worker/PostgreSQL cases still falsely satisfy unresolved criteria.",
+    "The two backend candidate suites are runtime-discovered but do not typecheck because helper result inference omits searchQueries/readUrls aliases used by assertions.",
+    "The parser implementation suite still contains a temporary source-presence assertion documenting weak assumption/correction parsers, and the independent suite retains its skipped AG07 sibling-parser marker.",
+    "Two recovered BB-02 unit expectations encode the RES-03 weakness: bare present-tense employees/now is treated as non-current and a founded-plus-employee question is treated as historical.",
+    "No compound single-criterion/two-entity missing-obligation regression or real persisted-v2 resume immutability regression is present yet."
+  ],
+  "readiness": {
+    "rec01": "complete",
+    "rec02": "review-ready recovery union with expected red behavior",
+    "implementationLaneCherryPicks": "ready after each lane rebases or cherry-picks onto functional head f358fd5; re-run exact focused and integrated checks after functional fixes",
+    "phaseA": "not accepted",
+    "phaseB": "not accepted",
+    "release": "not authorized"
+  },
+  "rollback": "Revert the local recovery commits in reverse order on codex/v8-recovery-20260920. Keep all source branches, dirty external worktrees, historical identities, unknown holds, authorization/privacy/publication gates, and untracked visual evidence intact. No push, main merge, deployment, live provider call, GHA, EAS, or release action occurred."
+}

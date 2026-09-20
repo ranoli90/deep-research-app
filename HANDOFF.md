@@ -1,3 +1,11 @@
+## REC-01/REC-02 recovery handoff — 2026-09-20
+
+Continue only in `/home/oranolio/Desktop/deep-v8-recovery-20260920` on `codex/v8-recovery-20260920`. Functional/test-union head is `f358fd597fc7272a8203284ad5ac8bc549a7b5fc` from integration `bb80cfd2d2a3b14e224e516b165871fc60e58105`. It contains one BB-03 parser copy (`b818a1c`), BB-02 `55ea76c`/`3116f6e`, independent `065d77f`/`8debb14`, and a 100%-rename collision-union commit `bc8a7f7`. The implementation and independent suites coexist and retain exact source blobs. Independent review approved this recovery shape.
+
+This is a red integration base for the implementation lanes, not Phase A acceptance. Core is 386/386, mobile retains 10 BB-01 failures, isolated backend PostgreSQL retains 3 BB-02 failures, and typecheck retains candidate-test helper inference failures. BB-03 sibling parsers still need positive fail-closed behavior; BB-02 still needs present-tense employee/`now`, compound criterion, and persisted-v2 resume fixes. Cherry-pick/rebase coherent implementation-lane commits onto this head, reconcile reviewer concerns without deleting assertions, then rerun the exact focused suites and broader registered gate.
+
+Do not touch main, the dirty `codex/phase-a-state` checkout, integration visual-QA artifacts, source branches, active ports 8787/8788/8790, shared databases, or the MC-D01 hold. No push is authorized. Full refs, dirty-file assessment, blob identities, commands/exits and rollback are in `verification/v8/recovery-rec01-rec02/RESULTS.json`.
+
 ## R-05 deepen investigation + synthetic J8/J11 — 2026-09-20
 
 Isolated branch `grok-v8/r05-deepen-j8-j11` from `9677232`. Do not merge `main`. Do not dispatch GHA. Do not spend live OpenRouter.
