@@ -7,7 +7,7 @@ import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
 import { processRun } from "../src/worker/diagnostic-executor.js";
-import { getBrief, getRun } from "../src/modules/runs.js";
+import { getBrief, getRun, setPendingInput } from "../src/modules/runs.js";
 import { briefContext, confirmedConstraints } from "../src/modules/research-tasks.js";
 import { admitRun } from "../src/modules/run-admission.js";
 import { CONSENT_POLICY_VERSION } from "@deep/contracts";
@@ -345,5 +345,295 @@ describe("FP-001/002/007/008 continue brief invariants", () => {
       attachmentIds: [],
       consentPolicyVersion: CONSENT_POLICY_VERSION,
     })).rejects.toThrow("original_question_mismatch");
+  });
+});
+
+describe("R-04/CL-01 concurrent cancel, declared fields, and sibling continue class", () => {
+  async function budgetRows(runId: string, accountId: string) {
+    return {
+      reservations: (await pool.query<{ state: string }>(
+        `SELECT state FROM reservations WHERE run_id=$1 AND account_id=$2 ORDER BY id`,
+        [runId, accountId],
+      )).rows,
+      reserved: (await pool.query<{ n: string }>(
+        `SELECT count(*)::text AS n FROM reservations WHERE run_id=$1 AND account_id=$2 AND state='reserved'`,
+        [runId, accountId],
+      )).rows[0]!.n,
+    };
+  }
+
+  async function until(check: () => Promise<boolean>) {
+    for (let n = 0; n < 200; n++) {
+      if (await check()) return;
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    throw new Error("expected_database_barrier_not_reached");
+  }
+
+  async function gateEvent(runId: string, type: "cancel_requested" | "clarification_answered") {
+    const name = `r04_${crypto.randomUUID().replaceAll("-", "")}`;
+    const key = crypto.randomUUID();
+    await pool.query(`CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.run_id::text=TG_ARGV[0] AND NEW.type=TG_ARGV[1] THEN PERFORM pg_advisory_xact_lock(hashtextextended(TG_ARGV[2],0)); END IF; RETURN NEW; END $$`);
+    await pool.query(`CREATE TRIGGER ${name} BEFORE INSERT ON run_events FOR EACH ROW EXECUTE FUNCTION ${name}('${runId}','${type}','${key}')`);
+    return {
+      key,
+      cleanup: async () => {
+        await pool.query(`DROP TRIGGER IF EXISTS ${name} ON run_events`);
+        await pool.query(`DROP FUNCTION IF EXISTS ${name}()`);
+      },
+    };
+  }
+
+  async function blocker(key: string) {
+    const db = await pool.connect();
+    await db.query("BEGIN");
+    await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [key]);
+    const pid = Number((await db.query("SELECT pg_backend_pid() AS pid")).rows[0].pid);
+    return {
+      pid,
+      release: async () => {
+        await db.query("ROLLBACK");
+        db.release();
+      },
+    };
+  }
+
+  async function pausedRun(token: string) {
+    const runId = (await createRun(token, ORIGINAL)).json().runId as string;
+    await processRun(pool, config, runId);
+    const run = (await getRun(pool, runId))!;
+    expect(run.lifecycle).toBe("awaiting_input");
+    return run;
+  }
+
+  it("rejects extra answers when the pending field is a single declared field", async () => {
+    const { token, accountId } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const pending = { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision };
+    const original = await getBrief(pool, run.brief_id);
+    const money = await budgetRows(run.id, accountId);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+      payload: { ...pending, answers: [
+        { field: "geography", value: "Indiana" },
+        { field: "budget", value: "under $2,000 USD" },
+      ] },
+    })).statusCode).toBe(400);
+    const after = (await getRun(pool, run.id))!;
+    expect(after.lifecycle).toBe("awaiting_input");
+    expect(after.brief_id).toBe(run.brief_id);
+    expect(after.pending_input_id).toBe(run.pending_input_id);
+    expect(await getBrief(pool, after.brief_id)).toEqual(original);
+    expect(await budgetRows(run.id, accountId)).toEqual(money);
+  });
+
+  it("does not resurrect a cancelled pause or leave leftover pending identity", async () => {
+    const { token, accountId } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const original = await getBrief(pool, run.brief_id);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${run.id}/cancel`, headers })).statusCode).toBe(200);
+    const cancelled = (await getRun(pool, run.id))!;
+    expect(cancelled.lifecycle).toBe("terminal");
+    expect(cancelled.terminal_outcome).toBe("cancelled");
+    expect(cancelled.pending_input_id).toBeNull();
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${run.id}`, headers })).json().pendingInput).toBeNull();
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+      payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision, geography: "Indiana" },
+    })).statusCode).toBe(409);
+    const after = (await getRun(pool, run.id))!;
+    expect(after.brief_id).toBe(run.brief_id);
+    expect(after.brief_revision).toBe(run.brief_revision);
+    expect(await getBrief(pool, after.brief_id)).toEqual(original);
+    expect((await budgetRows(run.id, accountId)).reserved).toBe("0");
+    expect((await budgetRows(run.id, accountId)).reservations.every((row) => row.state === "settled")).toBe(true);
+  });
+
+  it("keeps brief, pending, and budget consistent when continue and cancel race", async () => {
+    const { token, accountId } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const original = await getBrief(pool, run.brief_id);
+    const pending = { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision };
+    const [cont, cancel] = await Promise.all([
+      app.inject({ method: "POST", url: `/v1/runs/${run.id}/continue`, headers, payload: { ...pending, geography: "Indiana" } }),
+      app.inject({ method: "POST", url: `/v1/runs/${run.id}/cancel`, headers }),
+    ]);
+    expect(cancel.statusCode).toBe(200);
+    expect([200, 409]).toContain(cont.statusCode);
+    const after = (await getRun(pool, run.id))!;
+    const brief = await getBrief(pool, after.brief_id);
+    expect(brief.originalQuestion).toBe(ORIGINAL);
+    expect(after.pending_input_id).toBeNull();
+    expect(after.lifecycle).not.toBe("awaiting_input");
+    expect(["terminal", "cancelling"]).toContain(after.lifecycle);
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${run.id}`, headers })).json().pendingInput).toBeNull();
+    expect((await budgetRows(run.id, accountId)).reservations).toHaveLength(1);
+    if (after.lifecycle === "terminal") {
+      expect(after.terminal_outcome).toBe("cancelled");
+      expect((await budgetRows(run.id, accountId)).reserved).toBe("0");
+    }
+    if (cont.statusCode === 200) {
+      expect(after.brief_id).not.toBe(run.brief_id);
+      expect(brief.constraints.some((c) => c.field === "geography" && /indiana/i.test(String(c.value)))).toBe(true);
+    } else {
+      expect(after.brief_id).toBe(run.brief_id);
+      expect(brief).toEqual(original);
+    }
+  });
+
+  it("lets cancel win a paused continue without applying the answer", async () => {
+    const { token, accountId } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const original = await getBrief(pool, run.brief_id);
+    const gate = await gateEvent(run.id, "cancel_requested");
+    const lock = await blocker(gate.key);
+    let pending: Promise<unknown> | undefined;
+    let released = false;
+    try {
+      const cancel = app.inject({ method: "POST", url: `/v1/runs/${run.id}/cancel`, headers });
+      pending = Promise.resolve(cancel);
+      await until(async () => Boolean((await pool.query("SELECT 1 FROM pg_stat_activity WHERE $1=ANY(pg_blocking_pids(pid))", [lock.pid])).rowCount));
+      const cont = app.inject({
+        method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+        payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision, geography: "Indiana" },
+      });
+      pending = Promise.all([cancel, cont]);
+      await until(async () => Number((await pool.query("SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=current_database() AND cardinality(pg_blocking_pids(pid))>0")).rows[0].n) >= 2);
+      await lock.release();
+      released = true;
+      const [cancelRes, contRes] = await Promise.all([cancel, cont]);
+      expect(cancelRes.statusCode).toBe(200);
+      expect(contRes.statusCode).toBe(409);
+      const after = (await getRun(pool, run.id))!;
+      expect(after.lifecycle).toBe("terminal");
+      expect(after.terminal_outcome).toBe("cancelled");
+      expect(after.brief_id).toBe(run.brief_id);
+      expect(after.pending_input_id).toBeNull();
+      expect(await getBrief(pool, after.brief_id)).toEqual(original);
+      expect((await budgetRows(run.id, accountId)).reserved).toBe("0");
+    } finally {
+      if (!released) await lock.release();
+      if (pending) await pending;
+      await gate.cleanup();
+    }
+  });
+
+  it("lets continue commit then cancel settle without restoring pending or rewriting the question", async () => {
+    const { token, accountId } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const gate = await gateEvent(run.id, "clarification_answered");
+    const lock = await blocker(gate.key);
+    let pending: Promise<unknown> | undefined;
+    let released = false;
+    try {
+      const cont = app.inject({
+        method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+        payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision, geography: "Indiana" },
+      });
+      pending = Promise.resolve(cont);
+      await until(async () => Boolean((await pool.query("SELECT 1 FROM pg_stat_activity WHERE $1=ANY(pg_blocking_pids(pid))", [lock.pid])).rowCount));
+      const cancel = app.inject({ method: "POST", url: `/v1/runs/${run.id}/cancel`, headers });
+      pending = Promise.all([cont, cancel]);
+      await until(async () => Number((await pool.query("SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=current_database() AND cardinality(pg_blocking_pids(pid))>0")).rows[0].n) >= 2);
+      await lock.release();
+      released = true;
+      const [contRes, cancelRes] = await Promise.all([cont, cancel]);
+      expect(contRes.statusCode).toBe(200);
+      expect(cancelRes.statusCode).toBe(200);
+      const after = (await getRun(pool, run.id))!;
+      const brief = await getBrief(pool, after.brief_id);
+      expect(brief.originalQuestion).toBe(ORIGINAL);
+      expect(after.brief_id).not.toBe(run.brief_id);
+      expect(after.pending_input_id).toBeNull();
+      expect(after.lifecycle).toBe("terminal");
+      expect(after.terminal_outcome).toBe("cancelled");
+      expect(brief.constraints.some((c) => c.field === "geography" && /indiana/i.test(String(c.value)))).toBe(true);
+      expect((await budgetRows(run.id, accountId)).reserved).toBe("0");
+      expect((await app.inject({ method: "GET", url: `/v1/runs/${run.id}`, headers })).json().pendingInput).toBeNull();
+    } finally {
+      if (!released) await lock.release();
+      if (pending) await pending;
+      await gate.cleanup();
+    }
+  });
+
+  it("keeps sibling follow-up, assumption replace, and empty continue from resuming a pause", async () => {
+    const { token } = await authed();
+    const run = await pausedRun(token);
+    const headers = { authorization: `Bearer ${token}` };
+    const original = await getBrief(pool, run.brief_id);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${run.id}/continue`, headers, payload: {} })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+      payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision },
+    })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/continue`, headers,
+      payload: { pendingInputId: run.pending_input_id, expectedBriefRevision: run.brief_revision, geography: "   " },
+    })).statusCode).toBe(400);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/follow-up`, headers,
+      payload: { message: "Change the budget to $1,500", expectedBriefRevision: run.brief_revision },
+    })).statusCode).toBe(409);
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/assumptions`, headers,
+      payload: { action: "replace", values: ["Quiet fans"], expectedBriefRevision: run.brief_revision },
+    })).statusCode).toBe(409);
+    const confirmed = await app.inject({
+      method: "POST", url: `/v1/runs/${run.id}/assumptions`, headers,
+      payload: { action: "confirm", expectedBriefRevision: run.brief_revision },
+    });
+    expect(confirmed.statusCode).toBe(200);
+    const after = (await getRun(pool, run.id))!;
+    expect(after.lifecycle).toBe("awaiting_input");
+    expect(after.pending_input_id).toBe(run.pending_input_id);
+    expect(after.brief_id).toBe(run.brief_id);
+    expect((await getBrief(pool, after.brief_id)).originalQuestion).toBe(original.originalQuestion);
+  });
+
+  it("continues a paused child without mutating the parent brief or budget", async () => {
+    const { token, accountId } = await authed();
+    const headers = { authorization: `Bearer ${token}`, "idempotency-key": crypto.randomUUID() };
+    const parentId = (await createRun(token, "Compare battery technologies")).json().runId as string;
+    await pool.query("UPDATE runs SET lifecycle='terminal', terminal_outcome='completed' WHERE id=$1", [parentId]);
+    const parentBefore = (await getRun(pool, parentId))!;
+    const parentBrief = await getBrief(pool, parentBefore.brief_id);
+    const parentMoney = await budgetRows(parentId, accountId);
+    const replaced = await app.inject({
+      method: "POST", url: `/v1/runs/${parentId}/assumptions`, headers,
+      payload: { action: "replace", values: ["Quiet fans"], expectedBriefRevision: parentBefore.brief_revision },
+    });
+    expect(replaced.statusCode).toBe(200);
+    const childId = replaced.json().runId as string;
+    expect(childId).not.toBe(parentId);
+    const pendingInputId = await setPendingInput(pool, {
+      runId: childId, accountId, briefRevision: (await getRun(pool, childId))!.brief_revision, type: "clarification", field: "geography",
+    });
+    expect((await app.inject({
+      method: "POST", url: `/v1/runs/${parentId}/continue`, headers,
+      payload: { pendingInputId, expectedBriefRevision: parentBefore.brief_revision, geography: "Indiana" },
+    })).statusCode).toBe(409);
+    const childCont = await app.inject({
+      method: "POST", url: `/v1/runs/${childId}/continue`, headers,
+      payload: { pendingInputId, expectedBriefRevision: (await getRun(pool, childId))!.brief_revision, geography: "Indiana" },
+    });
+    expect(childCont.statusCode).toBe(200);
+    const parentAfter = (await getRun(pool, parentId))!;
+    expect(parentAfter.brief_id).toBe(parentBefore.brief_id);
+    expect(parentAfter.lifecycle).toBe("terminal");
+    expect(await getBrief(pool, parentAfter.brief_id)).toEqual(parentBrief);
+    expect(await budgetRows(parentId, accountId)).toEqual(parentMoney);
+    const child = (await getRun(pool, childId))!;
+    expect(child.parent_run_id).toBe(parentId);
+    expect(child.lifecycle).toBe("queued");
+    expect(child.pending_input_id).toBeNull();
+    const childBrief = await getBrief(pool, child.brief_id);
+    expect(childBrief.originalQuestion).toBe(parentBrief.originalQuestion);
+    expect(childBrief.constraints.some((c) => c.field === "geography" && /indiana/i.test(String(c.value)))).toBe(true);
   });
 });

@@ -13,6 +13,7 @@ import {
   DELETION_VS_SUBSCRIPTION,
   FollowUpMessageRequestSchema,
   clarificationAnswersFromContinue,
+  declaredClarificationFields,
   deepenFocus,
   pendingClarificationField,
   MAX_ATTACHMENT_BYTES,
@@ -298,7 +299,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
       pendingQueryAuthorization: pendingQuery,
-      pendingInput: run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision, ...(pendingField ? { field: pendingField } : {}) } : null,
+      pendingInput: run.lifecycle === "awaiting_input" && run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision, ...(pendingField ? { field: pendingField } : {}) } : null,
       revision: {
         briefRevision: run.brief_revision,
         evidenceRevision: run.evidence_revision,
@@ -373,11 +374,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         if (current.lifecycle !== "awaiting_input" || current.pending_input_type !== "clarification" || current.pending_input_id !== body.pendingInputId || current.brief_revision !== body.expectedBriefRevision) {
           throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
         }
-        const pendingField = pendingClarificationField(current.pending_input_field);
-        if (!pendingField) {
+        const declared = declaredClarificationFields(current.pending_input_field);
+        if (!declared.length) {
           throw Object.assign(new Error("stale_revision"), { statusCode: 409, code: "stale_revision", message: "Refresh this clarification. The pending field must be reissued." });
         }
-        const accepted = clarificationAnswersFromContinue(body, pendingField);
+        const accepted = clarificationAnswersFromContinue(body, declared);
         if (!accepted.ok) {
           const message = accepted.reason === "extra_field"
             ? "Answer only the pending clarification field."
@@ -390,6 +391,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         if (parsedAnswers.some((row) => !row.ok)) {
           throw Object.assign(new Error("invalid_input"), { statusCode: 400 });
         }
+        const resumed = await db.query(
+          `UPDATE runs SET lifecycle='queued', phase='preparing', updated_at=now()
+           WHERE id=$1 AND account_id=$2 AND lifecycle='awaiting_input'
+             AND pending_input_id=$3 AND pending_input_type='clarification'
+             AND brief_revision=$4 AND cancellation_epoch=$5
+           RETURNING id`,
+          [id, a.accountId, current.pending_input_id, current.brief_revision, current.cancellation_epoch],
+        );
+        if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
         const brief = await getBrief(db, current.brief_id);
         const originalQuestion = brief.originalQuestion;
         let constraints = [...brief.constraints];
@@ -404,7 +414,6 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           originalQuestion,
           next: { ...brief, originalQuestion, constraints },
         });
-        await db.query(`UPDATE runs SET lifecycle = 'queued', phase = 'preparing', updated_at = now() WHERE id = $1`, [id]);
         await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
           ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
             lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -418,13 +427,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode ?? 500;
+      if (status === 401) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
       if (status === 404) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
       if (status === 409) return reply.code(409).send(err("stale_revision", (e as Error).message === "Refresh this clarification. The pending field must be reissued." ? (e as Error).message : "This answer does not match the pending clarification.", crypto.randomUUID()));
       if (status === 400) return reply.code(400).send(err("invalid_input", (e as Error).message && (e as Error).message !== "invalid_input" ? (e as Error).message : "A material clarification answer is required to continue.", crypto.randomUUID()));
       throw e;
     }
-    await tryDispatchRun(pool, boss, id);
-    return { runId: id, lifecycle: "queued" };
+    const latest = await getRun(pool, id);
+    if (latest?.lifecycle === "queued") await tryDispatchRun(pool, boss, id);
+    return { runId: id, lifecycle: latest?.lifecycle ?? "queued" };
   });
 
   app.post("/v1/runs/:id/assumptions", async (req, reply) => {
@@ -480,7 +491,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           originalQuestion: brief.originalQuestion, next: { ...brief, assumptions: nextAssumptions },
         });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1`, [id]);
+          const resumed = await db.query(
+            `UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now()
+             WHERE id=$1 AND lifecycle='awaiting_input' AND cancellation_epoch=$2 RETURNING id`,
+            [id, run.cancellation_epoch],
+          );
+          if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -531,7 +547,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         });
         if (!approved.ok) throw Object.assign(new Error(approved.reason), { statusCode: 409, code: approved.reason });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1`, [id]);
+          const resumed = await db.query(
+            `UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now()
+             WHERE id=$1 AND lifecycle='awaiting_input' AND pending_input_type='query_authorization' AND pending_input_id=$2 AND cancellation_epoch=$3
+             RETURNING id`,
+            [id, authorizationId, run.cancellation_epoch],
+          );
+          if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409, code: "stale_revision" });
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -701,7 +723,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           // Expire the old worker lease. Its late receipts may settle, but it can
           // neither issue another operation nor publish on the superseded brief.
           await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
-          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          const resumed = await db.query(
+            `UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1 AND lifecycle IN ('queued','running') AND cancellation_epoch=$2 RETURNING id`,
+            [id, current.cancellation_epoch],
+          );
+          if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
           await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
             SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
           await emitEvent(db, {
@@ -751,7 +777,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
             next: nextBrief,
           });
           await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
-          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          const resumed = await db.query(
+            `UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1 AND lifecycle IN ('queued','running') AND cancellation_epoch=$2 RETURNING id`,
+            [id, current.cancellation_epoch],
+          );
+          if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
           await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
             SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
           return { runId: id, briefRevision: committed.briefRevision };
@@ -792,7 +822,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
             next,
           });
           await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
-          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          const resumed = await db.query(
+            `UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1 AND lifecycle IN ('queued','running') AND cancellation_epoch=$2 RETURNING id`,
+            [id, current.cancellation_epoch],
+          );
+          if (!resumed.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
           await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
             SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
           await emitEvent(db, {

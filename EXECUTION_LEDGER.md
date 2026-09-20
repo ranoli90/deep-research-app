@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-20 — R-04/CL-01 concurrent continue/cancel and declared field set
+
+- Continue resume is `UPDATE … WHERE lifecycle='awaiting_input' AND pending_input_id AND cancellation_epoch`; zero rows 409 and roll back the brief insert.
+- `clarificationAnswersFromContinue` takes a declared field set. Single `pending_input_field` still 400s extras. An explicit multi-field identity accepts only those fields and requires each one.
+- Cancel/terminal clear pending identity. GET `pendingInput` only while `awaiting_input`. Dispatch only if still queued after commit.
+- Sibling follow-up and assumption replace stay 409 on a clarification pause. Confirm does not resume. Child continue leaves the parent brief/budget untouched.
+- Isolated PG `deep_r04_cl01_7f3a`: brief-continue 19/19, production continue 1/1, followup-explain 8/8, cancellation-atomicity 7/7. Mobile pending-input 5/5. Not merged to main.
+
 ## 2026-09-20 — device live, Stop completion, brief quote location
 
 - Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.

@@ -1,3 +1,11 @@
+## R-04 / CL-01 continue races and declared fields — 2026-09-20
+
+Isolated worktree on `grok-v8/r04-cl01-continue` from `9677232`. **Not merged to `main`.** No GHA. No EAS.
+
+Paused `/continue` now fail-closes the resume against `awaiting_input` + pending identity + `cancellation_epoch` before committing a brief revision. Cancel and terminal clear pending identity. GET omits `pendingInput` unless the run is still `awaiting_input`. `clarificationAnswersFromContinue` accepts a declared field set: a single pending field still 400s extras; an explicit multi-field identity accepts only those fields. Sibling follow-up/assumption-replace/empty continue cannot resume a pause. Child continue does not mutate the parent brief or budget. Original question stays immutable.
+
+Focused `TEST_DATABASE_URL=.../deep_r04_cl01_7f3a`: brief-continue **19/19**, production continue **1/1**, followup-explain **8/8**, cancellation-atomicity **7/7**. Mobile pending-input **5/5**. Full `pnpm verify` and two PG are not this SHA.
+
 ## Founded-year freshness — 2026-09-20
 
 `when was Taco Bell founded` was classified as generic (1-year freshness) because the historical matcher required `founding`, not `founded`. Old official pages then looked stale and discovery kept going. Matcher now includes founded/established/incorporated. Not merged to `main`.

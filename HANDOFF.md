@@ -1,3 +1,11 @@
+## R-04 / CL-01 continue — 2026-09-20
+
+Worktree isolated from `9677232` on `grok-v8/r04-cl01-continue`. Do not merge `main`. Do not dispatch GHA.
+
+Continue and cancel on a paused run serialize on the account/run lock. The resume UPDATE requires `awaiting_input` and the pending identity; a cancel that already moved the epoch 409s without a new brief. Cancel/terminal drop pending columns so GET cannot show a continue card on a stopped run. Decoder remains `ContinueRunRequestSchema` / `clarificationAnswersFromContinue`.
+
+Rollback: revert this commit. Historical briefs, reservations, and unknown holds stay.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

@@ -46,6 +46,38 @@ describe("CL-01/CL-02 mobile continue and assumption contracts", () => {
     });
   });
 
+  it("accepts only the declared multi-field pause set and rejects extras or omissions", () => {
+    expect(clarificationAnswersFromContinue({
+      answers: [
+        { field: "geography", value: "Indiana" },
+        { field: "budget", value: "under $2,000 USD" },
+      ],
+    }, ["geography", "budget"])).toEqual({
+      ok: true,
+      answers: [
+        { field: "geography", value: "Indiana" },
+        { field: "budget", value: "under $2,000 USD" },
+      ],
+    });
+    expect(clarificationAnswersFromContinue({
+      answers: [
+        { field: "geography", value: "Indiana" },
+        { field: "budget", value: "under $2,000 USD" },
+        { field: "platform", value: "Linux" },
+      ],
+    }, ["geography", "budget"])).toMatchObject({ ok: false, reason: "extra_field" });
+    expect(clarificationAnswersFromContinue({
+      answers: [{ field: "geography", value: "Indiana" }],
+    }, ["geography", "budget"])).toMatchObject({ ok: false, reason: "missing_answer" });
+    expect(clarificationAnswersFromContinue({
+      geography: "Indiana",
+      answers: [{ field: "budget", value: "1500" }, { field: "budget", value: "2000" }],
+    }, ["geography", "budget"])).toMatchObject({ ok: false, reason: "conflicting_values" });
+    expect(clarificationAnswersFromContinue({
+      answers: [{ field: "geography", value: "Indiana" }, { field: "budget", value: "under $2,000 USD" }],
+    }, "geography")).toMatchObject({ ok: false, reason: "extra_field" });
+  });
+
   it("requires expectedBriefRevision to replace assumptions and not for confirm-only", () => {
     expect(AssumptionsRequestSchema.safeParse({ action: "replace", values: ["Quiet fans"] }).success).toBe(false);
     const replace = assumptionsRequest({ action: "replace", values: ["Quiet fans"], expectedBriefRevision: 3 });

@@ -24,6 +24,19 @@ export function pendingClarificationField(value: unknown): ClarificationField | 
   return parsed.success ? parsed.data : undefined;
 }
 
+/** Pause identity is the declared field set. A single column is a one-element set. */
+export function declaredClarificationFields(
+  pending: ClarificationField | readonly ClarificationField[] | null | undefined,
+): ClarificationField[] {
+  const values = pending == null ? [] : Array.isArray(pending) ? pending : [pending];
+  const fields: ClarificationField[] = [];
+  for (const value of values) {
+    const field = pendingClarificationField(value);
+    if (field && !fields.includes(field)) fields.push(field);
+  }
+  return fields;
+}
+
 export const PendingInputSchema = z.object({
   id: z.string().uuid(),
   type: PendingInputTypeSchema,
@@ -65,11 +78,16 @@ export type FollowUpMessageRequest = z.infer<typeof FollowUpMessageRequestSchema
 
 export type ClarificationAnswerRow = { field: ClarificationField; value: string };
 
-/** Single-field pauses accept only that field. Extra or conflicting answers are rejected. */
+/**
+ * The continue decoder. Declared pause fields are the only accepted answers.
+ * A single pending field still 400s extras. An explicit multi-field identity
+ * accepts only that set; missing or conflicting values fail closed.
+ */
 export function clarificationAnswersFromContinue(
   body: { geography?: string; answers?: { field?: string; value?: string }[] },
-  pendingField: ClarificationField | null | undefined,
+  pendingField: ClarificationField | readonly ClarificationField[] | null | undefined,
 ): { ok: true; answers: ClarificationAnswerRow[] } | { ok: false; reason: string } {
+  const declared = declaredClarificationFields(pendingField);
   const rows: ClarificationAnswerRow[] = [];
   for (const row of body.answers ?? []) {
     const field = pendingClarificationField(row.field);
@@ -81,12 +99,15 @@ export function clarificationAnswersFromContinue(
     rows.push({ field: "geography", value: body.geography.trim() });
   }
   if (!rows.length) return { ok: false, reason: "missing_answer" };
-  if (!pendingField) return { ok: false, reason: "pending_field_required" };
-  const allowed = new Set<ClarificationField>([pendingField]);
-  if ([...new Set(rows.map((row) => row.field))].some((field) => !allowed.has(field))) {
-    return { ok: false, reason: "extra_field" };
+  if (!declared.length) return { ok: false, reason: "pending_field_required" };
+  const allowed = new Set(declared);
+  if (rows.some((row) => !allowed.has(row.field))) return { ok: false, reason: "extra_field" };
+  const answers: ClarificationAnswerRow[] = [];
+  for (const field of declared) {
+    const values = [...new Set(rows.filter((row) => row.field === field).map((row) => row.value))];
+    if (values.length === 0) return { ok: false, reason: "missing_answer" };
+    if (values.length !== 1) return { ok: false, reason: "conflicting_values" };
+    answers.push({ field, value: values[0]! });
   }
-  const values = [...new Set(rows.filter((row) => row.field === pendingField).map((row) => row.value))];
-  if (values.length !== 1) return { ok: false, reason: "conflicting_values" };
-  return { ok: true, answers: [{ field: pendingField, value: values[0]! }] };
+  return { ok: true, answers };
 }

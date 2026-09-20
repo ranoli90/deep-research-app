@@ -109,6 +109,9 @@ export async function commitBriefRevision(
   const run = await getRun(db, args.runId, { forUpdate: true });
   if (!run || run.account_id !== args.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
   if (run.brief_revision !== args.expectedRevision) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+  if (run.lifecycle === "terminal" || run.lifecycle === "cancelling") {
+    throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+  }
   const current = await getBrief(db, run.brief_id);
   if (current.originalQuestion !== args.originalQuestion) throw Object.assign(new Error("original_question_mismatch"), { statusCode: 409 });
   const revision = Number((await db.query(
@@ -124,10 +127,13 @@ export async function commitBriefRevision(
     revision,
   });
   await insertBrief(db, brief, args.accountId);
-  await db.query(
-    `UPDATE runs SET brief_id=$2, brief_revision=$3, evidence_revision=evidence_revision+1, pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
+  const updated = await db.query(
+    `UPDATE runs SET brief_id=$2, brief_revision=$3, evidence_revision=evidence_revision+1, pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now()
+     WHERE id=$1 AND account_id=$4 AND brief_revision=$5 AND lifecycle NOT IN ('terminal','cancelling')
+     RETURNING id`,
     [args.runId, brief.id, revision, args.accountId, args.expectedRevision],
   );
+  if (!updated.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
   return { brief, briefRevision: revision };
 }
 
@@ -173,7 +179,7 @@ export async function setPendingInput(db: Queryable, args: {
   const row = await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing',
     pending_input_id=CASE WHEN pending_input_type=$4 AND pending_input_revision=$3 THEN COALESCE($5::uuid,pending_input_id) ELSE COALESCE($5::uuid,gen_random_uuid()) END,
     pending_input_type=$4,pending_input_revision=$3,pending_input_field=$6,updated_at=now()
-    WHERE id=$1 AND account_id=$2 AND brief_revision=$3 RETURNING pending_input_id`,
+    WHERE id=$1 AND account_id=$2 AND brief_revision=$3 AND lifecycle NOT IN ('terminal','cancelling') RETURNING pending_input_id`,
     [args.runId,args.accountId,args.briefRevision,args.type,args.id ?? null,field]);
   if (!row.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
   return String(row.rows[0].pending_input_id);
@@ -389,6 +395,10 @@ export async function cancelRun(db: Queryable, runId: string): Promise<RunRow | 
     `UPDATE runs
      SET cancellation_epoch = cancellation_epoch + 1,
          lifecycle = CASE WHEN lifecycle = 'terminal' THEN lifecycle ELSE 'cancelling' END,
+         pending_input_id = NULL,
+         pending_input_type = NULL,
+         pending_input_revision = NULL,
+         pending_input_field = NULL,
          updated_at = now()
      WHERE id = $1
      RETURNING *`,
@@ -403,7 +413,9 @@ export async function markTerminal(
   outcome: TerminalOutcome,
 ): Promise<void> {
   await db.query(
-    `UPDATE runs SET lifecycle = 'terminal', terminal_outcome = $2, updated_at = now() WHERE id = $1`,
+    `UPDATE runs SET lifecycle = 'terminal', terminal_outcome = $2,
+       pending_input_id = NULL, pending_input_type = NULL, pending_input_revision = NULL, pending_input_field = NULL,
+       updated_at = now() WHERE id = $1`,
     [runId, outcome],
   );
 }
