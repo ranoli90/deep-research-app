@@ -15,8 +15,14 @@ export const ClarificationFieldSchema = z.enum([
   "private_search",
   "subject",
   "currency",
+  "safety",
 ]);
 export type ClarificationField = z.infer<typeof ClarificationFieldSchema>;
+
+export function pendingClarificationField(value: unknown): ClarificationField | undefined {
+  const parsed = ClarificationFieldSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
 
 export const PendingInputSchema = z.object({
   id: z.string().uuid(),

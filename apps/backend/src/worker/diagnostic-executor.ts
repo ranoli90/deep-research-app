@@ -5,11 +5,13 @@ import {
   FIXTURE_SEARCH_COST_MICRO,
   FIXTURE_SYNTH_COST_MICRO,
   LIVE_CALL_RESERVE_MICRO,
+  pendingClarificationField,
 } from "@deep/contracts";
 import {
   admitProposedAction,
   admitExecutableAction,
   compactForContext,
+  compileResearchIntent,
   composeReport,
   detectContradictions,
   detectGaps,
@@ -301,7 +303,14 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           phase: "preparing",
           payload: decision.arguments,
         });
-        await setPendingInput(c, { runId, accountId: run.account_id, briefRevision: run.brief_revision, type: "clarification" });
+        const intent = compileResearchIntent(brief.originalQuestion, { knownConstraints: brief.constraints });
+        await setPendingInput(c, {
+          runId,
+          accountId: run.account_id,
+          briefRevision: run.brief_revision,
+          type: "clarification",
+          field: pendingClarificationField(intent.clarificationDecision.questions[0]?.field),
+        });
       });
       return;
     }

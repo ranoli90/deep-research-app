@@ -10,7 +10,7 @@ export function redactInvalidatedContent(state: UiState, runId: string, cleanupP
   if (state.run?.runId !== runId) return state;
   return { ...state, status: state.run.lifecycle === "terminal" && state.run.outcome === "cancelled" ? "cancelled" : state.status,
     run: { ...state.run, brief: undefined, reportId: null, contentInvalidated: true },
-    report: null, previousReport: null, source: null, correctionDraft: null, readingAnchor: null, followUpExplain: null,
+    report: null, previousReport: null, source: null, correctionDraft: null, readingAnchor: null, followUpExplains: [], pendingFollowUp: null,
     events: [], attachments: [], clarification: [], flagSent: false,
     pendingContentInvalidation: cleanupPending ? runId : null, error: "This research used a deleted source. Saved report content has been hidden." };
 }

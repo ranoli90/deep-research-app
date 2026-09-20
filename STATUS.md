@@ -1,3 +1,9 @@
+## Remaining CL closures — 2026-09-20
+
+`grok-v8/research-beta-integration` working tree after CL-01–CL-08 remaining repairs on `ab337c6`. Isolated worktree. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. Phase A engineering for these contracts is implemented and locally verified; Phase B chrome repairs (Stop-with-draft, quote-first sheet, settings order) shipped in the same tree. Native current-HEAD APK not yet rebuilt.
+
+`pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice — `deep_closure_pg1` 1092s EXIT 0 and `deep_closure_pg2` 935s EXIT 0. Focused brief-continue **10/10**, followup-explain **6/6**. Wireless ADB is reachable at `10.0.0.167:41299` (port `43417` still refused). Live J8/J11 not granted.
+
 ## Deepen HTTP + child adoption tests — 2026-09-20
 
 POST `/v1/runs/:id/follow-up` `{message:"Go deeper on battery life",expectedBriefRevision}` returns `kind:"deepen"` on a child that keeps `originalQuestion`; controlled-research fallthrough is not verification 400. Mobile `adoptReturnedChild` is the shipped select/refresh/poll helper for follow-up and assumption replace; unit test fails if the parent is polled. followup-explain **5/5**. Mobile **318/318**. Built on product SHA `71a14a3`. **Not merged to `main`.** Native APK and live J8/J11 still blocked.

@@ -1,7 +1,7 @@
 import { executeDocumentReconciliation } from "./document-reconciliation.js";
 import { createHash } from "node:crypto";
 import { prepareEvidenceSelection,usesEvidenceSelection } from "../modules/evidence-selections.js";
-import { ResearchBriefSchema } from "@deep/contracts";
+import { pendingClarificationField, ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
 import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
@@ -114,7 +114,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarify",phase:"preparing",
         summary:first?.prompt??"Which jurisdiction should this answer apply to?",
         payload:{questions:intent.clarificationDecision.questions}});
-      await setPendingInput(db, { ...args, type: "clarification" });
+      await setPendingInput(db, { ...args, type: "clarification", field: pendingClarificationField(first?.field) });
     });
     return;
   }

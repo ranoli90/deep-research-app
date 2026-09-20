@@ -1065,7 +1065,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${runId}/assumptions`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { action: "confirm", values: [] },
+      payload: { action: "confirm", values: [], expectedBriefRevision: (await getRun(pool,runId))!.brief_revision },
     });
     expect(confirm.statusCode).toBe(200);
     expect(confirm.json()).toMatchObject({ runId, action: "confirm" });

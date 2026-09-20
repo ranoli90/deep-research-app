@@ -158,7 +158,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query("DELETE FROM run_events WHERE account_id=$1", [accountId]);
   await db.query("UPDATE research_briefs SET original_question='[deleted]',payload='{}'::jsonb WHERE account_id=$1", [accountId]);
   await db.query("UPDATE conversations SET title=NULL WHERE account_id=$1", [accountId]);
-  await db.query(`UPDATE runs SET controller_artifacts='{}'::jsonb,request_digest=NULL,idempotency_key=NULL,pending_input_id=NULL,pending_input_type=NULL,pending_input_revision=NULL WHERE account_id=$1`, [accountId]);
+  await db.query(`UPDATE runs SET controller_artifacts='{}'::jsonb,request_digest=NULL,idempotency_key=NULL,pending_input_id=NULL,pending_input_type=NULL,pending_input_revision=NULL,pending_input_field=NULL WHERE account_id=$1`, [accountId]);
   // Keep the amount/state and opaque receipt identity needed to reconcile already-issued spend.
   // Historical request_digest/logical_key fields sometimes contained literal questions.
   await db.query(`UPDATE provider_intents SET request_digest='[deleted]' WHERE run_id IN (SELECT id FROM runs WHERE account_id=$1)`, [accountId]);

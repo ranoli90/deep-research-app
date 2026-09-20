@@ -73,6 +73,22 @@ export function clarificationPlaceholder(prompt: string | null | undefined): str
   }
 }
 
+export function clarificationPlaceholderForField(field: string | null | undefined): string {
+  switch (field) {
+    case "geography": return "Jurisdiction or place";
+    case "budget": return "Budget and currency";
+    case "use_case": return "Intended use";
+    case "population": return "Who it applies to";
+    case "timeframe": return "Time window";
+    case "platform": return "Platform or product";
+    case "private_search": return "Yes or no — attached documents";
+    case "subject": return "Named company or product";
+    case "safety": return "The lawful outcome you need";
+    case "currency": return "Budget and currency";
+    default: return "The missing detail";
+  }
+}
+
 /** Last public clarification label. Empty when no typed clarification activity exists. */
 export function clarificationPromptFromEvents(
   events: { activity?: { kind?: string; label?: string } | null }[],

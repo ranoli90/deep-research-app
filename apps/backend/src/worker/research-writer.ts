@@ -7,9 +7,11 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { canonicalSectionContexts,compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,stitchSectionDrafts,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
+import { canonicalSectionContexts,compileCheckedDraft,draftComposition,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,stitchSectionDrafts,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
+import { createHash } from "node:crypto";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
+import { modelInputManifest } from "../modules/model-operations.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
 import { getBrief, getRun } from "../modules/runs.js";
 import { loadRunStoredSources } from "../modules/retrieval-intelligence.js";
@@ -48,15 +50,27 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   }
   let writerIntentId:string;
   let reused=false;
+  let composition:ReturnType<typeof draftComposition>|undefined;
   if(sectioned){
     const drafts=[];
-    for(const sectionContext of canonicalSectionContexts(context,outline)){
+    const sections=[];
+    const contexts=canonicalSectionContexts(context,outline);
+    for(let i=0;i<outline.sections.length;i++){
+      const section=outline.sections[i]!;
+      const sectionContext=contexts[i]!;
       const result=await writeOnce(sectionContext);
       if(result.kind!=="result")return result;
       if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
       drafts.push(result.result.output);
       writerIntentId=result.intentId;
       reused=reused||result.reused;
+      sections.push({
+        questionKey:section.questionKey,
+        heading:section.heading,
+        claimKeys:[...section.claimKeys],
+        intentId:result.intentId,
+        inputDigest:createHash("sha256").update(JSON.stringify(modelInputManifest(sectionContext))).digest("hex"),
+      });
     }
     try { draftStatements(stitchSectionDrafts(drafts),basis.context.assertions,basis.context.approvedClaimKeys); }
     catch(error) {
@@ -64,6 +78,10 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
         return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
       throw error;
     }
+    composition=draftComposition({
+      planDigest:createHash("sha256").update(JSON.stringify(outline)).digest("hex"),
+      sections,
+    });
   } else {
     const result=await writeOnce(context);
     if(result.kind!=="result")return result;
@@ -77,7 +95,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
       throw error;
     }
   }
-  await session.write(async (db)=>recordResearchDraft(db,{...args,writerIntentId:writerIntentId!},await runModelVersions(db,args.runId)));
+  await session.write(async (db)=>recordResearchDraft(db,{...args,writerIntentId:writerIntentId!,...(composition?{composition}:{})},await runModelVersions(db,args.runId)));
   return {kind:"draft" as const,writerIntentId:writerIntentId!,reused,calculated:Boolean(args.calculationPlanIntentId)};
 }
 

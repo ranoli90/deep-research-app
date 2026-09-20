@@ -9,7 +9,8 @@ it("source sheet shows passage, publisher, location, access, quality, and challe
   expect(src).toContain("source.title");
   expect(src).toContain("source.publisher");
   expect(src).toContain("source.exactText");
-  expect(src.indexOf("publisher")).toBeLessThan(src.indexOf("source.exactText"));
+  expect(src.indexOf(">Quote<")).toBeLessThan(src.indexOf("source.title"));
+  expect(src.indexOf("source.exactText")).toBeLessThan(src.indexOf("source.title"));
   expect(src).toContain("Technical details");
   expect(src).toContain("sourceFreshnessCopy");
   expect(src).toContain("sourceIndependenceCopy");

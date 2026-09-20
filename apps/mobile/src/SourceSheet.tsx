@@ -19,6 +19,9 @@ type Props = {
   offline?: boolean;
   admissionPending?: boolean;
   relatedClaim?: string | null;
+  claimChoices?: string[];
+  selectedClaimId?: string | null;
+  onSelectClaim?(claimId: string): void;
   onChallenge?(): void;
   onVerify?(): void;
   reducedMotion?: boolean;
@@ -40,7 +43,7 @@ type Props = {
 
 export function SourceSheet({
   source, canFocus, styles, onClose, onOpenOriginal, onDelete, deletionPending = false,
-  deletionError, offline = false, admissionPending = false, relatedClaim, onChallenge, onVerify,
+  deletionError, offline = false, admissionPending = false, relatedClaim, claimChoices = [], selectedClaimId = null, onSelectClaim, onChallenge, onVerify,
   reducedMotion = false, ink = "#1C1916",
 }: Props) {
   const heading = useRef<Text>(null);
@@ -75,10 +78,7 @@ export function SourceSheet({
     >
       {styles.sheetHandle ? <View style={styles.sheetHandle} /> : null}
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.kicker}>Source</Text>
-          <Text style={styles.bodyText}>{publisher}{domain && source.publisher ? ` · ${domain}` : ""}</Text>
-        </View>
+        <Text style={styles.kicker}>Source</Text>
         <Pressable
           onPress={onClose}
           accessibilityRole="button"
@@ -90,21 +90,40 @@ export function SourceSheet({
         </Pressable>
       </View>
       <ScrollView style={styles.sheetBody} nestedScrollEnabled>
-        <Text ref={heading} onLayout={() => {
-          if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
-          const tag = findNodeHandle(heading.current);
-          if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
-        }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
         <View style={styles.sheetField}>
           <Text style={styles.kicker}>Quote</Text>
           <Text selectable style={styles.quote ?? styles.bodyText}>{source.exactText}</Text>
         </View>
-        {relatedClaim ? (
+        <Text style={styles.bodyText}>{publisher}{domain && source.publisher ? ` · ${domain}` : ""}</Text>
+        {claimChoices.length > 1 ? (
+          <View style={styles.sheetField} accessibilityLabel="Choose conclusion">
+            <Text style={styles.kicker}>Which conclusion?</Text>
+            {claimChoices.map((claimId, index) => (
+              <Pressable
+                key={claimId}
+                onPress={() => onSelectClaim?.(claimId)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedClaimId === claimId }}
+                accessibilityLabel={`Conclusion ${index + 1}`}
+                hitSlop={12}
+              >
+                <Text style={selectedClaimId === claimId ? styles.link : styles.bodyText}>
+                  {selectedClaimId === claimId ? "Selected · " : ""}Conclusion {index + 1}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : relatedClaim ? (
           <View style={styles.sheetField}>
             <Text style={styles.kicker}>Claim</Text>
             <Text style={styles.bodyText} accessibilityLabel="Related claim" numberOfLines={3} ellipsizeMode="tail">Cited in: {relatedClaim}</Text>
           </View>
         ) : null}
+        <Text ref={heading} onLayout={() => {
+          if (focusedPassage.current === source.passageId || canFocus?.() === false) return;
+          const tag = findNodeHandle(heading.current);
+          if (tag !== null) { focusedPassage.current = source.passageId; AccessibilityInfo.setAccessibilityFocus(tag); }
+        }} style={styles.title} accessibilityRole="header">{breakLongTokens(source.title)}</Text>
         <View style={styles.sheetField}>
           <Text style={styles.kicker}>Freshness</Text>
           <Text style={styles.bodyText}>{sourceFreshnessCopy(source)}</Text>

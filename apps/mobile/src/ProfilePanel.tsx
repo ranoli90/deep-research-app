@@ -89,6 +89,7 @@ export function ProfilePanel({
   return (
     <ScrollView style={styles.body} accessibilityLabel="Settings">
       <View style={styles.section} accessibilityLabel="Account">
+        <Text style={styles.kicker}>Account</Text>
         <View style={styles.row}>
           <View style={styles.avatar} accessibilityLabel={`Avatar ${initials}`}>
             <Text style={styles.avatarText}>{initials}</Text>
@@ -100,6 +101,9 @@ export function ProfilePanel({
         </View>
         <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in development session" style={styles.settingsRow}>
           <Text style={styles.link}>{state.signedIn ? "Refresh session" : "Sign in"}</Text>
+        </Pressable>
+        <Pressable onPress={onOpenLibrary} accessibilityRole="button" accessibilityLabel="Open library" style={styles.settingsRow}>
+          <Text style={styles.link}>Saved reports</Text>
         </Pressable>
       </View>
 
@@ -124,6 +128,27 @@ export function ProfilePanel({
             );
           })}
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.kicker}>Research preferences</Text>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
+            <Text style={styles.bodyText}>Demo mode</Text>
+            <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
+          </View>
+          <Switch
+            value={demoOn}
+            onValueChange={(next) => onMode(next ? "fixture" : "controlled-research")}
+            accessibilityLabel="Switch between demo and research mode"
+          />
+        </View>
+        <Text style={styles.bodyText}>Research mode: {demoOn ? "Demo" : "Research"}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.kicker}>Source preferences</Text>
+        <Text style={styles.caveat}>Public web plus files you add. Private documents are not searched until you approve the exact terms.</Text>
       </View>
 
       <View style={styles.section}>
@@ -188,34 +213,6 @@ export function ProfilePanel({
         >
           <Text style={styles.error}>Delete account and derived research</Text>
         </Pressable>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Library</Text>
-        <Pressable onPress={onOpenLibrary} accessibilityRole="button" accessibilityLabel="Open library" style={styles.settingsRow}>
-          <Text style={styles.link}>Saved reports</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Source preferences</Text>
-        <Text style={styles.caveat}>Public web plus files you add. Private documents are not searched until you approve the exact terms.</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Research preferences</Text>
-        <View style={styles.switchRow}>
-          <View style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
-            <Text style={styles.bodyText}>Demo mode</Text>
-            <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
-          </View>
-          <Switch
-            value={demoOn}
-            onValueChange={(next) => onMode(next ? "fixture" : "controlled-research")}
-            accessibilityLabel="Switch between demo and research mode"
-          />
-        </View>
-        <Text style={styles.bodyText}>Research mode: {demoOn ? "Demo" : "Research"}</Text>
       </View>
 
       <View style={styles.section}>

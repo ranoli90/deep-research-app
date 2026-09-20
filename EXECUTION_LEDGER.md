@@ -1,5 +1,19 @@
 # Execution ledger
 
+## 2026-09-20 — remaining CL-01–CL-08 closures
+
+- CL-01: `runs.pending_input_field` (migration `051`). Fixture and structured workers stamp `compileResearchIntent` field. GET prefers the column. `continueRunRequest` requires the server field. Budget answer on a geography pause is HTTP 400.
+- CL-02: confirm and replace 409 when `expectedBriefRevision` mismatches.
+- CL-03: `verify_challenge` message is 409, not a fixture diagnostic child. Composer follow-up is enabled when a report exists even if paid correction is unavailable; mutating kinds still require `correctionReady`.
+- CL-04: `preparePendingFollowUp` / `submitPendingFollowUp` persist the idempotency key before POST. Draft is cleared only if it still matches the submitted text.
+- CL-05: `followUpExplains[]` with citation chips; logout/switch/invalidation clear the thread.
+- CL-06: `claimIdForReportBlock` returns null for multi-claim blocks; sheet picker; report Verify uses `uniqueAnswerClaimId` or the selected citation; challenge keeps `flagClaimId`.
+- CL-07: `research_drafts.composition` records section intent ids and input digests; restore uses those rows; null composition stays one-shot.
+- Phase B: Stop remains beside Send when a draft exists; quote is first on the source sheet; settings order Account / Appearance / Research / Sources / Privacy / Help / About.
+- `pnpm verify` EXIT 0: core 314 / backend unit 246 / mobile 321 / governance 6 / boundaries ok.
+- Isolated PG `deep_closure_pg1` **544/544** EXIT 0 (1092s). `deep_closure_pg2` **544/544** EXIT 0 (935s). Extraction **55/55**. Fresh migrate 50 including `051`; upgrade 49→50.
+- ADB device `10.0.0.167:41299` is attached. Current-HEAD APK not built in this ledger row. Live J8/J11 not granted. Not merged to main.
+
 ## 2026-09-20 — deepen HTTP and child-adoption helper
 
 - `followup-explain.integration.test.ts` injects POST `/v1/runs/:id/follow-up` `{message:"Go deeper on battery life",expectedBriefRevision}` after a published report on `controlled-research`; asserts 200 `kind:"deepen"`, child `runId`, unchanged `originalQuestion`, no verification identity. Deleting the deepen branch in `app.ts` falls through to `RequestedVerificationRequestSchema` 400.

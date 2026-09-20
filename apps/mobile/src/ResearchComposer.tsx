@@ -83,6 +83,7 @@ export function ResearchComposer({
   const hasDraft = Boolean(draft.trim());
   const action = sendLabel ?? (pendingAdmission ? "Retry" : "Research");
   const stop = inProgress && Boolean(onCancel) && !hasDraft;
+  const stopBesideSend = inProgress && Boolean(onCancel) && hasDraft;
   const iconSend = !pendingAdmission && !stop && hasDraft;
   const idleEmpty = !pendingAdmission && !stop && !hasDraft;
   const mode = stop ? "stop" : pendingAdmission ? "retry" : iconSend ? "send" : "idle";
@@ -120,6 +121,27 @@ export function ResearchComposer({
           maxFontSizeMultiplier={2}
           accessibilityLabel="Research question"
         />
+        {stopBesideSend ? (
+          <Pressable
+            onPress={() => {
+              productHaptic("stop");
+              onCancel?.();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Stop research"
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.sendHit ?? { width: composerMetrics.hit, height: composerMetrics.hit, alignItems: "center", justifyContent: "center" },
+              !reducedMotion && pressed ? { opacity: 0.82 } : null,
+            ]}
+          >
+            <ActionGlyph mode="stop-beside" reduced={reducedMotion}>
+              <View style={styles.stopBtnIcon ?? styles.sendBtnIcon ?? styles.sendBtn}>
+                <StopIcon color={sendInk} size={12} />
+              </View>
+            </ActionGlyph>
+          </Pressable>
+        ) : null}
         <Pressable
           disabled={stop ? false : sendDisabled || idleEmpty}
           accessibilityState={{ disabled: stop ? false : sendDisabled || idleEmpty }}

@@ -5,7 +5,6 @@ import { deleteSourceForAccount } from "../modules/source-deletion.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
   AssumptionsRequestSchema,
-  ClarificationFieldSchema,
   CONSENT_POLICY_VERSION,
   ContinueRunRequestSchema,
   CorrectionRequestSchema,
@@ -13,6 +12,7 @@ import {
   DEFAULT_RUN_BUDGET_MICRO,
   DELETION_VS_SUBSCRIPTION,
   FollowUpMessageRequestSchema,
+  pendingClarificationField,
   MAX_ATTACHMENT_BYTES,
   OUTPUT_REPORT_CATEGORIES,
   PRIVACY_DATA_FLOWS,
@@ -285,15 +285,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       [a.accountId, run.id],
     )).rowCount);
     const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
-    let pendingField: z.infer<typeof ClarificationFieldSchema> | undefined;
-    if (run.pending_input_id && run.pending_input_type === "clarification") {
+    let pendingField = run.pending_input_field ?? undefined;
+    if (!pendingField && run.pending_input_id && run.pending_input_type === "clarification") {
       const ev = await pool.query<{ payload: { questions?: { field?: string }[] } }>(
         `SELECT payload FROM run_events WHERE run_id=$1 AND account_id=$2 AND type='clarify' ORDER BY sequence DESC LIMIT 1`,
         [run.id, a.accountId],
       );
-      const field = ev.rows[0]?.payload?.questions?.[0]?.field;
-      const parsed = ClarificationFieldSchema.safeParse(field);
-      if (parsed.success) pendingField = parsed.data;
+      pendingField = pendingClarificationField(ev.rows[0]?.payload?.questions?.[0]?.field);
     }
     return {
       runId: run.id,
@@ -376,6 +374,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!answers.length) {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
     }
+    if (run.pending_input_field && !answers.some((row) => row.field === run.pending_input_field)) {
+      return reply.code(400).send(err("invalid_input", "Answer the pending typed clarification field.", crypto.randomUUID()));
+    }
     const parsedAnswers = answers.map((row) => constraintFromClarificationAnswer(row.field, row.value));
     if (parsedAnswers.some((row) => !row.ok)) {
       return reply.code(400).send(err("invalid_input", "A material clarification answer is required to continue.", crypto.randomUUID()));
@@ -432,7 +433,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         const run = await getRun(db, id, { forUpdate: true });
         if (!run || run.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
         const brief = await getBrief(db, run.brief_id);
-        if (action === "replace" && (body.expectedBriefRevision !== run.brief_revision || run.lifecycle === "awaiting_input"))
+        if (body.expectedBriefRevision !== run.brief_revision)
+          throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+        if (action === "replace" && run.lifecycle === "awaiting_input")
           throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
         const current = Array.isArray(brief.assumptions) ? brief.assumptions : [];
         const nextAssumptions = action === "replace"
@@ -467,7 +470,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           originalQuestion: brief.originalQuestion, next: { ...brief, assumptions: nextAssumptions },
         });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1`, [id]);
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -518,7 +521,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         });
         if (!approved.ok) throw Object.assign(new Error(approved.reason), { statusCode: 409, code: approved.reason });
         if (run.lifecycle === "awaiting_input") {
-          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1`, [id]);
+          await db.query(`UPDATE runs SET lifecycle='queued', phase='preparing', pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1`, [id]);
           await db.query(`INSERT INTO run_dispatch_outbox (run_id) VALUES ($1)
             ON CONFLICT (run_id) DO UPDATE SET state = 'pending', attempt_id = NULL,
               lease_until = NULL, next_attempt_at = now()`, [id]);
@@ -753,6 +756,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       if (routed.kind === "change_constraint" || routed.kind === "new_research") {
         return reply.code(409).send(err("unsupported_follow_up", "Use the correction or new-research path for this message.", crypto.randomUUID()));
       }
+      if (routed.kind === "verify_challenge") {
+        return reply.code(409).send(err("unsupported_follow_up", "Select the conclusion to verify. A follow-up message is not a verification target.", crypto.randomUUID()));
+      }
+      const _exhaustive: typeof routed.kind = routed.kind;
+      void _exhaustive;
+      return reply.code(400).send(err("invalid_input", "This follow-up is not a supported research operation.", crypto.randomUUID()));
     }
     if(run.route_mode==="controlled-research"){
       const parsed=RequestedVerificationRequestSchema.safeParse(req.body);

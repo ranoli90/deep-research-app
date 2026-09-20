@@ -1,6 +1,8 @@
 import { redactInvalidatedContent } from "./remote-invalidation";
 import type { FollowUpExplain } from "./follow-up-explain";
+import type { PendingFollowUp } from "./follow-up-admission";
 import type { PendingVerificationRequest } from "./verification-request";
+import { readPendingInput } from "./pending-input";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
 import type { CorrectionDraft } from "./correction-draft";
@@ -41,7 +43,7 @@ export type RunSnapshot = {
     id: string;
     type: "clarification" | "query_authorization";
     briefRevision: number;
-    field?: "geography" | "budget" | "use_case" | "population" | "timeframe" | "platform" | "private_search" | "subject" | "currency";
+    field?: "geography" | "budget" | "use_case" | "population" | "timeframe" | "platform" | "private_search" | "subject" | "currency" | "safety";
   } | null;
 };
 
@@ -64,6 +66,7 @@ export type UiState = {
   pendingAdmission: AdmissionDraft | null;
   pendingSourceDeletion: string | null;
   pendingVerification: PendingVerificationRequest | null;
+  pendingFollowUp: PendingFollowUp | null;
   consentGranted: boolean;
   signedIn: boolean;
   offline: boolean;
@@ -85,7 +88,7 @@ export type UiState = {
   clarification: string[];
   flagSent: boolean;
   reducedMotion: boolean;
-  followUpExplain: FollowUpExplain | null;
+  followUpExplains: FollowUpExplain[];
   error: string | null;
   status: "empty" | "loading" | "progress" | "completed" | "partial" | "failed" | "cancelled" | "awaiting_input";
 };
@@ -100,6 +103,7 @@ export function emptyState(): UiState {
     pendingAdmission: null,
     pendingSourceDeletion: null,
     pendingVerification: null,
+    pendingFollowUp: null,
     consentGranted: false,
     signedIn: false,
     offline: false,
@@ -114,34 +118,31 @@ export function emptyState(): UiState {
     clarification: [],
     flagSent: false,
     reducedMotion: false,
-    followUpExplain: null,
+    followUpExplains: [],
     error: null,
     status: "empty",
   };
 }
 
 export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
-  const pendingInput = snap.pendingInput === undefined ? undefined : snap.pendingInput === null ? null : snap.pendingInput;
-  if (pendingInput) {
-    if (typeof pendingInput.id !== "string" || typeof pendingInput.type !== "string" || typeof pendingInput.briefRevision !== "number") {
-      throw new Error("Pending input identity is invalid. Refresh the run before answering.");
-    }
-  }
+  const pendingInput = snap.pendingInput === undefined ? undefined : snap.pendingInput === null ? null : readPendingInput(snap.pendingInput);
+  const run: RunSnapshot = pendingInput === undefined ? snap : { ...snap, pendingInput };
   let status: UiState["status"] = "progress";
-  if (snap.lifecycle === "terminal" && snap.outcome === "completed") status = "completed";
-  else if (snap.lifecycle === "terminal" && snap.outcome === "completed_with_limitations") status = "partial";
-  else if (snap.lifecycle === "terminal" && snap.outcome === "cancelled") status = "cancelled";
-  else if (snap.lifecycle === "terminal" && snap.outcome === "failed") status = "failed";
-  else if (snap.lifecycle === "queued") status = "loading";
-  else if (snap.lifecycle === "awaiting_input") status = "awaiting_input";
+  if (run.lifecycle === "terminal" && run.outcome === "completed") status = "completed";
+  else if (run.lifecycle === "terminal" && run.outcome === "completed_with_limitations") status = "partial";
+  else if (run.lifecycle === "terminal" && run.outcome === "cancelled") status = "cancelled";
+  else if (run.lifecycle === "terminal" && run.outcome === "failed") status = "failed";
+  else if (run.lifecycle === "queued") status = "loading";
+  else if (run.lifecycle === "awaiting_input") status = "awaiting_input";
   const next = {
     ...state,
-    run: snap,
+    run,
     status,
     error: null,
-    followUpExplain: state.followUpExplain?.runId === snap.runId ? state.followUpExplain : null,
+    followUpExplains: state.followUpExplains.filter((row) => row.runId === run.runId),
+    pendingFollowUp: state.pendingFollowUp?.parentRunId === run.runId ? state.pendingFollowUp : null,
   };
-  return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
+  return run.contentInvalidated === true ? redactInvalidatedContent(next, run.runId) : next;
 }
 
 /** The owned run lifecycle outranks cached screen status when describing current work. */
@@ -183,6 +184,7 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting new research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting new research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting new research." };
+  if (state.pendingFollowUp) return { ok: false, reason: "Retry the saved follow-up before starting new research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting new research." };
   if (state.pendingAdmission) return { ok: false, reason: "Check or withdraw the saved request before starting new research." };
   return {
@@ -195,7 +197,8 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
       report: null,
       previousReport: null,
       events: [],
-      followUpExplain: null,
+      followUpExplains: [],
+      pendingFollowUp: null,
       source: null,
       readingAnchor: null,
       correctionDraft: null,

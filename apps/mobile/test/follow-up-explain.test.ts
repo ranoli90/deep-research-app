@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applySnapshot, emptyState, logout, startNewResearch } from "../src/state";
 import { redactInvalidatedContent } from "../src/remote-invalidation";
-import { bindFollowUpExplain, readFollowUpExplain, visibleFollowUpExplain, type FollowUpExplain } from "../src/follow-up-explain";
+import { appendFollowUpExplain, bindFollowUpExplain, readFollowUpExplain, visibleFollowUpExplain, visibleFollowUpExplains, type FollowUpExplain } from "../src/follow-up-explain";
 import { claimIdForReportBlock } from "../src/verification-request";
 import { createSessionStorage, memoryStore } from "../src/persist";
 
@@ -35,37 +35,47 @@ describe("follow-up explanation scope", () => {
   });
 
   it("clears explanations on logout, new research, report switch, and source invalidation", () => {
-    const seeded = { ...emptyState(), signedIn: true, followUpExplain: explain(), run: {
+    const seeded = { ...emptyState(), signedIn: true, followUpExplains: [explain()], run: {
       runId: "run-a", lifecycle: "terminal", phase: "writing", outcome: "completed", reportId: "report-a", labeledDemo: false,
     } };
-    expect(logout(seeded).followUpExplain).toBeNull();
+    expect(logout(seeded).followUpExplains).toEqual([]);
     const started = startNewResearch(seeded);
     expect(started.ok).toBe(true);
-    if (started.ok) expect(started.next.followUpExplain).toBeNull();
+    if (started.ok) expect(started.next.followUpExplains).toEqual([]);
     const switched = applySnapshot(seeded, {
       runId: "run-b", lifecycle: "terminal", phase: "writing", outcome: "completed", reportId: "report-b", labeledDemo: false,
     });
-    expect(switched.followUpExplain).toBeNull();
-    expect(redactInvalidatedContent(seeded, "run-a").followUpExplain).toBeNull();
+    expect(switched.followUpExplains).toEqual([]);
+    expect(redactInvalidatedContent(seeded, "run-a").followUpExplains).toEqual([]);
   });
 
   it("rejects a late explanation callback after logout or account switch", async () => {
     const late = explain({ answer: "CANARY-ACCOUNT-A" });
-    const loggedOut = logout({ ...emptyState(), signedIn: true, followUpExplain: late, run: {
+    const loggedOut = logout({ ...emptyState(), signedIn: true, followUpExplains: [late], run: {
       runId: "run-a", lifecycle: "terminal", phase: "writing", outcome: "completed", reportId: "report-a", labeledDemo: false,
     } });
-    expect(loggedOut.followUpExplain).toBeNull();
+    expect(loggedOut.followUpExplains).toEqual([]);
     expect(visibleFollowUpExplain(late, { accountId: null, runId: "run-a", reportId: "report-a" })).toBeNull();
-    expect(readFollowUpExplain(late).answer).toBe("CANARY-ACCOUNT-A");
+    expect(readFollowUpExplain(late)?.answer).toBe("CANARY-ACCOUNT-A");
     expect(() => readFollowUpExplain({ ...late, accountId: 1 })).toThrow(/invalid/);
     const cache = memoryStore(), credentials = memoryStore(), storage = createSessionStorage(cache, credentials);
     await storage.activate({ token: "a", accountId: "acct-a" });
-    await storage.persistRequired("a", { ...emptyState(), signedIn: true, followUpExplain: late, run: {
+    await storage.persistRequired("a", { ...emptyState(), signedIn: true, followUpExplains: [late], run: {
       runId: "run-a", lifecycle: "terminal", phase: "writing", outcome: "completed", reportId: "report-a", labeledDemo: false,
     } });
     await storage.activate({ token: "b", accountId: "acct-b" });
-    expect((await storage.hydrate()).state.followUpExplain).toBeNull();
+    expect((await storage.hydrate()).state.followUpExplains).toEqual([]);
     expect(visibleFollowUpExplain(late, { accountId: "acct-b", runId: "run-a", reportId: "report-a" })).toBeNull();
+  });
+
+  it("keeps two explanations in one conversation and does not guess a multi-claim target", () => {
+    const first = explain({ question: "Why A?", answer: "Because A." });
+    const second = explain({ question: "Why B?", answer: "Because B." });
+    const thread = appendFollowUpExplain(appendFollowUpExplain([], first), second);
+    expect(visibleFollowUpExplains(thread, { accountId: "acct-a", runId: "run-a", reportId: "report-a" }).map((row) => row.question)).toEqual(["Why A?", "Why B?"]);
+    const firstClaim = "00000000-0000-4000-8000-000000000001";
+    const secondClaim = "00000000-0000-4000-8000-000000000002";
+    expect(claimIdForReportBlock([{ id: "answer", claimIds: [firstClaim, secondClaim] }], "answer")).toBeNull();
   });
 
   it("transmits the opened non-first conclusion as the verification target", () => {

@@ -20,12 +20,13 @@ describe("CL-01/CL-02 mobile continue and assumption contracts", () => {
   });
 
   it("builds continue bodies from the server-issued pending identity and typed field", () => {
-    const body = continueRunRequest({ pendingInput: pending, field: "geography", value: "under 1500 USD" });
+    const body = continueRunRequest({ pendingInput: pending, value: "under 1500 USD" });
     expect(body.pendingInputId).toBe(pending.id);
     expect(body.expectedBriefRevision).toBe(2);
     expect(body.answers?.[0]?.field).toBe("budget");
     expect(ContinueRunRequestSchema.parse(body).answers?.[0]?.field).toBe("budget");
-    expect(() => continueRunRequest({ pendingInput: null, field: "budget", value: "x" })).toThrow(/not waiting/);
+    expect(() => continueRunRequest({ pendingInput: null, value: "x" })).toThrow(/not waiting/);
+    expect(() => continueRunRequest({ pendingInput: { ...pending, field: undefined }, value: "Texas" })).toThrow(/typed clarification field/);
   });
 
   it("requires expectedBriefRevision to replace assumptions and not for confirm-only", () => {

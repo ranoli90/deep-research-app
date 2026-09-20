@@ -2,6 +2,67 @@ import type { ResearchModelOutput, ScopeComparisonContext, ScopeComparisonResult
 import { compareAssertionScopes, projectScopeComparison } from "./scope-comparison.js";
 
 export const HIERARCHICAL_WRITE_VERSION = "hierarchical-write.v1";
+export const RESEARCH_DRAFT_COMPOSITION_VERSION = "research-draft-composition.v1";
+
+export type DraftCompositionSection = {
+  questionKey: string;
+  heading: string;
+  claimKeys: string[];
+  intentId: string;
+  inputDigest: string;
+};
+
+export type ResearchDraftComposition = {
+  version: typeof RESEARCH_DRAFT_COMPOSITION_VERSION;
+  planVersion: typeof HIERARCHICAL_WRITE_VERSION;
+  planDigest: string;
+  sections: DraftCompositionSection[];
+};
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+/** Exact recorded section attempts. Null means a historical one-shot draft. */
+export function parseDraftComposition(value: unknown): ResearchDraftComposition | null {
+  if (value == null) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("writer_composition_invalid");
+  const rec = value as Record<string, unknown>;
+  if (rec.version !== RESEARCH_DRAFT_COMPOSITION_VERSION) throw new Error("writer_composition_invalid");
+  if (rec.planVersion !== HIERARCHICAL_WRITE_VERSION || !isNonEmptyString(rec.planDigest) || !Array.isArray(rec.sections) || rec.sections.length < 1) {
+    throw new Error("writer_composition_invalid");
+  }
+  const sections: DraftCompositionSection[] = rec.sections.map((row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("writer_composition_invalid");
+    const section = row as Record<string, unknown>;
+    if (!isNonEmptyString(section.questionKey) || !isNonEmptyString(section.heading) || !isNonEmptyString(section.intentId) || !isNonEmptyString(section.inputDigest)) {
+      throw new Error("writer_composition_invalid");
+    }
+    if (!Array.isArray(section.claimKeys) || !section.claimKeys.every((key) => typeof key === "string" && key.length > 0)) {
+      throw new Error("writer_composition_invalid");
+    }
+    return {
+      questionKey: section.questionKey,
+      heading: section.heading,
+      claimKeys: [...section.claimKeys],
+      intentId: section.intentId,
+      inputDigest: section.inputDigest,
+    };
+  });
+  return { version: RESEARCH_DRAFT_COMPOSITION_VERSION, planVersion: HIERARCHICAL_WRITE_VERSION, planDigest: rec.planDigest, sections };
+}
+
+export function draftComposition(args: {
+  planDigest: string;
+  sections: DraftCompositionSection[];
+}): ResearchDraftComposition {
+  return parseDraftComposition({
+    version: RESEARCH_DRAFT_COMPOSITION_VERSION,
+    planVersion: HIERARCHICAL_WRITE_VERSION,
+    planDigest: args.planDigest,
+    sections: args.sections,
+  })!;
+}
 
 type Task = ResearchModelOutput<"brief">;
 type Assertion = ResearchModelOutput<"extract_assertions">["assertions"][number];

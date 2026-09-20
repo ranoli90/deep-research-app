@@ -76,11 +76,13 @@ describe("ENG-001/003/034–036 state and transport regressions", () => {
     const run = (await getRun(pool,runId))!;
     const headers = { authorization: `Bearer ${token}` };
     const snapshot = (await app.inject({ method:"GET",url:`/v1/runs/${runId}`,headers })).json();
-    expect(snapshot.pendingInput).toEqual({id:run.pending_input_id,type:"clarification",briefRevision:run.brief_revision});
+    expect(snapshot.pendingInput).toEqual({id:run.pending_input_id,type:"clarification",briefRevision:run.brief_revision,field:"geography"});
     expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:crypto.randomUUID(),expectedBriefRevision:run.brief_revision }})).statusCode).toBe(409);
     expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:run.pending_input_id,expectedBriefRevision:run.brief_revision+1 }})).statusCode).toBe(409);
     expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"replace",values:["France"],expectedBriefRevision:run.brief_revision}})).statusCode).toBe(409);
-    await pool.query("UPDATE runs SET pending_input_type='query_authorization' WHERE id=$1",[runId]);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ pendingInputId:run.pending_input_id,expectedBriefRevision:run.brief_revision,answers:[{field:"budget",value:"under 2000 USD"}] }})).statusCode).toBe(400);
+    expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/assumptions`,headers,payload:{action:"confirm",expectedBriefRevision:run.brief_revision+1}})).statusCode).toBe(409);
+    await pool.query("UPDATE runs SET pending_input_type='query_authorization', pending_input_field=NULL WHERE id=$1",[runId]);
     expect((await app.inject({method:"POST",url:`/v1/runs/${runId}/continue`,headers,payload:{ geography:"France",pendingInputId:run.pending_input_id,expectedBriefRevision:run.brief_revision }})).statusCode).toBe(409);
     expect((await getRun(pool,runId))!.lifecycle).toBe("awaiting_input");
   });

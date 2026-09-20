@@ -235,6 +235,23 @@ describe("ENG-033 follow-up explain from owned evidence", () => {
     expect((await getBrief(pool, before.brief_id)).originalQuestion).toBe(original.originalQuestion);
   });
 
+  it("does not treat a verify message as verification or a diagnostic child", async () => {
+    const { token, accountId } = await authed();
+    const runId = (await createRun(token, QUESTION)).json().runId as string;
+    await publishOwned(accountId, runId, DELL_TEXT);
+    await pool.query("UPDATE runs SET lifecycle='terminal', terminal_outcome='completed' WHERE id=$1", [runId]);
+    const challenged = await app.inject({
+      method: "POST",
+      url: `/v1/runs/${runId}/follow-up`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { message: "Is that true?", expectedBriefRevision: 1 },
+    });
+    expect(challenged.statusCode).toBe(409);
+    expect(challenged.json().error?.code ?? challenged.json().code).toBeDefined();
+    expect(JSON.stringify(challenged.json())).toMatch(/Select the conclusion/i);
+    expect((await getRun(pool, runId))!.lifecycle).toBe("terminal");
+  });
+
   it("rejects a deleted account on follow-up explain", async () => {
     const { token, accountId } = await authed();
     const runId = (await createRun(token, QUESTION)).json().runId as string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSectionContexts, compareAssertionScopes, planHierarchicalWrite, projectScopeComparison, stitchSectionDrafts } from "@deep/research-core";
+import { canonicalSectionContexts, compareAssertionScopes, draftComposition, parseDraftComposition, planHierarchicalWrite, projectScopeComparison, stitchSectionDrafts } from "@deep/research-core";
 
 const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
 const assertions = [
@@ -103,5 +103,21 @@ describe("ENG-032 canonical section write/restore", () => {
     });
     expect(plan.complex).toBe(false);
     expect(plan.sections).toHaveLength(1);
+  });
+
+  it("records exact section intent ids and treats missing composition as one-shot", () => {
+    const recorded = draftComposition({
+      planDigest: "abc",
+      sections: [
+        { questionKey: "q1", heading: "Answer", claimKeys: ["a1"], intentId: "11111111-1111-4111-8111-111111111111", inputDigest: "d1" },
+        { questionKey: "q2", heading: "Evidence", claimKeys: ["a1"], intentId: "22222222-2222-4222-8222-222222222222", inputDigest: "d2" },
+      ],
+    });
+    expect(parseDraftComposition(recorded)?.sections.map((section) => section.intentId)).toEqual([
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+    ]);
+    expect(parseDraftComposition(null)).toBeNull();
+    expect(() => parseDraftComposition({ version: "research-draft-composition.v1" })).toThrow(/writer_composition_invalid/);
   });
 });

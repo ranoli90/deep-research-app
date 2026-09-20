@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { routeFollowUp } from "../src/follow-up-route";
 import { adoptReturnedChild, mutatingFollowUpKey, revisedQuestionForConstraintDelta } from "../src/constraint-delta";
+import { preparePendingFollowUp, submitPendingFollowUp } from "../src/follow-up-admission";
 
 describe("constraint delta and mutating follow-up identity", () => {
   it("keeps the original laptop goal when the user only changes the budget", () => {
@@ -52,5 +53,29 @@ describe("constraint delta and mutating follow-up identity", () => {
     });
     expect(runId).toBe("parent-run");
     expect(calls).toEqual(["refresh:parent-run"]);
+  });
+
+  it("persists a mutating follow-up identity before the POST and reuses it after a lost response", async () => {
+    const parentRunId = "11111111-1111-4111-8111-111111111111";
+    const pending = preparePendingFollowUp({ parentRunId, message: "Go deeper on battery life", expectedBriefRevision: 3 });
+    expect(pending.idempotencyKey).toBe(mutatingFollowUpKey(parentRunId, 3, "Go deeper on battery life"));
+    const saved: unknown[] = [];
+    const posts: string[] = [];
+    await expect(submitPendingFollowUp(pending, {
+      current: () => true,
+      save: async (value) => { saved.push(value); },
+      post: async () => { throw new Error("response lost"); },
+    })).rejects.toThrow("response lost");
+    expect(saved).toEqual([pending]);
+    const body = await submitPendingFollowUp(pending, {
+      current: () => true,
+      save: async (value) => { saved.push(value); },
+      post: async (_runId, message, revision, key) => {
+        posts.push(`${message}:${revision}:${key}`);
+        return { kind: "deepen", runId: "child" };
+      },
+    });
+    expect(body).toEqual({ kind: "deepen", runId: "child" });
+    expect(posts).toEqual([`Go deeper on battery life:3:${pending.idempotencyKey}`]);
   });
 });

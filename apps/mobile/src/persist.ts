@@ -5,7 +5,8 @@ import { readPendingSourceDeletion } from "./source-deletion";
 import { emptyState, restoreAfterReopen, type UiState } from "./state";
 import { readAdmissionDraft, type AdmissionDraft } from "./admission-retry";
 import { parseCorrectionDraft } from "./correction-draft";
-import { readFollowUpExplain } from "./follow-up-explain";
+import { readFollowUpExplains } from "./follow-up-explain";
+import { readPendingFollowUp } from "./follow-up-admission";
 
 export type KeyValueStore = {
   getItem(key: string): Promise<string | null>;
@@ -21,8 +22,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 function storedState(state: UiState) {
-  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplain } = state;
-  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplain };
+  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
+  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -46,7 +47,14 @@ function parseState(raw: string | null, accountId: string): UiState | null {
     if (s.previousReport !== null && (!record(s.previousReport) || typeof s.previousReport.reportId !== "string" || !blocks(s.previousReport.blocks))) return null;
     if (s.readingAnchor !== null && (!record(s.readingAnchor) || typeof s.readingAnchor.reportId !== "string" ||
       typeof s.readingAnchor.blockId !== "string" || typeof s.readingAnchor.offset !== "number" || !Number.isFinite(s.readingAnchor.offset))) return null;
-    return { ...emptyState(), ...storedState(s as unknown as UiState), correctionDraft: parseCorrectionDraft(s.correctionDraft), followUpExplain: s.followUpExplain == null ? null : readFollowUpExplain(s.followUpExplain), signedIn: true };
+    return {
+      ...emptyState(),
+      ...storedState(s as unknown as UiState),
+      correctionDraft: parseCorrectionDraft(s.correctionDraft),
+      followUpExplains: readFollowUpExplains(s.followUpExplains ?? s.followUpExplain),
+      pendingFollowUp: s.pendingFollowUp == null ? null : readPendingFollowUp(s.pendingFollowUp),
+      signedIn: true,
+    };
   } catch { return null; }
 }
 
@@ -249,9 +257,12 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (record(envelope) && envelope.accountId === session.accountId && record(envelope.state)) {
             state.pendingSourceDeletion = readPendingSourceDeletion(envelope.state.pendingSourceDeletion);
             state.pendingVerification = readPendingVerificationRequest(envelope.state.pendingVerification);
+            state.pendingFollowUp = readPendingFollowUp(envelope.state.pendingFollowUp);
+            state.followUpExplains = readFollowUpExplains(envelope.state.followUpExplains ?? envelope.state.followUpExplain);
             if (state.pendingSourceDeletion) {
               state.run = null; state.report = null; state.previousReport = null; state.source = null;
               state.readingAnchor = null; state.correctionDraft = null; state.pendingCorrectionDocuments = null; state.events = []; state.attachments = []; state.status = "empty";
+              state.followUpExplains = []; state.pendingFollowUp = null;
             }
           }
         }

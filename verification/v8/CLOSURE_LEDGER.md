@@ -1,23 +1,24 @@
 # Closure ledger — grok-v8/research-beta-integration
 
-Product SHA this pass: `71a14a39d0b30174835f9875a8019ee0ed234f15`. `main` `8a7b1a9`. Historical PG/verify at `f627b2b` is not this SHA. Native `95432e9` APK is not this SHA.
+Working tree after CL-01–CL-08 remaining repairs on `ab337c6`. `main` stays `8a7b1a9`. Historical PG/verify at `f627b2b` / `71a14a3` are not this tree. Native `95432e9` APK is not this tree.
 
-Gate at this SHA (porcelain 0): `pnpm verify` EXIT 0 (core 314 / backend unit 245 / mobile 316 / governance 6 / boundaries ok). Isolated PG **541/541** twice (`deep_resume_pg1` EXIT 0, `deep_resume_pg2` EXIT 0). Wave 5 file 3/3. Wireless ADB `10.0.0.167:43417` connection refused.
+`pnpm verify` EXIT 0: research-core **314**, backend unit **246**, mobile **321**, governance **6/6**, boundaries ok. Fresh migrate **50** including `051_closure_identities`. Upgrade `001`–`050` (49 rows, no `032`) then `051` → **50**. Extraction **55/55**. Isolated PG **544/544** twice (`deep_closure_pg1` 1092s EXIT 0, `deep_closure_pg2` 935s EXIT 0). Focused brief-continue **10/10**, followup-explain **6/6**. ADB `10.0.0.167:41299` attached; current-HEAD APK not rebuilt.
 
 | ID | Severity | Evidence class | Status | Root cause | Repair | Remaining |
 |---|---|---|---|---|---|---|
-| CL-01 | P0 | serializer + PG 541/541 | closed for API/mobile contract | Mobile `{answers}`-only continue | `ContinueRunRequestSchema` + `continueRunRequest()` | Native Continue |
-| CL-02 | P0 | serializer + PG 541/541 | closed for contract | Missing `expectedBriefRevision`; child not adopted | `AssumptionsRequestSchema` + child `selectRun` | Native replace |
-| CL-03 | P0 | HTTP follow-up 5/5 + PG 541/541 | closed deepen/explain; constraint delta keeps original question | deepen fell into verification; replace_question dropped the goal | Shared `routeFollowUp`; deepen handler; HTTP `kind:"deepen"` child keeps `originalQuestion` | Device journeys |
-| CL-04 | P1 | unit drives shipped helper | closed child adopt for follow-up and assumption replace | no idempotency; child refresh without select | `mutatingFollowUpKey` + `adoptReturnedChild` (select/refresh/poll child, never parent) | Full admission journal |
-| CL-05 | P0 | unit canaries | closed for in-memory/persist | unbound React state | `followUpExplain` on UiState; `visibleFollowUpExplain`; persist parse | Conversation history UX |
-| CL-06 | P0 | unit | partial | first claim in block | `claimIdForReportBlock` + sheet `onFollowUp(claimId)` | Multi-claim choice UI |
-| CL-07 | P0 | executed `canonicalSectionContexts` + PG 541/541 | closed for plan/write/restore match | flattened `[a1,a1,a2]`; leftover job-level `scopeComparison` on singleton sections | Deduped keys; `sectionScopeComparison` omits/reprojects; write/restore share `canonicalSectionContexts` | Durable composition table; live J11 |
-| CL-08 | P1 | unit + Wave 5 PG 3/3 inside 541/541 | closed string-presence as proof; sectioned comparison write on shipped path | hierarchy test read source strings; Zod `claimKeys` min-2 on one-claim sections | `research-writer-hierarchy.unit.test.ts` calls shipped plan/context; Wave 5 independent-challenge PASS | Live J11 |
+| CL-01 | P0 | serializer + HTTP continue | closed for typed pending field | GET omitted `field`; fixture worker stored English prompts; mobile inferred geography from copy | Persist `runs.pending_input_field`; GET prefers column; `continueRunRequest` requires server field; wrong-field continue 400 | Native Continue |
+| CL-02 | P0 | HTTP assumptions | closed for revision-bound confirm/replace | Confirm ignored `expectedBriefRevision` | Confirm/replace 409 on revision mismatch; replace still admits child | Native replace |
+| CL-03 | P0 | HTTP follow-up + composer | closed explain/deepen/verify-message fallthrough | `verify_challenge` message fell into fixture diagnostic child; composer gated on paid correction | Exhaustive follow-up kinds; verify message 409; `composerContinues = finishedReport` | Device journeys |
+| CL-04 | P1 | persist-before-POST unit | closed mutating follow-up journal | Key computed at POST time; draft cleared after response | `preparePendingFollowUp` + `submitPendingFollowUp`; draft cleared only if unchanged | Device double-tap |
+| CL-05 | P0 | unit canaries | closed conversation + citations | Single overwrite slot | `followUpExplains[]`; citation chips; logout/switch/invalidation clear | Native conversation |
+| CL-06 | P0 | unit + App wiring | closed unique-claim targeting | `claimIds[0]` on multi-claim blocks and report Verify | Unique claim only; picker for multi-claim; report Verify uses unique answer or selected citation; challenge keeps `flagClaimId` | Native multi-claim |
+| CL-07 | P0 | composition parser + writer/restore | closed exact section restore | Sibling scan `ORDER BY intent_id` | `research_drafts.composition`; restore recorded intent ids; null composition stays one-shot | Live J11 |
+| CL-08 | P1 | unit + HTTP | closed presence-only for these repairs | Hierarchy/follow-up tests grepped source | Continue field 400; verify-message 409; composition parse; unique-claim unit | Live J11 |
 | ENG-032 | P1 | mapped CL-07 | implemented on shipped writer | | | Live J11 |
 | ENG-033 | P1 | mapped CL-03 | implemented | | | |
+| ENG-038 | P0 | exact-SHA PG | closed for this tree | | `deep_closure_pg1` / `pg2` 544/544 | Docs SHA if committed after |
+| ENG-039 / Native HEAD APK | P0 | ADB | device reachable | Wireless port moved to `10.0.0.167:41299` | Current-HEAD APK not yet built/installed | EAS/current APK |
 | ENG-041 / RB-PERF-01 | P1 | helper + not device | PARTIAL | | 100-block vitest | Device gfxinfo |
-| Native HEAD APK | P0 | ADB | blocked | Wireless debugging down | `10.0.0.167:43417` connection refused (host pings) | User enables Wireless debugging |
-| J8/J11 live | P0 | grant | blocked | remaining-cap / MC-D01 hold | | Explicit grant |
+| J8/J11 live | P0 | grant | blocked | remaining-cap / MC-D01 hold | Deterministic J11 pipeline not live | Explicit grant |
 | Hosted GHA | — | owner-declined | blocked | | | |
 | iOS | — | environment | blocked | | | |

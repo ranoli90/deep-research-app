@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { reserveAllowance } from "./billing.js";
 import {strictPolicyForNewAdmission,modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
 import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
-import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
-import { DEFAULT_RUN_BUDGET_MICRO, ResearchBriefSchema } from "@deep/contracts";
+import type { ClarificationField, Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
+import { DEFAULT_RUN_BUDGET_MICRO, pendingClarificationField, ResearchBriefSchema } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
 import { currentConsent, lockActiveAccount } from "./access.js";
@@ -32,6 +32,7 @@ export type RunRow = {
   pending_input_id: string | null;
   pending_input_type: "clarification" | "query_authorization" | null;
   pending_input_revision: number | null;
+  pending_input_field: ClarificationField | null;
 };
 
 function mapRun(r: Record<string, unknown>): RunRow {
@@ -59,6 +60,7 @@ function mapRun(r: Record<string, unknown>): RunRow {
     pending_input_id: r.pending_input_id ? String(r.pending_input_id) : null,
     pending_input_type: r.pending_input_type as RunRow["pending_input_type"] ?? null,
     pending_input_revision: r.pending_input_revision == null ? null : Number(r.pending_input_revision),
+    pending_input_field: pendingClarificationField(r.pending_input_field) ?? null,
   };
 }
 
@@ -123,7 +125,7 @@ export async function commitBriefRevision(
   });
   await insertBrief(db, brief, args.accountId);
   await db.query(
-    `UPDATE runs SET brief_id=$2, brief_revision=$3, evidence_revision=evidence_revision+1, pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
+    `UPDATE runs SET brief_id=$2, brief_revision=$3, evidence_revision=evidence_revision+1, pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, pending_input_field=NULL, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
     [args.runId, brief.id, revision, args.accountId, args.expectedRevision],
   );
   return { brief, briefRevision: revision };
@@ -159,12 +161,20 @@ export async function insertChildBriefRevision(db: Queryable, args: {
 }
 
 /** Caller holds the account/run fence. The identity survives duplicate worker delivery. */
-export async function setPendingInput(db: Queryable, args: { runId: string; accountId: string; briefRevision: number; type: "clarification" | "query_authorization"; id?: string }) {
+export async function setPendingInput(db: Queryable, args: {
+  runId: string;
+  accountId: string;
+  briefRevision: number;
+  type: "clarification" | "query_authorization";
+  id?: string;
+  field?: ClarificationField;
+}) {
+  const field = args.type === "clarification" ? pendingClarificationField(args.field) ?? null : null;
   const row = await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing',
     pending_input_id=CASE WHEN pending_input_type=$4 AND pending_input_revision=$3 THEN COALESCE($5::uuid,pending_input_id) ELSE COALESCE($5::uuid,gen_random_uuid()) END,
-    pending_input_type=$4,pending_input_revision=$3,updated_at=now()
+    pending_input_type=$4,pending_input_revision=$3,pending_input_field=$6,updated_at=now()
     WHERE id=$1 AND account_id=$2 AND brief_revision=$3 RETURNING pending_input_id`,
-    [args.runId,args.accountId,args.briefRevision,args.type,args.id ?? null]);
+    [args.runId,args.accountId,args.briefRevision,args.type,args.id ?? null,field]);
   if (!row.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
   return String(row.rows[0].pending_input_id);
 }

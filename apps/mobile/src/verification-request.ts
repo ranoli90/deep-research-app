@@ -16,14 +16,33 @@ export function readPendingVerificationRequest(value: unknown): PendingVerificat
   if (!request.success) throw new Error("Saved verification request is invalid. Device cleanup is required before new research.");
   return { parentRunId: value.parentRunId, request: request.data };
 }
-/** Claim attached to the citation the user opened — never silently the first answer claim. */
+/** Claims attached to the opened block. Empty when the block is missing. */
+export function claimsForReportBlock(
+  blocks: { id: string; claimIds: string[] }[] | null | undefined,
+  blockId: string | null | undefined,
+): string[] {
+  if (!blocks || !blockId) return [];
+  const ids = blocks.find((block) => block.id === blockId)?.claimIds ?? [];
+  return [...new Set(ids.filter((id) => typeof id === "string" && id.trim()))];
+}
+
+/** Unique claim for a block. Ambiguous multi-claim blocks return null instead of guessing. */
 export function claimIdForReportBlock(
   blocks: { id: string; claimIds: string[] }[] | null | undefined,
   blockId: string | null | undefined,
 ): string | null {
-  if (!blocks || !blockId) return null;
-  const claimId = blocks.find((block) => block.id === blockId)?.claimIds[0];
-  return typeof claimId === "string" && claimId.trim() ? claimId : null;
+  const ids = claimsForReportBlock(blocks, blockId);
+  return ids.length === 1 ? ids[0]! : null;
+}
+
+/** Unique answer-block claim for a report-wide recheck. Multiple answer claims stay unresolved. */
+export function uniqueAnswerClaimId(
+  blocks: { id: string; kind: string; claimIds: string[] }[] | null | undefined,
+): string | null {
+  if (!blocks) return null;
+  const answer = blocks.find((block) => block.kind === "answer" || block.id === "answer");
+  const ids = [...new Set((answer?.claimIds ?? []).filter((id) => typeof id === "string" && id.trim()))];
+  return ids.length === 1 ? ids[0]! : null;
 }
 
 export function prepareVerificationRequest(args: {

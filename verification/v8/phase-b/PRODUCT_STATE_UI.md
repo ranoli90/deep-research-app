@@ -25,7 +25,7 @@ Phase B map after Phase A SHA `f627b2b`. Only typed public activity, run lifecyc
 | `plan_pivot` | Collapsible | Trace | No | “Changed the search plan” |
 | `calculation` | Collapsible | Trace; numbers in report | No | “Checked the numbers” |
 | `writing` / `report_ready` | Collapsible then collapse | Trace → report | Yes | Answer first |
-| Snippet / partial / full / blocked source | Quote-first sheet | Source sheet | Challenge, delete own source | Access in Technical Details |
+| Snippet / partial / full / blocked source | Quote-first sheet | Source sheet | Challenge, delete own source | Quote is first; publisher/title follow; access in Technical Details |
 | Stale / unknown date / version | Advanced + caveat | Sheet / limitation | No | Unknown is not “fresh” |
 | Evidence Needs / candidate ledger | Hidden | Advanced-only if ever shown | No | Not consumer chrome |
 | Falsification / verification child | Report + trace | Scoped outcome | Request check | No fake adjudication |
@@ -33,12 +33,17 @@ Phase B map after Phase A SHA `f627b2b`. Only typed public activity, run lifecyc
 | Consent revoked / deleted account | Error | Sign-in / grant | Yes | Fail closed |
 | Source deleted / invalidated | Status + Library | Honest empty | New research | No resurrected quotes |
 | Cost / provider / policy ids | Hidden | Advanced diagnostics only | No | Never on the research canvas |
-| Follow-up explain | Inline answer | No new run | Optional deepen | Owned evidence only |
-| Follow-up correct / replace question | Composer | Child run | Yes | Original question not silently rewritten |
-| Follow-up verify | Composer/action | Child verification | Yes | Target identity required |
+| Follow-up explain | Inline conversation | No new run | Optional deepen | Owned evidence only; enabled even when paid correction is unavailable |
+| Follow-up correct / replace question | Composer | Child run | Yes when correction is available | Original question not silently rewritten; honest error if the route cannot mutate |
+| Follow-up verify | Composer/action | Child verification | Yes | Unique claim or an explicit choice; a verify message is not a target |
+| Multi-claim citation | Source sheet choice | Challenge/Verify | Yes | Do not send `claimIds[0]` when the block has several conclusions |
 | Offline | Status line | Retry | Yes | “You're offline.” |
 | Pending admission / unknown request | Composer Retry | Resume exact key | Yes | No second paid identity |
 | Content invalidated | Hide report | Retry / Library | Yes | Do not show stale quotes |
+
+**Composer:** Stop stays visible beside Send when a draft exists during in-progress research. Explain/follow-up send is not disabled merely because paid correction is unavailable.
+
+**Settings order:** Account, Appearance, Research, Sources, Privacy, Help, About.
 
 **Visible by default:** question bubble, live trace (collapsed), answer, compact citations, follow-up composer.
 

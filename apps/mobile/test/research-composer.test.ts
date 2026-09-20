@@ -39,8 +39,10 @@ describe("one-sentence composer copy", () => {
     expect(app).toMatch(/onComposerFollowUp/);
     expect(composer).toContain("editable={editable}");
     expect(composer).toContain("inProgress && Boolean(onCancel) && !hasDraft");
+    expect(composer).toContain("stopBesideSend");
     expect(composer).not.toContain("editable={editable && !stop}");
-    expect(app).toMatch(/else if \(finishedReport\)/);
+    expect(app).not.toContain("composerContinues && !correctionReady");
+    expect(app).toContain("const composerContinues = finishedReport;");
     expect(app).not.toMatch(/Ask a comparison with hard constraints/);
   });
 });

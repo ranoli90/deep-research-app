@@ -6,7 +6,7 @@ import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { CALCULATED_REPORT_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
-import { canonicalSectionContexts, projectScopeComparison, draftStatements, planHierarchicalWrite, resolveScopedSupport, SCOPED_SUPPORT_VERSION, stitchSectionDrafts, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
+import { canonicalSectionContexts, parseDraftComposition, projectScopeComparison, draftStatements, planHierarchicalWrite, resolveScopedSupport, SCOPED_SUPPORT_VERSION, stitchSectionDrafts, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { MODEL_CONTEXT_MAX_PASSAGES, ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { loadModelOperation, modelInputManifest, validateOwnedModelContext } from "./model-operations.js";
@@ -126,21 +126,27 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
   const basis=await loadWriterSourceContext(db,{...args,extractionIntentId:row.source_extraction_intent_id,sourceSupportIntentId:row.source_support_intent_id,calculationPlanIntentId:row.calculation_plan_intent_id??undefined},versions);
   if(basis.evidenceRevision!==row.evidence_revision)throw new Error("writer_basis_changed");
   const calculated=Boolean(row.calculation_plan_intent_id),operation=calculated?"write_calculated_report":"write_report";
-  const outline=!calculated?planHierarchicalWrite({task:basis.context.task,approvedClaimKeys:basis.context.approvedClaimKeys,assertions:basis.context.assertions}):null;
-  if(outline?.complex && outline.sections.length>1){
-    const siblings=await db.query<{intent_id:string;request_digest:string}>(`SELECT intent_id,request_digest FROM model_operation_results
-      WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 AND operation=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7 AND evidence_revision=$8
-      ORDER BY intent_id`,[args.runId,args.accountId,args.briefRevision,operation,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,row.evidence_revision]);
+  const composition=row.composition==null?null:parseDraftComposition(row.composition);
+  if(composition){
+    const outline=planHierarchicalWrite({task:basis.context.task,approvedClaimKeys:basis.context.approvedClaimKeys,assertions:basis.context.assertions});
+    const contexts=canonicalSectionContexts(basis.context,outline);
+    if(outline.version!==composition.planVersion || outline.sections.length!==composition.sections.length || contexts.length!==composition.sections.length)
+      throw new Error("writer_composition_mismatch");
     const drafts=[];
-    for(const ctx of canonicalSectionContexts(basis.context,outline)){
-      let found=null;
-      for(const sibling of siblings.rows){
-        const raw=await loadModelOperation(db,sibling.intent_id,args.runId,args.accountId,sibling.request_digest,ctx);
-        const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.write_report,receipt:ModelReceiptSchema}).strict().safeParse(raw);
-        if(parsed.success && !validateModelBindings("write_report",parsed.data.output,ctx).length){ found=parsed.data.output; break; }
-      }
-      if(!found)throw new Error("writer_result_unavailable");
-      drafts.push(found);
+    for(let i=0;i<composition.sections.length;i++){
+      const recorded=composition.sections[i]!;
+      const planned=outline.sections[i]!;
+      if(recorded.questionKey!==planned.questionKey || recorded.heading!==planned.heading || JSON.stringify(recorded.claimKeys)!==JSON.stringify(planned.claimKeys))
+        throw new Error("writer_composition_mismatch");
+      const inputDigest=digest(modelInputManifest(contexts[i]!));
+      if(recorded.inputDigest!==inputDigest) throw new Error("writer_composition_mismatch");
+      const model=(await db.query("SELECT request_digest FROM model_operation_results WHERE intent_id=$1 AND run_id=$2 AND account_id=$3 AND operation=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7 AND evidence_revision=$8",
+        [recorded.intentId,args.runId,args.accountId,operation,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,row.evidence_revision])).rows[0];
+      if(!model)throw new Error("writer_result_unavailable");
+      const raw=await loadModelOperation(db,recorded.intentId,args.runId,args.accountId,model.request_digest,contexts[i]!);
+      const parsed=z.object({status:z.literal("succeeded"),output:ResearchModelOutputs.write_report,receipt:ModelReceiptSchema}).strict().safeParse(raw);
+      if(!parsed.success||validateModelBindings("write_report",parsed.data.output,contexts[i]!).length)throw new Error("invalid_writer_result");
+      drafts.push(parsed.data.output);
     }
     const draft=stitchSectionDrafts(drafts);
     if(validateModelBindings("write_report",draft,basis.context).length)throw new Error("invalid_writer_result");

@@ -45,7 +45,7 @@ describe("phase B consumer chrome", () => {
     expect(sheet.indexOf(">Freshness<")).toBeLessThan(sheet.indexOf(">Independence<"));
     expect(sheet.indexOf(">Independence<")).toBeLessThan(sheet.indexOf("Open original"));
     expect(sheet).toContain("motion.sheet");
-    expect(sheet.indexOf("publisher")).toBeLessThan(sheet.indexOf("source.exactText"));
+    expect(sheet.indexOf("source.exactText")).toBeLessThan(sheet.indexOf("source.title"));
   });
 
   it("does not add Reanimated, FlashList, Lucide, or keyboard-controller", () => {

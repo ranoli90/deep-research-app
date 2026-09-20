@@ -44,6 +44,11 @@ describe("research activity from sanitized events", () => {
     const src = readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8");
     expect(src).toMatch(/if \(!inProgress\) return;/);
     expect(src).not.toMatch(/if \(!inProgress \|\| reducedMotion\) return;/);
+    const events = [evt(1, "searching", { createdAt: "2026-09-18T12:00:00.000Z" })];
+    expect(runningElapsedLabel(events, Date.parse("2026-09-18T12:00:12.000Z"))).toBe("12s");
+    expect(src).toContain("runningElapsedLabel(events, nowMs)");
+    expect(src).toContain("reducedMotion");
+    expect(src).not.toMatch(/runningElapsedLabel\([^\)]*reduced/);
   });
 
   it("uses typed activity labels and source metadata, never legacy type/publicSummary", () => {

@@ -4,7 +4,6 @@ import {
   ContinueRunRequestSchema,
   PendingInputSchema,
   type AssumptionsRequest,
-  type ClarificationField,
   type ContinueRunRequest,
   type PendingInput,
 } from "@deep/contracts";
@@ -18,14 +17,13 @@ export function readPendingInput(value: unknown): PendingInput | null {
 
 export function continueRunRequest(args: {
   pendingInput: PendingInput | null | undefined;
-  field: ClarificationField | string;
   value: string;
 }): ContinueRunRequest {
   if (!args.pendingInput || args.pendingInput.type !== "clarification") {
     throw new Error("This run is not waiting for a clarification.");
   }
-  const field = ClarificationFieldSchema.safeParse(args.pendingInput.field ?? args.field);
-  if (!field.success) throw new Error("A typed clarification field is required.");
+  const field = ClarificationFieldSchema.safeParse(args.pendingInput.field);
+  if (!field.success) throw new Error("Refresh this run before answering. The typed clarification field is missing.");
   return ContinueRunRequestSchema.parse({
     pendingInputId: args.pendingInput.id,
     expectedBriefRevision: args.pendingInput.briefRevision,

@@ -11,6 +11,7 @@ export const MATERIAL_CLARIFICATION_FIELDS = [
   "platform",
   "private_search",
   "subject",
+  "safety",
 ] as const;
 
 export type MaterialClarificationField = (typeof MATERIAL_CLARIFICATION_FIELDS)[number];
@@ -24,6 +25,7 @@ export const MATERIAL_FIELD_PROMPTS: Record<MaterialClarificationField, string> 
   platform: "Which platform or product is in scope?",
   private_search: "May research use terms that appear only in your attached documents?",
   subject: "Which company or product should this research cover?",
+  safety: "What lawful, non-harmful outcome should this research stay within?",
 };
 
 export const MATERIAL_FIELD_PLACEHOLDERS: Record<MaterialClarificationField, string> = {
@@ -35,6 +37,7 @@ export const MATERIAL_FIELD_PLACEHOLDERS: Record<MaterialClarificationField, str
   platform: "Platform or product",
   private_search: "Yes or no — attached documents",
   subject: "Named company or product",
+  safety: "The lawful outcome you need",
 };
 
 function hasField(constraints: Constraint[], field: string): boolean {

@@ -1,5 +1,5 @@
 import { Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import { clarificationPlaceholder, type ResearchBriefView } from "./research-brief";
+import { clarificationPlaceholder, clarificationPlaceholderForField, type ResearchBriefView } from "./research-brief";
 
 type Styles = {
   card: StyleProp<ViewStyle>;
@@ -14,6 +14,7 @@ export function ResearchBriefCard({
   view,
   clarifyAnswer,
   muted,
+  field,
   onClarify,
   onContinue,
   onEdit,
@@ -22,6 +23,7 @@ export function ResearchBriefCard({
   view: ResearchBriefView;
   clarifyAnswer: string;
   muted: string;
+  field?: string | null;
   onClarify(value: string): void;
   onContinue(): void;
   onEdit(): void;
@@ -43,7 +45,7 @@ export function ResearchBriefCard({
           <TextInput
             value={clarifyAnswer}
             onChangeText={onClarify}
-            placeholder={view.blocking ? clarificationPlaceholder(view.materialClarification) : "Answer the detail above"}
+            placeholder={view.blocking ? (field ? clarificationPlaceholderForField(field) : clarificationPlaceholder(view.materialClarification)) : "Answer the detail above"}
             placeholderTextColor={muted}
             style={styles.input}
             allowFontScaling

@@ -1,0 +1,40 @@
+db=deep_closure_pg1
+command=TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_closure_pg1 pnpm --filter @deep/backend test:integration
+start=2026-09-20T08:19:31-06:00
+end=2026-09-20T08:37:44-06:00
+exit=0
+tests=544/544
+sha256=867224479581f52d520a1ba6f6d4f21e5d533a833fbd852e9b3ce1f77918b8c9
+bytes=218885
+
+--- tail ---
+ ✓ test/attachment-retry.integration.test.ts (9 tests) 952ms
+ ✓ test/cancellation-atomicity.integration.test.ts (5 tests) 795ms
+ ✓ test/v6-publication.integration.test.ts (19 tests) 757ms
+ ✓ test/held-intent-continuation.integration.test.ts (3 tests) 752ms
+ ✓ test/admission-recovery.integration.test.ts (4 tests) 868ms
+ ✓ test/discovery-policy.integration.test.ts (2 tests) 839ms
+   ✓ pins and replays discovery under 'openrouter-azure-mini-zdr-exact-quote…' despite current config, and binds adoption  378ms
+ ✓ test/artifact-size.integration.test.ts (2 tests) 888ms
+   ✓ W04 stores exact 8MiB uploaded artifact and preserves it through full migration replay  481ms
+ ✓ test/question-patch.integration.test.ts (6 tests) 765ms
+ ✓ test/remote-source-invalidation.integration.test.ts (4 tests) 687ms
+ ✓ test/phase-a-privacy.integration.test.ts (3 tests) 589ms
+     ✓ ENG-010 requires suffix-specific approval and replays the exact approved challenge without sending twice  357ms
+stdout | test/model-context.integration.test.ts > W02 batches complete evidence authorization without accepting a changed binding or deleted owner
+{"evidenceClass":"real PostgreSQL, synthetic evidence, no model transport","passages":25,"queryCount":4,"elapsedMs":34.79046099999994}
+
+ ✓ test/model-context.integration.test.ts (1 test) 553ms
+   ✓ W02 batches complete evidence authorization without accepting a changed binding or deleted owner  379ms
+ ✓ test/research-strategy.integration.test.ts (1 test) 508ms
+ ✓ test/v6-identity.integration.test.ts (3 tests) 529ms
+ ✓ test/v6-upload.integration.test.ts (2 tests) 352ms
+ ✓ test/html-upload.integration.test.ts (1 test) 327ms
+ ✓ test/v6-ingestion.integration.test.ts (1 test) 256ms
+ ✓ test/pinned-http.integration.test.ts (3 tests) 83ms
+
+ Test Files  45 passed (45)
+      Tests  544 passed (544)
+   Start at  08:19:32
+   Duration  1091.72s (transform 3.13s, setup 0ms, import 15.31s, tests 1069.72s, environment 6ms)
+

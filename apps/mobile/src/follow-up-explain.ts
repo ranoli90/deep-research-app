@@ -64,3 +64,25 @@ export function visibleFollowUpExplain(
   if (explanation.reportId !== (args.reportId ?? null)) return null;
   return explanation;
 }
+
+export const FOLLOW_UP_EXPLAIN_MAX = 24;
+
+export function readFollowUpExplains(value: unknown): FollowUpExplain[] {
+  if (value == null) return [];
+  const rows = Array.isArray(value) ? value : [value];
+  return rows.map((row) => readFollowUpExplain(row)).filter((row): row is FollowUpExplain => row != null);
+}
+
+export function visibleFollowUpExplains(
+  explanations: FollowUpExplain[] | null | undefined,
+  args: { accountId: string | null; runId: string | null | undefined; reportId: string | null | undefined },
+): FollowUpExplain[] {
+  return (explanations ?? []).map((row) => visibleFollowUpExplain(row, args)).filter((row): row is FollowUpExplain => row != null);
+}
+
+export function appendFollowUpExplain(existing: FollowUpExplain[] | null | undefined, next: FollowUpExplain): FollowUpExplain[] {
+  const kept = (existing ?? []).filter((row) =>
+    row.accountId === next.accountId && row.runId === next.runId && row.reportId === next.reportId,
+  );
+  return [...kept, next].slice(-FOLLOW_UP_EXPLAIN_MAX);
+}
