@@ -149,14 +149,14 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
       const clarified = suppressUnneededBriefClarifications(briefOut, context.question, constraints);
       next = { ...next, output: clarified as typeof next.output };
     }
-    if (args.operation === "review_coverage") {
+    if (args.operation === "review_coverage" && !activePolicy.id.endsWith("strict-v4")) {
       next = { ...next, output: repairCoverageReview(
         next.output as ResearchModelOutput<"review_coverage">,
         context.assertions,
         context.task?.questions.map((q) => q.key) ?? [],
       ) as typeof next.output };
     }
-    if (args.operation === "assess_support") {
+    if (args.operation === "assess_support" && !activePolicy.id.endsWith("strict-v4")) {
       next = { ...next, output: repairSupportAssessments(
         next.output as ResearchModelOutput<"assess_support">, context.assertions, context.passages) as typeof next.output };
     }

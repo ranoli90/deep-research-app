@@ -105,21 +105,12 @@ it("drops extraction citations whose passage was never provided", () => {
   expect(cleaned.assertions.map((a) => a.key)).toEqual(["a1"]);
 });
 
-it("binds a supported coverage row to extracted assertions instead of failing the run", () => {
+it("ENG-028 does not mint assertion bindings for a supported coverage row that named none", () => {
   const repaired = repairCoverageReview({
     questions: [{ questionKey: "q1", status: "supported", assertionKeys: [], reason: "found a source" }],
     omittedRequirements: [],
   }, [{ key: "classification" }], ["q1"]);
-  expect(repaired.questions[0]?.assertionKeys).toEqual(["classification"]);
-  expect(validateModelBindings("review_coverage", repaired, {
-    question: "Is Pluto a planet according to the IAU?",
-    task: { objective: "x", objectiveProvenance: { start: 0, end: 1, quote: "x" }, intendedOutput: "answer",
-      criteria: [], questions: [{ key: "q1", text: "x", criterionKeys: [], importance: "critical", evidenceStandard: "primary" }],
-      assumptions: [], openAmbiguities: [], explicitExclusions: [] } as never,
-    passages: [], sources: [], assertions: [{ key: "classification", candidateKey: null, criterionKeys: [], text: "x",
-      scope: { entity: null, plan: null, version: null, geography: null, time: null, population: null }, quantities: [], evidence: [] }],
-    approvedClaimKeys: ["classification"],
-  })).toEqual([]);
+  expect(repaired.questions[0]).toMatchObject({ status: "unresolved_at_limit", assertionKeys: [] });
 });
 
 it("drops n.a. unknown extracts that state no measured quantity", () => {

@@ -4,7 +4,7 @@ export function counterevidenceQuestion(texts:string[]) {return `What evidence c
 /** A bounded check targets one consequential question. It never claims all conclusions were challenged. */
 export function selectCounterevidenceAction(task:ResearchModelOutput<"brief">,assertions:ResearchModelOutput<"extract_assertions">["assertions"],checks:ScopedSupportResult[]) {
  for(const question of [...task.questions].sort((a,b)=>Number(b.importance==="critical")-Number(a.importance==="critical"))) {
-  const claimKeys=assertions.filter(a=>a.criterionKeys.some(k=>question.criterionKeys.includes(k))&&checks.some(c=>c.claimKey===a.key&&c.decision==="supported")).slice(0,6).map(a=>a.key);
+  const claimKeys=assertions.filter(a=>a.criterionKeys.some(k=>question.criterionKeys.includes(k))&&checks.some(c=>c.claimKey===a.key&&["supported","partially_supported"].includes(c.decision))).slice(0,6).map(a=>a.key);
   if(claimKeys.length)return CounterevidenceActionSchema.parse({type:"challenge",claimKeys,questionKeys:[question.key],question:counterevidenceQuestion(claimKeys.map(key=>assertions.find(a=>a.key===key)!.text)),hypothesis:"contradiction_or_missing_qualification"});
  }
  return null;

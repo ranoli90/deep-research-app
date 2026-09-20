@@ -29,11 +29,15 @@ export async function executeCounterevidence(pool:pg.Pool,config:AppConfig,sessi
  if(["blocked","unknown"].includes(saved.state))return {kind:"challenge" as const,id:saved.id as string,outcome:saved.outcome as string,evidenceChanged:false,version:COUNTEREVIDENCE_VERSION};
  if(saved.state==="planned"){
   const run=(await getRun(pool,args.runId))!,brief=await getBrief(pool,run.brief_id);
-  if(brief.attachmentIds.length)return finish("blocked","blocked","document_search_requires_public_query_approval");
   if(!config.structuredDiscoveryEnabled||!config.liveRetrievalEnabled)return finish("blocked","blocked","counterevidence_search_unavailable");
   const proposal=counterevidenceSearch(brief.originalQuestion,saved.action.questionKeys);
   if(!proposal)return finish("blocked","blocked","counterevidence_query_too_long");
-  const search=await performPublicSearch(pool,config,session,{...args,proposal});
+  let search:Awaited<ReturnType<typeof performPublicSearch>>;
+  try {search=await performPublicSearch(pool,config,session,{...args,proposal});}
+  catch(error){
+   if(!(error instanceof Error)||error.message!=="document_search_requires_public_query_approval")throw error;
+   return {kind:"permission_required" as const};
+  }
   if(search.kind!=="search")return finish(search.kind==="pending"?"unknown":"blocked",search.kind==="pending"?"outcome_unknown":search.reason==="discovery_query_limit"?"unresolved_at_limit":"blocked",search.kind==="pending"?"search_outcome_unknown":search.reason);
   await session.write(db=>db.query("UPDATE counterevidence_checks SET search_intent_id=$2 WHERE id=$1",[saved.id,search.intentId]));
   const sources=await session.write(db=>adoptSearchSources(db,{...args,intentId:search.intentId}));

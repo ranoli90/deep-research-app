@@ -28,6 +28,15 @@ export function draftStatements(raw:ResearchModelOutput<"write_report">,source:A
     section.paragraphs.forEach((p,i)=>add(`paragraph_${s}_${i}`,"text",p.text,p.claimKeys));
   });
   const allKeys=[...new Set(draft.sections.flatMap((s)=>s.paragraphs.flatMap((p)=>p.claimKeys)))];
+  const cited=new Set(allKeys);
+  for(const key of approvedKeys) {
+    if(cited.has(key)) continue;
+    const sourceAssertion=byKey.get(key);
+    if(!sourceAssertion) continue;
+    const retainedKey=`kept_${key}`.slice(0,100);
+    add(retainedKey,"text",sourceAssertion.text,[key]);
+    cited.add(key);
+  }
   draft.limitations.forEach((text,i)=>add(`limitation_${i}`,"caveat",text,allKeys));
   if(items.filter((i)=>i.assertion).length>60)throw new Error("writer_assertion_limit");
   return items;

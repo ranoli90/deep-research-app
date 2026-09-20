@@ -1,3 +1,4 @@
+import { researchPublicationLimitations } from "../modules/publication-coverage.js";
 import {runModelVersions} from "../modules/run-model-policy.js";
 import { evidenceSelectionLimitations } from "../modules/evidence-selections.js";
 import { counterevidenceLimitations } from "../modules/counterevidence.js";
@@ -6,7 +7,7 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
@@ -28,7 +29,12 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   const basis=await session.write(async (db)=>loadWriterSourceContext(db,{...args,prepareCalculations:true},await runModelVersions(db,args.runId)));
   const liveRevision=(await getRun(pool,args.runId))?.evidence_revision ?? basis.evidenceRevision;
   const historical=liveRevision>basis.evidenceRevision;
-  const writeArgs={...args,...basis,historical};
+  const outline=planHierarchicalWrite({task:basis.context.task,approvedClaimKeys:basis.context.approvedClaimKeys,assertions:basis.context.assertions});
+  const orderedKeys=outline.sections.flatMap((section)=>section.claimKeys);
+  const byKey=new Map(basis.context.assertions.map((assertion)=>[assertion.key,assertion]));
+  const orderedAssertions=orderedKeys.map((key)=>byKey.get(key)).filter((assertion):assertion is NonNullable<typeof assertion>=>Boolean(assertion));
+  const context=orderedAssertions.length?{...basis.context,approvedClaimKeys:orderedKeys,assertions:orderedAssertions}:basis.context;
+  const writeArgs={...args,...basis,context,historical};
   let result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
   if(result.kind!=="result")return result;
   if(result.result.status==="invalid_output"){
@@ -68,7 +74,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       return {basis:{...basis,compiled:compileCheckedDraft(statements,checks)},coverage};
     })();
     const {basis,coverage}=validated,compiled=basis.compiled;
-    const challengeLimitations=[...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,{...args,evidenceRevision:basis.evidenceRevision})];
+    const challengeLimitations=[...await researchPublicationLimitations(db,args),...await counterevidenceLimitations(db,args),...await evidenceSelectionLimitations(db,{...args,evidenceRevision:basis.evidenceRevision})];
     const run=await getRun(db,args.runId);
     if(!run||run.evidence_revision<basis.evidenceRevision)throw new Error("stale_writer_publication");
     const laterEvidence=run.evidence_revision>basis.evidenceRevision;

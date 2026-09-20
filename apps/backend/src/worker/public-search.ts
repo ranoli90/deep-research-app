@@ -34,7 +34,10 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion,confirmed),task:task.specification});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
   const proposedQuery=validatedProposal.action.query;
-  const queryDigest=queryAuthorizationDigest(proposedQuery);
+  // Bind approval to the complete outbound query, including application expansion or challenge suffix.
+  const preview=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,sourceClass:args.sourceClass,userPublicTerms:confirmedPublicQueryTerms(confirmed)});
+  const outboundQuery=transformed.success?proposal.action.query:preview.query;
+  const queryDigest=queryAuthorizationDigest(outboundQuery);
   const canaries=await loadPrivateCanaries(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const documentText=await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest});
@@ -42,15 +45,15 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
   if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":auth.reason==="unclassified_query_terms"?"unclassified_query_terms":"unapproved_public_query_terms");
   const privateTerms=auth.terms.filter((t)=>t.provenance==="private-document-derived").map((t)=>t.token);
   if(auth.kind==="permission_required"){
-    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery,authorization:auth});
+    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:outboundQuery,authorization:auth});
     return {denied:"document_search_requires_public_query_approval" as const};
   }
   if(brief.attachmentIds.length&&!(await hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest,terms:privateTerms}))){
-    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery,authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms}});
+    await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:outboundQuery,authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms}});
     return {denied:"document_search_requires_public_query_approval" as const};
   }
   if(canaries.some((c)=>c&&auth.query.toLowerCase().includes(c.toLowerCase())))throw new Error("private_query_blocked");
-  return {query:auth.query,auth,question:brief.originalQuestion};
+  return {query:outboundQuery,auth,question:brief.originalQuestion};
  });
  const prepared=await authorize();
  if("denied" in prepared)throw new Error(prepared.denied);
@@ -86,7 +89,7 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  const recheck=await authorize();
  if("denied" in recheck)throw new Error(recheck.denied);
  await session.write(async (db)=>{
-  await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:proposal.action.query,authorization:{...prepared.auth,query:searchQuery}});
+  await recordQueryAuthorization(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,proposedQuery:searchQuery,authorization:{...prepared.auth,query:searchQuery}});
   await persistFreshnessPolicy(db,{accountId:args.accountId,runId:args.runId,question:prepared.question});
   await db.query(`INSERT INTO search_operations(intent_id,account_id,run_id,task_id,brief_revision,policy_id,request_digest,result,query,source_class)
   VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,[attempt.intentId,args.accountId,args.runId,args.taskId,args.briefRevision,policy.id,digest,JSON.stringify(result),searchQuery,args.sourceClass??null]);

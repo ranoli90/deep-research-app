@@ -1,3 +1,4 @@
+import { executeDocumentReconciliation } from "./document-reconciliation.js";
 import { prepareEvidenceSelection,usesEvidenceSelection } from "../modules/evidence-selections.js";
 import { ResearchBriefSchema } from "@deep/contracts";
 import { executeCounterevidence } from "./counterevidence.js";
@@ -6,7 +7,8 @@ import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERV
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
 import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
-import { persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,reconcileOwnedDocumentClaims,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
+import { pendingQueryAuthorization,persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
+import { runRemainingBudgetMicro } from "../modules/live-spend.js";
 import { loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
 import { executeConclusionChallenges } from "./conclusion-challenges.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
@@ -60,6 +62,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
   const pauseForQueryApproval=async(proposedQuery=brief.originalQuestion):Promise<"paused"|"blocked">=>session.write(async(db)=>{
+    const existingPending=await pendingQueryAuthorization(db,args);
     const queryDigest=queryAuthorizationDigest(proposedQuery);
     const auth=authorizeDiscoveryQuery({
       question:brief.originalQuestion,
@@ -67,13 +70,13 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       privateDocumentText:await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision}),
       approvedPrivateTerms:await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest}),
     });
-    if(auth.kind==="blocked")return "blocked";
+    if(!existingPending&&auth.kind==="blocked")return "blocked";
     const privateTerms=auth.terms.filter((t)=>t.provenance==="private-document-derived").map((t)=>t.token);
-    await recordQueryAuthorization(db,{
+    if(!existingPending) await recordQueryAuthorization(db,{
       accountId:args.accountId,
       runId:args.runId,
       briefRevision:args.briefRevision,
-      proposedQuery,
+      proposedQuery:auth.query,
       authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms},
     });
     await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing', updated_at=now() WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
@@ -130,7 +133,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     AND NOT EXISTS(SELECT 1 FROM counterevidence_checks c WHERE c.run_id=r.id AND c.account_id=r.account_id AND c.brief_revision=$3)`,[args.runId,args.accountId,args.briefRevision]));
   if(requiredProof.rowCount)return unresolved("required_challenge_proof_missing");
   await ingestAttachments(pool,run,brief,session);
-  const openingDigest=queryAuthorizationDigest(brief.originalQuestion);
+  const openingDigest=queryAuthorizationDigest(authorizeDiscoveryQuery({question:brief.originalQuestion,query:brief.originalQuestion}).query);
   const publicQueryApproved=!brief.attachmentIds.length||await session.write((db)=>hasPublicQueryApproval(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest:openingDigest,terms:[]}));
   for(const id of appendedAttachmentIds){
     const readable=await session.write(db=>db.query(`SELECT 1 FROM attachments a
@@ -334,8 +337,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(supportedNow) prior={extraction,support,calculations:{kind:"not_applicable",reason:"pending_calculation_planning"},target:{...target,supportIntentId:support.intentId}};
     await syncCandidateLedger({queriesAttempted:queries,sourceClassesAttempted:classesAttempted});
     const challenge=await executeCounterevidence(pool,config,session,{...target,supportIntentId:support.intentId});
-    await executeConclusionChallenges(pool,config,session,{...target,supportIntentId:support.intentId},{
+    if(challenge.kind==="permission_required"){await pauseForQueryApproval();return;}
+    const conclusions=await executeConclusionChallenges(pool,config,session,{...target,supportIntentId:support.intentId},{
       task:prepared.task.specification,assertions:extraction.output.assertions,checks:support.checks,originalQuestion:brief.originalQuestion});
+    if(conclusions.kind==="permission_required"){await pauseForQueryApproval();return;}
     if(challenge.kind==="challenge") {
       await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
         summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
@@ -363,13 +368,25 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"evidence_checked",phase:"researching",
       summary:review.coverage.complete?"The checked evidence answers the research questions.":"Some questions remain unresolved in the checked evidence.",
       payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
+    const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
+    const remainingBudgetMicro=await runRemainingBudgetMicro(pool,args);
+    const ledger=await session.write((db)=>loadCandidateLedger(db,args));
+    const freshnessUnmet=sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(brief.originalQuestion),sources);
+    const criterionSignals=prepared.task.specification.criteria.map((criterion)=>({
+      criterionKey:criterion.key,
+      freshnessUnmet,
+      affectedCandidates:ledger?.entries.filter((entry)=>entry.status!=="excluded").length??0,
+      sourceQuality:(sources.some((source)=>!isWeakSourceClass(source))?"primary":sources.length?"secondary":"unknown") as "primary"|"secondary"|"unknown",
+      nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
+    }));
     const needArgs={
       originalQuestion:brief.originalQuestion,
       criterionKeys:prepared.task.specification.criteria.map((c)=>c.key),
       unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,
-      remainingBudgetMicro:Math.max(0,Number(run.budget_micro)-Number(run.spent_micro)),
+      remainingBudgetMicro,
       nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
       criteria:prepared.task.specification.criteria,
+      criterionSignals,
     };
     const storedNeeds=await session.write((db)=>loadEvidenceNeeds(db,args));
     let needs=storedNeeds.length?updateNeedsFromCoverage(storedNeeds,needArgs):buildEvidenceNeeds(needArgs);
@@ -380,10 +397,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys:review.coverage.unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
       const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);
-      const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
       const failedQueries=Number((await pool.query(`SELECT count(*)::int AS n FROM search_operations s WHERE s.run_id=$1 AND s.account_id=$2 AND COALESCE(jsonb_array_length(s.result->'hits'),0)=0`,[args.runId,args.accountId])).rows[0]?.n??0);
-      const policy=freshnessPolicyForQuestion(brief.originalQuestion);
-      const freshnessUnmet=sourcesHaveUnmetFreshness(policy,sources);
       const nextClass=nextSourceClass(plan,classesAttempted,{
         weak:sources.length>0&&sources.every((s)=>isWeakSourceClass(s)),
         duplicative:sources.length>1&&independentConfirmationCount(sources)<sources.length,
@@ -395,7 +409,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         sources,
         novelty:sources.length>lastSourceCount?1:0,
         expectedInformationGain:next.kind==="search"?"high":"none",
-        remainingBudgetMicro:Math.max(0,Number(run.budget_micro)-Number(run.spent_micro)),
+        remainingBudgetMicro,
         nextCostMicro:DISCOVERY_ATTEMPT_RESERVE_MICRO,
         freshnessUnmet,
         priorFailedQueries:failedQueries,
@@ -444,8 +458,11 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       if(prior)return writeFromPrior("no_supported_assertions");
       return unresolved("no_supported_assertions");
     }
+    if(brief.attachmentIds.length){
+      const reconciled=await executeDocumentReconciliation(pool,config,session,target);
+      if(reconciled.kind!=="reconciled")return pendingOrBlocked(reconciled);
+    }
     await session.write(async(db)=>{
-      if(brief.attachmentIds.length)await reconcileOwnedDocumentClaims(db,{accountId:args.accountId,runId:args.runId,question:brief.originalQuestion,claims:extraction.output.assertions.map((a)=>({key:a.key,text:a.text}))});
       await setPhase(db,args.runId,"writing");
       await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
     });

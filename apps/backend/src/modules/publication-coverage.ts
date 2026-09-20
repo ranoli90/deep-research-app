@@ -1,13 +1,31 @@
+import { loadCandidateLedger } from "./research-controller.js";
+import { loadRunStoredSources } from "./retrieval-intelligence.js";
+import { getRun,getBrief } from "./runs.js";
 import {runModelVersions} from "./run-model-policy.js";
 import { evidenceSelectionLimitations } from "./evidence-selections.js";
 import { verificationReportMatches } from "./verification-proof.js";
 import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
 import { CALCULATED_COVERAGE_VERSION,calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,limitedCoverageDisclosed,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
+import { candidateClaimsBounded,CANDIDATE_SCOPE_LIMITATION,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,compileCheckedDraft,draftStatements,limitedCoverageDisclosed,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { persistResearchCoverage } from "./research-coverage.js";
 import { loadSupportContext,persistScopedSupport,restoreWriterDraft } from "./scoped-support.js";
+
+/** Derived again at publication; a writer cannot omit a current research limitation. */
+export async function researchPublicationLimitations(db:Queryable,args:{accountId:string;runId:string}):Promise<string[]> {
+ const run=await getRun(db,args.runId);
+ if(!run||run.account_id!==args.accountId)throw new Error("publication_owner_mismatch");
+ const brief=await getBrief(db,run.brief_id);
+ const ledger=await loadCandidateLedger(db,args);
+ const sources=await loadRunStoredSources(db,args);
+ const limitations:string[]=[];
+ const compared=ledger?.entries.filter((entry)=>entry.status!=="excluded").length??0;
+ if(compared>=2)limitations.push(CANDIDATE_SCOPE_LIMITATION);
+ if(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(brief.originalQuestion),sources))
+  limitations.push("Required freshness, effective date, or version could not be established for the inspected evidence.");
+ return limitations;
+}
 
 /** No caller completion flag or saved model verdict substitutes for current coverage of this exact report. */
 export async function reportCompletionCovered(db:Queryable,accountId:string,report:CanonicalReport):Promise<boolean> {
@@ -16,7 +34,8 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   if(await requiredCounterevidenceMissing(db,challengeBasis))return false;
   // Limited publication must carry every independently restored target warning too.
   // Its outcome label cannot bypass an admitted proof obligation or corrupt saved proof.
-  const challengeLimitations=[...await counterevidenceLimitations(db,challengeBasis),...await evidenceSelectionLimitations(db,{...challengeBasis,evidenceRevision:report.basis.evidenceRevision})];
+  const challengeLimitations=[...await researchPublicationLimitations(db,challengeBasis),...await counterevidenceLimitations(db,challengeBasis),...await evidenceSelectionLimitations(db,{...challengeBasis,evidenceRevision:report.basis.evidenceRevision})];
+  if(!candidateClaimsBounded(report.blocks.map(b=>b.text)))return false;
   if(challengeLimitations.some(limitation=>!report.limitations.includes(limitation)))return false;
   const verification=await verificationReportMatches(db,accountId,report);
   if(verification!==null)return verification;
@@ -59,7 +78,8 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   const calculated=(await db.query(`SELECT 1 FROM calculated_report_coverage WHERE account_id=$1 AND run_id=$2 AND brief_revision=$3
     AND evidence_revision=$4 AND checker_version=$5 LIMIT 1`,
     [accountId,report.runId,report.basis.briefRevision,report.basis.evidenceRevision,CALCULATED_COVERAGE_VERSION])).rowCount;
-  // Structured coverage existed and did not prove this limited report; do not fall back to the outcome label.
+  // Calculated coverage existed and did not prove this limited report; do not fall back to the outcome label.
   if(calculated)return false;
+  // Limited reports without a restored structured/calculated coverage row keep their historical limited contract.
   return true;
 }

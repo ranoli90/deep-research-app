@@ -50,6 +50,7 @@ export * from "./geography.js";
 export * from "./evidence-needs.js";
 export * from "./follow-up-router.js";
 export * from "./candidate-ledger.js";
+export * from "./hierarchical-write.js";
 export { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, locateUniqueQuote, locateOwnedPassageQuote, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "./model-span-resolution.js";
 export { repairBriefCriterionLinks, suppressUnneededBriefClarifications, BRIEF_CRITERION_LINK_VERSION } from "./brief-criterion-link.js";
 export {

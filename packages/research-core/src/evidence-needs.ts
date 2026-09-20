@@ -30,6 +30,8 @@ export type EvidenceNeed = {
   stopReason: string | null;
 };
 
+export type EvidenceNeedSignal = { criterionKey: string; freshnessUnmet: boolean; affectedCandidates: number; sourceQuality: "primary" | "secondary" | "weak" | "unknown"; nextCostMicro: number };
+
 type BriefCriterion = ResearchModelOutput<"brief">["criteria"][number];
 
 function queryHintFor(question: string, key: string, criteria: BriefCriterion[] | undefined): string {
@@ -49,18 +51,27 @@ export function buildEvidenceNeeds(args: {
   remainingBudgetMicro: number;
   nextCostMicro: number;
   criteria?: BriefCriterion[];
+  criterionSignals?: EvidenceNeedSignal[];
 }): EvidenceNeed[] {
   const plan = planSourceClass(args.originalQuestion);
   const keys = args.criterionKeys.length ? args.criterionKeys : ["objective"];
   return keys.map((key) => {
     const unresolved = args.unresolvedCriterionKeys.includes(key) || key === "objective";
-    const budgetBlocks = args.nextCostMicro > args.remainingBudgetMicro;
+    const signal=args.criterionSignals?.find(s=>s.criterionKey===key);
+    const criterion=args.criteria?.find(c=>c.key===key);
+    const cost=signal?.nextCostMicro??args.nextCostMicro;
+    const budgetBlocks = !Number.isSafeInteger(cost)||cost<0||cost > args.remainingBudgetMicro;
+    const consequence=criterion?.importance==="hard"?60:30;
+    const freshness=signal?.freshnessUnmet?25:0;
+    const candidateImpact=Math.min(20,Math.max(0,signal?.affectedCandidates??0)*5);
+    const qualityGap=signal?.sourceQuality==="primary"?0:signal?.sourceQuality==="secondary"?8:15;
+    const value=Math.max(1,Math.round((consequence+freshness+candidateImpact+qualityGap)/(1+cost/Math.max(1,args.remainingBudgetMicro))));
     const hint = queryHintFor(args.originalQuestion, key, args.criteria);
     const nextAction: EvidenceNeedAction = !unresolved
       ? { kind: "stop", reason: "need_satisfied", value: 0 }
       : budgetBlocks
         ? { kind: "stop", reason: "finishing_reserve", value: 0 }
-        : { kind: "search", sourceClass: plan.primary, queryHint: hint, value: 80 };
+        : { kind: "search", sourceClass: plan.primary, queryHint: hint, value };
     return {
       id: `need-${key}`,
       version: EVIDENCE_NEEDS_VERSION,
@@ -103,6 +114,7 @@ export function updateNeedsFromCoverage(needs: EvidenceNeed[], args: {
   remainingBudgetMicro: number;
   nextCostMicro: number;
   criteria?: BriefCriterion[];
+  criterionSignals?: EvidenceNeedSignal[];
 }): EvidenceNeed[] {
   const rebuilt = buildEvidenceNeeds(args);
   const prior = new Map(needs.map((n) => [n.id, n]));

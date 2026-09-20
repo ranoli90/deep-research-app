@@ -55,7 +55,8 @@ function completenessFromCoverage(coverage?: CandidateLedgerCoverage): Pick<Cand
     return { universeComplete: false, completenessNote: INCOMPLETE_NOTE };
   }
   return {
-    universeComplete: true,
+    // Exhausting a bounded search budget never proves the external universe complete.
+    universeComplete: false,
     completenessNote: "Durable search coverage reached a discovery stop; this is a bounded result over the inspected set, not a claim that no option exists outside it.",
   };
 }
@@ -124,3 +125,12 @@ export function reopenExclusions(ledger: CandidateLedger, changedFields: string[
     ),
   };
 }
+
+/** A bounded discovery stop never licenses a universal ranking in final prose. */
+export function candidateClaimsBounded(texts: readonly string[]): boolean {
+  return texts.every(text => {
+    const ranks=/\b(best|winner|unmatched|unbeatable|exhaustive|only (?:option|choice)|all (?:available )?(?:options|candidates))\b/iu.test(text);
+    return !ranks || /\b(?:among|of|within) (?:the )?(?:inspected|reviewed|tested|compared) (?:options|candidates|products|sources)\b/iu.test(text);
+  });
+}
+export const CANDIDATE_SCOPE_LIMITATION="This comparison covers inspected candidates only; additional eligible options may exist.";

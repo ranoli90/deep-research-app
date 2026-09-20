@@ -188,9 +188,6 @@ export function repairCoverageReview(
   const assertionKeys = assertions.map((a) => a.key);
   const next = structuredClone(output);
   for (const question of next.questions) {
-    if (question.status === "supported" && !question.assertionKeys.length && assertionKeys.length) {
-      question.assertionKeys = assertionKeys.slice(0, 12);
-    }
     question.assertionKeys = question.assertionKeys.filter((key) => assertionKeys.includes(key));
     if (question.status === "supported" && !question.assertionKeys.length) {
       question.status = "unresolved_at_limit";
@@ -201,11 +198,12 @@ export function repairCoverageReview(
   if (next.questions.length === 0) return next;
   for (const key of questionKeys) {
     if (seen.has(key) || next.questions.length >= 24) continue;
+    // Omission is unresolved coverage, never synthesized support.
     next.questions.push({
       questionKey: key,
-      status: assertionKeys.length ? "supported" : "unresolved_at_limit",
-      assertionKeys: assertionKeys.slice(0, 12),
-      reason: assertionKeys.length ? "Checked assertions cover this question." : "No supported assertions were available.",
+      status: "unresolved_at_limit",
+      assertionKeys: [],
+      reason: "Coverage review omitted this requested question.",
     });
   }
   return next;
@@ -240,19 +238,8 @@ export function repairSupportAssessments(
       evidence: assessment.evidence.length === 0 ? [] : evidence.length ? evidence : assertion.evidence,
     });
   }
-  if (output.assessments.length === 0) return { assessments: repaired };
-  for (const key of unused) {
-    if (!/^(heading|paragraph|limitation)_/u.test(key)) continue;
-    const assertion = assertions.find((a) => a.key === key)!;
-    repaired.push({
-      claimKey: key,
-      status: "supported",
-      evidence: assertion.evidence,
-      scope: assertion.scope,
-      rationale: "Support reused the extracted claim evidence after the model omitted a usable assessment.",
-      missingEvidence: [],
-    });
-  }
+  // Omitted claim keys stay missing so validation can fail closed or request a bounded re-assessment.
+  void unused;
   return { assessments: repaired };
 }
 

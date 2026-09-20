@@ -1,0 +1,47 @@
+id,severity,area,finding,required_fix
+ENG-001,P0,Revision semantics,Steering and add-source mutate sourceRestrictions on the existing brief,Revision-safe controller/brief change; issued identities remain immutable; exact regression test.
+ENG-002,P1,Task identity,Research task identity still does not digest all planning state,"Canonical planning-manifest digest including confirmed constraints, assumptions, source policy, output requirements."
+ENG-003,P1,Awaiting input,`awaiting_input` does not persist exact expected input ID/type,Typed pending-input record bound to revision; wrong/stale endpoint cannot resume.
+ENG-004,P1,Budget,Reserve can clamp below operation worst case,Reserve actual configured max cost + margin; never clamp below worst-case request.
+ENG-005,P1,Context,Input admission does not explicitly guarantee input+output+overhead <= context,Operation/model context equation and boundary tests.
+ENG-006,P1,Model governor,Live gateway still effectively run-policy-driven,Per-operation route decision persisted before reserve/execution.
+ENG-007,P1,Model governor,All current routes are GPT-4o-mini variants,Either benchmark/register distinct approved tiers or explicitly keep Beta single-model; no multi-model claim.
+ENG-008,P2,Caching,cacheSessionId still not actually used,Wire safely if supported or delete the capability claim.
+ENG-009,P2,Model health,No runtime route retirement/circuit breaker,Approved capability health registry without rewriting historical policy.
+ENG-010,P1,Private query,Attachment-backed per-conclusion counterevidence still blocks instead of using exact approval,Use exact query-authorization proof for challenge searches.
+ENG-011,P1,Retrieval durability,Research iteration/action count can still reset at process restart,Persist/reconstruct action counter/stop state.
+ENG-012,P1,Budget freshness,Discovery decisions use stale run spend snapshot,Refresh financial state before continuation decisions.
+ENG-013,P1,Source resilience,Thrown source-read errors can reject batch,Use settled per-source classification; propagate only security/lease/cancel fatal classes.
+ENG-014,P1,Source replay,Issued source read can remain pending forever after crash,Explicit unknown/failed/recoverable state and replay policy.
+ENG-015,P2,URL identity,URL canonicalization/dedup is weak,Normalize safe equivalents/tracking parameters and final redirect identity.
+ENG-016,P1,Source policy,Policy is not re-applied on final redirect URL,Re-check final URL under source policy before adoption/publication.
+ENG-017,P1,Source policy,prefer_primary behaves as primary-only,Prefer/rank primary; permit secondary fallback unless user explicitly says only.
+ENG-018,P1,Source classification,Official/primary heuristic is gov/IGO-heavy,"Use source-class/entity relation; support vendor docs, standards bodies, official projects."
+ENG-019,P1,Freshness,Unknown required date/version is treated as satisfied,Unknown stays unmet/uncertain when policy requires date/version.
+ENG-020,P1,Freshness metadata,Effective date/version/retrieval metadata incomplete,Persist and propagate to strategy/evidence/API.
+ENG-021,P2,Source quality,Stored source access flattened to snippet,Use best authorized source-version access/coverage.
+ENG-022,P2,Evidence Needs,Need value remains fixed/simple,"Value from consequentiality, freshness gap, candidate impact, source quality, cost."
+ENG-023,P1,Candidate claims,Bounded completeness must gate 'best/winner/exhaustive' language,Writer/publication must know incomplete universe and phrase safely.
+ENG-024,P1,Falsification,Partially supported consequential conclusions may be skipped,"Challenge by consequentiality/uncertainty, not supported-only status."
+ENG-025,P1,Reconciliation,Document/web v2 remains heuristic/deterministic rather than scoped semantic authority,Lexical triage -> scoped support model + deterministic number/date/version/scope guards.
+ENG-026,P1,Reconciliation coverage,First 24 passages / 8 claims slice can silently omit decisive items,"Importance-bounded work with explicit unresolved coverage, not silent slice."
+ENG-027,P1,Support repair,Partial assessment repair can synthesize supported writer rows,Missing semantic review must remain missing or trigger a bounded re-assessment.
+ENG-028,P1,Coverage repair,Partial coverage repair can synthesize missing supported questions,Do not mint reviewer coverage from omission.
+ENG-029,P1,Writer salvage,Unsupported headings can become generic Answer,Reject/repair semantic headings; only deterministic decorative labels may be normalized.
+ENG-030,P1,Repair quality,Repair prompt lacks exact validator failure codes,Pass redacted structural error codes/paths into bounded repair.
+ENG-031,P0,Live writer quality,J11 wide task still caveat-only/unpublished grounded facts,Fix synthesis grounding; complex job must produce useful supported body.
+ENG-032,P1,Long synthesis,Hierarchical synthesis not first-class for complex jobs,Evidence packet -> outline -> section synthesis -> global consistency/citation validation.
+ENG-033,P1,Follow-up,Explain route classifies but does not generate a grounded explanation response,Answer from existing evidence; targeted research only when needed.
+ENG-034,P1,API auth,Deleted identity checks inconsistent,Central auth guard rejects deleted account for consumer endpoints.
+ENG-035,P1,API validation,Some V8 endpoints use raw TS casts,"Strict Zod request schemas, cursor schemas, length/enums."
+ENG-036,P1,Admission idempotency,Server may invent idempotency key for controlled research,Require client-supplied key for paid/live admissions.
+ENG-037,P2,DB invariants,New audit/retrieval tables lack some FK/check constraints,Add constraints where security/privacy/spend identity benefits.
+ENG-038,P0,Verification truth,HEAD lacks two fresh full-PG greens and `pnpm verify`,Run exact HEAD; never transfer old SHA PASS.
+ENG-039,P0,Native truth,Installed APK is behind product HEAD,Build/install current functional product before UI baseline sign-off.
+ENG-040,P0,Evidence docs,Acceptance matrix / STATUS / issue registry are stale,Regenerate exact-SHA truth after fixes.
+ENG-041,P1,Long-report performance,Real long report not benchmarked,100-block/100-citation device benchmark; virtualize if necessary.
+ENG-042,P1,Private-document journey,J8 never ran,Use a safe user-authorized/synthetic private attachment fixture that does not invent user data; prove permission flow.
+ENG-043,P1,Prompt injection,Keep source injection boundary regression suite current,Adversarial source text cannot alter permissions/budget/tools/consent.
+ENG-044,P2,Intent generality,Semantic intent remains rules-heavy,Either add validated semantic intent operation or broaden held-out corpus and label capability honestly.
+ENG-045,P2,Query planning,Typed query planning is still narrow,Add provenance-safe semantic reformulation only if benchmark proves value.
+ENG-046,P1,IME functional QA,Current send visibility not proven across current APK/IME state,Physical current-build Gboard/suggestion-bar path.

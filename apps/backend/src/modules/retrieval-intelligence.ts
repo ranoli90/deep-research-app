@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import {
   authorizePublicQuery,
-  canonicalQueryIdentity,
   canonicalPrivateTermSet,
   clusterSourceOrigins,
   evaluateFreshness,
@@ -20,9 +19,9 @@ import type { Queryable } from "../platform/db.js";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 
-/** SHA-256 of the canonical proposed-query identity. Not a union of prior queries. */
+/** Versioned exact outbound bytes. Historical token-set approvals cannot authorize a changed query. */
 export function queryAuthorizationDigest(query: string): string {
-  return digest(canonicalQueryIdentity(query));
+  return digest(`outbound-query.v3\0${query}`);
 }
 
 export async function loadPrivateDocumentText(
@@ -287,9 +286,17 @@ export async function persistFreshnessPolicy(
   return policy;
 }
 
+export type ScopedReconciliationResult = Omit<ReconciliationResult,"version"|"sourceScope"> & {
+ version:"document-web-reconciliation.v3";
+ sourceScope:ReconciliationResult["sourceScope"] & {
+  version:"document-web-reconciliation.v3"; extractionIntentId:string; modelIntentIds:string[];
+  inspectedPassageIds:string[]; omittedPassageIds:string[]; briefRevision:number; evidenceRevision:number;
+ };
+};
+
 export async function persistReconciliation(
   db: Queryable,
-  args: { accountId: string; runId: string; result: ReconciliationResult },
+  args: { accountId: string; runId: string; result: ReconciliationResult | ScopedReconciliationResult },
 ): Promise<void> {
   await db.query(
     `INSERT INTO document_web_reconciliations(id,account_id,run_id,claim_key,outcome,permission_required,public_query_digest,source_scope,rationale)

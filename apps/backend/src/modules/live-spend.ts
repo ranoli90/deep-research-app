@@ -8,6 +8,22 @@ import { getRun } from "./runs.js";
 import { currentConsent } from "./access.js";
 import { operationClassFor, reserveOperationBudget } from "../model-governor/index.js";
 
+/** Run remaining after confirmed spend plus issued/unknown holds. Never trust a lagging spent_micro snapshot. */
+export async function runRemainingBudgetMicro(db: Queryable, args: { runId: string; accountId: string }): Promise<number> {
+  const row = (await db.query<{ budget_micro: string; used_micro: string }>(
+    `SELECT r.budget_micro::text AS budget_micro,
+      COALESCE((SELECT SUM(CASE
+        WHEN i.confirmed_micro IS NOT NULL THEN i.confirmed_micro
+        WHEN i.state IN ('issued','outcome-unknown') THEN i.reserved_max_micro
+        ELSE 0 END)
+        FROM provider_intents i WHERE i.run_id=r.id),0)::text AS used_micro
+     FROM runs r WHERE r.id=$1 AND r.account_id=$2`,
+    [args.runId, args.accountId],
+  )).rows[0];
+  if (!row) throw new Error("run_owner_mismatch");
+  return Math.max(0, Number(row.budget_micro) - Number(row.used_micro));
+}
+
 /** Sum confirmed spend plus unresolved HOLD. Known-zero failures are not unknown liabilities. */
 export async function liveSpendUsedMicro(db: Queryable, scope = "project"): Promise<number> {
   const res = await db.query<{ used: string }>(

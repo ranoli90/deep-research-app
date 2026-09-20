@@ -21,16 +21,17 @@ it("keeps a numbered unsupported heading as unresolved rather than an Answer lab
   expect(compiled.unresolved).toEqual(["heading_0"]);
 });
 
-it("maps an unsupported heading to Answer so the cited paragraph can publish", () => {
+it("ENG-029 preserves an unsupported semantic heading as unresolved alongside a supported paragraph", () => {
   const heading: DraftStatement = { key: "heading_0", kind: "heading", text: "Current Minimum Wage", premiseKeys: ["current_minimum_wage"], assertion: assertion("heading_0", "Current Minimum Wage") };
   const paragraph: DraftStatement = { key: "paragraph_0_0", kind: "text", text: "The current federal minimum wage is $7.25 an hour.", premiseKeys: ["current_minimum_wage"], assertion: assertion("paragraph_0_0", "The current federal minimum wage is $7.25 an hour.") };
   const compiled = compileCheckedDraft([heading, paragraph], [
     check("heading_0", "insufficient", "22222222-2222-4222-8222-222222222222"),
     check("paragraph_0_0", "supported", "33333333-3333-4333-8333-333333333333"),
   ]);
-  expect(compiled.blocks[0]).toMatchObject({ kind: "heading", text: "Answer", claimIds: [], citationIds: [] });
+  expect(compiled.blocks[0]).toMatchObject({ kind: "caveat", claimIds: [] });
+  expect(compiled.blocks[0]!.text).not.toBe("Answer");
   expect(compiled.blocks[1]).toMatchObject({ kind: "text", text: paragraph.text, citationIds: [pid] });
-  expect(compiled.unresolved).toEqual([]);
+  expect(compiled.unresolved).toEqual(["heading_0"]);
 });
 
 it("does not cite a scope caveat that the wage fragment never stated", () => {

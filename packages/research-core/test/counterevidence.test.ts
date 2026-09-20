@@ -1,5 +1,5 @@
 import { expect,it } from "vitest";
-import { counterevidenceSearch,counterevidenceOutcome,selectConsequentialConclusions } from "../src/counterevidence.js";
+import { counterevidenceSearch,counterevidenceOutcome,selectConsequentialConclusions,selectCounterevidenceAction } from "../src/counterevidence.js";
 import type { ScopedSupportResult } from "../src/scoped-support.js";
 it("W05 counterevidence query discloses only original question plus closed application words",()=>{
  expect(counterevidenceSearch("Does Zephyr support offline work?",["q1"])?.action).toEqual({type:"search",query:"Does Zephyr support offline work? contradictions limitations exceptions",questionKeys:["q1"],publicQueryBasis:{start:0,end:33,quote:"Does Zephyr support offline work?"},queryTransform:"counterevidence.v1"});
@@ -21,4 +21,12 @@ it("selects independent conclusions per supported critical question",()=>{
  const checks=[{claimKey:"export",decision:"supported" as const},{claimKey:"offline",decision:"supported" as const}];
  const selected=selectConsequentialConclusions(task as never,assertions as never,checks as never);
  expect(selected.map((c)=>c.conclusionKey).sort()).toEqual(["export","offline"]);
+});
+
+it("ENG-024 challenges partially supported consequential claims in both production selectors",()=>{
+ const task={questions:[{key:"critical",importance:"critical",criterionKeys:["criterion"]}]} as never;
+ const assertions=[{key:"partial",text:"A qualified finding",criterionKeys:["criterion"]}] as never;
+ const checks=[{claimKey:"partial",decision:"partially_supported"}] as never;
+ expect(selectConsequentialConclusions(task,assertions,checks).map(c=>c.conclusionKey)).toEqual(["partial"]);
+ expect(selectCounterevidenceAction(task,assertions,checks)?.claimKeys).toEqual(["partial"]);
 });

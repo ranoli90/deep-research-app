@@ -11,7 +11,7 @@ import {
 } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { runModelVersions } from "../modules/run-model-policy.js";
-import { getBrief, getRun } from "../modules/runs.js";
+import { getRun } from "../modules/runs.js";
 import { loadSupportContext, type SupportArgs } from "../modules/scoped-support.js";
 import {
   loadConclusionChallenges,
@@ -58,24 +58,10 @@ export async function executeConclusionChallenges(
   if (!config.structuredChallengeEnabled) {
     return { kind: "recorded" as const, version: CONCLUSION_CHALLENGE_VERSION, count: conclusions.length };
   }
-  const brief = await getBrief(pool, (await getRun(pool, args.runId))!.brief_id);
-  if (brief.attachmentIds.length) {
-    for (const conclusion of conclusions) {
-      await session.write((db) => persistConclusionChallenge(db, {
-        ...args,
-        ...conclusion,
-        wouldFalsify: falsificationForConclusion({ conclusionKey: conclusion.conclusionKey, conclusionText: conclusion.conclusionText, originalQuestion: input.originalQuestion }).wouldFalsify,
-        likelySourceClass: falsificationForConclusion({ conclusionKey: conclusion.conclusionKey, conclusionText: conclusion.conclusionText, originalQuestion: input.originalQuestion }).likelySourceClass,
-        state: "blocked",
-        reason: "document_search_requires_public_query_approval",
-      }));
-    }
-    return { kind: "recorded" as const, version: CONCLUSION_CHALLENGE_VERSION, count: conclusions.length };
-  }
   const existing = await session.write((db) => loadConclusionChallenges(db, args));
   for (const conclusion of conclusions) {
     const saved = existing.find((c) => c.conclusionKey === conclusion.conclusionKey);
-    if (saved && (saved.state === "challenged" || saved.state === "blocked" || saved.state === "unknown")) continue;
+    if (saved && (saved.state === "challenged" || saved.state === "unknown" || saved.state === "blocked" && saved.reason !== "document_search_requires_public_query_approval")) continue;
     const proposal = counterevidenceSearch(input.originalQuestion, [conclusion.questionKey]);
     const seed = falsificationForConclusion({
       conclusionKey: conclusion.conclusionKey,
@@ -106,7 +92,14 @@ export async function executeConclusionChallenges(
       await finish("blocked", "blocked", "counterevidence_search_unavailable");
       continue;
     }
-    const search = await performPublicSearch(pool, config, session, { ...args, proposal, sourceClass: seed.likelySourceClass });
+    let search: Awaited<ReturnType<typeof performPublicSearch>>;
+    try {
+      search = await performPublicSearch(pool, config, session, { ...args, proposal, sourceClass: seed.likelySourceClass });
+    } catch (error) {
+      if (!(error instanceof Error) || error.message !== "document_search_requires_public_query_approval") throw error;
+      // The gateway persisted the exact outbound proof; the controller must pause, not mark this conclusion permanently blocked.
+      return { kind: "permission_required" as const };
+    }
     if (search.kind !== "search") {
       await finish(search.kind === "pending" ? "unknown" : "blocked", search.kind === "pending" ? "outcome_unknown" : "blocked", search.kind === "pending" ? "search_outcome_unknown" : search.reason);
       continue;
