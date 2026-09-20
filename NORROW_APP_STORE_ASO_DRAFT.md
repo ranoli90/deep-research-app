@@ -1,6 +1,6 @@
 # Norrow — Apple listing draft
 
-Research-informed starting hypothesis; not an approved name, cleared trademark or tested ASO winner.
+Owner-supplied listing draft; the name remains subject to the owner's trademark and storefront approval.
 
 **Name:** Norrow: AI Deep Research (24 characters)
 
@@ -37,4 +37,6 @@ AI-generated answers can be incomplete or wrong. Check important sources and use
 
 ## Current portal state
 
-The App Store Connect record now exists as Apple app ID `6814282574`, version 1.0, English (U.S.). The title, subtitle, promotional text, description and keywords above were saved through the App Store Connect API. Support/privacy URLs, screenshots, age rating, content rights and signed iPhone/iPad claim verification remain unsaved until their source facts and assets are available. The native App ID `app.deepresearch.mobile` has Sign in with Apple enabled. The full archive contains alternate names/subtitles/keywords, source notes, claim gates, screenshot storyboard, privacy rules and post-launch experiments.
+The App Store Connect record exists as Apple app ID `6814282574`, version 1.0, English (U.S.). The title, subtitle, promotional text, description and keywords above were saved through the App Store Connect API. Categories are set to Productivity (primary) and Reference (secondary). The age-rating declaration is set from the current product behavior: no advertising, gambling, unrestricted web access, social media, broad user-generated-content distribution, or mature content. The generated 1024×1024 mark is installed at `apps/mobile/assets/icon.png` and `apps/mobile/assets/adaptive-icon.png`.
+
+Support, privacy-policy, and terms URLs remain blank because this repository contains no verified public legal/support destination. Do not insert a guessed domain or a placeholder URL into the listing description; the owner must provide an authorized, publicly reachable URL before release. Screenshots, content-rights declaration, and signed iPhone/iPad claim verification also require evidence from the release build. The native App ID `app.deepresearch.mobile` has Sign in with Apple enabled. The full archive contains alternate names/subtitles/keywords, source notes, claim gates, screenshot storyboard, privacy rules and post-launch experiments.
