@@ -71,8 +71,9 @@ export function reportOutline(sections: ReportSection[]): { id: string; title: s
 export function reportNeedsOutline(sections: ReportSection[]): boolean {
   const nonAnswer = sections.filter((section) => section.id !== "answer");
   const blocks = sections.flatMap((section) => section.blocks);
-  if (nonAnswer.length >= 2) return true;
-  if (blocks.length >= 5) return true;
   const chars = blocks.reduce((n, block) => n + block.text.length, 0);
-  return chars >= 900;
+  if (chars >= 900) return true;
+  if (nonAnswer.length >= 4) return true;
+  if (blocks.length >= 8) return true;
+  return false;
 }

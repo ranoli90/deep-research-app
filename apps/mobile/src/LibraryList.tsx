@@ -16,6 +16,7 @@ type Styles = {
   libraryRow: StyleProp<ViewStyle>;
   librarySearch: StyleProp<TextStyle>;
   libraryPreview?: StyleProp<TextStyle>;
+  libraryMeta?: StyleProp<TextStyle>;
 };
 
 export function LibraryList({
@@ -108,7 +109,7 @@ export function LibraryList({
             <Pressable style={{ flex: 1, minWidth: 0 }} onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
               {copy.preview ? <Text style={styles.libraryPreview ?? styles.kicker} numberOfLines={2}>{copy.preview}</Text> : null}
-              <Text style={styles.kicker}>{meta}</Text>
+              <Text style={styles.libraryMeta ?? styles.libraryPreview ?? styles.kicker}>{meta}</Text>
             </Pressable>
             {it.report_id ? (
               <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12} style={{ minWidth: 44, minHeight: 56, justifyContent: "center", alignItems: "center" }}>

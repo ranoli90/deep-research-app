@@ -60,7 +60,7 @@ export function labelResearchEvent(event: ResearchEvent): { label: string; detai
 }
 
 export function visibleResearchEvents(events: ResearchEvent[]): VisibleResearchEvent[] {
-  return events
+  const visible = events
     .slice()
     .sort((a, b) => a.sequence - b.sequence)
     .flatMap((event) => {
@@ -76,6 +76,18 @@ export function visibleResearchEvents(events: ResearchEvent[]): VisibleResearchE
         count: event.activity.count,
       }];
     });
+  const unique: VisibleResearchEvent[] = [];
+  for (const event of visible) {
+    const previous = unique.at(-1);
+    if (previous && previous.label === event.label && previous.detail === event.detail) continue;
+    unique.push(event);
+  }
+  return unique;
+}
+
+/** Chevron icon is the expand affordance; do not also paint a text ›. */
+export function displayCollapsedSummary(summary: string): string {
+  return summary.replace(/\s*›\s*$/u, "");
 }
 
 function sourceCount(events: ResearchEvent[]): number {

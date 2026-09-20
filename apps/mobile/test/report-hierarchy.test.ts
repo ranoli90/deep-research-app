@@ -45,12 +45,28 @@ describe("editorial report hierarchy", () => {
     expect(report).not.toMatch(/<Text style=\{styles\.kicker\}>Outline<\/Text>/);
   });
 
-  it("withholds the outline on a short answer-only report", () => {
+  it("withholds the outline on a short answer-first report", () => {
     expect(reportNeedsOutline(editorialSections([block("answer", "text", "Buy Vendor A.")]))).toBe(false);
     expect(reportNeedsOutline(editorialSections([
       block("answer", "text", "Buy Vendor A."),
       block("eligibility", "text", "Fits the budget."),
       block("comparison-table", "table", "A | B"),
+    ]))).toBe(false);
+  });
+
+  it("shows the outline when the report is actually long", () => {
+    const long = "Vendor A is the only inspected option that meets the stated budget and region. ".repeat(20);
+    expect(reportNeedsOutline(editorialSections([
+      block("answer", "text", long),
+      block("eligibility", "text", long),
+      block("comparison-table", "table", long),
+    ]))).toBe(true);
+    expect(reportNeedsOutline(editorialSections([
+      block("answer", "text", "Buy Vendor A."),
+      block("eligibility", "text", "Fits."),
+      block("comparison-table", "table", "A | B"),
+      block("contradiction-price", "caveat", "Prices disagree."),
+      block("unresolved-warranty", "text", "Warranty unknown."),
     ]))).toBe(true);
   });
 });

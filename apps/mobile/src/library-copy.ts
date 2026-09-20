@@ -79,7 +79,7 @@ export function libraryItemCopy(item: LibraryRecord): {
   canResume: boolean;
 } {
   return {
-    title: item.title.trim() || "Untitled research",
+    title: item.title.trim().replace(/\s+/g, " ") || "Untitled research",
     status: libraryStatusLabel(item.status),
     updated: libraryUpdatedLabel(item),
     version: libraryVersionLabel(item),

@@ -38,6 +38,8 @@ describe("one-sentence composer and researching-this brief", () => {
     const card = readFileSync(join(import.meta.dirname, "../src/ResearchBriefCard.tsx"), "utf8");
     expect(card).not.toContain("<Text style={styles.bodyText}>{view.objective}</Text>");
     expect(card).toContain("Edit assumptions");
+    expect(card).toContain("view.assumptions.join");
+    expect(card).toContain("numberOfLines={2}");
     expect(card).not.toContain("Continue with these assumptions");
   });
 

@@ -21,6 +21,7 @@ describe("phase B consumer chrome", () => {
   it("drives the research trace from public-activity helpers and honors reduce motion", () => {
     const activity = readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8");
     expect(activity).toContain("researchTraceSections");
+    expect(activity).toContain("displayCollapsedSummary");
     expect(activity).toContain("visibleLiveSourcePills");
     expect(activity).toContain("motion.row");
     expect(activity).toContain("motion.collapse");

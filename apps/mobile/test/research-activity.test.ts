@@ -6,6 +6,7 @@ import {
   adoptPublicEvents,
   collapseResearchActivity,
   currentActivityLine,
+  displayCollapsedSummary,
   labelResearchEvent,
   liveActivityFollowsLatest,
   researchTraceSections,
@@ -103,6 +104,7 @@ describe("research activity from sanitized events", () => {
     ];
     const collapsed = collapseResearchActivity({ events, lifecycle: "terminal", outcome: "completed" });
     expect(collapsed.summary).toBe("Researched 2 sources · 2m 18s ›");
+    expect(displayCollapsedSummary(collapsed.summary)).toBe("Researched 2 sources · 2m 18s");
     expect(collapsed.expandable).toBe(true);
     const liveReads = [
       evt(1, "intent_ready", { createdAt: "2026-09-18T12:00:00.000Z" }),
@@ -136,6 +138,22 @@ describe("research activity from sanitized events", () => {
   it("does not call a clarification pause complete", () => {
     const events = [evt(1, "clarification")];
     expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail ›");
+  });
+
+  it("does not repeat consecutive identical consumer labels", () => {
+    const visible = visibleResearchEvents([
+      evt(1, "intent_ready", { phase: "preparing" }),
+      evt(2, "intent_ready", { phase: "preparing", createdAt: "2026-09-18T12:00:01.000Z" }),
+      evt(3, "searching", { phase: "researching" }),
+      evt(4, "searching", { phase: "researching", createdAt: "2026-09-18T12:00:02.000Z" }),
+      evt(5, "source_reading", { phase: "researching", sourceDomain: "nist.gov" }),
+    ]);
+    expect(visible.map((event) => event.label)).toEqual([
+      "Understood the question",
+      "Searching public sources",
+      "Reading a source",
+    ]);
+    expect(visible[2]?.sourceDomain).toBe("nist.gov");
   });
 
   it("groups consecutive real phases without inventing agent personas", () => {

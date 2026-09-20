@@ -38,6 +38,8 @@ describe("original visual identity", () => {
     expect(composer).not.toContain("@expo/vector-icons");
     expect(styles).toMatch(/librarySearch:\s*\{[^}]*borderRadius: radius\.md/);
     expect(styles).not.toMatch(/librarySearch:\s*\{[^}]*borderBottomWidth/);
+    expect(styles).toContain("libraryMeta:");
+    expect(styles).not.toMatch(/libraryMeta:\s*\{[^}]*textTransform: "uppercase"/);
   });
 
   it("activity uses an event rail and citations are not teal pills", () => {

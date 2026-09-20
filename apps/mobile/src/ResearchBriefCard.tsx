@@ -34,9 +34,9 @@ export function ResearchBriefCard({
       {view.blocking ? (
         <Text style={styles.bodyText}>{view.materialClarification ?? view.objective}</Text>
       ) : (
-        view.assumptions.map((line) => (
-          <Text key={line} style={styles.bodyText}>{line}</Text>
-        ))
+        <Text style={styles.bodyText} numberOfLines={2} ellipsizeMode="tail">
+          {view.assumptions.join(" · ")}
+        </Text>
       )}
       {view.blocking || clarifyAnswer ? (
         <>

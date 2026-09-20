@@ -22,6 +22,16 @@ describe("library persistence metadata", () => {
     expect(copy.canResume).toBe(true);
   });
 
+  it("collapses newlines in library titles to one line", () => {
+    const copy = libraryItemCopy({
+      id: "run-nl",
+      title: "best laptop for local AI under 2k\nQuiet\nprefer",
+      status: "completed_with_limitations",
+    });
+    expect(copy.title).toBe("best laptop for local AI under 2k Quiet prefer");
+    expect(copy.title).not.toMatch(/\n/);
+  });
+
   it("does not invent a version or updated time", () => {
     const copy = libraryItemCopy({ id: "run-2", title: "  ", status: "running" });
     expect(copy.title).toBe("Untitled research");
@@ -42,6 +52,7 @@ describe("library persistence metadata", () => {
     expect(src).toContain("maxFontSizeMultiplier={2}");
     expect(src).toContain("ShareIcon");
     expect(src).toContain("copy.preview");
+    expect(src).toContain("styles.libraryMeta");
     expect(src).not.toContain("rgba(0,0,0,0.08)");
     expect(src).not.toMatch(/ScrollView style=\{styles\.body\}/);
   });

@@ -16,6 +16,7 @@ import { motion } from "@deep/design";
 import {
   collapseResearchActivity,
   currentActivityLine,
+  displayCollapsedSummary,
   researchTraceSections,
   runningElapsedLabel,
   visibleResearchEvents,
@@ -180,7 +181,8 @@ export function ResearchActivity({
   const sections = researchTraceSections(visible);
   if (!inProgress && visible.length === 0) return null;
   const rawHeadline = inProgress ? current : collapsed.summary;
-  const headline = labeledDemo ? (rawHeadline.toLowerCase().startsWith("sample") ? rawHeadline : `Sample · ${rawHeadline}`) : rawHeadline;
+  const labeled = labeledDemo ? (rawHeadline.toLowerCase().startsWith("sample") ? rawHeadline : `Sample · ${rawHeadline}`) : rawHeadline;
+  const headline = collapsed.expandable ? displayCollapsedSummary(labeled) : labeled;
   const wasExpanded = expandedRef.current;
   expandedRef.current = expanded;
   function toggle() {

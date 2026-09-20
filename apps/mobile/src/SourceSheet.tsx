@@ -32,6 +32,7 @@ type Props = {
     kicker: StyleProp<TextStyle>;
     bodyText: StyleProp<TextStyle>;
     link: StyleProp<TextStyle>;
+    quietLink?: StyleProp<TextStyle>;
     quote?: StyleProp<TextStyle>;
     headerIconHit?: StyleProp<ViewStyle>;
   };
@@ -155,7 +156,7 @@ export function SourceSheet({
             </Pressable>
             <Pressable disabled={deletionPending} accessibilityRole="button" accessibilityLabel="Keep source" onPress={() => setConfirmation(null)}><Text style={styles.link}>Keep source</Text></Pressable>
           </View> : <Pressable disabled={!!unavailable} accessibilityState={{disabled:!!unavailable}} accessibilityRole="button" accessibilityLabel="Delete this source"
-            onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.link}>Delete this source</Text></Pressable>}
+            onPress={() => { if (!unavailable && target) setConfirmation(target); }}><Text style={styles.quietLink ?? styles.link}>Delete this source</Text></Pressable>}
         </View> : null}
       </ScrollView>
     </Animated.View>
