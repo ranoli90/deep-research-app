@@ -14,7 +14,7 @@ import { executeConclusionChallenges } from "./conclusion-challenges.js";
 import { nextStrategySearch } from "../ports/research-strategy.js";
 import type pg from "pg";
 import type { AppConfig } from "../platform/config.js";
-import { getRun,getBrief,emitEvent,setPhase,markTerminal } from "../modules/runs.js";
+import { getRun,getBrief,emitEvent,setPhase,markTerminal,setPendingInput } from "../modules/runs.js";
 import { settleRun } from "../modules/billing.js";
 import type { FencedSession } from "./fenced-session.js";
 import { ensureResearchTask } from "./research-task.js";
