@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect,it,vi } from "vitest";
-import { claimIdForReportBlock,uniqueAnswerClaimId,prepareVerificationRequest,readPendingVerificationRequest,readVerificationAccepted,submitVerificationRequest } from "../src/verification-request";
+import { claimIdForReportBlock,pickUniqueClaimId,uniqueAnswerClaimId,prepareVerificationRequest,readPendingVerificationRequest,readVerificationAccepted,submitVerificationRequest } from "../src/verification-request";
 const id=(n:number)=>`00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
 const args=()=>({run:{runId:id(1),reportId:id(2)},report:{reportId:id(2),version:3,blocks:[{claimIds:[id(4)]}]},reportId:id(2),reportVersion:3,claimId:id(4),note:"Private correction: not a public search query",evidencePolicy:"reuse_snapshot" as const,idempotencyKey:id(5)});
 const reply=()=>({runId:id(6),parentRunId:id(1),verificationId:id(7),briefRevision:4,reused:false,reopenedDiscovery:false,evidencePolicy:"reuse_snapshot"});
@@ -12,11 +12,15 @@ it("targets the claim on the opened citation, not the first answer claim",()=>{
   expect(claimIdForReportBlock(blocks,"answer")).toBe(first);
   expect(claimIdForReportBlock(blocks,"missing")).toBeNull();
   expect(claimIdForReportBlock([{id:"answer",claimIds:[first,second]}],"answer")).toBeNull();
+  expect(pickUniqueClaimId([first,second])).toBeNull();
+  expect(pickUniqueClaimId([first])).toBe(first);
   expect(uniqueAnswerClaimId([{id:"answer",kind:"answer",claimIds:[first]}])).toBe(first);
   expect(uniqueAnswerClaimId([{id:"answer",kind:"answer",claimIds:[first,second]}])).toBeNull();
   const app=readFileSync(join(import.meta.dirname,"../App.tsx"),"utf8");
   expect(app).toContain("uniqueAnswerClaimId");
+  expect(app).toContain("pickUniqueClaimId");
   expect(app).toContain("void onFollowUp(claimId)");
+  expect(app).not.toMatch(/claimIds\.length === 1 \? claimIds\[0\]/);
   expect(app).not.toMatch(/blocks\.find\(\(b\) => \(b\.kind === "answer" \|\| b\.id === "answer"\) && b\.claimIds.length\)\?\.claimIds\[0\]/);
   expect(app).not.toMatch(/void onFollowUp\(\); \}\}/);
 });

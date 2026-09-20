@@ -1,3 +1,11 @@
+## Phase B remaining functional UI — 2026-09-20
+
+Worktree isolated from `9677232` on `grok-v8/phase-b-functional-ui`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.
+
+IME Send/Stop stay above the Android suggestion strip (`composerDockBottomInset` / `keyboardInsetFromFrame`). Query-authorization pending shows exact terms and cannot silently search. Cancelling is Stopping; terminal is `Research cancelled.` Explain follow-up remains enabled without paid correction. Multi-claim verify uses `pickUniqueClaimId`.
+
+Native APK is still `75dee72`. Rebuild is required before device IME/query-approval journeys prove this SHA.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

@@ -16,6 +16,12 @@ export function readPendingVerificationRequest(value: unknown): PendingVerificat
   if (!request.success) throw new Error("Saved verification request is invalid. Device cleanup is required before new research.");
   return { parentRunId: value.parentRunId, request: request.data };
 }
+/** Unique claim only. Several conclusions stay unresolved instead of sending claimIds[0]. */
+export function pickUniqueClaimId(claimIds: string[] | null | undefined): string | null {
+  const ids = [...new Set((claimIds ?? []).filter((id) => typeof id === "string" && id.trim()))];
+  return ids.length === 1 ? ids[0]! : null;
+}
+
 /** Claims attached to the opened block. Empty when the block is missing. */
 export function claimsForReportBlock(
   blocks: { id: string; claimIds: string[] }[] | null | undefined,
@@ -31,8 +37,7 @@ export function claimIdForReportBlock(
   blocks: { id: string; claimIds: string[] }[] | null | undefined,
   blockId: string | null | undefined,
 ): string | null {
-  const ids = claimsForReportBlock(blocks, blockId);
-  return ids.length === 1 ? ids[0]! : null;
+  return pickUniqueClaimId(claimsForReportBlock(blocks, blockId));
 }
 
 /** Unique answer-block claim for a report-wide recheck. Multiple answer claims stay unresolved. */
@@ -41,8 +46,7 @@ export function uniqueAnswerClaimId(
 ): string | null {
   if (!blocks) return null;
   const answer = blocks.find((block) => block.kind === "answer" || block.id === "answer");
-  const ids = [...new Set((answer?.claimIds ?? []).filter((id) => typeof id === "string" && id.trim()))];
-  return ids.length === 1 ? ids[0]! : null;
+  return pickUniqueClaimId(answer?.claimIds);
 }
 
 export function prepareVerificationRequest(args: {

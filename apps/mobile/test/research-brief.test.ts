@@ -150,6 +150,10 @@ describe("composer continues a finished report", () => {
     expect(composerFollowsReport({ ...finished, status: "failed" })).toBe(false);
     expect(composerFollowsReport({
       ...finished,
+      run: { ...finished.run!, labeledDemo: false, correctionMode: "unavailable", correctionReserveMicro: 0 },
+    })).toBe(true);
+    expect(composerFollowsReport({
+      ...finished,
       pendingAdmission: {
         version: "admission.v1",
         key: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",

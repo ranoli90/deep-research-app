@@ -44,5 +44,8 @@ describe("one-sentence composer copy", () => {
     expect(app).not.toContain("composerContinues && !correctionReady");
     expect(app).toContain("const composerContinues = finishedReport;");
     expect(app).not.toMatch(/Ask a comparison with hard constraints/);
+    expect(app).toContain("correctionMode!==\"unavailable\"");
+    expect(app).toMatch(/if \(mutates && !correctionReady\)/);
+    expect(app).toContain('error: "Additional research is not available on this route. You can still ask for an explanation from this report."');
   });
 });

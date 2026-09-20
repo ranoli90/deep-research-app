@@ -3,6 +3,7 @@ import type { FollowUpExplain } from "./follow-up-explain";
 import type { PendingFollowUp } from "./follow-up-admission";
 import type { PendingVerificationRequest } from "./verification-request";
 import { readPendingInput } from "./pending-input";
+import { queryAuthorizationPending, readPendingQueryAuthorization } from "./query-authorization";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
 import type { CorrectionDraft } from "./correction-draft";
@@ -127,7 +128,14 @@ export function emptyState(): UiState {
 
 export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
   const pendingInput = snap.pendingInput === undefined ? undefined : snap.pendingInput === null ? null : readPendingInput(snap.pendingInput);
-  const run: RunSnapshot = pendingInput === undefined ? snap : { ...snap, pendingInput };
+  const pendingQuery = snap.pendingQueryAuthorization === undefined
+    ? undefined
+    : readPendingQueryAuthorization(snap.pendingQueryAuthorization);
+  const run: RunSnapshot = {
+    ...snap,
+    ...(pendingInput !== undefined ? { pendingInput } : {}),
+    ...(pendingQuery !== undefined ? { pendingQueryAuthorization: pendingQuery } : {}),
+  };
   let status: UiState["status"] = "progress";
   if (run.lifecycle === "terminal" && run.outcome === "completed") status = "completed";
   else if (run.lifecycle === "terminal" && run.outcome === "completed_with_limitations") status = "partial";
@@ -217,6 +225,7 @@ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
+  if (queryAuthorizationPending(state.run)) return { ok: false, reason: "Approve the exact search terms before public search can continue." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };
   if (state.offline) return { ok: false, reason: "You are offline. The draft is saved and will not be sent." };
   if (!state.signedIn) return { ok: false, reason: "Sign in to start research. Your draft is kept." };
