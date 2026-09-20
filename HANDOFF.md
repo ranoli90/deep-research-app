@@ -1,3 +1,7 @@
+## Phase B started — 2026-09-19
+
+Phase A exit gate held at engineering SHA **`f627b2b`** (docs `3c8383e`). First Phase B SHA **`7deed7a`**: product-state → UI map, composer placeholders, collapsed-trace disclosure mark. Radar decision: **no new UI libraries**. Native APK/screenshot loop is **not** done. Isolated UI implementer worktree is in flight. **Do not merge `main`.**
+
 ## Phase A Wave I — 2026-09-19
 
 Engineering SHA **`f627b2b`**. `pnpm verify` twice EXIT 0. Fresh+upgrade migrate 49/`050`. PG **541/541** twice on `deep_v8_pg1` and `deep_v8_pg2`. Extraction **55/55**. See `verification/v8/phase-a/WAVE_I.md`. **Do not merge `main`.** No GHA. No new paid spend. Phase B not started. Research Beta is not declared.
