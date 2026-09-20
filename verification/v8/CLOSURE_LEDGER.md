@@ -10,7 +10,7 @@ Parent requirements from the independent review of `75dee72` are **not** closed 
 | R-02 / CL-07 sections | `sectionWrite` in context/manifest; persist each section; restore without primary policy filter | Production `createResearchDraft` + DB restore 1/1 | Fallback-policy restore HTTP; interruption races; live J11 |
 | R-03 / CL-04 journal | SHA-256 key; no overwrite; explain does not clear mutation; require runId | Mobile unit + App wiring | Component callback failure matrix; device double-tap |
 | R-04 / CL-01 continue | Extra/conflict/mixed-field 400; null field reissue | HTTP continue 12/12 | Concurrent answer/cancel; declared multi-field pause |
-| R-05 / CL-03 deepen | Investigation `desiredOutcome`; not command assumption | HTTP deepen + desiredOutcome | Deepen planning/evidence difference; synthetic J8/J11 production; live grant |
+| R-05 / CL-03 deepen | Investigation instruction on child `desiredOutcome`; opening search uses unique original-question span; extract planning state on deepen | HTTP deepen + processStructuredResearch parent/child query and report difference; synthetic J8 attachment + J11 hierarchical writer | Live J8/J11 grant |
 | R-06–07 / CL-05–06 | Claim wording on GET + picker; citation unavailable state | HTTP claims + SourceSheet unit | Device multi-claim; 100-block gfxinfo |
 | Native HEAD APK | 75dee72 installed; unlocked recapture | Screenshots of that APK | New EAS/local APK of this SHA |
 | Hosted GHA | OWNER_DECLINED | — | Owner reversal |

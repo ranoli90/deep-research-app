@@ -7,7 +7,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,openingDiscoveryFromBrief,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
 import { pendingQueryAuthorization,persistFreshnessPolicy,persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
 import { runRemainingBudgetMicro } from "../modules/live-spend.js";
 import { admitResearchIteration,loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
@@ -198,6 +198,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
   }
   const sameQuery=(a:string,b:string)=>a.trim().toLocaleLowerCase("en").replace(/\s+/gu," ")===b.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
+  const openingDiscovery=openingDiscoveryFromBrief(brief);
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
     if(brief.attachmentIds.length&&!publicQueryApproved){
@@ -207,16 +208,18 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     const openingPlan=planSourceClass(brief.originalQuestion);
-    const openingQuery=confirmedDiscoveryQuery(brief,brief.originalQuestion);
-    const alreadyOpened=queries.some((q)=>sameQuery(q,brief.originalQuestion)||sameQuery(q,openingQuery));
+    const openingQuery=confirmedDiscoveryQuery(brief,openingDiscovery.query);
+    const alreadyOpened=queries.some((q)=>sameQuery(q,openingDiscovery.query)||sameQuery(q,openingQuery));
     if(!alreadyOpened){
       classesAttempted.push(openingPlan.primary);
       queries.push(openingQuery);
       await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"searching",phase:"researching",
         summary:"Searching public sources.",payload:{count:queries.length}}));
       const search=await runPublicSearch({
-        rationale:"Find public evidence for the original research question.",action:{type:"search",query:openingQuery,questionKeys,
-          publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}}},openingPlan.primary);
+        rationale:openingDiscovery.investigationFocus
+          ?"Investigate the deepen focus using its original-question span."
+          :"Find public evidence for the original research question.",
+        action:{type:"search",query:openingQuery,questionKeys,publicQueryBasis:openingDiscovery.publicQueryBasis}},openingPlan.primary);
       if(search.kind==="paused")return;
       if(search.kind==="pending")return pendingOrBlocked(search);
       if(search.kind==="search"){
@@ -261,8 +264,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         const questionKeys=next.kind==="search"?next.proposal.action.questionKeys:Object.keys(prepared.task.questionIds);
         const proposal=next.kind==="search"?next.proposal:{
           rationale:"Pivot source class after blocked full-page reads.",
-          action:{type:"search" as const,query:brief.originalQuestion,questionKeys,
-            publicQueryBasis:{start:0,end:brief.originalQuestion.length,quote:brief.originalQuestion}},
+          action:{type:"search" as const,query:openingDiscovery.query,questionKeys,
+            publicQueryBasis:openingDiscovery.publicQueryBasis},
         };
         const classAlreadyUsed=classesAttempted.includes(nextClass);
         // Generic-web with no distinct criterion query must fail closed after unreadable hits.

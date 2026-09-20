@@ -14,6 +14,7 @@ import {
   FollowUpMessageRequestSchema,
   clarificationAnswersFromContinue,
   deepenFocus,
+  applyInvestigationOutcome,
   pendingClarificationField,
   MAX_ATTACHMENT_BYTES,
   OUTPUT_REPORT_CATEGORIES,
@@ -725,12 +726,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           const current = await getRun(db, id, { forUpdate: true });
           if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
           const brief = await getBrief(db, current.brief_id);
-          const focus = deepenFocus(followBody.message!);
-          const investigation = `Investigate ${focus} in more depth while keeping the original question.`;
-          const desiredOutcome = brief.desiredOutcome?.includes(investigation)
-            ? brief.desiredOutcome
-            : [brief.desiredOutcome, investigation].filter(Boolean).join(" ");
-          const nextBrief = { ...brief, originalQuestion: brief.originalQuestion, desiredOutcome };
+          const nextBrief = {
+            ...brief,
+            originalQuestion: brief.originalQuestion,
+            desiredOutcome: applyInvestigationOutcome(brief.desiredOutcome, deepenFocus(followBody.message!)),
+          };
           if (current.lifecycle === "terminal") {
             return insertChildBriefRevision(db, {
               accountId: a.accountId,

@@ -1,4 +1,4 @@
-import type { ResearchModelOutput } from "@deep/contracts";
+import { investigationFocusFromOutcome, type ResearchModelOutput } from "@deep/contracts";
 
 export const DISCOVERY_PLANNER_VERSION="criterion-discovery.v1";
 /** Simple-task / same-criterion planner ceiling. Deep adaptive breadth uses DEEP_DISCOVERY_CEILING. */
@@ -95,4 +95,22 @@ export function nextCriterionSearch(args:{question:string;task:ResearchModelOutp
   return {kind:"search" as const,proposal:{rationale:"Investigate an unresolved criterion using its original question wording.",action:{type:"search" as const,query,questionKeys,publicQueryBasis:basis}}};
  }
  return {kind:"stop" as const,reason:"no_distinct_public_criterion_query"};
+}
+
+/** Opening public query for a deepen child. Focus terms never enter the query unless they already appear uniquely in originalQuestion. */
+export function openingDiscoveryFromBrief(args:{originalQuestion:string;desiredOutcome?:string}):{
+ query:string;
+ publicQueryBasis:Span;
+ investigationFocus:string|null;
+} {
+ const question=args.originalQuestion;
+ const investigationFocus=investigationFocusFromOutcome(args.desiredOutcome);
+ const full={query:question,publicQueryBasis:{start:0,end:question.length,quote:question},investigationFocus};
+ if(!investigationFocus)return {...full,investigationFocus:null};
+ const span=findInQuestion(question,investigationFocus);
+ if(!span)return full;
+ const lower=question.toLocaleLowerCase("en");
+ const needle=investigationFocus.toLocaleLowerCase("en");
+ if(lower.indexOf(needle,span.start+1)>=0)return full;
+ return {query:span.quote,publicQueryBasis:span,investigationFocus};
 }

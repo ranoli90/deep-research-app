@@ -1,3 +1,11 @@
+## R-05 deepen investigation + synthetic J8/J11 production — 2026-09-20
+
+Isolated worktree from `9677232`. **Not merged to `main` (`8a7b1a9`).** No GHA. No live OpenRouter. Research Beta is not declared.
+
+Deepen is an investigation instruction on the child `desiredOutcome`. `originalQuestion` is unchanged. Opening public discovery uses a unique original-question span of that focus when one exists; otherwise the original question remains the query. Extract context includes planning state for that investigation. Deepen does not fall through into requested verification.
+
+Synthetic J8 (private attachment) and J11 (hierarchical writer) now run through `processStructuredResearch` / `createResearchDraft` / follow-up deepen with fabricated nonbillable transport. Focused isolated PG `deep_r05_01a0bfe8`: research-core coverage+intelligence **35/35**, r05-deepen-j8-j11 **3/3**, followup-explain **8/8**. Live J8 still needs a user attachment. Live J11 writer quality is still grant-gated.
+
 ## Founded-year freshness — 2026-09-20
 
 `when was Taco Bell founded` was classified as generic (1-year freshness) because the historical matcher required `founding`, not `founded`. Old official pages then looked stale and discovery kept going. Matcher now includes founded/established/incorporated. Not merged to `main`.

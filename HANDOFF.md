@@ -1,3 +1,9 @@
+## R-05 deepen investigation + synthetic J8/J11 — 2026-09-20
+
+Isolated branch `grok-v8/r05-deepen-j8-j11` from `9677232`. Do not merge `main`. Do not dispatch GHA. Do not spend live OpenRouter.
+
+Deepen stores `investigationInstruction(focus)` on child `desiredOutcome`. Production worker opening search uses `openingDiscoveryFromBrief`. Synthetic J8/J11 production-path tests are in `apps/backend/test/r05-deepen-j8-j11.integration.test.ts`. Live J8/J11 remain grant-gated.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

@@ -1,5 +1,15 @@
 # Execution ledger
 
+## 2026-09-20 — R-05 deepen investigation + synthetic J8/J11 production
+
+- Deepen child keeps `originalQuestion` and writes `investigationInstruction` onto `desiredOutcome`.
+- `openingDiscoveryFromBrief` selects a unique original-question span for the investigation focus; missing or ambiguous focus keeps the original question as the query.
+- Extract includes planning state when an investigation is present so document deepen can change which owned sentence is extracted.
+- Synthetic J8: attachment-only `processStructuredResearch` plus follow-up deepen; canary is not searched.
+- Synthetic J11: hierarchical `createResearchDraft` / `writeResearchReport` publishes owned 321-mile / $37,900 quotes without unquoted eligibility arithmetic.
+- Isolated `TEST_DATABASE_URL=.../deep_r05_01a0bfe8`: research-core coverage+intelligence 35/35, r05-deepen-j8-j11 3/3, followup-explain 8/8. Fabricated/nonbillable transport only.
+- Live J8/J11 were not rerun. Not merged to main.
+
 ## 2026-09-20 — device live, Stop completion, brief quote location
 
 - Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.
