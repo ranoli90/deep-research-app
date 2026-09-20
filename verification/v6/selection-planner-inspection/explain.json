@@ -1,0 +1,1996 @@
+{
+  "scope": "Read-only EXPLAIN without ANALYZE on retained synthetic database; not root active suite database; no settings changed, no statement execution or measured query execution/JIT time.",
+  "database": "deep_context_batching_20260918",
+  "settings": [
+    {
+      "name": "from_collapse_limit",
+      "setting": "8",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "geqo",
+      "setting": "on",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "geqo_effort",
+      "setting": "5",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "geqo_threshold",
+      "setting": "12",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "jit",
+      "setting": "on",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "jit_above_cost",
+      "setting": "100000",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "jit_inline_above_cost",
+      "setting": "500000",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "jit_optimize_above_cost",
+      "setting": "500000",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "join_collapse_limit",
+      "setting": "8",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "plan_cache_mode",
+      "setting": "auto",
+      "unit": null,
+      "source": "default"
+    },
+    {
+      "name": "server_version",
+      "setting": "16.10",
+      "unit": null,
+      "source": "default"
+    }
+  ],
+  "basis": {
+    "account_id": "68b9461a-a247-4981-997e-023339041b78",
+    "run_id": "8f6d8a41-0e44-4a00-90e8-39ab79caceeb"
+  },
+  "sql": "SELECT count(*)::int AS n FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id WHERE p.account_id=$1 AND p.run_id=$2 AND v.account_id=$1 AND s.account_id=$1 AND v.access_level IN ('partial-text','full-text')",
+  "samples": [
+    {
+      "elapsedMs": 32.774474999999995,
+      "plan": [
+        {
+          "Plan": {
+            "Node Type": "Aggregate",
+            "Strategy": "Plain",
+            "Partial Mode": "Simple",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 76.46,
+            "Total Cost": 76.48,
+            "Plan Rows": 1,
+            "Plan Width": 4,
+            "Output": [
+              "(count(*))::integer"
+            ],
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Join Type": "Inner",
+                "Startup Cost": 5.27,
+                "Total Cost": 76.46,
+                "Plan Rows": 1,
+                "Plan Width": 0,
+                "Inner Unique": true,
+                "Join Filter": "(s.id = v.source_id)",
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 5.27,
+                    "Total Cost": 63.82,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "v.source_id"
+                    ],
+                    "Inner Unique": false,
+                    "Join Filter": "(v.id = \"*SELECT* 1\".source_version_id)",
+                    "Plans": [
+                      {
+                        "Node Type": "Seq Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Relation Name": "source_versions",
+                        "Schema": "public",
+                        "Alias": "v",
+                        "Startup Cost": 0,
+                        "Total Cost": 4.26,
+                        "Plan Rows": 1,
+                        "Plan Width": 32,
+                        "Output": [
+                          "v.id",
+                          "v.source_id",
+                          "v.account_id",
+                          "v.retrieved_at",
+                          "v.final_locator",
+                          "v.content_hash",
+                          "v.mime",
+                          "v.access_level",
+                          "v.quality_warnings",
+                          "v.text_coverage",
+                          "v.artifact_ptr"
+                        ],
+                        "Filter": "((v.access_level = ANY ('{partial-text,full-text}'::text[])) AND (v.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                      },
+                      {
+                        "Node Type": "Append",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 5.27,
+                        "Total Cost": 59.54,
+                        "Plan Rows": 2,
+                        "Plan Width": 16,
+                        "Subplans Removed": 0,
+                        "Plans": [
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 1",
+                            "Startup Cost": 5.27,
+                            "Total Cost": 45.51,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 1\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 5.27,
+                                "Total Cost": 45.5,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_1.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_1.id = v_1.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 5.13,
+                                    "Total Cost": 37.32,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64,
+                                    "Output": [
+                                      "p_1.source_version_id",
+                                      "p_1.run_id",
+                                      "p_1.account_id",
+                                      "v_1.source_id"
+                                    ],
+                                    "Inner Unique": false,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 5.13,
+                                        "Total Cost": 35.96,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Output": [
+                                          "p_1.source_version_id",
+                                          "p_1.run_id",
+                                          "p_1.account_id",
+                                          "v_1.source_id"
+                                        ],
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 5.13,
+                                            "Total Cost": 32.5,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 64,
+                                            "Output": [
+                                              "p_1.source_version_id",
+                                              "p_1.run_id",
+                                              "p_1.account_id",
+                                              "v_1.source_id"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Join Filter": "(v_1.id = p_1.source_version_id)",
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "source_versions",
+                                                "Schema": "public",
+                                                "Alias": "v_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 4.05,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "v_1.id",
+                                                  "v_1.source_id",
+                                                  "v_1.account_id",
+                                                  "v_1.retrieved_at",
+                                                  "v_1.final_locator",
+                                                  "v_1.content_hash",
+                                                  "v_1.mime",
+                                                  "v_1.access_level",
+                                                  "v_1.quality_warnings",
+                                                  "v_1.text_coverage",
+                                                  "v_1.artifact_ptr"
+                                                ],
+                                                "Filter": "(v_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                              },
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "passages",
+                                                "Schema": "public",
+                                                "Alias": "p_1",
+                                                "Startup Cost": 5.13,
+                                                "Total Cost": 28.06,
+                                                "Plan Rows": 31,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "p_1.id",
+                                                  "p_1.source_version_id",
+                                                  "p_1.account_id",
+                                                  "p_1.run_id",
+                                                  "p_1.exact_text",
+                                                  "p_1.locator",
+                                                  "p_1.extraction_method",
+                                                  "p_1.content_hash"
+                                                ],
+                                                "Recheck Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                                "Filter": "(p_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Bitmap Index Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Index Name": "passages_run_idx",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 5.12,
+                                                    "Plan Rows": 129,
+                                                    "Plan Width": 0,
+                                                    "Index Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Seq Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Relation Name": "runs",
+                                            "Schema": "public",
+                                            "Alias": "r",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 3.45,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 32,
+                                            "Output": [
+                                              "r.id",
+                                              "r.account_id"
+                                            ],
+                                            "Filter": "((r.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Seq Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Relation Name": "accounts",
+                                        "Schema": "public",
+                                        "Alias": "a",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 1.35,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 16,
+                                        "Output": [
+                                          "a.id"
+                                        ],
+                                        "Filter": "((a.deleted_at IS NULL) AND (a.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_1",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_1.id",
+                                      "s_1.account_id",
+                                      "s_1.run_id",
+                                      "s_1.canonical_locator",
+                                      "s_1.original_locator",
+                                      "s_1.publisher",
+                                      "s_1.title",
+                                      "s_1.source_type",
+                                      "s_1.language",
+                                      "s_1.origin_cluster",
+                                      "s_1.population",
+                                      "s_1.rights_class",
+                                      "s_1.created_at"
+                                    ],
+                                    "Index Cond": "(s_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                    "Filter": "(s_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 2",
+                            "Startup Cost": 0.56,
+                            "Total Cost": 14.02,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 2\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 0.56,
+                                "Total Cost": 14.01,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_2.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_2.id = v_2.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 0.42,
+                                    "Total Cost": 13.47,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 80,
+                                    "Output": [
+                                      "m.account_id",
+                                      "m.origin_run_id",
+                                      "p_2.source_version_id",
+                                      "p_2.run_id",
+                                      "v_2.source_id"
+                                    ],
+                                    "Inner Unique": true,
+                                    "Join Filter": "(m.version_digest = v_2.content_hash)",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 0.28,
+                                        "Total Cost": 13.14,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 112,
+                                        "Output": [
+                                          "m.account_id",
+                                          "m.origin_run_id",
+                                          "m.source_version_id",
+                                          "m.version_digest",
+                                          "p_2.source_version_id",
+                                          "p_2.run_id"
+                                        ],
+                                        "Inner Unique": true,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.82,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 144,
+                                            "Output": [
+                                              "m.run_id",
+                                              "m.account_id",
+                                              "m.passage_id",
+                                              "m.origin_run_id",
+                                              "m.passage_digest",
+                                              "m.source_version_id",
+                                              "m.version_digest"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Nested Loop",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Join Type": "Inner",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 3.46,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 144,
+                                                "Output": [
+                                                  "m.run_id",
+                                                  "m.account_id",
+                                                  "m.passage_id",
+                                                  "m.origin_run_id",
+                                                  "m.passage_digest",
+                                                  "m.source_version_id",
+                                                  "m.version_digest"
+                                                ],
+                                                "Inner Unique": false,
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "run_evidence_membership",
+                                                    "Schema": "public",
+                                                    "Alias": "m",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 0,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 144,
+                                                    "Output": [
+                                                      "m.run_id",
+                                                      "m.account_id",
+                                                      "m.passage_id",
+                                                      "m.source_version_id",
+                                                      "m.origin_run_id",
+                                                      "m.passage_digest",
+                                                      "m.version_digest"
+                                                    ],
+                                                    "Filter": "((m.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (m.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  },
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Inner",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "runs",
+                                                    "Schema": "public",
+                                                    "Alias": "r_1",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 3.45,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 32,
+                                                    "Output": [
+                                                      "r_1.id",
+                                                      "r_1.account_id"
+                                                    ],
+                                                    "Filter": "((r_1.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "accounts",
+                                                "Schema": "public",
+                                                "Alias": "a_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 1.35,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 16,
+                                                "Output": [
+                                                  "a_1.id"
+                                                ],
+                                                "Filter": "((a_1.deleted_at IS NULL) AND (a_1.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "passages_pkey",
+                                            "Relation Name": "passages",
+                                            "Schema": "public",
+                                            "Alias": "p_2",
+                                            "Startup Cost": 0.28,
+                                            "Total Cost": 8.31,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 87,
+                                            "Output": [
+                                              "p_2.id",
+                                              "p_2.source_version_id",
+                                              "p_2.account_id",
+                                              "p_2.run_id",
+                                              "p_2.exact_text",
+                                              "p_2.locator",
+                                              "p_2.extraction_method",
+                                              "p_2.content_hash"
+                                            ],
+                                            "Index Cond": "(p_2.id = m.passage_id)",
+                                            "Filter": "((p_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid) AND (m.run_id <> p_2.run_id) AND (p_2.run_id = m.origin_run_id) AND (p_2.content_hash = m.passage_digest) AND (p_2.source_version_id = m.source_version_id))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "source_versions_pkey",
+                                        "Relation Name": "source_versions",
+                                        "Schema": "public",
+                                        "Alias": "v_2",
+                                        "Startup Cost": 0.14,
+                                        "Total Cost": 0.32,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 113,
+                                        "Output": [
+                                          "v_2.id",
+                                          "v_2.source_id",
+                                          "v_2.account_id",
+                                          "v_2.retrieved_at",
+                                          "v_2.final_locator",
+                                          "v_2.content_hash",
+                                          "v_2.mime",
+                                          "v_2.access_level",
+                                          "v_2.quality_warnings",
+                                          "v_2.text_coverage",
+                                          "v_2.artifact_ptr"
+                                        ],
+                                        "Index Cond": "(v_2.id = p_2.source_version_id)",
+                                        "Filter": "(v_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_2",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 0.54,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_2.id",
+                                      "s_2.account_id",
+                                      "s_2.run_id",
+                                      "s_2.canonical_locator",
+                                      "s_2.original_locator",
+                                      "s_2.publisher",
+                                      "s_2.title",
+                                      "s_2.source_type",
+                                      "s_2.language",
+                                      "s_2.origin_cluster",
+                                      "s_2.population",
+                                      "s_2.rights_class",
+                                      "s_2.created_at"
+                                    ],
+                                    "Index Cond": "(s_2.run_id = p_2.run_id)",
+                                    "Filter": "(s_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Inner",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "sources",
+                    "Schema": "public",
+                    "Alias": "s",
+                    "Startup Cost": 0,
+                    "Total Cost": 12.62,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "s.id",
+                      "s.account_id",
+                      "s.run_id",
+                      "s.canonical_locator",
+                      "s.original_locator",
+                      "s.publisher",
+                      "s.title",
+                      "s.source_type",
+                      "s.language",
+                      "s.origin_cluster",
+                      "s.population",
+                      "s.rights_class",
+                      "s.created_at"
+                    ],
+                    "Filter": "(s.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                  }
+                ]
+              }
+            ]
+          },
+          "Settings": {}
+        }
+      ]
+    },
+    {
+      "elapsedMs": 18.322100000000034,
+      "plan": [
+        {
+          "Plan": {
+            "Node Type": "Aggregate",
+            "Strategy": "Plain",
+            "Partial Mode": "Simple",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 76.46,
+            "Total Cost": 76.48,
+            "Plan Rows": 1,
+            "Plan Width": 4,
+            "Output": [
+              "(count(*))::integer"
+            ],
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Join Type": "Inner",
+                "Startup Cost": 5.27,
+                "Total Cost": 76.46,
+                "Plan Rows": 1,
+                "Plan Width": 0,
+                "Inner Unique": true,
+                "Join Filter": "(s.id = v.source_id)",
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 5.27,
+                    "Total Cost": 63.82,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "v.source_id"
+                    ],
+                    "Inner Unique": false,
+                    "Join Filter": "(v.id = \"*SELECT* 1\".source_version_id)",
+                    "Plans": [
+                      {
+                        "Node Type": "Seq Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Relation Name": "source_versions",
+                        "Schema": "public",
+                        "Alias": "v",
+                        "Startup Cost": 0,
+                        "Total Cost": 4.26,
+                        "Plan Rows": 1,
+                        "Plan Width": 32,
+                        "Output": [
+                          "v.id",
+                          "v.source_id",
+                          "v.account_id",
+                          "v.retrieved_at",
+                          "v.final_locator",
+                          "v.content_hash",
+                          "v.mime",
+                          "v.access_level",
+                          "v.quality_warnings",
+                          "v.text_coverage",
+                          "v.artifact_ptr"
+                        ],
+                        "Filter": "((v.access_level = ANY ('{partial-text,full-text}'::text[])) AND (v.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                      },
+                      {
+                        "Node Type": "Append",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 5.27,
+                        "Total Cost": 59.54,
+                        "Plan Rows": 2,
+                        "Plan Width": 16,
+                        "Subplans Removed": 0,
+                        "Plans": [
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 1",
+                            "Startup Cost": 5.27,
+                            "Total Cost": 45.51,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 1\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 5.27,
+                                "Total Cost": 45.5,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_1.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_1.id = v_1.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 5.13,
+                                    "Total Cost": 37.32,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64,
+                                    "Output": [
+                                      "p_1.source_version_id",
+                                      "p_1.run_id",
+                                      "p_1.account_id",
+                                      "v_1.source_id"
+                                    ],
+                                    "Inner Unique": false,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 5.13,
+                                        "Total Cost": 35.96,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Output": [
+                                          "p_1.source_version_id",
+                                          "p_1.run_id",
+                                          "p_1.account_id",
+                                          "v_1.source_id"
+                                        ],
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 5.13,
+                                            "Total Cost": 32.5,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 64,
+                                            "Output": [
+                                              "p_1.source_version_id",
+                                              "p_1.run_id",
+                                              "p_1.account_id",
+                                              "v_1.source_id"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Join Filter": "(v_1.id = p_1.source_version_id)",
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "source_versions",
+                                                "Schema": "public",
+                                                "Alias": "v_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 4.05,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "v_1.id",
+                                                  "v_1.source_id",
+                                                  "v_1.account_id",
+                                                  "v_1.retrieved_at",
+                                                  "v_1.final_locator",
+                                                  "v_1.content_hash",
+                                                  "v_1.mime",
+                                                  "v_1.access_level",
+                                                  "v_1.quality_warnings",
+                                                  "v_1.text_coverage",
+                                                  "v_1.artifact_ptr"
+                                                ],
+                                                "Filter": "(v_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                              },
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "passages",
+                                                "Schema": "public",
+                                                "Alias": "p_1",
+                                                "Startup Cost": 5.13,
+                                                "Total Cost": 28.06,
+                                                "Plan Rows": 31,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "p_1.id",
+                                                  "p_1.source_version_id",
+                                                  "p_1.account_id",
+                                                  "p_1.run_id",
+                                                  "p_1.exact_text",
+                                                  "p_1.locator",
+                                                  "p_1.extraction_method",
+                                                  "p_1.content_hash"
+                                                ],
+                                                "Recheck Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                                "Filter": "(p_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Bitmap Index Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Index Name": "passages_run_idx",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 5.12,
+                                                    "Plan Rows": 129,
+                                                    "Plan Width": 0,
+                                                    "Index Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Seq Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Relation Name": "runs",
+                                            "Schema": "public",
+                                            "Alias": "r",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 3.45,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 32,
+                                            "Output": [
+                                              "r.id",
+                                              "r.account_id"
+                                            ],
+                                            "Filter": "((r.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Seq Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Relation Name": "accounts",
+                                        "Schema": "public",
+                                        "Alias": "a",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 1.35,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 16,
+                                        "Output": [
+                                          "a.id"
+                                        ],
+                                        "Filter": "((a.deleted_at IS NULL) AND (a.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_1",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_1.id",
+                                      "s_1.account_id",
+                                      "s_1.run_id",
+                                      "s_1.canonical_locator",
+                                      "s_1.original_locator",
+                                      "s_1.publisher",
+                                      "s_1.title",
+                                      "s_1.source_type",
+                                      "s_1.language",
+                                      "s_1.origin_cluster",
+                                      "s_1.population",
+                                      "s_1.rights_class",
+                                      "s_1.created_at"
+                                    ],
+                                    "Index Cond": "(s_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                    "Filter": "(s_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 2",
+                            "Startup Cost": 0.56,
+                            "Total Cost": 14.02,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 2\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 0.56,
+                                "Total Cost": 14.01,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_2.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_2.id = v_2.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 0.42,
+                                    "Total Cost": 13.47,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 80,
+                                    "Output": [
+                                      "m.account_id",
+                                      "m.origin_run_id",
+                                      "p_2.source_version_id",
+                                      "p_2.run_id",
+                                      "v_2.source_id"
+                                    ],
+                                    "Inner Unique": true,
+                                    "Join Filter": "(m.version_digest = v_2.content_hash)",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 0.28,
+                                        "Total Cost": 13.14,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 112,
+                                        "Output": [
+                                          "m.account_id",
+                                          "m.origin_run_id",
+                                          "m.source_version_id",
+                                          "m.version_digest",
+                                          "p_2.source_version_id",
+                                          "p_2.run_id"
+                                        ],
+                                        "Inner Unique": true,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.82,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 144,
+                                            "Output": [
+                                              "m.run_id",
+                                              "m.account_id",
+                                              "m.passage_id",
+                                              "m.origin_run_id",
+                                              "m.passage_digest",
+                                              "m.source_version_id",
+                                              "m.version_digest"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Nested Loop",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Join Type": "Inner",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 3.46,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 144,
+                                                "Output": [
+                                                  "m.run_id",
+                                                  "m.account_id",
+                                                  "m.passage_id",
+                                                  "m.origin_run_id",
+                                                  "m.passage_digest",
+                                                  "m.source_version_id",
+                                                  "m.version_digest"
+                                                ],
+                                                "Inner Unique": false,
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "run_evidence_membership",
+                                                    "Schema": "public",
+                                                    "Alias": "m",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 0,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 144,
+                                                    "Output": [
+                                                      "m.run_id",
+                                                      "m.account_id",
+                                                      "m.passage_id",
+                                                      "m.source_version_id",
+                                                      "m.origin_run_id",
+                                                      "m.passage_digest",
+                                                      "m.version_digest"
+                                                    ],
+                                                    "Filter": "((m.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (m.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  },
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Inner",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "runs",
+                                                    "Schema": "public",
+                                                    "Alias": "r_1",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 3.45,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 32,
+                                                    "Output": [
+                                                      "r_1.id",
+                                                      "r_1.account_id"
+                                                    ],
+                                                    "Filter": "((r_1.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "accounts",
+                                                "Schema": "public",
+                                                "Alias": "a_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 1.35,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 16,
+                                                "Output": [
+                                                  "a_1.id"
+                                                ],
+                                                "Filter": "((a_1.deleted_at IS NULL) AND (a_1.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "passages_pkey",
+                                            "Relation Name": "passages",
+                                            "Schema": "public",
+                                            "Alias": "p_2",
+                                            "Startup Cost": 0.28,
+                                            "Total Cost": 8.31,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 87,
+                                            "Output": [
+                                              "p_2.id",
+                                              "p_2.source_version_id",
+                                              "p_2.account_id",
+                                              "p_2.run_id",
+                                              "p_2.exact_text",
+                                              "p_2.locator",
+                                              "p_2.extraction_method",
+                                              "p_2.content_hash"
+                                            ],
+                                            "Index Cond": "(p_2.id = m.passage_id)",
+                                            "Filter": "((p_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid) AND (m.run_id <> p_2.run_id) AND (p_2.run_id = m.origin_run_id) AND (p_2.content_hash = m.passage_digest) AND (p_2.source_version_id = m.source_version_id))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "source_versions_pkey",
+                                        "Relation Name": "source_versions",
+                                        "Schema": "public",
+                                        "Alias": "v_2",
+                                        "Startup Cost": 0.14,
+                                        "Total Cost": 0.32,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 113,
+                                        "Output": [
+                                          "v_2.id",
+                                          "v_2.source_id",
+                                          "v_2.account_id",
+                                          "v_2.retrieved_at",
+                                          "v_2.final_locator",
+                                          "v_2.content_hash",
+                                          "v_2.mime",
+                                          "v_2.access_level",
+                                          "v_2.quality_warnings",
+                                          "v_2.text_coverage",
+                                          "v_2.artifact_ptr"
+                                        ],
+                                        "Index Cond": "(v_2.id = p_2.source_version_id)",
+                                        "Filter": "(v_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_2",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 0.54,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_2.id",
+                                      "s_2.account_id",
+                                      "s_2.run_id",
+                                      "s_2.canonical_locator",
+                                      "s_2.original_locator",
+                                      "s_2.publisher",
+                                      "s_2.title",
+                                      "s_2.source_type",
+                                      "s_2.language",
+                                      "s_2.origin_cluster",
+                                      "s_2.population",
+                                      "s_2.rights_class",
+                                      "s_2.created_at"
+                                    ],
+                                    "Index Cond": "(s_2.run_id = p_2.run_id)",
+                                    "Filter": "(s_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Inner",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "sources",
+                    "Schema": "public",
+                    "Alias": "s",
+                    "Startup Cost": 0,
+                    "Total Cost": 12.62,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "s.id",
+                      "s.account_id",
+                      "s.run_id",
+                      "s.canonical_locator",
+                      "s.original_locator",
+                      "s.publisher",
+                      "s.title",
+                      "s.source_type",
+                      "s.language",
+                      "s.origin_cluster",
+                      "s.population",
+                      "s.rights_class",
+                      "s.created_at"
+                    ],
+                    "Filter": "(s.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                  }
+                ]
+              }
+            ]
+          },
+          "Settings": {}
+        }
+      ]
+    },
+    {
+      "elapsedMs": 15.316917999999987,
+      "plan": [
+        {
+          "Plan": {
+            "Node Type": "Aggregate",
+            "Strategy": "Plain",
+            "Partial Mode": "Simple",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 76.46,
+            "Total Cost": 76.48,
+            "Plan Rows": 1,
+            "Plan Width": 4,
+            "Output": [
+              "(count(*))::integer"
+            ],
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Join Type": "Inner",
+                "Startup Cost": 5.27,
+                "Total Cost": 76.46,
+                "Plan Rows": 1,
+                "Plan Width": 0,
+                "Inner Unique": true,
+                "Join Filter": "(s.id = v.source_id)",
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 5.27,
+                    "Total Cost": 63.82,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "v.source_id"
+                    ],
+                    "Inner Unique": false,
+                    "Join Filter": "(v.id = \"*SELECT* 1\".source_version_id)",
+                    "Plans": [
+                      {
+                        "Node Type": "Seq Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Relation Name": "source_versions",
+                        "Schema": "public",
+                        "Alias": "v",
+                        "Startup Cost": 0,
+                        "Total Cost": 4.26,
+                        "Plan Rows": 1,
+                        "Plan Width": 32,
+                        "Output": [
+                          "v.id",
+                          "v.source_id",
+                          "v.account_id",
+                          "v.retrieved_at",
+                          "v.final_locator",
+                          "v.content_hash",
+                          "v.mime",
+                          "v.access_level",
+                          "v.quality_warnings",
+                          "v.text_coverage",
+                          "v.artifact_ptr"
+                        ],
+                        "Filter": "((v.access_level = ANY ('{partial-text,full-text}'::text[])) AND (v.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                      },
+                      {
+                        "Node Type": "Append",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 5.27,
+                        "Total Cost": 59.54,
+                        "Plan Rows": 2,
+                        "Plan Width": 16,
+                        "Subplans Removed": 0,
+                        "Plans": [
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 1",
+                            "Startup Cost": 5.27,
+                            "Total Cost": 45.51,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 1\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 5.27,
+                                "Total Cost": 45.5,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_1.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_1.id = v_1.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 5.13,
+                                    "Total Cost": 37.32,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64,
+                                    "Output": [
+                                      "p_1.source_version_id",
+                                      "p_1.run_id",
+                                      "p_1.account_id",
+                                      "v_1.source_id"
+                                    ],
+                                    "Inner Unique": false,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 5.13,
+                                        "Total Cost": 35.96,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Output": [
+                                          "p_1.source_version_id",
+                                          "p_1.run_id",
+                                          "p_1.account_id",
+                                          "v_1.source_id"
+                                        ],
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 5.13,
+                                            "Total Cost": 32.5,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 64,
+                                            "Output": [
+                                              "p_1.source_version_id",
+                                              "p_1.run_id",
+                                              "p_1.account_id",
+                                              "v_1.source_id"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Join Filter": "(v_1.id = p_1.source_version_id)",
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "source_versions",
+                                                "Schema": "public",
+                                                "Alias": "v_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 4.05,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "v_1.id",
+                                                  "v_1.source_id",
+                                                  "v_1.account_id",
+                                                  "v_1.retrieved_at",
+                                                  "v_1.final_locator",
+                                                  "v_1.content_hash",
+                                                  "v_1.mime",
+                                                  "v_1.access_level",
+                                                  "v_1.quality_warnings",
+                                                  "v_1.text_coverage",
+                                                  "v_1.artifact_ptr"
+                                                ],
+                                                "Filter": "(v_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                              },
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "passages",
+                                                "Schema": "public",
+                                                "Alias": "p_1",
+                                                "Startup Cost": 5.13,
+                                                "Total Cost": 28.06,
+                                                "Plan Rows": 31,
+                                                "Plan Width": 48,
+                                                "Output": [
+                                                  "p_1.id",
+                                                  "p_1.source_version_id",
+                                                  "p_1.account_id",
+                                                  "p_1.run_id",
+                                                  "p_1.exact_text",
+                                                  "p_1.locator",
+                                                  "p_1.extraction_method",
+                                                  "p_1.content_hash"
+                                                ],
+                                                "Recheck Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                                "Filter": "(p_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Bitmap Index Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Index Name": "passages_run_idx",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 5.12,
+                                                    "Plan Rows": 129,
+                                                    "Plan Width": 0,
+                                                    "Index Cond": "(p_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Seq Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Relation Name": "runs",
+                                            "Schema": "public",
+                                            "Alias": "r",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 3.45,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 32,
+                                            "Output": [
+                                              "r.id",
+                                              "r.account_id"
+                                            ],
+                                            "Filter": "((r.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Seq Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Relation Name": "accounts",
+                                        "Schema": "public",
+                                        "Alias": "a",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 1.35,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 16,
+                                        "Output": [
+                                          "a.id"
+                                        ],
+                                        "Filter": "((a.deleted_at IS NULL) AND (a.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_1",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_1.id",
+                                      "s_1.account_id",
+                                      "s_1.run_id",
+                                      "s_1.canonical_locator",
+                                      "s_1.original_locator",
+                                      "s_1.publisher",
+                                      "s_1.title",
+                                      "s_1.source_type",
+                                      "s_1.language",
+                                      "s_1.origin_cluster",
+                                      "s_1.population",
+                                      "s_1.rights_class",
+                                      "s_1.created_at"
+                                    ],
+                                    "Index Cond": "(s_1.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid)",
+                                    "Filter": "(s_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Subquery Scan",
+                            "Parent Relationship": "Member",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Alias": "*SELECT* 2",
+                            "Startup Cost": 0.56,
+                            "Total Cost": 14.02,
+                            "Plan Rows": 1,
+                            "Plan Width": 16,
+                            "Output": [
+                              "\"*SELECT* 2\".source_version_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Subquery",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 0.56,
+                                "Total Cost": 14.01,
+                                "Plan Rows": 1,
+                                "Plan Width": 192,
+                                "Output": [
+                                  "NULL::uuid",
+                                  "p_2.source_version_id",
+                                  "NULL::uuid",
+                                  "NULL::uuid",
+                                  "NULL::text",
+                                  "NULL::jsonb",
+                                  "NULL::text",
+                                  "NULL::text"
+                                ],
+                                "Inner Unique": true,
+                                "Join Filter": "(s_2.id = v_2.source_id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 0.42,
+                                    "Total Cost": 13.47,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 80,
+                                    "Output": [
+                                      "m.account_id",
+                                      "m.origin_run_id",
+                                      "p_2.source_version_id",
+                                      "p_2.run_id",
+                                      "v_2.source_id"
+                                    ],
+                                    "Inner Unique": true,
+                                    "Join Filter": "(m.version_digest = v_2.content_hash)",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 0.28,
+                                        "Total Cost": 13.14,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 112,
+                                        "Output": [
+                                          "m.account_id",
+                                          "m.origin_run_id",
+                                          "m.source_version_id",
+                                          "m.version_digest",
+                                          "p_2.source_version_id",
+                                          "p_2.run_id"
+                                        ],
+                                        "Inner Unique": true,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.82,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 144,
+                                            "Output": [
+                                              "m.run_id",
+                                              "m.account_id",
+                                              "m.passage_id",
+                                              "m.origin_run_id",
+                                              "m.passage_digest",
+                                              "m.source_version_id",
+                                              "m.version_digest"
+                                            ],
+                                            "Inner Unique": false,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Nested Loop",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Join Type": "Inner",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 3.46,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 144,
+                                                "Output": [
+                                                  "m.run_id",
+                                                  "m.account_id",
+                                                  "m.passage_id",
+                                                  "m.origin_run_id",
+                                                  "m.passage_digest",
+                                                  "m.source_version_id",
+                                                  "m.version_digest"
+                                                ],
+                                                "Inner Unique": false,
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "run_evidence_membership",
+                                                    "Schema": "public",
+                                                    "Alias": "m",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 0,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 144,
+                                                    "Output": [
+                                                      "m.run_id",
+                                                      "m.account_id",
+                                                      "m.passage_id",
+                                                      "m.source_version_id",
+                                                      "m.origin_run_id",
+                                                      "m.passage_digest",
+                                                      "m.version_digest"
+                                                    ],
+                                                    "Filter": "((m.run_id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (m.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  },
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Inner",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "runs",
+                                                    "Schema": "public",
+                                                    "Alias": "r_1",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 3.45,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 32,
+                                                    "Output": [
+                                                      "r_1.id",
+                                                      "r_1.account_id"
+                                                    ],
+                                                    "Filter": "((r_1.id = '8f6d8a41-0e44-4a00-90e8-39ab79caceeb'::uuid) AND (r_1.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Seq Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "accounts",
+                                                "Schema": "public",
+                                                "Alias": "a_1",
+                                                "Startup Cost": 0,
+                                                "Total Cost": 1.35,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 16,
+                                                "Output": [
+                                                  "a_1.id"
+                                                ],
+                                                "Filter": "((a_1.deleted_at IS NULL) AND (a_1.id = '68b9461a-a247-4981-997e-023339041b78'::uuid))"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "passages_pkey",
+                                            "Relation Name": "passages",
+                                            "Schema": "public",
+                                            "Alias": "p_2",
+                                            "Startup Cost": 0.28,
+                                            "Total Cost": 8.31,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 87,
+                                            "Output": [
+                                              "p_2.id",
+                                              "p_2.source_version_id",
+                                              "p_2.account_id",
+                                              "p_2.run_id",
+                                              "p_2.exact_text",
+                                              "p_2.locator",
+                                              "p_2.extraction_method",
+                                              "p_2.content_hash"
+                                            ],
+                                            "Index Cond": "(p_2.id = m.passage_id)",
+                                            "Filter": "((p_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid) AND (m.run_id <> p_2.run_id) AND (p_2.run_id = m.origin_run_id) AND (p_2.content_hash = m.passage_digest) AND (p_2.source_version_id = m.source_version_id))"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "source_versions_pkey",
+                                        "Relation Name": "source_versions",
+                                        "Schema": "public",
+                                        "Alias": "v_2",
+                                        "Startup Cost": 0.14,
+                                        "Total Cost": 0.32,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 113,
+                                        "Output": [
+                                          "v_2.id",
+                                          "v_2.source_id",
+                                          "v_2.account_id",
+                                          "v_2.retrieved_at",
+                                          "v_2.final_locator",
+                                          "v_2.content_hash",
+                                          "v_2.mime",
+                                          "v_2.access_level",
+                                          "v_2.quality_warnings",
+                                          "v_2.text_coverage",
+                                          "v_2.artifact_ptr"
+                                        ],
+                                        "Index Cond": "(v_2.id = p_2.source_version_id)",
+                                        "Filter": "(v_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "sources_run_idx",
+                                    "Relation Name": "sources",
+                                    "Schema": "public",
+                                    "Alias": "s_2",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 0.54,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 48,
+                                    "Output": [
+                                      "s_2.id",
+                                      "s_2.account_id",
+                                      "s_2.run_id",
+                                      "s_2.canonical_locator",
+                                      "s_2.original_locator",
+                                      "s_2.publisher",
+                                      "s_2.title",
+                                      "s_2.source_type",
+                                      "s_2.language",
+                                      "s_2.origin_cluster",
+                                      "s_2.population",
+                                      "s_2.rights_class",
+                                      "s_2.created_at"
+                                    ],
+                                    "Index Cond": "(s_2.run_id = p_2.run_id)",
+                                    "Filter": "(s_2.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Parent Relationship": "Inner",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Relation Name": "sources",
+                    "Schema": "public",
+                    "Alias": "s",
+                    "Startup Cost": 0,
+                    "Total Cost": 12.62,
+                    "Plan Rows": 1,
+                    "Plan Width": 16,
+                    "Output": [
+                      "s.id",
+                      "s.account_id",
+                      "s.run_id",
+                      "s.canonical_locator",
+                      "s.original_locator",
+                      "s.publisher",
+                      "s.title",
+                      "s.source_type",
+                      "s.language",
+                      "s.origin_cluster",
+                      "s.population",
+                      "s.rights_class",
+                      "s.created_at"
+                    ],
+                    "Filter": "(s.account_id = '68b9461a-a247-4981-997e-023339041b78'::uuid)"
+                  }
+                ]
+              }
+            ]
+          },
+          "Settings": {}
+        }
+      ]
+    }
+  ]
+}

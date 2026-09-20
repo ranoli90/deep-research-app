@@ -25,7 +25,7 @@
   },
   {
     "path": "RESULTS.json",
-    "sha256": "aae3d8c3d4855e02a69d285cdb4fc59a035de4291f45ddcd7605c4441354c9b1"
+    "sha256": "1dc42886808795ef3436c6ba86d65d86da473208f8f730c19487dba9a443f74c"
   },
   {
     "path": "SETUP.json",
@@ -182,5 +182,9 @@
   {
     "path": "verify.txt",
     "sha256": "8c04595b3d59dab945c5a9aba066c1a4e89875be4b78d18c1f97c360a26a381e"
+  },
+  {
+    "path": "integration-serial.txt",
+    "sha256": "7aaf5473a6c8cd9c94f8d3c2b6b595d9adbbfd40c2226815a48de61fbbbc6221"
   }
 ]

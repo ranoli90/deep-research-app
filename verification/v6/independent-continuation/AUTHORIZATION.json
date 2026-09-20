@@ -1,0 +1,31 @@
+{
+  "version": "matched-evaluation-authorization.v1",
+  "approvalId": "6acc728a-a615-4821-94c2-7b6c9abbcf9f",
+  "approvalReference": "user-20260918-continue-openrouter-same-cap-held-intent-v1",
+  "issuedAt": "2026-09-18T18:24:25.173Z",
+  "expiresAt": "2026-09-18T20:55:55.174Z",
+  "protocolSha256": "a79dd1309375146924bfeb205b25b524c104419ef771f42c57504a4df239b07e",
+  "freezeSha256": "5cf2653b681eaa96677c82941443d67c0b762f68d2adc9b51952fd74dd50d14b",
+  "taskIds": [
+    "MC-D03"
+  ],
+  "budgetMicro": 400000,
+  "accountId": "97143e38-b2a2-4ba8-b032-b104d9b7b9a2",
+  "budgetScope": "evaluation:83059390-9021-4b62-969c-0e73c36d2279",
+  "sourceMode": "frozen_supplied_document",
+  "exclusiveDatabaseAcknowledged": true,
+  "heldIntentContinuation": {
+    "version": "held-intent-continuation.v1",
+    "intents": [
+      {
+        "intentId": "199a3406-7f66-432d-942a-e8feaa4ecdb3",
+        "runId": "bd1dfeca-63eb-4b89-b045-6361fc984005",
+        "requestDigest": "ad219105ea668c71c7aa72afb3e84cacb5139626641aa3d5b4b064d71321cc82",
+        "receiptDigest": "de824f27534a8195baaa46611288bb954e53dab7ade374fb235fedd42c4e20b4",
+        "questionDigest": "a9918968341f9f7861346bd4572586795546d62c00f020c403a5e42d2ebc5b4e",
+        "reservedMicro": 21658,
+        "policyId": "openrouter-azure-mini-zdr-text-v1"
+      }
+    ]
+  }
+}

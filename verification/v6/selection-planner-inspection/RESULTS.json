@@ -1,0 +1,35 @@
+{
+  "commit": "8a7b1a997aefc53f8b06497346c0f915e2d455a7",
+  "scope": "Read-only planner inspection; root active-suite database untouched. No ANALYZE, no server/session configuration change, no runtime edits or heavy tests.",
+  "database": "deep_context_batching_20260918",
+  "postgresql": "16.10",
+  "target": "apps/backend/src/modules/evidence-selections.ts restoreEvidenceSelection inventory-count query",
+  "method": "Inline node --input-type=module: SELECT pg_settings; choose existing synthetic account/run; execute EXPLAIN (FORMAT JSON, VERBOSE, SETTINGS) with same two parameter values three times; save raw plans. Exact SQL/settings/parameters in explain.json.",
+  "findings": {
+    "estimatedTotalCost": 76.48,
+    "jitEnabled": true,
+    "jitActivationCost": 100000,
+    "planContainsJitSection": false,
+    "explainRoundTripMs": [
+      32.774475,
+      18.3221,
+      15.316918
+    ],
+    "planNodes": {
+      "nestedLoops": 11,
+      "relationScans": 13,
+      "sequentialScans": 8
+    },
+    "relationScans": {
+      "source_versions": 3,
+      "sources": 3,
+      "passages": 2,
+      "runs": 2,
+      "accounts": 2,
+      "run_evidence_membership": 1
+    }
+  },
+  "conclusion": "JIT overhead is not supported for this retained-basis target plan. Planning/client roundtrip overhead exists before any query execution, but these samples do not isolate PostgreSQL planning time or attribute full-suite CPU/latency. Root active database may have different statistics/plans.",
+  "nextMeasurement": "After the frozen suite, use a fixed retained synthetic original+correction evidence basis and EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) to separate planning/execution, with repeated identical parameters. Compare any reduced redundant-join or prepared-plan candidate only after preserving exact ownership/version/access/deletion behavior and unchanged query results; no speedup claim now.",
+  "evidenceSha256": "e9026f0d0ce0c9cff65e87902fe4c3de2a439f5237c924535e930595adec8f7c"
+}
