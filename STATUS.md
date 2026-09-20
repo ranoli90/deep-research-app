@@ -1,3 +1,7 @@
+## Phase A follow-up grounded explanation — 2026-09-19
+
+Lane `grok-v8/phase-a-followup` on Wave A SHA `73d5526`. **Not merged to `main`.** ENG-033: `POST /v1/runs/:id/follow-up` kind `explain` now answers from the latest owned report and authorized passage exact texts (`explain-from-existing-evidence.v1`). It does not mutate the brief, invent citations, or admit a child run. Incomplete owned evidence returns an honest answer plus `needsTargetedResearch`. Error handler preserves HTTP 400–599.
+
 ## P0 revision/cost/reconciliation — 2026-09-19
 
 `/continue` and assumption **replace** commit a new brief row and bump `runs.brief_revision`; the prior brief stays. Confirm-only updates confirmation metadata. Known-zero `failed` 404s settle; 429/transport HOLD. Reconciliation v2 does not confirm from paraphrase overlap. **Not merged to `main`.**

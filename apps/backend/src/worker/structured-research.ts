@@ -79,7 +79,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       proposedQuery:auth.query,
       authorization:{...auth,kind:"permission_required",reason:"document_search_requires_public_query_approval",privateTermsRequiringApproval:privateTerms},
     });
-    await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing', updated_at=now() WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
+    const pending = await pendingQueryAuthorization(db, { accountId: args.accountId, runId: args.runId, briefRevision: args.briefRevision });
+    if (!pending) throw new Error("pending_query_missing");
+    await setPendingInput(db, { ...args, type: "query_authorization", id: pending.id });
     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarification_needed",phase:"preparing",
       summary:"Need approval before searching the public web with this document.",payload:{reason:"document_search_requires_public_query_approval",queryDigest}});
     return "paused";
@@ -109,7 +111,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"clarify",phase:"preparing",
         summary:first?.prompt??"Which jurisdiction should this answer apply to?",
         payload:{questions:intent.clarificationDecision.questions}});
-      await db.query(`UPDATE runs SET lifecycle='awaiting_input' WHERE id=$1 AND account_id=$2`,[args.runId,args.accountId]);
+      await setPendingInput(db, { ...args, type: "clarification" });
     });
     return;
   }

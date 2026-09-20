@@ -24,7 +24,7 @@ export async function ensureResearchTask(pool: pg.Pool, config: AppConfig, sessi
     const run = await getRun(db,args.runId);
     if (!run || run.account_id !== args.accountId || run.brief_revision !== args.briefRevision) throw new Error("stale_research_task");
     const brief = await getBrief(db,run.brief_id);
-    return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion, confirmedConstraints(brief.constraints)) };
+    return { evidenceRevision: run.evidence_revision, context: briefContext(brief.originalQuestion, confirmedConstraints(brief.constraints), brief) };
   });
   let result = await performModelOperation(pool,config,session,{ ...args,...basis,operation:"brief" });
   if (result.kind === "result" && result.result.status === "invalid_output" && !result.reused && knownFinancialOutcome(result.result)) {

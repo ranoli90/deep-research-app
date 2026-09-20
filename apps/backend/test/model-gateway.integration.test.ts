@@ -1,3 +1,4 @@
+import { getBrief } from "../src/modules/runs.js";
 import { executeCounterevidence } from "../src/worker/counterevidence.js";
 import { counterevidenceContext,counterevidenceLimitations } from "../src/modules/counterevidence.js";
 import { counterevidenceSearch } from "@deep/research-core";
@@ -38,7 +39,7 @@ import { executeAssertionSupport } from "../src/worker/support-execution.js";
 import { extractEvidenceAssertions } from "../src/worker/assertion-extraction.js";
 import { prepareEvidenceSelection } from "../src/modules/evidence-selections.js";
 import { ensureResearchTask, TASK_MODEL_VERSIONS } from "../src/worker/research-task.js";
-import { loadResearchTask } from "../src/modules/research-tasks.js";
+import { briefContext, confirmedConstraints, loadResearchTask } from "../src/modules/research-tasks.js";
 import { performModelOperation } from "../src/worker/model-gateway.js";
 import { STRUCTURED_CALL_RESERVE_MICRO } from "../src/adapters/model/policy.js";
 import { reserveMicroForOperation } from "../src/adapters/model/token-budget.js";
@@ -277,7 +278,8 @@ describe("W05 durable versioned research task", () => {
   }));
   it("adopts already recorded valid output after a crash, including after evidence revision changes", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
-    await performModelOperation(pool,x.config,x.session,operation(x));
+    const savedBrief = await getBrief(pool,(await getRun(pool,x.runId))!.brief_id);
+    await performModelOperation(pool,x.config,x.session,{...operation(x),context:briefContext(savedBrief.originalQuestion,confirmedConstraints(savedBrief.constraints),savedBrief)});
     await pool.query("UPDATE runs SET evidence_revision=2 WHERE id=$1",[x.runId]);
     expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toMatchObject({ kind:"task",reused:true });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
@@ -291,6 +293,16 @@ describe("W05 durable versioned research task", () => {
     for (let n=0;n<2;n++) expect(await ensureResearchTask(pool,x.config,x.session,{ ...x,briefRevision:1 })).toEqual({ kind:"blocked",reason:"task_invalid_output" });
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1",[x.runId])).rows).toHaveLength(0);
+  }));
+  it.each(["sourceRestrictions","assumptions","outputPreferences","desiredOutcome","nonGoals","constraints"])("ENG-002 refuses a task after in-place %s corruption", async (field) => runCase(async (x) => {
+    globalThis.fetch = vi.fn(async () => response()) as typeof fetch;
+    await ensureResearchTask(pool,x.config,x.session,{...x,briefRevision:1});
+    const run = (await getRun(pool,x.runId))!;
+    const saved = await getBrief(pool,run.brief_id);
+    const values: Record<string,unknown> = {sourceRestrictions:["only:official"], assumptions:[{id:"new",value:"Changed assumption",reversibility:"reversible",impact:"scope",userConfirmationState:"accepted"}],outputPreferences:"wide comparison",desiredOutcome:"new objective",nonGoals:["exclude batteries"],constraints:[{id:"new",field:"geography",operator:"eq",value:"France",origin:"confirmed",importance:"hard",explanation:"user"}]};
+    await pool.query("UPDATE research_briefs SET payload=$2 WHERE id=$1",[saved.id,JSON.stringify({...saved,[field]:values[field]})]);
+    await expect(loadResearchTask(pool,x.runId,x.accountId,1,TASK_MODEL_VERSIONS)).rejects.toThrow("stale_research_task_version");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   }));
   it("rejects wrong owner and stale brief revision, without another provider call", async () => runCase(async (x) => {
     globalThis.fetch = vi.fn(async () => response()) as typeof fetch;

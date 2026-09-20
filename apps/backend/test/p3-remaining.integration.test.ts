@@ -985,7 +985,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { geography: "Germany" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "Germany" },
     });
     expect(cont.statusCode).toBe(200);
     await processRun(pool, config, runId);
@@ -1009,7 +1009,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { geography: "France" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "France" },
     });
     expect(cont.statusCode).toBe(200);
     await processRun(pool, config, runId);
@@ -1033,7 +1033,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${runId}/continue`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { geography: "France" },
+      payload: { pendingInputId: (await getRun(pool,runId))!.pending_input_id, expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, geography: "France" },
     });
     expect(cont.statusCode).toBe(200);
     await processRun(pool, config, runId);
@@ -1073,7 +1073,7 @@ describe("remaining launch-scope IDs", () => {
       method: "POST",
       url: `/v1/runs/${runId}/assumptions`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { action: "replace", values: ["Use official Texas sources only."] },
+      payload: { expectedBriefRevision: (await getRun(pool,runId))!.brief_revision, action: "replace", values: ["Use official Texas sources only."] },
     });
     expect(replace.statusCode).toBe(200);
     const snap = await app.inject({

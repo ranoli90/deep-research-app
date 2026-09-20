@@ -1,3 +1,4 @@
+import { setPendingInput } from "../src/modules/runs.js";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -30,7 +31,7 @@ it("W03 deletion removes raw attachments and private text from every owned resea
   const other = await createDevSession(pool);
   const otherAttachment = await storeAttachment(pool, { accountId: other.accountId, filename: "keep.txt", mime: "text/plain",
     bytes: Buffer.from("other account content"), extractedText: "other account content" });
-  const session = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: { email: `${canary}@localhost` } })).json();
+  const session = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: { email: `${canary}@localhost.invalid` } })).json();
   const headers = { authorization: `Bearer ${session.token}` };
   await app.inject({ method: "POST", url: "/v1/consent", headers, payload: { grant: true } });
   const attachment = await app.inject({ method: "POST", url: "/v1/attachments", headers,
@@ -119,13 +120,14 @@ it.each(["challenges", "corrections", "follow-up", "continue"])("W03 a %s reques
     payload: { question: "Compare managed Postgres in Germany under 50 EUR/month as of 2026-03-01", routeMode: "fixture" } });
   const runId = created.json().runId;
   let url = `/v1/runs/${runId}/${operation}`;
-  const payload = operation === "continue" ? { geography: "Germany" } : operation === "corrections"
-    ? { correctionText: "Change budget to 70 EUR", expectedBriefRevision: 1 } : { category: "other", note: "LATE-PRIVATE-CONTENT" };
+  const pendingInputId = crypto.randomUUID();
+  const payload = operation === "continue" ? { geography: "Germany", pendingInputId, expectedBriefRevision: 1 } : operation === "corrections"
+    ? { correctionText: "Change budget to 70 EUR", expectedBriefRevision: 1 } : operation === "follow-up" ? {note:"LATE-PRIVATE-CONTENT"} : { category: "other", note: "LATE-PRIVATE-CONTENT" };
   if (operation === "challenges") {
     await processRun(pool, config, runId);
     const reportId = (await pool.query("SELECT id FROM reports WHERE run_id=$1", [runId])).rows[0].id;
     url = `/v1/reports/${reportId}/challenges`;
-  } else if (operation === "continue") await pool.query("UPDATE runs SET lifecycle='awaiting_input' WHERE id=$1", [runId]);
+  } else if (operation === "continue") await setPendingInput(pool,{runId,accountId:session.accountId,briefRevision:1,type:"clarification",id:pendingInputId});
   const deleting = await pool.connect();
   let response: Promise<{ statusCode: number }> | undefined;
   try {

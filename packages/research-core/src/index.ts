@@ -49,6 +49,15 @@ export * from "./reconciliation.js";
 export * from "./geography.js";
 export * from "./evidence-needs.js";
 export * from "./follow-up-router.js";
+export {
+  explainFromExistingEvidence,
+  EXPLAIN_FROM_EXISTING_EVIDENCE_VERSION,
+  EXPLAIN_EVIDENCE_INCOMPLETE,
+  type ExplainFromExistingEvidenceInput,
+  type ExplainFromExistingEvidenceResult,
+  type ExplainEvidenceClaim,
+  type ExplainEvidencePassage,
+} from "./explain-from-evidence.js";
 export * from "./candidate-ledger.js";
 export * from "./hierarchical-write.js";
 export { resolveModelSpans, repairBriefProvenanceFromQuestion, dropUnownedEvidenceHandles, dropUnresolvedExtractionSpans, dropVacuousAssertions, uniquifyExtractionKeys, dropUnapprovedWriterClaims, repairSupportAssessments, repairCoverageReview, locateUniqueQuote, locateOwnedPassageQuote, MODEL_SPAN_RESOLUTION_VERSION, type SpanResolution } from "./model-span-resolution.js";

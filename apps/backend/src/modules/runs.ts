@@ -1,10 +1,12 @@
+import { createHash } from "node:crypto";
+import { reserveAllowance } from "./billing.js";
 import {modelPolicy,type ModelPolicyId} from "../ports/model-policy.js";
 import { researchStrategy, type ResearchStrategy } from "../ports/research-strategy.js";
 import type { Lifecycle, Phase, ResearchBrief, TerminalOutcome } from "@deep/contracts";
-import { ResearchBriefSchema } from "@deep/contracts";
+import { DEFAULT_RUN_BUDGET_MICRO, ResearchBriefSchema } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
-import { lockActiveAccount } from "./access.js";
+import { currentConsent, lockActiveAccount } from "./access.js";
 
 export type RunRow = {
   id: string;
@@ -27,6 +29,9 @@ export type RunRow = {
   idempotency_key: string | null;
   budget_micro: number;
   spent_micro: number;
+  pending_input_id: string | null;
+  pending_input_type: "clarification" | "query_authorization" | null;
+  pending_input_revision: number | null;
 };
 
 function mapRun(r: Record<string, unknown>): RunRow {
@@ -51,6 +56,9 @@ function mapRun(r: Record<string, unknown>): RunRow {
     idempotency_key: r.idempotency_key ? String(r.idempotency_key) : null,
     budget_micro: Number(r.budget_micro),
     spent_micro: Number(r.spent_micro),
+    pending_input_id: r.pending_input_id ? String(r.pending_input_id) : null,
+    pending_input_type: r.pending_input_type as RunRow["pending_input_type"] ?? null,
+    pending_input_revision: r.pending_input_revision == null ? null : Number(r.pending_input_revision),
   };
 }
 
@@ -115,10 +123,50 @@ export async function commitBriefRevision(
   });
   await insertBrief(db, brief, args.accountId);
   await db.query(
-    `UPDATE runs SET brief_id=$2, brief_revision=$3, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
+    `UPDATE runs SET brief_id=$2, brief_revision=$3, evidence_revision=evidence_revision+1, pending_input_id=NULL, pending_input_type=NULL, pending_input_revision=NULL, updated_at=now() WHERE id=$1 AND account_id=$4 AND brief_revision=$5`,
     [args.runId, brief.id, revision, args.accountId, args.expectedRevision],
   );
   return { brief, briefRevision: revision };
+}
+
+/** Caller holds the account/parent lock; replay never buys a second child. */
+export async function insertChildBriefRevision(db: Queryable, args: {
+  accountId: string; parent: RunRow; expectedRevision: number; next: ResearchBrief; idempotencyKey: string;
+}) {
+  if (args.parent.account_id !== args.accountId || args.parent.brief_revision !== args.expectedRevision || args.parent.lifecycle !== "terminal")
+    throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+  if (!args.idempotencyKey || args.idempotencyKey.length > 200) throw Object.assign(new Error("invalid_input"), { statusCode: 400 });
+  const original = await getBrief(db,args.parent.brief_id);
+  if (original.originalQuestion !== args.next.originalQuestion) throw Object.assign(new Error("original_question_mismatch"),{statusCode:409});
+  const digest = createHash("sha256").update(JSON.stringify({ parent: args.parent.id, revision: args.expectedRevision, next: args.next })).digest("hex");
+  const existing = await findRunByIdempotency(db,args.accountId,args.idempotencyKey);
+  if (existing) {
+    const saved = await db.query("SELECT request_digest FROM runs WHERE id=$1",[existing.id]);
+    if (saved.rows[0]?.request_digest !== digest) throw Object.assign(new Error("idempotency_conflict"),{statusCode:409});
+    return {runId:existing.id,briefRevision:existing.brief_revision,parentRunId:args.parent.id};
+  }
+  const consent = await currentConsent(db,args.accountId);
+  if (!consent || consent.revoked) throw Object.assign(new Error("consent_required"), {statusCode:403});
+  const revision = Number((await db.query("SELECT COALESCE(MAX(revision),0)::integer+1 AS revision FROM research_briefs WHERE conversation_id=$1",[args.parent.conversation_id])).rows[0].revision);
+  const brief = ResearchBriefSchema.parse({...args.next,id:crypto.randomUUID(),revision,conversationId:args.parent.conversation_id});
+  await insertBrief(db,brief,args.accountId);
+  const runId=crypto.randomUUID();
+  await insertRun(db,{id:runId,accountId:args.accountId,conversationId:args.parent.conversation_id,briefId:brief.id,parentRunId:args.parent.id,
+    routeMode:args.parent.route_mode,briefRevision:revision,consentEpoch:consent.epoch,idempotencyKey:args.idempotencyKey,budgetMicro:DEFAULT_RUN_BUDGET_MICRO});
+  await db.query("UPDATE runs SET request_digest=$2 WHERE id=$1",[runId,digest]);
+  await reserveAllowance(db,args.accountId,runId,DEFAULT_RUN_BUDGET_MICRO);
+  return {runId,briefRevision:revision,parentRunId:args.parent.id};
+}
+
+/** Caller holds the account/run fence. The identity survives duplicate worker delivery. */
+export async function setPendingInput(db: Queryable, args: { runId: string; accountId: string; briefRevision: number; type: "clarification" | "query_authorization"; id?: string }) {
+  const row = await db.query(`UPDATE runs SET lifecycle='awaiting_input', phase='preparing',
+    pending_input_id=CASE WHEN pending_input_type=$4 AND pending_input_revision=$3 THEN COALESCE($5::uuid,pending_input_id) ELSE COALESCE($5::uuid,gen_random_uuid()) END,
+    pending_input_type=$4,pending_input_revision=$3,updated_at=now()
+    WHERE id=$1 AND account_id=$2 AND brief_revision=$3 RETURNING pending_input_id`,
+    [args.runId,args.accountId,args.briefRevision,args.type,args.id ?? null]);
+  if (!row.rows[0]) throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+  return String(row.rows[0].pending_input_id);
 }
 
 export async function getBrief(db: Queryable, briefId: string): Promise<ResearchBrief> {
@@ -213,7 +261,7 @@ export async function claimLease(db: Queryable, runId: string, owner: string, le
   if (db instanceof pg.Pool) return withTx(db, (client) => claimLease(client, runId, owner, leaseMs));
   if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new Error("invalid lease duration");
   const run = await getRun(db, runId, { forUpdate: true });
-  if (!run || run.lifecycle === "terminal") return null;
+  if (!run || run.lifecycle === "terminal" || run.lifecycle === "awaiting_input") return null;
   const existing = await db.query<{ fence: string; owner: string; active: boolean }>(
     `SELECT fence, owner, expires_at > clock_timestamp() AS active FROM run_leases WHERE run_id = $1 FOR UPDATE`,
     [runId],

@@ -1,3 +1,4 @@
+import { setPendingInput } from "../modules/runs.js";
 import {
   DEFAULT_RUN_BUDGET_MICRO,
   FIXTURE_FETCH_COST_MICRO,
@@ -297,7 +298,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           phase: "preparing",
           payload: decision.arguments,
         });
-        await c.query(`UPDATE runs SET lifecycle = 'awaiting_input' WHERE id = $1`, [runId]);
+        await setPendingInput(c, { runId, accountId: run.account_id, briefRevision: run.brief_revision, type: "clarification" });
       });
       return;
     }
