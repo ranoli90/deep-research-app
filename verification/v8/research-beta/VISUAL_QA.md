@@ -1,3 +1,9 @@
+# Native visual QA — freeze SHA 95432e9 / EAS a7e10417 built, adb dropped
+
+Product SHA `95432e9`. EAS `a7e10417` APK sha256 `af2bba0e8c41a431b45e593edd20ca0b284c0cfe1d2dca3d3dbbc110002caaa8` **built**. `adb install` failed: wireless debugging on `10.0.0.167:43417` dropped (host pingable, TCP refused). Last on-device recapture is **ae395ef** TOC (`v8-phase-b-ae395ef/01-completed-report.png`) plus **45ccf87** IME/library/sheet.
+
+## APK 45ccf87 / EAS e84cccbb (prior successful install)
+
 # Native visual QA — APK 45ccf87 / EAS e84cccbb
 
 Device: `10.0.0.167:43417` (kunzite_global / 25098RA98G), package `app.deepresearch.mobile`.

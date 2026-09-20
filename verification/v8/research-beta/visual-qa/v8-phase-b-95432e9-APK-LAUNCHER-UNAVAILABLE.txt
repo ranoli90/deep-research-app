@@ -1,0 +1,24 @@
+# APK launcher failure — 95432e9 / EAS a7e10417
+
+Time: 2026-09-19 ~22:27-22:31 MDT
+
+What worked:
+- EAS a7e10417 FINISHED gitCommitHash 95432e960a22933910688bbde765166b835821b0
+- APK downloaded: sha256 af2bba0e8c41a431b45e593edd20ca0b284c0cfe1d2dca3d3dbbc110002caaa8 (58,101,509 bytes)
+
+What failed:
+- `adb -s 10.0.0.167:43417 install -r` after download: "adb: failed to install" then device offline
+- `adb connect 10.0.0.167:43417` and `Android-2.local:43417`: Connection refused
+- Host 10.0.0.167 still ICMP-reachable
+- nmap of 30000-50000, 37000-38000, 44000-46000, 5555, 10000-12000, 20000-30000, 50000-56000: no open TCP
+- `adb mdns services`: empty
+- `android__device_list`: 0 devices
+- No USB adb (lsusb: no Android)
+
+This is a dropped wireless-debugging session, not a blank/default-RN capture.
+
+Last successful native captures (not this SHA):
+- 45ccf87 EAS e84cccbb: IME, library, settings, source sheet, empty light, clarification generic prompt
+- ae395ef EAS fa55ec29: completed report with TOC gate (no jump list)
+
+Clarification-prompt wiring in 95432e9 is covered by unit tests (public-activity.unit.test.ts, research-brief.test.ts). Device recapture of that card is blocked until adb returns.

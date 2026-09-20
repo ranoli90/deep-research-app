@@ -1,6 +1,10 @@
-## Phase B native loop — 2026-09-19
+## Phase B freeze SHA — 2026-09-19
 
-`grok-v8/research-beta-integration` worktree `/home/oranolio/Desktop/deep-v8-integration`. Phase A gate held at `f627b2b`. Installed APK is EAS **`e84cccbb-02e0-4386-b125-733c303a04c1`** git **`45ccf87`** sha256 `baf4f06a…` on `10.0.0.167:43417`. Physical Gboard: composer above suggestion strip, send visible. Library meta is sentence case. Collapsed trace uses the chevron only. Consecutive identical activity labels collapsed. Quote-first evidence sheet. Mobile **303/303**. HEAD **`ae395ef`** raises the TOC gate (1800 chars / 12 blocks) and is **not** this APK. **Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. No competitor-superiority claim. Remaining: generic clarification prompt (`clarificationSummary` not wired); iOS; live J8/J11.
+`grok-v8/research-beta-integration` **`95432e9`**. Phase A gate held at `f627b2b`. Mobile **304/304**. Clarification activity now carries the consumer-safe needed-detail text; the phone reads it into the blocking card.
+
+Native: EAS **`a7e10417`** git **`95432e9`** sha256 `af2bba0e8c41a431b45e593edd20ca0b284c0cfe1d2dca3d3dbbc110002caaa8` **built**. `adb install` failed after download: wireless debugging on `10.0.0.167:43417` dropped (host still pings; TCP 43417 connection refused). Last successful device install is EAS **`fa55ec29`** git **`ae395ef`** (TOC gate: no jump-list on the 8-block fixture report). 45ccf87 still holds IME/library/sheet/empty/settings captures.
+
+**Not merged to `main` (`8a7b1a9`).** No GHA. No new paid spend. Research Beta is not declared. No competitor-superiority claim. Remaining: 95432e9 clarification-card device recapture until adb returns; iOS; live J8/J11.
 
 ## Phase B remaining consumer chrome — 2026-09-19
 

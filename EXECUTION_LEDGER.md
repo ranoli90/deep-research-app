@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-19 — Phase B freeze SHA 95432e9 APK built, adb dropped
+
+- Product SHA `95432e960a22933910688bbde765166b835821b0`. Mobile 304/304. Backend public-activity clarification label unit test 5/5.
+- EAS `a7e10417-df50-4d1d-9b04-77d6c9f79310` FINISHED git 95432e9. APK sha256 `af2bba0e8c41a431b45e593edd20ca0b284c0cfe1d2dca3d3dbbc110002caaa8`. `adb install -r` failed; device went offline; later connect Connection refused. Host 10.0.0.167 still ICMP-reachable. See scratch apk-launcher-unavailable.txt.
+- Last successful install: EAS `fa55ec29` git `ae395ef` sha256 `8d8fd74f…`. Completed-report recapture has no jump-list TOC.
+- Not merged to main `8a7b1a9`. No GHA. No new paid spend.
+
 ## 2026-09-19 — Phase B native loop on 45ccf87 APK
 
 - Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend.

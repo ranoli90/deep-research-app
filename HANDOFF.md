@@ -1,6 +1,6 @@
-## Phase B native APK — 2026-09-19
+## Phase B freeze SHA — 2026-09-19
 
-Installed: EAS `e84cccbb` git `45ccf87` sha256 `baf4f06ad0a3328b1ae7190db2a4b39e038c5e6c1778fcd057ff8020036c9cb5` on `10.0.0.167:43417`. Shots: `verification/v8/research-beta/visual-qa/v8-phase-b-45ccf87/`. HEAD `ae395ef` raises TOC gate after that review. **Do not merge `main`.** No GHA. No new paid spend. Research Beta is not declared. iOS not available. Clarification card still uses a generic prompt because App passes `clarificationSummary: undefined`.
+Product SHA **`95432e9`**. Clarification prompt is wired (unit tests green). EAS `a7e10417` APK sha256 `af2bba0e…` **built**; install failed because wireless adb dropped. Last on-device recapture: `ae395ef` completed report with no TOC (`visual-qa/v8-phase-b-ae395ef/`). IME/library/sheet: `visual-qa/v8-phase-b-45ccf87/`. **Do not merge `main`.** No GHA. No new paid spend. Research Beta is not declared. iOS not available.
 
 ## Phase B started — 2026-09-19
 

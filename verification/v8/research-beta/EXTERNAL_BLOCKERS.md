@@ -35,7 +35,7 @@ Annotation: *The job was not started because your account is locked due to a bil
 
 ## 3. Physical Android latest-SHA APK
 
-EAS `e84cccbb` git `45ccf87` sha256 `baf4f06a…` installed `adb install -r` on `10.0.0.167:43417`. Captures in `visual-qa/v8-phase-b-45ccf87/`. HEAD `ae395ef` TOC gate is not that APK. iOS not available. Remaining: hosted GitHub Actions owner-declined; J8 private attachment; live J11 writer not rerun (MC-D01 hold / remaining-cap).
+EAS `a7e10417` git `95432e9` sha256 `af2bba0e…` **built**; `adb install` failed after wireless debugging dropped (`10.0.0.167` pingable, port 43417 refused). Last successful install `fa55ec29` git `ae395ef`. iOS not available. Remaining: hosted GitHub Actions owner-declined; J8 private attachment; live J11 writer not rerun (MC-D01 hold / remaining-cap); 95432e9 clarification-card recapture until adb returns.
 
 ## After remaining blockers
 
