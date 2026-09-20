@@ -1,3 +1,7 @@
+## Phase A Wave D retrieval — 2026-09-19
+
+Lane `codex/phase-a-retrieval` merged onto integration. ENG-011–021 on the production structured worker and `executeSourceRead`. Keep exact query-approval pauses for attached-document challenges. Migration `049`. Isolated tests on `deep_phase_a_retrieval_waved`. **Do not merge `main`.** No live spend.
+
 ## Phase A API/DB/injection — 2026-09-19
 
 Lane `grok-v8/phase-a-api` merged onto integration. ENG-037/043/044/045. Migration `050_phase_a_invariants.sql`. **Do not merge `main`.**

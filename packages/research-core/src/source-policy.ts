@@ -1,6 +1,6 @@
-export const SOURCE_POLICY_VERSION = "source-policy.v1";
+export const SOURCE_POLICY_VERSION = "source-policy.v2";
 
-export type SourcePolicyMode = "open_web" | "prefer_primary" | "trusted_domains" | "allowed_domains" | "excluded_domains";
+export type SourcePolicyMode = "open_web" | "primary_only" | "prefer_primary" | "trusted_domains" | "allowed_domains" | "excluded_domains";
 
 export type SourcePolicy = {
   version: typeof SOURCE_POLICY_VERSION;
@@ -36,6 +36,7 @@ function hostOf(url: string): string | null {
 export function isOfficialPrimaryHost(host: string): boolean {
   const h = host.replace(/^www\./, "").toLowerCase();
   return (
+    primarySourceEntity(`https://${h}`) !== null ||
     h.endsWith(".gov") ||
     h.endsWith(".mil") ||
     h === "gov.uk" ||
@@ -57,6 +58,28 @@ export function isOfficialPrimaryHost(host: string): boolean {
   );
 }
 
+/** Curated host/entity bindings are application policy, never inferred from source claims. */
+const PRIMARY_ENTITIES = [
+  {hosts:["ietf.org","rfc-editor.org"],entity:"ietf",terms:/\b(ietf|rfc|http|internet|protocol)\b/i,sourceType:"primary-docs"},
+  {hosts:["w3.org"],entity:"w3c",terms:/\b(w3c|web|html|css|accessibility)\b/i,sourceType:"primary-docs"},
+  {hosts:["iso.org","iec.ch"],entity:"iso-iec",terms:/\b(iso|iec|standard)\b/i,sourceType:"primary-docs"},
+  {hosts:["python.org"],entity:"python",terms:/\bpython\b/i,sourceType:"official"},
+  {hosts:["sqlite.org"],entity:"sqlite",terms:/\bsqlite\b/i,sourceType:"official"},
+  {hosts:["kernel.org"],entity:"linux",terms:/\b(linux|kernel)\b/i,sourceType:"official"},
+  {hosts:["microsoft.com"],entity:"microsoft",terms:/\b(microsoft|windows|azure|surface|office)\b/i,sourceType:"vendor-docs"},
+  {hosts:["apple.com"],entity:"apple",terms:/\b(apple|iphone|ipad|mac|macbook|ios)\b/i,sourceType:"vendor-docs"},
+  {hosts:["nvidia.com"],entity:"nvidia",terms:/\b(nvidia|cuda|geforce|rtx|gpu)\b/i,sourceType:"vendor-docs"},
+  {hosts:["amd.com"],entity:"amd",terms:/\b(amd|radeon|ryzen|rocm|gpu)\b/i,sourceType:"vendor-docs"},
+  {hosts:["intel.com"],entity:"intel",terms:/\b(intel|xeon|processor|cpu)\b/i,sourceType:"vendor-docs"},
+  {hosts:["openai.com"],entity:"openai",terms:/\b(openai|chatgpt|gpt|codex)\b/i,sourceType:"vendor-docs"},
+] as const;
+export function primarySourceEntity(locator:string, question?:string): {entity:string;sourceType:string}|null {
+  const host=hostOf(locator);
+  if(!host)return null;
+  const match=PRIMARY_ENTITIES.find(item=>item.hosts.some(domain=>host===domain||host.endsWith(`.${domain}`))&&(!question||item.terms.test(question)));
+  return match?{entity:match.entity,sourceType:match.sourceType}:null;
+}
+
 /** Explicit user URLs are fetched unless the host is excluded or the locator is invalid. prefer_primary does not drop them. */
 export function admitUserSuppliedUrl(policy: SourcePolicy, locator: string): boolean {
   const host = hostOf(locator);
@@ -65,7 +88,7 @@ export function admitUserSuppliedUrl(policy: SourcePolicy, locator: string): boo
   return policy.userSuppliedUrls.includes(locator);
 }
 
-export function applySourcePolicy(policy: SourcePolicy, locator: string): "admit" | "prefer" | "exclude" {
+export function applySourcePolicy(policy: SourcePolicy, locator: string, question?: string): "admit" | "prefer" | "exclude" {
   const host = hostOf(locator);
   if (!host) return "exclude";
   if (policy.excludedDomains.some((d) => host === d || host.endsWith(`.${d}`))) return "exclude";
@@ -73,7 +96,9 @@ export function applySourcePolicy(policy: SourcePolicy, locator: string): "admit
     return policy.allowedDomains.some((d) => host === d || host.endsWith(`.${d}`)) ? "admit" : "exclude";
   }
   if (policy.trustedDomains.some((d) => host === d || host.endsWith(`.${d}`))) return "prefer";
-  if (policy.mode === "prefer_primary") return isOfficialPrimaryHost(host) ? "prefer" : "exclude";
+  const primary = isOfficialPrimaryHost(host) && (!primarySourceEntity(locator) || !!primarySourceEntity(locator,question));
+  if (policy.mode === "primary_only") return primary ? "prefer" : "exclude";
+  if (policy.mode === "prefer_primary") return primary ? "prefer" : "admit";
   return "admit";
 }
 
@@ -103,7 +128,7 @@ export function policyFromRestrictions(restrictions: readonly string[] | undefin
     const [kind, ...rest] = raw.split(":");
     const value = rest.join(":").trim();
     if (!value) continue;
-    if (kind === "mode" && ["open_web", "prefer_primary", "trusted_domains", "allowed_domains", "excluded_domains"].includes(value)) {
+    if (kind === "mode" && ["open_web", "primary_only", "prefer_primary", "trusted_domains", "allowed_domains", "excluded_domains"].includes(value)) {
       policy.mode = value as SourcePolicyMode;
     } else if (kind === "trusted") policy.trustedDomains.push(value.toLowerCase());
     else if (kind === "allow") policy.allowedDomains.push(value.toLowerCase());
@@ -124,9 +149,35 @@ export function mergeSteeringIntoPolicy(policy: SourcePolicy, message: string): 
     userSuppliedUrls: [...new Set([...policy.userSuppliedUrls, ...urls])],
   };
   if (/\bonly use official|official sources|primary sources only\b/i.test(message)) {
-    next.mode = "prefer_primary";
+    next.mode = /only/i.test(message) ? "primary_only" : "prefer_primary";
   }
   const exclude = message.match(/\bexclude\s+([a-z0-9.-]+\.[a-z]{2,})\b/i);
   if (exclude?.[1]) next.excludedDomains = [...new Set([...next.excludedDomains, exclude[1].toLowerCase()])];
   return next;
+}
+
+const TRACKING_PARAM = /^(utm_|fbclid$|gclid$|gclsrc$|dclid$|msclkid$|mc_eid$|mc_cid$|igshid$|yclid$|_hsenc$|_hsmi$|twclid$)/i;
+
+/** Strip only known tracking fields; query order and semantic parameters remain intact. */
+export function canonicalSourceUrl(locator: string): string {
+  let url: URL;
+  try { url = new URL(locator); }
+  catch { throw new Error("invalid_source_url"); }
+  if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) throw new Error("invalid_source_url");
+  url.hash = "";
+  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/u, "");
+  for (const key of [...url.searchParams.keys()]) {
+    if (TRACKING_PARAM.test(key)) url.searchParams.delete(key);
+  }
+  if (![...url.searchParams.keys()].length) url.search = "";
+  return url.href;
+}
+
+/** User-supplied URL exceptions remain exact; redirects never inherit that exception. */
+export function sourcePolicyAllows(policy:SourcePolicy,locator:string,question?:string):boolean {
+  try {
+    const canonical=canonicalSourceUrl(locator);
+    const direct=policy.userSuppliedUrls.some(url=>admitUserSuppliedUrl(policy,url)&&canonicalSourceUrl(url)===canonical);
+    return direct||applySourcePolicy(policy,locator,question)!=="exclude";
+  } catch { return false; }
 }

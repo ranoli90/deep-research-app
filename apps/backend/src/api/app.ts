@@ -784,6 +784,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       originCluster: row.origin_cluster,
       originRelation: row.origin_relation ?? null,
       publicationDate: row.publication_date ? String(row.publication_date).slice(0, 10) : null,
+      effectiveDate: row.effective_date ? String(row.effective_date).slice(0, 10) : null,
+      applicableVersion: row.applicable_version ?? null,
       retrievedAt: row.retrieved_at ? new Date(row.retrieved_at).toISOString() : null,
       accessLevel: row.access_level,
       exactText: row.exact_text,

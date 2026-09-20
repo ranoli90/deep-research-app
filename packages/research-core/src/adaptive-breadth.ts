@@ -14,6 +14,8 @@ export type SearchCoverage = {
   blockedOrInaccessible: string[];
   unresolvedAbsence: string[];
   notFoundMeansNonexistence: false;
+  freshnessUnmet?: boolean;
+  unresolvedFreshnessCriteria?: string[];
 };
 
 export type BreadthDecision = {
@@ -28,6 +30,8 @@ export function recordSearchCoverage(args: {
   sourceClassesAttempted?: SourceClass[];
   blockedOrInaccessible?: string[];
   unresolvedAbsence?: string[];
+  freshnessUnmet?: boolean;
+  unresolvedFreshnessCriteria?: string[];
 }): SearchCoverage {
   return {
     version: ADAPTIVE_BREADTH_VERSION,
@@ -36,6 +40,7 @@ export function recordSearchCoverage(args: {
     blockedOrInaccessible: args.blockedOrInaccessible ?? [],
     unresolvedAbsence: args.unresolvedAbsence ?? [],
     notFoundMeansNonexistence: false,
+    ...(args.freshnessUnmet ? { freshnessUnmet: true, unresolvedFreshnessCriteria: args.unresolvedFreshnessCriteria ?? [] } : {}),
   };
 }
 

@@ -125,6 +125,8 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query("DELETE FROM research_evidence_needs WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM candidate_ledgers WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM counterevidence_checks WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM source_policy_exclusions WHERE account_id=$1", [accountId]);
+  await db.query("DELETE FROM research_iteration_actions WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM source_read_operations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM search_operations WHERE account_id=$1", [accountId]);
   await db.query("DELETE FROM calculated_report_coverage WHERE account_id=$1", [accountId]);
@@ -163,7 +165,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query(`UPDATE sources SET canonical_locator='[deleted]',original_locator='[deleted]',publisher=NULL,
     title='[deleted]',language=NULL,origin_cluster=NULL,origin_relation=NULL,publication_date=NULL,population=NULL,rights_class=NULL WHERE account_id=$1`, [accountId]);
   await db.query(`UPDATE source_versions SET final_locator='[deleted]',content_hash=NULL,mime=NULL,
-    quality_warnings='[]'::jsonb,text_coverage=NULL,artifact_ptr=NULL WHERE account_id=$1`, [accountId]);
+    quality_warnings='[]'::jsonb,text_coverage=NULL,artifact_ptr=NULL,effective_date=NULL,applicable_version=NULL WHERE account_id=$1`, [accountId]);
   await db.query(
     `UPDATE runs SET lifecycle = 'cancelling', cancellation_epoch = cancellation_epoch + 1, updated_at = now()
      WHERE account_id = $1 AND lifecycle <> 'terminal'`,

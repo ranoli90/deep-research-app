@@ -115,6 +115,10 @@ export type StoredSource = {
   language?: string;
   translated?: boolean;
   publicationDate?: Date | null;
+  effectiveDate?: Date | null;
+  version?: string | null;
+  retrievedAt?: Date | null;
+  textCoverage?: string;
 };
 
 export type StoredPassage = {

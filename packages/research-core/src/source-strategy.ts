@@ -92,7 +92,7 @@ const UNOFFICIAL_CLASSES = new Set<SourceClass>(["generic-web", "community", "in
 
 /** "Only official sources" must not pivot into blogs or community pages. */
 export function constrainSourcePlan(plan: SourcePlan, mode: string | undefined): SourcePlan {
-  if (mode !== "prefer_primary" && mode !== "allowed_domains" && mode !== "trusted_domains") return plan;
+  if (mode !== "primary_only" && mode !== "allowed_domains" && mode !== "trusted_domains") return plan;
   return { ...plan, fallbacks: plan.fallbacks.filter((c) => !UNOFFICIAL_CLASSES.has(c)) };
 }
 

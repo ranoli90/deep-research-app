@@ -7,11 +7,12 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
-import { getRun } from "../modules/runs.js";
+import { getBrief, getRun } from "../modules/runs.js";
+import { loadRunStoredSources } from "../modules/retrieval-intelligence.js";
 import { publishReport } from "../modules/reports.js";
 import type { FencedSession } from "./fenced-session.js";
 import { knownFinancialOutcome } from "../adapters/model/outcomes.js";
@@ -83,7 +84,11 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
       FROM authorized_run_passages p JOIN source_versions v ON v.id=p.source_version_id JOIN sources s ON s.id=v.source_id
       WHERE p.id=ANY($1::uuid[]) AND p.account_id=$2 AND p.run_id=$3 AND v.account_id=$2 AND s.account_id=$2`,[cited,args.accountId,args.runId]);
     const snippetCited=rows.rows.some((s)=>s.access_level==="snippet");
-    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length&&!laterEvidence&&!snippetCited;
+    const brief=await getBrief(db,run.brief_id);
+    const freshnessPolicy=freshnessPolicyForQuestion(brief.originalQuestion);
+    const freshnessUnmet=sourcesHaveUnmetFreshness(freshnessPolicy,await loadRunStoredSources(db,{accountId:args.accountId,runId:args.runId}));
+    const freshnessLimitation=freshnessUnmet?unresolvedFreshnessLimitation(freshnessPolicy):null;
+    const complete=coverage.complete&&!compiled.unresolved.length&&!challengeLimitations.length&&!laterEvidence&&!snippetCited&&!freshnessUnmet;
     const report:CanonicalReport={reportId:crypto.randomUUID(),runId:args.runId,version:1,
       basis:{briefRevision:args.briefRevision,evidenceRevision:basis.evidenceRevision,consentEpoch:run.consent_epoch,cancellationEpoch:run.cancellation_epoch,workerLeaseFence:args.fence},
       outcome:complete?"completed":"completed_with_limitations",blocks:compiled.blocks,claimIds:compiled.claims.map((c)=>c.id),
@@ -93,6 +98,7 @@ export async function writeResearchReport(pool:pg.Pool,config:AppConfig,session:
         ...(basis.context.task?limitedCoverageLimitations(coverage,basis.context.task):[]),
         ...(laterEvidence?[LATER_EVIDENCE_LIMITATION]:[]),
         ...(snippetCited?["Some cited sources could only be read as search snippets after the full page was blocked."]:[]),
+        ...(freshnessLimitation?[freshnessLimitation]:[]),
         ...challengeLimitations,
       ],
       sourceAccessSummary:rows.rows.map((s)=>({sourceId:s.id,title:s.title,accessLevel:AccessLevelSchema.parse(s.access_level),originCluster:s.origin_cluster})),routeMode:"controlled-research"};

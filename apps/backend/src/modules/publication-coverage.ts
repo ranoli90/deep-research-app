@@ -7,7 +7,7 @@ import { verificationReportMatches } from "./verification-proof.js";
 import { counterevidenceLimitations,requiredCounterevidenceMissing } from "./counterevidence.js";
 import { CALCULATED_COVERAGE_VERSION,calculatedCompletionCovered } from "./calculated-coverage.js";
 import type { CanonicalReport } from "@deep/contracts";
-import { candidateClaimsBounded,CANDIDATE_SCOPE_LIMITATION,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,compileCheckedDraft,draftStatements,limitedCoverageDisclosed,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION } from "@deep/research-core";
+import { candidateClaimsBounded,CANDIDATE_SCOPE_LIMITATION,compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,limitedCoverageDisclosed,RESEARCH_COVERAGE_VERSION,SCOPED_SUPPORT_VERSION,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { persistResearchCoverage } from "./research-coverage.js";
 import { loadSupportContext,persistScopedSupport,restoreWriterDraft } from "./scoped-support.js";
@@ -22,8 +22,9 @@ export async function researchPublicationLimitations(db:Queryable,args:{accountI
  const limitations:string[]=[];
  const compared=ledger?.entries.filter((entry)=>entry.status!=="excluded").length??0;
  if(compared>=2)limitations.push(CANDIDATE_SCOPE_LIMITATION);
- if(sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(brief.originalQuestion),sources))
-  limitations.push("Required freshness, effective date, or version could not be established for the inspected evidence.");
+ const freshnessPolicy=freshnessPolicyForQuestion(brief.originalQuestion);
+ if(sourcesHaveUnmetFreshness(freshnessPolicy,sources))
+  limitations.push(unresolvedFreshnessLimitation(freshnessPolicy));
  return limitations;
 }
 
@@ -46,6 +47,15 @@ export async function reportCompletionCovered(db:Queryable,accountId:string,repo
   // Historical controller reports have no structured task; retain their existing publication contract.
   if(!task.rowCount)return true;
   if(completed&&report.limitations.length)return false;
+  const run=await getRun(db,report.runId);
+  if(run&&run.account_id===accountId) {
+    const brief=await getBrief(db,run.brief_id);
+    const freshnessPolicy=freshnessPolicyForQuestion(brief.originalQuestion);
+    if(sourcesHaveUnmetFreshness(freshnessPolicy,await loadRunStoredSources(db,{accountId,runId:report.runId}))) {
+      if(completed)return false;
+      if(!report.limitations.includes(unresolvedFreshnessLimitation(freshnessPolicy)))return false;
+    }
+  }
   const rows=(await db.query(`SELECT c.model_intent_id,c.extraction_intent_id,c.support_intent_id,c.task_id FROM research_coverage c
     JOIN research_drafts d ON d.writer_intent_id=c.extraction_intent_id
     WHERE c.run_id=$1 AND c.account_id=$2 AND c.brief_revision=$3 AND c.evidence_revision=$4

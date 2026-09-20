@@ -268,11 +268,11 @@ describe("follow-up vs correction", () => {
 describe("source policy and query planning", () => {
   it("excludes listed domains and prefers trusted ones", () => {
     const policy = mergeSteeringIntoPolicy(defaultSourcePolicy(), "Only use official sources. Exclude spam.example");
-    expect(policy.mode).toBe("prefer_primary");
+    expect(policy.mode).toBe("primary_only");
     expect(applySourcePolicy(policy, "https://spam.example/a")).toBe("exclude");
     const steered = mergeSteeringIntoPolicy(defaultSourcePolicy(), "Only use official sources. Exclude reddit.com");
-    expect(steered.mode).toBe("prefer_primary");
-    expect(encodeSourcePolicy(steered)).toEqual(expect.arrayContaining(["mode:prefer_primary", "exclude:reddit.com"]));
+    expect(steered.mode).toBe("primary_only");
+    expect(encodeSourcePolicy(steered)).toEqual(expect.arrayContaining(["mode:primary_only", "exclude:reddit.com"]));
     expect(policyFromRestrictions(encodeSourcePolicy(steered)).excludedDomains).toContain("reddit.com");
     expect(applySourcePolicy({ ...policy, trustedDomains: ["nist.gov"] }, "https://csrc.nist.gov/x")).toBe("prefer");
     expect(applySourcePolicy(policy, "https://uscode.house.gov/view.xhtml?req=title:29")).toBe("prefer");

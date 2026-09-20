@@ -92,7 +92,8 @@ describe("criterion-specific freshness", () => {
     const hardcodedNull = sources.some((s) => evaluateFreshness(policy, { observedAt: now, sourceDate: null, now }) === "stale");
     expect(hardcodedNull).toBe(false);
     expect(sourcesHaveUnmetFreshness(policy, sources, now)).toBe(true);
-    expect(sourcesHaveUnmetFreshness(policy, [{ publicationDate: null }], now)).toBe(false);
+    expect(sourcesHaveUnmetFreshness(policy, [{ publicationDate: null }], now)).toBe(true);
+    expect(sourcesHaveUnmetFreshness(policy, [{ retrievedAt: now }], now)).toBe(true);
     expect(parseSourcePublicationDate("List price as of 2025-01-01 is 40 EUR.")?.toISOString().slice(0, 10)).toBe("2025-01-01");
   });
 });

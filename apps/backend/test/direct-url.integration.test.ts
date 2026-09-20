@@ -92,10 +92,15 @@ describe("user-supplied direct URLs", () => {
       return readControl(url, url === direct ? "Vendor spec: battery lasts 18 hours." : "generic search snippet");
     });
     try {
+      await processRun(pool, config, runId, {pauseAt:"writing"});
+      const before=(await pool.query("SELECT input_digest,ordinal FROM research_iteration_actions WHERE run_id=$1 ORDER BY ordinal",[runId])).rows;
+      expect(before.length).toBeGreaterThan(0);
       await processRun(pool, config, runId);
+      expect((await pool.query("SELECT input_digest,ordinal FROM research_iteration_actions WHERE run_id=$1 ORDER BY ordinal",[runId])).rows).toEqual(before);
       expect(readUrls, JSON.stringify(readUrls)).toContain(direct);
       const locators = (await pool.query("SELECT canonical_locator FROM sources WHERE run_id=$1 AND account_id=$2", [runId, accountId])).rows.map((r: { canonical_locator: string }) => r.canonical_locator);
       expect(locators).toContain(direct);
+      expect(Number((await pool.query("SELECT count(*) AS n FROM research_iteration_actions WHERE run_id=$1",[runId])).rows[0].n)).toBeGreaterThan(0);
     } finally {
       await withTx(pool, (db) => deleteAccount(db, accountId));
     }
