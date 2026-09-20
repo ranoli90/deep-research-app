@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-20 — simple historical-fact discovery stop
+
+- Defect: `when was Taco Bell founded` still issued extra public searches after founded→historical, because coverage-incomplete plus `freshnessUnmet?all criterion keys` kept `unresolvedConsequential` true.
+- Repair: historical `sourcesHaveUnmetFreshness` is false for undated/old pages; `discoveryContinuationGaps` clears unresolved keys after supported past-tense facts; worker uses that for continuation; further reads stop at two independent readable sources on that class.
+- Class hunt: born, established, signed the treaty. Current-price questions still force freshness continuation.
+- `pnpm --filter @deep/research-core test` EXIT 0, **325/325**. Focused freshness/continuation files 44/44. Backend `token-budget.unit` **9/9**. Isolated `TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_simple_01a0bfe8` historical-fact-discovery.integration **1/1** EXIT 0. Core and backend `tsc --noEmit` EXIT 0. No live OpenRouter. Not merged to main.
+
 ## 2026-09-20 — device live, Stop completion, brief quote location
 
 - Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.

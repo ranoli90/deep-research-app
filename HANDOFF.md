@@ -1,3 +1,7 @@
+## Simple historical-fact discovery stop — 2026-09-20
+
+Isolated worktree. Do not merge `main`. Do not dispatch GHA. Founding-year and other past-tense public facts stop discovery after supported cited evidence; old or undated official pages are not freshness-unmet. Rollback: revert the commit on this branch.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

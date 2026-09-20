@@ -1,4 +1,5 @@
 import { DEEP_DISCOVERY_CEILING, MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
+import { freshnessPolicyForQuestion } from "./freshness.js";
 import { independentConfirmationCount } from "./independence.js";
 import type { StoredSource } from "./types.js";
 import type { SourceClass } from "./source-strategy.js";
@@ -6,6 +7,20 @@ import type { SourceClass } from "./source-strategy.js";
 export const ADAPTIVE_BREADTH_VERSION = "evidence-value-breadth.v1";
 export const DISCOVERY_HARD_CEILING = DEEP_DISCOVERY_CEILING;
 export const SIMPLE_DISCOVERY_CEILING = MAX_DISCOVERY_QUERIES;
+/** Two independent readable pages are enough to stop extra fetches on a past-tense public fact. */
+export const HISTORICAL_FACT_READABLE_CONFIRMATIONS = 2;
+
+const READABLE_ACCESS = new Set(["full-text", "partial-text"]);
+
+/** Snippet hits stay queued. Stop further fetches only after two independent readable historical sources. */
+export function furtherHistoricalSourceReadsNeeded(args: {
+  question: string;
+  sources: ReadonlyArray<StoredSource>;
+}): boolean {
+  if (freshnessPolicyForQuestion(args.question).class !== "historical") return true;
+  const readable = args.sources.filter((s) => READABLE_ACCESS.has(s.accessLevel));
+  return independentConfirmationCount(readable) < HISTORICAL_FACT_READABLE_CONFIRMATIONS;
+}
 
 export type SearchCoverage = {
   version: typeof ADAPTIVE_BREADTH_VERSION;

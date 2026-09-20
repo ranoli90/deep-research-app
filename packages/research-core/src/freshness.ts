@@ -11,6 +11,16 @@ export type FreshnessPolicy = {
 };
 export type FreshnessEvaluation = "fresh" | "stale" | "historical-preferred" | "unknown";
 
+/** Past-tense public facts. Current/today/price questions stay on recency classes. */
+export function isHistoricalFactQuestion(question: string, criterionKey?: string): boolean {
+  const q = `${criterionKey ?? ""} ${question}`;
+  if (/current|today|price|pricing/i.test(q)) return false;
+  if (/\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of|born|birth of|signed the treaty)\b/i.test(q)) {
+    return true;
+  }
+  return /\bsigned\b/i.test(q) && /\btreaty\b/i.test(q);
+}
+
 export function freshnessPolicyForQuestion(question: string, criterionKey?: string): FreshnessPolicy {
   const q = `${criterionKey ?? ""} ${question}`;
   if (/current (price|pricing|cost)|price (now|today)|availability/i.test(q)) {
@@ -43,7 +53,7 @@ export function freshnessPolicyForQuestion(question: string, criterionKey?: stri
       rationale: "Software compatibility needs the currently applicable version/release.",
     };
   }
-  if (/\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of)\b/i.test(q) && !/current|today|price|pricing/i.test(q)) {
+  if (isHistoricalFactQuestion(question, criterionKey)) {
     return {
       version: FRESHNESS_POLICY_VERSION,
       class: "historical",
@@ -120,6 +130,8 @@ export function sourcesHaveUnmetFreshness(
   sources: ReadonlyArray<{ publicationDate?: Date | null; effectiveDate?: Date | null; version?: string | null; retrievedAt?: Date | null }>,
   now?: Date,
 ): boolean {
+  // Undated or decade-old official pages are not a reason to keep searching a past-tense fact.
+  if (policy.class === "historical") return false;
   const observedAt = now ?? new Date();
   const required = policy.requiresEffectiveDate || policy.requiresVersion;
   if (!sources.length) return required;
@@ -127,4 +139,27 @@ export function sourcesHaveUnmetFreshness(
     const status = evaluateFreshness(policy, { observedAt: s.retrievedAt ?? observedAt, sourceDate: s.publicationDate, effectiveDate: s.effectiveDate, version: s.version, now: observedAt });
     return status === "stale" || (required && status === "unknown");
   });
+}
+
+/**
+ * Coverage-model incompleteness and generic one-year freshness do not keep
+ * discovery open after a simple past-tense fact already has supported evidence.
+ * Price/law/version freshness still forces every criterion unresolved.
+ */
+export function discoveryContinuationGaps(args: {
+  question: string;
+  coverageUnresolvedKeys: readonly string[];
+  allCriterionKeys: readonly string[];
+  freshnessUnmet: boolean;
+  hasSupportedAssertions: boolean;
+}): { unresolvedCriterionKeys: string[]; freshnessUnmet: boolean } {
+  const historical = freshnessPolicyForQuestion(args.question).class === "historical";
+  const freshnessUnmet = historical ? false : args.freshnessUnmet;
+  if (historical && args.hasSupportedAssertions) {
+    return { unresolvedCriterionKeys: [], freshnessUnmet: false };
+  }
+  if (freshnessUnmet) {
+    return { unresolvedCriterionKeys: [...args.allCriterionKeys], freshnessUnmet: true };
+  }
+  return { unresolvedCriterionKeys: [...args.coverageUnresolvedKeys], freshnessUnmet: false };
 }
