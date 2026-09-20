@@ -120,7 +120,7 @@ it("W08 A1 and B both iterate through the same actual HTML extraction and checke
   });
   const results=[];
   for(const [label,app] of [["A1",baseline],["B",adaptive]] as const){
-   const response=await app.inject({method:"POST",url:"/v1/runs",headers:auth.headers,payload:{question,routeMode:"controlled-research",attachmentIds:[]}});expect(response.statusCode).toBe(200);
+   const response=await app.inject({method:"POST",url:"/v1/runs",headers:{...auth.headers,"idempotency-key":crypto.randomUUID()},payload:{question,routeMode:"controlled-research",attachmentIds:[]}});expect(response.statusCode).toBe(200);
    const result=await execute(response.json().runId,`${label}-iterative-public`,auth.headers,true);results.push(result);
    expect(result.outcome).toBe("completed");expect(result.actualParserCalls).toBe(2);
    const prose=result.report.blocks.map((b:{text:string})=>b.text).join(" ");expect(prose).toContain(`${entity} supports full export.`);expect(prose).toContain(`${entity} supports offline editing.`);

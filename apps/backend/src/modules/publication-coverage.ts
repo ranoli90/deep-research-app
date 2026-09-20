@@ -21,7 +21,8 @@ export async function researchPublicationLimitations(db:Queryable,args:{accountI
  const sources=await loadRunStoredSources(db,args);
  const limitations:string[]=[];
  const compared=ledger?.entries.filter((entry)=>entry.status!=="excluded").length??0;
- if(compared>=2)limitations.push(CANDIDATE_SCOPE_LIMITATION);
+ if(compared>=2 && /\b(best|better|winner|vs\.?|versus|compare|comparison|which (?:one|option)|under \$?\d)/i.test(brief.originalQuestion))
+  limitations.push(CANDIDATE_SCOPE_LIMITATION);
  const freshnessPolicy=freshnessPolicyForQuestion(brief.originalQuestion);
  if(sourcesHaveUnmetFreshness(freshnessPolicy,sources))
   limitations.push(unresolvedFreshnessLimitation(freshnessPolicy));

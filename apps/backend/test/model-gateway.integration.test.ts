@@ -258,7 +258,7 @@ describe("W05 durable model gateway on real PostgreSQL", () => {
     const held = (await pool.query("SELECT state,confirmed_micro FROM provider_intents WHERE run_id=$1", [x.runId])).rows;
     expect(held).toEqual([{ state: "outcome-unknown", confirmed_micro: null }]);
     expect((await pool.query("SELECT id FROM research_tasks WHERE run_id=$1", [x.runId])).rows).toHaveLength(0);
-    expect(await performModelOperation(pool, x.config, x.session, { ...operation(x), repairPass: 1 })).toMatchObject({
+    expect(await performModelOperation(pool, x.config, x.session, { ...operation(x), context: briefContext(question, [], await getBrief(pool,(await getRun(pool,x.runId))!.brief_id)), repairPass: 1 })).toMatchObject({
       kind: "result", reused: true, result: { status: "invalid_output" },
     });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
@@ -1040,8 +1040,8 @@ it("W03/W05 old processor consent cannot issue pinned discovery",async()=>runCas
  expect(fetch).not.toHaveBeenCalled();expect((await pool.query("SELECT 1 FROM provider_intents WHERE run_id=$1 AND route LIKE '%public-discovery.%'",[x.runId])).rowCount).toBe(0);
 }));
 it("W03/W05 mixed document tasks require explicit public-query approval",async()=>runCase(async(x)=>{
- const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
  await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",[x.runId,JSON.stringify([crypto.randomUUID()])]);
+ const c=await searchCase(x);globalThis.fetch=vi.fn(async()=>searchReply()) as typeof fetch;
  await expect(performPublicSearch(pool,c.config,x.session,c.args)).rejects.toThrow("document_search_requires_public_query_approval");expect(fetch).not.toHaveBeenCalled();
 }));
 

@@ -181,7 +181,7 @@ it("W05 production admission rejects disabled structured processing before reser
  const task=await setup(true);
  try {
   const before=await pool.query("SELECT id FROM runs WHERE account_id=$1",[task.accountId]);
-  const response=await unavailable.inject({method:"POST",url:"/v1/runs",headers:task.headers,payload:{question:"Compare river restoration techniques.",routeMode:"controlled-research"}});
+  const response=await unavailable.inject({method:"POST",url:"/v1/runs",headers:{...task.headers,"idempotency-key":crypto.randomUUID()},payload:{question:"Compare river restoration techniques.",routeMode:"controlled-research"}});
   expect(response.statusCode).toBe(403);expect(response.json().message).toBe("Structured research is disabled.");
   expect((await pool.query("SELECT id FROM runs WHERE account_id=$1",[task.accountId])).rows).toEqual(before.rows);
  } finally {await app.inject({method:"POST",url:"/v1/account/deletion",headers:task.headers});await unavailable.close();}

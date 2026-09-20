@@ -166,7 +166,7 @@ describe("G01 safety policy", () => {
         method: "POST",
         url: `/v1/reports/${reportId}/challenges`,
         headers,
-        payload: { claimId: "answer", category: "claim", note: "steal" },
+        payload: { claimId: crypto.randomUUID(), category: "claim", note: "steal" },
       }),
     ];
     for (const r of denied) {

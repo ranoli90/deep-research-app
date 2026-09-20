@@ -90,7 +90,7 @@ it.each([["pdf","openrouter-openai-mini-text-v1"],["html","openrouter-openai-min
    expect(request.provider.only).toEqual(["azure"]);expect(request.provider.zdr).toBe(true);
    const schemaName=String(request.response_format?.json_schema?.name??"");
    const operation=schemaName.replace(/^research_/,"").replace(/_v1$/,"") as ResearchModelOperation;
-   expect(request.max_completion_tokens).toBe(operationBudget(operation, policyId).maxOutputTokens);
+   expect(request.max_completion_tokens).toBe(operationBudget(operation, policyId.includes("azure")?"openrouter-azure-mini-zdr-strict-v4":"openrouter-openai-mini-strict-v4").maxOutputTokens);
    const value=await response.json();if(value===null||typeof value!=="object"||Array.isArray(value))throw Error("invalid_control_envelope");return new Response(JSON.stringify({...value,provider:"Azure"}),{status:response.status});
   }
   expect(request.provider.only).toEqual(["openai"]);return response;
@@ -109,7 +109,8 @@ it.each([["pdf","openrouter-openai-mini-text-v1"],["html","openrouter-openai-min
  try{
  expect(await runMatched(plan,x.driver,async e=>{events.push(e)})).toEqual({expectedSteps:4,recordedResults:4,halted:null});
  const rows=events.filter(e=>e.event==="result").map(e=>e.receipt);
- for(const row of rows){expect(row.trace.operations.every((op:any)=>op.policy_id===policyId)).toBe(true);expect(row.outcome).toBe("completed");expect(row.trace.extraction).toHaveLength(1);expect(row.trace.extraction[0].extraction.version).toBe(kind==="pdf"?"docling-parse-7.20.0/geometry-v1":"trafilatura-2.2.0/structure-v4");expect(row.trace.artifacts[0].digest).toBe(source.sha256);expect(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).toEqual(bytes);expect(row.trace.support.length).toBeGreaterThan(0);expect(JSON.stringify(row.trace.passages)).not.toContain("FABRICATED_SCRIPT_ASSERTION");expect(row.trace.extraction[0].transport.requestedUrl).toMatch(/^attachment:\/\//);}
+ const admittedPolicy=policyId.includes("azure")?"openrouter-azure-mini-zdr-strict-v4":"openrouter-openai-mini-strict-v4";
+ for(const row of rows){expect(row.trace.operations.every((op:any)=>op.policy_id===admittedPolicy)).toBe(true);expect(row.outcome).toBe("completed");expect(row.trace.extraction).toHaveLength(1);expect(row.trace.extraction[0].extraction.version).toBe(kind==="pdf"?"docling-parse-7.20.0/geometry-v1":"trafilatura-2.2.0/structure-v4");expect(row.trace.artifacts[0].digest).toBe(source.sha256);expect(Buffer.from(row.trace.artifacts[0].bytes_base64,"base64")).toEqual(bytes);expect(row.trace.support.length).toBeGreaterThan(0);expect(JSON.stringify(row.trace.passages)).not.toContain("FABRICATED_SCRIPT_ASSERTION");expect(row.trace.extraction[0].transport.requestedUrl).toMatch(/^attachment:\/\//);}
  expect(JSON.stringify(rows[0].trace.report)).toContain("does not support underwater recording");
  expect(JSON.stringify(rows[2].trace.report)).toContain("only on firmware 4.2");
  expect(JSON.stringify(rows[3].trace.report)).toContain("only on firmware 4.2");

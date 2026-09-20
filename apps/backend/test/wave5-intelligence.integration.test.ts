@@ -10,6 +10,7 @@ import { getRun } from "../src/modules/runs.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { loadConfig } from "../src/platform/config.js";
 import { processRun } from "../src/worker/executor.js";
+import { LostWorkerLease } from "../src/worker/fenced-session.js";
 import * as sourceReader from "../src/adapters/retrieval/read-source.js";
 
 const originalFetch = globalThis.fetch;
@@ -109,14 +110,14 @@ describe("Wave 5 production intelligence persistence", () => {
         throw new Error(`unexpected operation:${operation}`);
       }) as typeof fetch;
       vi.spyOn(sourceReader, "readSource").mockImplementation(async (url) => {
-        if (crashAtThird && pluginCalls >= 2) throw new Error("injected_crash_after_query_2");
+        if (crashAtThird && pluginCalls >= 2) throw new LostWorkerLease();
         return readControl(url, "Export and offline editing are supported.");
       });
       const first = processRun(pool, x.config, x.runId);
       const firstOutcome = await first.then(() => "resolved").catch((e: Error) => e.message);
       const firstMeta = { firstOutcome, pluginCalls, queriesSent, terminal: (await getRun(pool, x.runId))?.terminal_outcome,
         events: (await pool.query("SELECT type, payload FROM run_events WHERE run_id=$1 ORDER BY sequence", [x.runId])).rows };
-      expect(firstOutcome, JSON.stringify(firstMeta)).toBe("injected_crash_after_query_2");
+      expect(firstOutcome, JSON.stringify(firstMeta)).toBe("stale_worker");
       const afterCrash = (await pool.query(
         `SELECT s.query FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id
           WHERE s.run_id=$1 AND s.query IS NOT NULL ORDER BY i.created_at, s.intent_id`,
