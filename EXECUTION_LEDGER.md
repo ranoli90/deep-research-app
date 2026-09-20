@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-20 — R-03/CL-04 persist-before-POST journal failure matrix
+
+- Isolated worktree from parent `9677232`. Branch `grok-v8/r03-followup-journal`. Not merged to `main`. No GHA.
+- `runMutatingFollowUp` persists prepared then sent before POST, then accepted before adopt, then adopted. 401 keeps sent. 409 persists rejected. Empty mutating body keeps sent. Superseded view does not POST. Adopt failure keeps accepted and retries without a second POST. Double-tap reuses request identity. Unresolved journal blocks a different mutation. Explain uses `recordFollowUpExplain` and does not set `pendingFollowUp: null`.
+- Same persist-before-POST recovery for assumption confirm/replace and text correction. SHA-256 `mutatingFollowUpKey` kept. App `newId()` kept (no `crypto.randomUUID()` call). `scripts/check-boundaries.mjs` now rejects mobile imports of `@deep/research-core`.
+- Tests: `pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `node scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap unrun. Rollback: revert this commit.
+
 ## 2026-09-20 — device live, Stop completion, brief quote location
 
 - Phone was on fixture: default `routeMode=fixture`, adb reverse `8787→8788`, health `fixture:true,live:false`. Sample · Understood the question is `labeledDemo`. Fixture API had no diagnostic worker, so runs stalled after intent compile. Stop POSTed `cancel_requested` (Taco Bell run epoch 2) and stayed `cancelling`.

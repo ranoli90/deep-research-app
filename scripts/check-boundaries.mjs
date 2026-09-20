@@ -45,14 +45,14 @@ for (const file of walk(join(root, "packages/research-core"))) {
   }
 }
 
-const mobileForbidden = /^(pg|pg-boss|fastify|openai)$/;
+const mobileForbidden = /^(pg|pg-boss|fastify|openai|@deep\/research-core)$/;
 for (const file of walk(join(root, "apps/mobile"))) {
   const { src, specs } = importsOf(file);
   if (/OPENROUTER_API_KEY|DATABASE_URL/.test(src) && !/EXPO_PUBLIC_/.test(src)) {
     failures.push(`${relative(root, file)} mentions a server secret name`);
   }
   for (const s of specs) {
-    if (mobileForbidden.test(s)) failures.push(`${relative(root, file)} imports ${s}`);
+    if (mobileForbidden.test(s) || s.startsWith("@deep/research-core/")) failures.push(`${relative(root, file)} imports ${s}`);
   }
 }
 

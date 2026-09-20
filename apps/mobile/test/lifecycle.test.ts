@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applySnapshot, canSubmit, conciseBlocks, emptyState, expireLocalSession, openLibraryItem } from "../src/state.js";
 import { activateLocalSession, createSessionStorage, hydrateOnLaunch, memoryStore, persistSession } from "../src/persist.js";
-import { ApiError, isExpiredSession, isOfflineError } from "../src/api.js";
+import { ApiError, isConflictError, isExpiredSession, isOfflineError } from "../src/api.js";
 
 describe("P0-N native state mapping", () => {
   it("maps composer gates for consent, auth, offline, and empty draft", () => {
@@ -118,7 +118,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/staleCorrection && state\.run/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
-    expect(src).toMatch(/startPolling\(token, child\.runId\)/);
+    expect(src).toMatch(/startPolling\(token, body\.runId\)/);
     expect(src).toMatch(/createReadingRestoration/);
     expect(src).toMatch(/measureViewport/);
     expect(src).toMatch(/measureContent/);
@@ -210,6 +210,8 @@ describe("P0-N native state mapping", () => {
     expect(next.error).toMatch(/expired/i);
     expect(isExpiredSession(new ApiError(401, "Sign in required."))).toBe(true);
     expect(isExpiredSession(new ApiError(403, "nope"))).toBe(false);
+    expect(isConflictError(new ApiError(409, "stale_revision"))).toBe(true);
+    expect(isConflictError(new ApiError(401, "Sign in required."))).toBe(false);
   });
 
   it("concise view keeps eligibility after a 120 EUR constraint correction", () => {

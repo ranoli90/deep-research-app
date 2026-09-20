@@ -86,3 +86,14 @@ export function appendFollowUpExplain(existing: FollowUpExplain[] | null | undef
   );
   return [...kept, next].slice(-FOLLOW_UP_EXPLAIN_MAX);
 }
+
+/** Read-only explanations never clear an unresolved mutating journal. */
+export function recordFollowUpExplain<T extends { pendingFollowUp?: unknown; followUpExplains?: FollowUpExplain[] | null }>(
+  state: T,
+  next: FollowUpExplain,
+): T {
+  return {
+    ...state,
+    followUpExplains: appendFollowUpExplain(state.followUpExplains, next),
+  };
+}

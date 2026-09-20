@@ -1,3 +1,9 @@
+## R-03 / CL-04 journal failure matrix — 2026-09-20
+
+Isolated worktree. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.
+
+`runMutatingFollowUp`, `runAssumptionsMutation`, and `runPendingCorrection` persist prepared/sent/accepted/adopted (or rejected/withdrawn) before POST. Unresolved journals block a different mutation. Explain uses `recordFollowUpExplain` and does not clear pending follow-up. SHA-256 keys and `newId()` remain. Mobile unit **340/340**, typecheck 0, boundaries ok. Device double-tap still required for native proof.
+
 ## Device live + Stop — 2026-09-20
 
 Worktree `/home/oranolio/Desktop/deep-v8-integration`. Do not merge `main`. Do not dispatch GHA. Do not pay EAS.

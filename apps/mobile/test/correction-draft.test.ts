@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { activeCorrectionDraft, editCorrectionDraft, parseCorrectionDraft, rebaseCorrectionDraft } from "../src/correction-draft";
+import { ApiError } from "../src/api";
+import {
+  activeCorrectionDraft,
+  bindPendingCorrection,
+  editCorrectionDraft,
+  mutatingCorrectionKey,
+  parseCorrectionDraft,
+  preparePendingCorrection,
+  rebaseCorrectionDraft,
+  runPendingCorrection,
+  unresolvedCorrection,
+} from "../src/correction-draft";
 import { createSessionStorage, memoryStore } from "../src/persist";
 import { createProtectedContentStore } from "../src/protected-content";
 import { applySnapshot, emptyState, logout, openLibraryItem, type UiState } from "../src/state";
@@ -74,5 +85,75 @@ describe("W06/W07 correction draft recovery", () => {
     await cache.setItem("deep.ui.v2", JSON.stringify(payload));
     const state = (await createSessionStorage(cache, credentials).hydrate()).state;
     expect(state.correctionDraft).toBeNull(); expect(state.report?.reportId).toBe("report");
+  });
+  it("persists a text correction before POST and survives the callback failure matrix", async () => {
+    const parentRunId = "11111111-1111-4111-8111-111111111111";
+    const childRunId = "22222222-2222-4222-8222-222222222222";
+    const question = "Compare reef restoration in colder water";
+    const pending = preparePendingCorrection({ parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot" });
+    expect(pending.idempotencyKey).toBe(mutatingCorrectionKey(parentRunId, 1, question, "reuse_snapshot"));
+    expect(unresolvedCorrection(pending)).toBe(true);
+    const saved: string[] = [];
+    await expect(runPendingCorrection({
+      pending,
+      parentRunId,
+      question,
+      expectedBriefRevision: 1,
+      evidencePolicy: "reuse_snapshot",
+      current: () => true,
+      save: async (value) => { saved.push(value.phase); },
+      post: async () => { throw new Error("response lost"); },
+      adopt: async () => undefined,
+    })).rejects.toThrow("response lost");
+    expect(saved).toEqual(["prepared", "sent"]);
+    expect(() => bindPendingCorrection(pending, {
+      parentRunId, question: "A different correction", expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+    })).toThrow(/Retry the saved correction/);
+    await expect(runPendingCorrection({
+      pending: { ...pending, phase: "sent" },
+      parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+      current: () => true,
+      save: async () => undefined,
+      post: async () => { throw new ApiError(401, "Sign in required."); },
+      adopt: async () => undefined,
+    })).rejects.toMatchObject({ status: 401 });
+    const conflict: string[] = [];
+    await expect(runPendingCorrection({
+      pending: { ...pending, phase: "sent" },
+      parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+      current: () => true,
+      save: async (value) => { conflict.push(value.phase); },
+      post: async () => { throw new ApiError(409, "stale_revision"); },
+      adopt: async () => undefined,
+    })).rejects.toMatchObject({ status: 409 });
+    expect(conflict.at(-1)).toBe("rejected");
+    await expect(runPendingCorrection({
+      pending: { ...pending, phase: "sent" },
+      parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+      current: () => true,
+      save: async () => undefined,
+      post: async () => ({}),
+      adopt: async () => undefined,
+    })).rejects.toThrow(/not accepted/i);
+    let current = true;
+    await expect(runPendingCorrection({
+      pending,
+      parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+      current: () => current,
+      save: async (value) => { if (value.phase === "prepared") current = false; },
+      post: async () => ({ runId: childRunId }),
+      adopt: async () => undefined,
+    })).rejects.toThrow("superseded");
+    const posts: string[] = [];
+    const adopted = await runPendingCorrection({
+      pending: { ...pending, phase: "accepted", acceptedRunId: childRunId },
+      parentRunId, question, expectedBriefRevision: 1, evidencePolicy: "reuse_snapshot",
+      current: () => true,
+      save: async () => undefined,
+      post: async () => { posts.push("posted"); return { runId: childRunId }; },
+      adopt: async (body) => { posts.push(body.runId); },
+    });
+    expect(posts).toEqual([childRunId]);
+    expect(adopted.phase).toBe("adopted");
   });
 });

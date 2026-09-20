@@ -1,3 +1,11 @@
+## R-03 / CL-04 follow-up journal failure matrix — 2026-09-20
+
+Isolated worktree from `9677232` on `grok-v8/r03-followup-journal`. **Not merged to `main` (`8a7b1a9`).** No GHA. No new EAS.
+
+Mutating follow-up, assumption replace/confirm, and text correction now persist journal phases `prepared` → `sent` → `accepted` → `adopted` (or `rejected` / `withdrawn`) before POST and before clearing. Callback failures, double-tap reuse, 401, 409, empty mutating bodies, and superseded views keep the last durable phase. An unresolved journal blocks a different mutation. Read-only explain records the answer without clearing a pending mutation. SHA-256 `mutatingFollowUpKey` is unchanged. Hermes still uses `newId()`, not `crypto.randomUUID()`. Mobile still cannot import `@deep/research-core` (boundary checker).
+
+`pnpm --filter @deep/mobile test` **340/340** EXIT 0. `pnpm --filter @deep/mobile typecheck` EXIT 0. `scripts/check-boundaries.mjs` `boundaries=ok`. Device double-tap and current-HEAD APK remain unrun. Rollback: revert this commit.
+
 ## Founded-year freshness — 2026-09-20
 
 `when was Taco Bell founded` was classified as generic (1-year freshness) because the historical matcher required `founding`, not `founded`. Old official pages then looked stale and discovery kept going. Matcher now includes founded/established/incorporated. Not merged to `main`.
