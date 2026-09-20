@@ -85,11 +85,11 @@ export const color = {
 } as const;
 
 export const type = {
-  display: { fontSize: 20, lineHeight: 26, fontWeight: "600" as const, letterSpacing: -0.4 },
+  display: { fontSize: 22, lineHeight: 28, fontWeight: "600" as const, letterSpacing: -0.4 },
   title: { fontSize: 18, lineHeight: 24, fontWeight: "600" as const, letterSpacing: -0.25 },
   body: { fontSize: 16, lineHeight: 24, fontWeight: "400" as const, letterSpacing: -0.1 },
   caption: { fontSize: 13, lineHeight: 18, fontWeight: "500" as const, letterSpacing: 0.08 },
-  meta: { fontSize: 12, lineHeight: 16, fontWeight: "500" as const, letterSpacing: 0.2 },
+  meta: { fontSize: 13, lineHeight: 16, fontWeight: "500" as const, letterSpacing: 0.2 },
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 12, gutter: 16, lg: 18, xl: 28 } as const;

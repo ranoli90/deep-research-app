@@ -106,16 +106,16 @@ export function SourceSheet({
           </View>
         ) : null}
         <View style={styles.sheetField}>
-          <Text style={styles.kicker}>Relationship</Text>
-          <Text style={styles.bodyText}>{uncertaintyLabel(quality)}</Text>
-        </View>
-        <View style={styles.sheetField}>
           <Text style={styles.kicker}>Freshness</Text>
           <Text style={styles.bodyText}>{sourceFreshnessCopy(source)}</Text>
         </View>
         <View style={styles.sheetField}>
           <Text style={styles.kicker}>Independence</Text>
           <Text style={styles.bodyText}>{sourceIndependenceCopy(source)}</Text>
+        </View>
+        <View style={styles.sheetField}>
+          <Text style={styles.kicker}>Relationship</Text>
+          <Text style={styles.bodyText}>{uncertaintyLabel(quality)}</Text>
         </View>
         {url ? <Pressable onPress={() => onOpenOriginal(url)} accessibilityRole="link" accessibilityLabel="Open original source in browser" hitSlop={12}>
           <Text style={styles.link}>Open original source</Text>

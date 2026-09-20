@@ -2,6 +2,7 @@ import type { ReportBlock } from "./state";
 
 export type ReportSectionId =
   | "answer"
+  | "why"
   | "factors"
   | "comparison"
   | "caveats"
@@ -14,6 +15,7 @@ export type ReportSection = { id: ReportSectionId; title: string; blocks: Report
 
 const ORDER: ReportSectionId[] = [
   "answer",
+  "why",
   "factors",
   "comparison",
   "caveats",
@@ -25,6 +27,7 @@ const ORDER: ReportSectionId[] = [
 
 const TITLES: Record<ReportSectionId, string> = {
   answer: "Answer",
+  why: "Why",
   factors: "Deciding factors",
   comparison: "Comparison",
   caveats: "Caveats",
@@ -37,6 +40,7 @@ const TITLES: Record<ReportSectionId, string> = {
 function sectionFor(block: ReportBlock): ReportSectionId {
   const id = block.id.toLowerCase();
   if (id === "answer" || block.kind === "heading" && /answer/i.test(block.text)) return "answer";
+  if (id.includes("why") || id === "rationale") return "why";
   if (id === "constraints" || id === "eligibility") return "factors";
   if (id.includes("comparison") || id === "candidate-listing") return "comparison";
   if (id.includes("unresolved") || id.includes("limitation") || id.startsWith("disconfirm")) return "unresolved";
@@ -74,4 +78,9 @@ export function reportNeedsOutline(sections: ReportSection[]): boolean {
   if (chars >= 1800) return true;
   if (blocks.length >= 12) return true;
   return false;
+}
+
+/** Section banners and jump-list only on long reports. */
+export function reportShowsSectionTitles(sections: ReportSection[]): boolean {
+  return reportNeedsOutline(sections);
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { editorialSections, reportNeedsOutline, reportOutline } from "../src/report-hierarchy";
+import { editorialSections, reportNeedsOutline, reportOutline, reportShowsSectionTitles } from "../src/report-hierarchy";
 import type { ReportBlock } from "../src/state";
 
 const block = (id: string, kind: string, text: string): ReportBlock => ({
@@ -22,6 +22,12 @@ describe("editorial report hierarchy", () => {
     expect(sections.map((s) => s.id)).toEqual([
       "answer", "factors", "comparison", "caveats", "unresolved", "calculations", "evidence",
     ]);
+    const withWhy = editorialSections([
+      block("answer", "text", "Buy Vendor A."),
+      block("why-budget", "text", "It is the only option under the budget."),
+      block("eligibility", "text", "Fits."),
+    ]);
+    expect(withWhy.map((s) => s.id)).toEqual(["answer", "why", "factors"]);
     expect(sections[0]?.blocks[0]?.text).toMatch(/Buy Vendor A/);
     expect(reportOutline(sections).map((o) => o.title)).toContain("Deciding factors");
   });
@@ -39,6 +45,7 @@ describe("editorial report hierarchy", () => {
     const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
     expect(app).toContain("showOutline={detailed}");
     expect(app).toContain("onJump=");
+    expect(report).toContain("reportShowsSectionTitles");
     expect(report).toContain("Sources used:");
     expect(report).toContain('accessibilityLabel="Report outline"');
     expect(report).toContain("Jump to ${section.title}");
@@ -46,6 +53,7 @@ describe("editorial report hierarchy", () => {
   });
 
   it("withholds the outline on a short answer-first report", () => {
+    expect(reportShowsSectionTitles(editorialSections([block("answer", "text", "Buy Vendor A.")]))).toBe(false);
     expect(reportNeedsOutline(editorialSections([block("answer", "text", "Buy Vendor A.")]))).toBe(false);
     expect(reportNeedsOutline(editorialSections([
       block("answer", "text", "Buy Vendor A."),

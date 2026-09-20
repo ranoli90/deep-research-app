@@ -3,7 +3,7 @@ import { Animated, Pressable, ScrollView, Text, View, type StyleProp, type TextS
 import { motion, space } from "@deep/design";
 import { breakLongTokens, parseTable } from "./report-layout";
 import { citationChipLabel, citationNumbers } from "./citation-chips";
-import { editorialSections, reportNeedsOutline } from "./report-hierarchy";
+import { editorialSections, reportNeedsOutline, reportShowsSectionTitles } from "./report-hierarchy";
 import { uncertaintyFromBlock, uncertaintyLabel } from "./uncertainty";
 import type { ReportBlock } from "./state";
 
@@ -153,6 +153,7 @@ export function ReportSections({
   const numbers = Object.keys(citationIndex).length > 0 ? citationIndex : citationNumbers(blocks);
   const outline = sections.filter((section) => section.id !== "answer");
   const long = showOutline && detailed && reportNeedsOutline(sections);
+  const titled = reportShowsSectionTitles(sections);
   return (
     <Animated.View style={{ opacity: fade }}>
       {long && sections.length > 1 ? (
@@ -178,7 +179,7 @@ export function ReportSections({
       ) : null}
       {sections.map((section) => (
         <Fragment key={section.id}>
-          {section.id !== "answer" ? (
+          {section.id !== "answer" && titled ? (
             <Text style={styles.title} accessibilityRole="header" accessibilityLabel={section.title}>{section.title}</Text>
           ) : null}
           {section.blocks.map((b) => (

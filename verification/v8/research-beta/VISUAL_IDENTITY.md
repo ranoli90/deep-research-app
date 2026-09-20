@@ -18,7 +18,7 @@ Captured from current public product surfaces (empty/composer, active research, 
 Density: competitors sit around 15–17px body with 44–48px circular controls. Ours is 16/24 body, 18/24 titles, caption 13/18, **no circular product controls**.
 
 ## Type
-- `display` 20/26/600, tracking −0.4 — **answer peak only**, never empty-state hero
+- `display` 22/28/600, tracking −0.4 — **answer peak and empty-state title** (kit 13: 20–22 answer, 22–24 empty max)
 - `title` 18/24/600, tracking −0.25 — section heads, library titles
 - `body` 16/24/400, tracking −0.1 — reading
 - `caption` 13/18/500 — metadata, outline, examples

@@ -41,6 +41,9 @@ describe("phase B consumer chrome", () => {
     expect(app).toContain("clarificationPromptFromEvents");
     expect(app).toContain("liveActivityFollowsLatest");
     expect(sheet).toContain("Technical details ›");
+    expect(sheet.indexOf(">Quote<")).toBeLessThan(sheet.indexOf(">Claim<") === -1 ? sheet.indexOf(">Freshness<") : sheet.indexOf(">Claim<"));
+    expect(sheet.indexOf(">Freshness<")).toBeLessThan(sheet.indexOf(">Independence<"));
+    expect(sheet.indexOf(">Independence<")).toBeLessThan(sheet.indexOf("Open original"));
     expect(sheet).toContain("motion.sheet");
     expect(sheet.indexOf("publisher")).toBeLessThan(sheet.indexOf("source.exactText"));
   });

@@ -1418,7 +1418,6 @@ function AppInner() {
                 reading.current.measureCard(readerView, event.nativeEvent.layout.y);
                 restoreReadingPosition();
               }}>
-                {state.report.labeledDemo === true || state.run?.labeledDemo === true ? <Text style={styles.sampleMark}>Sample</Text> : null}
                 <ReportSections
                   blocks={blocks}
                   detailed={detailed}

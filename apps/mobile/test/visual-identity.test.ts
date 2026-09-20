@@ -5,7 +5,8 @@ import { color, composer as composerMetrics, motion, radius, type as typeTokens 
 
 describe("original visual identity", () => {
   it("keeps compact editorial type and non-pill radius", () => {
-    expect(typeTokens.display.fontSize).toBeLessThanOrEqual(20);
+    expect(typeTokens.display.fontSize).toBeGreaterThanOrEqual(20);
+    expect(typeTokens.display.fontSize).toBeLessThanOrEqual(22);
     expect(typeTokens.body.fontSize).toBe(16);
     expect(typeTokens.title.fontSize).toBe(18);
     expect(typeTokens.body.lineHeight).toBe(24);
@@ -39,6 +40,7 @@ describe("original visual identity", () => {
     expect(styles).toMatch(/librarySearch:\s*\{[^}]*borderRadius: radius\.md/);
     expect(styles).not.toMatch(/librarySearch:\s*\{[^}]*borderBottomWidth/);
     expect(styles).toContain("libraryMeta:");
+    expect(styles).toMatch(/welcomeDisplay: \{ \.\.\.typeTokens\.display/);
     expect(styles).not.toMatch(/libraryMeta:\s*\{[^}]*textTransform: "uppercase"/);
   });
 
