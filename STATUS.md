@@ -1,3 +1,11 @@
+## Simple historical-fact discovery stop — 2026-09-20
+
+Isolated worktree from `9677232` (`grok-v8/research-beta-integration`). **Not merged to `main` (`8a7b1a9`).** No GHA. No live OpenRouter.
+
+`when was Taco Bell founded` still ran extra discovery after the matcher fix because `structured-research.ts` treated coverage-incomplete and `freshnessUnmet` as unresolved consequential criteria. Historical class now ignores undated/2015 pages; `discoveryContinuationGaps` stops continuation once assertions are supported, including when the coverage model complains about generic one-year freshness. Born / established / signed-treaty questions share that class. `readAdoptedSources` stops further fetches after two independent readable pages on that class only. Citation and support still run. No parallel demo/fast-lookup path.
+
+Focused evidence: research-core **325/325**; historical-fact-discovery.integration **1/1** on `deep_simple_01a0bfe8`; token-budget unit **9/9**. Typecheck research-core and backend EXIT 0. Full `pnpm verify` and two PG suites are not this SHA.
+
 ## Founded-year freshness — 2026-09-20
 
 `when was Taco Bell founded` was classified as generic (1-year freshness) because the historical matcher required `founding`, not `founded`. Old official pages then looked stale and discovery kept going. Matcher now includes founded/established/incorporated. Not merged to `main`.

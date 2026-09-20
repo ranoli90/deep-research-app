@@ -7,7 +7,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForQuestion,sourcesHaveUnmetFreshness,discoveryContinuationGaps,furtherHistoricalSourceReadsNeeded,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,type CandidateLedgerCoverage,type SourceClass } from "@deep/research-core";
 import { pendingQueryAuthorization,persistFreshnessPolicy,persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
 import { runRemainingBudgetMicro } from "../modules/live-spend.js";
 import { admitResearchIteration,loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
@@ -48,9 +48,13 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     await settleRun(db,args.accountId,args.runId,run.spent_micro);
   });
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+  const run=(await getRun(pool,args.runId))!;
+  const brief=await getBrief(pool,run.brief_id);
   const CONCURRENT_SOURCE_READS=3;
   const readAdoptedSources=async(taskId:string,handles:string[],questionKeys:string[],rationale:string)=>{
     for(let i=0;i<handles.length;i+=CONCURRENT_SOURCE_READS){
+      const stored=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
+      if(!furtherHistoricalSourceReadsNeeded({question:brief.originalQuestion,sources:stored})) break;
       const batch=handles.slice(i,i+CONCURRENT_SOURCE_READS);
       const settled=await Promise.allSettled(batch.map(async(sourceHandle)=>{
         const read=await executeSourceRead(config,session,{...args,taskId,proposal:{
@@ -62,8 +66,6 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       if(fatal)throw fatal.reason;
     }
   };
-  const run=(await getRun(pool,args.runId))!;
-  const brief=await getBrief(pool,run.brief_id);
   const pauseForQueryApproval=async(proposedQuery=brief.originalQuestion):Promise<"paused"|"blocked">=>session.write(async(db)=>{
     const existingPending=await pendingQueryAuthorization(db,args);
     const queryDigest=queryAuthorizationDigest(proposedQuery);
@@ -380,8 +382,15 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       payload:{extractionIntentId:extraction.intentId,supportIntentId:support.intentId,coverageIntentId:review.intentId,complete:review.coverage.complete}}));
     const remainingBudgetMicro=await runRemainingBudgetMicro(pool,args);
     const sources=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
-    const freshnessUnmet=sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(brief.originalQuestion),sources);
-    const unresolvedCriterionKeys=freshnessUnmet?prepared.task.specification.criteria.map(c=>c.key):review.coverage.unresolvedCriterionKeys;
+    const gaps=discoveryContinuationGaps({
+      question:brief.originalQuestion,
+      coverageUnresolvedKeys:review.coverage.unresolvedCriterionKeys,
+      allCriterionKeys:prepared.task.specification.criteria.map((c)=>c.key),
+      freshnessUnmet:sourcesHaveUnmetFreshness(freshnessPolicyForQuestion(brief.originalQuestion),sources),
+      hasSupportedAssertions:supportedNow,
+    });
+    const freshnessUnmet=gaps.freshnessUnmet;
+    const unresolvedCriterionKeys=gaps.unresolvedCriterionKeys;
     const ledger=await session.write((db)=>loadCandidateLedger(db,args));
     const criterionSignals=prepared.task.specification.criteria.map((criterion)=>({
       criterionKey:criterion.key,
@@ -404,7 +413,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     for(const key of needArgs.criterionKeys)needs=applyNeedEvidence(needs,key,!unresolvedCriterionKeys.includes(key));
     await session.write((db)=>persistEvidenceNeeds(db,{...args,needs}));
     await syncCandidateLedger({queriesAttempted:queries,sourceClassesAttempted:classesAttempted});
-    if((!review.coverage.complete||freshnessUnmet)&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
+    if((unresolvedCriterionKeys.length>0||freshnessUnmet)&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
       const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);

@@ -19,6 +19,9 @@ describe("token-aware context admission", () => {
     const src = readFileSync(new URL("../src/worker/structured-research.ts", import.meta.url), "utf8");
     expect(src).toMatch(/highestValueNeed/);
     expect(src).toMatch(/topNeed\?\.nextAction\.kind==="search"/);
+    expect(src).toMatch(/discoveryContinuationGaps/);
+    expect(src).toMatch(/furtherHistoricalSourceReadsNeeded/);
+    expect(src).not.toMatch(/freshnessUnmet\?prepared\.task\.specification\.criteria\.map/);
   });
 
   it("gives same-evidence repair a new request identity", () => {
