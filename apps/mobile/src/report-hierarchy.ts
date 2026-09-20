@@ -69,11 +69,9 @@ export function reportOutline(sections: ReportSection[]): { id: string; title: s
 
 /** TOC only on long reports. Short answer-first pages stay uncluttered. */
 export function reportNeedsOutline(sections: ReportSection[]): boolean {
-  const nonAnswer = sections.filter((section) => section.id !== "answer");
   const blocks = sections.flatMap((section) => section.blocks);
   const chars = blocks.reduce((n, block) => n + block.text.length, 0);
   if (chars >= 900) return true;
-  if (nonAnswer.length >= 4) return true;
   if (blocks.length >= 8) return true;
   return false;
 }

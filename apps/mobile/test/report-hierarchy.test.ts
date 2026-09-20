@@ -67,6 +67,6 @@ describe("editorial report hierarchy", () => {
       block("comparison-table", "table", "A | B"),
       block("contradiction-price", "caveat", "Prices disagree."),
       block("unresolved-warranty", "text", "Warranty unknown."),
-    ]))).toBe(true);
+    ]))).toBe(false);
   });
 });
