@@ -36,6 +36,12 @@ export type RunSnapshot = {
     terms: string[];
     reason?: string | null;
   } | null;
+  pendingInput?: {
+    id: string;
+    type: "clarification" | "query_authorization";
+    briefRevision: number;
+    field?: "geography" | "budget" | "use_case" | "population" | "timeframe" | "platform" | "private_search" | "subject" | "currency";
+  } | null;
 };
 
 export type ReportBlock = {
@@ -112,6 +118,12 @@ export function emptyState(): UiState {
 }
 
 export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
+  const pendingInput = snap.pendingInput === undefined ? undefined : snap.pendingInput === null ? null : snap.pendingInput;
+  if (pendingInput) {
+    if (typeof pendingInput.id !== "string" || typeof pendingInput.type !== "string" || typeof pendingInput.briefRevision !== "number") {
+      throw new Error("Pending input identity is invalid. Refresh the run before answering.");
+    }
+  }
   let status: UiState["status"] = "progress";
   if (snap.lifecycle === "terminal" && snap.outcome === "completed") status = "completed";
   else if (snap.lifecycle === "terminal" && snap.outcome === "completed_with_limitations") status = "partial";

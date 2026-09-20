@@ -1,3 +1,7 @@
+## Contract closures — 2026-09-20
+
+CL-01 continue identity, CL-02 assumption revision/child, CL-03 deepen handler, CL-07 canonical section keys. See `verification/v8/CLOSURE_LEDGER.md`. Do not merge `main`.
+
 ## Review closures — 2026-09-19
 
 Follow-up explain/steer wiring, selected-claim verification, Reduce Motion clock, and section-by-section hierarchical write are in this branch after `95432e9`. Tests: mobile 308/308, backend unit 242, followup-explain 4/4. Native 95432e9 install still blocked. Do not merge `main`.

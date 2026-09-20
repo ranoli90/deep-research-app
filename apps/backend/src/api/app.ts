@@ -4,11 +4,15 @@ import { admitResearchCorrection,resolveResearchCorrection } from "../modules/re
 import { deleteSourceForAccount } from "../modules/source-deletion.js";
 import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
 import {
+  AssumptionsRequestSchema,
+  ClarificationFieldSchema,
   CONSENT_POLICY_VERSION,
+  ContinueRunRequestSchema,
   CorrectionRequestSchema,
   CreateRunRequestSchema,
   DEFAULT_RUN_BUDGET_MICRO,
   DELETION_VS_SUBSCRIPTION,
+  FollowUpMessageRequestSchema,
   MAX_ATTACHMENT_BYTES,
   OUTPUT_REPORT_CATEGORIES,
   PRIVACY_DATA_FLOWS,
@@ -138,12 +142,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/purchases/restore": z.object({}).strict(),
     "/v1/purchases/verify": z.object({receipt: z.string().max(10000).optional()}).strict(),
     "/v1/billing/webhooks": z.object({eventId: z.string().max(300).optional(), product: z.string().max(100).optional()}).strict(),
-    "/v1/runs/:id/continue": z.object({ pendingInputId: z.string().uuid(), expectedBriefRevision: revision,
-      geography: z.string().trim().min(1).max(300).optional(), answers: z.array(z.object({ field: z.string().min(1).max(100), value: boundedText }).strict()).min(1).max(24).optional() }).strict(),
-    "/v1/runs/:id/assumptions": z.object({ action: z.enum(["confirm","replace"]), values: z.array(boundedText).max(12).optional(), expectedBriefRevision: revision.optional() }).strict(),
+    "/v1/runs/:id/continue": ContinueRunRequestSchema,
+    "/v1/runs/:id/assumptions": AssumptionsRequestSchema,
     "/v1/runs/:id/query-authorizations/approve": z.object({ authorizationId: z.string().uuid(), queryDigest: z.string().regex(/^[a-f0-9]{64}$/), terms: z.array(z.string().min(1).max(1000)).max(200) }).strict(),
     "/v1/runs/:id/follow-up": z.union([RequestedVerificationRequestSchema,
-      z.object({ message: boundedText, expectedBriefRevision: revision.optional() }).strict(),
+      FollowUpMessageRequestSchema,
       z.object({ claimId: z.string().uuid().optional(), note: boundedText.optional() }).strict()]),
     "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional(), excerptText: z.string().max(4000).optional() }).strict(),
   };
@@ -282,6 +285,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       [a.accountId, run.id],
     )).rowCount);
     const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
+    let pendingField: z.infer<typeof ClarificationFieldSchema> | undefined;
+    if (run.pending_input_id && run.pending_input_type === "clarification") {
+      const ev = await pool.query<{ payload: { questions?: { field?: string }[] } }>(
+        `SELECT payload FROM run_events WHERE run_id=$1 AND account_id=$2 AND type='clarify' ORDER BY sequence DESC LIMIT 1`,
+        [run.id, a.accountId],
+      );
+      const field = ev.rows[0]?.payload?.questions?.[0]?.field;
+      const parsed = ClarificationFieldSchema.safeParse(field);
+      if (parsed.success) pendingField = parsed.data;
+    }
     return {
       runId: run.id,
       contentInvalidated,
@@ -293,7 +306,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
       pendingQueryAuthorization: pendingQuery,
-      pendingInput: run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision } : null,
+      pendingInput: run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision, ...(pendingField ? { field: pendingField } : {}) } : null,
       revision: {
         briefRevision: run.brief_revision,
         evidenceRevision: run.evidence_revision,
@@ -690,6 +703,55 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         });
         await tryDispatchRun(pool, boss, revised.runId);
         return { kind: routed.kind, ...revised, reason: routed.reason, mutatesBrief: true, mutatesIssuedIdentities: false };
+      }
+      if (routed.kind === "deepen") {
+        if (!report) return reply.code(409).send(err("stale_revision", "Deepen requires a current report.", crypto.randomUUID()));
+        if (followBody.expectedBriefRevision == null) return reply.code(400).send(err("invalid_input", "expectedBriefRevision is required to deepen research.", crypto.randomUUID()));
+        const deepened = await withTx(pool, async (db) => {
+          await lockActiveAccount(db, a.accountId);
+          const current = await getRun(db, id, { forUpdate: true });
+          if (!current || current.account_id !== a.accountId) throw Object.assign(new Error("permission_denied"), { statusCode: 404 });
+          const brief = await getBrief(db, current.brief_id);
+          const nextAssumptions = [
+            ...(Array.isArray(brief.assumptions) ? brief.assumptions : []),
+            {
+              id: `deepen-${current.brief_revision}`,
+              value: followBody.message!,
+              reversibility: "reversible" as const,
+              impact: "Bounded additional investigation of the existing subject.",
+              userConfirmationState: "accepted" as const,
+            },
+          ];
+          if (current.lifecycle === "terminal") {
+            return insertChildBriefRevision(db, {
+              accountId: a.accountId,
+              parent: current,
+              expectedRevision: followBody.expectedBriefRevision!,
+              next: { ...brief, originalQuestion: brief.originalQuestion, assumptions: nextAssumptions },
+              idempotencyKey: String(req.headers["idempotency-key"] ?? ""),
+            });
+          }
+          if (current.brief_revision !== followBody.expectedBriefRevision || !["queued", "running"].includes(current.lifecycle)) {
+            throw Object.assign(new Error("stale_revision"), { statusCode: 409 });
+          }
+          const committed = await commitBriefRevision(db, {
+            accountId: a.accountId,
+            runId: id,
+            expectedRevision: followBody.expectedBriefRevision!,
+            originalQuestion: brief.originalQuestion,
+            next: { ...brief, originalQuestion: brief.originalQuestion, assumptions: nextAssumptions },
+          });
+          await db.query("UPDATE run_leases SET expires_at=now() WHERE run_id=$1", [id]);
+          await db.query("UPDATE runs SET lifecycle='queued', phase='preparing' WHERE id=$1", [id]);
+          await db.query(`INSERT INTO run_dispatch_outbox(run_id) VALUES($1) ON CONFLICT(run_id) DO UPDATE
+            SET state='pending',attempt_id=NULL,lease_until=NULL,next_attempt_at=now()`, [id]);
+          return { runId: id, briefRevision: committed.briefRevision };
+        });
+        await tryDispatchRun(pool, boss, deepened.runId);
+        return { kind: "deepen", ...deepened, reason: routed.reason, mutatesBrief: false, mutatesIssuedIdentities: false, parentRunId: id };
+      }
+      if (routed.kind === "change_constraint" || routed.kind === "new_research") {
+        return reply.code(409).send(err("unsupported_follow_up", "Use the correction or new-research path for this message.", crypto.randomUUID()));
       }
     }
     if(run.route_mode==="controlled-research"){

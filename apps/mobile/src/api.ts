@@ -1,4 +1,4 @@
-import { CorrectionRequestSchema, RequestedVerificationRequestSchema, type RequestedVerificationRequest,type ResearchCorrectionPatch } from "@deep/contracts";
+import { AssumptionsRequestSchema, ContinueRunRequestSchema, CorrectionRequestSchema, FollowUpMessageRequestSchema, RequestedVerificationRequestSchema, type AssumptionsRequest, type ContinueRunRequest, type RequestedVerificationRequest,type ResearchCorrectionPatch } from "@deep/contracts";
 import { createRequestScope, SupersededRequest } from "./request-scope";
 
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
@@ -86,21 +86,22 @@ export const api = {
   resolveRunRequest: (token: string, idempotencyKey: string, verification?: { parentRunId: string; request: RequestedVerificationRequest }) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey, ...(verification ? { verification } : {}) }) }),
   attach: (token: string, filename: string, mime: string, text: string, key?: string) =>
     req("/v1/attachments", { method: "POST", token, scope: "view", headers: key ? { "idempotency-key": key } : {}, body: JSON.stringify({ filename, mime, text }) }),
-  continueRun: (token: string, id: string, answers: { field: string; value: string }[] | string) =>
+  continueRun: (token: string, id: string, body: ContinueRunRequest) =>
     req(`/v1/runs/${id}/continue`, {
       method: "POST",
       token,
       scope: "view",
       runId: id,
-      body: JSON.stringify(typeof answers === "string" ? { geography: answers } : { answers }),
+      body: JSON.stringify(ContinueRunRequestSchema.parse(body)),
     }),
-  confirmAssumptions: (token: string, id: string, values: string[] = []) =>
+  confirmAssumptions: (token: string, id: string, body: AssumptionsRequest, idempotencyKey?: string) =>
     req(`/v1/runs/${id}/assumptions`, {
       method: "POST",
       token,
       scope: "view",
       runId: id,
-      body: JSON.stringify({ action: values.length ? "replace" : "confirm", values }),
+      headers: idempotencyKey ? { "idempotency-key": idempotencyKey } : {},
+      body: JSON.stringify(AssumptionsRequestSchema.parse(body)),
     }),
   approveQuery: (token: string, id: string, body: { authorizationId: string; queryDigest: string; terms: string[] }) =>
     req(`/v1/runs/${id}/query-authorizations/approve`, {
@@ -131,16 +132,14 @@ export const api = {
       scope: "view", runId: id,
       body: JSON.stringify(RequestedVerificationRequestSchema.parse(request)),
     }),
-  explainFollowUp: (token: string, id: string, body: { message: string; expectedBriefRevision?: number }) =>
+  explainFollowUp: (token: string, id: string, body: { message: string; expectedBriefRevision?: number }, idempotencyKey?: string) =>
     req(`/v1/runs/${id}/follow-up`, {
       method: "POST",
       token,
       scope: "view",
       runId: id,
-      body: JSON.stringify({
-        message: body.message,
-        ...(typeof body.expectedBriefRevision === "number" ? { expectedBriefRevision: body.expectedBriefRevision } : {}),
-      }),
+      headers: idempotencyKey ? { "idempotency-key": idempotencyKey } : {},
+      body: JSON.stringify(FollowUpMessageRequestSchema.parse(body)),
     }),
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
   deleteSource: (token: string, sourceId: string) => req(`/v1/sources/${sourceId}`, { method: "DELETE", token }),

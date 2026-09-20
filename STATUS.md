@@ -1,3 +1,7 @@
+## Contract closures CL-01–CL-03/CL-07 — 2026-09-20
+
+Shared `ContinueRunRequestSchema` / `AssumptionsRequestSchema` / `routeFollowUp` in `@deep/contracts`. Mobile continue now sends server-issued `pendingInputId` + `expectedBriefRevision` + typed `field`. Assumption replace sends revision and adopts a child run. Deepen no longer falls into verification. Hierarchical write plans from the original assertion basis with deduped section keys. Mobile **311/311**. Backend unit **242/242**. brief-continue **9/9**. followup-explain **4/4**. **Not merged to `main`.** Native current-HEAD APK still blocked. Exact-SHA PG 541/541 still `f627b2b`. Live J8/J11 not rerun.
+
 ## Review closures — 2026-09-19
 
 Product work after `95432e9` on `grok-v8/research-beta-integration`. Ordinary follow-ups (`Why did you choose that one?`) POST `/v1/runs/:id/follow-up` as `{message}` and render an inline explanation without a child run. The composer stays editable while research is running; an empty field still morphs to Stop. Evidence-sheet **Verify this conclusion** binds `claimIdForReportBlock` for the opened citation. Reduce Motion no longer stops the elapsed-time clock. Complex writer jobs call `write_report` per hierarchical section and `stitchSectionDrafts`. Mobile **308/308**. Backend unit **242/242**. Follow-up explain integration **4/4**. Synthetic 100-block/100-citation workload test. **Not merged to `main`.** Native 95432e9 APK still uninstalled (wireless adb drop). Live J8/J11 not rerun. No competitor-superiority claim.

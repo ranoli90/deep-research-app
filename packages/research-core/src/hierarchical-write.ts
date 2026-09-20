@@ -30,9 +30,11 @@ export function planHierarchicalWrite(args: {
   const sections: HierarchicalSection[] = [];
   const assigned = new Set<string>();
   for (const question of questions) {
-    const claimKeys = assertions
-      .filter((a) => a.criterionKeys.some((key) => question.criterionKeys.includes(key)))
-      .map((a) => a.key);
+    const claimKeys = [...new Set(
+      assertions
+        .filter((a) => a.criterionKeys.some((key) => question.criterionKeys.includes(key)))
+        .map((a) => a.key),
+    )];
     for (const key of claimKeys) assigned.add(key);
     sections.push({
       questionKey: question.key,

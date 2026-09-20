@@ -29,6 +29,7 @@ import { composerDockBottomInset } from "./src/composer-keyboard";
 import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
 import { clarificationFieldFromPrompt, clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
+import { assumptionsRequest, continueRunRequest } from "./src/pending-input";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
@@ -137,7 +138,15 @@ function AppInner() {
   const followLiveRef = useRef(true);
   const liveScrollY = useRef(0);
   const [sourceClaim, setSourceClaim] = useState<{ claimId: string; blockId: string; text: string } | null>(null);
-  const [followUpExplain, setFollowUpExplain] = useState<{ question: string; answer: string; evidenceComplete: boolean } | null>(null);
+  const [followUpExplain, setFollowUpExplain] = useState<{
+    accountId: string | null;
+    runId: string;
+    reportId: string | null;
+    question: string;
+    answer: string;
+    evidenceComplete: boolean;
+    citationPassageIds: string[];
+  } | null>(null);
   const announcedReport = useRef<string | null>(null);
 
   const savedCorrection = activeCorrectionDraft(state);
@@ -959,7 +968,7 @@ function AppInner() {
       return;
     }
     const answer = clarifyAnswer.trim();
-    const field = clarificationFieldFromPrompt(briefView.materialClarification);
+    const field = state.run.pendingInput?.field ?? clarificationFieldFromPrompt(briefView.materialClarification);
     if (editingAssumptions) {
       const values = clarifyAnswer.split("\n").map((line) => line.trim()).filter(Boolean);
       if (!values.length) {
@@ -968,11 +977,21 @@ function AppInner() {
       }
       clarifying.current = true;
       try {
-        await api.confirmAssumptions(token, state.run.runId, values);
+        const revision = state.run.brief?.revision;
+        if (!revision) throw new Error("Refresh this run before replacing assumptions.");
+        const result = await api.confirmAssumptions(
+          token,
+          state.run.runId,
+          assumptionsRequest({ action: "replace", values, expectedBriefRevision: revision }),
+          `${state.run.runId}-assumptions-${revision}`,
+        ) as { runId?: string; parentRunId?: string };
         setEditingAssumptions(false);
         setClarifyAnswer("");
         AccessibilityInfo.announceForAccessibility("Assumptions updated.");
-        await refreshRun(token, state.run.runId);
+        const nextId = typeof result.runId === "string" ? result.runId : state.run.runId;
+        if (nextId !== state.run.runId) api.selectRun(nextId);
+        await refreshRun(token, nextId);
+        if (nextId !== state.run.runId) startPolling(token, nextId);
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
@@ -985,7 +1004,9 @@ function AppInner() {
     if (!briefView.blocking) {
       clarifying.current = true;
       try {
-        await api.confirmAssumptions(token, state.run.runId);
+        const revision = state.run.brief?.revision;
+        if (!revision) throw new Error("Refresh this run before confirming assumptions.");
+        await api.confirmAssumptions(token, state.run.runId, assumptionsRequest({ action: "confirm", expectedBriefRevision: revision }));
         AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
         await refreshRun(token, state.run.runId);
       } catch (e) {
@@ -1003,7 +1024,11 @@ function AppInner() {
     }
     clarifying.current = true;
     try {
-      await api.continueRun(token, state.run.runId, [{ field, value: answer }]);
+      await api.continueRun(token, state.run.runId, continueRunRequest({
+        pendingInput: state.run.pendingInput,
+        field,
+        value: answer,
+      }));
       setViewState((s) => {
         const next = { ...s, status: "progress" as const, error: null };
 
@@ -1057,16 +1082,24 @@ function AppInner() {
       }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string };
       if (!guard.current()) throw new SupersededRequest();
       if (body.kind === "explain") {
+        const citations = Array.isArray((body as { citationPassageIds?: unknown }).citationPassageIds)
+          ? (body as { citationPassageIds: unknown[] }).citationPassageIds.filter((id): id is string => typeof id === "string")
+          : [];
         setFollowUpExplain({
+          accountId,
+          runId: current.run.runId,
+          reportId: current.report?.reportId ?? null,
           question: text,
           answer: typeof body.answer === "string" ? body.answer : "This report does not establish that.",
           evidenceComplete: body.evidenceComplete === true,
+          citationPassageIds: citations,
         });
         setViewState((s) => ({ ...s, draft: "", error: null }));
         return;
       }
       setViewState((s) => ({ ...s, draft: "", error: null }));
       const runId = typeof body.runId === "string" ? body.runId : current.run.runId;
+      if (runId !== current.run.runId) api.selectRun(runId);
       await refreshRun(token, runId);
       startPolling(token, runId);
     } catch (e) {
@@ -1413,11 +1446,17 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
-                {followUpExplain ? (
+                {followUpExplain
+                  && followUpExplain.accountId === accountId
+                  && followUpExplain.runId === state.run?.runId
+                  && followUpExplain.reportId === (state.report?.reportId ?? null) ? (
                   <View accessibilityLabel="Follow-up explanation">
                     <Text style={styles.kicker}>You asked</Text>
                     <Text style={styles.bodyText}>{followUpExplain.question}</Text>
                     <Text style={styles.answerText}>{followUpExplain.answer}</Text>
+                    {followUpExplain.citationPassageIds.length ? (
+                      <Text style={styles.caveat}>Grounded in {followUpExplain.citationPassageIds.length} owned passage{followUpExplain.citationPassageIds.length === 1 ? "" : "s"}.</Text>
+                    ) : null}
                     {followUpExplain.evidenceComplete ? null : (
                       <Text style={styles.caveat}>This report does not fully establish that. You can start deeper research.</Text>
                     )}

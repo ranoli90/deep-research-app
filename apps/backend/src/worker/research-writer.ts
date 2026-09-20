@@ -31,10 +31,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   const liveRevision=(await getRun(pool,args.runId))?.evidence_revision ?? basis.evidenceRevision;
   const historical=liveRevision>basis.evidenceRevision;
   const outline=planHierarchicalWrite({task:basis.context.task,approvedClaimKeys:basis.context.approvedClaimKeys,assertions:basis.context.assertions});
-  const orderedKeys=outline.sections.flatMap((section)=>section.claimKeys);
-  const byKey=new Map(basis.context.assertions.map((assertion)=>[assertion.key,assertion]));
-  const orderedAssertions=orderedKeys.map((key)=>byKey.get(key)).filter((assertion):assertion is NonNullable<typeof assertion>=>Boolean(assertion));
-  const context=orderedAssertions.length?{...basis.context,approvedClaimKeys:orderedKeys,assertions:orderedAssertions}:basis.context;
+  const context=basis.context;
   const writeArgs={...args,...basis,context,historical};
   const operation=args.calculationPlanIntentId?"write_calculated_report":"write_report";
   const sectioned=!args.calculationPlanIntentId && outline.complex && outline.sections.length>1;
@@ -57,6 +54,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
       const sectionContext=sectionWriterContext(context,section);
       const result=await writeOnce(sectionContext);
       if(result.kind!=="result")return result;
+      if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
       drafts.push(result.result.output);
       writerIntentId=result.intentId;
       reused=reused||result.reused;
@@ -70,6 +68,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   } else {
     const result=await writeOnce(context);
     if(result.kind!=="result")return result;
+    if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
     writerIntentId=result.intentId;
     reused=result.reused;
     try { const {calculationKeys:_,...ordinary}=result.result.output as typeof result.result.output & {calculationKeys?:string[]}; draftStatements(ordinary,basis.context.assertions,basis.context.approvedClaimKeys); }

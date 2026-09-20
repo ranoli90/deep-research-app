@@ -1,5 +1,14 @@
 # Execution ledger
 
+## 2026-09-20 — CL-01/02/03/07 contract closures
+
+- Continue/assumption bodies built by `continueRunRequest` / `assumptionsRequest` against shared Zod schemas; old `{answers}`-only continue fails the schema.
+- GET `pendingInput.field` from last clarify event.
+- Deepen handled before verification fallthrough; child preserves originalQuestion.
+- Hierarchical write no longer flattens duplicate shared-criteria assertions into the write context.
+- Mobile 311/311; backend unit 242; brief-continue 9/9; followup-explain 4/4.
+- Not merged to main. Native HEAD APK and full PG gate not rerun at this SHA.
+
 ## 2026-09-19 — Review closures (follow-up, verify targeting, clock, hierarchical write)
 
 - Composer routes `routeFollowUp`; explain/deepen/steer/add_source use `api.explainFollowUp`; replace_question only for constraint/new-research.
