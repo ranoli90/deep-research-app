@@ -55,6 +55,16 @@ describe("editorial report hierarchy", () => {
   });
 
   it("shows the outline when the report is actually long", () => {
+    const shortFixture = [
+      block("answer", "text", "Within the accessed public note, two options differ on region and monthly price. ".repeat(2)),
+      block("eligibility", "text", "Eligible: none verified. Ineligible: none verified."),
+      block("comparison-table", "table", "Vendor | Region | Price"),
+      block("candidate-listing", "text", "Option A 50 EUR unknown"),
+      block("disconfirm-x", "text", "Disconfirmation remains unresolved."),
+      block("independence", "text", "Recorded 1 source(s) in 1 origin cluster(s)."),
+      block("statement-classes", "text", "FACT: two options differ. CALCULATION: none. INFERENCE: none."),
+    ];
+    expect(reportNeedsOutline(editorialSections(shortFixture))).toBe(false);
     const long = "Vendor A is the only inspected option that meets the stated budget and region. ".repeat(20);
     expect(reportNeedsOutline(editorialSections([
       block("answer", "text", long),

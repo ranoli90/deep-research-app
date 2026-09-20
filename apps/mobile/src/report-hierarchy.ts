@@ -71,7 +71,7 @@ export function reportOutline(sections: ReportSection[]): { id: string; title: s
 export function reportNeedsOutline(sections: ReportSection[]): boolean {
   const blocks = sections.flatMap((section) => section.blocks);
   const chars = blocks.reduce((n, block) => n + block.text.length, 0);
-  if (chars >= 900) return true;
-  if (blocks.length >= 8) return true;
+  if (chars >= 1800) return true;
+  if (blocks.length >= 12) return true;
   return false;
 }
