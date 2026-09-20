@@ -131,6 +131,17 @@ export const api = {
       scope: "view", runId: id,
       body: JSON.stringify(RequestedVerificationRequestSchema.parse(request)),
     }),
+  explainFollowUp: (token: string, id: string, body: { message: string; expectedBriefRevision?: number }) =>
+    req(`/v1/runs/${id}/follow-up`, {
+      method: "POST",
+      token,
+      scope: "view",
+      runId: id,
+      body: JSON.stringify({
+        message: body.message,
+        ...(typeof body.expectedBriefRevision === "number" ? { expectedBriefRevision: body.expectedBriefRevision } : {}),
+      }),
+    }),
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
   deleteSource: (token: string, sourceId: string) => req(`/v1/sources/${sourceId}`, { method: "DELETE", token }),
   source: (token: string, id: string) => { requests.closeSource(); return req(`/v1/sources/${id}`, { token, scope: "source" }); },

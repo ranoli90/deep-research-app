@@ -1,5 +1,14 @@
 # Execution ledger
 
+## 2026-09-19 — Review closures (follow-up, verify targeting, clock, hierarchical write)
+
+- Composer routes `routeFollowUp`; explain/deepen/steer/add_source use `api.explainFollowUp`; replace_question only for constraint/new-research.
+- `claimIdForReportBlock` + SourceSheet `onFollowUp(claimId)` — non-first conclusion regression.
+- ResearchActivity elapsed interval depends on `inProgress` only.
+- `createResearchDraft` section-writes when `outline.complex`; `restoreWriterDraft` stitches section drafts.
+- Mobile 308/308; backend unit 242/242; followup-explain.integration 4/4; long-report-workload 1/1.
+- Not merged to main. Native 95432e9 still uninstalled.
+
 ## 2026-09-19 — Phase B freeze SHA 95432e9 APK built, adb dropped
 
 - Product SHA `95432e960a22933910688bbde765166b835821b0`. Mobile 304/304. Backend public-activity clarification label unit test 5/5.

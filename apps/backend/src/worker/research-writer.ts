@@ -7,7 +7,7 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
+import { compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,sectionWriterContext,stitchSectionDrafts,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
@@ -36,23 +36,51 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   const orderedAssertions=orderedKeys.map((key)=>byKey.get(key)).filter((assertion):assertion is NonNullable<typeof assertion>=>Boolean(assertion));
   const context=orderedAssertions.length?{...basis.context,approvedClaimKeys:orderedKeys,assertions:orderedAssertions}:basis.context;
   const writeArgs={...args,...basis,context,historical};
-  let result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report"});
-  if(result.kind!=="result")return result;
-  if(result.result.status==="invalid_output"){
-    if(!knownFinancialOutcome(result.result))return {kind:"blocked" as const,reason:"writer_outcome_unknown"};
-    result=await performModelOperation(pool,config,session,{...writeArgs,operation:args.calculationPlanIntentId?"write_calculated_report":"write_report",repairPass:1});
+  const operation=args.calculationPlanIntentId?"write_calculated_report":"write_report";
+  const sectioned=!args.calculationPlanIntentId && outline.complex && outline.sections.length>1;
+  async function writeOnce(contextForWrite:typeof context) {
+    let result=await performModelOperation(pool,config,session,{...writeArgs,context:contextForWrite,operation});
     if(result.kind!=="result")return result;
+    if(result.result.status==="invalid_output"){
+      if(!knownFinancialOutcome(result.result))return {kind:"blocked" as const,reason:"writer_outcome_unknown"};
+      result=await performModelOperation(pool,config,session,{...writeArgs,context:contextForWrite,operation,repairPass:1});
+      if(result.kind!=="result")return result;
+    }
+    if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
+    return result;
   }
-  if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};
-  // Check bounded target expansion before adopting a draft; never silently omit final prose.
-  try { const {calculationKeys:_,...ordinary}=result.result.output as typeof result.result.output & {calculationKeys?:string[]}; draftStatements(ordinary,basis.context.assertions,basis.context.approvedClaimKeys); }
-  catch(error) {
-    if(error instanceof ZodError || error instanceof Error && error.message==="writer_assertion_limit")
-      return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
-    throw error;
+  let writerIntentId:string;
+  let reused=false;
+  if(sectioned){
+    const drafts=[];
+    for(const section of outline.sections){
+      const sectionContext=sectionWriterContext(context,section);
+      const result=await writeOnce(sectionContext);
+      if(result.kind!=="result")return result;
+      drafts.push(result.result.output);
+      writerIntentId=result.intentId;
+      reused=reused||result.reused;
+    }
+    try { draftStatements(stitchSectionDrafts(drafts),basis.context.assertions,basis.context.approvedClaimKeys); }
+    catch(error) {
+      if(error instanceof ZodError || error instanceof Error && error.message==="writer_assertion_limit")
+        return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
+      throw error;
+    }
+  } else {
+    const result=await writeOnce(context);
+    if(result.kind!=="result")return result;
+    writerIntentId=result.intentId;
+    reused=result.reused;
+    try { const {calculationKeys:_,...ordinary}=result.result.output as typeof result.result.output & {calculationKeys?:string[]}; draftStatements(ordinary,basis.context.assertions,basis.context.approvedClaimKeys); }
+    catch(error) {
+      if(error instanceof ZodError || error instanceof Error && error.message==="writer_assertion_limit")
+        return {kind:"blocked" as const,reason:"writer_draft_expansion_invalid"};
+      throw error;
+    }
   }
-  await session.write(async (db)=>recordResearchDraft(db,{...args,writerIntentId:result.intentId},await runModelVersions(db,args.runId)));
-  return {kind:"draft" as const,writerIntentId:result.intentId,reused:result.reused,calculated:Boolean(args.calculationPlanIntentId)};
+  await session.write(async (db)=>recordResearchDraft(db,{...args,writerIntentId:writerIntentId!},await runModelVersions(db,args.runId)));
+  return {kind:"draft" as const,writerIntentId:writerIntentId!,reused,calculated:Boolean(args.calculationPlanIntentId)};
 }
 
 /** Writer -> exact final-wording checks -> canonical publication. Network never occurs in a transaction. */

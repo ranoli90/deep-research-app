@@ -7,6 +7,7 @@ import {
   asFollowUpQuestion,
   draftFromFollowUp,
   followUpSuggestions,
+  routeFollowUp,
 } from "../src/follow-ups";
 import type { ReportBlock } from "../src/state";
 
@@ -15,6 +16,19 @@ const block = (id: string, kind: string, text: string): ReportBlock => ({
 });
 
 describe("follow-up chips from the report", () => {
+  it("routes ordinary why-questions as explanations, not replace_question corrections", () => {
+    expect(routeFollowUp("Why did you choose that one?", { reportReady: true, runActive: false })).toMatchObject({
+      kind: "explain",
+      mutatesBrief: false,
+    });
+    expect(routeFollowUp("Only use official sources", { reportReady: false, runActive: true }).kind).toBe("steer");
+    const app = readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8");
+    expect(app).toContain("onComposerFollowUp");
+    expect(app).toContain("api.explainFollowUp");
+    expect(app).toContain("routeFollowUp");
+    expect(app).not.toMatch(/if \(composerContinues\) \{[\s\S]*void onCorrect\(latestUi\.current\.draft\)/);
+  });
+
   it("takes at most three unresolved, caveat, and limitation lines as short questions", () => {
     const chips = followUpSuggestions({
       blocks: [

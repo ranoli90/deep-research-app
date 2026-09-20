@@ -169,10 +169,10 @@ export function ResearchActivity({
   const seen = useRef(new Set<number>());
   const expandedRef = useRef(expanded);
   useEffect(() => {
-    if (!inProgress || reducedMotion) return;
+    if (!inProgress) return;
     const timer = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, [inProgress, reducedMotion]);
+  }, [inProgress]);
   const visible = visibleResearchEvents(events);
   const collapsed = collapseResearchActivity({ events, lifecycle, outcome });
   const current = visible.at(-1)?.label ?? currentActivityLine([]);

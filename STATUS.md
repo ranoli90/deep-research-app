@@ -1,3 +1,7 @@
+## Review closures — 2026-09-19
+
+Product work after `95432e9` on `grok-v8/research-beta-integration`. Ordinary follow-ups (`Why did you choose that one?`) POST `/v1/runs/:id/follow-up` as `{message}` and render an inline explanation without a child run. The composer stays editable while research is running; an empty field still morphs to Stop. Evidence-sheet **Verify this conclusion** binds `claimIdForReportBlock` for the opened citation. Reduce Motion no longer stops the elapsed-time clock. Complex writer jobs call `write_report` per hierarchical section and `stitchSectionDrafts`. Mobile **308/308**. Backend unit **242/242**. Follow-up explain integration **4/4**. Synthetic 100-block/100-citation workload test. **Not merged to `main`.** Native 95432e9 APK still uninstalled (wireless adb drop). Live J8/J11 not rerun. No competitor-superiority claim.
+
 ## Phase B freeze SHA — 2026-09-19
 
 `grok-v8/research-beta-integration` **`95432e9`**. Phase A gate held at `f627b2b`. Mobile **304/304**. Clarification activity now carries the consumer-safe needed-detail text; the phone reads it into the blocking card.

@@ -36,8 +36,10 @@ describe("one-sentence composer copy", () => {
     expect(app).not.toContain(">New research</Text>");
     expect(app).not.toContain("Concise");
     expect(app).toContain("should I move to Texas");
-    expect(app).toMatch(/if \(composerContinues\)/);
-    expect(app).toMatch(/void onCorrect\(latestUi\.current\.draft\)/);
+    expect(app).toMatch(/onComposerFollowUp/);
+    expect(composer).toContain("editable={editable}");
+    expect(composer).toContain("inProgress && Boolean(onCancel) && !hasDraft");
+    expect(composer).not.toContain("editable={editable && !stop}");
     expect(app).toMatch(/else if \(finishedReport\)/);
     expect(app).not.toMatch(/Ask a comparison with hard constraints/);
   });

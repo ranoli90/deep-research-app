@@ -40,6 +40,12 @@ function evt(sequence: number, kind: PublicActivityKind | null, extra?: Partial<
 }
 
 describe("research activity from sanitized events", () => {
+  it("keeps the elapsed-time clock running when Reduce Motion is on", () => {
+    const src = readFileSync(join(import.meta.dirname, "../src/ResearchActivity.tsx"), "utf8");
+    expect(src).toMatch(/if \(!inProgress\) return;/);
+    expect(src).not.toMatch(/if \(!inProgress \|\| reducedMotion\) return;/);
+  });
+
   it("uses typed activity labels and source metadata, never legacy type/publicSummary", () => {
     expect(labelResearchEvent(evt(1, "intent_ready"))).toEqual({ label: "Understood the question", detail: null });
     expect(labelResearchEvent(evt(2, "searching"))?.label).toBe("Searching public sources");

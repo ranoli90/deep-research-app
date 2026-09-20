@@ -1,3 +1,7 @@
+## Review closures — 2026-09-19
+
+Follow-up explain/steer wiring, selected-claim verification, Reduce Motion clock, and section-by-section hierarchical write are in this branch after `95432e9`. Tests: mobile 308/308, backend unit 242, followup-explain 4/4. Native 95432e9 install still blocked. Do not merge `main`.
+
 ## Phase B freeze SHA — 2026-09-19
 
 Product SHA **`95432e9`**. Clarification prompt is wired (unit tests green). EAS `a7e10417` APK sha256 `af2bba0e…` **built**; install failed because wireless adb dropped. Last on-device recapture: `ae395ef` completed report with no TOC (`visual-qa/v8-phase-b-ae395ef/`). IME/library/sheet: `visual-qa/v8-phase-b-45ccf87/`. **Do not merge `main`.** No GHA. No new paid spend. Research Beta is not declared. iOS not available.

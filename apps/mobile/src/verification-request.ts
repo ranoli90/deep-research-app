@@ -16,6 +16,16 @@ export function readPendingVerificationRequest(value: unknown): PendingVerificat
   if (!request.success) throw new Error("Saved verification request is invalid. Device cleanup is required before new research.");
   return { parentRunId: value.parentRunId, request: request.data };
 }
+/** Claim attached to the citation the user opened — never silently the first answer claim. */
+export function claimIdForReportBlock(
+  blocks: { id: string; claimIds: string[] }[] | null | undefined,
+  blockId: string | null | undefined,
+): string | null {
+  if (!blocks || !blockId) return null;
+  const claimId = blocks.find((block) => block.id === blockId)?.claimIds[0];
+  return typeof claimId === "string" && claimId.trim() ? claimId : null;
+}
+
 export function prepareVerificationRequest(args: {
   run: { runId: string; reportId: string | null } | null;
   report: { reportId: string; version?: number; blocks: { claimIds: string[] }[] } | null;

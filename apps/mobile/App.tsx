@@ -2,7 +2,7 @@ import { applyRemoteInvalidation, redactInvalidatedContent } from "./src/remote-
 import { adoptCorrectionFile, correctionFilesFor, authoritativeCorrection, resolveCorrectionDocuments, adoptCorrectionSnapshot, type CorrectionSelection } from "./src/correction-documents-flow";
 import { prepareCorrectionDocuments, submitCorrectionDocuments } from "./src/correction-documents";
 import { ProfilePanel } from "./src/ProfilePanel";
-import { prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
+import { claimIdForReportBlock, prepareVerificationRequest, submitVerificationRequest, readVerificationRun, type PendingVerificationRequest } from "./src/verification-request";
 import { prepareSourceDeletion, sameSourceDeletionTarget, sourceDeletionTarget, type SourceDeletionTarget } from "./src/source-deletion";
 import { submitSourceDeletion } from "./src/source-deletion-flow";
 import { createSourceFocus } from "./src/source-focus";
@@ -31,7 +31,7 @@ import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } 
 import { clarificationFieldFromPrompt, clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
-import { draftFromFollowUp, followUpSuggestions } from "./src/follow-ups";
+import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -136,7 +136,8 @@ function AppInner() {
   const [followLiveActivity, setFollowLiveActivity] = useState(true);
   const followLiveRef = useRef(true);
   const liveScrollY = useRef(0);
-  const [sourceClaim, setSourceClaim] = useState<string | null>(null);
+  const [sourceClaim, setSourceClaim] = useState<{ claimId: string; blockId: string; text: string } | null>(null);
+  const [followUpExplain, setFollowUpExplain] = useState<{ question: string; answer: string; evidenceComplete: boolean } | null>(null);
   const announcedReport = useRef<string | null>(null);
 
   const savedCorrection = activeCorrectionDraft(state);
@@ -945,6 +946,7 @@ function AppInner() {
     setSentQuestion(null);
     setActivityExpanded(false);
     setSourceClaim(null);
+    setFollowUpExplain(null);
     setClarifyAnswer("");
     setEditingAssumptions(false);
     setViewState(result.next);
@@ -1042,7 +1044,64 @@ function AppInner() {
     } finally { guard.release(); }
   }
 
-  async function onFollowUp() {
+  async function onExplainFollowUp(message: string) {
+    const current = latestUi.current;
+    if (!token || !current.run) return;
+    const text = message.trim();
+    if (!text) return;
+    const guard = api.captureView();
+    try {
+      const body = await api.explainFollowUp(token, current.run.runId, {
+        message: text,
+        expectedBriefRevision: current.run.brief?.revision,
+      }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string };
+      if (!guard.current()) throw new SupersededRequest();
+      if (body.kind === "explain") {
+        setFollowUpExplain({
+          question: text,
+          answer: typeof body.answer === "string" ? body.answer : "This report does not establish that.",
+          evidenceComplete: body.evidenceComplete === true,
+        });
+        setViewState((s) => ({ ...s, draft: "", error: null }));
+        return;
+      }
+      setViewState((s) => ({ ...s, draft: "", error: null }));
+      const runId = typeof body.runId === "string" ? body.runId : current.run.runId;
+      await refreshRun(token, runId);
+      startPolling(token, runId);
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) setViewState((s) => ({ ...s, offline: true, error: (e as Error).message }));
+      else setViewState((s) => ({ ...s, error: (e as Error).message }));
+    } finally {
+      guard.release();
+    }
+  }
+
+  async function onComposerFollowUp(submitted?: string) {
+    const current = latestUi.current;
+    const text = (submitted ?? current.draft).trim();
+    if (!text) return;
+    const runActive = current.run?.lifecycle === "queued" || current.run?.lifecycle === "running";
+    const reportReady = composerFollowsReport(current);
+    const routed = routeFollowUp(text, { reportReady, runActive });
+    if (routed.kind === "explain" || routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source") {
+      await onExplainFollowUp(text);
+      return;
+    }
+    if (routed.kind === "verify_challenge") {
+      await onFollowUp(sourceClaim?.claimId);
+      return;
+    }
+    if (routed.kind === "new_research" && !reportReady) {
+      void onSend();
+      return;
+    }
+    await onCorrect(text);
+  }
+
+  async function onFollowUp(selectedClaimId?: string) {
     if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     if (latestUi.current.offline) {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
@@ -1058,8 +1117,8 @@ function AppInner() {
       let pending = state.pendingVerification;
       if (!pending) {
         if (state.report?.labeledDemo) throw new Error("Demo reports do not support evidence verification.");
-        const claimId = state.report?.blocks.find(b => b.kind === "answer" && b.claimIds.length)?.claimIds[0] ?? state.report?.blocks.find(b => b.claimIds.length)?.claimIds[0];
-        if (!claimId || !state.report?.version) throw new Error("Reopen a current report with a supported claim before requesting verification.");
+        const claimId = selectedClaimId ?? sourceClaim?.claimId ?? claimIdForReportBlock(state.report?.blocks, sourceClaim?.blockId);
+        if (!claimId || !state.report?.version) throw new Error("Open the citation for the conclusion you want verified.");
         pending = prepareVerificationRequest({ run: state.run, report: state.report, reportId: state.report.reportId, reportVersion: state.report.version, claimId, note: verificationNote, evidencePolicy: verificationPolicy, idempotencyKey: newId(), pendingAdmission: state.pendingAdmission, pendingSourceDeletion: state.pendingSourceDeletion });
       }
       api.selectRun(pending.parentRunId); stopPolling();
@@ -1330,7 +1389,8 @@ function AppInner() {
                   }}
                   onOpenSource={(id, blockId) => {
                     const block = blocks.find((item) => item.id === blockId);
-                    setSourceClaim(block?.text.slice(0, 180) ?? null);
+                    const claimId = claimIdForReportBlock(blocks, blockId);
+                    setSourceClaim(claimId && blockId ? { claimId, blockId, text: block?.text.slice(0, 180) ?? "" } : null);
                     void onOpenSource(id, blockId);
                   }}
                   onCitationRef={(id, node, blockId) => {
@@ -1353,6 +1413,16 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
+                {followUpExplain ? (
+                  <View accessibilityLabel="Follow-up explanation">
+                    <Text style={styles.kicker}>You asked</Text>
+                    <Text style={styles.bodyText}>{followUpExplain.question}</Text>
+                    <Text style={styles.answerText}>{followUpExplain.answer}</Text>
+                    {followUpExplain.evidenceComplete ? null : (
+                      <Text style={styles.caveat}>This report does not fully establish that. You can start deeper research.</Text>
+                    )}
+                  </View>
+                ) : null}
                 <ReportActions
                   labeledDemo={state.report.labeledDemo === true}
                   showVerification={showVerification}
@@ -1371,7 +1441,7 @@ function AppInner() {
                   onToggleVerification={() => setShowVerification((open) => !open)}
                   onVerificationNote={setVerificationNote}
                   onTogglePolicy={() => setVerificationPolicy((p) => p === "reuse_snapshot" ? "refresh_sources" : "reuse_snapshot")}
-                  onSubmitVerification={() => void onFollowUp()}
+                  onSubmitVerification={() => void onFollowUp(state.report?.blocks.find((b) => (b.kind === "answer" || b.id === "answer") && b.claimIds.length)?.claimIds[0])}
                   onToggleFlag={() => setFlagOpen(true)}
                   onFlagCategory={setFlagCategory}
                   onFlagNote={setFlagNote}
@@ -1443,9 +1513,14 @@ function AppInner() {
             canFocus={() => Boolean(token && state.run && api.currentRun(token, state.run.runId) && latestUi.current.tab === "research" && latestUi.current.source?.passageId === state.source?.passageId && latestUi.current.report?.reportId === state.report?.reportId)}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
-            relatedClaim={sourceClaim}
+            relatedClaim={sourceClaim?.text ?? null}
             onChallenge={() => { api.closeSource(); setState(s => ({ ...s, source: null })); setFlagOpen(true); }}
-            onVerify={() => { api.closeSource(); setState(s => ({ ...s, source: null })); void onFollowUp(); }}
+            onVerify={() => {
+              const claimId = sourceClaim?.claimId;
+              api.closeSource();
+              setState(s => ({ ...s, source: null }));
+              void onFollowUp(claimId);
+            }}
             onOpenOriginal={(url) => {
               const guard = api.captureView();
               void Linking.openURL(url).catch(() => {
@@ -1575,7 +1650,7 @@ function AppInner() {
                   draft: draftFromFollowUp({
                     prompt: item.prompt,
                     originalQuestion: s.run?.brief?.originalQuestion,
-                    replaceQuestion: correctionMode === "replace_question",
+                    replaceQuestion: false,
                   }),
                 }))}
                 accessibilityRole="button"
@@ -1603,14 +1678,13 @@ function AppInner() {
           reducedMotion={state.reducedMotion}
           onChange={(draft) => setState((s) => ({ ...s, draft }))}
           onSend={() => {
-            if (composerContinues) {
-              const files = latestUi.current.attachments;
-              if (files.length) {
-                setCorrectionFiles(files);
-                void addCorrectionDocuments(files);
-              } else void onCorrect(latestUi.current.draft);
-            }
-            else if (finishedReport) {
+            const files = latestUi.current.attachments;
+            if (composerContinues && files.length) {
+              setCorrectionFiles(files);
+              void addCorrectionDocuments(files);
+            } else if (composerContinues || (activity.inProgress && state.run?.lifecycle !== "awaiting_input")) {
+              void onComposerFollowUp(latestUi.current.draft);
+            } else if (finishedReport) {
               setViewState((s) => ({
                 ...s,
                 error: correctionMode === "unavailable"

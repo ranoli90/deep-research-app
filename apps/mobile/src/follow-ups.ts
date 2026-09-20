@@ -1,5 +1,6 @@
 import { editorialSections } from "./report-hierarchy";
 import type { ReportBlock } from "./state";
+export { routeFollowUp, type FollowUpKind, type FollowUpRoute } from "./follow-up-route";
 
 export type FollowUpSuggestion = { id: string; label: string; prompt: string };
 

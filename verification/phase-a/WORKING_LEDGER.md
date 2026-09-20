@@ -25,8 +25,8 @@ Base: `d0ddbb264b5b93ee123ee37760beb77db926a0dc` on `grok-v8/research-beta-integ
 | ENG-029 | P1 | integration dirty | implemented (uncommitted) | no heading→Answer salvage |
 | ENG-030 | P1 | provider | implemented, unmerged | strict repair codes |
 | ENG-031 | P0 | integration dirty | implemented (uncommitted) | unused approved claims retained as exact paragraphs |
-| ENG-032 | P1 | integration dirty | implemented (uncommitted) | `hierarchical-write.v1` + writer ordering |
-| ENG-033 | P1 | followup lane | in progress | `grok-v8/phase-a-followup` |
+| ENG-032 | P1 | integration | implemented | `createResearchDraft` section-writes when `outline.complex` then `stitchSectionDrafts`; restore stitches owned section drafts |
+| ENG-033 | P1 | integration | implemented | Composer `routeFollowUp` + `api.explainFollowUp`; backend explain path 4/4 |
 | ENG-034–036 | P1 | state | implemented, unmerged | deleted auth, Zod bodies, required idempotency |
 | ENG-037 | P2 | api lane | in progress | `grok-v8/phase-a-api` |
 | ENG-038–040 | P0 | Wave I | open | exact-SHA verify/PG/docs |

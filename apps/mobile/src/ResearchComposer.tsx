@@ -82,7 +82,7 @@ export function ResearchComposer({
 }) {
   const hasDraft = Boolean(draft.trim());
   const action = sendLabel ?? (pendingAdmission ? "Retry" : "Research");
-  const stop = inProgress && Boolean(onCancel);
+  const stop = inProgress && Boolean(onCancel) && !hasDraft;
   const iconSend = !pendingAdmission && !stop && hasDraft;
   const idleEmpty = !pendingAdmission && !stop && !hasDraft;
   const mode = stop ? "stop" : pendingAdmission ? "retry" : iconSend ? "send" : "idle";
@@ -109,7 +109,7 @@ export function ResearchComposer({
           {attachOpen ? <CloseIcon color={muted} size={16} /> : <PlusIcon color={muted} size={composerMetrics.attachIcon} />}
         </Pressable>
         <TextInput
-          editable={editable && !stop}
+          editable={editable}
           value={draft}
           onChangeText={onChange}
           placeholder={placeholder}

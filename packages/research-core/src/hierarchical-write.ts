@@ -48,6 +48,19 @@ export function planHierarchicalWrite(args: {
   return { version: HIERARCHICAL_WRITE_VERSION, complex, sections: sections.filter((s) => s.claimKeys.length), unusedClaimKeys };
 }
 
+/** Context for one section write: only that section's approved claims. */
+export function sectionWriterContext<T extends { approvedClaimKeys: readonly string[]; assertions: readonly Assertion[] }>(
+  context: T,
+  section: HierarchicalSection,
+): T {
+  const allowed = new Set(section.claimKeys);
+  return {
+    ...context,
+    approvedClaimKeys: section.claimKeys,
+    assertions: context.assertions.filter((assertion) => allowed.has(assertion.key)),
+  };
+}
+
 /** Stitch section drafts without renaming claim keys or inventing prose. */
 export function stitchSectionDrafts(
   sections: Array<ResearchModelOutput<"write_report">>,
