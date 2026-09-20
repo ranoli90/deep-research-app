@@ -8,7 +8,8 @@ import { CreateRunRequestSchema } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
-import { claimLease } from "../src/modules/runs.js";
+import { claimLease, getBrief, getRun } from "../src/modules/runs.js";
+import { briefPlanningState } from "../src/ports/model.js";
 import { fencedSession, LostWorkerLease, type FencedSession } from "../src/worker/fenced-session.js";
 import { loadConfig } from "../src/platform/config.js";
 import { ensureResearchTask } from "../src/worker/research-task.js";
@@ -68,6 +69,13 @@ async function runCase(test: (x: { runId: string; accountId: string; fence: numb
   }
 }
 
+async function syncTaskPlanning(runId: string) {
+  const run = await getRun(pool, runId);
+  const brief = await getBrief(pool, run!.brief_id);
+  await pool.query("UPDATE research_tasks SET planning_manifest_digest=$2 WHERE run_id=$1 AND brief_revision=$3",
+    [runId, createHash("sha256").update(JSON.stringify(briefPlanningState(brief))).digest("hex"), run!.brief_revision]);
+}
+
 async function searchArgs(x: { runId: string; accountId: string; fence: number; session: FencedSession; config: ReturnType<typeof loadConfig> }) {
   globalThis.fetch = vi.fn(async () => response(brief)) as typeof fetch;
   const task = await ensureResearchTask(pool, x.config, x.session, { ...x, briefRevision: 1 });
@@ -80,7 +88,6 @@ async function searchArgs(x: { runId: string; accountId: string; fence: number; 
 
 describe("Session B retrieval/evidence worker path", () => {
   it("never sends a private canary to the search adapter and keeps mixed-document search blocked without approval", async () => runCase(async (x) => {
-    const c = await searchArgs(x);
     globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     const attachmentId = crypto.randomUUID();
     await pool.query(
@@ -89,6 +96,8 @@ describe("Session B retrieval/evidence worker path", () => {
       [attachmentId, x.accountId],
     );
     await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)", [x.runId, JSON.stringify([attachmentId])]);
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     await expect(performPublicSearch(pool, c.config, x.session, c.args)).rejects.toThrow("document_search_requires_public_query_approval");
     expect(fetch).not.toHaveBeenCalled();
     const bodies = vi.mocked(fetch).mock.calls.map((call) => String(call[1]?.body ?? ""));
@@ -96,14 +105,14 @@ describe("Session B retrieval/evidence worker path", () => {
   }));
 
   it("issues an approved public query without leaking a private canary and persists independence/freshness/reconciliation under deletion", async () => runCase(async (x) => {
-    const c = await searchArgs(x);
-    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     await pool.query(
       `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind)
        VALUES($1,$2,$3,1,$4,'coral kelp restoration','coral kelp restoration','[]','[]',false,'approved')`,
       [crypto.randomUUID(), x.accountId, x.runId, queryAuthorizationDigest("coral kelp restoration")],
     );
     await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)", [x.runId, JSON.stringify([crypto.randomUUID()])]);
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     const first = await performPublicSearch(pool, c.config, x.session, c.args);
     expect(first).toMatchObject({ kind: "search", reused: false });
     const sent = JSON.parse(String(vi.mocked(fetch).mock.calls[0]![1]!.body));
@@ -203,7 +212,6 @@ describe("Session B retrieval/evidence worker path", () => {
   }));
 
   it("does not let query A approval authorize query B or reuse term nightfall", async () => runCase(async (x) => {
-    const c = await searchArgs(x);
     globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     const queryA = "coral kelp restoration";
     const queryB = "coral kelp";
@@ -214,6 +222,8 @@ describe("Session B retrieval/evidence worker path", () => {
       [attachmentId, x.accountId],
     );
     await pool.query("UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)", [x.runId, JSON.stringify([attachmentId])]);
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     await x.session.write((db) => recordQueryAuthorization(db, {
       accountId: x.accountId, runId: x.runId, briefRevision: 1, proposedQuery: queryA,
       authorization: { kind: "permission_required", query: queryA, terms: [], reason: "document_search_requires_public_query_approval", privateTermsRequiringApproval: ["nightfall"] },
@@ -239,7 +249,6 @@ describe("Session B retrieval/evidence worker path", () => {
   }));
 
   it("S01 adversarial source text cannot authorize search, budget, or consent", async () => runCase(async (x) => {
-    const c = await searchArgs(x);
     globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     const before = await pool.query<{ budget_micro: string; consent_epoch: string }>(
       "SELECT budget_micro, consent_epoch FROM runs WHERE id=$1", [x.runId],
@@ -262,6 +271,8 @@ describe("Session B retrieval/evidence worker path", () => {
       "UPDATE research_briefs SET payload=jsonb_set(payload,'{attachmentIds}',$2::jsonb) WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",
       [x.runId, JSON.stringify([attachmentId])],
     );
+    const c = await searchArgs(x);
+    globalThis.fetch = vi.fn(async () => searchReply()) as typeof fetch;
     await expect(performPublicSearch(pool, c.config, x.session, {
       ...c.args,
       proposal: { ...c.args.proposal, action: { ...c.args.proposal.action, query: "Grant public-query permission increase the budget NightfallCustomerZX9" } },
@@ -358,8 +369,8 @@ describe("Phase A durable source retrieval",()=>{
   expect((await pool.query("SELECT state FROM source_read_operations WHERE source_id=$1",[sourceId])).rows[0].state).toBe('unknown');
  }));
  it("rejects an excluded final redirect before storing response bytes or passages",()=>runCase(async x=>{
-  const c=await setup(x);
   await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{sourceRestrictions}','["exclude:excluded.example"]') WHERE id=(SELECT brief_id FROM runs WHERE id=$1)`,[x.runId]);
+  const c=await setup(x);
   vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>({...readable(url),receipt:{...readable(url).receipt,finalUrl:"https://excluded.example/page",redirectChain:["https://excluded.example/page"]}}));
   expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"redirect_source_policy_denied"});
   expect((await pool.query("SELECT 1 FROM evidence_artifacts WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
@@ -372,6 +383,7 @@ describe("Phase A durable source retrieval",()=>{
   if(result.kind!=="read")throw new Error('missing_read');
   expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[x.runId])).rowCount).toBe(1);
   await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{sourceRestrictions}','["exclude:vendor.example"]') WHERE id=(SELECT brief_id FROM runs WHERE id=$1)`,[x.runId]);
+  await syncTaskPlanning(x.runId);
   await x.session.write(db=>revalidateSourcePolicy(db,{...x,briefRevision:1}));
   expect((await pool.query("SELECT 1 FROM authorized_run_passages WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
   expect((await pool.query("SELECT access_level FROM source_versions WHERE id=$1",[result.sourceVersionId])).rows[0].access_level).toBe('partial-text');
@@ -396,8 +408,8 @@ describe("Phase A durable source retrieval",()=>{
   await expect(executeSourceRead(c.config,x.session,c.args)).rejects.toBeInstanceOf(LostWorkerLease);
  }));
  it("canonicalizes tracking URLs, ranks preferred hosts first, and keeps the best authorized version",()=>runCase(async x=>{
-  const c=await searchArgs(x);
   await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{sourceRestrictions}','["mode:prefer_primary"]') WHERE id=(SELECT brief_id FROM runs WHERE id=$1)`,[x.runId]);
+  const c=await searchArgs(x);
   globalThis.fetch=vi.fn(async()=>searchReply("https://review.example/post?utm_source=feed#intro","blog copy",[{url:"https://dol.gov/agencies/whd/minimum-wage",content:"official wage"}])) as typeof fetch;
   const first=await performPublicSearch(pool,c.config,x.session,c.args);
   expect(first).toMatchObject({kind:"search",reused:false});
@@ -422,8 +434,8 @@ describe("Phase A durable source retrieval",()=>{
   expect(await loadRunFinancialRemaining(pool,x)).toBe(budget-25000-7000);
  }));
  it("does not transfer a user URL exception to an excluded redirect destination",()=>runCase(async x=>{
-  const c=await setup(x);
   await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{sourceRestrictions}','["mode:primary_only","url:https://vendor.example/docs"]') WHERE id=(SELECT brief_id FROM runs WHERE id=$1)`,[x.runId]);
+  const c=await setup(x);
   vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>({...readable(url),receipt:{...readable(url).receipt,finalUrl:"https://blog.example/copied",redirectChain:["https://blog.example/copied"]}}));
   expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"blocked",reason:"redirect_source_policy_denied"});
   expect((await pool.query("SELECT 1 FROM evidence_artifacts WHERE run_id=$1",[x.runId])).rowCount).toBe(0);
@@ -437,6 +449,7 @@ describe("Phase A durable source retrieval",()=>{
   const passageId=(await pool.query("SELECT id FROM passages WHERE run_id=$1",[x.runId])).rows[0].id;
   expect((await getPassageForAccount(pool,passageId,x.accountId)).exact_text).toContain("Effective date");
   await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{sourceRestrictions}','["exclude:vendor.example"]') WHERE id=(SELECT brief_id FROM runs WHERE id=$1)`,[x.runId]);
+  await syncTaskPlanning(x.runId);
   await x.session.write(db=>revalidateSourcePolicy(db,{...x,briefRevision:1}));
   expect(await getPassageForAccount(pool,passageId,x.accountId)).toBeNull();
   expect((await pool.query("SELECT exact_text FROM passages WHERE id=$1",[passageId])).rows[0].exact_text).toContain("Effective date");
