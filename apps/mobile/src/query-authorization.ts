@@ -43,6 +43,7 @@ export function readPendingQueryAuthorization(value: unknown): PendingQueryAutho
 
 export function queryAuthorizationPending(run: {
   lifecycle?: string;
+  outcome?: string | null;
   pendingQueryAuthorization?: PendingQueryAuthorization | null;
   pendingInput?: { type?: string; id?: string; briefRevision?: number; field?: string | null } | null;
 } | null | undefined): boolean {

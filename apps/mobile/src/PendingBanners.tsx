@@ -18,6 +18,9 @@ export function PendingBanners({
   uploadStatus,
   pendingVerification,
   verificationBusy,
+  pendingFollowUp,
+  pendingAssumptions,
+  pendingCorrection,
   pendingSourceDeletion,
   sourceDeleteBusy,
   onRetryCleanup,
@@ -27,6 +30,9 @@ export function PendingBanners({
   onResolveDocumentCorrection,
   onRetryVerification,
   onResolveVerification,
+  onRetryFollowUp,
+  onRetryAssumptions,
+  onRetryCorrection,
   onRetryDeletion,
 }: {
   styles: Styles;
@@ -38,6 +44,9 @@ export function PendingBanners({
   uploadStatus: string | null;
   pendingVerification: boolean;
   verificationBusy: boolean;
+  pendingFollowUp: boolean;
+  pendingAssumptions: boolean;
+  pendingCorrection: boolean;
   pendingSourceDeletion: boolean;
   sourceDeleteBusy: boolean;
   onRetryCleanup(): void;
@@ -47,6 +56,9 @@ export function PendingBanners({
   onResolveDocumentCorrection(): void;
   onRetryVerification(): void;
   onResolveVerification(): void;
+  onRetryFollowUp(): void;
+  onRetryAssumptions(): void;
+  onRetryCorrection(): void;
   onRetryDeletion(): void;
 }) {
   return (
@@ -77,6 +89,24 @@ export function PendingBanners({
           <Text style={styles.bodyText}>Verification is awaiting confirmation. Retry keeps the same claim, evidence policy and request identity.</Text>
           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Retry saved verification" onPress={onRetryVerification}><Text style={styles.link}>Retry verification</Text></Pressable>
           <Pressable disabled={verificationBusy} accessibilityRole="button" accessibilityLabel="Check or withdraw verification" onPress={onResolveVerification}><Text style={styles.link}>Check or withdraw</Text></Pressable>
+        </View>
+      ) : null}
+      {pendingFollowUp ? (
+        <View style={styles.card} accessibilityLabel="Saved follow-up request">
+          <Text style={styles.bodyText}>A research follow-up was saved for its original report. Retry keeps the same request and accepted child.</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Retry saved follow-up" onPress={onRetryFollowUp}><Text style={styles.link}>Retry follow-up</Text></Pressable>
+        </View>
+      ) : null}
+      {pendingAssumptions ? (
+        <View style={styles.card} accessibilityLabel="Saved assumption change">
+          <Text style={styles.bodyText}>An assumption change is saved for its original run. Retry keeps the same request and accepted child.</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Retry saved assumption change" onPress={onRetryAssumptions}><Text style={styles.link}>Retry assumption change</Text></Pressable>
+        </View>
+      ) : null}
+      {pendingCorrection ? (
+        <View style={styles.card} accessibilityLabel="Saved text correction">
+          <Text style={styles.bodyText}>A text correction is saved for its original report. Retry keeps the same question, evidence policy and accepted child.</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Retry saved text correction" onPress={onRetryCorrection}><Text style={styles.link}>Retry correction</Text></Pressable>
         </View>
       ) : null}
       {pendingSourceDeletion ? (

@@ -70,7 +70,7 @@ export const api = {
   invalidateView: requests.invalidateView,
   currentRun: requests.currentRun,
   capture: () => requests.capture("account"),
-  captureView: () => requests.capture("view"),
+  captureView: (session?: string, runId?: string) => requests.capture("view", session, runId),
   health: () => req("/health"),
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
   sessionInfo: (token: string) => req("/v1/session", { token }) as Promise<{ accountId: string; authMode: string }>,

@@ -46,6 +46,11 @@ describe("constraint delta and mutating follow-up identity", () => {
     expect(app).toContain("adoptReturnedChild");
     expect(app).toMatch(/onExplainFollowUp[\s\S]*adoptReturnedChild\(/);
     expect(app).toMatch(/action: "replace"[\s\S]*?adoptReturnedChild\(/);
+    expect(app).toMatch(/onCorrect[\s\S]*?adoptReturnedChild\([\s\S]*?captureView:[\s\S]*?onView:/);
+    expect(app).toMatch(/onExplainFollowUp[\s\S]*?adoptReturnedChild\([\s\S]*?captureView:[\s\S]*?onView:/);
+    expect(app).toMatch(/action: "replace"[\s\S]*?adoptReturnedChild\([\s\S]*?captureView:[\s\S]*?onView:/);
+    expect(app).toContain("requireOwnedSnapshot");
+    expect(app).toMatch(/onCancel[\s\S]*?invalidateView\(token\)[\s\S]*?api\.cancel/);
   });
 
   it("fails closed when a mutating follow-up response has no run identity", async () => {

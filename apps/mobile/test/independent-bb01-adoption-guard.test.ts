@@ -62,6 +62,7 @@ type Scope = ReturnType<typeof createRequestScope>;
 type GuardKind = "view" | "always-true-negative-control" | "account";
 type ViewHandle = { current(): boolean; release(): void };
 type ViewLease = {
+  handoff: boolean;
   current: () => boolean;
   captureView: (runId: string) => ViewHandle;
   onView: (next: ViewHandle) => void;
@@ -195,6 +196,7 @@ function openJournalLease(h: Harness, kind: GuardKind, expectedRun: string): Vie
   };
   const current = kind === "always-true-negative-control" ? () => true : () => view.current();
   return {
+    handoff: kind === "view",
     current,
     captureView,
     onView,
@@ -210,6 +212,7 @@ function openJournalLease(h: Harness, kind: GuardKind, expectedRun: string): Vie
 
 /** Optional protocol ports. Unfixed runners/helpers ignore extra keys (fail closed). */
 function attachHandoffPorts<T extends object>(args: T, lease: ViewLease): T {
+  if (!lease.handoff) return args;
   Object.assign(args, {
     captureView: lease.captureView,
     onView: lease.onView,
@@ -569,6 +572,20 @@ describe("BB-01 real request-scope + production journal + adoption", () => {
     await expect(h.storage.persistRequired(TOKEN_A, parentState({ pendingFollowUp: { ...h.box.state.pendingFollowUp! } }))).rejects.toThrow(/Session changed/);
   });
 
+  it("BB01-04b cancellation invalidates the accepted parent view before child adoption", async () => {
+    const h = await createHarness();
+    const outcome = await invokeFollowUp(h, {
+      afterAccepted: () => { h.scope.invalidateView(TOKEN_A); },
+    });
+    expect(isSupersededRequest(outcome.error)).toBe(true);
+    expect(h.diskPhases).toEqual(["prepared", "sent", "accepted"]);
+    expect(h.selects).toEqual([]);
+    expect(h.posts).toHaveLength(1);
+    expect(h.scope.currentRun(TOKEN_A, PARENT)).toBe(true);
+    const disk = await relaunch(h);
+    expect(disk.state.pendingFollowUp?.phase).toBe("accepted");
+    expect(disk.state.pendingFollowUp?.acceptedRunId).toBe(CHILD);
+  });
   it("BB01-05 deletion while the child loads does not return deleted snapshot, history, citation, or draft content", async () => {
     const h = await createHarness();
     const outcome = await invokeFollowUp(h, {

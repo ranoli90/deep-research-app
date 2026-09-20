@@ -102,7 +102,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.followUp/);
     expect(src).toMatch(/logoutLocal\(sessionStorage/);
     expect(src).toMatch(/stopPolling\(\)/);
-    expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !api\.currentRun\(t, runId\)\) return s;/);
+    expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !api\.currentRun\(t, runId\)\) throw new SupersededRequest\(\);/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
     const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
@@ -118,7 +118,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/staleCorrection && state\.run/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
-    expect(src).toMatch(/startPolling\(token, body\.runId\)/);
+    expect(src).toMatch(/onCorrect[\s\S]*?adoptReturnedChild\([\s\S]*?poll: \(runId\) => startPolling\(token, runId\)/);
     expect(src).toMatch(/createReadingRestoration/);
     expect(src).toMatch(/measureViewport/);
     expect(src).toMatch(/measureContent/);

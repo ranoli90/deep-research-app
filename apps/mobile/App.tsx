@@ -11,7 +11,7 @@ import { nativeDocumentDigest } from "./src/native-document-digest";
 import { prepareAdmission, submitAdmission, readAdmittedRun, type AdmittedRun } from "./src/admission-retry";
 import { SourceSheet } from "./src/SourceSheet";
 import { readSourceDetail } from "./src/source-view";
-import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft, runPendingCorrection } from "./src/correction-draft";
+import { activeCorrectionDraft, editCorrectionDraft, rebaseCorrectionDraft, runPendingCorrection, unresolvedCorrection } from "./src/correction-draft";
 import { AttachmentPanel } from "./src/AttachmentPanel";
 import { ResearchActivity } from "./src/ResearchActivity";
 import { ResearchBriefCard } from "./src/ResearchBriefCard";
@@ -29,13 +29,13 @@ import { composerDockBottomInset } from "./src/composer-keyboard";
 import { composerPlaceholder } from "./src/composer-copy";
 import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
 import { clarificationPromptFromEvents, researchBriefView } from "./src/research-brief";
-import { continueRunRequest, runAssumptionsMutation } from "./src/pending-input";
+import { continueRunRequest, runAssumptionsMutation, unresolvedAssumptions } from "./src/pending-input";
 import { queryAuthorizationApproveBody, queryAuthorizationPending } from "./src/query-authorization";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
-import { adoptReturnedChild } from "./src/constraint-delta";
+import { adoptReturnedChild, type ViewHandle } from "./src/constraint-delta";
 import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -372,15 +372,19 @@ function AppInner() {
     } finally { cleanup.release(); }
   }
 
-  async function refreshRun(t: string, runId: string, openingState?: UiState) {
-    if (!api.currentRun(t, runId)) return;
+  async function refreshRun(t: string, runId: string, openingState?: UiState, requireOwnedSnapshot = false) {
+    if (!api.currentRun(t, runId)) {
+      if (requireOwnedSnapshot) throw new SupersededRequest();
+      return;
+    }
     const key = `${t}:${runId}`;
-    if (refreshing.current.has(key)) return;
+    if (refreshing.current.has(key) && !requireOwnedSnapshot) return;
     const attempt = Symbol(); refreshing.current.set(key, attempt);
     let guard = api.captureView();
     try {
       const snap = await api.getRun(t, runId);
       if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+      if (snap?.runId !== runId) throw new Error("The accepted run identity did not match. Retry the saved request.");
       if (snap.contentInvalidated === true) {
         // Cancel older source/correction callbacks without changing the selected run.
         api.invalidateView(t); guard.release(); guard = api.captureView();
@@ -398,6 +402,7 @@ function AppInner() {
       if (invalidated) {
         setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null, offline: false } : s);
         redactingContent.current = false; setStorageReady(true); stopPolling();
+        if (requireOwnedSnapshot) throw new Error("The accepted run is unavailable because its content was deleted.");
         return;
       }
       const ev = await api.events(t, runId, 0);
@@ -414,22 +419,17 @@ function AppInner() {
         && currentUi.run?.pendingInput?.type === snap.pendingInput?.type
         && (incoming.at(-1)?.sequence ?? -1) === (currentUi.events.at(-1)?.sequence ?? -1)
         && (!snap.reportId || currentUi.report?.reportId === snap.reportId);
-      if (sameSnapshot && !currentUi.offline) return;
+      if (sameSnapshot && !currentUi.offline && !requireOwnedSnapshot) return;
       const report = snap.reportId && currentUi.report?.reportId !== snap.reportId
         ? await api.report(t, snap.reportId)
         : snap.reportId && currentUi.report?.reportId === snap.reportId
           ? null
           : null;
-      setViewState((s) => {
-        if (!guard.current() || s.pendingContentInvalidation) return s;
-        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) return s;
+      const applyOwnedSnapshot = (s: UiState): UiState => {
+        if (s.pendingContentInvalidation) throw new Error("Deleted content cleanup must finish before this run can be opened.");
+        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) throw new SupersededRequest();
         const sameRun = s.run?.runId === snap.runId;
-        let next: typeof s;
-        try {
-          next = applySnapshot(s, snap);
-        } catch (error) {
-          return { ...s, error: error instanceof Error ? error.message : "Pending search approval is invalid. Public search will not continue." };
-        }
+        let next = applySnapshot(s, snap);
         next = { ...next, events: sameRun ? mergeEvents(s.events, incoming) : incoming };
         if (report) {
           next = {
@@ -453,23 +453,50 @@ function AppInner() {
           next = { ...next, report: null };
         }
 
+        return next.offline ? { ...next, offline: false, error: null } : next;
+      };
+      if (requireOwnedSnapshot) {
+        const next = applyOwnedSnapshot(openingState ?? latestUi.current);
+        await sessionStorage.persistRequired(t, next);
+        if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+        latestUi.current = next;
+        setViewState(next);
         return next;
+      }
+      setViewState((s) => {
+        if (!guard.current()) return s;
+        try {
+          return applyOwnedSnapshot(s);
+        } catch (error) {
+          if (isSupersededRequest(error)) return s;
+          return { ...s, error: error instanceof Error ? error.message : "Pending search approval is invalid. Public search will not continue." };
+        }
       });
-      setViewState((s) => (s.offline ? { ...s, offline: false, error: null } : s));
     } catch (e) {
-      if (isSupersededRequest(e) || !guard.current()) return;
-      if (redactingContent.current) {
-        setViewState(s => guard.current() ? { ...s, error: "Deleted source content is hidden. Disk cleanup is unconfirmed; reconnect or reopen to retry before starting research." } : s);
+      if (isSupersededRequest(e) || !guard.current()) {
+        if (requireOwnedSnapshot) throw new SupersededRequest();
         return;
       }
-      if (isExpiredSession(e)) await onAuthFailure();
+      if (redactingContent.current) {
+        setViewState(s => guard.current() ? { ...s, error: "Deleted source content is hidden. Disk cleanup is unconfirmed; reconnect or reopen to retry before starting research." } : s);
+        if (requireOwnedSnapshot) throw e;
+        return;
+      }
+      if (isExpiredSession(e)) {
+        await onAuthFailure();
+        if (requireOwnedSnapshot) throw e;
+      }
       else if (isOfflineError(e)) {
         setViewState((s) => {
           const next = { ...s, offline: true, error: (e as Error).message };
 
           return next;
         });
-      } else setViewState((s) => ({ ...s, error: (e as Error).message }));
+        if (requireOwnedSnapshot) throw e;
+      } else {
+        setViewState((s) => ({ ...s, error: (e as Error).message }));
+        if (requireOwnedSnapshot) throw e;
+      }
     } finally { guard.release(); if (refreshing.current.get(key) === attempt) refreshing.current.delete(key); }
   }
 
@@ -730,6 +757,9 @@ function AppInner() {
 
   async function onCancel() {
     if (!token || !state.run) return;
+    // Cancellation is a new view authority boundary even though the same run stays selected.
+    // This fences an accepted mutation that has not yet completed its child handoff.
+    api.invalidateView(token);
     try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
     catch (error) {
       if (isSupersededRequest(error)) return;
@@ -880,7 +910,7 @@ function AppInner() {
     } finally { guard.release(); setUploadStatus(null); if (correctionAttempt.current === attempt) { correctionAttempt.current = null; setCorrectionPending(false); } }
   }
 
-  async function onCorrect(submitted?: string) {
+  async function onCorrect(submitted?: string, retrySaved = false) {
     const current = latestUi.current;
     if (!token || !current.run || current.pendingContentInvalidation || redactingContent.current || correctionAttempt.current || verifying.current || current.pendingVerification || current.pendingCorrectionDocuments || current.pendingAdmission || current.pendingSourceDeletion) return;
     if (current.offline) {
@@ -891,23 +921,34 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "Consent to AI processing is required before a correction is sent.", tab: "settings" }));
       return;
     }
-    const text = (submitted ?? correction).trim();
+    const pending = unresolvedCorrection(current.pendingCorrection) ? current.pendingCorrection! : null;
+    const text = (retrySaved && pending ? pending.question : submitted ?? correction).trim();
     if (!text) {
       setViewState((s) => ({ ...s, error: "Write a correction first. The draft and last report stay on this device." }));
       return;
     }
-    if(!correctionReady||!current.run.brief?.revision) {
+    if (pending && !retrySaved && (pending.question !== text || pending.parentRunId !== current.run.runId)) {
+      setViewState((s) => ({ ...s, error: "Retry the saved correction before sending a different request." }));
+      return;
+    }
+    if(!pending&&(!correctionReady||!current.run.brief?.revision)) {
       setViewState((s)=>({...s,error:"Corrections are unavailable for this run. Refresh its status before trying again."}));return;
     }
-    const attempt=Symbol("correction"),guard=api.captureView();correctionAttempt.current=attempt;setCorrectionPending(true);
+    const parentRunId = pending?.parentRunId ?? current.run.runId;
+    const expectedBriefRevision = pending?.expectedBriefRevision ?? current.run.brief!.revision;
+    const selectedEvidencePolicy = pending?.evidencePolicy ?? evidencePolicy;
+    if (retrySaved && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
+    const attempt=Symbol("correction");
+    let guard: ViewHandle = api.captureView(token, parentRunId);
+    correctionAttempt.current=attempt;setCorrectionPending(true);
     try {
       const adopted = await runPendingCorrection({
-        pending: current.pendingCorrection,
-        parentRunId: current.run.runId,
+        pending,
+        parentRunId,
         question: text,
-        expectedBriefRevision: current.run.brief.revision,
-        evidencePolicy,
-        current: guard.current,
+        expectedBriefRevision,
+        evidencePolicy: selectedEvidencePolicy,
+        current: () => guard.current(),
         save: async (saved) => {
           await sessionStorage.persistRequired(token, { ...latestUi.current, pendingCorrection: saved });
           if (!guard.current()) throw new SupersededRequest();
@@ -918,38 +959,53 @@ function AppInner() {
             correctionMode==="replace_question"?{kind:"replace_question",question,evidencePolicy:policy}:undefined,
             idempotencyKey),
         adopt: async (body) => {
-          api.selectRun(body.runId);
-          api.closeSource();
-          setShowAttach(false);
-          setSentQuestion(text);
-          setViewState((s) => ({
-            ...s,
-            status: "progress" as const,
-            correctionDraft: null,
-            draft: "",
-            error: null,
-            events: [],
-            source: null,
-            readingAnchor: null,
-            report: null,
-            previousReport: s.report ? { reportId: s.report.reportId, blocks: s.report.blocks } : s.previousReport,
-            run: {
-              runId: body.runId,
-              lifecycle: "queued",
-              phase: "preparing",
-              outcome: null,
-              reportId: null,
-              labeledDemo: s.run?.labeledDemo === true,
+          await adoptReturnedChild({
+            parentRunId,
+            body,
+            requireRunId: true,
+            selectRun: api.selectRun,
+            captureView: (runId) => api.captureView(token, runId),
+            onView: (next) => { guard.release(); guard = next; },
+            currentRun: (runId) => api.currentRun(token, runId),
+            refresh: async (runId) => {
+              api.closeSource();
+              setShowAttach(false);
+              setSentQuestion(text);
+              const opening = {
+                ...latestUi.current,
+                status: "progress" as const,
+                draft: latestUi.current.draft.trim() === text ? "" : latestUi.current.draft,
+                error: null,
+                events: [],
+                source: null,
+                readingAnchor: null,
+                report: null,
+                previousReport: latestUi.current.report
+                  ? { reportId: latestUi.current.report.reportId, blocks: latestUi.current.report.blocks }
+                  : latestUi.current.previousReport,
+                run: {
+                  runId,
+                  lifecycle: "queued" as const,
+                  phase: "preparing",
+                  outcome: null,
+                  reportId: null,
+                  labeledDemo: latestUi.current.run?.labeledDemo === true,
+                },
+              };
+              latestUi.current = opening;
+              setViewState(opening);
+              await refreshRun(token, runId, opening, true);
             },
-          }));
-          await refreshRun(token, body.runId);
-          startPolling(token, body.runId);
+            poll: (runId) => startPolling(token, runId),
+          });
         },
       });
       if (!guard.current()) throw new SupersededRequest();
-      await sessionStorage.persistRequired(token, { ...latestUi.current, pendingCorrection: adopted.phase === "adopted" ? null : adopted });
+      const finished = { ...latestUi.current, pendingCorrection: adopted.phase === "adopted" ? null : adopted, correctionDraft: null };
+      await sessionStorage.persistRequired(token, finished);
       if (!guard.current()) throw new SupersededRequest();
-      setViewState((s) => ({ ...s, pendingCorrection: null, error: null }));
+      latestUi.current = finished;
+      setViewState(finished);
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1007,7 +1063,7 @@ function AppInner() {
         return;
       }
       clarifying.current = true;
-      const guard = api.captureView();
+      let guard: ViewHandle = api.captureView(token, runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before replacing assumptions.");
@@ -1017,7 +1073,7 @@ function AppInner() {
           action: "replace",
           values,
           expectedBriefRevision: revision,
-          current: guard.current,
+          current: () => guard.current(),
           save: async (saved) => {
             await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
             if (!guard.current()) throw new SupersededRequest();
@@ -1025,22 +1081,46 @@ function AppInner() {
           },
           post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
           adopt: async (body) => {
-            setEditingAssumptions(false);
-            setClarifyAnswer("");
-            AccessibilityInfo.announceForAccessibility("Assumptions updated.");
             await adoptReturnedChild({
               parentRunId: runId,
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              refresh: (runId) => refreshRun(token, runId),
+              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              onView: (next) => { guard.release(); guard = next; },
+              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              refresh: async (acceptedRunId) => {
+                if (acceptedRunId === runId) {
+                  await refreshRun(token, acceptedRunId, undefined, true);
+                  return;
+                }
+                const opening = {
+                  ...latestUi.current,
+                  status: "progress" as const,
+                  events: [],
+                  source: null,
+                  readingAnchor: null,
+                  report: null,
+                  previousReport: latestUi.current.report
+                    ? { reportId: latestUi.current.report.reportId, blocks: latestUi.current.report.blocks }
+                    : latestUi.current.previousReport,
+                };
+                latestUi.current = opening;
+                setViewState(opening);
+                await refreshRun(token, acceptedRunId, opening, true);
+              },
               poll: (runId) => startPolling(token, runId),
             });
           },
         });
-        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted });
+        const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
+        await sessionStorage.persistRequired(token, finished);
         if (!guard.current()) throw new SupersededRequest();
-        setViewState((s) => ({ ...s, pendingAssumptions: null, error: null }));
+        latestUi.current = finished;
+        setViewState({ ...finished, pendingAssumptions: null, error: null });
+        setEditingAssumptions(false);
+        setClarifyAnswer("");
+        AccessibilityInfo.announceForAccessibility("Assumptions updated.");
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
@@ -1052,7 +1132,7 @@ function AppInner() {
     }
     if (!briefView.blocking) {
       clarifying.current = true;
-      const guard = api.captureView();
+      const guard = api.captureView(token, runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before confirming assumptions.");
@@ -1061,7 +1141,7 @@ function AppInner() {
           parentRunId: runId,
           action: "confirm",
           expectedBriefRevision: revision,
-          current: guard.current,
+          current: () => guard.current(),
           save: async (saved) => {
             await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
             if (!guard.current()) throw new SupersededRequest();
@@ -1070,12 +1150,14 @@ function AppInner() {
           post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
           adopt: async () => {
             AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
-            await refreshRun(token, runId);
+            await refreshRun(token, runId, undefined, true);
           },
         });
-        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted });
+        const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
+        await sessionStorage.persistRequired(token, finished);
         if (!guard.current()) throw new SupersededRequest();
-        setViewState((s) => ({ ...s, pendingAssumptions: null, error: null }));
+        latestUi.current = finished;
+        setViewState({ ...finished, pendingAssumptions: null, error: null });
       } catch (e) {
         if (isSupersededRequest(e)) return;
         if (isExpiredSession(e)) await onAuthFailure();
@@ -1118,6 +1200,72 @@ function AppInner() {
     }
   }
 
+  async function retryPendingAssumptions() {
+    const current = latestUi.current;
+    const pending = unresolvedAssumptions(current.pendingAssumptions) ? current.pendingAssumptions! : null;
+    if (!token || !pending || clarifying.current || current.pendingContentInvalidation || current.pendingSourceDeletion) return;
+    if (current.offline) {
+      setViewState((s) => ({ ...s, error: "You are offline. The saved assumption change remains on this device." }));
+      return;
+    }
+    if (!current.consentGranted) {
+      setViewState((s) => ({ ...s, error: "Consent to AI processing is required before retrying this assumption change.", tab: "settings" }));
+      return;
+    }
+    clarifying.current = true;
+    if (!api.currentRun(token, pending.parentRunId)) api.selectRun(pending.parentRunId);
+    let guard: ViewHandle = api.captureView(token, pending.parentRunId);
+    try {
+      const adopted = await runAssumptionsMutation({
+        pending,
+        parentRunId: pending.parentRunId,
+        action: pending.action,
+        values: pending.values,
+        expectedBriefRevision: pending.expectedBriefRevision,
+        current: () => guard.current(),
+        save: async (saved) => {
+          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
+          if (!guard.current()) throw new SupersededRequest();
+          setState((s) => ({ ...s, pendingAssumptions: saved }));
+        },
+        post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+        adopt: async (body) => {
+          if (pending.action === "replace") {
+            await adoptReturnedChild({
+              parentRunId: pending.parentRunId,
+              body,
+              requireRunId: true,
+              selectRun: api.selectRun,
+              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              onView: (next) => { guard.release(); guard = next; },
+              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              refresh: (acceptedRunId) => refreshRun(token, acceptedRunId, undefined, true).then(() => undefined),
+              poll: (acceptedRunId) => startPolling(token, acceptedRunId),
+            });
+          } else {
+            await refreshRun(token, pending.parentRunId, undefined, true);
+          }
+        },
+      });
+      const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted, error: null };
+      await sessionStorage.persistRequired(token, finished);
+      if (!guard.current()) throw new SupersededRequest();
+      latestUi.current = finished;
+      setViewState(finished);
+      setEditingAssumptions(false);
+      setClarifyAnswer("");
+      AccessibilityInfo.announceForAccessibility("Saved assumption change restored.");
+    } catch (e) {
+      if (isSupersededRequest(e)) return;
+      if (isExpiredSession(e)) await onAuthFailure();
+      else if (isOfflineError(e)) setViewState((s) => ({ ...s, offline: true, error: "You are offline. The saved assumption change remains on this device." }));
+      else setViewState((s) => ({ ...s, error: e instanceof Error ? e.message : "Could not restore the saved assumption change." }));
+    } finally {
+      guard.release();
+      clarifying.current = false;
+    }
+  }
+
   async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
     if (!token) return;
     if (runId === pending.parentRunId) throw new Error("Verification resolved to its parent instead of a child. Retry the saved request.");
@@ -1135,33 +1283,36 @@ function AppInner() {
     } finally { guard.release(); }
   }
 
-  async function onExplainFollowUp(message: string) {
+  async function onExplainFollowUp(message: string, retrySaved = false) {
     const current = latestUi.current;
     if (!token || !current.run || followUpBusy.current) return;
-    const text = message.trim();
+    const pending = unresolvedFollowUp(current.pendingFollowUp) ? current.pendingFollowUp! : null;
+    const text = (retrySaved && pending ? pending.message : message).trim();
     if (!text) return;
     followUpBusy.current = true;
-    const parentRunId = current.run.runId;
+    const parentRunId = retrySaved && pending ? pending.parentRunId : current.run.runId;
     const runActive = current.run.lifecycle === "queued" || current.run.lifecycle === "running";
     const reportReady = composerFollowsReport(current);
     const routed = routeFollowUp(text, { reportReady, runActive });
-    const mutates = routed.kind === "deepen" || routed.kind === "steer" || routed.kind === "add_source" || routed.kind === "change_constraint";
-    const guard = api.captureView();
+    const mutationKind = retrySaved && pending?.kind ? pending.kind : routed.kind;
+    const mutates = mutationKind === "deepen" || mutationKind === "steer" || mutationKind === "add_source" || mutationKind === "change_constraint";
+    if (retrySaved && pending && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
+    let guard: ViewHandle = api.captureView(token, parentRunId);
     try {
-      const revision = current.run.brief?.revision;
+      const revision = retrySaved && pending ? pending.expectedBriefRevision : current.run.brief?.revision;
       if (mutates) {
         if (typeof revision !== "number") throw new Error("Refresh this run before sending additional research.");
-        if (unresolvedFollowUp(current.pendingFollowUp)
-          && (current.pendingFollowUp!.parentRunId !== parentRunId || current.pendingFollowUp!.message !== text)) {
+        if (pending && !retrySaved
+          && (pending.parentRunId !== parentRunId || pending.message !== text)) {
           throw new Error("Retry the saved follow-up before sending a different request.");
         }
         const adopted = await runMutatingFollowUp({
-          pending: current.pendingFollowUp,
+          pending,
           parentRunId,
           message: text,
           expectedBriefRevision: revision,
-          kind: routed.kind as MutatingFollowUpKind,
-          current: guard.current,
+          kind: mutationKind as MutatingFollowUpKind,
+          current: () => guard.current(),
           save: async (saved) => {
             await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: saved });
             if (!guard.current()) throw new SupersededRequest();
@@ -1175,14 +1326,43 @@ function AppInner() {
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              refresh: (runId) => refreshRun(token, runId),
+              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              onView: (next) => { guard.release(); guard = next; },
+              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              refresh: async (acceptedRunId) => {
+                if (acceptedRunId === parentRunId) {
+                  await refreshRun(token, acceptedRunId, undefined, true);
+                  return;
+                }
+                const opening = {
+                  ...latestUi.current,
+                  status: "progress" as const,
+                  events: [],
+                  source: null,
+                  readingAnchor: null,
+                  report: null,
+                  previousReport: latestUi.current.report
+                    ? { reportId: latestUi.current.report.reportId, blocks: latestUi.current.report.blocks }
+                    : latestUi.current.previousReport,
+                };
+                latestUi.current = opening;
+                setViewState(opening);
+                await refreshRun(token, acceptedRunId, opening, true);
+              },
               poll: (runId) => startPolling(token, runId),
             });
           },
         });
-        await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: adopted.phase === "adopted" ? null : adopted });
+        const finished = {
+          ...latestUi.current,
+          pendingFollowUp: adopted.phase === "adopted" ? null : adopted,
+          draft: latestUi.current.draft.trim() === text ? "" : latestUi.current.draft,
+          error: null,
+        };
+        await sessionStorage.persistRequired(token, finished);
         if (!guard.current()) throw new SupersededRequest();
-        setViewState((s) => ({ ...s, pendingFollowUp: null, draft: s.draft.trim() === text ? "" : s.draft, error: null }));
+        latestUi.current = finished;
+        setViewState(finished);
         return;
       }
       const body = await api.explainFollowUp(token, parentRunId, {
@@ -1384,6 +1564,9 @@ function AppInner() {
           uploadStatus={uploadStatus}
           pendingVerification={!!state.pendingVerification}
           verificationBusy={verificationBusy}
+          pendingFollowUp={unresolvedFollowUp(state.pendingFollowUp)}
+          pendingAssumptions={unresolvedAssumptions(state.pendingAssumptions)}
+          pendingCorrection={unresolvedCorrection(state.pendingCorrection)}
           pendingSourceDeletion={!!state.pendingSourceDeletion}
           sourceDeleteBusy={sourceDeleteBusy}
           onRetryCleanup={() => { if (token && state.run?.runId) void refreshRun(token, state.run.runId); }}
@@ -1393,6 +1576,9 @@ function AppInner() {
           onResolveDocumentCorrection={() => void resolveDocumentCorrection()}
           onRetryVerification={() => void onFollowUp()}
           onResolveVerification={() => void resolvePendingVerification()}
+          onRetryFollowUp={() => { if (state.pendingFollowUp) void onExplainFollowUp(state.pendingFollowUp.message, true); }}
+          onRetryAssumptions={() => void retryPendingAssumptions()}
+          onRetryCorrection={() => { if (state.pendingCorrection) void onCorrect(state.pendingCorrection.question, true); }}
           onRetryDeletion={() => void onDeleteSource()}
         />
         {state.error && statusLine?.kind !== "offline" && statusLine?.kind !== "failed" && statusLine?.kind !== "cancelled" ? (
