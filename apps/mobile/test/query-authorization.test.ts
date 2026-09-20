@@ -64,6 +64,8 @@ describe("query authorization pending UI", () => {
     expect(canSubmit(state).ok).toBe(false);
     expect(canSubmit(state).reason).toMatch(/exact search terms/i);
     expect(canSubmit({ ...emptyState(), signedIn: true, consentGranted: true, draft: "best laptop under 2k" }).ok).toBe(true);
+    expect(queryAuthorizationPending({ ...run, lifecycle: "terminal", outcome: "cancelled" })).toBe(false);
+    expect(queryAuthorizationPending({ ...run, lifecycle: "cancelling" })).toBe(false);
   });
 
   it("wires approve-exact-terms and keeps the composer closed until approval", () => {

@@ -32,7 +32,7 @@ Twelve independent agents finished remaining CLs, then this checkout merged thei
 - Local Gradle APK of `9677232` installed on `10.0.0.167:41299` (sha256 `2021251c…`); Demo off, live reverse `8787→8789`, Stop cancelled a live run.
 - `pnpm verify` EXIT 0: research-core **327**, backend unit **247**, mobile **350**, governance **6**, boundaries ok.
 - Extraction isolated **55/55**. Fresh/upgrade migrate **50** including `051`.
-- PG1 on `deep_merge_pg1` **567/567 EXIT 0** (~1442s). PG2 in flight on `deep_merge_pg2`.
+- PG1 on `deep_merge_pg1` **567/567 EXIT 0** (~1442s, sha256 `63411164…`). PG2 on `deep_merge_pg2` **567/567 EXIT 0** (~1378s, sha256 `ab6550c7…`).
 - Live taco HTTP run `e96499ef` did **not** publish (counterevidence 4-read overflow; now capped). iOS and hosted GHA remain blocked. Live J8 still needs a real private attachment.
 
 ## Phase B remaining functional UI — 2026-09-20

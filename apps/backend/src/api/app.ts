@@ -299,7 +299,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       correctionMode:run.route_mode==="fixture"&&config.fixtureRouteAllowed?"legacy":typedCorrectionsEnabled&&run.route_mode==="controlled-research"?"replace_question":"unavailable",
       correctionReserveMicro:DEFAULT_RUN_BUDGET_MICRO,
       brief,
-      pendingQueryAuthorization: pendingQuery,
+      pendingQueryAuthorization: run.lifecycle === "awaiting_input" ? pendingQuery : null,
       pendingInput: run.lifecycle === "awaiting_input" && run.pending_input_id ? { id: run.pending_input_id, type: run.pending_input_type, briefRevision: run.pending_input_revision, ...(pendingField ? { field: pendingField } : {}) } : null,
       revision: {
         briefRevision: run.brief_revision,
