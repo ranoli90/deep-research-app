@@ -66,3 +66,13 @@ export function editorialSections(blocks: ReportBlock[]): ReportSection[] {
 export function reportOutline(sections: ReportSection[]): { id: string; title: string }[] {
   return sections.map((section) => ({ id: section.id, title: section.title }));
 }
+
+/** TOC only on long reports. Short answer-first pages stay uncluttered. */
+export function reportNeedsOutline(sections: ReportSection[]): boolean {
+  const nonAnswer = sections.filter((section) => section.id !== "answer");
+  const blocks = sections.flatMap((section) => section.blocks);
+  if (nonAnswer.length >= 2) return true;
+  if (blocks.length >= 5) return true;
+  const chars = blocks.reduce((n, block) => n + block.text.length, 0);
+  return chars >= 900;
+}

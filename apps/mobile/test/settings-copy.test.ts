@@ -14,5 +14,12 @@ describe("human settings copy", () => {
     expect(profile).not.toMatch(/model_policy/);
     expect(profile).not.toMatch(/Subscribe now/);
     expect(profile).not.toMatch(/\$9\.99/);
+    expect(profile).toContain("Privacy & data");
+    expect(profile).toContain("Research preferences");
+    expect(profile).toContain("Source preferences");
+    expect(profile).toContain("Help");
+    expect(profile).toContain("About");
+    expect(profile).toContain("Deep Research");
+    expect(profile).toContain("settingsRow");
   });
 });

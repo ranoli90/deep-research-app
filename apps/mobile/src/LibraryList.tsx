@@ -3,6 +3,7 @@ import { FlatList, Pressable, Text, TextInput, View, type StyleProp, type TextSt
 import { api, isSupersededRequest } from "./api";
 import { breakLongTokens } from "./report-layout";
 import { libraryItemCopy, type LibraryRecord } from "./library-copy";
+import { ShareIcon } from "./icons";
 
 type Styles = {
   body: StyleProp<ViewStyle>;
@@ -14,6 +15,7 @@ type Styles = {
   bodyText: StyleProp<TextStyle>;
   libraryRow: StyleProp<ViewStyle>;
   librarySearch: StyleProp<TextStyle>;
+  libraryPreview?: StyleProp<TextStyle>;
 };
 
 export function LibraryList({
@@ -22,19 +24,22 @@ export function LibraryList({
   styles,
   onOpen,
   onShare,
+  ink = "#6B645C",
 }: {
   token: string | null;
   reloadKey?: string;
   styles: Styles;
   onOpen: (id: string) => void;
   onShare: (reportId: string) => void;
+  ink?: string;
 }) {
   const [loaded, setLoaded] = useState<{ token: string | null; items: LibraryRecord[]; error: string | null }>({
     token: null, items: [], error: null,
   });
   const [query, setQuery] = useState("");
   const items = (loaded.token === token ? loaded.items : []).filter((it) => {
-    const hay = `${it.title ?? ""} ${it.status ?? ""}`.toLowerCase();
+    const copy = libraryItemCopy(it);
+    const hay = `${copy.title} ${copy.status} ${copy.preview ?? ""} ${copy.sources ?? ""}`.toLowerCase();
     return !query.trim() || hay.includes(query.trim().toLowerCase());
   });
   useEffect(() => {
@@ -94,16 +99,17 @@ export function LibraryList({
       }
       renderItem={({ item: it }) => {
         const copy = libraryItemCopy(it);
+        const meta = [copy.status, copy.changed ? "Updated" : null, copy.sources, copy.version, copy.updated].filter(Boolean).join(" · ");
         return (
           <View style={styles.libraryRow}>
             <Pressable style={{ flex: 1, minWidth: 0 }} onPress={() => onOpen(it.id)} accessibilityRole="button" accessibilityLabel={`Open ${copy.title}`}>
               <Text style={styles.title}>{breakLongTokens(copy.title)}</Text>
-              <Text style={styles.kicker}>{copy.status}{copy.version ? ` · ${copy.version}` : ""}{copy.updated ? ` · ${copy.updated}` : ""}</Text>
-              {!it.report_id ? <Text style={styles.kicker}>Resume from Library when you are ready.</Text> : null}
+              {copy.preview ? <Text style={styles.libraryPreview ?? styles.kicker} numberOfLines={2}>{copy.preview}</Text> : null}
+              <Text style={styles.kicker}>{meta}</Text>
             </Pressable>
             {it.report_id ? (
-              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12} style={{ minWidth: 44, minHeight: 44, justifyContent: "center" }}>
-                <Text style={styles.quietLink}>Share</Text>
+              <Pressable onPress={() => onShare(it.report_id!)} accessibilityRole="button" accessibilityLabel={`Share ${copy.title}`} hitSlop={12} style={{ minWidth: 44, minHeight: 56, justifyContent: "center", alignItems: "center" }}>
+                <ShareIcon color={ink} />
               </Pressable>
             ) : null}
           </View>

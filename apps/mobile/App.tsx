@@ -27,7 +27,7 @@ import { productHaptic } from "./src/haptics";
 import { useKeyboardInset } from "./src/use-keyboard-inset";
 import { composerDockBottomInset } from "./src/composer-keyboard";
 import { composerPlaceholder } from "./src/composer-copy";
-import { adoptPublicEvents } from "./src/research-activity";
+import { adoptPublicEvents, liveActivityFollowsLatest, userReleasedLiveFollow } from "./src/research-activity";
 import { clarificationFieldFromPrompt, researchBriefView } from "./src/research-brief";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
@@ -133,6 +133,9 @@ function AppInner() {
   const refreshing = useRef(new Map<string, symbol>());
   const detailed = true;
   const [activityExpanded, setActivityExpanded] = useState(false);
+  const [followLiveActivity, setFollowLiveActivity] = useState(true);
+  const followLiveRef = useRef(true);
+  const liveScrollY = useRef(0);
   const [sourceClaim, setSourceClaim] = useState<string | null>(null);
   const announcedReport = useRef<string | null>(null);
 
@@ -197,6 +200,11 @@ function AppInner() {
       setActivityExpanded(false);
     }
   }, [state.status]);
+  useEffect(() => {
+    followLiveRef.current = true;
+    setFollowLiveActivity(true);
+    liveScrollY.current = 0;
+  }, [state.run?.runId]);
   useEffect(() => {
     if (!hydrated) return;
     const id = state.report?.reportId;
@@ -1182,11 +1190,31 @@ function AppInner() {
             accessibilityLabel="Research conversation"
             scrollEventThrottle={100}
             onLayout={event => { reading.current.measureViewport(readerView, event.nativeEvent.layout.height); restoreReadingPosition(); }}
-            onContentSizeChange={(_width, height) => { reading.current.measureContent(readerView, height); restoreReadingPosition(); }}
-            onScroll={(event) => { if (readerView === readerGeneration.current) scrollY.current = event.nativeEvent.contentOffset.y; }}
+            onScroll={(event) => {
+              const y = event.nativeEvent.contentOffset.y;
+              if (readerView === readerGeneration.current) scrollY.current = y;
+              const live = researchActivity(latestUi.current).inProgress && !latestUi.current.report;
+              if (live && userReleasedLiveFollow({ following: followLiveRef.current, offsetY: y, previousOffsetY: liveScrollY.current })) {
+                followLiveRef.current = false;
+                setFollowLiveActivity(false);
+              }
+              liveScrollY.current = y;
+            }}
             onScrollBeginDrag={() => reading.current.userScrolled(readerView)}
             onScrollEndDrag={() => saveVisibleReadingPosition()}
             onMomentumScrollEnd={() => saveVisibleReadingPosition()}
+            onContentSizeChange={(_width, height) => {
+              reading.current.measureContent(readerView, height);
+              restoreReadingPosition();
+              const current = latestUi.current;
+              if (liveActivityFollowsLatest({
+                inProgress: researchActivity(current).inProgress,
+                hasReport: Boolean(current.report),
+                userReleasedFollow: !followLiveRef.current,
+              })) {
+                conversationScroll.current?.scrollToEnd({ animated: !current.reducedMotion });
+              }
+            }}
           >
             {state.pendingAdmission ? <View style={styles.card} accessibilityLabel="Saved research request">
               <Text style={styles.bodyText}>Request awaiting confirmation. Retry keeps the same question and documents.</Text>
@@ -1214,6 +1242,12 @@ function AppInner() {
                 expanded={activityExpanded}
                 labeledDemo={state.run?.labeledDemo === true || state.report?.labeledDemo === true}
                 accent={theme.accent}
+                showJumpToLatest={activity.inProgress && !state.report && !followLiveActivity}
+                onJumpToLatest={() => {
+                  followLiveRef.current = true;
+                  setFollowLiveActivity(true);
+                  conversationScroll.current?.scrollToEnd({ animated: !latestUi.current.reducedMotion });
+                }}
                 onToggle={() => setActivityExpanded((value) => !value)}
                 styles={{ ...styles, kicker: styles.activityKicker }}
               />
@@ -1286,6 +1320,7 @@ function AppInner() {
                   blocks={blocks}
                   detailed={detailed}
                   showOutline={detailed}
+                  reducedMotion={state.reducedMotion}
                   styles={styles}
                   citationIndex={citeIndex}
                   onJump={(blockId) => {
@@ -1424,6 +1459,7 @@ function AppInner() {
           <LibraryList
             token={token}
             reloadKey={`${state.run?.runId ?? ""}:${state.report?.reportId ?? ""}:${state.status}`}
+            ink={theme.muted}
             styles={styles}
             onOpen={async (id) => {
               if (state.pendingContentInvalidation || state.pendingSourceDeletion || deletingSource.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
@@ -1514,6 +1550,7 @@ function AppInner() {
           <AttachmentPanel styles={styles} muted={theme.muted} attachments={state.attachments}
             pending={documentPending || uploadStatus !== null} visible={attachVisible} status={uploadStatus} filename={attachName} text={attachText}
             onFilename={setAttachName} onText={setAttachText} onPick={() => void onPickDocument()}
+            onAttachUrl={(file) => setState((s) => attachFile(s, file))}
             onRemove={index => setState(s => ({ ...s, attachments: s.attachments.filter((_, i) => i !== index) }))}
             onAttachNote={() => {
                 if (deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;

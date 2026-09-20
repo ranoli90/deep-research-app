@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { editorialSections, reportOutline } from "../src/report-hierarchy";
+import { editorialSections, reportNeedsOutline, reportOutline } from "../src/report-hierarchy";
 import type { ReportBlock } from "../src/state";
 
 const block = (id: string, kind: string, text: string): ReportBlock => ({
@@ -43,5 +43,14 @@ describe("editorial report hierarchy", () => {
     expect(report).toContain('accessibilityLabel="Report outline"');
     expect(report).toContain("Jump to ${section.title}");
     expect(report).not.toMatch(/<Text style=\{styles\.kicker\}>Outline<\/Text>/);
+  });
+
+  it("withholds the outline on a short answer-only report", () => {
+    expect(reportNeedsOutline(editorialSections([block("answer", "text", "Buy Vendor A.")]))).toBe(false);
+    expect(reportNeedsOutline(editorialSections([
+      block("answer", "text", "Buy Vendor A."),
+      block("eligibility", "text", "Fits the budget."),
+      block("comparison-table", "table", "A | B"),
+    ]))).toBe(true);
   });
 });

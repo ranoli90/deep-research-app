@@ -28,6 +28,20 @@ export function extractPublicUrl(text: string | null | undefined): string | null
  * Domain pills may appear only from typed activity.sourceDomain on a source_reading
  * event. Do not parse legacy publicSummary. Do not invent hosts or fetch favicon CDNs.
  */
+/** Visible domain pills; overflow is a +N caption, never invented hosts. */
+export const LIVE_SOURCE_PILL_LIMIT = 4;
+
+export function visibleLiveSourcePills(pills: LiveSourcePill[], limit = LIVE_SOURCE_PILL_LIMIT): {
+  visible: LiveSourcePill[];
+  overflow: number;
+} {
+  const cap = Number.isSafeInteger(limit) && limit > 0 ? limit : LIVE_SOURCE_PILL_LIMIT;
+  return {
+    visible: pills.slice(0, cap),
+    overflow: Math.max(0, pills.length - cap),
+  };
+}
+
 export function liveSourcePillsFromEvents(events: ResearchEvent[]): LiveSourcePill[] {
   const byDomain = new Map<string, LiveSourcePill>();
   for (const event of events.slice().sort((a, b) => a.sequence - b.sequence)) {

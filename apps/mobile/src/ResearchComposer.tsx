@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Animated, Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { composer as composerMetrics } from "@deep/design";
 import { productHaptic } from "./haptics";
 import { ArrowUpIcon, CloseIcon, PlusIcon, StopIcon } from "./icons";
 
@@ -37,7 +38,7 @@ function ActionGlyph({
       return;
     }
     scale.setValue(0.86);
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 7, tension: 160 }).start();
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 7, tension: 160, delay: 0 }).start();
   }, [mode, reduced, scale]);
   return <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>;
 }
@@ -100,9 +101,12 @@ export function ResearchComposer({
           accessibilityRole="button"
           accessibilityLabel={attachOpen ? "Close add sources" : "Add sources"}
           hitSlop={8}
-          style={styles.attachHit ?? { width: 44, height: 44, alignItems: "center", justifyContent: "center" }}
+          style={({ pressed }) => [
+            styles.attachHit ?? { width: composerMetrics.hit, height: composerMetrics.hit, alignItems: "center", justifyContent: "center" },
+            !reducedMotion && pressed ? { opacity: 0.82 } : null,
+          ]}
         >
-          {attachOpen ? <CloseIcon color={muted} /> : <PlusIcon color={muted} />}
+          {attachOpen ? <CloseIcon color={muted} size={16} /> : <PlusIcon color={muted} size={composerMetrics.attachIcon} />}
         </Pressable>
         <TextInput
           editable={editable && !stop}
@@ -128,20 +132,23 @@ export function ResearchComposer({
               onSend();
             }
           }}
-          style={styles.sendHit ?? { width: 44, height: 44, alignItems: "center", justifyContent: "center" }}
+          style={({ pressed }) => [
+            styles.sendHit ?? { width: composerMetrics.hit, height: composerMetrics.hit, alignItems: "center", justifyContent: "center" },
+            !reducedMotion && pressed ? { opacity: 0.82 } : null,
+          ]}
           accessibilityRole="button"
           accessibilityLabel={stop ? "Stop research" : pendingAdmission ? "Retry" : sendAccessLabel}
         >
           <ActionGlyph mode={mode} reduced={reducedMotion}>
             <View style={glyphStyle}>
               {stop ? (
-                <StopIcon color={sendInk} />
+                <StopIcon color={sendInk} size={12} />
               ) : iconSend ? (
-                <ArrowUpIcon color={sendDisabled ? muted : sendInk} />
+                <ArrowUpIcon color={sendDisabled ? muted : sendInk} size={16} />
               ) : pendingAdmission ? (
                 <Text style={sendDisabled ? styles.sendOff : styles.send}>{action}</Text>
               ) : (
-                <ArrowUpIcon color={muted} />
+                <ArrowUpIcon color={muted} size={16} />
               )}
             </View>
           </ActionGlyph>

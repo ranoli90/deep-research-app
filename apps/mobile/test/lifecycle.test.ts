@@ -177,7 +177,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/state\.tab === "research" && !state\.source/);
     expect(src).not.toMatch(/allowFontScaling=\{false\}/);
     expect(src).toMatch(/maxFontSizeMultiplier=\{2\}/);
-    expect(src).toMatch(/maxHeight: 160/);
+    expect(src).toMatch(/composerMetrics\.inputLineHeight \* composerMetrics\.maxLines/);
     expect(src).toMatch(/isOfflineError/);
     expect(src).toMatch(/AppState\.addEventListener/);
     expect(src).not.toMatch(/accessibilityLabel="Your question"/);

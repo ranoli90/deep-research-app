@@ -1,25 +1,34 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { color, motion, radius, type as typeTokens } from "@deep/design";
+import { color, composer as composerMetrics, motion, radius, type as typeTokens } from "@deep/design";
 
 describe("original visual identity", () => {
   it("keeps compact editorial type and non-pill radius", () => {
     expect(typeTokens.display.fontSize).toBeLessThanOrEqual(20);
-    expect(typeTokens.body.fontSize).toBe(15);
-    expect(typeTokens.title.fontSize).toBe(16);
+    expect(typeTokens.body.fontSize).toBe(16);
+    expect(typeTokens.title.fontSize).toBe(18);
+    expect(typeTokens.body.lineHeight).toBe(24);
     expect(radius.pill).toBeLessThanOrEqual(12);
+    expect(radius.composer).toBe(24);
     expect(motion.pulse).toBe(900);
+    expect(motion.collapse).toBe(250);
+    expect(motion.sheet).toBe(340);
     expect(color.dark.composer.fill).not.toBe("#0F0F0F");
   });
 
-  it("composer uses a docked field, square send, and 44px invisible hits", () => {
+  it("composer uses a docked field, 36px send, and 44px invisible hits", () => {
     const styles = readFileSync(join(import.meta.dirname, "../src/product-styles.ts"), "utf8");
     const composer = readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8");
-    expect(styles).toContain("maxHeight: 160");
+    expect(composerMetrics.visualHeight).toBe(52);
+    expect(composerMetrics.sendVisible).toBe(36);
+    expect(composerMetrics.hit).toBe(44);
+    expect(composerMetrics.attachIcon).toBe(18);
+    expect(composerMetrics.maxLines).toBe(4);
+    expect(styles).toContain("composerMetrics.inputLineHeight * composerMetrics.maxLines");
     expect(styles).toContain("borderTopWidth: StyleSheet.hairlineWidth");
     expect(styles).toContain("sendHit");
-    expect(styles).toMatch(/sendBtnIcon:.*width: 22/);
+    expect(styles).toContain("composerMetrics.sendVisible");
     expect(styles).not.toMatch(/composerWrap:.*borderRadius: radius\.pill/);
     expect(composer).toContain("PlusIcon");
     expect(composer).toContain("ArrowUpIcon");

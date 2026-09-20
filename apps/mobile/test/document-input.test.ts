@@ -1,5 +1,5 @@
 import { expect, it, vi, beforeEach } from "vitest";
-import { documentMetadata, MAX_DOCUMENT_BYTES } from "../src/document-input";
+import { documentMetadata, MAX_DOCUMENT_BYTES, publicUrlAttachment } from "../src/document-input";
 const mocks = vi.hoisted(() => ({ pick: vi.fn(), remove: vi.fn(), bytes: vi.fn(), size: 12 }));
 vi.mock("expo-document-picker", () => ({ getDocumentAsync: mocks.pick }));
 vi.mock("expo-file-system", () => ({
@@ -9,6 +9,16 @@ vi.mock("expo-file-system", () => ({
 }));
 import { pickDocument } from "../src/native-documents";
 beforeEach(() => { vi.clearAllMocks(); mocks.size = 12; mocks.bytes.mockResolvedValue(new Uint8Array(12)); mocks.pick.mockResolvedValue({ canceled: false, assets: [{ name: "Study.PDF", uri: "file:///app/cache/DocumentPicker/generated.pdf" }] }); });
+it("attaches only public http(s) URLs as text notes", () => {
+  expect(publicUrlAttachment("https://www.nvidia.com/laptops")).toEqual({
+    filename: "nvidia.com.txt",
+    mime: "text/plain",
+    text: "https://www.nvidia.com/laptops",
+  });
+  expect(() => publicUrlAttachment("http://127.0.0.1/secret")).toThrow(/public http/);
+  expect(() => publicUrlAttachment("not a url")).toThrow(/public http/);
+});
+
 it("limits supported local document metadata without trusting a MIME label", () => {
   expect(documentMetadata("Study.PDF", 12).mime).toBe("application/pdf");
   expect(documentMetadata("notes.md", MAX_DOCUMENT_BYTES).mime).toBe("text/markdown");

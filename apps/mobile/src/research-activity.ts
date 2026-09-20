@@ -2,6 +2,7 @@ import {
   PublicActivitySchema,
   type PublicActivity,
   type PublicActivityKind,
+  type PublicActivityPhase,
 } from "@deep/contracts";
 
 /** Client event after /events sanitization. Legacy type/publicSummary are not authority. */
@@ -149,4 +150,50 @@ export function collapseResearchActivity(args: {
 export function currentActivityLine(events: ResearchEvent[]): string {
   const visible = visibleResearchEvents(events);
   return visible.at(-1)?.label ?? "Waiting for the server.";
+}
+
+const PHASE_TITLES: Record<PublicActivityPhase, string> = {
+  preparing: "Understanding",
+  researching: "Searching and reading",
+  verifying: "Checking evidence",
+  writing: "Writing",
+};
+
+export type ResearchTraceSection = {
+  phase: PublicActivityPhase;
+  title: string;
+  events: VisibleResearchEvent[];
+};
+
+/** Consecutive public-activity phases, never invented personas. */
+export function researchTraceSections(events: VisibleResearchEvent[]): ResearchTraceSection[] {
+  const sections: ResearchTraceSection[] = [];
+  for (const event of events) {
+    const phase = event.activity?.phase ?? "researching";
+    const last = sections.at(-1);
+    if (last && last.phase === phase) {
+      last.events.push(event);
+    } else {
+      sections.push({ phase, title: PHASE_TITLES[phase], events: [event] });
+    }
+  }
+  return sections;
+}
+
+/** Stick to the latest live event unless the user scrolled up. */
+export function liveActivityFollowsLatest(args: {
+  inProgress: boolean;
+  hasReport: boolean;
+  userReleasedFollow: boolean;
+}): boolean {
+  return args.inProgress && !args.hasReport && !args.userReleasedFollow;
+}
+
+export function userReleasedLiveFollow(args: {
+  following: boolean;
+  offsetY: number;
+  previousOffsetY: number;
+}): boolean {
+  if (!args.following) return false;
+  return args.offsetY + 12 < args.previousOffsetY;
 }

@@ -1,5 +1,15 @@
 # Execution ledger
 
+## 2026-09-19 — Phase B remaining consumer chrome
+
+- Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend. No EAS.
+- Composer: 52pt visual height, 24 radius, 16pt input, 18pt plus, 36px send in 44px hit, send/stop morph, existing IME inset.
+- Trace: real `public-activity.v1` rows, phase structure, pulse, 180ms enter, 250ms collapse, follow-latest unless user scrolls up, domain pills +N.
+- Report: TOC only when long; report appear 200ms; evidence sheet 340ms; Technical details ›.
+- Library/settings: honest preview, share icon, 56pt rows, Help/About, source preferences disclosure.
+- `pnpm --filter @deep/mobile test` EXIT 0, **300/300**. `pnpm --filter @deep/mobile typecheck` EXIT 0.
+- Rollback: revert the feat(mobile) commit. Native screenshots not in this assignment.
+
 ## 2026-09-19 — Phase A Wave I exact-SHA verification `f627b2b`
 
 - Worktree `/home/oranolio/Desktop/deep-v8-integration` branch `grok-v8/research-beta-integration` SHA `f627b2b5e8d6700b76e1bf3fa9ddde556b81436d`. Not merged to `main` `8a7b1a9`. No GHA. No new paid spend.

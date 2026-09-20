@@ -17,6 +17,8 @@ describe("library persistence metadata", () => {
     expect(copy.status).toBe("Ready");
     expect(copy.updated).toBeTruthy();
     expect(copy.version).toBe("Version 2");
+    expect(copy.preview).toBe("Answer ready.");
+    expect(copy.changed).toBe(true);
     expect(copy.canResume).toBe(true);
   });
 
@@ -26,6 +28,8 @@ describe("library persistence metadata", () => {
     expect(copy.status).toBe("Researching");
     expect(copy.updated).toBeNull();
     expect(copy.version).toBeNull();
+    expect(copy.preview).toBe("Still researching.");
+    expect(copy.changed).toBe(false);
     expect(libraryStatusLabel("awaiting_input")).toBe("Needs a detail");
   });
 
@@ -34,6 +38,8 @@ describe("library persistence metadata", () => {
     expect(src).toContain("FlatList");
     expect(src).toContain("No matching reports.");
     expect(src).toContain("styles.libraryRow");
+    expect(src).toContain("ShareIcon");
+    expect(src).toContain("copy.preview");
     expect(src).not.toContain("rgba(0,0,0,0.08)");
     expect(src).not.toMatch(/ScrollView style=\{styles\.body\}/);
   });

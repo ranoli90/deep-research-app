@@ -7,7 +7,10 @@ import {
   collapseResearchActivity,
   currentActivityLine,
   labelResearchEvent,
+  liveActivityFollowsLatest,
+  researchTraceSections,
   runningElapsedLabel,
+  userReleasedLiveFollow,
   visibleResearchEvents,
   type ResearchEvent,
 } from "../src/research-activity";
@@ -133,6 +136,27 @@ describe("research activity from sanitized events", () => {
   it("does not call a clarification pause complete", () => {
     const events = [evt(1, "clarification")];
     expect(collapseResearchActivity({ events, lifecycle: "awaiting_input" }).summary).toBe("Waiting for a detail ›");
+  });
+
+  it("groups consecutive real phases without inventing agent personas", () => {
+    const sections = researchTraceSections(visibleResearchEvents([
+      evt(1, "intent_ready", { phase: "preparing" }),
+      evt(2, "searching", { phase: "researching" }),
+      evt(3, "source_reading", { phase: "researching", sourceDomain: "nist.gov" }),
+      evt(4, "writing", { phase: "writing" }),
+    ]));
+    expect(sections.map((s) => s.title)).toEqual(["Understanding", "Searching and reading", "Writing"]);
+    expect(sections[1]?.events).toHaveLength(2);
+    const ui = JSON.stringify(sections);
+    expect(ui).not.toMatch(/agent|persona|chain.of.thought/i);
+  });
+
+  it("stops following live activity after the user scrolls up", () => {
+    expect(liveActivityFollowsLatest({ inProgress: true, hasReport: false, userReleasedFollow: false })).toBe(true);
+    expect(liveActivityFollowsLatest({ inProgress: true, hasReport: false, userReleasedFollow: true })).toBe(false);
+    expect(liveActivityFollowsLatest({ inProgress: true, hasReport: true, userReleasedFollow: false })).toBe(false);
+    expect(userReleasedLiveFollow({ following: true, offsetY: 40, previousOffsetY: 80 })).toBe(true);
+    expect(userReleasedLiveFollow({ following: true, offsetY: 90, previousOffsetY: 80 })).toBe(false);
   });
 
   it("progress UI modules do not treat type or publicSummary as authority", () => {

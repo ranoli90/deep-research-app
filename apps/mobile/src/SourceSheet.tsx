@@ -55,7 +55,7 @@ export function SourceSheet({
       return;
     }
     Animated.parallel([
-      Animated.timing(rise, { toValue: 0, duration: motion.base, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(rise, { toValue: 0, duration: motion.sheet, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
       Animated.timing(fade, { toValue: 1, duration: motion.fast, useNativeDriver: true }),
     ]).start();
   }, [reducedMotion, rise, fade]);
@@ -126,7 +126,7 @@ export function SourceSheet({
           <Text style={styles.link}>Verify this conclusion</Text>
         </Pressable> : null}
         <Pressable onPress={() => setTechnicalOpen((open) => !open)} accessibilityRole="button" accessibilityLabel={technicalOpen ? "Hide technical details" : "Show technical details"} hitSlop={12}>
-          <Text style={styles.link}>{technicalOpen ? "Hide technical details" : "Technical details"}</Text>
+          <Text style={styles.link}>{technicalOpen ? "Hide technical details" : "Technical details ›"}</Text>
         </Pressable>
         {technicalOpen ? <View accessibilityLabel="Technical details">
           <Text style={styles.bodyText}>Access: {source.accessLevel} · Coverage: {source.coverage ?? "unknown"}</Text>

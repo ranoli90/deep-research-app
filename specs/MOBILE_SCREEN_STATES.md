@@ -20,9 +20,9 @@ Email sign-in/deep-link flows must validate redirects and avoid displaying raw a
 
 ## 2. Composer
 
-Normal content: empty home shows a caption “Ask anything.” plus stacked example lines (not a chip grid). Composer is a **docked hairline field** (not a floating pill). Placeholder is “What should I research?”; attach is a 16px plus inside a 44px invisible hit that opens an Add sources sheet (Files and Paste note only); send is a 22px rounded square inside a 44px invisible hit (`accessibilityLabel="Start research"`), quiet until there is text, then filled teal with an up-chevron. Files are optional. Do not require advanced configuration on first use. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
+Normal content: empty home shows a restrained “Ask anything.” plus stacked example lines (not a chip grid). Composer is a **docked hairline field** (not a floating pill): ~52pt visual height, 16pt gutter, 24pt outer radius, 16pt input, max four lines, 18pt plus and 36pt send inside 44pt invisible hits (`accessibilityLabel="Start research"`). Placeholders: empty `Ask anything…`; researching `Ask or refine research…`; completed `Ask a follow-up…`. The + sheet offers Files, Paste note, Add URL (public http(s) only, attached as a text note), and Source preferences disclosure. Quiet send until there is text, then filled teal with an up-chevron; researching morphs send into stop. Files are optional. Do not require advanced configuration on first use. Example prompts must be specific useful tasks, not a grid of generic AI slogans. Show few or none after the user has history.
 
-**Continue-thread after a finished report:** keep the same dock composer for the thread (do not leave a leftover new-run “Research”/“Update” pill). Placeholder becomes “Ask anything”; send stays the rounded-square up-chevron (`accessibilityLabel="Send follow-up"`), not an Update pill. Header New research is a compose-square control (`accessibilityLabel="New research"`), not a text link. Corrections and follow-up details still submit through this composer.
+**Continue-thread after a finished report:** keep the same dock composer for the thread (do not leave a leftover new-run “Research”/“Update” pill). Placeholder becomes “Ask a follow-up…”; send stays the rounded-square up-chevron (`accessibilityLabel="Send follow-up"`), not an Update pill. Header New research is a compose-square control (`accessibilityLabel="New research"`), not a text link. Corrections and follow-up details still submit through this composer.
 
 **Dark / light chrome:** composer dock, thinking rail, question chip, and stop square consume `packages/design` chrome tokens (`color.light|dark.composer|thinking|userBubble|stop`). Keep the cream/ink/teal palette with calm contrast — not DeepSeek `#0F0F0F` black pills, ChatGPT green, or a Grok black-circle stop clone. Dark composer is a warm paper field (`#1F1C19`) with teal send (`#7EC4BC`); stop is a quiet rounded square. Visual identity: `verification/v8/research-beta/VISUAL_IDENTITY.md`.
 
@@ -98,7 +98,7 @@ Paginate long histories. Search must respect ownership and include only permitte
 
 ## 10. Settings, billing, and help
 
-Group Account, Appearance, Research preferences, Notifications, Usage & purchases, Privacy & data, and Help. Hide developer/provider diagnostics from normal users.
+Group Account, Appearance, Research preferences, Source preferences, Privacy & data, Purchases, Help, and About. Hide developer/provider diagnostics from normal users. Settings rows are ~56pt. Help explains question → progress → answer → sources. About is the product name and version only.
 
 Usage shows allowance, pending reservations, settled usage, and any relevant reset/expiry policy with actual time zones. Do not invent time-to-complete or remaining run counts when tasks have variable cost. Restore purchase is available and handles restore-to-wrong-account safely.
 

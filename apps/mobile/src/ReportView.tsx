@@ -1,9 +1,9 @@
-import { Fragment, type ReactNode } from "react";
-import { Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import { space } from "@deep/design";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Animated, Pressable, ScrollView, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { motion, space } from "@deep/design";
 import { breakLongTokens, parseTable } from "./report-layout";
 import { citationChipLabel, citationNumbers } from "./citation-chips";
-import { editorialSections } from "./report-hierarchy";
+import { editorialSections, reportNeedsOutline } from "./report-hierarchy";
 import { uncertaintyFromBlock, uncertaintyLabel } from "./uncertainty";
 import type { ReportBlock } from "./state";
 
@@ -128,6 +128,7 @@ export function ReportSections({
   showOutline = false,
   onCitationRef,
   onJump,
+  reducedMotion = false,
 }: {
   blocks: ReportBlock[];
   detailed: boolean;
@@ -138,13 +139,23 @@ export function ReportSections({
   showOutline?: boolean;
   onCitationRef?: (id: string, node: View | null, blockId: string) => void;
   onJump?: (blockId: string) => void;
+  reducedMotion?: boolean;
 }) {
+  const fade = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
+  useEffect(() => {
+    if (reducedMotion) {
+      fade.setValue(1);
+      return;
+    }
+    Animated.timing(fade, { toValue: 1, duration: motion.appear, useNativeDriver: true }).start();
+  }, [fade, reducedMotion]);
   const sections = editorialSections(blocks);
   const numbers = Object.keys(citationIndex).length > 0 ? citationIndex : citationNumbers(blocks);
   const outline = sections.filter((section) => section.id !== "answer");
+  const long = showOutline && detailed && reportNeedsOutline(sections);
   return (
-    <>
-      {showOutline && detailed && sections.length > 1 ? (
+    <Animated.View style={{ opacity: fade }}>
+      {long && sections.length > 1 ? (
         <View style={styles.outline} accessibilityLabel="Report outline">
           {outline.map((section) => (
             <Pressable
@@ -184,6 +195,6 @@ export function ReportSections({
           ))}
         </Fragment>
       ))}
-    </>
+    </Animated.View>
   );
 }

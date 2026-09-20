@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractPublicUrl, liveSourcePillsFromEvents } from "../src/live-source-appearance";
+import { extractPublicUrl, liveSourcePillsFromEvents, visibleLiveSourcePills } from "../src/live-source-appearance";
 import { citationChipLabel } from "../src/citation-chips";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -28,6 +28,15 @@ describe("live source appearance", () => {
     ]);
     expect(pills.map((p) => p.domain)).toEqual(["docs.python.org", "developer.mozilla.org"]);
     expect(pills.every((p) => p.faviconUri === null && p.url === null)).toBe(true);
+    const overflow = visibleLiveSourcePills([
+      { key: "a.com", domain: "a.com", url: null, faviconUri: null },
+      { key: "b.com", domain: "b.com", url: null, faviconUri: null },
+      { key: "c.com", domain: "c.com", url: null, faviconUri: null },
+      { key: "d.com", domain: "d.com", url: null, faviconUri: null },
+      { key: "e.com", domain: "e.com", url: null, faviconUri: null },
+    ]);
+    expect(overflow.visible.map((p) => p.domain)).toEqual(["a.com", "b.com", "c.com", "d.com"]);
+    expect(overflow.overflow).toBe(1);
   });
 
   it("after-search citation chips stay numbered without UUIDs; domain is optional and known-only", () => {

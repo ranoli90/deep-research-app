@@ -18,7 +18,7 @@ function Stroke({
   return <View style={[{ width, height, borderRadius: radius, backgroundColor: color }, style]} />;
 }
 
-export function PlusIcon({ color, size = 16 }: { color: string; size?: number }) {
+export function PlusIcon({ color, size = 18 }: { color: string; size?: number }) {
   const arm = Math.max(10, size - 4);
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
@@ -106,6 +106,23 @@ export function PencilIcon({ color, size = 16 }: { color: string; size?: number 
       >
         <PlusIcon color={color} size={inner} />
       </View>
+    </View>
+  );
+}
+
+export function ChevronIcon({ color, size = 12, down = false }: { color: string; size?: number; down?: boolean }) {
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          width: 7,
+          height: 7,
+          borderRightWidth: 1.5,
+          borderBottomWidth: 1.5,
+          borderColor: color,
+          transform: [{ rotate: down ? "45deg" : "-45deg" }],
+        }}
+      />
     </View>
   );
 }
