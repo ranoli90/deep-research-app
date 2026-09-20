@@ -757,7 +757,7 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
     const proposal={ assessments:output.assertions.map((a)=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
       rationale:"The reported area and year match the scoped assertion; survival remains unmeasured.",missingEvidence:[] as string[] })) };
     globalThis.fetch=vi.fn(async()=>response(proposal)) as typeof fetch;
-    const support=await executeAssertionSupport(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,passageIds:[p.passageId] });
+    const support=await executeAssertionSupport(pool,x.config,x.session,{ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId });
     if(support.kind!=="support") throw new Error("missing source support");
     const seen:string[]=[];
     globalThis.fetch=vi.fn(async(_input,init)=>{
@@ -779,7 +779,7 @@ describe("W05 generic writer, exact final wording and canonical publication",()=
       return response({ assessments:context.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({ claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,
         rationale:"Optimistic test response; independent guards must still reject invalid text.",missingEvidence:[] })) });
     }) as typeof fetch;
-    const args={ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,sourceSupportIntentId:support.intentId,passageIds:[p.passageId] };
+    const args={ ...x,briefRevision:1,taskId:task.task.id,extractionIntentId:extraction.intentId,sourceSupportIntentId:support.intentId };
     const first=await createResearchDraft(pool,x.config,x.session,args);
     if(first.kind!=="draft") throw new Error(`writer failed: ${JSON.stringify(first)}`);
     expect(seen.filter((row)=>row.startsWith("q1:")).length).toBe(1);
