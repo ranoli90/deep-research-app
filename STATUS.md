@@ -22,6 +22,19 @@ Paused `/continue` now fail-closes the resume against `awaiting_input` + pending
 
 Focused `TEST_DATABASE_URL=.../deep_r04_cl01_7f3a`: brief-continue **19/19**, production continue **1/1**, followup-explain **8/8**, cancellation-atomicity **7/7**. Mobile pending-input **5/5**. Full `pnpm verify` and two PG are not this SHA.
 
+## Merged Phase A/B remaining gates — 2026-09-20
+
+`grok-v8/research-beta-integration` HEAD **`8bb7563`**. **Not merged to `main` (`8a7b1a9`).** No GHA. Research Beta is not declared.
+
+Twelve independent agents finished remaining CLs, then this checkout merged their worktrees and fixed PG collisions:
+
+- Idle Stop, unique-quote brief locate on admitted strict-v4 (legacy text-v1 still rejects mismatched spans), counterevidence 3-read bound, historical discovery stop, IME/query-approval/cancelling copy, journal failure matrix, continue vs cancel, fallback writer restore, deepen + synthetic J8/J11 production tests.
+- Local Gradle APK of `9677232` installed on `10.0.0.167:41299` (sha256 `2021251c…`); Demo off, live reverse `8787→8789`, Stop cancelled a live run.
+- `pnpm verify` EXIT 0: research-core **327**, backend unit **247**, mobile **350**, governance **6**, boundaries ok.
+- Extraction isolated **55/55**. Fresh/upgrade migrate **50** including `051`.
+- PG1 on `deep_merge_pg1` **567/567 EXIT 0** (~1442s). PG2 in flight on `deep_merge_pg2`.
+- Live taco HTTP run `e96499ef` did **not** publish (counterevidence 4-read overflow; now capped). iOS and hosted GHA remain blocked. Live J8 still needs a real private attachment.
+
 ## Phase B remaining functional UI — 2026-09-20
 
 Isolated worktree `grok-v8/phase-b-functional-ui` from parent `9677232`. **Not merged to `main`.** No GHA. No new UI libraries. No EAS rebuild.
