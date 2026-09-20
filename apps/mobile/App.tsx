@@ -33,6 +33,8 @@ import { assumptionsRequest, continueRunRequest } from "./src/pending-input";
 import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
+import { bindFollowUpExplain, visibleFollowUpExplain } from "./src/follow-up-explain";
+import { mutatingFollowUpKey, revisedQuestionForConstraintDelta } from "./src/constraint-delta";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -138,15 +140,7 @@ function AppInner() {
   const followLiveRef = useRef(true);
   const liveScrollY = useRef(0);
   const [sourceClaim, setSourceClaim] = useState<{ claimId: string; blockId: string; text: string } | null>(null);
-  const [followUpExplain, setFollowUpExplain] = useState<{
-    accountId: string | null;
-    runId: string;
-    reportId: string | null;
-    question: string;
-    answer: string;
-    evidenceComplete: boolean;
-    citationPassageIds: string[];
-  } | null>(null);
+  const followUpExplain = state.followUpExplain;
   const announcedReport = useRef<string | null>(null);
 
   const savedCorrection = activeCorrectionDraft(state);
@@ -955,7 +949,6 @@ function AppInner() {
     setSentQuestion(null);
     setActivityExpanded(false);
     setSourceClaim(null);
-    setFollowUpExplain(null);
     setClarifyAnswer("");
     setEditingAssumptions(false);
     setViewState(result.next);
@@ -1076,30 +1069,29 @@ function AppInner() {
     if (!text) return;
     const guard = api.captureView();
     try {
+      const revision = current.run.brief?.revision;
+      const idempotencyKey = typeof revision === "number" ? mutatingFollowUpKey(current.run.runId, revision, text) : undefined;
       const body = await api.explainFollowUp(token, current.run.runId, {
         message: text,
-        expectedBriefRevision: current.run.brief?.revision,
-      }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string };
+        expectedBriefRevision: revision,
+      }, idempotencyKey) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; citationPassageIds?: unknown };
       if (!guard.current()) throw new SupersededRequest();
       if (body.kind === "explain") {
-        const citations = Array.isArray((body as { citationPassageIds?: unknown }).citationPassageIds)
-          ? (body as { citationPassageIds: unknown[] }).citationPassageIds.filter((id): id is string => typeof id === "string")
-          : [];
-        setFollowUpExplain({
-          accountId,
+        const bound = bindFollowUpExplain({
+          accountId: accountId ?? "",
           runId: current.run.runId,
           reportId: current.report?.reportId ?? null,
           question: text,
           answer: typeof body.answer === "string" ? body.answer : "This report does not establish that.",
           evidenceComplete: body.evidenceComplete === true,
-          citationPassageIds: citations,
+          citationPassageIds: body.citationPassageIds,
         });
-        setViewState((s) => ({ ...s, draft: "", error: null }));
+        setViewState((s) => ({ ...s, draft: "", error: null, followUpExplain: bound }));
         return;
       }
-      setViewState((s) => ({ ...s, draft: "", error: null }));
       const runId = typeof body.runId === "string" ? body.runId : current.run.runId;
       if (runId !== current.run.runId) api.selectRun(runId);
+      setViewState((s) => ({ ...s, draft: "", error: null }));
       await refreshRun(token, runId);
       startPolling(token, runId);
     } catch (e) {
@@ -1127,8 +1119,21 @@ function AppInner() {
       await onFollowUp(sourceClaim?.claimId);
       return;
     }
-    if (routed.kind === "new_research" && !reportReady) {
+    if (routed.kind === "new_research") {
+      const started = startNewResearch({ ...current, attachments: [] });
+      if (!started.ok) {
+        setViewState((s) => ({ ...s, error: started.reason }));
+        return;
+      }
+      const next = { ...started.next, draft: text, attachments: [] };
+      latestUi.current = next;
+      setViewState(() => next);
       void onSend();
+      return;
+    }
+    if (routed.kind === "change_constraint") {
+      const original = current.run?.brief?.originalQuestion ?? "";
+      await onCorrect(revisedQuestionForConstraintDelta(original, text));
       return;
     }
     await onCorrect(text);
@@ -1446,22 +1451,27 @@ function AppInner() {
                     {l}
                   </Text>
                 ))}
-                {followUpExplain
-                  && followUpExplain.accountId === accountId
-                  && followUpExplain.runId === state.run?.runId
-                  && followUpExplain.reportId === (state.report?.reportId ?? null) ? (
+                {(() => {
+                  const shown = visibleFollowUpExplain(followUpExplain, {
+                    accountId,
+                    runId: state.run?.runId,
+                    reportId: state.report?.reportId ?? null,
+                  });
+                  if (!shown) return null;
+                  return (
                   <View accessibilityLabel="Follow-up explanation">
                     <Text style={styles.kicker}>You asked</Text>
-                    <Text style={styles.bodyText}>{followUpExplain.question}</Text>
-                    <Text style={styles.answerText}>{followUpExplain.answer}</Text>
-                    {followUpExplain.citationPassageIds.length ? (
-                      <Text style={styles.caveat}>Grounded in {followUpExplain.citationPassageIds.length} owned passage{followUpExplain.citationPassageIds.length === 1 ? "" : "s"}.</Text>
+                    <Text style={styles.bodyText}>{shown.question}</Text>
+                    <Text style={styles.answerText}>{shown.answer}</Text>
+                    {shown.citationPassageIds.length ? (
+                      <Text style={styles.caveat}>Grounded in {shown.citationPassageIds.length} owned passage{shown.citationPassageIds.length === 1 ? "" : "s"}.</Text>
                     ) : null}
-                    {followUpExplain.evidenceComplete ? null : (
+                    {shown.evidenceComplete ? null : (
                       <Text style={styles.caveat}>This report does not fully establish that. You can start deeper research.</Text>
                     )}
                   </View>
-                ) : null}
+                  );
+                })()}
                 <ReportActions
                   labeledDemo={state.report.labeledDemo === true}
                   showVerification={showVerification}

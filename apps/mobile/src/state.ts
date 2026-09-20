@@ -1,4 +1,5 @@
 import { redactInvalidatedContent } from "./remote-invalidation";
+import type { FollowUpExplain } from "./follow-up-explain";
 import type { PendingVerificationRequest } from "./verification-request";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
@@ -84,6 +85,7 @@ export type UiState = {
   clarification: string[];
   flagSent: boolean;
   reducedMotion: boolean;
+  followUpExplain: FollowUpExplain | null;
   error: string | null;
   status: "empty" | "loading" | "progress" | "completed" | "partial" | "failed" | "cancelled" | "awaiting_input";
 };
@@ -112,6 +114,7 @@ export function emptyState(): UiState {
     clarification: [],
     flagSent: false,
     reducedMotion: false,
+    followUpExplain: null,
     error: null,
     status: "empty",
   };
@@ -131,7 +134,13 @@ export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
   else if (snap.lifecycle === "terminal" && snap.outcome === "failed") status = "failed";
   else if (snap.lifecycle === "queued") status = "loading";
   else if (snap.lifecycle === "awaiting_input") status = "awaiting_input";
-  const next = { ...state, run: snap, status, error: null };
+  const next = {
+    ...state,
+    run: snap,
+    status,
+    error: null,
+    followUpExplain: state.followUpExplain?.runId === snap.runId ? state.followUpExplain : null,
+  };
   return snap.contentInvalidated === true ? redactInvalidatedContent(next, snap.runId) : next;
 }
 
@@ -186,6 +195,7 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
       report: null,
       previousReport: null,
       events: [],
+      followUpExplain: null,
       source: null,
       readingAnchor: null,
       correctionDraft: null,

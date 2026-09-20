@@ -7,7 +7,7 @@ import { persistCalculatedCoverage } from "../modules/calculated-coverage.js";
 import { ZodError } from "zod";
 import type pg from "pg";
 import { AccessLevelSchema,type CanonicalReport } from "@deep/contracts";
-import { compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,sectionWriterContext,stitchSectionDrafts,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
+import { canonicalSectionContexts,compileCheckedDraft,draftStatements,freshnessPolicyForQuestion,LATER_EVIDENCE_LIMITATION,limitedCoverageLimitations,planHierarchicalWrite,stitchSectionDrafts,sourcesHaveUnmetFreshness,unresolvedFreshnessLimitation } from "@deep/research-core";
 import type { AppConfig } from "../platform/config.js";
 import { loadSupportContext,loadWriterSourceContext,persistScopedSupport,restoreWriterDraft,type SupportArgs } from "../modules/scoped-support.js";
 import { recordResearchDraft } from "../modules/research-drafts.js";
@@ -50,8 +50,7 @@ export async function createResearchDraft(pool:pg.Pool,config:AppConfig,session:
   let reused=false;
   if(sectioned){
     const drafts=[];
-    for(const section of outline.sections){
-      const sectionContext=sectionWriterContext(context,section);
+    for(const sectionContext of canonicalSectionContexts(context,outline)){
       const result=await writeOnce(sectionContext);
       if(result.kind!=="result")return result;
       if(result.result.status!=="succeeded")return {kind:"blocked" as const,reason:`writer_${result.result.status}`};

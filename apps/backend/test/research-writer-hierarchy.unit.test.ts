@@ -1,15 +1,52 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { canonicalSectionContexts, planHierarchicalWrite } from "@deep/research-core";
 
-describe("ENG-032 production writer", () => {
-  it("writes complex reports section-by-section and stitches owned drafts", () => {
-    const writer = readFileSync(join(import.meta.dirname, "../src/worker/research-writer.ts"), "utf8");
-    const restore = readFileSync(join(import.meta.dirname, "../src/modules/scoped-support.ts"), "utf8");
-    expect(writer).toContain("stitchSectionDrafts");
-    expect(writer).toContain("sectionWriterContext");
-    expect(writer).toContain("outline.complex && outline.sections.length>1");
-    expect(restore).toContain("stitchSectionDrafts");
-    expect(restore).toContain("sectionWriterContext");
+const scope = { entity: null, plan: null, version: null, geography: null, time: null, population: null };
+const assertions = [
+  { key: "a1", candidateKey: null, criterionKeys: ["c1"], text: "A", scope, quantities: [], evidence: [] },
+  { key: "a2", candidateKey: null, criterionKeys: ["c2"], text: "B", scope, quantities: [], evidence: [] },
+];
+const task = {
+  questions: [
+    { key: "q1", text: "One", criterionKeys: ["c1"], importance: "critical" as const, evidenceStandard: "docs" },
+    { key: "q2", text: "Two", criterionKeys: ["c1"], importance: "useful" as const, evidenceStandard: "docs" },
+    { key: "q3", text: "Three", criterionKeys: ["c2"], importance: "useful" as const, evidenceStandard: "docs" },
+  ],
+  criteria: [],
+  objective: "x",
+  objectiveProvenance: { start: 0, end: 1, quote: "x" },
+  intendedOutput: "comparison" as const,
+  assumptions: [],
+  openAmbiguities: [],
+  explicitExclusions: [],
+};
+
+describe("ENG-032 canonical section write/restore", () => {
+  it("uses the same section contexts for write and restore on shared criteria", () => {
+    const basis = { approvedClaimKeys: ["a1", "a2"], assertions };
+    const plan = planHierarchicalWrite({ task: task as never, approvedClaimKeys: basis.approvedClaimKeys, assertions });
+    const write = canonicalSectionContexts(basis, plan);
+    const restore = canonicalSectionContexts(basis, plan);
+    expect(write.map((ctx) => ctx.approvedClaimKeys)).toEqual(restore.map((ctx) => ctx.approvedClaimKeys));
+    expect(write.map((ctx) => ctx.assertions.map((a) => a.key))).toEqual([["a1"], ["a1"], ["a2"]]);
+    expect(write.map((ctx) => ctx.assertions)).toHaveLength(3);
+    expect(write[0]?.assertions).toHaveLength(1);
+    expect(write[1]?.assertions).toHaveLength(1);
+    expect(JSON.stringify(write)).toEqual(JSON.stringify(restore));
+  });
+
+  it("keeps a one-question draft on the single-write path", () => {
+    const simple = {
+      ...task,
+      questions: [task.questions[0]!],
+      intendedOutput: "recommendation" as const,
+    };
+    const plan = planHierarchicalWrite({
+      task: simple as never,
+      approvedClaimKeys: ["a1"],
+      assertions: [assertions[0]!],
+    });
+    expect(plan.complex).toBe(false);
+    expect(plan.sections).toHaveLength(1);
   });
 });

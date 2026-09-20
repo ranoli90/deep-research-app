@@ -6,7 +6,7 @@ import { persistScopeComparison } from "./scope-comparisons.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { CALCULATED_REPORT_SCHEMA_VERSION, RESEARCH_MODEL_SCHEMA_VERSION, ResearchModelOutputs } from "@deep/contracts";
-import { projectScopeComparison, draftStatements, planHierarchicalWrite, resolveScopedSupport, SCOPED_SUPPORT_VERSION, sectionWriterContext, stitchSectionDrafts, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
+import { canonicalSectionContexts, projectScopeComparison, draftStatements, planHierarchicalWrite, resolveScopedSupport, SCOPED_SUPPORT_VERSION, stitchSectionDrafts, validateModelBindings, type ScopedSupportResult } from "@deep/research-core";
 import type { Queryable } from "../platform/db.js";
 import { MODEL_CONTEXT_MAX_PASSAGES, ModelReceiptSchema, type ModelContext } from "../ports/model.js";
 import { loadModelOperation, modelInputManifest, validateOwnedModelContext } from "./model-operations.js";
@@ -132,8 +132,7 @@ export async function restoreWriterDraft(db:Queryable,args:SupportArgs,versions:
       WHERE run_id=$1 AND account_id=$2 AND brief_revision=$3 AND operation=$4 AND schema_version=$5 AND prompt_version=$6 AND policy_id=$7 AND evidence_revision=$8
       ORDER BY intent_id`,[args.runId,args.accountId,args.briefRevision,operation,RESEARCH_MODEL_SCHEMA_VERSION,versions.promptVersion,versions.policyId,row.evidence_revision]);
     const drafts=[];
-    for(const section of outline.sections){
-      const ctx=sectionWriterContext(basis.context,section);
+    for(const ctx of canonicalSectionContexts(basis.context,outline)){
       let found=null;
       for(const sibling of siblings.rows){
         const raw=await loadModelOperation(db,sibling.intent_id,args.runId,args.accountId,sibling.request_digest,ctx);

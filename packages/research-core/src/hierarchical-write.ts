@@ -58,9 +58,17 @@ export function sectionWriterContext<T extends { approvedClaimKeys: readonly str
   const allowed = new Set(section.claimKeys);
   return {
     ...context,
-    approvedClaimKeys: section.claimKeys,
+    approvedClaimKeys: [...allowed],
     assertions: context.assertions.filter((assertion) => allowed.has(assertion.key)),
   };
+}
+
+/** Same procedure for execution and restoration. Never flatten keys across sections first. */
+export function canonicalSectionContexts<T extends { approvedClaimKeys: readonly string[]; assertions: readonly Assertion[] }>(
+  context: T,
+  plan: HierarchicalWritePlan,
+): T[] {
+  return plan.sections.map((section) => sectionWriterContext(context, section));
 }
 
 /** Stitch section drafts without renaming claim keys or inventing prose. */
