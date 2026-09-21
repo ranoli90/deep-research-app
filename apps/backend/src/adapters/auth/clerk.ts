@@ -18,7 +18,8 @@ function remoteUnavailable(error: unknown): boolean {
   return !reason || ["jwk-remote-failed-to-load", "jwk-failed-to-resolve"].includes(reason);
 }
 
-/** Clerk SDK verifies signature/time; local checks pin issuer, optional party and customer-session class. */
+/** Clerk SDK verifies signature/time; local checks pin issuer, optional party,
+ * customer-session class, and active session state (pending sessions denied). */
 export async function verifyClerkIdentity(token: string, config: NonNullable<AppConfig["clerkAuth"]>): Promise<ClerkIdentityResult> {
   if (token.length > 8192 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token))
     return { status: "rejected" };
@@ -55,6 +56,16 @@ export async function verifyClerkIdentity(token: string, config: NonNullable<App
       typeof sessionId !== "string" || !/^sess_[A-Za-z0-9]+$/.test(sessionId) ||
       !Number.isSafeInteger(issuedAt) || !Number.isSafeInteger(expiresAt) ||
       (party !== undefined && (typeof party !== "string" || !config.authorizedParties.includes(party))))
+    return { status: "rejected" };
+  // A pending (or otherwise non-active) session bearer must never satisfy
+  // ordinary member access. Absent status claims mean an active session and
+  // still pass; any present session-state marker must read exactly "active".
+  // Checked after signature/issuer/party/expiry so those controls keep firing
+  // first, and before the caller maps an account, so a pending bearer creates
+  // no identity row.
+  const sessionStates = [(claims as { sts?: unknown }).sts, (claims as { status?: unknown }).status,
+    (claims as { session_status?: unknown }).session_status, (claims as { sessionStatus?: unknown }).sessionStatus];
+  if (sessionStates.some((state) => state !== undefined && state !== "active"))
     return { status: "rejected" };
   return { status: "verified", identity: { issuer, subject, sessionId,
     tokenClass: "customer_session", issuedAt: issuedAt as number, expiresAt: expiresAt as number } };
