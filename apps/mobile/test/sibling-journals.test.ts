@@ -200,6 +200,44 @@ describe("RES-04 assumption durable-record parser", () => {
     expect(result).toMatchObject({ phase: "adopted", requestId, acceptedRunId: parentRunId, acceptedBriefRevision: 4 });
   });
 
+  it("holds a confirmation that names a foreign accepted run without POST or adoption", async () => {
+    const prepared = preparePendingAssumptions({
+      parentRunId,
+      action: "confirm",
+      expectedBriefRevision: revision,
+      requestId,
+    });
+    const foreignAccepted = {
+      ...prepared,
+      phase: "accepted",
+      acceptedRunId: childRunId,
+      acceptedBriefRevision: 4,
+    };
+    expect(() => readPendingAssumptions(foreignAccepted)).toThrow(ASSUMPTION_CLEANUP);
+
+    const posts: string[] = [];
+    const adopted: Array<{ runId?: string; briefRevision?: number }> = [];
+    await expect(runAssumptionsMutation({
+      pending: foreignAccepted as PendingAssumptions,
+      parentRunId,
+      action: "confirm",
+      expectedBriefRevision: revision,
+      current: () => true,
+      save: async () => undefined,
+      post: async () => { posts.push("posted"); return { runId: parentRunId }; },
+      adopt: async (body) => { adopted.push(body); },
+    })).rejects.toThrow(ASSUMPTION_CLEANUP);
+    expect(posts).toEqual([]);
+    expect(adopted).toEqual([]);
+
+    const damaged = await plantDamage("pendingAssumptions", prepared, (row) => {
+      row.phase = "accepted";
+      row.acceptedRunId = childRunId;
+      row.acceptedBriefRevision = 4;
+    });
+    await expectDamagedHydrationHeld(damaged.cache, damaged.credentials, damaged.planted, ASSUMPTION_CLEANUP);
+  });
+
   it("hydrates an accepted replacement and adopts it without another POST", async () => {
     const accepted = readPendingAssumptions({
       ...assumptionPrepared(),

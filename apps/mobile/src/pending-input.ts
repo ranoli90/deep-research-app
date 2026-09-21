@@ -138,6 +138,7 @@ export function readPendingAssumptions(value: unknown): PendingAssumptions | nul
       : failAssumption();
   if (phase === "accepted" || phase === "adopted") {
     if (!acceptedRunId) failAssumption();
+    if (action === "confirm" && acceptedRunId.toLowerCase() !== parentRunId.toLowerCase()) failAssumption();
   } else if (acceptedRunId !== undefined || acceptedBriefRevision !== undefined) {
     failAssumption();
   }
