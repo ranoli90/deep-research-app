@@ -518,6 +518,78 @@
     "nativeHostedReadOnlyPreflight": "adb devices -l returned no online device; listed AVD points to missing /tmp/deep-v6-emulator-avd; registered Android launcher is presence-only. Android-34 Google APIs x86_64 system image and avdmanager/emulator binaries are present; COMMANDS.json registers offline/nonpaid AVD recreation and local launch, feasible under separate native authorization but not started here. Linux has no Xcode/iOS runtime; registered iOS launcher exits 2. Hosted verification.yml remains owner-declined with historical billing lock and was not dispatched. Production EAS endpoint is https://example.invalid. No native, hosted, signed, paid or active-service command was started.",
     "rollback": "Documentation-only evidence commit can be reversed without changing tested source 87e4371. A behavioral rollback must preserve admitted policy readers, durable identities, source evidence, Evidence Needs, consent/cancel/budget/ownership/deletion/publication fences and financial/unknown holds."
   },
+  "nativeAndroidLocalAttempt20260921": {
+    "requirements": ["W07", "W09", "W10"],
+    "evidenceClass": "exact-source local x86_64 Android debug compilation and bounded diagnostic/device preflight; no completed current-source native app journey, EAS build, live-model, hosted, signed or release acceptance",
+    "testedApplicationSourceHead": "87e43715f5fc5582116408f80e23a313c6603748",
+    "documentationHeadBeforeAttempt": "ddfe89a0eadf57d50729ba4874a0cc65daf077cc",
+    "documentationTreeBeforeAttempt": "64d0e4dbfbebcc9cace32ce76636569a2bee325b",
+    "isolatedCheckout": "/home/oranolio/Desktop/deep-native-ddfe89a-20260921",
+    "x86DebugBuild": {
+      "command": "registered local :app:assembleDebug -PreactNativeArchitectures=x86_64",
+      "exitCode": 0,
+      "tasks": 178,
+      "apkSha256": "f476f7f410b37ef9cc98d953ee7efffceef4ca497cc3798b2205071b38556aa6",
+      "buildLog": "/home/oranolio/Desktop/deep-native-ddfe89a-20260921/apps/mobile/android/build/native-debug-build.log",
+      "buildLogSha256": "2fb7bf922b5cd5c1eed07de48b4beda79dbb87c57d3702424611658054966cda",
+      "package": "app.deepresearch.mobile",
+      "versionName": "0.1.0",
+      "versionCode": 1,
+      "nativeAbi": "x86_64",
+      "signing": "Android debug key; not release signing",
+      "dependencyResolution": "Existing public Maven debug AAR artifacts matched published Gradle metadata checksums; no new version or provider spend"
+    },
+    "emulator": {
+      "registeredPresenceProbe": "pnpm test:e2e:android",
+      "presenceProbeExitCode": 0,
+      "scope": "Android device presence only, not app behavior",
+      "apkInstallAndLaunch": "succeeded for x86 emulator; first UI inspection returned no usable controls; no completed type/submit/navigate/empty/error flow",
+      "after": "user-requested cancellation; only task-owned emulator and reverse mappings stopped; AVD and persistent build artifacts retained",
+      "hostRestartCause": "unproven; no confirmed kernel OOM record"
+    },
+    "physicalPhone": {
+      "userProvidedWirelessEndpoint": "10.0.0.167:34015",
+      "adbAuthorization": "device",
+      "model": "25098RA98G",
+      "androidVersion": "16",
+      "existingApp": "app.deepresearch.mobile 0.1.0/code 1; arm64-v8a; data untouched",
+      "priorApkBackup": "/home/oranolio/Desktop/deep-native-ddfe89a-20260921/apps/mobile/android/build/installed-phone-before.apk",
+      "priorApkBackupSha256": "2021251ce740838b436e739ff0777397a53ba34cea63dff5f80d6e135e8966a4",
+      "x86InstallExitCode": 1,
+      "x86InstallFailure": "INSTALL_FAILED_NO_MATCHING_ABIS",
+      "after": "existing package preserved; no uninstall, data clear, phone reverse mapping or request submission"
+    },
+    "arm64LocalBuild": {
+      "exitCode": 130,
+      "reason": "canceled on user override before an arm64 APK existed",
+      "partialLogSha256": "d66ae066fb5ce13ad8296a9a4b0971001c4ed2a37b076d5c28f5ec24ff436e6b"
+    },
+    "diagnosticLocalState": {
+      "apiAndMetroPorts": "task-owned 8899 and 8081 stopped; no listeners",
+      "providerCalls": 0,
+      "paidCost": 0,
+      "database": "deep_native_ddfe89a_20260921",
+      "readbackBeforeDrop": "0 accounts, 0 runs, 0 reports, 0 connections",
+      "after": "exact empty task-owned database dropped and catalog-confirmed absent; persistent APK/logs and phone APK backup retained"
+    },
+    "easReadOnlyPreflight": {
+      "projectOwner": "jobeezyapp",
+      "projectId": "52197359-d453-48a6-876f-ea00ba253528",
+      "safestConfiguredProfileForDiagnostic": "device: internal Android APK, remote credentials, http://127.0.0.1:8787; actual reverse and signer compatibility unverified",
+      "previewAndProductionApiUrl": "https://example.invalid",
+      "productionAndroidArtifact": "app-bundle, not direct device APK",
+      "expoTokenOrEasTokenInEnvironment": false,
+      "approvedExpoStoreHasUsableAuthKeys": false,
+      "cachedEasCliVersion": "16.17.4",
+      "cachedEasNoninteractiveWhoamiExitCode": 1,
+      "expoWhoamiUsable": false,
+      "easBuildOrAuthCommandRegistered": false,
+      "accountPlanAndBuildCredits": "unknown while unauthenticated",
+      "remoteBuildStarted": false,
+      "remoteSigningOrPhoneInstallClaim": false
+    },
+    "rollback": "Evidence-only documentation may be reverted without changing exact tested application source, phone app/data, retained build artifacts, recovery identities or financial/unknown holds."
+  },
   "apple01": {
     "evidenceClass": "Prior owner-authorized external portal/API readback recorded in the dirty main worktree; not rerun and not promoted to native/application acceptance by this integration.",
     "teamId": "W6MVPS68ZU",
