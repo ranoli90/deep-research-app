@@ -97,6 +97,152 @@ it("CLAIM-14 mounted App cold-start Clerk restoration keeps storage ready after 
   await act(async () => { renderer.unmount(); });
 });
 
+it("AUTH-07 cold restart reconciles the original successful auth attempt and dispatches its saved action once", async () => {
+  const original = await seedAction("second question", true);
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "google" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  const calls: { path: string; body: any }[] = [];
+  let memberSnapshot: any = null;
+  held.session.persistRequired = async (_token: string, snapshot: unknown) => { memberSnapshot = snapshot; };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/claim") return Response.json({ type: "claim_accepted", submissionId: original.submissionId, requestId: body.claimRequestId, accountId: id(7), conversationId: context.conversationId,
+      conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: context.consentPolicyVersion });
+    if (path === "/v1/guest/actions/resume") return Response.json({ type: "continuation_dispatched", submissionId: original.submissionId, claimRequestId: body.claimRequestId, accountId: id(7),
+      conversationId: context.conversationId, conversationVersion: 1, receiptId: id(19), runId: id(20), memberConversationId: id(21), kind: "new_research" });
+    if (path === `/v1/runs/${id(20)}`) return Response.json({ runId: id(20), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(20)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await vi.waitFor(() => expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1));
+  expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/resolve")[0]?.body).toEqual({ submissionId: original.submissionId, authAttemptId: id(8) });
+  expect(calls.filter(call => call.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/begin")).toHaveLength(0);
+  expect(memberSnapshot.previousReport?.reportId).toBe(id(6));
+  expect((await held.device.load())).toBeNull();
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-07 cold restart without Clerk success fences the old attempt before reopening the same submission", async () => {
+  const original = await seedAction("saved second question", true);
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/pending-actions/attempts/end") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 2, state: "cancelled" });
+    if (path === "/v1/guest/pending-actions/attempts/begin") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 3, state: "authenticating" });
+    if (path === "/v1/session") return Response.json({ ...context, actorKind: "guest" });
+    if (path === `/v1/runs/${id(5)}`) return Response.json({ runId: id(5), lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(6), labeledDemo: false });
+    if (path === `/v1/runs/${id(5)}/events`) return Response.json({ events: [] });
+    if (path === `/v1/reports/${id(6)}`) return Response.json({ reportId: id(6), version: 1, blocks: [], limitations: [], labeledDemo: false, changeSummary: null });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false, getToken: async () => null } as any} />); });
+  await vi.waitFor(async () => expect((await held.device.load()).pendingAction.phase, JSON.stringify(calls)).toBe("pending_auth"));
+  const saved = await held.device.load();
+  expect(saved.pendingAction.submissionId).toBe(original.submissionId);
+  expect(saved.pendingAction.authAttempt).toBeNull();
+  expect(saved.state.draft).toBe("saved second question");
+  expect(saved.state.report?.reportId).toBe(id(6));
+  expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/end")[0]?.body).toEqual({ submissionId: original.submissionId, authAttemptId: id(8), reason: "cancelled" });
+  expect(calls).not.toContainEqual(expect.objectContaining({ path: "/v1/guest/claim" }));
+  expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.visible).toBe(true);
+  let next!: { id: string };
+  await act(async () => { next = await renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.transport.prepareAttempt({ provider: "email", operation: "email_code", email: "reader@example.test" }); });
+  expect(next.id).not.toBe(id(8));
+  const endIndex = calls.findIndex(call => call.path === "/v1/guest/pending-actions/attempts/end");
+  const nextIndex = calls.findIndex(call => call.path === "/v1/guest/pending-actions/attempts/begin");
+  expect(nextIndex).toBeGreaterThan(endIndex);
+  expect(calls[nextIndex]?.body.submissionId).toBe(original.submissionId);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-07 uncertain restart cancellation holds the old attempt and forbids another provider dispatch", async () => {
+  const original = await seedAction("saved second question");
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  const calls: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    const path = new URL(url).pathname; calls.push(path);
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/pending-actions/attempts/end") throw new Error("offline");
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false, getToken: async () => null } as any} />); });
+  await vi.waitFor(async () => expect((await held.device.load()).pendingAction.autoResume).toBe(false));
+  const saved = await held.device.load();
+  expect(saved.pendingAction.phase).toBe("authenticating");
+  expect(saved.pendingAction.submissionId).toBe(original.submissionId);
+  expect(saved.pendingAction.authAttempt.id).toBe(id(8));
+  const sheet = renderer.root.find(node => String(node.type) === "GuestSignInSheet");
+  expect(sheet.props.visible).toBe(true);
+  await expect(sheet.props.transport.prepareAttempt({ provider: "email", operation: "email_code", email: "reader@example.test" })).rejects.toThrow(/resolved/);
+  expect(calls).not.toContain("/v1/guest/pending-actions/attempts/begin");
+  expect(calls).not.toContain("/v1/guest/claim");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-07 late restart readback after unmount cannot claim or terminalize the retained attempt", async () => {
+  const original = await seedAction("saved second question");
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "google" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  let release!: (value: Response) => void;
+  const delayed = new Promise<Response>(resolve => { release = resolve; });
+  const calls: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    const path = new URL(url).pathname; calls.push(path);
+    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return delayed;
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await vi.waitFor(() => expect(calls).toContain("/v1/guest/pending-actions/attempts/resolve"));
+  await act(async () => { renderer.unmount(); });
+  release(Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" }));
+  await Promise.resolve();
+  expect((await held.device.load()).pendingAction).toEqual(authenticating);
+  expect(calls).not.toContain("/v1/guest/claim");
+  expect(calls).not.toContain("/v1/guest/pending-actions/attempts/end");
+});
+
+it("AUTH-07 restored member B cannot view or continue member A's bound guest reader", async () => {
+  const original = await seedAction("A's saved question", true);
+  const bound = completeGuestAuth(beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z")), id(8), id(7), new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(bound, original);
+  const before = await held.device.load();
+  const calls: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    const path = new URL(url).pathname; calls.push(path);
+    if (path === "/v1/session") return Response.json({ accountId: id(12), actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).not.toBe("A's saved question");
+  expect(renderer.root.findAll(node => String(node.type) === "ReportSections")).toHaveLength(0);
+  expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.visible).toBe(false);
+  expect(await held.device.load()).toEqual(before);
+  expect(calls).not.toContain("/v1/guest/claim");
+  expect(calls).not.toContain("/v1/guest/actions/resume");
+  await act(async () => { renderer.unmount(); });
+});
+
 it("CLAIM-14 mounted App edits A to B only after exact server cancellation and archives A", async () => {
   const original = await seedAction();
   const calls: string[] = [];

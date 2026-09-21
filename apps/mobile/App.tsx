@@ -1302,7 +1302,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         } catch { /* Existing private snapshots remain held until a verified session returns. */ }
       }
       if (!hydration.current()) return;
-      if (!memberToken) api.activateSession(null);
+      if (!memberToken) {
+        api.activateSession(null);
+        hydration.release(); hydration = api.capture();
+      }
       // The child snapshot is committed before the terminal journal. If a
       // process dies before guest cleanup, a verified matching member may
       // finish that cleanup without resurrecting the preclaim guest reader.
@@ -1310,7 +1313,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           guest.pendingAction.authenticatedAccountId === memberAccountId && member.state.run?.runId && member.state.conversationId) {
         await guestDevice.clear(); api.clearGuest(); guest = null;
       }
-      let saved = guest ? guest.state : memberToken && member.accountId === memberAccountId ? { ...member.state, signedIn: true } : { ...emptyState(), draft: member.state.draft, signedIn: !!memberToken };
+      // A protected guest reader can be bound to member A before the last
+      // cleanup write. Retain that journal on disk, but never render or use it
+      // under a verified member B. A later rightful sign-in can still recover.
+      const heldForOtherMember = !!(guest?.pendingAction?.authenticatedAccountId && memberToken &&
+        guest.pendingAction.authenticatedAccountId !== memberAccountId);
+      if (heldForOtherMember) { api.clearGuest(); guest = null; }
+      let saved = guest ? guest.state : memberToken && member.accountId === memberAccountId ? { ...member.state, signedIn: true }
+        : { ...emptyState(), draft: heldForOtherMember ? "" : member.state.draft, signedIn: !!memberToken };
+      if (heldForOtherMember) saved = { ...saved, error: "Saved research for another account is held on this device. Switch back to that account to continue it." };
       if (guest) {
         api.activateGuest(guest.proof, guest.context.guestContextId);
         guestContextRef.current = guest.context; guestProof.current = guest.proof;
@@ -1330,6 +1341,42 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       if (guest?.pendingAction && !["dispatched", "cancelled", "rejected", "expired"].includes(guest.pendingAction.phase)) {
         setGuestSheetState(initialGuestSignInSheetState());
         setGuestSheetVisible(guest.pendingAction.phase !== "authenticating");
+      }
+      // The process may have died after Clerk succeeded but before the local
+      // journal moved out of authenticating. Resolve the exact durable attempt
+      // before any claim, resend, or new provider work. If Clerk did not
+      // succeed, terminalize that attempt on the server before reopening the
+      // same submission. An unknown response keeps it held and dismissible.
+      if (guest?.pendingAction?.phase === "authenticating" && guest.pendingAction.authAttempt) {
+        const original = guest.pendingAction;
+        const attemptId = guest.pendingAction.authAttempt.id;
+        try {
+          const resolved = await api.guest.resolveAuthAttempt(guest.proof, original.submissionId, attemptId);
+          if (!mounted || !hydration.current()) return;
+          if (resolved.submissionId !== original.submissionId || resolved.authAttemptId !== attemptId ||
+            !Number.isSafeInteger(resolved.attemptRevision) || resolved.attemptRevision < 1 ||
+            !["authenticating", "cancelled", "dismissed"].includes(resolved.state)) throw new Error("The saved sign-in attempt readback did not match its journal.");
+          const current = guestPendingRef.current;
+          if (!current || current.phase !== "authenticating" || current.submissionId !== original.submissionId || current.authAttempt?.id !== attemptId) return;
+          if (resolved.state === "cancelled" || resolved.state === "dismissed") {
+            await saveGuestPending(resolved.state === "cancelled" ? cancelGuestAuthAttempt(current, attemptId, new Date()) : dismissGuestPendingAction(current, new Date()), current);
+            setGuestSheetVisible(resolved.state === "cancelled");
+          } else if (memberToken && original.autoResume) {
+            await finishGuestAuthentication(attemptId);
+          } else {
+            await endGuestAuthAttempt(attemptId, original.autoResume ? "cancelled" : "dismissed");
+            setGuestSheetVisible(original.autoResume);
+          }
+        } catch (error) {
+          if (!mounted || !hydration.current()) return;
+          const current = guestPendingRef.current;
+          if (current?.phase === "authenticating" && current.submissionId === original.submissionId && current.authAttempt?.id === attemptId) {
+            setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+              error: "The saved sign-in attempt is held. Close this sheet to confirm cancellation before trying again." });
+            setGuestSheetVisible(true);
+          }
+          setStateRaw(s => ({ ...s, error: error instanceof Error ? error.message : "The saved sign-in attempt is held until it can be checked." }));
+        }
       }
       if (saved.run?.runId && !saved.pendingSourceDeletion) {
         if (guest && !memberToken) { guestRunEpoch.current++; startGuestPolling(saved.run.runId); void refreshGuestRun(saved.run.runId); }
