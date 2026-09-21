@@ -1,17 +1,45 @@
-import type pg from "pg";
+import pg from "pg";
 import { z } from "zod";
 import { withTx } from "../platform/db.js";
 import { lockActiveAccount } from "./access.js";
 import { admissionKeyHash } from "./admission-recovery.js";
 import { settleRun } from "./billing.js";
+import { claimedConversationScope, guestCanAccessRun, type GuestContext } from "./guest-auth.js";
+
+export type SourceDeletionAuthority =
+  | { kind: "guest"; context: GuestContext; runId: string }
+  | { kind: "claimed"; memberAccountId: string; runId: string };
+type SourceDeletionResult = { deleted: true; sourceId: string; alreadyDeleted: boolean; invalidatedRunIds: string[] };
 
 /** Source removal is an account-serialized privacy mutation, never a new research action. */
-export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourceId:string) {
+export async function deleteSourceForAccount(pool:pg.Pool|pg.PoolClient,accountId:string,sourceId:string,
+ authority?:SourceDeletionAuthority):Promise<SourceDeletionResult> {
  if(!z.string().uuid().safeParse(sourceId).success)throw Object.assign(new Error("source_unavailable"),{statusCode:404});
- return withTx(pool,async db=>{
-  await lockActiveAccount(db,accountId);
-  const source=(await db.query<{canonical_locator:string}>("SELECT canonical_locator FROM sources WHERE id=$1 AND account_id=$2",[sourceId,accountId])).rows[0];
+ if(pool instanceof pg.Pool)return withTx(pool,db=>deleteSourceForAccount(db,accountId,sourceId,authority));
+ const db=pool;
+ // Hold the same account/context/binding locks used by claim and deletion through
+ // the entire destructive mutation. A pre-route reader is never authority here.
+ const accountIds=authority?.kind==="claimed"?[accountId,authority.memberAccountId]:[accountId];
+ for(const id of [...new Set(accountIds)].sort())await lockActiveAccount(db,id);
+ if(authority){
+  if(authority.kind==="guest"){
+   await db.query("SELECT id FROM guest_contexts WHERE id=$1 FOR UPDATE",[authority.context.id]);
+   if(authority.context.accountId!==accountId||!await guestCanAccessRun(db,authority.context,authority.runId))
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  }else{
+   const scope=await claimedConversationScope(db,authority.memberAccountId,authority.runId);
+   if(!scope||scope.parentExecutionOwnerId!==accountId)
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+   await db.query("SELECT id FROM guest_contexts WHERE conversation_id=$1 FOR UPDATE",[scope.conversationId]);
+   await db.query("SELECT id FROM conversation_control_bindings WHERE id=$1 FOR UPDATE",[scope.controlBindingId]);
+   if(!await claimedConversationScope(db,authority.memberAccountId,authority.runId))
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  }
+ }
+  const source=(await db.query<{canonical_locator:string;run_id:string}>("SELECT canonical_locator,run_id FROM sources WHERE id=$1 AND account_id=$2",[sourceId,accountId])).rows[0];
   if(!source)throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  if(authority&&source.run_id!==authority.runId)
+   throw Object.assign(new Error("source_unavailable"),{statusCode:404});
   const removed=await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='source' AND object_id=$2 AND reason='source_deletion'",[accountId,sourceId]);
   if(removed.rowCount)return {deleted:true as const,sourceId,alreadyDeleted:true,invalidatedRunIds:[] as string[]};
   const attachmentId=source.canonical_locator.startsWith("attachment://")?source.canonical_locator.slice("attachment://".length):null;
@@ -24,45 +52,54 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
   const passages=(await db.query<{id:string}>("SELECT id FROM passages WHERE account_id=$1 AND source_version_id=ANY($2::uuid[])",[accountId,versions])).rows.map(r=>r.id);
   // Exact reuse links seed invalidation. Descendants are conservative because copied
   // questions/report comparisons lack a complete dependency graph.
-  const affected=(await db.query<{id:string;spent_micro:string;idempotency_key:string|null}>(`WITH RECURSIVE affected(id) AS (
+  const affected=(await db.query<{id:string;account_id:string;spent_micro:string;idempotency_key:string|null}>(`WITH RECURSIVE affected(id) AS (
    SELECT r.id FROM runs r JOIN research_briefs b ON b.id=r.brief_id WHERE r.account_id=$1 AND (
     r.id IN(SELECT run_id FROM sources WHERE account_id=$1 AND id=ANY($2::uuid[]))
     OR r.id IN(SELECT run_id FROM run_evidence_membership WHERE account_id=$1 AND source_version_id=ANY($3::uuid[]))
     OR r.id IN(SELECT c.run_id FROM claims c JOIN claim_evidence e ON e.claim_id=c.id WHERE c.account_id=$1 AND e.passage_id=ANY($4::uuid[]))
     OR (b.payload->'attachmentIds') ?| $5::text[])
-   UNION SELECT r.id FROM runs r JOIN affected p ON r.parent_run_id=p.id WHERE r.account_id=$1)
-   SELECT r.id,r.spent_micro,r.idempotency_key FROM runs r JOIN affected a ON a.id=r.id ORDER BY r.id FOR UPDATE OF r`,[accountId,sourceIds,versions,passages,attachments])).rows;
+   UNION SELECT r.id FROM runs r JOIN affected p ON
+    (r.parent_run_id=p.id OR r.claimed_parent_run_id=p.id) WHERE r.account_id=ANY($6::uuid[]))
+   SELECT r.id,r.account_id,r.spent_micro,r.idempotency_key FROM runs r JOIN affected a ON a.id=r.id
+   ORDER BY r.id FOR UPDATE OF r`,[accountId,sourceIds,versions,passages,attachments,accountIds])).rows;
   const runIds=affected.map(r=>r.id);
-  for(const [kind,ids] of [["source",sourceIds],["run",runIds]] as const)await db.query(`INSERT INTO tombstones(account_id,object_kind,object_id,reason)
+  for(const [kind,ids] of [["source",sourceIds]] as const)await db.query(`INSERT INTO tombstones(account_id,object_kind,object_id,reason)
    SELECT $1,$2,objects.object_id,'source_deletion' FROM unnest($3::uuid[]) AS objects(object_id)
    WHERE NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$1 AND t.object_kind=$2 AND t.object_id=objects.object_id AND t.reason='source_deletion')`,[accountId,kind,ids]);
+  for(const ownerId of [...new Set(affected.map(run=>run.account_id))]){
+   const ownedRunIds=affected.filter(run=>run.account_id===ownerId).map(run=>run.id);
+   await db.query(`INSERT INTO tombstones(account_id,object_kind,object_id,reason)
+    SELECT $1,'run',objects.object_id,'source_deletion' FROM unnest($2::uuid[]) AS objects(object_id)
+    WHERE NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$1 AND t.object_kind='run'
+      AND t.object_id=objects.object_id AND t.reason='source_deletion')`,[ownerId,ownedRunIds]);
+  }
   // Keep only the opaque admission identity before scrubbing run metadata. A
   // delayed client retry must not recreate research invalidated by deletion.
   for (const run of affected) if (run.idempotency_key !== null)
    await db.query("INSERT INTO admission_withdrawals(account_id,key_hash) VALUES($1,$2) ON CONFLICT DO NOTHING",
-    [accountId,admissionKeyHash(run.idempotency_key)]);
+    [run.account_id,admissionKeyHash(run.idempotency_key)]);
   await db.query(`UPDATE runs SET lifecycle='terminal',terminal_outcome='cancelled',cancellation_epoch=cancellation_epoch+1,
    worker_lease_fence=worker_lease_fence+1,evidence_revision=evidence_revision+1,controller_artifacts='{}',
-   request_digest=NULL,idempotency_key=NULL,updated_at=now() WHERE account_id=$1 AND id=ANY($2::uuid[])`,[accountId,runIds]);
+   request_digest=NULL,idempotency_key=NULL,updated_at=now() WHERE account_id=ANY($1::uuid[]) AND id=ANY($2::uuid[])`,[accountIds,runIds]);
   await db.query("DELETE FROM run_leases WHERE run_id=ANY($1::uuid[])",[runIds]);
-  await db.query("DELETE FROM run_evidence_membership WHERE account_id=$1 AND (run_id=ANY($2::uuid[]) OR source_version_id=ANY($3::uuid[]))",[accountId,runIds,versions]);
+  await db.query("DELETE FROM run_evidence_membership WHERE account_id=ANY($1::uuid[]) AND (run_id=ANY($2::uuid[]) OR source_version_id=ANY($3::uuid[]))",[accountIds,runIds,versions]);
   for(const table of ["source_policy_exclusions","research_iteration_actions","query_authorizations","source_origin_links","criterion_freshness_policies","document_web_reconciliations","search_coverage","selection_inventory_checks","evidence_selections","requested_verifications","research_change_sets","conclusion_challenges","research_evidence_needs","candidate_ledgers","counterevidence_checks","source_read_operations","search_operations","calculated_report_coverage",
    "research_drafts","calculation_plans","calculation_claims","evidence_calculations","scope_comparisons","research_coverage",
    "scoped_support_results","extracted_assertions","research_tasks","model_operation_routes","model_operation_attempts","model_operation_results","model_portfolio_resolutions","support_assessments","report_derivations","claim_revisions"])
-   await db.query(`DELETE FROM ${table} WHERE account_id=$1 AND run_id=ANY($2::uuid[])`,[accountId,runIds]);
-  await db.query("DELETE FROM claim_evidence WHERE claim_id IN(SELECT id FROM claims WHERE account_id=$1 AND run_id=ANY($2::uuid[]))",[accountId,runIds]);
-  await db.query("UPDATE claims SET text='[deleted]',support_status='unverified' WHERE account_id=$1 AND run_id=ANY($2::uuid[])",[accountId,runIds]);
+   await db.query(`DELETE FROM ${table} WHERE account_id=ANY($1::uuid[]) AND run_id=ANY($2::uuid[])`,[accountIds,runIds]);
+  await db.query("DELETE FROM claim_evidence WHERE claim_id IN(SELECT id FROM claims WHERE account_id=ANY($1::uuid[]) AND run_id=ANY($2::uuid[]))",[accountIds,runIds]);
+  await db.query("UPDATE claims SET text='[deleted]',support_status='unverified' WHERE account_id=ANY($1::uuid[]) AND run_id=ANY($2::uuid[])",[accountIds,runIds]);
   for(const table of ["checkpoints","coverage_items","evidence_gaps","candidates","research_contradictions","research_calculations",
    "research_disconfirmations","notification_fanout","completion_outbox","run_dispatch_outbox"])
    await db.query(`DELETE FROM ${table} WHERE run_id=ANY($1::uuid[])`,[runIds]);
-  await db.query("DELETE FROM challenges WHERE account_id=$1 AND report_id IN(SELECT id FROM reports WHERE run_id=ANY($2::uuid[]))",[accountId,runIds]);
-  await db.query("DELETE FROM run_events WHERE account_id=$1 AND run_id=ANY($2::uuid[])",[accountId,runIds]);
+  await db.query("DELETE FROM challenges WHERE account_id=ANY($1::uuid[]) AND report_id IN(SELECT id FROM reports WHERE run_id=ANY($2::uuid[]))",[accountIds,runIds]);
+  await db.query("DELETE FROM run_events WHERE account_id=ANY($1::uuid[]) AND run_id=ANY($2::uuid[])",[accountIds,runIds]);
   await db.query(`UPDATE reports SET blocks='[]',basis='{}',claim_ids='{}',change_summary=NULL,source_access_summary='[]',
    redacted_at=now(),limitations='["A source was deleted; dependent research was invalidated."]'
-   WHERE account_id=$1 AND run_id=ANY($2::uuid[])`,[accountId,runIds]);
+   WHERE account_id=ANY($1::uuid[]) AND run_id=ANY($2::uuid[])`,[accountIds,runIds]);
   await db.query(`UPDATE research_briefs SET original_question='[source deleted]',payload='{}'
-   WHERE account_id=$1 AND id IN(SELECT brief_id FROM runs WHERE id=ANY($2::uuid[]))`,[accountId,runIds]);
-  await db.query("UPDATE conversations SET title=NULL WHERE account_id=$1 AND id IN(SELECT conversation_id FROM runs WHERE id=ANY($2::uuid[]))",[accountId,runIds]);
+   WHERE account_id=ANY($1::uuid[]) AND id IN(SELECT brief_id FROM runs WHERE id=ANY($2::uuid[]))`,[accountIds,runIds]);
+  await db.query("UPDATE conversations SET title=NULL WHERE account_id=ANY($1::uuid[]) AND id IN(SELECT conversation_id FROM runs WHERE id=ANY($2::uuid[]))",[accountIds,runIds]);
   // Keep opaque digest identities for actual receipt reconciliation, never old literal queries.
   await db.query(`UPDATE provider_intents SET request_digest=CASE WHEN request_digest ~ '^[0-9a-f]{64}$' THEN request_digest ELSE '[deleted]' END
    WHERE run_id=ANY($1::uuid[])`,[runIds]);
@@ -82,7 +119,6 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
    ON CONFLICT DO NOTHING`,[accountId,attachments]);
   await db.query(`UPDATE attachments SET deleted_at=COALESCE(deleted_at,now()),filename='[deleted]',mime='application/octet-stream',size_bytes=0,
    storage_ptr='',sha256=NULL,raw_bytes=NULL,extraction=NULL,extracted_text=NULL,processing_state='deleted' WHERE account_id=$1 AND id=ANY($2::uuid[])`,[accountId,attachments]);
-  for(const run of affected)await settleRun(db,accountId,run.id,Number(run.spent_micro));
+  for(const run of affected)await settleRun(db,run.account_id,run.id,Number(run.spent_micro));
   return {deleted:true as const,sourceId,alreadyDeleted:false,invalidatedRunIds:runIds};
- });
 }

@@ -1,0 +1,242 @@
+import { createHmac, generateKeyPairSync, randomBytes, sign, type KeyObject } from "node:crypto";
+import pg from "pg";
+import type PgBoss from "pg-boss";
+import type { FastifyInstance } from "fastify";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { verifyClerkWebhook } from "../src/adapters/auth/clerk-webhook.js";
+import { applyClerkWebhookEvent } from "../src/modules/clerk-revocation.js";
+import { accountForIdentity, identityDigest } from "../src/modules/identity.js";
+import { createPool, migrate } from "../src/platform/db.js";
+import { createQueue } from "../src/adapters/queue.js";
+import { buildApp } from "../src/api/app.js";
+import { loadConfig } from "../src/platform/config.js";
+
+const adminUrl = process.env.TEST_DATABASE_URL ??
+  "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
+const database = `deep_clerk_webhook_${process.pid}_${randomBytes(4).toString("hex")}`;
+const databaseUrl = new URL(adminUrl);
+databaseUrl.pathname = `/${database}`;
+const admin = new pg.Client({ connectionString: adminUrl });
+const signingKey = randomBytes(32);
+const jwtKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const jwtPublicKey = jwtKeys.publicKey.export({ type: "spki", format: "pem" }).toString();
+const config = { signingSecret: `whsec_${signingKey.toString("base64")}`,
+  expectedInstanceId: "ins_syntheticStage1", issuer: "https://synthetic.clerk.accounts.dev" };
+let pool: pg.Pool;
+let boss: PgBoss;
+let app: FastifyInstance;
+
+function sessionToken(subject: string, sessionId: string, expiresInSeconds = 300,
+  signingKey: KeyObject = jwtKeys.privateKey, party: string | null = "https://synthetic.app.test") {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "synthetic" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ iss: config.issuer, sub: subject, sid: sessionId,
+    iat: now, nbf: now - 1, exp: now + expiresInSeconds, ...(party === null ? {} : { azp: party }) })).toString("base64url");
+  const input = `${header}.${payload}`;
+  return `${input}.${sign("RSA-SHA256", Buffer.from(input), signingKey).toString("base64url")}`;
+}
+
+function signed(kind: string, data: Record<string, unknown>, eventId = `msg_${randomBytes(8).toString("hex")}`) {
+  const body = Buffer.from(JSON.stringify({ object: "event", type: kind,
+    instance_id: config.expectedInstanceId, timestamp: Date.now(), data }));
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signature = createHmac("sha256", signingKey).update(`${eventId}.${timestamp}.`).update(body).digest("base64");
+  return { body, headers: { "svix-id": eventId, "svix-timestamp": timestamp,
+    "svix-signature": `v1,${signature}` } };
+}
+
+async function deliver(kind: string, data: Record<string, unknown>, eventId?: string) {
+  const message = signed(kind, data, eventId);
+  return applyClerkWebhookEvent(pool, await verifyClerkWebhook(message.body, message.headers, config));
+}
+
+beforeAll(async () => {
+  await admin.connect();
+  await admin.query(`CREATE DATABASE "${database}"`);
+  pool = createPool(databaseUrl.toString());
+  await migrate(pool);
+  // This suite is intentionally not runnable on the old a15accf base: owner
+  // migration 054 and identityDigest must be merged before its evidence counts.
+  const schema = await pool.query("SELECT to_regclass('public.clerk_webhook_receipts') AS receipts");
+  if (!schema.rows[0]?.receipts) throw new Error("requires_owner_054_integration");
+  boss = await createQueue(databaseUrl.toString());
+  app = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "test", APP_AUTH_MODE: "production",
+    APP_IDENTITY_PROVIDER: "clerk", DATABASE_URL: databaseUrl.toString(),
+    CLERK_ISSUER: config.issuer, CLERK_AUTHORIZED_PARTIES: "https://synthetic.app.test",
+    CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only", CLERK_JWT_KEY: jwtPublicKey,
+    CLERK_WEBHOOK_SIGNING_SECRET: config.signingSecret,
+    CLERK_WEBHOOK_INSTANCE_ID: config.expectedInstanceId }) });
+}, 120_000);
+
+afterAll(async () => {
+  await app?.close();
+  await boss?.stop({ graceful: true, timeout: 2000 });
+  await pool?.end();
+  const active = await admin.query<{ count: string }>(
+    "SELECT count(*)::text AS count FROM pg_stat_activity WHERE datname=$1", [database]);
+  if (Number(active.rows[0]?.count) !== 0) throw new Error("clerk_webhook_test_clients_remain");
+  await admin.query(`DROP DATABASE IF EXISTS "${database}"`);
+  await admin.end();
+}, 30_000);
+
+describe("verified Clerk webhook durable effects", () => {
+  it("AUTH-01 accepts a signed native session with omitted azp, but rejects a present wrong party", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sessionId = `sess_${randomBytes(8).toString("hex")}`;
+    const native = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, jwtKeys.privateKey, null)}` } });
+    expect(native.statusCode).toBe(200);
+    const wrong = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, jwtKeys.privateKey, "https://wrong.app.test")}` } });
+    expect(wrong.statusCode).toBe(401);
+  });
+  it("AUTH-10 expired customer JWT cannot create an account or recover stale session authority", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const expired = sessionToken(subject, `sess_${randomBytes(8).toString("hex")}`, -60);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${expired}` } })).statusCode).toBe(401);
+    expect((await pool.query("SELECT 1 FROM external_identities WHERE identity_digest=$1",
+      [identityDigest(config.issuer, subject)])).rowCount).toBe(0);
+  });
+
+  it("AUTH-09 unavailable Clerk verification fails closed without mapping a new account", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const token = sessionToken(subject, `sess_${randomBytes(8).toString("hex")}`);
+    const offline = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "test",
+      APP_AUTH_MODE: "production", APP_IDENTITY_PROVIDER: "clerk", DATABASE_URL: databaseUrl.toString(),
+      CLERK_ISSUER: config.issuer, CLERK_AUTHORIZED_PARTIES: "https://synthetic.app.test",
+      CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only",
+      CLERK_WEBHOOK_SIGNING_SECRET: config.signingSecret,
+      CLERK_WEBHOOK_INSTANCE_ID: config.expectedInstanceId }) });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("synthetic key-service outage")));
+    try {
+      expect((await offline.inject({ method: "GET", url: "/v1/session",
+        headers: { authorization: `Bearer ${token}` } })).statusCode).toBe(503);
+      expect((await pool.query("SELECT 1 FROM external_identities WHERE identity_digest=$1",
+        [identityDigest(config.issuer, subject)])).rowCount).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+      await offline.close();
+    }
+  });
+
+  it("AUTH-03 rotated signing key verifies through current JWKS without changing the internal account", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sessionId = `sess_${randomBytes(8).toString("hex")}`;
+    const original = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId)}` } });
+    expect(original.statusCode).toBe(200);
+    const rotated = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const jwk = rotated.publicKey.export({ format: "jwk" });
+    const remote = vi.fn().mockResolvedValue(Response.json({ keys: [{ ...jwk, kid: "synthetic", alg: "RS256", use: "sig" }] }));
+    vi.stubGlobal("fetch", remote);
+    try {
+      const refreshed = await app.inject({ method: "GET", url: "/v1/session",
+        headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, rotated.privateKey)}` } });
+      expect(refreshed.statusCode).toBe(200);
+      expect(refreshed.json().accountId).toBe(original.json().accountId);
+      expect(remote).toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("AUTH-11 signed customer JWT loses only its revoked session authority at the live HTTP boundary", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sid1 = `sess_${randomBytes(8).toString("hex")}`;
+    const sid2 = `sess_${randomBytes(8).toString("hex")}`;
+    const first = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } });
+    expect(first.statusCode).toBe(200);
+    const accountId = first.json().accountId;
+    const refreshed = sessionToken(subject, sid1, 600);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${refreshed}` } })).json().accountId).toBe(accountId);
+    const message = signed("session.revoked", { id: sid1, user_id: subject });
+    const webhook = () => app.inject({ method: "POST", url: "/v1/clerk/webhooks",
+      headers: { ...message.headers, "content-type": "application/json" }, payload: message.body });
+    expect((await webhook()).json()).toEqual({ accepted: true, reused: false });
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } })).statusCode).toBe(401);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${refreshed}` } })).statusCode).toBe(401);
+    const other = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid2)}` } });
+    expect(other.statusCode).toBe(200);
+    expect(other.json().accountId).toBe(accountId);
+    expect((await webhook()).json()).toEqual({ accepted: true, reused: true });
+  });
+
+  it("AUTH-11 raw API boundary rejects customer credentials, changed bytes and changed replay digest", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const id = `msg_${randomBytes(8).toString("hex")}`;
+    const message = signed("user.deleted", { id: subject }, id);
+    const request = (body: Buffer, headers: Record<string, string>) => app.inject({ method: "POST",
+      url: "/v1/clerk/webhooks", headers: { ...headers, "content-type": "application/json" }, payload: body });
+    expect((await request(message.body, { ...message.headers, authorization: "Bearer invalid" })).statusCode).toBe(403);
+    expect((await request(message.body, { ...message.headers, "x-norrow-guest-proof": "invalid" })).statusCode).toBe(403);
+    expect((await request(Buffer.concat([message.body, Buffer.from(" ")]), message.headers)).statusCode).toBe(401);
+    expect((await request(message.body, message.headers)).json()).toEqual({ accepted: true, reused: false });
+    expect((await request(message.body, message.headers)).json()).toEqual({ accepted: true, reused: true });
+    const changed = signed("user.deleted", { id: `user_${randomBytes(8).toString("hex")}` }, id);
+    expect((await request(changed.body, changed.headers)).statusCode).toBe(409);
+    expect(await accountForIdentity(pool, { issuer: config.issuer, subject })).toBeNull();
+  });
+
+  it("AUTH-11 dedupes an event, rejects a changed digest and tombstones one exact session", async () => {
+    const eventId = `msg_${randomBytes(8).toString("hex")}`;
+    const message = signed("session.revoked", { id: "sess_Synthetic1", user_id: "user_Synthetic1" }, eventId);
+    const verified = await verifyClerkWebhook(message.body, message.headers, config);
+    const concurrent = await Promise.all([
+      applyClerkWebhookEvent(pool, verified), applyClerkWebhookEvent(pool, verified),
+    ]);
+    expect(concurrent.map((result) => result.reused).sort()).toEqual([false, true]);
+    expect(await applyClerkWebhookEvent(pool, verified)).toEqual({ reused: true });
+    await expect(deliver("session.revoked", { id: "sess_Synthetic2", user_id: "user_Synthetic1" }, eventId))
+      .rejects.toThrow("clerk_webhook_replay_mismatch");
+    expect(await deliver("session.ended", { id: "sess_Synthetic1", user_id: "user_Synthetic1" }))
+      .toEqual({ reused: false });
+    const rows = await pool.query("SELECT session_id FROM clerk_revoked_sessions WHERE session_id LIKE 'sess_Synthetic%' ");
+    expect(rows.rows).toEqual([{ session_id: "sess_Synthetic1" }]);
+  });
+
+  it("AUTH-11 deletes a mapped member and delayed create/update cannot resurrect it", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const mapped = await accountForIdentity(pool, { issuer: config.issuer, subject });
+    expect(mapped).not.toBeNull();
+    expect(await deliver("user.deleted", { id: subject })).toEqual({ reused: false });
+    const digest = identityDigest(config.issuer, subject);
+    const deleted = await pool.query(`SELECT a.deleted_at,a.deletion_epoch FROM external_identities i
+      JOIN accounts a ON a.id=i.account_id WHERE i.identity_digest=$1`, [digest]);
+    expect(deleted.rows[0]?.deleted_at).toBeTruthy();
+    expect(Number(deleted.rows[0]?.deletion_epoch)).toBeGreaterThan(0);
+    expect(await pool.query("SELECT 1 FROM clerk_deleted_subjects WHERE identity_digest=$1", [digest]))
+      .toMatchObject({ rowCount: 1 });
+    expect(await deliver("user.created", { id: subject })).toEqual({ reused: false });
+    expect(await deliver("user.updated", { id: subject, email_addresses: [{ email_address: "other@example.test" }] }))
+      .toEqual({ reused: false });
+    expect(await accountForIdentity(pool, { issuer: config.issuer, subject })).toBeNull();
+  });
+
+  it("AUTH-11 deletion arriving before first login and racing a login remains a monotone deny", async () => {
+    const early = `user_${randomBytes(8).toString("hex")}`;
+    expect(await deliver("user.deleted", { id: early })).toEqual({ reused: false });
+    expect(await accountForIdentity(pool, { issuer: config.issuer, subject: early })).toBeNull();
+    await deliver("user.created", { id: early });
+    expect(await accountForIdentity(pool, { issuer: config.issuer, subject: early })).toBeNull();
+
+    const raced = `user_${randomBytes(8).toString("hex")}`;
+    const otherPool = createPool(databaseUrl.toString());
+    try {
+      await Promise.all([
+        accountForIdentity(otherPool, { issuer: config.issuer, subject: raced }),
+        deliver("user.deleted", { id: raced }),
+      ]);
+      expect(await accountForIdentity(pool, { issuer: config.issuer, subject: raced })).toBeNull();
+      const live = await pool.query(`SELECT count(*)::int AS count FROM external_identities i
+        JOIN accounts a ON a.id=i.account_id WHERE i.identity_digest=$1 AND a.deleted_at IS NULL`,
+      [identityDigest(config.issuer, raced)]);
+      expect(live.rows[0].count).toBe(0);
+    } finally {
+      await otherPool.end();
+    }
+  });
+});

@@ -21,6 +21,18 @@ import {
   OUTPUT_REPORT_CATEGORIES,
   PRIVACY_DATA_FLOWS,
   PROCESSOR_DISCLOSURE,
+  GuestBootstrapRequestSchema,
+  GuestPendingActionRequestSchema,
+  GuestClaimRequestSchema,
+  GuestClaimResolveRequestSchema,
+  GuestActionResumeRequestSchema,
+  GuestActionResolveRequestSchema,
+  GuestAuthAttemptBeginRequestSchema,
+  GuestAuthAttemptEndRequestSchema,
+  GuestAuthAttemptResolveRequestSchema,
+  GuestPendingActionCancelRequestSchema,
+  GuestClaimedActionAbandonRequestSchema,
+  GuestMemberActionRegisterRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -39,7 +51,7 @@ import type PgBoss from "pg-boss";
 import type pg from "pg";
 import { createHash } from "node:crypto";
 import type { AppConfig } from "../platform/config.js";
-import { withTx } from "../platform/db.js";
+import { assertSchemaCurrent, withTx } from "../platform/db.js";
 import { exportReportForAccount } from "../modules/report-export.js";
 import { logError } from "../platform/log.js";
 import {
@@ -70,17 +82,32 @@ import {
   listLibrary,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
+import { admitClaimedReportCorrection, insertClaimedReportChallenge,
+  resolveClaimedReportCorrection } from "../modules/claimed-report-actions.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, loadOwnedExplanationEvidence, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { approveQueryAuthorization, pendingQueryAuthorization } from "../modules/retrieval-intelligence.js";
 import { modelPolicy } from "../ports/model-policy.js";
+import { admittedRunOptions, assertRouteAdmission } from "../modules/run-route-admission.js";
 import { z } from "zod";
 import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
 import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
+import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
+import { verifyClerkWebhook } from "../adapters/auth/clerk-webhook.js";
+import { RESEARCH_QUEUE } from "../adapters/queue.js";
 import { accountForIdentity } from "../modules/identity.js";
+import { applyClerkWebhookEvent } from "../modules/clerk-revocation.js";
+import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
+  cancelGuestConversationRun,
+  cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
+  registerMemberClarificationReplacement,
+  endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
+  registerGuestPendingAction, resolveGuestAuthAttempt,
+  revokeGuestConsent,
+  resolveGuestAction, resolveGuestClaim, resolveGuestFirstRequest, resumeClaimedGuestAction } from "../modules/guest-auth.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -103,15 +130,30 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return reply.code(status).send(err(publicCode, status === 409 ? "The request no longer matches the current research state." : status === 500 ? "The request could not be completed." : "The request was not accepted.",crypto.randomUUID()));
   });
   const typedCorrectionsEnabled=Boolean(config.structuredModelEnabled&&config.liveRouteEnabled&&config.openRouterApiKey&&config.liveSpendCapMicro>0&&(config.liveKeySpendCapMicro??0)>0);
+  function guestError(reply: FastifyReply, error: unknown) {
+    const code = (error as { code?: string }).code;
+    const status = (error as { statusCode?: number }).statusCode;
+    if (code === "allowance_exhausted") return reply.code(402).send(err("allowance_exhausted",
+      "This action is saved, but available member allowance is required before it can continue.", crypto.randomUUID(),
+      "The pending action remains available for an exact retry after funding."));
+    if (code && status && status >= 400 && status < 500)
+      return reply.code(status).send(err(code, "This guest action cannot continue with the current authority or state.", crypto.randomUUID()));
+    throw error;
+  }
 
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
     done(null, String(body));
   });
 
-  app.get("/health", async () => ({ ok: true, mode: config.authMode, fixture: config.fixtureRouteAllowed, live: config.liveRouteEnabled }));
-  app.get("/ready", async () => {
-    await pool.query("SELECT 1");
-    return { ok: true };
+  app.get("/health", async () => ({ ok: true }));
+  app.get("/ready", async (_req, reply) => {
+    try {
+      await assertSchemaCurrent(pool);
+      if (!await boss.getQueue(RESEARCH_QUEUE)) throw new Error("research_queue_missing");
+      return { ok: true };
+    } catch {
+      return reply.code(503).send({ ok: false });
+    }
   });
 
   app.post("/v1/dev/session", async (req, reply) => {
@@ -126,12 +168,30 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   async function auth(req: { headers: Record<string, unknown> }) {
     const header = String(req.headers.authorization ?? "");
     if (config.authMode === "development") { const account = await accountFromBearer(pool, header); return account?.deleted ? null : account; }
-    if (!config.supabaseAuth || !header.startsWith("Bearer ")) return null;
-    const identity = await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth);
+    if (!header.startsWith("Bearer ")) return null;
+    const identity = config.identityProvider === "clerk" && config.clerkAuth
+      ? await verifyClerkIdentity(header.slice(7).trim(), config.clerkAuth)
+      : config.supabaseAuth ? await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth) : null;
+    if (!identity) return null;
     if (identity.status === "unavailable") throw Object.assign(new Error("Sign-in verification is temporarily unavailable."), { statusCode: 503 });
     if (identity.status !== "verified") return null;
+    if (config.identityProvider === "clerk") {
+      if (!("sessionId" in identity.identity)) return null;
+      const revoked = await pool.query("SELECT 1 FROM clerk_revoked_sessions WHERE session_id=$1", [identity.identity.sessionId]);
+      if (revoked.rowCount) return null;
+    }
     const account = await accountForIdentity(pool, identity.identity);
     return account?.deleted ? null : account;
+  }
+  async function guest(req: { headers: Record<string, unknown> }) {
+    return guestFromProof(pool, config, req.headers["x-norrow-guest-proof"]);
+  }
+  async function scopedReadOwner(runId: string, actor: { accountId: string },
+    guestContext: Awaited<ReturnType<typeof guest>>) {
+    if (guestContext) return await guestCanAccessRun(pool, guestContext, runId) ? guestContext.accountId : null;
+    const own = await pool.query("SELECT 1 FROM runs WHERE id=$1 AND account_id=$2", [runId, actor.accountId]);
+    if (own.rowCount) return actor.accountId;
+    return (await claimedConversationScope(pool, actor.accountId, runId))?.parentExecutionOwnerId ?? null;
   }
 
   // A single strict transport boundary covers the formerly cast-only endpoints.
@@ -139,22 +199,46 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const revision = z.number().int().positive();
   const bodySchemas: Record<string, z.ZodTypeAny> = {
     "/v1/dev/session": z.object({ email: z.string().email().max(254).optional() }).strict(),
+    "/v1/guest/bootstrap": GuestBootstrapRequestSchema,
+    "/v1/guest/pending-actions": GuestPendingActionRequestSchema,
+    "/v1/guest/pending-actions/attempts/begin": GuestAuthAttemptBeginRequestSchema,
+    "/v1/guest/pending-actions/attempts/end": GuestAuthAttemptEndRequestSchema,
+    "/v1/guest/pending-actions/attempts/resolve": GuestAuthAttemptResolveRequestSchema,
+    "/v1/guest/pending-actions/cancel": GuestPendingActionCancelRequestSchema,
+    "/v1/guest/actions/abandon": GuestClaimedActionAbandonRequestSchema,
+    "/v1/guest/actions/register-member": GuestMemberActionRegisterRequestSchema,
+    "/v1/guest/claim": GuestClaimRequestSchema,
+    "/v1/guest/claims/resolve": GuestClaimResolveRequestSchema,
+    "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
+    "/v1/guest/actions/resolve": GuestActionResolveRequestSchema,
     "/v1/consent": z.object({ grant: z.boolean() }).strict(),
     "/v1/runs/:id/cancel": z.object({}).strict(),
     "/v1/account/deletion": z.object({}).strict(),
     "/v1/purchases/restore": z.object({}).strict(),
     "/v1/purchases/verify": z.object({receipt: z.string().max(10000).optional()}).strict(),
     "/v1/billing/webhooks": z.object({eventId: z.string().max(300).optional(), product: z.string().max(100).optional()}).strict(),
-    "/v1/runs/:id/continue": ContinueRunRequestSchema,
+    "/v1/runs/:id/continue": z.union([ContinueRunRequestSchema, GuestActionResumeRequestSchema]),
     "/v1/runs/:id/assumptions": AssumptionsRequestSchema,
     "/v1/runs/:id/query-authorizations/approve": z.object({ authorizationId: z.string().uuid(), queryDigest: z.string().regex(/^[a-f0-9]{64}$/), terms: z.array(z.string().min(1).max(1000)).max(200) }).strict(),
-    "/v1/runs/:id/follow-up": z.union([RequestedVerificationRequestSchema,
+    "/v1/runs/:id/follow-up": z.union([GuestActionResumeRequestSchema, RequestedVerificationRequestSchema,
       FollowUpMessageRequestSchema,
       z.object({ claimId: z.string().uuid().optional(), note: boundedText.optional() }).strict()]),
     "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional(), excerptText: z.string().max(4000).optional() }).strict(),
   };
   app.addHook("preValidation", async (req, reply) => {
     const route = req.routeOptions.url ?? "";
+    const proof = req.headers["x-norrow-guest-proof"];
+    if (proof !== undefined) {
+      const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/runs", "/v1/run-requests/resolve",
+        "/v1/guest/pending-actions", "/v1/guest/pending-actions/attempts/begin",
+        "/v1/guest/pending-actions/attempts/end", "/v1/guest/pending-actions/attempts/resolve",
+        "/v1/guest/pending-actions/cancel",
+        "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
+        "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
+        "/v1/settings", "/v1/routes/capabilities", "/v1/guest"]);
+      if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim"))
+        return reply.code(403).send(err("authority_denied", "This credential combination is not allowed.", crypto.randomUUID()));
+    }
     if (route.includes(":id") && !z.object({ id: z.string().uuid() }).strict().safeParse(req.params).success)
       return reply.code(400).send(err("invalid_input", "A valid object identity is required.", crypto.randomUUID()));
     if (req.method === "GET" && route.startsWith("/v1/")) {
@@ -169,20 +253,148 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
   });
 
-  app.get("/v1/session", async (req, reply) => {
-    const account = await auth(req as never);
-    if (!account || account.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { accountId: account.accountId, authMode: config.authMode };
+  app.post("/v1/guest/bootstrap", async (req, reply) => {
+    try {
+      const result = await bootstrapGuest(pool, config, req.ip);
+      return reply.code(201).send(result);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode ?? 500;
+      if (code && status !== 500) return reply.code(status).send(err(code, "Guest research is not currently available.", crypto.randomUUID()));
+      throw error;
+    }
   });
 
+  app.post("/v1/guest/pending-actions", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    const parsed = GuestPendingActionRequestSchema.parse(req.body);
+    try {
+      return reply.code(202).send(await registerGuestPendingAction(pool, context, parsed));
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode ?? 500;
+      if (code && status !== 500) return reply.code(status).send(err(code, "The pending action cannot be saved.", crypto.randomUUID()));
+      throw error;
+    }
+  });
+
+  app.post("/v1/guest/pending-actions/attempts/begin", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await beginGuestAuthAttempt(pool, context, GuestAuthAttemptBeginRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/attempts/end", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await endGuestAuthAttempt(pool, context, GuestAuthAttemptEndRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/attempts/resolve", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await resolveGuestAuthAttempt(pool, context, GuestAuthAttemptResolveRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/cancel", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await cancelGuestPendingAction(pool, context,
+      GuestPendingActionCancelRequestSchema.parse(req.body).submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/abandon", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestClaimedActionAbandonRequestSchema.parse(req.body);
+    try { return await abandonClaimedGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/register-member", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    try { return await registerMemberClarificationReplacement(pool, member.accountId,
+      GuestMemberActionRegisterRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/claim", async (req, reply) => {
+    const context = await guest(req as never);
+    const member = await auth(req as never);
+    if (!context || !member || member.deleted) return reply.code(403).send(err("authority_denied", "Both verified member and guest proof are required.", crypto.randomUUID()));
+    try {
+      return await claimGuestAction(pool, context, member.accountId, member.deletionEpoch,
+        GuestClaimRequestSchema.parse(req.body));
+    } catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/claims/resolve", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestClaimResolveRequestSchema.parse(req.body);
+    try { return await resolveGuestClaim(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/resume", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    try {
+      const result = await resumeClaimedGuestAction(pool, member.accountId,
+        GuestActionResumeRequestSchema.parse(req.body), config);
+      if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
+      return result;
+    } catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/resolve", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestActionResolveRequestSchema.parse(req.body);
+    try { return await resolveGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId, config); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.get("/v1/session", async (req, reply) => {
+    const g = await guest(req as never);
+    if (g) {
+      const consent = await currentConsent(pool, g.accountId);
+      return { actorKind: "guest", guestContextId: g.id, conversationId: g.conversationId,
+        conversationVersion: 1, controlVersion: g.controlVersion, acceptedTurnCount: g.acceptedTurnCount,
+        expiresAt: g.expiresAt.toISOString(), consentGranted: Boolean(consent && !consent.revoked),
+        firstTurnAvailable: g.acceptedTurnCount === 0 };
+    }
+    const account = await auth(req as never);
+    if (!account || account.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    return { accountId: account.accountId, authMode: config.authMode, actorKind: "member",
+      deletionEpoch: account.deletionEpoch };
+  });
+
+  app.get("/v1/auth/capabilities", async () => ({ apple: Boolean(config.providerCapabilities.apple),
+    google: Boolean(config.providerCapabilities.google), emailCode: Boolean(config.providerCapabilities.emailCode),
+    termsUrl: config.providerCapabilities.termsUrl ?? null,
+    privacyUrl: config.providerCapabilities.privacyUrl ?? null }));
+
   app.post("/v1/consent", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const body = (req.body ?? {}) as { grant?: boolean };
     if (typeof body.grant !== "boolean") {
       return reply.code(400).send(err("invalid_input", "An explicit consent choice is required.", crypto.randomUUID()));
     }
     if (body.grant === false) {
+      if (g) {
+        const revoked = await revokeGuestConsent(pool, g);
+        return { granted: false, consentEpoch: revoked.epoch, controlVersion: revoked.controlVersion,
+          processors: PROCESSOR_DISCLOSURE };
+      }
       const epoch = await revokeConsent(pool, a.accountId);
       return { granted: false, consentEpoch: epoch, processors: PROCESSOR_DISCLOSURE };
     }
@@ -191,18 +403,22 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/run-requests/resolve", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const input = z.object({ idempotencyKey: z.string().uuid(), verification: VerificationRecoverySchema.optional() }).strict().safeParse(req.body);
     if (!input.success) return reply.code(400).send(err("invalid_input", "Saved request key required.", crypto.randomUUID()));
-    const resolved = await resolveAdmission(pool, a.accountId, input.data.idempotencyKey, input.data.verification);
+    if (g && input.data.verification) return reply.code(403).send(err("authority_denied", "Guest proof is limited to the first request.", crypto.randomUUID()));
+    const resolved = g ? await resolveGuestFirstRequest(pool, g, input.data.idempotencyKey)
+      : await resolveAdmission(pool, a.accountId, input.data.idempotencyKey, input.data.verification);
     if (!resolved) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return resolved;
   });
 
   app.post("/v1/runs", async (req, reply) => {
     const correlationId = crypto.randomUUID();
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", correlationId));
     const parsed = CreateRunRequestSchema.strict().safeParse(req.body ?? {});
     if (!parsed.success) {
@@ -212,37 +428,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const suppliedKey = z.string().min(1).max(200).regex(/^[A-Za-z0-9_-]+$/).safeParse(req.headers["idempotency-key"]);
     if ((input.routeMode === "controlled-research" || req.headers["idempotency-key"] !== undefined) && !suppliedKey.success)
       return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
-    if (input.routeMode === "fixture" && !config.fixtureRouteAllowed) {
-      return reply.code(403).send(err("permission_denied", "Fixture route is disabled.", correlationId));
-    }
-    if (input.routeMode === "controlled-research" && !config.liveRouteEnabled) {
-      return reply.code(403).send(err("permission_denied", "Live route is not enabled. Missing authorized credentials/budget.", correlationId));
-    }
-    if (input.routeMode === "controlled-research" && config.nodeEnv === "production" && !config.structuredModelEnabled) {
-      return reply.code(403).send(err("permission_denied", "Structured research is disabled.", correlationId));
-    }
-    if (input.routeMode === "controlled-research") {
-      if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
-        return reply.code(403).send(err("permission_denied", "Live route requires OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0.", correlationId));
-      }
-      const { liveSpendUsedMicro, canIssueLiveCall } = await import("../modules/live-spend.js");
-      const used = await liveSpendUsedMicro(pool);
-      const gate = canIssueLiveCall({ capMicro: config.liveSpendCapMicro, usedMicro: used });
-      if (!gate.ok) {
-        return reply.code(403).send(err("allowance_exhausted", "Live spend cap would be exceeded. No new paid call issued.", correlationId));
-      }
-    }
+    try { await assertRouteAdmission(pool, config, input.routeMode); }
+    catch (error) { return guestError(reply, error); }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));
     }
     const idempotencyKey = suppliedKey.success ? suppliedKey.data : crypto.randomUUID();
     try {
-      const created = await admitRun(pool, a.accountId, idempotencyKey, input, {
-        strategy: config.structuredStrategy,
-        modelPolicyId: config.structuredModelPolicyId,
-        zdrRequired: config.structuredModelPolicyId ? modelPolicy(config.structuredModelPolicyId).provider === "azure" : false,
-      });
+      const created = g ? await admitGuestFirst(pool, config, g, idempotencyKey, input) : await admitRun(pool, a.accountId, idempotencyKey, input,
+        admittedRunOptions(config));
       await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {
@@ -256,10 +451,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       };
     } catch (e) {
       const code = (e as { code?: string }).code;
-      if (code === "idempotency_conflict" || code === "stale_revision" || code === "idempotency_withdrawn") {
+      if (code === "idempotency_conflict" || code === "stale_revision" || code === "idempotency_withdrawn" || code === "intent_stale") {
         return reply.code(409).send(err(code, "Request conflicts with the accepted revision or idempotency key.", correlationId));
       }
-      if (code === "permission_denied" || code === "consent_required") {
+      if (code === "permission_denied" || code === "consent_required" || code === "AUTH_REQUIRED_NEXT_TURN" || code === "authority_denied" || code === "guest_expired" || code === "guest_deleted") {
         return reply.code(403).send(err(code, "Run inputs are not authorized for this account and consent.", correlationId));
       }
       if (code === "allowance_exhausted" || code === "attempt_budget_exhausted") {
@@ -274,20 +469,23 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/runs/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
-    if (!run || run.account_id !== a.accountId) {
+    if (!run || run.account_id !== owner) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
     const brief = await getBrief(pool, run.brief_id);
-    const report = await getLatestReportForRun(pool, run.id, a.accountId);
+    const report = await getLatestReportForRun(pool, run.id, owner);
     const contentInvalidated = Boolean((await pool.query(
       "SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion' LIMIT 1",
-      [a.accountId, run.id],
+      [owner, run.id],
     )).rowCount);
-    const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
+    const pendingQuery = await pendingQueryAuthorization(pool, { accountId: owner, runId: run.id, briefRevision: run.brief_revision });
     const pendingField = pendingClarificationField(run.pending_input_field);
     return {
       runId: run.id,
@@ -313,11 +511,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/runs/:id/events", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
-    if (!run || run.account_id !== a.accountId) {
+    if (!run || run.account_id !== owner) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
     const after = Number((req.query as { after?: string }).after ?? 0);
@@ -339,10 +540,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/runs/:id/cancel", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    const updated = await cancelOwnedRun(pool, a.accountId, id);
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    let updated;
+    try { updated = g ? await cancelGuestConversationRun(pool, id, { kind: "guest", context: g })
+      : owner !== a.accountId ? await cancelGuestConversationRun(pool, id,
+        { kind: "claimed", memberAccountId: a.accountId }) : await cancelOwnedRun(pool, owner, id); }
+    catch (error) { return guestError(reply, error); }
     if (!updated) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
@@ -355,7 +563,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      const saved = GuestActionResumeRequestSchema.safeParse(req.body);
+      if (!saved.success) return reply.code(409).send(err("intent_stale",
+        "An exact saved clarification action is required.", crypto.randomUUID()));
+      try {
+        const result = await resumeClaimedGuestAction(pool, a.accountId,
+          { ...saved.data, expectedParentRunId: id, expectedKind: "clarification" }, config);
+        if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
+        return result;
+      } catch (error) { return guestError(reply, error); }
     }
     if (run.lifecycle !== "awaiting_input") {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
@@ -585,6 +803,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id=z.string().uuid().safeParse((req.params as {id:string}).id);
     const input=CorrectionRequestSchema.strict().safeParse(req.body);
     if(!id.success||!input.success||!input.data.patch)return reply.code(400).send(err("invalid_input","Exact saved typed correction required.",crypto.randomUUID()));
+    const parent=await getRun(pool,id.data);
+    if(parent && parent.account_id!==a.accountId){
+      if(!await claimedConversationScope(pool,a.accountId,id.data))
+        return reply.code(404).send(err("authority_denied","Run not found.",crypto.randomUUID()));
+      try { return await resolveClaimedReportCorrection(pool,a.accountId,id.data,input.data); }
+      catch(error){ return guestError(reply,error); }
+    }
     const result=await resolveResearchCorrection(pool,a.accountId,id.data,input.data);
     if(!result)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
     return result;
@@ -598,7 +823,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!parsed.success) return reply.code(400).send(err("invalid_input", "Invalid correction.", crypto.randomUUID()));
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!parsed.data.patch || !typedCorrectionsEnabled)
+        return reply.code(409).send(err("invalid_input", "Structured corrections are unavailable on this route.", crypto.randomUUID()));
+      try {
+        const created = await admitClaimedReportCorrection(pool, config, a.accountId, id, parsed.data);
+        if (!created.reused) await tryDispatchRun(pool, boss, created.runId);
+        return created;
+      } catch (error) { return guestError(reply, error); }
     }
     if (run.brief_revision !== parsed.data.expectedBriefRevision) {
       return reply.code(409).send(err("stale_revision", "This correction is based on an older brief.", crypto.randomUUID()));
@@ -679,7 +912,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      const saved = GuestActionResumeRequestSchema.safeParse(req.body);
+      if (!saved.success) return reply.code(409).send(err("intent_stale",
+        "An exact saved follow-up action is required.", crypto.randomUUID()));
+      try {
+        const result = await resumeClaimedGuestAction(pool, a.accountId,
+          { ...saved.data, expectedParentRunId: id, expectedKind: "follow_up" }, config);
+        if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
+        return result;
+      } catch (error) { return guestError(reply, error); }
     }
     const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string; expectedBriefRevision?: number };
     if (!followBody.claimId && followBody.message) {
@@ -921,11 +1164,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/reports/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const reportId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
+    const report = await getReportForAccount(pool, reportId, owner);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
-    const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: a.accountId, report });
+    const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: owner, report });
     return {
       reportId: report.id,
       runId: report.run_id,
@@ -942,9 +1190,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/sources/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const row = await getPassageForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const passageId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM passages WHERE id=$1", [passageId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
+    const row = await getPassageForAccount(pool, passageId, owner);
     if (!row) return reply.code(404).send(err("permission_denied", "Source not found.", crypto.randomUUID()));
     return {
       passageId: row.id,
@@ -970,26 +1223,49 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.delete("/v1/sources/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const result = await deleteSourceForAccount(pool, a.accountId, (req.params as { id: string }).id);
-    try { await drainFileDeletions(pool, config.storageDir, a.accountId); }
+    const sourceId = (req.params as { id: string }).id;
+    const source = (await pool.query<{ run_id: string }>("SELECT run_id FROM sources WHERE id=$1", [sourceId])).rows[0];
+    const owner = source ? await scopedReadOwner(source.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
+    const authority = g ? { kind: "guest" as const, context: g, runId: source!.run_id }
+      : owner !== a.accountId ? { kind: "claimed" as const, memberAccountId: a.accountId, runId: source!.run_id }
+        : undefined;
+    const result = await deleteSourceForAccount(pool, owner, sourceId, authority);
+    try { await drainFileDeletions(pool, config.storageDir, owner); }
     catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
-    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [a.accountId]);
+    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [owner]);
     return { ...result, fileCleanupPending: pending.rowCount !== 0 };
   });
 
   app.get("/v1/library", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { items: await listLibrary(pool, a.accountId) };
+    return { items: [...await listLibrary(pool, a.accountId), ...await listClaimedGuestParents(pool, a.accountId)]
+      .sort((left, right) => right.created_at.getTime() - left.created_at.getTime()).slice(0, 100) };
   });
 
   app.post("/v1/reports/:id/challenges", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
-    if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+    if (!report) {
+      const reportId = (req.params as { id: string }).id;
+      const parent = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+      if (!parent || !await claimedConversationScope(pool, a.accountId, parent.run_id))
+        return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+      const key = z.string().regex(/^[A-Za-z0-9_-]{1,200}$/).safeParse(req.headers["idempotency-key"]);
+      if (!key.success) return reply.code(400).send(err("invalid_input",
+        "An explicit challenge identity is required.", crypto.randomUUID()));
+      const body = (req.body ?? {}) as { claimId?: string; category?: string; note?: string; includeExcerpt?: boolean };
+      try { return await insertClaimedReportChallenge(pool, a.accountId, parent.run_id, reportId,
+        { idempotencyKey: key.data, claimId: body.claimId,
+          category: z.enum([...OUTPUT_REPORT_CATEGORIES, "claim"]).parse(body.category ?? "other"), note: body.note,
+          includeExcerpt: body.includeExcerpt }); }
+      catch (error) { return guestError(reply, error); }
+    }
     const body = (req.body ?? {}) as {
       claimId?: string;
       category?: string;
@@ -1017,7 +1293,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get("/v1/reports/:id/export", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const md = await exportReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const reportId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, null) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
+    const md = await exportReportForAccount(pool, reportId, owner);
     if (md === null) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
     return { format: "markdown", markdown: md };
   });
@@ -1133,6 +1413,41 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return performDeletion(a, reply, false);
   });
 
+  app.delete("/v1/guest", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    return performDeletion({ accountId: context.accountId }, reply, false);
+  });
+
+  app.register(async (scope) => {
+    // Encapsulation keeps every ordinary JSON endpoint on Fastify's validated parser.
+    scope.addContentTypeParser("application/json", { parseAs: "buffer", bodyLimit: 256 * 1024 },
+      (_req, body, done) => done(null, body));
+    scope.post("/v1/clerk/webhooks", async (req, reply) => {
+      if (!config.clerkAuth || !config.clerkWebhook || req.headers.authorization ||
+          req.headers["x-norrow-guest-proof"])
+        return reply.code(403).send(err("authority_denied", "Webhook not accepted.", crypto.randomUUID()));
+      let event;
+      try {
+        event = await verifyClerkWebhook(req.body as Buffer, req.headers, {
+          signingSecret: config.clerkWebhook.signingSecret,
+          expectedInstanceId: config.clerkWebhook.instanceId,
+          issuer: config.clerkAuth.issuer,
+        });
+      } catch {
+        return reply.code(401).send(err("authority_denied", "Webhook not accepted.", crypto.randomUUID()));
+      }
+      try {
+        const receipt = await applyClerkWebhookEvent(pool, event);
+        return { accepted: true, reused: receipt.reused };
+      } catch (error) {
+        if ((error as Error).message === "clerk_webhook_replay_mismatch")
+          return reply.code(409).send(err("idempotency_conflict", "Webhook receipt mismatch.", crypto.randomUUID()));
+        throw error;
+      }
+    });
+  });
+
   app.post("/v1/billing/webhooks", async (req, reply) => {
     const sig = String(req.headers["x-webhook-signature"] ?? "");
     const eventId = String((req.body as { eventId?: string } | undefined)?.eventId ?? "");
@@ -1175,7 +1490,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/settings", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const consent = await currentConsent(pool, a.accountId);
     const allow = await pool.query(`SELECT * FROM allowance_accounts WHERE account_id = $1`, [a.accountId]);
@@ -1189,7 +1505,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         deletionVsSubscription: DELETION_VS_SUBSCRIPTION,
       },
       outputReporting: { available: true, categories: [...OUTPUT_REPORT_CATEGORIES] },
-      allowance: allow.rows[0] ?? null,
+      allowance: g ? { availableMicro: Math.max(0, Number(allow.rows[0]?.limit_micro ?? 0) -
+        Number(allow.rows[0]?.settled_micro ?? 0) - Number(allow.rows[0]?.reserved_micro ?? 0)),
+        sponsoredFirstTurnOnly: true } : allow.rows[0] ?? null,
       liveRouteEnabled: config.liveRouteEnabled,
       appendDocumentsAllowed: typedCorrectionsEnabled,
       fixtureRouteAllowed: config.fixtureRouteAllowed,
@@ -1201,16 +1519,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/routes/capabilities", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return { capabilities: pinRouteCapabilities(config), paidProbe: false };
   });
 
   app.get("/v1/runs/:id/cost", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    const cost = await measureRunCost(pool, id, a.accountId);
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    const cost = await measureRunCost(pool, id, owner);
     if (!cost) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     return cost;
   });

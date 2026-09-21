@@ -13,6 +13,7 @@ import { DISCOVERY_POLICY,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_
 import { liveWebSearch,publicSearchDigest } from "../adapters/retrieval/live-web.js";
 import type { FencedSession } from "./fenced-session.js";
 import { authorizeDiscoveryQuery,hasPublicQueryApproval,loadApprovedPrivateTerms,loadPrivateCanaries,loadPrivateDocumentText,persistFreshnessPolicy,queryAuthorizationDigest,recordQueryAuthorization } from "../modules/retrieval-intelligence.js";
+import { prepareClaimedResearchContext } from "../modules/run-evidence.js";
 import type { SourceClass } from "@deep/research-core";
 
 /** One public query per logical action, independent of unrelated evidence arrival. No private source projection. */
@@ -25,23 +26,27 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
  const proposal={...parsed.data,action:{...parsed.data.action,query:parsed.data.action.query.trim()}};
  const authorize=()=>session.write(async(db)=>{
   const run=await getRun(db,args.runId);if(!run||run.account_id!==args.accountId)throw new Error("search_owner_mismatch");
+  const claimed=await prepareClaimedResearchContext(db,args);
+  const publicEvidenceText=claimed?.approvedPublicContextTerms.join(" ") ?? "";
   const brief=await getBrief(db,run.brief_id),task=await loadResearchTask(db,args.runId,args.accountId,args.briefRevision,await runModelVersions(db,args.runId));
   if(!task||task.id!==args.taskId)throw new Error("search_task_mismatch");
   if(task.planningStatus!=="ready")throw new Error("search_task_requires_clarification");
   if(transformed.success&&(!config.structuredChallengeEnabled||proposal.action.query!==`${proposal.action.publicQueryBasis.quote.trim()} ${COUNTEREVIDENCE_SUFFIX}`))throw new Error("invalid_counterevidence_query_transform");
   const validatedProposal=transformed.success?{...proposal,action:{type:"search" as const,query:proposal.action.publicQueryBasis.quote.trim(),questionKeys:proposal.action.questionKeys,publicQueryBasis:proposal.action.publicQueryBasis}}:proposal;
   const confirmed=confirmedConstraints(brief.constraints);
-  const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion,confirmed),task:task.specification});
+  const errors=validateModelBindings("propose_action",validatedProposal,{...briefContext(brief.originalQuestion,confirmed),
+    task:task.specification,approvedPublicContextTerms:claimed?.approvedPublicContextTerms ?? []});
   if(errors.length)throw new Error(`invalid_public_query:${errors.join(",")}`);
   const proposedQuery=validatedProposal.action.query;
   // Bind approval to the complete outbound query, including application expansion or challenge suffix.
-  const preview=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,sourceClass:args.sourceClass,userPublicTerms:confirmedPublicQueryTerms(confirmed)});
+  const preview=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,sourceClass:args.sourceClass,
+    userPublicTerms:confirmedPublicQueryTerms(confirmed),publicEvidenceText});
   const outboundQuery=transformed.success?proposal.action.query:preview.query;
   const queryDigest=queryAuthorizationDigest(outboundQuery);
   const canaries=await loadPrivateCanaries(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const documentText=await loadPrivateDocumentText(db,args.accountId,{runId:args.runId,briefRevision:args.briefRevision});
   const approvedTerms=await loadApprovedPrivateTerms(db,{accountId:args.accountId,runId:args.runId,briefRevision:args.briefRevision,queryDigest});
-  const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass,userPublicTerms:confirmedPublicQueryTerms(confirmed)});
+  const auth=authorizeDiscoveryQuery({question:brief.originalQuestion,query:proposedQuery,privateCanaries:canaries,privateDocumentText:documentText,approvedPrivateTerms:approvedTerms,sourceClass:args.sourceClass,userPublicTerms:confirmedPublicQueryTerms(confirmed),publicEvidenceText});
   if(auth.kind==="blocked")throw new Error(auth.reason==="private_query_blocked"?"private_query_blocked":auth.reason==="unclassified_query_terms"?"unclassified_query_terms":"unapproved_public_query_terms");
   const privateTerms=auth.terms.filter((t)=>t.provenance==="private-document-derived").map((t)=>t.token);
   if(auth.kind==="permission_required"){
@@ -80,6 +85,8 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
    throw new Error("invalid_saved_search");
   return finish(result.data,true);
  }
+ // Intent reservation is not permission to issue after a claim/delete/consent transition.
+ await session.write(async()=>undefined);
  const result=SearchResultSchema.parse(await liveWebSearch(searchQuery,config,session.signal,45_000,true,policy.id));
  await withTx(pool,async(db)=>{
   const state=result.receipt.state==="failed"?"failed":result.receipt.actualMicro===undefined?"outcome-unknown":"confirmed";

@@ -317,3 +317,4 @@ export * from "./research-intent.js";
 export * from "./public-activity.js";
 export * from "./pending-input.js";
 export * from "./follow-up.js";
+export * from "./guest-auth.js";

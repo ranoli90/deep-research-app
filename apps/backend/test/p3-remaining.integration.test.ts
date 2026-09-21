@@ -539,6 +539,8 @@ describe("remaining launch-scope IDs", () => {
 
   it("S06 / V2-20 does not silently fall back to an unauthorized live processor", async () => {
     const { token } = await authed();
+    const before = (await pool.query("SELECT count(*)::integer AS total FROM runs")).rows[0].total as number;
+    const intentsBefore = (await pool.query("SELECT count(*)::integer AS total FROM provider_intents")).rows[0].total as number;
     const live = await app.inject({
       method: "POST",
       url: "/v1/runs",
@@ -546,7 +548,9 @@ describe("remaining launch-scope IDs", () => {
       payload: { question: "anything", routeMode: "controlled-research" },
     });
     expect(live.statusCode).toBe(403);
-    expect(live.json().message).toMatch(/Live route is not enabled/i);
+    expect(live.json().code).toBe("permission_denied");
+    expect((await pool.query("SELECT count(*)::integer AS total FROM runs")).rows[0].total).toBe(before);
+    expect((await pool.query("SELECT count(*)::integer AS total FROM provider_intents")).rows[0].total).toBe(intentsBefore);
   });
 
   it("V2-10 a later unavailable fetch does not retract last-access evidence", async () => {

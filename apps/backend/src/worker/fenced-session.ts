@@ -2,6 +2,7 @@ import type pg from "pg";
 import { withTx } from "../platform/db.js";
 import { currentConsent } from "../modules/access.js";
 import { getRun, renewLease } from "../modules/runs.js";
+import { guestExecutionAllowed } from "../modules/guest-execution-control.js";
 
 export class LostWorkerLease extends Error {
   constructor() { super("stale_worker"); }
@@ -25,7 +26,7 @@ export function fencedSession(pool: pg.Pool, args: {
     try {
       if (!await renewLease(pool, args.runId, args.owner, args.fence, args.leaseMs)) abort.abort();
       const latest = await getRun(pool, args.runId);
-      if (latest?.lifecycle === "cancelling") abort.abort();
+      if (latest?.lifecycle === "cancelling" || !await guestExecutionAllowed(pool, args.runId, args.accountId)) abort.abort();
     } catch { abort.abort(); }
     finally { renewing = false; }
   }, Math.max(10, Math.floor(args.leaseMs / 3)));
@@ -45,7 +46,8 @@ export function fencedSession(pool: pg.Pool, args: {
         if (!finishingRevoked) {
           const consent = await currentConsent(db, args.accountId);
           if (account.rows[0].deleted_at || run.cancellation_epoch !== 0 || run.lifecycle === "cancelling" ||
-              !consent || consent.revoked || consent.epoch !== run.consent_epoch) throw new LostWorkerLease();
+              !consent || consent.revoked || consent.epoch !== run.consent_epoch ||
+              !await guestExecutionAllowed(db, args.runId, args.accountId)) throw new LostWorkerLease();
         }
         // Lock waits and work inside this transaction can outlive the lease.
         // PostgreSQL now() is frozen at BEGIN and cannot authorize a current write.
@@ -56,6 +58,7 @@ export function fencedSession(pool: pg.Pool, args: {
         await assertCurrentLease();
         const result = await fn(db);
         await assertCurrentLease();
+        if (!finishingRevoked && !await guestExecutionAllowed(db, args.runId, args.accountId)) throw new LostWorkerLease();
         return result;
       });
     },

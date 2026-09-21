@@ -27,6 +27,7 @@ import { performPublicSearch } from "./public-search.js";
 import { executeSourceRead } from "./source-reading.js";
 import { revalidateSourcePolicy, adoptSearchSources, adoptDirectUrls } from "../modules/search-sources.js";
 import { writeResearchReport } from "./research-writer.js";
+import { prepareClaimedResearchContext } from "../modules/run-evidence.js";
 
 function confirmedDiscoveryQuery(brief:{originalQuestion:string;constraints:{field:string;value:string;origin?:string}[]},query:string) {
   return withConfirmedPublicQueryTerms(query,brief.constraints);
@@ -48,6 +49,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     await settleRun(db,args.accountId,args.runId,run.spent_micro);
   });
   const pendingOrBlocked=async(result:{kind:string;reason?:string;intentId?:string})=>unresolved(result.reason??(result.kind==="pending"?"provider_outcome_unknown":"research_operation_unavailable"));
+  // The parent is a different execution owner. Resolve only the exact live claim,
+  // then materialize conversation context before any model input is prepared.
+  const claimedContext=await session.write((db)=>prepareClaimedResearchContext(db,args));
+  const publicContextTerms=claimedContext?.approvedPublicContextTerms ?? [];
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
   const CONCURRENT_SOURCE_READS=3;
@@ -249,6 +254,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   }
   const sameQuery=(a:string,b:string)=>a.trim().toLocaleLowerCase("en").replace(/\s+/gu," ")===b.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
   const openingDiscovery=openingDiscoveryFromBrief(brief);
+  const openingWords=new Set(openingDiscovery.query.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu)??[]);
+  const contextualOpeningQuery=[openingDiscovery.query,...publicContextTerms.filter((term)=>
+    !openingWords.has(term.toLocaleLowerCase("en")))].join(" ");
   if(config.structuredDiscoveryEnabled&&(!selected.rowCount||priorDiscovery.rowCount||(correction.rows[0]?.reopen_discovery&&!brief.attachmentIds.length))) {
     const questionKeys=Object.keys(prepared.task.questionIds);
     if(brief.attachmentIds.length&&!publicQueryApproved){
@@ -258,7 +266,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     if(!config.liveRetrievalEnabled)return unresolved("public_reading_disabled");
     const openingPlan=planSourceClass(brief.originalQuestion);
-    const openingQuery=confirmedDiscoveryQuery(brief,openingDiscovery.query);
+    const openingQuery=confirmedDiscoveryQuery(brief,contextualOpeningQuery);
     const alreadyOpened=queries.some((q)=>sameQuery(q,openingDiscovery.query)||sameQuery(q,openingQuery));
     if(!alreadyOpened){
       classesAttempted.push(openingPlan.primary);
@@ -348,6 +356,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const writeFromPrior=async(reason:string)=>{
       await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
         summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason}}));
+      await session.write((db)=>prepareClaimedResearchContext(db,args));
       const result=await writeResearchReport(pool,config,session,{...prior!.target,sourceSupportIntentId:prior!.support.intentId,...(prior!.calculations.kind==="calculations"&&prior!.calculations.executions.length?{calculationPlanIntentId:prior!.calculations.intentId}:{})});
       if(result.kind!=="publication")return pendingOrBlocked(result);
       if(!result.accepted)return unresolved(result.reason);
@@ -543,7 +552,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         sourceClassesAttempted:classesAttempted.length?classesAttempted:[plan.primary],
         stop:breadth.continue?null:{reason:next.kind==="search"?breadth.reason:next.reason,stopPolicy:breadth.stopPolicy},
       });
-      const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion});
+      const planned=planTypedQuery({question:brief.originalQuestion,query:next.kind==="search"?next.proposal.action.query:brief.originalQuestion,
+        publicEvidenceTerms:publicContextTerms});
       if(next.kind==="search"&&breadth.continue&&topNeed?.nextAction.kind==="search"&&planned.authorizationKind==="authorized"&&!planned.privateTermsRequiringApproval.length&&!planned.unclassifiedTerms.length) {
         if(freshnessUnmet) await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"freshness_checking",phase:"researching",
           summary:"Checking how current the evidence is."}));
@@ -594,6 +604,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"writing",phase:"writing",summary:"Writing an answer from checked source evidence."});
     });
     if(opts.pauseAt==="writing")return;
+    await session.write((db)=>prepareClaimedResearchContext(db,args));
     const result=await writeResearchReport(pool,config,session,{...target,sourceSupportIntentId:support.intentId,...(calculations.kind==="calculations"&&calculations.executions.length?{calculationPlanIntentId:calculations.intentId}:{})});
     if(result.kind!=="publication")return pendingOrBlocked(result);
     if(!result.accepted)return unresolved(result.reason);

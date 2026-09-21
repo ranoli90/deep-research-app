@@ -219,6 +219,8 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
     if (!knownFinancialOutcome(restored.result) || !isAvailabilityFailure(restored.result)) return restored;
     primaryResult = restored.result;
   } else {
+    // Re-read lease, consent, deletion and guest claim control after intent reservation and before HTTP.
+    await session.write(async () => undefined);
     primaryResult = await executeModelRequest(request, { apiKey: config.openRouterApiKey!, signal: session.signal });
     holdUnknown(primaryResult, policy.id, request.body);
     const finalized = primaryResult.status === "succeeded" ? await finalizeSucceeded(primaryResult, policy) : { result: primaryResult, resolvedSpans: [] as SpanResolution[], linkedCriteria: [] };
@@ -255,6 +257,7 @@ export async function performModelOperation<K extends ResearchModelOperation>(po
   }));
   if (!altAttempt.issue) return restore(altAttempt.intentId, altRequest);
 
+  await session.write(async () => undefined);
   let altResult = await executeModelRequest(altRequest, { apiKey: config.openRouterApiKey!, signal: session.signal });
   holdUnknown(altResult, failover.nextPolicyId, altRequest.body);
   const altPolicy = modelPolicy(failover.nextPolicyId);

@@ -430,6 +430,8 @@ export function authorizeDiscoveryQuery(args: {
   privateCanaries?: string[];
   sourceClass?: SourceClass;
   userPublicTerms?: string[];
+  /** Exact cited public evidence resolved by the server, not source-text bait. */
+  publicEvidenceText?: string;
 }): QueryAuthorization {
   const plan = planSourceClass(args.question);
   return authorizePublicQuery({
@@ -441,6 +443,7 @@ export function authorizeDiscoveryQuery(args: {
     sourceClass: args.sourceClass ?? plan.primary,
     expand: true,
     userPublicTerms: args.userPublicTerms,
+    publicEvidenceText: args.publicEvidenceText,
   });
 }
 

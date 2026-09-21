@@ -27,4 +27,16 @@ describe("M12 demo/production separation", () => {
       }),
     ).toThrow(/Fixture route cannot start in production/);
   });
+  it("NARROW-AUTH production Clerk requires an exact signed webhook namespace", () => {
+    const env = { NODE_ENV: "production", APP_AUTH_MODE: "production", APP_IDENTITY_PROVIDER: "clerk",
+      DEV_ALLOW_FIXTURE_ROUTE: "false", DATABASE_URL: "postgres://localhost/test",
+      CLERK_ISSUER: "https://clerk.example.test", CLERK_AUTHORIZED_PARTIES: "https://app.example.test",
+      CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only" };
+    expect(() => loadConfig(env)).toThrow(/pinned webhook/);
+    expect(() => loadConfig({ ...env, CLERK_WEBHOOK_SIGNING_SECRET: "whsec_testonly" })).toThrow(/pinned webhook/);
+    const configured = loadConfig({ ...env, CLERK_WEBHOOK_SIGNING_SECRET: "whsec_testonly",
+      CLERK_WEBHOOK_INSTANCE_ID: "ins_testonly" });
+    expect(configured.clerkWebhook).toEqual({ signingSecret: "whsec_testonly", instanceId: "ins_testonly" });
+    expect(configured.providerCapabilities).toMatchObject({ apple: false, google: false, emailCode: false });
+  });
 });
