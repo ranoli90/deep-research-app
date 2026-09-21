@@ -133,6 +133,7 @@ export function GuestSignInSheet({
 
   useEffect(() => setEmail(state.email), [state.email]);
   useEffect(() => { setCode(""); }, [visible, state.email, state.step === "sending_code"]);
+  useEffect(() => { if (state.codeExpired) setCode(""); }, [state.codeExpired]);
   useEffect(() => {
     if (!visible || state.resend.status === "available") return;
     const timer = setInterval(() => setClock(Date.now()), 1000);

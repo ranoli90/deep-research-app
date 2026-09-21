@@ -97,16 +97,21 @@ it("CLAIM-14 mounted App cold-start Clerk restoration keeps storage ready after 
   await act(async () => { renderer.unmount(); });
 });
 
-it("AUTH-07 cold restart reconciles the original successful auth attempt and dispatches its saved action once", async () => {
+it("AUTH-07 cold restart reconciles the original successful auth attempt through a claim-time credential renewal and dispatches once", async () => {
   const original = await seedAction("second question", true);
   const authenticating = beginGuestAuth(original, { id: id(8), provider: "google" }, new Date("2026-09-21T01:00:00.000Z"));
   await held.device.savePendingAction(authenticating, original);
-  const calls: { path: string; body: any }[] = [];
+  const calls: { path: string; body: any; bearer: string | undefined }[] = [];
   let memberSnapshot: any = null;
-  held.session.persistRequired = async (_token: string, snapshot: unknown) => { memberSnapshot = snapshot; };
+  let storedToken = "token-one", tokenReads = 0;
+  held.session.rotateCredential = async (old: string, next: { token: string }) => { expect(old).toBe(storedToken); storedToken = next.token; };
+  held.session.persistRequired = async (value: string, snapshot: unknown) => {
+    if (value !== storedToken) throw new Error("Session changed before saving claimed research.");
+    memberSnapshot = snapshot;
+  };
   vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
     const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
-    calls.push({ path, body });
+    calls.push({ path, body, bearer: (init.headers as Record<string, string> | undefined)?.authorization });
     if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
     if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
@@ -119,10 +124,12 @@ it("AUTH-07 cold restart reconciles the original successful auth attempt and dis
     return Response.json({});
   }));
   let renderer!: TestRenderer.ReactTestRenderer;
-  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => ++tokenReads <= 2 ? "token-one" : "token-two" } as any} />); });
   await vi.waitFor(() => expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1));
   expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/resolve")[0]?.body).toEqual({ submissionId: original.submissionId, authAttemptId: id(8) });
   expect(calls.filter(call => call.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(calls.find(call => call.path === "/v1/guest/claim")?.bearer).toBe("Bearer token-two");
+  expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.bearer).toBe("Bearer token-two");
   expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/begin")).toHaveLength(0);
   expect(memberSnapshot.previousReport?.reportId).toBe(id(6));
   expect((await held.device.load())).toBeNull();
@@ -165,6 +172,101 @@ it("AUTH-07 cold restart without Clerk success fences the old attempt before reo
   const nextIndex = calls.findIndex(call => call.path === "/v1/guest/pending-actions/attempts/begin");
   expect(nextIndex).toBeGreaterThan(endIndex);
   expect(calls[nextIndex]?.body.submissionId).toBe(original.submissionId);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-08 mounted email resend limit and expired code preserve the journal, then reopen with a new fenced attempt", async () => {
+  const original = await seedAction("saved second question", true);
+  const calls: { path: string; body: any }[] = [];
+  let sends = 0;
+  const auth = {
+    loaded: true, signedIn: false, getToken: async () => null,
+    sendEmailCode: async () => { if (++sends === 2) throw { guestAuthFailure: "rate_limited" }; },
+    verifyEmailCode: async () => { throw { guestAuthFailure: "code_expired" }; },
+  };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/session") return Response.json({ ...context, actorKind: "guest" });
+    if (path === "/v1/guest/pending-actions/attempts/begin") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/pending-actions/attempts/end") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 2, state: "cancelled" });
+    if (path === `/v1/runs/${id(5)}`) return Response.json({ runId: id(5), lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(6), labeledDemo: false });
+    if (path === `/v1/runs/${id(5)}/events`) return Response.json({ events: [] });
+    if (path === `/v1/reports/${id(6)}`) return Response.json({ reportId: id(6), version: 1, blocks: [], limitations: [], labeledDemo: false, changeSummary: null });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  const sheet = () => renderer.root.find(node => String(node.type) === "GuestSignInSheet").props;
+  expect(sheet().visible).toBe(true);
+  await act(async () => { await sheet().onEvent({ type: "choose_provider", provider: "email" }); });
+  let first!: { id: string; operation: string; provider: string; email: string };
+  await act(async () => { first = await sheet().transport.prepareAttempt({ provider: "email", operation: "email_code", email: "reader@example.test" }); });
+  await act(async () => { await sheet().onEvent({ type: "begin_email_code", attempt: first }); await sheet().transport.requestEmailCode(first); });
+  expect(sheet().state.step).toBe("code");
+  expect((await held.device.load()).pendingAction.authAttempt.id).toBe(first.id);
+  let resend!: typeof first;
+  await act(async () => { resend = await sheet().transport.prepareAttempt({ provider: "email", operation: "resend_email_code", email: "reader@example.test" }); });
+  expect(resend.id).toBe(first.id);
+  await act(async () => { await sheet().onEvent({ type: "begin_email_code", attempt: resend }); await sheet().transport.requestEmailCode(resend); });
+  expect(sheet().state.step).toBe("error");
+  expect(sheet().state.resend).toEqual({ status: "rate_limited", retryAt: null });
+  expect((await held.device.load()).pendingAction.authAttempt.id).toBe(first.id);
+  expect(calls.filter(call => call.path.endsWith("/attempts/begin"))).toHaveLength(1);
+  await act(async () => { await sheet().onEvent({ type: "retry" }); });
+  let verify!: typeof first;
+  await act(async () => { verify = await sheet().transport.prepareAttempt({ provider: "email", operation: "verify_email_code", email: "reader@example.test" }); });
+  await act(async () => { await sheet().onEvent({ type: "begin_code_verification", attempt: verify }); await sheet().transport.verifyEmailCode(verify, "123456"); });
+  expect(sheet().state.codeExpired).toBe(true);
+  expect(sheet().state.retryStep).toBe("email");
+  expect((await held.device.load()).pendingAction.phase).toBe("pending_auth");
+  expect(calls.filter(call => call.path.endsWith("/attempts/end"))).toHaveLength(1);
+  expect(calls.find(call => call.path.endsWith("/attempts/end"))?.body).toEqual({ submissionId: original.submissionId, authAttemptId: first.id, reason: "cancelled" });
+  await act(async () => { await sheet().onEvent({ type: "retry" }); });
+  let next!: typeof first;
+  await act(async () => { next = await sheet().transport.prepareAttempt({ provider: "email", operation: "email_code", email: "reader@example.test" }); });
+  expect(next.id).not.toBe(first.id);
+  expect(calls.filter(call => call.path.endsWith("/attempts/begin"))).toHaveLength(2);
+  expect(calls.every(call => call.path !== "/v1/guest/claim" && call.path !== "/v1/guest/actions/resume")).toBe(true);
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("saved second question");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-06 mounted provider cancellation fences the attempt before another open or dismissal", async () => {
+  const original = await seedAction("keep my question", true);
+  const calls: { path: string; body: any }[] = [];
+  const auth = { loaded: true, signedIn: false, getToken: async () => null,
+    startProvider: async () => { throw new Error("Sign-in was cancelled."); } };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/session") return Response.json({ ...context, actorKind: "guest" });
+    if (path === "/v1/guest/pending-actions/attempts/begin") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/pending-actions/attempts/end") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 2, state: body.reason });
+    if (path === `/v1/runs/${id(5)}`) return Response.json({ runId: id(5), lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(6), labeledDemo: false });
+    if (path === `/v1/runs/${id(5)}/events`) return Response.json({ events: [] });
+    if (path === `/v1/reports/${id(6)}`) return Response.json({ reportId: id(6), version: 1, blocks: [], limitations: [], labeledDemo: false, changeSummary: null });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  const sheet = () => renderer.root.find(node => String(node.type) === "GuestSignInSheet").props;
+  let cancelled!: { id: string };
+  await act(async () => { cancelled = await sheet().transport.prepareAttempt({ provider: "google", operation: "provider", email: null }); });
+  await act(async () => { await sheet().onEvent({ type: "begin_provider", provider: "google", attempt: cancelled }); await sheet().transport.startProvider(cancelled); });
+  expect(sheet().state.step).toBe("chooser");
+  expect((await held.device.load()).pendingAction.phase).toBe("pending_auth");
+  expect(calls.find(call => call.path.endsWith("/attempts/end"))?.body).toEqual({ submissionId: original.submissionId, authAttemptId: cancelled.id, reason: "cancelled" });
+  let next!: { id: string };
+  await act(async () => { next = await sheet().transport.prepareAttempt({ provider: "google", operation: "provider", email: null }); });
+  expect(next.id).not.toBe(cancelled.id);
+  await act(async () => { await sheet().transport.dismiss(); await sheet().onEvent({ type: "dismissed" }); });
+  expect((await held.device.load()).pendingAction.phase).toBe("dismissed");
+  expect(calls.filter(call => call.path.endsWith("/attempts/end"))).toHaveLength(2);
+  expect(calls.every(call => call.path !== "/v1/guest/claim" && call.path !== "/v1/guest/actions/resume")).toBe(true);
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("keep my question");
   await act(async () => { renderer.unmount(); });
 });
 
@@ -380,7 +482,79 @@ it("AUTH-06 mounted App verifies a refreshed Clerk bearer and uses it for consen
   await act(async () => { renderer.unmount(); });
 });
 
-it("CLAIM-14 mounted App abandons edited clarification A, registers exact B, and resumes only B", async () => {
+it.each(["other_member", "signed_out"] as const)("AUTH-06 mounted Clerk %s hides A's reader before a stale callback can restore it", async (transition) => {
+  const oldRun = id(5);
+  held.session.hydrate = async () => ({ token: "token-A", accountId: id(7), state: { ...emptyState(), draft: "private A draft", signedIn: true,
+    consentGranted: true, status: "progress", run: { runId: oldRun, lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false } } });
+  const cleared = vi.fn(async () => undefined), activated = vi.fn(async () => undefined);
+  held.session.clear = cleared; held.session.activate = activated;
+  let releaseOld!: (response: Response) => void;
+  const oldReply = new Promise<Response>(resolve => { releaseOld = resolve; });
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    const path = new URL(url).pathname;
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false });
+    if (path === `/v1/runs/${oldRun}`) return oldReply;
+    return Response.json({ events: [] });
+  }));
+  const authA = { loaded: true, signedIn: true, subject: "clerk-A", getToken: async () => "token-A" };
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={authA as any} />); });
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("private A draft");
+  const authNext = transition === "other_member"
+    ? { loaded: true, signedIn: true, subject: "clerk-B", getToken: async () => "token-B" }
+    : { loaded: true, signedIn: false, subject: null, getToken: async () => null };
+  await act(async () => { renderer.update(<AppInner auth={authNext as any} />); });
+  expect(api.currentCredential()).toBeNull();
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("");
+  expect(cleared).toHaveBeenCalledOnce();
+  expect(activated).not.toHaveBeenCalledWith({ token: "token-B", accountId: id(7) });
+  releaseOld(Response.json({ runId: oldRun, lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(6), labeledDemo: false }));
+  await act(async () => { await Promise.resolve(); });
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("");
+  expect(renderer.root.findAll(node => String(node.type) === "ReportSections")).toHaveLength(0);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 mounted member Send survives credential rotation during preflight without weakening exact storage token", async () => {
+  held.session.hydrate = async () => ({ token: "token-one", accountId: id(7), state: { ...emptyState(), draft: "third question", signedIn: true, consentGranted: true, routeMode: "controlled-research" } });
+  let currentStoredToken = "token-one", tokenReads = 0;
+  const savedWith: string[] = [], finishedWith: string[] = [], calls: { path: string; bearer: string | undefined }[] = [];
+  held.session.rotateCredential = async (old: string, next: { token: string }) => {
+    expect(old).toBe(currentStoredToken);
+    currentStoredToken = next.token;
+  };
+  held.session.saveAdmission = async (value: string) => {
+    if (value !== currentStoredToken) throw new Error("Session changed before saving request.");
+    savedWith.push(value);
+  };
+  held.session.finishAdmission = async (value: string) => {
+    if (value !== currentStoredToken) throw new Error("Session changed before confirming request.");
+    finishedWith.push(value);
+  };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, bearer = (init.headers as Record<string, string> | undefined)?.authorization;
+    calls.push({ path, bearer });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
+    if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => ++tokenReads === 1 ? "token-one" : "token-two" } as any} />); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchComposer").props.onSend(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/settings")).toBe(true));
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs")).toBe(true));
+  expect(savedWith).toEqual(["token-two"]);
+  expect(finishedWith).toEqual(["token-two"]);
+  expect(calls.find(call => call.path === "/v1/runs")?.bearer).toBe("Bearer token-two");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("CLAIM-14 mounted App abandons edited clarification A, registers exact B across credential renewal, and resumes only B", async () => {
   await held.device.saveBootstrap(context, proof);
   const clarification = { kind: "clarification" as const, text: "A", pendingInputId: id(18), briefRevision: 2, field: "geography" };
   const saved = createGuestPendingAction({ submissionId: id(3), guestContextId: context.guestContextId, conversationId: context.conversationId,
@@ -395,13 +569,19 @@ it("CLAIM-14 mounted App abandons edited clarification A, registers exact B, and
   await held.device.saveSnapshot(context.guestContextId, { ...emptyState(), consentGranted: true, routeMode: "controlled-research", status: "awaiting_input",
     run: { runId: id(5), lifecycle: "awaiting_input", phase: "planning", outcome: null, reportId: null, labeledDemo: false,
       pendingInput: { id: clarification.pendingInputId, type: "clarification", field: "geography", briefRevision: 2 } } });
-  const calls: { path: string; body: any }[] = [];
+  const calls: { path: string; body: any; bearer: string | undefined }[] = [];
+  let renew = false, storedToken = "token-one";
+  held.session.rotateCredential = async (old: string, next: { token: string }) => { expect(old).toBe(storedToken); storedToken = next.token; };
+  held.session.persistRequired = async (value: string) => {
+    if (value !== storedToken) throw new Error("Session changed before saving edited answer.");
+  };
   vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
-    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null; calls.push({ path, body });
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body, bearer: (init.headers as Record<string, string> | undefined)?.authorization });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
     if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
-    if (path === "/v1/guest/actions/abandon") return Response.json({ type: "action_abandoned", submissionId: saved.submissionId, claimRequestId: id(9) });
+    if (path === "/v1/guest/actions/abandon") { renew = true; return Response.json({ type: "action_abandoned", submissionId: saved.submissionId, claimRequestId: id(9) }); }
     if (path === "/v1/guest/actions/register-member" || path === "/v1/guest/actions/resolve") return Response.json({ type: "member_action_registered", submissionId: body.submissionId,
       claimRequestId: id(9), controlVersion: 1, payloadDigest: path.endsWith("register-member") ? body.payloadDigest : calls.find(call => call.path.endsWith("register-member"))!.body.payloadDigest,
       expiresAt: context.expiresAt, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: "consent.v1" });
@@ -412,7 +592,7 @@ it("CLAIM-14 mounted App abandons edited clarification A, registers exact B, and
     return Response.json({});
   }));
   let renderer!: TestRenderer.ReactTestRenderer;
-  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => renew ? "token-two" : "token-one" } as any} />); });
   await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
   await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
   await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
@@ -428,6 +608,8 @@ it("CLAIM-14 mounted App abandons edited clarification A, registers exact B, and
   expect(registered.payloadDigest).toBe(sha256Hex(JSON.stringify(["clarification", "B", id(18), 2, "geography"])));
   expect(calls.filter(call => call.path === "/v1/guest/actions/abandon")).toHaveLength(1);
   expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1);
+  expect(calls.find(call => call.path === "/v1/guest/actions/register-member")?.bearer).toBe("Bearer token-two");
+  expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.bearer).toBe("Bearer token-two");
   expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.body.submissionId).toBe(registered.submissionId);
   expect(calls.some(call => call.path === "/v1/guest/claim" || call.path === "/v1/runs" || call.path === `/v1/runs/${id(5)}/continue`)).toBe(false);
   await act(async () => { renderer.unmount(); });

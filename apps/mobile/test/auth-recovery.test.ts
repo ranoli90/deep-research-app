@@ -20,7 +20,7 @@ function recovery(clear: () => Promise<void>) {
   let state: UiState = { ...emptyState(), signedIn: true, draft: "private" }, ready = true, current = true;
   const release = vi.fn();
   const memberTokenRef = { current: "old-bearer" as string | null }, memberAccountRef = { current: "old-account" as string | null };
-  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), memberTokenRef, memberAccountRef, setToken: vi.fn(), setAccountId: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
+  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), memberTokenRef, memberAccountRef, activeClerkSubjectRef: { current: "subject-A" }, setToken: vi.fn(), setAccountId: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
   return { run: appFunction("onAuthFailure", bindings), state: () => state, ready: () => ready, memberTokenRef, memberAccountRef, supersede: () => { current = false; }, release };
 }
 it("W03 expired-session cleanup blocks sign-in while pending and restores it only after durable success", async () => {
@@ -63,7 +63,8 @@ it("W03/W07 successful invalidated-run refresh clears stale offline state withou
   const events = vi.fn(), report = vi.fn(), redactRunContent = vi.fn(async () => undefined);
   const guard = { current: () => true, release: vi.fn() };
   const run = appFunction("refreshRun", {
-    api: { currentRun: () => true, captureView: () => guard, getRun: async () => snapshot, invalidateView: vi.fn(), events, report },
+    api: { currentRun: () => true, currentCredential: () => "owned-session", captureView: () => guard, getRun: async () => snapshot, invalidateView: vi.fn(), events, report },
+    memberAuthority: () => () => "owned-session",
     refreshing: { current: new Map() }, latestUi: { current: state }, redactingContent: { current: false },
     setViewState: (change: (s: UiState) => UiState) => { state = change(state); },
     setStorageReady: vi.fn(), setCorrectionSelection: vi.fn(), stopPolling: vi.fn(), sessionStorage: { redactRunContent },

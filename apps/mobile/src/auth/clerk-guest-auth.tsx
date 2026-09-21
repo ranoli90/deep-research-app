@@ -14,15 +14,20 @@ export type ClerkGuestAuth = {
   signOut(): Promise<void>;
 };
 
-function safeClerkError(error: unknown): Error {
+export type ClerkGuestAuthFailureKind = "incorrect_code" | "code_expired" | "rate_limited";
+class ClerkGuestAuthFailure extends Error {
+  constructor(message: string, readonly guestAuthFailure: ClerkGuestAuthFailureKind) { super(message); }
+}
+
+export function safeClerkError(error: unknown): Error {
   if (error instanceof Error && error.message === "Complete the account security step before continuing research.") return error;
   const providerCode = error && typeof error === "object" && "code" in error ? String(error.code) : null;
   if (["SIGN_IN_CANCELLED", "ERR_REQUEST_CANCELED", "-5"].includes(providerCode ?? "")) return new Error("Sign-in was cancelled.");
   if (isClerkAPIResponseError(error)) {
     const code = error.errors[0]?.code;
-    if (code === "form_code_incorrect") return new Error("That code did not match. Check it and try again.");
-    if (code === "verification_expired" || code === "form_code_expired") return new Error("That code expired. Request a new one.");
-    if (code?.includes("rate_limit")) return new Error("Too many attempts. Wait before trying again.");
+    if (code === "form_code_incorrect") return new ClerkGuestAuthFailure("That code did not match. Check it and try again.", "incorrect_code");
+    if (code === "verification_expired" || code === "form_code_expired") return new ClerkGuestAuthFailure("That code expired. Request a new one.", "code_expired");
+    if (code?.includes("rate_limit") || code === "too_many_requests") return new ClerkGuestAuthFailure("Too many attempts. Wait before trying again.", "rate_limited");
   }
   return new Error("Sign-in could not be completed. Your message is still saved.");
 }

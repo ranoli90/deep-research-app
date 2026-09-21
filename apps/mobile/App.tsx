@@ -38,7 +38,7 @@ import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } f
 import { adoptReturnedChild, persistOwnedJournalSnapshot, revokeConsentWithinAccount, type ViewHandle } from "./src/constraint-delta";
 import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getRandomBytes } from "expo-crypto";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
@@ -154,24 +154,31 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     saved: UiState[K],
     parentRunId: string,
   ) {
+    if (!guard.current()) throw new SupersededRequest();
+    const credential = memberAuthority();
     const acceptedRunId = saved && typeof saved === "object" && "acceptedRunId" in saved
       ? saved.acceptedRunId
       : undefined;
+    const stillOwned = () => {
+      try {
+        const bearer = credential();
+        return api.currentRun(bearer, parentRunId)
+          || (typeof acceptedRunId === "string" && api.currentRun(bearer, acceptedRunId));
+      } catch { return false; }
+    };
     const operation = persistOwnedJournalSnapshot({
       field,
       saved,
       currentState: () => latestUi.current,
-      persist: (next) => sessionStorage.persistRequired(t, next),
+      persist: (next) => sessionStorage.persistRequired(credential(), next),
       current: () => guard.current(),
-      stillOwned: () => api.currentRun(t, parentRunId)
-        || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)),
+      stillOwned,
       synchronize: (next) => {
         latestUi.current = next;
         // Keep React's queued state from later replacing the authoritative
         // durable phase. Consent revocation intentionally keeps the journal
         // while invalidating only the operation's view lease.
-        setStateRaw((previous) => (api.currentRun(t, parentRunId)
-          || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)))
+        setStateRaw((previous) => stillOwned()
           ? { ...previous, [field]: saved }
           : previous);
       },
@@ -185,7 +192,35 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   // credential rotation must not roll these refs back to its stale token.
   const memberTokenRef = useRef<string | null>(token);
   const memberAccountRef = useRef<string | null>(accountId);
+  const activeClerkSubjectRef = useRef<string | null>(null);
   const credentialRefresh = useRef<Promise<string> | null>(null);
+  /** A member operation may outlive a routine Clerk bearer rotation, never a principal change. */
+  function memberAuthority(expectedAccount = memberAccountRef.current): () => string {
+    const principalEpoch = api.sessionEpochs().principalEpoch;
+    if (!expectedAccount || memberAccountRef.current !== expectedAccount || !memberTokenRef.current) throw new SupersededRequest();
+    return () => {
+      const current = memberTokenRef.current;
+      if (!current || memberAccountRef.current !== expectedAccount || api.sessionEpochs().principalEpoch !== principalEpoch || api.currentCredential() !== current) throw new SupersededRequest();
+      return current;
+    };
+  }
+  // A Clerk account switch is a principal boundary even before the next API
+  // request. Hide the old reader synchronously; retain no callback authority.
+  useLayoutEffect(() => {
+    const boundSubject = activeClerkSubjectRef.current;
+    if (!boundSubject || !memberAccountRef.current || !auth?.loaded) return;
+    if (auth.signedIn && auth.subject === boundSubject) return;
+    stopPolling(); api.activateSession(null); api.clearGuest();
+    activeClerkSubjectRef.current = null;
+    memberTokenRef.current = null; memberAccountRef.current = null;
+    guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
+    const hidden = emptyState(); latestUi.current = hidden;
+    setToken(null); setAccountId(null); setGuestContext(null); setGuestPending(null); setGuestSheetVisible(false);
+    setStorageReady(false); setStateRaw({ ...hidden, error: "Account changed. Reopen the app to restore the current account safely." });
+    void clearAccountLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => {
+      setStateRaw(s => ({ ...s, error: "Account changed. Device cleanup failed; retry sign-out before continuing." }));
+    });
+  }, [auth?.loaded, auth?.signedIn, auth?.subject]);
   useEffect(() => {
     api.setMemberCredentialProvider(async (expected, forceRefresh = false) => {
       const previous = memberTokenRef.current, owner = memberAccountRef.current;
@@ -414,7 +449,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     let receipt: any;
     if (["claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile"].includes(current.phase) || !guestProof.current) {
       if (!memberToken || !current.claim) throw new Error("The accepted claim cannot be abandoned until its identity is confirmed.");
-      receipt = await api.abandonClaimedGuestAction(memberToken, current.submissionId, current.claim.requestId);
+      const credential = memberAuthority(current.authenticatedAccountId);
+      receipt = await api.abandonClaimedGuestAction(credential!(), current.submissionId, current.claim.requestId);
       if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || receipt.claimRequestId !== current.claim.requestId) throw new Error("The claim abandonment receipt did not match the saved message.");
     } else {
       try { receipt = await api.guest.cancelPendingAction(guestProof.current, current.submissionId); }
@@ -422,7 +458,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         // A simultaneous claim can win the server race and revoke guest proof.
         // Only a verified member readback may then authorize member abandon.
         if (!memberToken || !current.claim) throw error;
-        const resolved = await api.resolveGuestClaim(memberToken, current.claim.requestId, current.submissionId);
+        const credential = memberAuthority(current.authenticatedAccountId);
+        const resolved = await api.resolveGuestClaim(credential!(), current.claim.requestId, current.submissionId);
         if (resolved?.type === "action_abandoned" && resolved.submissionId === current.submissionId && resolved.claimRequestId === current.claim.requestId) receipt = resolved;
         else if (resolved?.type === "claim_accepted") {
           const latest = guestPendingRef.current;
@@ -431,7 +468,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             const epochs = api.sessionEpochs();
             await saveGuestPending(completeGuestClaim(latest, { ...resolved, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date()), latest);
           }
-          receipt = await api.abandonClaimedGuestAction(memberToken, current.submissionId, current.claim.requestId);
+          receipt = await api.abandonClaimedGuestAction(credential!(), current.submissionId, current.claim.requestId);
         } else throw error;
       }
       if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || (receipt.claimRequestId && receipt.claimRequestId !== current.claim?.requestId)) throw new Error("The cancellation receipt did not match the saved message.");
@@ -647,6 +684,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (firstRunId) api.selectRun(firstRunId);
     await activateLocalSession(sessionStorage, { token: memberToken, accountId: identity.accountId });
     memberTokenRef.current = memberToken; memberAccountRef.current = identity.accountId;
+    activeClerkSubjectRef.current = authRef.current?.subject ?? null;
     setToken(memberToken); setAccountId(identity.accountId);
     // Guest consent is never a member consent grant.
     setStateRaw(s => ({ ...s, signedIn: true, consentGranted: false, error: null }));
@@ -654,6 +692,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function claimAndResumeGuest(action: GuestPendingAction, memberToken: string, memberAccountId: string) {
+    const credential = memberAuthority(memberAccountId);
     let pending = guestPendingRef.current;
     if (!pending || pending.submissionId !== action.submissionId || !pending.autoResume) throw new Error("The saved action was dismissed before claim.");
     const { proof, context } = { proof: guestProof.current, context: guestContextRef.current };
@@ -662,16 +701,16 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (pending.phase === "authenticated") {
       const previous = pending;
       pending = beginGuestClaim(pending, newId(), new Date()); await saveGuestPending(pending, previous);
-      try { claim = await api.guest.claim(proof, memberToken, pending); }
+      try { claim = await api.guest.claim(proof, credential(), pending); }
       catch (error) {
         const latest = guestPendingRef.current;
         if (latest?.submissionId === pending.submissionId && latest.phase === "claim_pending") await saveGuestPending(holdGuestClaimForReconciliation(latest), latest);
         throw new Error("Claim outcome is unknown. Resolve the saved claim; it will not be sent again.");
       }
     } else if (pending.phase === "claim_pending" || pending.phase === "claim_reconcile") {
-      claim = await api.resolveGuestClaim(memberToken, pending.claim!.requestId, pending.submissionId);
+      claim = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
     } else if (pending.phase === "claimed" || pending.phase === "resume_pending") {
-      claim = await api.resolveGuestClaim(memberToken, pending.claim!.requestId, pending.submissionId);
+      claim = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
     } else throw new Error("The saved claim is not ready to continue.");
     if (claim) {
       const latest = guestPendingRef.current;
@@ -712,7 +751,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     });
     await saveGuestPending(pending, guestPendingRef.current);
     let result;
-    try { result = await api.resumeGuestAction(memberToken, pending); }
+    try { result = await api.resumeGuestAction(credential(), pending); }
     catch (error) {
       const latest = guestPendingRef.current;
       if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation state changed while the server was responding. The original request remains held.");
@@ -729,10 +768,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
       throw new Error("The saved message was dismissed. Resolve its exact dispatched result before continuing.");
     }
-    await adoptGuestContinuation(latest, result, memberTokenRef.current ?? memberToken);
+    await adoptGuestContinuation(latest, result, credential());
   }
 
-  async function adoptGuestContinuation(pending: GuestPendingAction, result: any, memberToken: string) {
+  async function adoptGuestContinuation(pending: GuestPendingAction, result: any, _memberToken: string) {
+    const credential = memberAuthority(pending.authenticatedAccountId);
     const dispatched = markGuestActionDispatched(pending, result, new Date());
     if (typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
     guestRunEpoch.current++;
@@ -743,11 +783,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       events: [], status: "progress", error: null,
       run: { runId: result.runId, lifecycle: "queued", phase: "queued", outcome: null, reportId: null, labeledDemo: false } };
     api.selectRun(result.runId);
-    await sessionStorage.persistRequired(memberToken, next);
+    await sessionStorage.persistRequired(credential(), next);
     await saveGuestPending(dispatched);
     latestUi.current = next; setStateRaw(next);
     setGuestSheetVisible(false);
-    startPolling(memberToken, result.runId); void refreshRun(memberToken, result.runId, next);
+    startPolling(credential(), result.runId); void refreshRun(credential(), result.runId, next);
     await guestDevice.clear(); guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
     api.clearGuest();
     setGuestContext(null); setGuestPending(null);
@@ -764,7 +804,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   async function confirmSavedMemberClarification(action: GuestPendingAction, tokenForRequest: string): Promise<GuestPendingAction> {
     const old = replacedClarification(action);
-    const receipt = await api.registerMemberGuestAction(tokenForRequest, action, old.submissionId);
+    const receipt = await api.registerMemberGuestAction(memberAuthority(action.authenticatedAccountId)(), action, old.submissionId);
     const latest = guestPendingRef.current;
     if (!latest || latest.submissionId !== action.submissionId || latest.phase !== "member_register_pending" || latest.claim?.requestId !== action.claim?.requestId)
       throw new Error("Edited answer changed while registration was being confirmed.");
@@ -774,6 +814,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function continueMemberClarification(tokenForRequest: string, account: string) {
+    const credential = memberAuthority(account);
     let pending = guestPendingRef.current;
     if (!pending || pending.payload.kind !== "clarification") throw new Error("There is no saved clarification to continue.");
     const input = latestUi.current.run?.pendingInput;
@@ -787,7 +828,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     // A local B registration may have had an unknown reply. Confirm that
     // exact B before asking the server to abandon it for a newer C answer.
     if (pending.phase === "member_register_pending" && text !== pending.payload.text)
-      pending = await confirmSavedMemberClarification(pending, tokenForRequest);
+      pending = await confirmSavedMemberClarification(pending, credential());
     if (pending.phase === "resume_pending") {
       const held = holdGuestResumeForReconciliation(pending);
       await saveGuestPending(held, pending);
@@ -796,7 +837,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (pending.phase === "cancelled" || text !== pending.payload.text) {
       if (pending.phase !== "cancelled") {
         if (!["claimed", "member_claimed"].includes(pending.phase) || !pending.claim) throw new Error("The previous answer must finish claim reconciliation before it can be replaced.");
-        pending = await abandonSavedGuestAction(pending, tokenForRequest);
+        pending = await abandonSavedGuestAction(pending, credential());
       }
       const payload = { kind: "clarification" as const, text, pendingInputId: input.id, briefRevision: input.briefRevision, field: input.field };
       const replacement = prepareMemberClarificationReplacement(pending, payload, newId(), guestDraftRevision.current, new Date(), api.sessionEpochs());
@@ -806,13 +847,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       pending = replacement;
     }
     if (pending.phase === "member_register_pending") {
-      pending = await confirmSavedMemberClarification(pending, tokenForRequest);
+      pending = await confirmSavedMemberClarification(pending, credential());
     }
     if (pending.phase === "member_claimed") {
       if (!pending.autoResume) { const reopened = reopenGuestPendingAction(pending, new Date()); await saveGuestPending(reopened, pending); pending = reopened; }
       const claim = pending.claim;
       if (!claim) throw new Error("The edited clarification lost its accepted claim identity.");
-      const currentToken = memberTokenRef.current ?? tokenForRequest;
+      const currentToken = credential();
       const receipt = await api.resolveGuestAction(currentToken, pending);
       if (receipt?.type !== "member_action_registered" || receipt.submissionId !== pending.submissionId || receipt.claimRequestId !== claim.requestId ||
         receipt.payloadDigest !== pending.payloadDigest || receipt.controlVersion !== claim.controlVersion) throw new Error("The edited answer registration readback did not match.");
@@ -833,7 +874,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const resuming = beginGuestActionResume(pending, resumeContext);
       await saveGuestPending(resuming, pending); pending = resuming;
       let result;
-      try { result = await api.resumeGuestAction(memberTokenRef.current ?? currentToken, pending); }
+      try { result = await api.resumeGuestAction(credential(), pending); }
       catch (error) {
         const latest = guestPendingRef.current;
         if (latest?.submissionId === pending.submissionId && latest.phase === "resume_pending") {
@@ -844,13 +885,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const latest = guestPendingRef.current;
       if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Edited answer state changed during continuation.");
       if (!latest.autoResume) { await saveGuestPending(holdGuestResumeForReconciliation(latest), latest); throw new Error("Edited answer was dismissed. Resolve its exact result."); }
-      await adoptGuestContinuation(latest, result, memberTokenRef.current ?? currentToken);
+      await adoptGuestContinuation(latest, result, credential());
       return;
     }
     if (pending.phase === "resume_reconcile") {
-      const result = await api.resolveGuestAction(memberTokenRef.current ?? tokenForRequest, pending);
+      const result = await api.resolveGuestAction(credential(), pending);
       if (result?.type !== "continuation_dispatched") throw new Error("Edited answer is still unconfirmed. It was not resent.");
-      await adoptGuestContinuation(pending, result, memberTokenRef.current ?? tokenForRequest);
+      await adoptGuestContinuation(pending, result, credential());
       return;
     }
     throw new Error("The edited clarification is held until its exact server state is resolved.");
@@ -862,27 +903,28 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function continueSavedSecondMessage(memberToken: string, memberAccountId: string) {
+    const credential = memberAuthority(memberAccountId);
     let pending = guestPendingRef.current;
     if (!pending || !savedSecondMessageBlocksWork()) return;
     if (pending.payload.kind === "clarification" && (pending.phase === "member_register_pending" || pending.phase === "member_claimed")) {
-      await continueMemberClarification(memberTokenRef.current ?? memberToken, memberAccountId);
+      await continueMemberClarification(credential(), memberAccountId);
       return;
     }
     if (pending.phase === "resume_reconcile") {
-      const resolved = await api.resolveGuestAction(memberToken, pending);
+      const resolved = await api.resolveGuestAction(credential(), pending);
       if (resolved?.type !== "continuation_dispatched") throw new Error("The saved continuation is still unconfirmed. No new message was sent.");
-      await adoptGuestContinuation(pending, resolved, memberToken);
+      await adoptGuestContinuation(pending, resolved, credential());
       return;
     }
     if (pending.phase === "claim_reconcile") {
-      const resolved = await api.resolveGuestClaim(memberToken, pending.claim!.requestId, pending.submissionId);
+      const resolved = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
       const epochs = api.sessionEpochs();
       pending = completeGuestClaim(pending, { ...resolved, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date());
       await saveGuestPending(pending);
     }
     if (["authenticated", "claim_pending", "claimed", "resume_pending"].includes(pending.phase)) {
       if (!pending.autoResume) { pending = reopenGuestPendingAction(pending, new Date()); await saveGuestPending(pending); }
-      await claimAndResumeGuest(pending, memberToken, memberAccountId);
+      await claimAndResumeGuest(pending, credential(), memberAccountId);
       return;
     }
     throw new Error("The saved second message must finish sign-in or be reconciled before starting other research.");
@@ -956,14 +998,32 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     },
     requestEmailCode: async attempt => {
       if (!authRef.current || !attempt.email) throw new Error("Email sign-in is unavailable.");
-      await authRef.current.sendEmailCode(attempt.email, attempt.operation === "resend_email_code");
+      try { await authRef.current.sendEmailCode(attempt.email, attempt.operation === "resend_email_code"); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "rate_limited") {
+          if (attempt.operation === "email_code") {
+            await endGuestAuthAttempt(attempt.id, "cancelled");
+            setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "recoverable_error", message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          } else setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "resend_rate_limited", retryAt: null, message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
       const pending = guestPendingRef.current;
       if (!pending || pending.authAttempt?.id !== attempt.id) throw new Error("The email attempt changed. Your message was not sent.");
       setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "email_code_sent", email: attempt.email!, resendRetryAt: new Date(Date.now() + 30_000).toISOString() }, guestProviders));
     },
     verifyEmailCode: async (attempt, code) => {
       if (!authRef.current) throw new Error("Email sign-in is unavailable.");
-      await authRef.current.verifyEmailCode(code);
+      try { await authRef.current.verifyEmailCode(code); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "code_expired") {
+          await endGuestAuthAttempt(attempt.id, "cancelled");
+          setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "code_expired", message: "That code expired. Request a new one." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
       await finishGuestAuthentication(attempt.id);
     },
     cancelProvider: async attempt => { await endGuestAuthAttempt(attempt.id, "cancelled"); },
@@ -1029,6 +1089,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
       const accepted = guard;
       memberTokenRef.current = s.token; memberAccountRef.current = s.accountId;
+      activeClerkSubjectRef.current = authRef.current?.subject ?? null;
       setToken((previous) => accepted.current() ? s.token : previous);
       if (accepted.current()) setAccountId(s.accountId);
       setState((prev) => {
@@ -1087,6 +1148,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const cleanup = api.capture();
     setStorageReady(false);
     memberTokenRef.current = null; memberAccountRef.current = null;
+    activeClerkSubjectRef.current = null;
     setToken(null); setAccountId(null); setState((s) => expireLocalSession(s));
     try {
       await clearAccountLocal(sessionStorage);
@@ -1101,35 +1163,44 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       if (requireOwnedSnapshot) throw new SupersededRequest();
       return;
     }
+    const credential = memberAuthority();
     const key = `${t}:${runId}`;
     if (refreshing.current.has(key) && !requireOwnedSnapshot) return;
     const attempt = Symbol(); refreshing.current.set(key, attempt);
     let guard = api.captureView();
+    const currentReader = () => {
+      try { return guard.current() && api.currentRun(credential(), runId); }
+      catch { return false; }
+    };
     try {
-      const snap = await api.getRun(t, runId);
-      if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+      const readCredential = credential();
+      const snap = await api.getRun(readCredential, runId);
+      // A same-member renewal keeps the reader, but an older response must
+      // not paint over a newer poll that used the replacement bearer.
+      if (!currentReader() || api.currentCredential() !== readCredential) throw new SupersededRequest();
       if (snap?.runId !== runId) throw new Error("The accepted run identity did not match. Retry the saved request.");
       if (snap.contentInvalidated === true) {
         // Cancel older source/correction callbacks without changing the selected run.
-        api.invalidateView(t); guard.release(); guard = api.captureView();
+        api.invalidateView(credential()); guard.release(); guard = api.captureView();
       }
       const invalidated = await applyRemoteInvalidation(latestUi.current.run?.runId === runId ? latestUi.current : openingState ?? latestUi.current, snap, {
-        current: () => guard.current() && api.currentRun(t, runId),
+        current: currentReader,
         hide: () => {
           redactingContent.current = true; setStorageReady(false);
           setViewState(s => guard.current() && s.run?.runId === runId ? redactInvalidatedContent({ ...s, run: snap }, runId) : s);
-          setCorrectionSelection(previous => guard.current() ? { owner: t, parent: runId, files: [] } : previous);
+          setCorrectionSelection(previous => currentReader() ? { owner: credential(), parent: runId, files: [] } : previous);
         },
-        save: (redacted, id) => sessionStorage.redactRunContent(t, id, redacted),
+        save: (redacted, id) => sessionStorage.redactRunContent(credential(), id, redacted),
       });
-      if (!guard.current()) throw new SupersededRequest();
+      if (!currentReader()) throw new SupersededRequest();
       if (invalidated) {
         setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null, offline: false } : s);
         redactingContent.current = false; setStorageReady(true); stopPolling();
         if (requireOwnedSnapshot) throw new Error("The accepted run is unavailable because its content was deleted.");
         return;
       }
-      const ev = await api.events(t, runId, 0);
+      const ev = await api.events(credential(), runId, 0);
+      if (!currentReader()) throw new SupersededRequest();
       const incoming = adoptPublicEvents(ev.events);
       const currentUi = latestUi.current;
       const sameSnapshot = currentUi.run?.runId === snap.runId
@@ -1145,13 +1216,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         && (!snap.reportId || currentUi.report?.reportId === snap.reportId);
       if (sameSnapshot && !currentUi.offline && !requireOwnedSnapshot) return;
       const report = snap.reportId && currentUi.report?.reportId !== snap.reportId
-        ? await api.report(t, snap.reportId)
+        ? await api.report(credential(), snap.reportId)
         : snap.reportId && currentUi.report?.reportId === snap.reportId
           ? null
           : null;
       const applyOwnedSnapshot = (s: UiState): UiState => {
         if (s.pendingContentInvalidation) throw new Error("Deleted content cleanup must finish before this run can be opened.");
-        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) throw new SupersededRequest();
+        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !currentReader()) throw new SupersededRequest();
         const sameRun = s.run?.runId === snap.runId;
         let next = applySnapshot(s, snap);
         next = { ...next, events: sameRun ? mergeEvents(s.events, incoming) : incoming };
@@ -1181,8 +1252,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       };
       if (requireOwnedSnapshot) {
         const next = applyOwnedSnapshot(openingState ?? latestUi.current);
-        await sessionStorage.persistRequired(t, next);
-        if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+        await sessionStorage.persistRequired(credential(), next);
+        if (!currentReader()) throw new SupersededRequest();
         latestUi.current = next;
         setViewState(next);
         return next;
@@ -1336,6 +1407,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       setStorageReady(!saved.pendingContentInvalidation);
       redactingContent.current = !!saved.pendingContentInvalidation;
       memberTokenRef.current = memberToken; memberAccountRef.current = memberAccountId;
+      activeClerkSubjectRef.current = memberToken ? authRef.current?.subject ?? null : null;
       setToken(memberToken); setAccountId(memberAccountId);
       latestUi.current = saved; setStateRaw(saved);
       if (guest?.pendingAction && !["dispatched", "cancelled", "rejected", "expired"].includes(guest.pendingAction.phase)) {
@@ -1458,20 +1530,21 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       let replaced = false;
       try {
         if (!accountId) throw new Error("Account identity is unavailable.");
+        const credential = memberAuthority(accountId);
         const saved = guestPendingRef.current;
         if (saved?.payload.kind === "clarification") {
-          await continueMemberClarification(memberTokenRef.current ?? token, accountId);
+          await continueMemberClarification(credential(), accountId);
         } else if (saved && (saved.phase === "cancelled" || (current.draft.trim() !== saved.payload.text ||
           saved.payload.kind === "follow_up" && current.run?.runId !== saved.payload.parentRunId))) {
-          if (saved.phase !== "cancelled") await abandonSavedGuestAction(saved, token);
+          if (saved.phase !== "cancelled") await abandonSavedGuestAction(saved, credential());
           const adopted = { ...current, signedIn: true };
-          await sessionStorage.persistRequired(token, adopted);
+          await sessionStorage.persistRequired(credential(), adopted);
           await guestDevice.clear(); api.clearGuest();
           guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
           setGuestContext(null); setGuestPending(null);
           latestUi.current = adopted; setStateRaw(adopted);
           replaced = true;
-        } else await continueSavedSecondMessage(memberTokenRef.current ?? token, accountId);
+        } else await continueSavedSecondMessage(credential(), accountId);
       }
       catch (error) { setViewState(s => ({ ...s, error: error instanceof Error ? error.message : "The saved second message remains held." })); }
       finally { submitting.current = false; }
@@ -1496,7 +1569,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       setUploadStatus("Preparing saved request…");
       api.selectRun(null);
       stopPolling();
-      const t = memberTokenRef.current ?? token ?? (await ensureSession());
+      const credential = memberAuthority(accountId);
       const guard = api.captureView();
       let created;
       try {
@@ -1504,7 +1577,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         created = await submitAdmission(pending, current.attachments, {
           digest: nativeDocumentDigest,
           preflight: async () => {
-            const settings = await api.settings(t);
+            const settings = await api.settings(credential());
             if (!guard.current()) throw new SupersededRequest();
             setState(s => guard.current() ? { ...s, offline: false } : s);
             return settings;
@@ -1512,16 +1585,16 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           current: guard.current,
           progress: setUploadStatus,
           save: async draft => {
-            await sessionStorage.saveAdmission(t, draft);
+            await sessionStorage.saveAdmission(credential(), draft);
             if (!guard.current()) throw new SupersededRequest();
             setState(s => ({ ...s, pendingAdmission: draft, attachments: s.pendingAdmission ? s.attachments : s.attachments.map((f,i) => ({ ...f, id: draft.uploads[i]?.key })) }));
           },
-          upload: (file, key) => file.bytes ? api.attachBytes(t, file.filename, file.mime, file.bytes, key) : api.attach(t, file.filename, file.mime, file.text, key),
-          admit: (draft, ids) => api.createRun(t, draft.question, draft.routeMode, draft.key, ids, current.conversationId),
+          upload: (file, key) => file.bytes ? api.attachBytes(credential(), file.filename, file.mime, file.bytes, key) : api.attach(credential(), file.filename, file.mime, file.text, key),
+          admit: (draft, ids) => api.createRun(credential(), draft.question, draft.routeMode, draft.key, ids, current.conversationId),
         });
         if (!guard.current()) throw new SupersededRequest();
       } finally { guard.release(); }
-      await adoptAdmission(t, created);
+      await adoptAdmission(credential(), created, credential);
     } catch (e) {
       if (!accountGuard.current() || isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1539,7 +1612,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
   }
 
-  async function adoptAdmission(t: string, created: AdmittedRun) {
+  async function adoptAdmission(t: string, created: AdmittedRun, credential = memberAuthority()): Promise<void> {
       const guard = api.captureView();
       try {
       const current = latestUi.current;
@@ -1567,7 +1640,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             labeledDemo: created.labeledDemo,
           },
       };
-      await sessionStorage.finishAdmission(t, next);
+      await sessionStorage.finishAdmission(credential(), next);
       if (!guard.current()) throw new SupersededRequest();
       api.selectRun(created.runId);
       setSentQuestion(current.pendingAdmission?.question ?? current.draft);
@@ -1576,8 +1649,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       AccessibilityInfo.announceForAccessibility(
         "Research in progress. Cancel is available. Closing the app will not stop the job.",
       );
-      await refreshRun(t, created.runId, next);
-      startPolling(t, created.runId);
+      await refreshRun(credential(), created.runId, next);
+      startPolling(credential(), created.runId);
       } finally { guard.release(); }
   }
 
@@ -1585,11 +1658,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (!token || !state.pendingAdmission || submitting.current || !storageReady) return;
     const guard = api.captureView(); submitting.current = true; setUploadStatus("Checking saved request…");
     try {
-      const result = await api.resolveRunRequest(token, state.pendingAdmission.key);
+      const credential = memberAuthority(accountId);
+      const result = await api.resolveRunRequest(credential(), state.pendingAdmission.key);
       if (!guard.current()) throw new SupersededRequest();
-      if (result.status === "accepted") await adoptAdmission(token, readAdmittedRun(result.run));
+      if (result.status === "accepted") await adoptAdmission(credential(), readAdmittedRun(result.run), credential);
       else if (result.status === "withdrawn") {
-        await sessionStorage.saveAdmission(token, null);
+        await sessionStorage.saveAdmission(credential(), null);
         if (!guard.current()) throw new SupersededRequest();
         setState(s => ({ ...s, pendingAdmission: null, offline: false, error: "No active request remains for this key. The saved request is withdrawn; you can edit and send again." }));
       } else throw new Error("The saved request could not be resolved. Retry checking it.");
@@ -1609,8 +1683,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (!token || !state.run) return;
     // Cancellation is a new view authority boundary even though the same run stays selected.
     // This fences an accepted mutation that has not yet completed its child handoff.
-    api.invalidateView(token);
-    try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
+    try {
+      const credential = memberAuthority();
+      api.invalidateView(credential());
+      await api.cancel(credential(), state.run.runId);
+      await refreshRun(credential(), state.run.runId);
+    }
     catch (error) {
       if (isSupersededRequest(error)) return;
       if (isExpiredSession(error)) await onAuthFailure();
@@ -1657,15 +1735,16 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
       const pending = state.pendingSourceDeletion ? state : prepareSourceDeletion(state, target?.sourceId ?? "");
       deletingSource.current = true; setSourceDeleteBusy(true);
       stopPolling(); api.closeSource(); api.selectRun(null);
       const confirmed = await submitSourceDeletion(pending, {
         current: guard.current,
-        save: next => sessionStorage.persistRequired(token, next),
+        save: next => sessionStorage.persistRequired(credential(), next),
         hide: next => { setAttachText(""); setAttachName("note.txt"); setShowAttach(false); setState(s => guard.current() ? next : s); },
-        remove: id => api.deleteSource(token, id),
+        remove: id => api.deleteSource(credential(), id),
       });
       if (guard.current()) setState({ ...confirmed, offline: false });
     } catch (error) {
@@ -1714,14 +1793,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   async function adoptDocumentCorrection(runId: string) {
     if (!token) return;
+    const credential = memberAuthority();
     api.selectRun(runId);
     const guard = api.captureView();
     try {
       const next = await adoptCorrectionSnapshot(runId, state, {
-        current: guard.current, get: () => api.getRun(token, runId), finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+        current: guard.current, get: () => api.getRun(credential(), runId), finish: next => sessionStorage.finishCorrectionDocuments(credential(), next),
       });
       setState(next); setCorrectionFiles([]);
-      await refreshRun(token, runId, next); startPolling(token, runId);
+      await refreshRun(credential(), runId, next); startPolling(credential(), runId);
     } finally { guard.release(); }
   }
 
@@ -1732,11 +1812,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const guard = api.captureView(), attempt = Symbol("resolve document correction");
     correctionAttempt.current = attempt; setCorrectionPending(true);
     try {
+      const credential = memberAuthority();
       const result = await resolveCorrectionDocuments(pending, state, {
-        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
-        resolve: (durable, attachmentIds) => api.resolveCorrection(token, durable.parentRunId, durable.baseRevision, durable.upload.question,
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(credential()),
+        resolve: (durable, attachmentIds) => api.resolveCorrection(credential(), durable.parentRunId, durable.baseRevision, durable.upload.question,
           { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
-        finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+        finish: next => sessionStorage.finishCorrectionDocuments(credential(), next),
       });
       if ("runId" in result) await adoptDocumentCorrection(result.runId);
       else { setState(result.state); setCorrectionFiles([]); }
@@ -1756,20 +1837,21 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     api.selectRun(pendingParent);
     const guard = api.captureView();
     try {
+      const credential = memberAuthority();
       const durable = await authoritativeCorrection(state.pendingCorrectionDocuments, pendingParent, {
-        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(credential()),
       });
       const pending = durable ?? await prepareCorrectionDocuments(pendingParent, state.run.brief!.revision, files, newId, nativeDocumentDigest, guard.current);
       const runId = await submitCorrectionDocuments(pending, files, {
         current: guard.current, digest: nativeDocumentDigest, progress: setUploadStatus,
-        preflight: () => api.settings(token),
+        preflight: () => api.settings(credential()),
         save: async saved => {
-          await sessionStorage.saveCorrectionDocuments(token, saved);
+          await sessionStorage.saveCorrectionDocuments(credential(), saved);
           if (!guard.current()) throw new SupersededRequest();
           setState(s => ({ ...s, pendingCorrectionDocuments: saved }));
         },
-        upload: (file, key) => file.bytes ? api.attachBytes(token, file.filename, file.mime, file.bytes, key) : api.attach(token, file.filename, file.mime, file.text, key),
-        correct: (parent, revision, text, attachmentIds) => api.correct(token, parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
+        upload: (file, key) => file.bytes ? api.attachBytes(credential(), file.filename, file.mime, file.bytes, key) : api.attach(credential(), file.filename, file.mime, file.text, key),
+        correct: (parent, revision, text, attachmentIds) => api.correct(credential(), parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
       });
       if (!guard.current()) throw new SupersededRequest();
       await adoptDocumentCorrection(runId);
@@ -1808,9 +1890,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const parentRunId = pending?.parentRunId ?? current.run.runId;
     const expectedBriefRevision = pending?.expectedBriefRevision ?? current.run.brief!.revision;
     const selectedEvidencePolicy = pending?.evidencePolicy ?? evidencePolicy;
-    if (retrySaved && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
+    const credential = memberAuthority();
+    if (retrySaved && !api.currentRun(credential(), parentRunId)) api.selectRun(parentRunId);
     const attempt=Symbol("correction");
-    let guard: ViewHandle = api.captureView(token, parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), parentRunId);
     correctionAttempt.current=attempt;setCorrectionPending(true);
     try {
       const adopted = await runPendingCorrection({
@@ -1824,7 +1907,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           await persistMutationJournal(token, guard, "pendingCorrection", saved, parentRunId);
         },
         post: (parentRunId, question, expectedBriefRevision, policy, idempotencyKey) =>
-          api.correct(token, parentRunId, expectedBriefRevision, question,
+          api.correct(credential(), parentRunId, expectedBriefRevision, question,
             correctionMode==="replace_question"?{kind:"replace_question",question,evidencePolicy:policy}:undefined,
             idempotencyKey),
         adopt: async (body) => {
@@ -1833,9 +1916,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             body,
             requireRunId: true,
             selectRun: api.selectRun,
-            captureView: (runId) => api.captureView(token, runId),
+            captureView: (runId) => api.captureView(credential(), runId),
             onView: (next) => { guard.release(); guard = next; },
-            currentRun: (runId) => api.currentRun(token, runId),
+            currentRun: (runId) => api.currentRun(credential(), runId),
             refresh: async (runId) => {
               api.closeSource();
               setShowAttach(false);
@@ -1863,15 +1946,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
               };
               latestUi.current = opening;
               setViewState(opening);
-              await refreshRun(token, runId, opening, true);
+              await refreshRun(credential(), runId, opening, true);
             },
-            poll: (runId) => startPolling(token, runId),
+            poll: (runId) => startPolling(credential(), runId),
           });
         },
       });
       if (!guard.current()) throw new SupersededRequest();
       const finished = { ...latestUi.current, pendingCorrection: adopted.phase === "adopted" ? null : adopted, correctionDraft: null };
-      await sessionStorage.persistRequired(token, finished);
+      await sessionStorage.persistRequired(credential(), finished);
       if (!guard.current()) throw new SupersededRequest();
       latestUi.current = finished;
       setViewState(finished);
@@ -1941,6 +2024,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const runId = state.run.runId;
     const answer = clarifyAnswer.trim();
     const field = state.run.pendingInput?.field;
+    const credential = memberAuthority();
     if (editingAssumptions) {
       const values = clarifyAnswer.split("\n").map((line) => line.trim()).filter(Boolean);
       if (!values.length) {
@@ -1948,7 +2032,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         return;
       }
       clarifying.current = true;
-      let guard: ViewHandle = api.captureView(token, runId);
+      let guard: ViewHandle = api.captureView(credential(), runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before replacing assumptions.");
@@ -1962,19 +2046,19 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           save: async (saved) => {
             await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
-          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
           adopt: async (body) => {
             await adoptReturnedChild({
               parentRunId: runId,
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
               refresh: async (acceptedRunId) => {
                 if (acceptedRunId === runId) {
-                  await refreshRun(token, acceptedRunId, undefined, true);
+                  await refreshRun(credential(), acceptedRunId, undefined, true);
                   return;
                 }
                 const opening = {
@@ -1990,14 +2074,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                 };
                 latestUi.current = opening;
                 setViewState(opening);
-                await refreshRun(token, acceptedRunId, opening, true);
+                await refreshRun(credential(), acceptedRunId, opening, true);
               },
-              poll: (runId) => startPolling(token, runId),
+              poll: (runId) => startPolling(credential(), runId),
             });
           },
         });
         const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState({ ...finished, pendingAssumptions: null, error: null });
@@ -2015,7 +2099,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     }
     if (!briefView.blocking) {
       clarifying.current = true;
-      const guard = api.captureView(token, runId);
+      const guard = api.captureView(credential(), runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before confirming assumptions.");
@@ -2028,14 +2112,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           save: async (saved) => {
             await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
-          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
           adopt: async () => {
             AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
-            await refreshRun(token, runId, undefined, true);
+            await refreshRun(credential(), runId, undefined, true);
           },
         });
         const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState({ ...finished, pendingAssumptions: null, error: null });
@@ -2054,7 +2138,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     }
     clarifying.current = true;
     try {
-      await api.continueRun(token, state.run.runId, continueRunRequest({
+      await api.continueRun(credential(), state.run.runId, continueRunRequest({
         pendingInput: state.run.pendingInput,
         value: answer,
       }));
@@ -2064,8 +2148,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         return next;
       });
       AccessibilityInfo.announceForAccessibility("Clarification saved. Research continues on the server.");
-      await refreshRun(token, state.run.runId);
-      startPolling(token, state.run.runId);
+      await refreshRun(credential(), state.run.runId);
+      startPolling(credential(), state.run.runId);
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -2094,8 +2178,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       return;
     }
     clarifying.current = true;
-    if (!api.currentRun(token, pending.parentRunId)) api.selectRun(pending.parentRunId);
-    let guard: ViewHandle = api.captureView(token, pending.parentRunId);
+    const credential = memberAuthority();
+    if (!api.currentRun(credential(), pending.parentRunId)) api.selectRun(pending.parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), pending.parentRunId);
     try {
       const adopted = await runAssumptionsMutation({
         pending,
@@ -2107,7 +2192,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         save: async (saved) => {
           await persistMutationJournal(token, guard, "pendingAssumptions", saved, pending.parentRunId);
         },
-        post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+        post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
         adopt: async (body) => {
           if (pending.action === "replace") {
             await adoptReturnedChild({
@@ -2115,19 +2200,19 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
-              refresh: (acceptedRunId) => refreshRun(token, acceptedRunId, undefined, true).then(() => undefined),
-              poll: (acceptedRunId) => startPolling(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
+              refresh: (acceptedRunId) => refreshRun(credential(), acceptedRunId, undefined, true).then(() => undefined),
+              poll: (acceptedRunId) => startPolling(credential(), acceptedRunId),
             });
           } else {
-            await refreshRun(token, pending.parentRunId, undefined, true);
+            await refreshRun(credential(), pending.parentRunId, undefined, true);
           }
         },
       });
       const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted, error: null };
-      await sessionStorage.persistRequired(token, finished);
+      await sessionStorage.persistRequired(credential(), finished);
       if (!guard.current()) throw new SupersededRequest();
       latestUi.current = finished;
       setViewState(finished);
@@ -2147,18 +2232,19 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
     if (!token) return;
+    const credential = memberAuthority();
     if (runId === pending.parentRunId) throw new Error("Verification resolved to its parent instead of a child. Retry the saved request.");
     api.selectRun(runId);
     const guard = api.captureView();
     try {
-      const snap = readVerificationRun(await api.getRun(token, runId), runId);
+      const snap = readVerificationRun(await api.getRun(credential(), runId), runId);
       if (!guard.current()) throw new SupersededRequest();
       let next = applySnapshot({ ...state, pendingVerification: null, previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport, report: null, source: null, events: [], readingAnchor: null, correctionDraft: null }, snap);
       next = { ...next, error: null, offline: false, tab: "research" };
-      await sessionStorage.persistRequired(token, next);
+      await sessionStorage.persistRequired(credential(), next);
       if (!guard.current()) throw new SupersededRequest();
       setState(next);
-      await refreshRun(token, runId, next); startPolling(token, runId);
+      await refreshRun(credential(), runId, next); startPolling(credential(), runId);
     } finally { guard.release(); }
   }
 
@@ -2179,8 +2265,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const routed = routeFollowUp(text, { reportReady, runActive });
     const mutationKind = retrySaved && pending?.kind ? pending.kind : routed.kind;
     const mutates = mutationKind === "deepen" || mutationKind === "steer" || mutationKind === "add_source" || mutationKind === "change_constraint";
-    if (retrySaved && pending && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
-    let guard: ViewHandle = api.captureView(token, parentRunId);
+    const credential = memberAuthority();
+    if (retrySaved && pending && !api.currentRun(credential(), parentRunId)) api.selectRun(parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), parentRunId);
     try {
       const revision = retrySaved && pending ? pending.expectedBriefRevision : current.run.brief?.revision;
       if (mutates) {
@@ -2200,19 +2287,19 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             await persistMutationJournal(token, guard, "pendingFollowUp", saved, parentRunId);
           },
           post: (runId, message, expectedBriefRevision, idempotencyKey) =>
-            api.explainFollowUp(token, runId, { message, expectedBriefRevision }, idempotencyKey),
+            api.explainFollowUp(credential(), runId, { message, expectedBriefRevision }, idempotencyKey),
           adopt: async (body) => {
             await adoptReturnedChild({
               parentRunId,
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
               refresh: async (acceptedRunId) => {
                 if (acceptedRunId === parentRunId) {
-                  await refreshRun(token, acceptedRunId, undefined, true);
+                  await refreshRun(credential(), acceptedRunId, undefined, true);
                   return;
                 }
                 const opening = {
@@ -2228,9 +2315,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                 };
                 latestUi.current = opening;
                 setViewState(opening);
-                await refreshRun(token, acceptedRunId, opening, true);
+                await refreshRun(credential(), acceptedRunId, opening, true);
               },
-              poll: (runId) => startPolling(token, runId),
+              poll: (runId) => startPolling(credential(), runId),
             });
           },
         });
@@ -2240,13 +2327,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           draft: latestUi.current.draft.trim() === text ? "" : latestUi.current.draft,
           error: null,
         };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState(finished);
         return;
       }
-      const body = await api.explainFollowUp(token, parentRunId, {
+      const body = await api.explainFollowUp(credential(), parentRunId, {
         message: text,
         expectedBriefRevision: revision,
       }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
@@ -2348,6 +2435,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     }
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       verifying.current = true; setVerificationBusy(true);
       let pending = state.pendingVerification;
       if (!pending) {
@@ -2360,11 +2448,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const accepted = await submitVerificationRequest(pending, {
         current: guard.current,
         save: async saved => {
-          await sessionStorage.persistRequired(token, { ...state, pendingVerification: saved });
+          await sessionStorage.persistRequired(credential(), { ...state, pendingVerification: saved });
           if (!guard.current()) throw new SupersededRequest();
           setState(s => ({ ...s, pendingVerification: saved }));
         },
-        post: (id, request) => api.followUp(token, id, request),
+        post: (id, request) => api.followUp(credential(), id, request),
       });
       if (guard.current()) await adoptVerification(pending, accepted.runId);
     } catch (error) {
@@ -2379,13 +2467,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (!token || !pending || verifying.current) return;
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       verifying.current = true; setVerificationBusy(true);
-      const result = await api.resolveRunRequest(token, pending.request.idempotencyKey, pending);
+      const result = await api.resolveRunRequest(credential(), pending.request.idempotencyKey, pending);
       if (!guard.current()) throw new SupersededRequest();
       if (result.status === "accepted") await adoptVerification(pending, readAdmittedRun(result.run).runId);
       else if (result.status === "withdrawn") {
         const next = { ...state, pendingVerification: null, error: "The saved verification request is withdrawn. No new verification will start under this key." };
-        await sessionStorage.persistRequired(token, next);
+        await sessionStorage.persistRequired(credential(), next);
         if (guard.current()) setState(next);
       } else throw new Error("Verification status could not be confirmed. Retry the saved request.");
     } catch (error) {
@@ -2590,9 +2679,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                           setViewState((s) => ({ ...s, error: error instanceof Error ? error.message : "Exact search terms are not available. Public search will not continue." }));
                           return;
                         }
-                        void api.approveQuery(token, state.run.runId, body).then(() => refreshRun(token, state.run!.runId)).then(() => {
+                        const credential = memberAuthority();
+                        void api.approveQuery(credential(), state.run.runId, body).then(() => refreshRun(credential(), state.run!.runId)).then(() => {
                           if (token && latestUi.current.run && !queryAuthorizationPending(latestUi.current.run)) {
-                            startPolling(token, latestUi.current.run.runId);
+                            startPolling(credential(), latestUi.current.run.runId);
                           }
                         }).catch((e) => {
                           if (isSupersededRequest(e)) return;
@@ -2927,6 +3017,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                 const result = await api.deleteAccount(token);
                 api.activateSession(null); clearPanels();
                 memberTokenRef.current = null; memberAccountRef.current = null;
+                activeClerkSubjectRef.current = null;
                 setToken(null); setAccountId(null); setState({ ...emptyState(), error: result.fileCleanupPending ? "Account access removed. Stored file deletion is queued for retry." : null });
                 await clearAccountLocal(sessionStorage);
               } catch (error) {
@@ -2942,6 +3033,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                   await authRef.current.signOut();
                   stopPolling(); api.activateSession(null); api.clearGuest(); clearPanels();
                   memberTokenRef.current = null; memberAccountRef.current = null;
+                  activeClerkSubjectRef.current = null;
                   setToken(null); setAccountId(null); setState((s) => logoutState(s));
                   await logoutLocal(sessionStorage); setStorageReady(true);
                 } catch { setState((s) => ({ ...s, error: "Sign-out or device cleanup could not be confirmed. Please retry." })); }
@@ -2950,8 +3042,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             onRevoke={async () => {
               if (!token) return;
               let accountGuard: ReturnType<typeof api.capture>;
+              let credential: () => string;
               try {
-                accountGuard = api.capture(token);
+                credential = memberAuthority();
+                accountGuard = api.capture(credential());
               } catch (error) {
                 if (isSupersededRequest(error)) return;
                 return;
@@ -2961,12 +3055,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                 await revokeConsentWithinAccount({
                   account: accountGuard,
                   currentState: () => latestUi.current,
-                  invalidateView: () => api.invalidateView(token),
+                  invalidateView: () => api.invalidateView(credential()),
                   // An accepted mutation may be completing its required write
                   // as revocation fences the view. Retain its durable identity.
                   waitForJournal: () => mutationJournalWrite.current,
-                  persist: (revoked) => sessionStorage.persistRequired(token, revoked),
-                  revokeRemote: () => api.consent(token, false),
+                  persist: (revoked) => sessionStorage.persistRequired(credential(), revoked),
+                  revokeRemote: () => api.consent(credential(), false),
                   synchronize: (next) => { latestUi.current = next; },
                   render: (next) => setStateRaw((previous) => accountGuard.current() ? next : previous),
                   failureMessage: "Could not confirm consent revocation. Retry.",
