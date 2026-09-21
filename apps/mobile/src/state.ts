@@ -1,12 +1,12 @@
 import { redactInvalidatedContent } from "./remote-invalidation";
 import type { FollowUpExplain } from "./follow-up-explain";
-import { unresolvedJournalPhase, type PendingFollowUp } from "./follow-up-admission";
+import { readPendingFollowUp, unresolvedJournalPhase, type PendingFollowUp } from "./follow-up-admission";
 import type { PendingVerificationRequest } from "./verification-request";
-import { readPendingInput, type PendingAssumptions } from "./pending-input";
+import { readPendingAssumptions, readPendingInput, type PendingAssumptions } from "./pending-input";
 import { queryAuthorizationPending, readPendingQueryAuthorization } from "./query-authorization";
 import type { AdmissionDraft } from "./admission-retry";
 import type { SourceDetail } from "./source-view";
-import type { CorrectionDraft, PendingCorrection } from "./correction-draft";
+import { readPendingCorrection, type CorrectionDraft, type PendingCorrection } from "./correction-draft";
 import { adoptPublicEvents, type ResearchEvent } from "./research-activity";
 export type RouteMode = "fixture" | "controlled-research";
 
@@ -196,9 +196,20 @@ export function startNewResearch(state: UiState): { ok: true; next: UiState } | 
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting new research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting new research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting new research." };
-  if (unresolvedJournalPhase(state.pendingFollowUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting new research." };
-  if (unresolvedJournalPhase(state.pendingAssumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting new research." };
-  if (unresolvedJournalPhase(state.pendingCorrection?.phase)) return { ok: false, reason: "Retry the saved correction before starting new research." };
+  let journals;
+  try {
+    // Parse every extant journal before any phase may authorize clearing it.
+    journals = {
+      followUp: readPendingFollowUp(state.pendingFollowUp),
+      assumptions: readPendingAssumptions(state.pendingAssumptions),
+      correction: readPendingCorrection(state.pendingCorrection),
+    };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : "Saved request is invalid. Device cleanup is required before new research." };
+  }
+  if (unresolvedJournalPhase(journals.followUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting new research." };
+  if (unresolvedJournalPhase(journals.assumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting new research." };
+  if (unresolvedJournalPhase(journals.correction?.phase)) return { ok: false, reason: "Retry the saved correction before starting new research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting new research." };
   if (state.pendingAdmission) return { ok: false, reason: "Check or withdraw the saved request before starting new research." };
   return {
@@ -231,9 +242,20 @@ export function canSubmit(state: UiState): { ok: boolean; reason?: string } {
   if (state.pendingContentInvalidation) return { ok: false, reason: "Retry clearing deleted source content before starting research." };
   if (state.pendingCorrectionDocuments) return { ok: false, reason: "Retry the saved document correction before starting research." };
   if (state.pendingVerification) return { ok: false, reason: "Resolve the saved verification request before starting research." };
-  if (unresolvedJournalPhase(state.pendingFollowUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting research." };
-  if (unresolvedJournalPhase(state.pendingAssumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting research." };
-  if (unresolvedJournalPhase(state.pendingCorrection?.phase)) return { ok: false, reason: "Retry the saved correction before starting research." };
+  let journals;
+  try {
+    // Admission is not authorized until every extant durable identity parses.
+    journals = {
+      followUp: readPendingFollowUp(state.pendingFollowUp),
+      assumptions: readPendingAssumptions(state.pendingAssumptions),
+      correction: readPendingCorrection(state.pendingCorrection),
+    };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : "Saved request is invalid. Device cleanup is required before new research." };
+  }
+  if (unresolvedJournalPhase(journals.followUp?.phase)) return { ok: false, reason: "Retry the saved follow-up before starting research." };
+  if (unresolvedJournalPhase(journals.assumptions?.phase)) return { ok: false, reason: "Retry the saved assumption change before starting research." };
+  if (unresolvedJournalPhase(journals.correction?.phase)) return { ok: false, reason: "Retry the saved correction before starting research." };
   if (state.pendingSourceDeletion) return { ok: false, reason: "Confirm the pending source deletion before starting research." };
   if (queryAuthorizationPending(state.run)) return { ok: false, reason: "Approve the exact search terms before public search can continue." };
   if (!state.draft.trim()) return { ok: false, reason: "Write a question first." };
