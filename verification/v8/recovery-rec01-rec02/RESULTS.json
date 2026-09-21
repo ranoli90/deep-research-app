@@ -1,18 +1,25 @@
 {
-  "schema": "recovery-integration-results.v1",
-  "generatedAt": "2026-09-20T17:41:06-06:00",
+  "schema": "recovery-integration-results.v2",
+  "generatedAt": "2026-09-20T19:23:54-06:00",
   "requirements": [
     "REC-01",
-    "REC-02"
+    "REC-02",
+    "RES-01",
+    "RES-02",
+    "RES-03",
+    "RES-04",
+    "RES-05",
+    "APPLE-01"
   ],
-  "evidenceClass": "local deterministic recovery and test-union evidence",
+  "evidenceClass": "local deterministic recovery/integration evidence plus explicitly bounded prior independent PostgreSQL and external Apple readback evidence",
   "repository": "ranoli90/deep-research-app",
   "worktree": {
     "path": "/home/oranolio/Desktop/deep-v8-recovery-20260920",
     "branch": "codex/v8-recovery-20260920",
     "base": "bb80cfd2d2a3b14e224e516b165871fc60e58105",
-    "functionalHead": "f358fd597fc7272a8203284ad5ac8bc549a7b5fc",
-    "functionalTree": "fb7ce593aa6a8deaaa83e26ed48545601cb2ae32"
+    "recoveryHead": "4ba21a65b7e7f7abe79b5381f4ec20a4ef341c1d",
+    "integratedCodeHeadBeforeEvidenceSynthesis": "76c4b6a4a95bee17b89484d498d3f8d3aa63c9de",
+    "remotePushed": false
   },
   "refInventoryAfterFetch": {
     "main": "d89afe3d8ae4c57682cb603d79c2c23605c4e9e0",
@@ -63,7 +70,7 @@
     ],
     "parserSource": "b818a1c07354b78d30cd8ed88bf1d37a36dfa70f",
     "misnamedDuplicateImported": false,
-    "collisionResolution": "The three independent suites were renamed at 100% similarity before applying implementation suites at their canonical paths. No assertion was edited or deleted.",
+    "collisionResolution": "The three independent suites were renamed at 100% similarity before applying implementation suites at their canonical paths. Their original exact blobs remain at recovery head 4ba21a6. The active semantic union retains every behavior assertion while superseding rejected semantics, replacing the AG07 skip with a positive sibling-parser regression, making the BB01 confirm harness match the production parent-run response, and adding only generic snapshot-extra typing to the backend suite.",
     "testBlobs": {
       "mobileImplementation": "2ae79a06927c89538667bf3cfb1e72e1b069a514",
       "mobileIndependent": "d0e62871ea101145ebc7d26d1810ae676f92b726",
@@ -73,7 +80,30 @@
       "backendImplementation": "bd8c287c4423f658f7d0640a2cd6091a4aec5198",
       "backendIndependent": "daaf35948599aad5ae84db005b17a20427547d9e"
     },
-    "independentReview": "Recovery preservation approved. All seven test blobs are exact and all renamed suites match configured Vitest globs. Approval is for the recovery union only, not behavioral acceptance."
+    "activeTestBlobs": {
+      "mobileIndependent": "ad34654c01eeb2f5971dbe3f0691b448d25b43a8",
+      "mobileBb01Guard": "fbee191b6fa13709d445984c965aab19ad355596",
+      "coreIndependent": "b01ea8c3e7e84a72f7bea9861fcb79a30d81c4ff",
+      "backendIndependent": "41739edad8ae18d7002db55711ee30b514a48e84"
+    },
+    "approvedImports": {
+      "res01": [
+        "a4f66d2f5897524eb1059395e0b66c522036789c",
+        "0b87ae6cb16632c076ba152aee45a4383c41da4d",
+        "e095d723394878a83e85b0ba647bdd46c6e5df5d"
+      ],
+      "res04": [
+        "9327b21fc3b7b602f34aa8607ada9b8b7d9add97",
+        "045076cc181336bb581f060de3b7ca6d14f4b7e9"
+      ],
+      "res020305": [
+        "3677bd83e028ac6f52d162cf707cd2094793c7c7",
+        "6eb29dd28fce399c78bfa6d54ff6a2e6b089dc9d",
+        "7a4d70fb9df8d98157fe78c587a91ccb4d8545d9"
+      ]
+    },
+    "reviewHistory": "Recovery preservation was approved at 4ba21a6. RES-01 was independently approved at evidence head afd2b4d. RES-04 was rejected once for foreign accepted confirmation identity, repaired in 045076c and approved at evidence head 2abcbd1. RES-02/03/05 was rejected at 3677bd8 and again at 6eb29dd before final pair-binding repair 7a4d70f was independently approved.",
+    "manualConflictResolution": "Cherry-picks conflicted only in STATUS.md, HANDOFF.md and EXECUTION_LEDGER.md, plus the expected RES-01 add/add BB01 test. Global documents were held for one final synthesis. The BB01 suite was merged assertion-by-assertion. No production behavior conflict was hidden and the byte-identical query-authorization overlap remained single."
   },
   "commands": [
     {
@@ -153,23 +183,73 @@
       "exitCode": 0,
       "environment": "recovery documentation head",
       "scope": "12 builder-handoff validator tests passed"
+    },
+    {
+      "command": "pnpm --filter @deep/backend typecheck",
+      "exitCode": 0,
+      "environment": "integrated candidate; no network/provider/database",
+      "scope": "Backend static TypeScript, including active implementation and independent historical worker suites. The independent suite's snapshot extras are generic and readUrls remains strongly typed."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- test/constraint-delta.test.ts test/independent-bb01-adoption-guard.test.ts test/sibling-journals.test.ts test/follow-up-journal.test.ts test/follow-up-journal.independent.test.ts test/pending-input.test.ts test/correction-draft.test.ts test/follow-up-admission.test.ts test/lifecycle.test.ts test/request-scope.test.ts",
+      "exitCode": 0,
+      "environment": "integrated candidate; deterministic local Vitest",
+      "scope": "10 files; 210 passed; zero skipped. RES-01, RES-04 and preserved independent BB01/BB03 behaviors."
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "environment": "integrated candidate; Node 20.20.2; pnpm 9.15.9; no network/provider/database",
+      "scope": "Workspace types pass; research-core 33 files/392 tests; backend unit 30 files/247 tests; mobile 54 files/504 tests; boundaries=ok; backend governance 6/6."
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "environment": "integrated candidate; no native execution",
+      "scope": "Mobile TypeScript source and test-adjacent imports compile without suppression."
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "environment": "integrated candidate documentation synthesis",
+      "scope": "ok=true; 42 sources, 18 observations, 90 acceptance specifications, 12 draft evaluation cases; application_tests_run=0 is correctly scoped to the review package."
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exitCode": 0,
+      "environment": "integrated candidate documentation synthesis",
+      "scope": "16 review-validator tests passed."
     }
   ],
-  "remainingRedEvidence": [
-    "BB-01: ten real-scope parent-to-child adoption/recovery cases still fail with SupersededRequest; same-run and negative controls remain.",
-    "BB-02: three independent production worker/PostgreSQL cases still falsely satisfy unresolved criteria.",
-    "The two backend candidate suites are runtime-discovered but do not typecheck because helper result inference omits searchQueries/readUrls aliases used by assertions.",
-    "The parser implementation suite still contains a temporary source-presence assertion documenting weak assumption/correction parsers, and the independent suite retains its skipped AG07 sibling-parser marker.",
-    "Two recovered BB-02 unit expectations encode the RES-03 weakness: bare present-tense employees/now is treated as non-current and a founded-plus-employee question is treated as historical.",
-    "No compound single-criterion/two-entity missing-obligation regression or real persisted-v2 resume immutability regression is present yet."
-  ],
+  "priorIndependentDatabaseEvidence": {
+    "rerunInIntegrationWorktree": false,
+    "reason": "The integration assignment prohibited shared databases and required deterministic non-DB integration checks. Approved lane evidence used fresh uniquely named local databases and fabricated nonbillable transports.",
+    "workerSiblings": "8/8 at final RES-02 head 7a4d70f on deep_res020305_pairs_full_20260920_185500",
+    "policyFirstWriteReplayTamper": "2/2 at RES-02 repair head on deep_res05_persist_final_20260920_183955",
+    "artifact": "verification/v8/res02-freshness/RESULTS.md"
+  },
+  "apple01": {
+    "evidenceClass": "Prior owner-authorized external portal/API readback recorded in the dirty main worktree; not rerun and not promoted to native/application acceptance by this integration.",
+    "teamId": "W6MVPS68ZU",
+    "bundleId": "app.deepresearch.mobile",
+    "appStoreConnectAppId": "6814282574",
+    "version": "1.0",
+    "state": "PREPARE_FOR_SUBMISSION",
+    "metadataReadback": "HTTP 200; en-US listing recorded by the authorized Apple continuation.",
+    "artifactBoundary": "Untracked portal screenshots remain under /home/oranolio/Desktop/Deep/verification and were not copied into this branch. No credential was read or printed here.",
+    "releaseBoundary": "Zero signed iOS builds; production EAS profile still points to https://example.invalid; no TestFlight upload, submission or release was performed or authorized."
+  },
+  "remainingRedEvidence": [],
   "readiness": {
     "rec01": "complete",
-    "rec02": "review-ready recovery union with expected red behavior",
-    "implementationLaneCherryPicks": "ready after each lane rebases or cherry-picks onto functional head f358fd5; re-run exact focused and integrated checks after functional fixes",
-    "phaseA": "not accepted",
-    "phaseB": "not accepted",
+    "rec02": "complete integrated semantic union",
+    "res01": "independently approved and integrated",
+    "res04": "independently approved after foreign-confirmation repair and integrated",
+    "res020305": "independently approved after two rejection/repair cycles and integrated",
+    "candidate": "local clean integration candidate after final commit; no remaining deterministic red result",
+    "phaseA": "implementation requirements in this recovery assignment are satisfied; broader milestone/release acceptance remains governed by existing gates",
+    "phaseB": "not inferred from deterministic integration evidence",
     "release": "not authorized"
   },
-  "rollback": "Revert the local recovery commits in reverse order on codex/v8-recovery-20260920. Keep all source branches, dirty external worktrees, historical identities, unknown holds, authorization/privacy/publication gates, and untracked visual evidence intact. No push, main merge, deployment, live provider call, GHA, EAS, or release action occurred."
+  "rollback": "Return the local recovery branch to 4ba21a65b7e7f7abe79b5381f4ec20a4ef341c1d or revert the imported/final integration commits in reverse order. Keep v2/v3/v4 freshness readers and admitted rows, strict durable-journal readers and accepted identities, unresolved Evidence Needs, all source evidence, consent/cancel/budget/ownership/deletion/publication gates, financial/unknown holds, source branches, dirty external worktrees and untracked visual evidence intact. No push, main merge, deployment, live provider call, GHA, EAS, TestFlight or release action occurred."
 }

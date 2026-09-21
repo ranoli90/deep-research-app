@@ -238,7 +238,7 @@ function installFetch(brief: unknown, searchFor: (query: string) => { url: strin
   return { operations, searchQueries };
 }
 
-async function snapshot(runId: string, accountId: string, extra: Record<string, unknown> = {}) {
+async function snapshot<T extends Record<string, unknown>>(runId: string, accountId: string, extra: T) {
   const searches = (await pool.query(
     `SELECT s.query FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id WHERE s.run_id=$1 AND s.query IS NOT NULL ORDER BY i.created_at, s.intent_id`,
     [runId],

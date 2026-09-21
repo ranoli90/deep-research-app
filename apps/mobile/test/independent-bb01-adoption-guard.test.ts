@@ -334,7 +334,7 @@ async function invokeAssumptions(h: Harness, opts: {
       },
       post: async (runId: string, _body: unknown, key: string) => {
         h.posts.push(`${runId}:assumptions:${key}`);
-        return action === "confirm" ? { briefRevision: 4 } : { runId: targetRunId, briefRevision: 4 };
+        return { runId: targetRunId, briefRevision: 4 };
       },
       adopt: async (body: { runId?: string; briefRevision?: number }) => {
         const adoptArgs = {
@@ -586,6 +586,7 @@ describe("BB-01 real request-scope + production journal + adoption", () => {
     expect(disk.state.pendingFollowUp?.phase).toBe("accepted");
     expect(disk.state.pendingFollowUp?.acceptedRunId).toBe(CHILD);
   });
+
   it("BB01-05 deletion while the child loads does not return deleted snapshot, history, citation, or draft content", async () => {
     const h = await createHarness();
     const outcome = await invokeFollowUp(h, {

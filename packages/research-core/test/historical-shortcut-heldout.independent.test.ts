@@ -97,6 +97,7 @@ function callGaps(question: string, records: GapRecord[]) {
         hasSupportedEvidence: r.hasSupportedEvidence,
         disputed: r.disputed ?? false,
         boundSources: r.boundSources,
+        historicalCoverageOverrideAllowed: freshnessNs.isSimpleHistoricalLookup?.({ question, criteria: specs }) ?? false,
       })),
       now,
     } as never);
@@ -211,7 +212,8 @@ describe("BB02-03 mixed founding plus latest headcount", () => {
   it("U-CLASS-VETO: latest/headcount on the question is not a timeless historical lookup", () => {
     expect(freshness.isHistoricalFactQuestion(MIXED_LATEST)).toBe(false);
     expect(freshness.isHistoricalFactQuestion(HELIX_FOUNDED)).toBe(true);
-    expect(freshness.isHistoricalFactQuestion("When was Helixworks founded and how many employees work there?")).toBe(true);
+    expect(freshness.isHistoricalFactQuestion("When was Helixworks founded and how many employees work there?")).toBe(false);
+    expect(freshness.isHistoricalFactQuestion("When was Helixworks founded and how many employees did it have as of 2011?")).toBe(true);
     expect(freshness.isHistoricalFactQuestion("When was Helixworks founded as of 2011?")).toBe(true);
   });
 
@@ -435,10 +437,10 @@ describe("U-CLASS-PRICE-STILL-WINS / U-GAPS-FRESHNESS-FANOUT / U-VERSION-UNION",
     expect(result.unresolvedCriterionKeys).toContain("latest_headcount");
   });
 
-  it("FreshnessPolicy.version is v2 or v3 on read", () => {
+  it("FreshnessPolicy.version admits the immutable v2/v3 readers and current v4 writer", () => {
     const allowed = freshnessNs.FRESHNESS_POLICY_VERSIONS ?? [freshness.FRESHNESS_POLICY_VERSION];
     expect(allowed).toEqual(expect.arrayContaining([freshness.FRESHNESS_POLICY_VERSION]));
-    expect(["criterion-freshness.v2", "criterion-freshness.v3"]).toContain(freshness.FRESHNESS_POLICY_VERSION);
+    expect(["criterion-freshness.v2", "criterion-freshness.v3", "criterion-freshness.v4"]).toContain(freshness.FRESHNESS_POLICY_VERSION);
   });
 });
 

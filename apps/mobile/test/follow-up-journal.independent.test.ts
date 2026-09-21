@@ -8,6 +8,8 @@ import {
   runMutatingFollowUp,
   type PendingFollowUp,
 } from "../src/follow-up-admission";
+import { preparePendingAssumptions, readPendingAssumptions } from "../src/pending-input";
+import { preparePendingCorrection, readPendingCorrection } from "../src/correction-draft";
 import { createSessionStorage, hydrateOnLaunch, memoryStore } from "../src/persist";
 import { emptyState, startNewResearch, type UiState } from "../src/state";
 
@@ -436,8 +438,25 @@ describe("BB-03 implicit v1 / same-run hydrate (must stay green at bb80cfd and a
   });
 });
 
-describe("BB-03 later AG07 (not this wave)", () => {
-  it.skip("pendingAssumptions/pendingCorrection malformed digest/phase still coerce until AG07 leases those files", () => {
-    expect.fail("AG07: apply the pendingFollowUp fail-closed matrix to pendingAssumptions and pendingCorrection.");
+describe("RES-04 sibling durable journals", () => {
+  it("rejects malformed assumption/correction digest and phase records", () => {
+    const assumption = preparePendingAssumptions({
+      parentRunId,
+      action: "replace",
+      values: ["Quiet fans"],
+      expectedBriefRevision: 3,
+      requestId,
+    });
+    const correction = preparePendingCorrection({
+      parentRunId,
+      question: "Correct the battery comparison",
+      expectedBriefRevision: 3,
+      evidencePolicy: "reuse_snapshot",
+      requestId,
+    });
+    expect(() => readPendingAssumptions({ ...assumption, payloadDigest: NON_HEX_DIGEST })).toThrow(/Device cleanup/);
+    expect(() => readPendingAssumptions({ ...assumption, phase: "posting" })).toThrow(/Device cleanup/);
+    expect(() => readPendingCorrection({ ...correction, payloadDigest: NON_HEX_DIGEST })).toThrow(/Device cleanup/);
+    expect(() => readPendingCorrection({ ...correction, phase: "posting" })).toThrow(/Device cleanup/);
   });
 });

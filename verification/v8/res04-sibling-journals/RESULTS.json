@@ -80,9 +80,9 @@
     "No native device or build verification",
     "No database or hosted verification",
     "No live model/provider call",
-    "No release or integration approval"
+    "No release approval"
   ],
   "legacyPolicy": "No legacy journal migration is supported because incomplete rows cannot prove immutable request identity. Such rows remain held for explicit device cleanup.",
   "rollback": "Revert 045076c then 9327b21. No schema, dependency, durable-row rewrite, remote state, or financial state changed.",
-  "review": "Initial independent review rejected foreign accepted confirmation identity. Commit 045076c awaits the same reviewer's rerun before integration."
+  "review": "Initial independent review rejected foreign accepted confirmation identity. The same reviewer reran exact production and parser probes at evidence head 2abcbd1107f471403391ed647f33a6c3675e7f5e and approved functional commit 045076cc181336bb581f060de3b7ca6d14f4b7e9 for integration: foreign confirmation rejected with zero POST/adopt, valid same-parent confirmation and accepted replacement/correction restart adopted without POST, focused 129/129, full mobile 438/438, typecheck/boundaries/docs green."
 }
