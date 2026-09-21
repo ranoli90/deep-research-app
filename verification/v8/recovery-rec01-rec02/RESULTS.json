@@ -1,6 +1,6 @@
 {
   "schema": "recovery-integration-results.v3",
-  "generatedAt": "2026-09-20T21:34:00-06:00",
+  "generatedAt": "2026-09-20T23:26:49-06:00",
   "requirements": [
     "REC-01",
     "REC-02",
@@ -23,6 +23,8 @@
     "rejectedRes05IntegratedHead": "f70a3f6a576ddac0d5d505aee4a8706600ca343a",
     "integratedCodeHeadBeforeFinalEvidenceSynthesis": "0a48cf4bc1e80d30a688c694845bdb83bc2c699e",
     "res05IntegratedCodeHeadBeforeFinalEvidenceSynthesis": "002fc4ff5ab564f43ad11539997810d2b618cf8b",
+    "gateAFixtureBase": "c7c68e80416d45a1a7c9ee03bf970c04409cc98e",
+    "gateAFixtureApprovedFastForwardHead": "840e04b79c2781244f70afc39b3de88b064b1209",
     "remotePushed": false
   },
   "refInventoryAfterFetch": {
@@ -349,6 +351,30 @@
       "exitCode": 0,
       "environment": "local PostgreSQL administrative connection",
       "scope": "dropped only deep_res05_integrated_persist_20260920_2128 and deep_res05_integrated_worker_20260920_2128; verified remaining=0"
+    },
+    {
+      "command": "git merge --ff-only 840e04b79c2781244f70afc39b3de88b064b1209",
+      "exitCode": 0,
+      "environment": "clean recovery worktree at exact fixture base c7c68e80416d45a1a7c9ee03bf970c04409cc98e",
+      "scope": "advanced only local recovery branch to independently approved fixture packet; no main, remote, source-lane or production-path edit"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "environment": "exact fast-forwarded packet head 840e04b79c2781244f70afc39b3de88b064b1209; deterministic local checks, no database/provider/native/network route",
+      "scope": "workspace typecheck; research-core 395/395; backend unit 254/254; mobile 534/534; boundaries=ok; governance 6/6"
+    },
+    {
+      "command": "git diff --check c7c68e80416d45a1a7c9ee03bf970c04409cc98e 840e04b79c2781244f70afc39b3de88b064b1209 and production-path equality diff",
+      "exitCode": 0,
+      "environment": "local recovery worktree, exact base and approved packet refs",
+      "scope": "no whitespace error; production, contracts, migration, dependency and package-lock paths byte-identical to base"
+    },
+    {
+      "command": "node -e JSON.parse(recovery RESULTS.json); python3 scripts/validate_review.py; python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v; python3 scripts/validate_builder_handoff.py; python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "exitCode": 0,
+      "environment": "local recovery documentation synthesis on top of approved Gate-A packet; no database/provider/network/native route",
+      "scope": "recovery result JSON parses; review document integrity ok and 16/16 validator units; builder handoff integrity ok and 12/12 validator units; no application-test inference"
     }
   ],
   "priorIndependentDatabaseEvidence": {
@@ -379,6 +405,36 @@
     "fullIntegratedRerun": false,
     "reason": "The exact-clean source full artifact already proves 55/55 for the fixture-only diff; this integration ran the focused affected path once on a fresh unique database as authorized."
   },
+  "gateAFixture": {
+    "requirements": ["W05", "W06", "BB02", "Wave5"],
+    "initialFailedGate": {
+      "head": "c7c68e80416d45a1a7c9ee03bf970c04409cc98e",
+      "artifact": "/tmp/deep-gate-a-c7c68e8-20260920-2140/full-integration.log",
+      "artifactSha256": "979ed94a0a377f47e2752a702094401964e90718f48567caac61dfaa3bcef920",
+      "exitCode": 1,
+      "files": "45/49 passed",
+      "tests": "574/584 passed",
+      "disposition": "ten fixture expectation failures across four files; independent diagnosis found zero production defects"
+    },
+    "approvedPacket": {
+      "base": "c7c68e80416d45a1a7c9ee03bf970c04409cc98e",
+      "head": "840e04b79c2781244f70afc39b3de88b064b1209",
+      "tree": "ae8bf6b91df3a386c734772b19732c96ffdc3bc3",
+      "sameReviewerDisposition": "APPROVE exact head/tree without findings after BB02-03 publication protection and count-free rollback evidence",
+      "productionBlobEquality": true,
+      "assertionWeakeningFound": false,
+      "integratedBy": "clean local fast-forward; no cherry-pick or conflict resolution"
+    },
+    "preservedReviewHistory": [
+      "c1f98dea427ec5ff856dc1de0ea112c95911b80d rejected for missing BB02-03 limited-publication assertions",
+      "b9177330767c011883b92aca31a5a992e629996f and e10e5f8755322da8d1917c268183176c1319e833 rejected only for inaccurate numeric rollback wording"
+    ],
+    "sourceFocusedEvidence": "four affected integration files 178/178 on a fresh unique local PostgreSQL database before the final three BB02-03 assertions; afterward selected BB02-03 1/1 and complete independent heldout file 6/6 on separate fresh unique databases; all dropped and verified absent",
+    "integratedDeterministicEvidence": "pnpm verify EXIT 0 at exact approved packet head: core 395/395, backend unit 254/254, mobile 534/534, governance 6/6, workspace types and boundaries",
+    "fullGateAfterRepairExecuted": false,
+    "gateAPassClaim": false,
+    "rollback": "Rollback the local fixture/evidence commit series to exact base c7c68e80416d45a1a7c9ee03bf970c04409cc98e; retain all production safety readers and durable evidence."
+  },
   "apple01": {
     "evidenceClass": "Prior owner-authorized external portal/API readback recorded in the dirty main worktree; not rerun and not promoted to native/application acceptance by this integration.",
     "teamId": "W6MVPS68ZU",
@@ -398,7 +454,7 @@
     "res04": "approved after foreign-confirmation, terminal-binder and state-gate rejection/repair cycles and integrated",
     "res020305": "187a2f0 compound/currentness/alias behavior plus independently approved 0d48bb0 exact legacy-v2 epoch reader are integrated after preserving the f70a3f6 rejection",
     "w08": "same-reviewer approved at 5e76f51/e61c655; focused affected production path green on exact-clean integrated code head",
-    "candidate": "local clean integration candidate after final commit; no remaining deterministic red result",
+    "candidate": "approved fixture packet fast-forwarded locally and pnpm verify green; initial Gate-A 574/584 red log retained; post-repair full 49-file Gate-A not run and not claimed passed",
     "phaseA": "implementation requirements in this recovery assignment are satisfied; broader milestone/release acceptance remains governed by existing gates",
     "phaseB": "not inferred from deterministic integration evidence",
     "release": "not authorized"

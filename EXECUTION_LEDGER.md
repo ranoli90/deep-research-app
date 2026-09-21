@@ -1,8 +1,8 @@
 # Execution ledger
 
-## 2026-09-20 — FINAL Gate-A fixture alignment
+## 2026-09-20 — FINAL Gate-A fixture alignment and recovery fast-forward
 
-- Lane/base: `/home/oranolio/Desktop/deep-v8-gatea-fixture-20260920`, branch `codex/v8-gatea-fixture`, exact base `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`; recovery candidate, main and remote refs untouched.
+- Source lane/base: `/home/oranolio/Desktop/deep-v8-gatea-fixture-20260920`, branch `codex/v8-gatea-fixture`, exact base `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`. Final packet `840e04b79c2781244f70afc39b3de88b064b1209` was independently approved and fast-forwarded into local recovery branch; main, remote refs and source lane stayed untouched.
 - Preserved expected-red evidence: `/tmp/deep-gate-a-c7c68e8-20260920-2140/full-integration.log`, EXIT 1, **45/49 files**, **574/584 tests**, ten approved fixture-update failures and zero production defects.
 - W06 fixtures use Linux/Windows entity scopes. The new null-scope negative stays limited, keeps `need-platform` open, reads once and retries exact owned wording only.
 - Model-gateway positives use complete exact entity-scoped comparison evidence. The distinct-query fixture asserts entity relation `different` outside the transport so assertion failure cannot masquerade as an unknown provider outcome. Counterevidence uses an exact single-entity capability task while retaining its target/replay/final-coverage matrix.
@@ -10,8 +10,9 @@
 - Fresh isolated PG `deep_gatea_fixture_final_20260920_2257`: four focused files **178/178**, EXIT 0, 514.25s. `pnpm typecheck` EXIT 0. `node scripts/check-boundaries.mjs` EXIT 0 (`boundaries=ok`). Documentation checks are recorded in `verification/v8/gatea-fixture/RESULTS.md`. All five uniquely named repair/diagnostic databases were dropped and verified absent.
 - Same-reviewer disposition rejected exact `c1f98dea427ec5ff856dc1de0ea112c95911b80d` / tree `e92e45d89741f4e49b301f8fe9477c87dcea5658` solely for missing BB02-03 assertions around the already-observed current-fact freshness publication boundary; no production defect or other fixture defect was found.
 - Amendment adds only exact BB02-03 terminal/report `completed_with_limitations` and `Required source freshness remains unknown.` checks. Fresh selected DB `deep_gatea_bb0203_20260920_2310`: **1/1**, EXIT 0, 16.80s. Separate fresh full-file DB `deep_gatea_heldout_20260920_2310`: **6/6**, EXIT 0, 99.00s. Both amendment databases were dropped and verified absent.
-- Fixture-only impact: no production, dependency, schema, migration, public contract, prompt, model/provider route or service change; therefore no governance impact checklist or ADR/spec change is required. No full 49-file rerun, live/paid/provider/native/EAS/GHA, push or merge.
-- Rollback: revert the two local fixture/evidence commits to exact `c7c68e8`; runtime behavior and safety fences are unchanged.
+- At exact fast-forwarded packet head `840e04b`, `pnpm verify` EXIT 0: research-core **395/395**, backend unit **254/254**, mobile **534/534**, governance **6/6**, workspace types and boundaries. Production paths are byte-identical to `c7c68e8`; `git diff --check` EXIT 0. The preserved Gate-A failure log remains unchanged, and no post-repair full 49-file Gate-A result is claimed.
+- Fixture-only impact: no production, dependency, schema, migration, public contract, prompt, model/provider route or service change; therefore no governance impact checklist or ADR/spec change is required. No full 49-file rerun, live/paid/provider/native/EAS/GHA, push or merge to `main`.
+- Rollback: return the local fixture/evidence commit series to exact base `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`; runtime behavior and safety fences are unchanged.
 
 ## 2026-09-20 — V8 repaired recovery candidate
 
