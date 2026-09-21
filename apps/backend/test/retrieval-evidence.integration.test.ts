@@ -105,6 +105,12 @@ describe("Session B retrieval/evidence worker path", () => {
   }));
 
   it("issues an approved public query without leaking a private canary and persists independence/freshness/reconciliation under deletion", async () => runCase(async (x) => {
+    await persistFreshnessPolicy(pool, {
+      accountId: x.accountId,
+      runId: x.runId,
+      question: "What is the current price of Zephyr Pro?",
+      criterionKey: "price",
+    });
     await pool.query(
       `INSERT INTO query_authorizations(id,account_id,run_id,brief_revision,query_digest,proposed_query,authorized_query,terms,approved_private_terms,permission_required,kind)
        VALUES($1,$2,$3,1,$4,'coral kelp restoration','coral kelp restoration','[]','[]',false,'approved')`,
@@ -120,7 +126,6 @@ describe("Session B retrieval/evidence worker path", () => {
     expect(JSON.stringify(sent)).not.toContain("SECRET99");
     expect(sent.messages[1].content).toBe("coral kelp restoration");
     await x.session.write((db) => adoptSearchSources(db, { ...c.args, intentId: (first as { intentId: string }).intentId }));
-    await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: "What is the current price of Zephyr Pro?" });
     await persistSearchCoverage(pool, { accountId: x.accountId, runId: x.runId, coverage: recordSearchCoverage({ queriesAttempted: ["coral kelp restoration"], unresolvedAbsence: ["current first-party price"] }) });
     const recon = reconcileDocumentClaim({
       question: "What is the current list price of Zephyr Pro?",
@@ -130,7 +135,7 @@ describe("Session B retrieval/evidence worker path", () => {
     });
     await persistReconciliation(pool, { accountId: x.accountId, runId: x.runId, result: recon });
     expect((await pool.query("SELECT count(*)::int AS n FROM query_authorizations WHERE run_id=$1", [x.runId])).rows[0].n).toBeGreaterThan(0);
-    expect((await pool.query("SELECT class FROM criterion_freshness_policies WHERE run_id=$1", [x.runId])).rows[0].class).toBe("price");
+    expect((await pool.query("SELECT class FROM criterion_freshness_policies WHERE run_id=$1 AND criterion_key='price'", [x.runId])).rows[0].class).toBe("price");
     expect((await pool.query("SELECT outcome FROM document_web_reconciliations WHERE run_id=$1", [x.runId])).rows[0].outcome).toBe("confirmed");
     expect((await pool.query("SELECT coverage->>'notFoundMeansNonexistence' AS v FROM search_coverage WHERE run_id=$1", [x.runId])).rows[0].v).toBe("false");
     await deleteAccount(pool, x.accountId);
@@ -139,6 +144,49 @@ describe("Session B retrieval/evidence worker path", () => {
     expect((await pool.query("SELECT 1 FROM document_web_reconciliations WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
     expect((await pool.query("SELECT 1 FROM source_origin_links WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
     expect((await pool.query("SELECT 1 FROM search_coverage WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
+  }));
+
+  it("restores valid v3/v4 freshness identities and fails closed on semantic, row, owner, or version mismatch", async () => runCase(async (x) => {
+    const priceQuestion = "What is the current price of Zephyr Pro?";
+    const v4 = freshnessPolicyForQuestion(priceQuestion, "price", "criterion-freshness.v4");
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "price", policy: v4 })).toEqual(v4);
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "price", policy: v4 })).toEqual(v4);
+    expect((await pool.query("SELECT count(*)::int AS n FROM criterion_freshness_policies WHERE run_id=$1 AND criterion_key='price'", [x.runId])).rows[0].n).toBe(1);
+
+    const v3 = freshnessPolicyForQuestion(priceQuestion, "legacy_price", "criterion-freshness.v3");
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "legacy_price", policy: v3 })).toEqual(v3);
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "legacy_price", policy: v3 })).toEqual(v3);
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "legacy_price", policy: v4,
+    })).rejects.toThrow("stored_freshness_policy_version_mismatch");
+
+    const wrong = freshnessPolicyForQuestion("When was Zephyr Pro founded?", undefined, "criterion-freshness.v4");
+    await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "semantic_tamper", policy: v4 });
+    await pool.query(
+      `UPDATE criterion_freshness_policies
+          SET class=$3,max_age_hours=$4,requires_effective_date=$5,requires_version=$6,policy=$7::jsonb
+        WHERE account_id=$1 AND run_id=$2 AND criterion_key='semantic_tamper'`,
+      [x.accountId, x.runId, wrong.class, wrong.maxAgeHours, wrong.requiresEffectiveDate, wrong.requiresVersion, JSON.stringify(wrong)],
+    );
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "semantic_tamper", policy: v4,
+    })).rejects.toThrow("stored_freshness_policy_semantic_mismatch");
+
+    await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "row_tamper", policy: v4 });
+    await pool.query("UPDATE criterion_freshness_policies SET class='historical' WHERE account_id=$1 AND run_id=$2 AND criterion_key='row_tamper'", [x.accountId, x.runId]);
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "row_tamper", policy: v4,
+    })).rejects.toThrow("stored_freshness_policy_invalid");
+
+    await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "json_tamper", policy: v4 });
+    await pool.query("UPDATE criterion_freshness_policies SET policy=policy||'{\"unexpected\":true}'::jsonb WHERE account_id=$1 AND run_id=$2 AND criterion_key='json_tamper'", [x.accountId, x.runId]);
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "json_tamper", policy: v4,
+    })).rejects.toThrow("stored_freshness_policy_invalid");
+
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: crypto.randomUUID(), runId: x.runId, question: priceQuestion, criterionKey: "price", policy: v4,
+    })).rejects.toThrow("freshness_policy_owner_mismatch");
   }));
 
   it("persists search-hit publication dates and uses them for freshness, not a hardcoded null", async () => runCase(async (x) => {

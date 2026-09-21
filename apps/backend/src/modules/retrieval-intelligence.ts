@@ -6,12 +6,14 @@ import {
   evaluateFreshness,
   FRESHNESS_CLASSES,
   FRESHNESS_POLICY_VERSIONS,
+  freshnessPolicyForCriterion,
   freshnessPolicyForQuestion,
   planSourceClass,
   privateTermSetsEqual,
   reconcileDocumentClaim,
   recordSearchCoverage,
   type QueryAuthorization,
+  type FreshnessCriterionInput,
   type FreshnessPolicy,
   type ReconciliationResult,
   type SearchCoverage,
@@ -21,6 +23,9 @@ import {
 import type { Queryable } from "../platform/db.js";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+const FRESHNESS_POLICY_KEYS = ["class", "maxAgeHours", "rationale", "requiresEffectiveDate", "requiresVersion", "version"] as const;
+const sameFreshnessPolicy = (left: FreshnessPolicy, right: FreshnessPolicy) =>
+  FRESHNESS_POLICY_KEYS.every((key) => left[key] === right[key]);
 
 /** Versioned exact outbound bytes. Historical token-set approvals cannot authorize a changed query. */
 export function queryAuthorizationDigest(query: string): string {
@@ -275,9 +280,23 @@ export async function persistSourceOrigins(db: Queryable, args: { accountId: str
 
 export async function persistFreshnessPolicy(
   db: Queryable,
-  args: { accountId: string; runId: string; question: string; criterionKey?: string; policy?: FreshnessPolicy },
+  args: {
+    accountId: string;
+    runId: string;
+    question: string;
+    criterionKey?: string;
+    criterion?: FreshnessCriterionInput;
+    siblingCriteria?: ReadonlyArray<FreshnessCriterionInput>;
+    policy?: FreshnessPolicy;
+  },
 ): Promise<FreshnessPolicy> {
-  const proposed = args.policy ?? freshnessPolicyForQuestion(args.question, args.criterionKey);
+  const proposedVersion = args.policy?.version;
+  const proposed = args.criterion
+    ? freshnessPolicyForCriterion(args.question, args.criterion, args.siblingCriteria, proposedVersion)
+    : freshnessPolicyForQuestion(args.question, args.criterionKey, proposedVersion);
+  if (args.policy && !sameFreshnessPolicy(args.policy, proposed)) {
+    throw new Error("freshness_policy_proposal_mismatch");
+  }
   const criterionKey = args.criterionKey ?? "default";
   await db.query(
     `INSERT INTO criterion_freshness_policies(id,account_id,run_id,criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy)
@@ -313,7 +332,8 @@ export async function persistFreshnessPolicy(
   if (!value || typeof value !== "object") throw new Error("stored_freshness_policy_invalid");
   const candidate = value as Partial<FreshnessPolicy>;
   if (
-    !FRESHNESS_POLICY_VERSIONS.includes(candidate.version as (typeof FRESHNESS_POLICY_VERSIONS)[number])
+    Object.keys(value).sort().join("\0") !== [...FRESHNESS_POLICY_KEYS].sort().join("\0")
+    || !FRESHNESS_POLICY_VERSIONS.includes(candidate.version as (typeof FRESHNESS_POLICY_VERSIONS)[number])
     || !FRESHNESS_CLASSES.includes(candidate.class as (typeof FRESHNESS_CLASSES)[number])
     || (candidate.maxAgeHours !== null && (!Number.isInteger(candidate.maxAgeHours) || Number(candidate.maxAgeHours) < 0))
     || typeof candidate.requiresEffectiveDate !== "boolean"
@@ -324,7 +344,19 @@ export async function persistFreshnessPolicy(
     || row.requires_effective_date !== candidate.requiresEffectiveDate
     || row.requires_version !== candidate.requiresVersion
   ) throw new Error("stored_freshness_policy_invalid");
-  return candidate as FreshnessPolicy;
+  const policy = candidate as FreshnessPolicy;
+  if (args.policy && args.policy.version !== policy.version) {
+    throw new Error("stored_freshness_policy_version_mismatch");
+  }
+  if (policy.version !== "criterion-freshness.v2") {
+    const expected = args.criterion
+      ? freshnessPolicyForCriterion(args.question, args.criterion, args.siblingCriteria, policy.version)
+      : freshnessPolicyForQuestion(args.question, args.criterionKey, policy.version);
+    if (!sameFreshnessPolicy(policy, expected)) {
+      throw new Error("stored_freshness_policy_semantic_mismatch");
+    }
+  }
+  return policy;
 }
 
 export type ScopedReconciliationResult = Omit<ReconciliationResult,"version"|"sourceScope"> & {

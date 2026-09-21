@@ -4,21 +4,22 @@ Scope: BB-02 / RES-02 / RES-03 / RES-05. Branch `codex/v8-res02-freshness`; base
 
 | Requirement | Command | Exit/result | Artifact/scope |
 |---|---|---:|---|
-| RES-02/03 pure semantic policy | `pnpm --filter @deep/research-core exec vitest run test/independence-freshness.test.ts test/historical-shortcut-heldout.test.ts` | 0; 45/45 | held-out atomic/compound/current/fixed-date/version controls |
-| Research-core regression | `pnpm --filter @deep/research-core test` | 0; 360/360 | 32 files |
-| RES-02/03/05 production worker + persistence | `TEST_DATABASE_URL=postgres://…/deep_res020305_exact_20260920_1809 pnpm --filter @deep/backend exec vitest run test/historical-shortcut-heldout.integration.test.ts -t 'RES-02\|RES-03\|RES-05' --reporter=verbose` | 0; 3/3, 4 skipped | unique isolated database `deep_res020305_exact_20260920_1809` |
-| Atomic/current worker controls | `TEST_DATABASE_URL=postgres://…/deep_res02_controls_20260920_1759 pnpm --filter @deep/backend exec vitest run test/historical-shortcut-heldout.integration.test.ts -t 'BB02-01\|BB02-03' --reporter=verbose` | 0; 2/2, 5 skipped | unique isolated database `deep_res02_controls_20260920_1759` |
+| RES-02/03 pure semantic policy | `pnpm --filter @deep/research-core exec vitest run test/research-coverage.test.ts test/independence-freshness.test.ts test/historical-shortcut-heldout.test.ts --reporter=verbose` | 0; 61/61 | optimistic coverage; comma/slash/sentences/deeper questions; current/fixed-time controls |
+| Research-core regression | `pnpm --filter @deep/research-core test` | 0; 363/363 | 32 files |
+| RES-02/03/05 production worker | `TEST_DATABASE_URL=postgres://…/deep_res020305_final_20260920_183955 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.integration.test.ts -t 'RES-02\|RES-03\|RES-05' --reporter=verbose` | 0; 3/3, 4 skipped | final code; unique isolated database; no forced unresolved fixture |
+| Historical worker sibling controls | `TEST_DATABASE_URL=postgres://…/deep_historical_siblings_20260920_183350 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.integration.test.ts --reporter=verbose` | 0; 7/7 | before final persistence-boundary tightening; atomic, compound, current, resume and readable-page controls |
+| First-write + v3/v4 immutable replay | `TEST_DATABASE_URL=postgres://…/deep_res05_persist_final_20260920_183955 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/retrieval-evidence.integration.test.ts -t 'issues an approved public query\|restores valid v3/v4' --reporter=verbose` | 0; 2/2, 18 skipped | final code; valid restore plus semantic/row/JSON-key/owner/version tamper rejection |
 | Backend source guard | `pnpm --filter @deep/backend exec vitest run test/token-budget.unit.test.ts` | 0; 9/9 | focused no-source-shortcut guard |
 | Types | `pnpm --filter @deep/research-core typecheck`; `pnpm --filter @deep/backend typecheck` | 0; 0 | unsuppressed TypeScript |
 | Boundaries | `node scripts/check-boundaries.mjs` | 0; `boundaries=ok` | repository import boundary |
 | Canonical docs | `python3 scripts/validate_review.py`; `python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v` | 0; 16/16 | review package validator only |
 
-The first whole-file PostgreSQL invocation used isolated database `deep_res02_20260920_1752` and was interrupted with exit 130 after three minutes without interim per-test output. No product failure was inferred. Each new case then completed alone in 15–25 seconds, and the exact-source combined RES-02/03/05 run completed 3/3 in 44.67 seconds. Full `pnpm verify`, the full PostgreSQL suite, hosted/native/release checks, and live model quality were not run and are not claimed.
+Independent review rejected first implementation head `3677bd83e028ac6f52d162cf707cd2094793c7c7`. Its exact reproduction showed that optimistic coverage could accept one assertion for a compound shared key, while its worker fixture forced that key unresolved and masked the production behavior. Review also reproduced comma-list shortcut, present/fixed-period workforce and same-version policy-semantic mismatch defects. The repair tests remove the fixture override, exercise the production coverage resolver, and pass on new isolated databases. Full `pnpm verify`, the full PostgreSQL suite, hosted/native/release checks, and live model quality were not run and are not claimed.
 
 Observed acceptance:
 
-- RES-02: a supported Ardent assertion bound to the shared `founding_dates` key did not satisfy the two-entity task; the Evidence Need stayed unsatisfied, `discovery_exhausted` retained the key, and terminal outcome was not `completed`.
-- RES-03: the founding criterion persisted historical/no-freshness-required while the natural present-tense employee criterion persisted nonhistorical/freshness-required and triggered targeted work.
-- RES-05: a seeded v2 default row remained the only row with the same policy fields and historical meaning after production-worker resume; no v4 or criterion row overwrote it.
+- RES-02: an optimistic coverage proposal and a supported assertion for only one entity did not satisfy the shared `founding_dates` key. The Evidence Need stayed unsatisfied, `discovery_exhausted` retained the key, and terminal outcome was not `completed`.
+- RES-03: undated employee/workforce variants are current; fiscal/FY, quarter, end-of-period and fixed-date variants are historical. The production worker persisted the founding and present employee siblings independently.
+- RES-05: a seeded v2 default row retained the same policy identity and meaning. Valid v3/v4 rows replayed exactly; self-consistent wrong semantics, row/JSON mismatch, extra JSON keys, owner mismatch and version mismatch failed closed without overwrite.
 
 Rollback: stop assigning v4 to new runs, but retain v2/v3/v4 readers and admitted rows. Preserve Evidence Needs, consent/cancellation/budget/ownership/deletion/publication fences and unknown holds. Never relabel a stored policy identity.

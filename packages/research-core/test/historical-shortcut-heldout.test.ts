@@ -255,25 +255,48 @@ describe("BB02-03 founded plus latest headcount is not timeless throughout", () 
 });
 
 describe("RES-02 compound historical semantics", () => {
-  it("does not grant the simple-history shortcut to one criterion that spans multiple entities", () => {
-    const compound = criterionFor(ONE_CRITERION_MULTI, "incorporation_years");
-    compound.field = ONE_CRITERION_MULTI;
-    compound.provenance = { start: 0, end: ONE_CRITERION_MULTI.length, quote: ONE_CRITERION_MULTI };
-    expect(freshnessPolicyForCriterion(ONE_CRITERION_MULTI, compound).class).toBe("historical");
-    expect(isSimpleHistoricalLookup({ question: ONE_CRITERION_MULTI, criteria: [compound] })).toBe(false);
-    const result = discoveryContinuationGaps({
-      now,
-      criteria: [{
-        key: compound.key,
-        policy: freshnessPolicyForCriterion(ONE_CRITERION_MULTI, compound),
-        coverageUnresolved: true,
-        hasSupportedEvidence: true,
-        disputed: false,
-        boundSources: [{ publicationDate: dated2015, retrievedAt: now }],
-        historicalCoverageOverrideAllowed: isSimpleHistoricalLookup({ question: ONE_CRITERION_MULTI, criteria: [compound] }),
-      }],
-    });
-    expect(result.unresolvedCriterionKeys).toEqual(["incorporation_years"]);
+  it("does not grant the shortcut to shared obligations across conjunction, comma, slash, or sentences", () => {
+    for (const question of [
+      ONE_CRITERION_MULTI,
+      "Founding dates: Élan Systems, Ångström Works.",
+      "Give the founding years for Élan Systems / Ångström Works.",
+      "When was Élan Systems incorporated? When was Ångström Works incorporated?",
+    ]) {
+      const compound = criterionFor(question, "incorporation_years");
+      compound.field = question;
+      compound.provenance = { start: 0, end: question.length, quote: question };
+      expect(freshnessPolicyForCriterion(question, compound).class, question).toBe("historical");
+      expect(isSimpleHistoricalLookup({ question, criteria: [compound] }), question).toBe(false);
+      const result = discoveryContinuationGaps({
+        now,
+        criteria: [{
+          key: compound.key,
+          policy: freshnessPolicyForCriterion(question, compound),
+          coverageUnresolved: true,
+          hasSupportedEvidence: true,
+          disputed: false,
+          boundSources: [{ publicationDate: dated2015, retrievedAt: now }],
+          historicalCoverageOverrideAllowed: isSimpleHistoricalLookup({ question, criteria: [compound] }),
+        }],
+      });
+      expect(result.unresolvedCriterionKeys, question).toEqual(["incorporation_years"]);
+    }
+  });
+
+  it("uses persisted linked subquestions as separate obligations and preserves atomic controls", () => {
+    const deep = "When was Élan Systems founded?";
+    const criterion = criterionFor(deep, "history");
+    criterion.field = "history";
+    criterion.provenance = { start: 0, end: deep.length, quote: deep };
+    const questions = [
+      { key: "q_elan", text: "When was Élan Systems founded?", criterionKeys: ["history"] },
+      { key: "q_angstrom", text: "When was Ångström Works founded?", criterionKeys: ["history"] },
+    ];
+    expect(isSimpleHistoricalLookup({ question: deep, criteria: [criterion], questions })).toBe(false);
+    const atomic = criterionFor(NORTHSTAR, "origin");
+    atomic.field = "Northstar Bakery";
+    atomic.provenance = { start: NORTHSTAR.indexOf("Northstar Bakery"), end: NORTHSTAR.indexOf("Northstar Bakery") + "Northstar Bakery".length, quote: "Northstar Bakery" };
+    expect(isSimpleHistoricalLookup({ question: NORTHSTAR, criteria: [atomic] })).toBe(true);
   });
 });
 

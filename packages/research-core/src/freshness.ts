@@ -1,3 +1,5 @@
+import { criterionObligationIsAtomic, type QuestionObligationInput } from "./semantic-obligations.js";
+
 export const FRESHNESS_POLICY_VERSIONS = ["criterion-freshness.v2", "criterion-freshness.v3", "criterion-freshness.v4"] as const;
 export type FreshnessPolicyVersion = (typeof FRESHNESS_POLICY_VERSIONS)[number];
 /** New writes. Readers must retain the meaning of every accepted stored version. */
@@ -62,9 +64,9 @@ function historicalPolicy(version: FreshnessPolicyVersion): FreshnessPolicy {
   return policy(version, "historical", null, false, false, "Historical events may prefer contemporaneous authoritative evidence over later summaries.");
 }
 
-const FIXED_TIME_ANCHOR = /\b(?:as of|in|during|on)\s+(?:(?:19|20)\d{2}(?:-\d{2}-\d{2})?|(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+(?:19|20)\d{2})\b/iu;
+const FIXED_TIME_ANCHOR = /\b(?:(?:as of|in|during|on)\s+(?:(?:(?:fiscal|fy)\s*)?(?:q[1-4]\s*)?(?:19|20)\d{2}(?:-\d{2}-\d{2})?|(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+(?:19|20)\d{2})|(?:fiscal|fy)\s*(?:19|20)\d{2}|q[1-4]\s*(?:of\s*)?(?:19|20)\d{2}|(?:at|by)\s+(?:the\s+)?(?:start|beginning|end|close)\s+of\s+(?:(?:fiscal|calendar)\s+)?(?:19|20)\d{2}|(?:first|second|third|fourth)\s+quarter(?:\s+of)?\s+(?:19|20)\d{2})\b/iu;
 const WORKFORCE_TERM = /\b(?:employees?|staff|headcount|workforce|workers?|team size)\b/iu;
-const PRESENT_WORKFORCE_SHAPE = /\b(?:how many|what (?:is|are)|does|do|is|are|has|have|employs?|work(?:s|ing)?)\b/iu;
+const PRESENT_WORKFORCE_SHAPE = /\b(?:how many|number of|what (?:is|are)|state|report|provide|give|list|tell|does|do|is|are|has|have|employs?|work(?:s|ing)?)\b/iu;
 
 function hasRecencyVetoForVersion(text: string, version: FreshnessPolicyVersion): boolean {
   if (/\b(current|today|latest)\b/iu.test(text)) return true;
@@ -172,21 +174,21 @@ export function freshnessPolicyForCriterion(
   return fromLocal;
 }
 
-function structurallyAtomicQuestion(question: string, criterion: FreshnessCriterionInput): boolean {
-  if (criterion.operator === "compare" || criterion.groupOperator === "any") return false;
-  if ((criterion.unresolvedAlternatives?.length ?? 0) > 0) return false;
-  // A shortcut is a privilege: coordination, comparison, or plural historical subjects require full coverage review.
-  if (/(?:\s[&+]\s|\b(?:and|or|versus|vs\.?)\b|[;]|\bcompare\b|\bdiffer(?:ed|s|ent)?\b)/iu.test(question)) return false;
-  if (/\bwere\b/iu.test(question)) return false;
+function structurallyAtomicQuestion(
+  question: string,
+  criterion: FreshnessCriterionInput,
+  questions?: ReadonlyArray<QuestionObligationInput>,
+): boolean {
   const provenance = criterion.provenance;
   if (provenance && question.slice(provenance.start, provenance.end) !== provenance.quote) return false;
-  return true;
+  return criterionObligationIsAtomic({ originalQuestion: question, criterion, questions });
 }
 
 /** Exactly one structurally atomic historical criterion and no current fact may use the bounded shortcut. */
 export function isSimpleHistoricalLookup(args: {
   question: string;
   criteria?: ReadonlyArray<FreshnessCriterionInput>;
+  questions?: ReadonlyArray<QuestionObligationInput>;
   policyVersion?: FreshnessPolicyVersion;
   restoredPolicy?: FreshnessPolicy;
 }): boolean {
@@ -199,7 +201,7 @@ export function isSimpleHistoricalLookup(args: {
   const hard = criteria.filter((c) => (c.importance ?? "hard") === "hard");
   const considered = hard.length ? hard : criteria;
   if (considered.length !== 1) return false;
-  return structurallyAtomicQuestion(args.question, considered[0]!)
+  return structurallyAtomicQuestion(args.question, considered[0]!, args.questions)
     && (args.restoredPolicy?.class ?? freshnessPolicyForCriterion(args.question, considered[0]!, criteria, version).class) === "historical";
 }
 

@@ -45,6 +45,7 @@ export * from "./source-strategy.js";
 export * from "./source-policy.js";
 export * from "./adaptive-breadth.js";
 export * from "./freshness.js";
+export * from "./semantic-obligations.js";
 export * from "./reconciliation.js";
 export * from "./geography.js";
 export * from "./evidence-needs.js";

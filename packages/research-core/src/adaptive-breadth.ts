@@ -1,6 +1,7 @@
 import { DEEP_DISCOVERY_CEILING, MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
 import { isSimpleHistoricalLookup, type FreshnessCriterionInput, type FreshnessPolicy, type FreshnessPolicyVersion } from "./freshness.js";
 import { independentConfirmationCount } from "./independence.js";
+import type { QuestionObligationInput } from "./semantic-obligations.js";
 import type { StoredSource } from "./types.js";
 import type { SourceClass } from "./source-strategy.js";
 
@@ -17,6 +18,7 @@ export function furtherHistoricalSourceReadsNeeded(args: {
   question: string;
   sources: ReadonlyArray<StoredSource>;
   criteria?: ReadonlyArray<FreshnessCriterionInput>;
+  questions?: ReadonlyArray<QuestionObligationInput>;
   policyVersion?: FreshnessPolicyVersion;
   restoredPolicy?: FreshnessPolicy;
   historicalLookupSatisfied?: boolean;
@@ -25,6 +27,7 @@ export function furtherHistoricalSourceReadsNeeded(args: {
   if (!isSimpleHistoricalLookup({
     question: args.question,
     criteria: args.criteria,
+    questions: args.questions,
     policyVersion: args.policyVersion,
     restoredPolicy: args.restoredPolicy,
   })) return true;

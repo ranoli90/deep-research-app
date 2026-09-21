@@ -1,5 +1,10 @@
 import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
+import {
+  assertionCoversRequestedEntity,
+  assertionCoversRequestedFact,
+  requestedCriterionObligations,
+} from "./semantic-obligations.js";
 import type { ScopedSupportResult } from "./scoped-support.js";
 
 export const RESEARCH_COVERAGE_VERSION="research-coverage.v1";
@@ -11,6 +16,7 @@ export type CoverageResult={version:typeof RESEARCH_COVERAGE_VERSION;complete:bo
   unresolvedCriterionKeys:string[];omittedRequirements:Review["omittedRequirements"]};
 export type LimitedCoverageView={questions:{questionKey:string;status:string}[];unresolvedCriterionKeys:string[]};
 const normalize=(s:string)=>s.toLowerCase().replace(/\s+/gu," ").trim();
+const obligationKey=(s:string)=>normalize(s).replace(/[^a-z0-9]+/gu,"_").replace(/^_|_$/gu,"").slice(0,80)||"unknown";
 
 export function unresolvedCriticalQuestionLimitation(questionKey:string,status:string):string {
   return `Unresolved critical question ${questionKey} (${status}).`;
@@ -60,6 +66,22 @@ export function resolveResearchCoverage(args:{question:string;task:Task;assertio
         if(!relevant.length)failedChecks.push(`criterion_without_assertion:${key}`);
         else if(!relevant.some((a)=>Object.entries(criterion.scope).every(([field,value])=>value===null||
           normalize(value)===normalize(a.scope[field as keyof Assertion["scope"]]??""))))failedChecks.push(`criterion_scope_mismatch:${key}`);
+        const linkedQuestions=args.task.questions.filter((candidate)=>candidate.criterionKeys.includes(key));
+        const allObligations=requestedCriterionObligations({originalQuestion:args.question,criterion,questions:linkedQuestions});
+        const questionObligations=requestedCriterionObligations({originalQuestion:args.question,criterion,questions:[question]});
+        const compound=linkedQuestions.length>1||allObligations.entities.length>1||allObligations.facts.length>1;
+        if(compound) {
+          for(const entity of questionObligations.entities) {
+            if(!relevant.some((assertion)=>assertionCoversRequestedEntity(assertion,entity))) {
+              failedChecks.push(`criterion_entity_without_assertion:${key}:${obligationKey(entity)}`);
+            }
+          }
+          for(const fact of questionObligations.facts) {
+            if(!relevant.some((assertion)=>assertionCoversRequestedFact(assertion,fact))) {
+              failedChecks.push(`criterion_fact_without_assertion:${key}:${fact}`);
+            }
+          }
+        }
         if(criterion.unresolvedAlternatives.length)failedChecks.push(`ambiguous_criterion:${key}`);
       }
       if(cited.some((a)=>!a.criterionKeys.some((key)=>question.criterionKeys.includes(key))))failedChecks.push("unrelated_assertion");

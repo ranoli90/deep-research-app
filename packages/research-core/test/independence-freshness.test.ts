@@ -357,6 +357,26 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     expect(hasRecencyVeto("as of 2011")).toBe(false);
     expect(isHistoricalFactQuestion("When was it founded as of 2011?")).toBe(true);
     expect(freshnessPolicyForQuestion("How many employees did it have in 2014?").class).toBe("historical");
+    for (const question of [
+      "When was Acme founded and state its number of employees.",
+      "When was Acme founded; report its workforce size.",
+      "Provide Acme's current staff count alongside its founding year.",
+    ]) {
+      expect(hasRecencyVeto(question), question).toBe(true);
+      expect(isHistoricalFactQuestion(question), question).toBe(false);
+      expect(freshnessPolicyForQuestion(question).class, question).not.toBe("historical");
+    }
+    for (const question of [
+      "How many employees did Acme have in fiscal 2014?",
+      "Report Acme's workforce at the end of 2014.",
+      "What was Acme's headcount in Q4 2014?",
+      "State the employee count during FY 2016.",
+      "Give its workforce in the fourth quarter of 2018.",
+    ]) {
+      expect(hasRecencyVeto(question), question).toBe(false);
+      expect(isHistoricalFactQuestion(question), question).toBe(true);
+      expect(freshnessPolicyForQuestion(question).class, question).toBe("historical");
+    }
   });
 
   it("U-GAPS-NO-BOOLEAN: discoveryContinuationGaps has no hasSupportedAssertions wipe parameter", () => {

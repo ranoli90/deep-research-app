@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
 import { CreateRunRequestSchema } from "@deep/contracts";
-import { unresolvedCriticalCriterionLimitation, unresolvedCriticalQuestionLimitation } from "@deep/research-core";
+import { unresolvedCriticalCriterionLimitation } from "@deep/research-core";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
@@ -161,7 +161,9 @@ async function snapshot<T extends Record<string, unknown>>(runId: string, accoun
        FROM criterion_freshness_policies WHERE run_id=$1 ORDER BY criterion_key`,
     [runId],
   )).rows;
-  return { searches: searches.map((s) => s.query), readRows, needs, report, terminal, events, policies, ...extra };
+  const coverage = (await pool.query("SELECT result FROM research_coverage WHERE run_id=$1", [runId])).rows
+    .map((row) => row.result) as { questions?: { failedChecks?: string[] }[]; unresolvedCriterionKeys?: string[] }[];
+  return { searches: searches.map((s) => s.query), readRows, needs, report, terminal, events, policies, coverage, ...extra };
 }
 
 function workerConfig() {
@@ -177,7 +179,6 @@ async function runHeldout(
   brief: unknown,
   searchFor: (query: string) => { url: string; title: string; content: string }[],
   options: {
-    forceCoverageUnresolvedCriterionKeys?: readonly string[];
     beforeProcess?: (ids: { runId: string; accountId: string }) => Promise<void>;
   } = {},
 ) {
@@ -231,7 +232,6 @@ async function runHeldout(
     }
     if (operation === "research_review_coverage_v1") {
       const approved = new Set(ctx.approvedClaimKeys as string[]);
-      const forced = new Set(options.forceCoverageUnresolvedCriterionKeys ?? []);
       const covered = new Set(
         (ctx.assertions as { key: string; criterionKeys: string[] }[])
           .filter((a) => approved.has(a.key))
@@ -239,7 +239,7 @@ async function runHeldout(
       );
       return response({
         questions: (ctx.task?.questions ?? []).map((q: { key: string; criterionKeys: string[] }) => {
-          const ok = q.criterionKeys.every((k) => covered.has(k) && !forced.has(k));
+          const ok = q.criterionKeys.every((k) => covered.has(k));
           return {
             questionKey: q.key,
             status: ok ? "supported" : "unresolved_at_limit",
@@ -261,12 +261,9 @@ async function runHeldout(
               .filter((a) => approved.includes(a.key))
               .flatMap((a) => a.criterionKeys),
           );
-          return !q.criterionKeys.every((k: string) => covered.has(k) && !options.forceCoverageUnresolvedCriterionKeys?.includes(k));
+          return !q.criterionKeys.every((k: string) => covered.has(k));
         })
         .map((q: { key: string }) => q.key);
-      const unresolvedCriteria = (ctx.task?.criteria ?? [])
-        .map((criterion: { key: string }) => criterion.key)
-        .filter((key: string) => options.forceCoverageUnresolvedCriterionKeys?.includes(key));
       const paragraphs = (ctx.assertions as { key: string; text: string }[])
         .filter((a) => approved.includes(a.key))
         .map((a) => ({ text: a.text, claimKeys: [a.key] }));
@@ -274,10 +271,7 @@ async function runHeldout(
         title: "Held-out findings",
         sections: [{ heading: "Answer", paragraphs: paragraphs.length ? paragraphs : [{ text: NORTHSTAR_FACT, claimKeys: approved.slice(0, 1) }] }],
         unresolvedQuestionKeys: unresolved,
-        limitations: [
-          ...unresolved.map((key: string) => unresolvedCriticalQuestionLimitation(key, "unresolved_at_limit")),
-          ...unresolvedCriteria.map((key: string) => unresolvedCriticalCriterionLimitation(key)),
-        ],
+        limitations: unresolved.length ? ["Some requested questions remain unresolved."] : [],
       });
     }
     throw new Error(`unexpected operation:${operation}`);
@@ -411,12 +405,14 @@ describe("held-out historical shortcut worker/DB", () => {
       COMPOUND_ONE_CRITERION,
       brief,
       () => pages("ardent", 3),
-      { forceCoverageUnresolvedCriterionKeys: ["founding_dates"] },
     );
     const need = meta.needs.find((item) => item.criterion_key === "founding_dates");
     const exhausted = meta.events.find((event) => event.type === "discovery_exhausted");
     expect(need?.state, JSON.stringify(meta)).not.toBe("satisfied");
     expect(need?.next_action.kind, JSON.stringify(meta)).not.toBe("stop");
+    expect(meta.coverage.some((result) => result.questions?.some((question) =>
+      question.failedChecks?.includes("criterion_entity_without_assertion:founding_dates:brindle_works"))), JSON.stringify(meta)).toBe(true);
+    expect(meta.coverage.some((result) => result.unresolvedCriterionKeys?.includes("founding_dates")), JSON.stringify(meta)).toBe(true);
     expect((exhausted?.payload as { unresolvedCriterionKeys?: string[] } | undefined)?.unresolvedCriterionKeys, JSON.stringify(meta))
       .toContain("founding_dates");
     expect(meta.terminal, JSON.stringify(meta)).not.toBe("completed");

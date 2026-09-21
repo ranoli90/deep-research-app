@@ -46,6 +46,46 @@ describe("W05 criterion-linked answer coverage",()=>{
   const useful={...task,questions:[{...task.questions[0]!,importance:"useful" as const}],criteria:[{...task.criteria[0]!,importance:"preference" as const}]};
   expect(limitedCoverageLimitations(coverage,useful)).toEqual([]);
  });
+ it("keeps a shared historical criterion unresolved when an optimistic review cites only one requested entity",()=>{
+  for(const compoundQuestion of [
+   "When were Ardent Labs and Brindle Works founded?",
+   "Founding dates: Ardent Labs, Brindle Works.",
+   "Give the founding year for Ardent Labs / Brindle Works.",
+   "When was Ardent Labs founded? When was Brindle Works founded?",
+  ]) {
+   const compoundSpan={start:0,end:compoundQuestion.length,quote:compoundQuestion};
+   const compoundTask:ResearchModelOutput<"brief">={objective:compoundQuestion,objectiveProvenance:compoundSpan,intendedOutput:"answer",
+    criteria:[{key:"founding_dates",description:compoundQuestion,field:"founding dates",operator:"explain",value:null,unit:null,importance:"hard",
+     scope:{entity:null,time:null,plan:null,version:null,geography:null,population:null},provenance:compoundSpan,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+    questions:[{key:"q_dates",text:compoundQuestion,criterionKeys:["founding_dates"],importance:"critical",evidenceStandard:"both entities"}],
+    assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+   const claim={...assertion,key:"a_ardent",criterionKeys:["founding_dates"],text:"Ardent Labs was founded in 2004.",scope:{...scope,entity:"Ardent Labs",time:null}};
+   const optimistic:ResearchModelOutput<"review_coverage">={questions:[{questionKey:"q_dates",status:"supported",assertionKeys:[claim.key],reason:"The cited assertion answers the criterion."}],omittedRequirements:[]};
+   const result=resolveResearchCoverage({question:compoundQuestion,task:compoundTask,assertions:[claim],checks:[{claimKey:claim.key,decision:"supported"}],proposal:optimistic});
+   expect(result.complete,compoundQuestion).toBe(false);
+   expect(result.unresolvedCriterionKeys,compoundQuestion).toEqual(["founding_dates"]);
+   expect(result.questions[0]!.failedChecks,compoundQuestion).toContain("criterion_entity_without_assertion:founding_dates:brindle_works");
+  }
+ });
+ it("binds deeper shared-key subquestions and distinct facts instead of reusing one assertion",()=>{
+  const deepQuestion="Research Ardent Labs and Brindle Works. When was each founded, and how did each expand?";
+  const deepSpan={start:0,end:deepQuestion.length,quote:deepQuestion};
+  const deepTask:ResearchModelOutput<"brief">={objective:deepQuestion,objectiveProvenance:deepSpan,intendedOutput:"answer",
+   criteria:[{key:"history",description:"Founding and expansion",field:"history",operator:"explain",value:null,unit:null,importance:"hard",
+    scope:{entity:null,time:null,plan:null,version:null,geography:null,population:null},provenance:deepSpan,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+   questions:[
+    {key:"q_ardent",text:"When was Ardent Labs founded?",criterionKeys:["history"],importance:"critical",evidenceStandard:"documented founding"},
+    {key:"q_brindle",text:"How did Brindle Works expand?",criterionKeys:["history"],importance:"critical",evidenceStandard:"documented expansion"},
+   ],assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+  const claim={...assertion,key:"a_ardent_deep",criterionKeys:["history"],text:"Ardent Labs was founded in 2004.",scope:{...scope,entity:"Ardent Labs",time:null}};
+  const optimistic:ResearchModelOutput<"review_coverage">={questions:deepTask.questions.map((row)=>({questionKey:row.key,status:"supported" as const,assertionKeys:[claim.key],reason:"Covered."})),omittedRequirements:[]};
+  const result=resolveResearchCoverage({question:deepQuestion,task:deepTask,assertions:[claim],checks:[{claimKey:claim.key,decision:"supported"}],proposal:optimistic});
+  expect(result.complete).toBe(false);
+  expect(result.questions.find((row)=>row.questionKey==="q_brindle")?.failedChecks).toEqual(expect.arrayContaining([
+   "criterion_entity_without_assertion:history:brindle_works",
+   "criterion_fact_without_assertion:history:expansion",
+  ]));
+ });
 });
 
 describe("R-05 deepen opening discovery",()=>{
