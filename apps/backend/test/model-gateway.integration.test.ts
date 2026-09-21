@@ -59,6 +59,11 @@ const brief = { objective: question, objectiveProvenance: span, intendedOutput: 
     importance: "hard", scope, provenance: span, group: "g1", groupOperator: "all", unresolvedAlternatives: [] }],
   questions: [{ key: "q1", text: question, criterionKeys: ["c1"], importance: "critical", evidenceStandard: "documented outcomes" }],
   assumptions: [], openAmbiguities: [], explicitExclusions: [] };
+const COMPLETE_COMPARISON_QUESTION="Compare coral restoration and kelp restoration.";
+const completeComparisonSpan={start:0,end:COMPLETE_COMPARISON_QUESTION.length,quote:COMPLETE_COMPARISON_QUESTION};
+const completeComparisonBrief={...brief,objective:COMPLETE_COMPARISON_QUESTION,objectiveProvenance:completeComparisonSpan,
+  criteria:[{...brief.criteria[0]!,description:COMPLETE_COMPARISON_QUESTION,provenance:completeComparisonSpan}],
+  questions:[{...brief.questions[0]!,text:COMPLETE_COMPARISON_QUESTION}]};
 const context = { question, task: null, passages: [], sources: [], assertions: [], approvedClaimKeys: [], draft: null };
 const briefReserve = () => reserveMicroForOperation({
   operation: "brief",
@@ -1049,19 +1054,49 @@ async function coverageCase(x:Parameters<Parameters<typeof runCase>[0]>[0],wrong
   const proposal={questions:[{questionKey:"q1",status:"supported",assertionKeys:["area"],reason:"Fabricated coverage judgment for boundary testing"}],omittedRequirements:[]};
   return {...c,coverageProposal:proposal,args:{...c.args,supportIntentId:support.intentId}};
 }
+async function completeComparisonCoverageCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+  globalThis.fetch=vi.fn(async()=>response(completeComparisonBrief)) as typeof fetch;
+  const task=await ensureResearchTask(pool,x.config,x.session,{...x,briefRevision:1});
+  if(task.kind!=="task")throw new Error("task missing");
+  const coral="Coral restoration restored 12 hectares in 2024.";
+  const kelp="Kelp restoration restored 9 hectares in 2024.";
+  const text=`${coral} ${kelp}`;
+  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/complete-comparison",title:"Complete restoration comparison",publisher:"Test",originCluster:"complete-comparison"});
+  const passage=await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/complete-comparison",text,accessLevel:"partial-text"});
+  const quote=(value:string)=>{const start=text.indexOf(value);return{passageId:passage.passageId,start,end:start+value.length,quote:value};};
+  const output:ResearchModelOutput<"extract_assertions">={candidates:[],assertions:[
+    {key:"coral_area",candidateKey:null,criterionKeys:["c1"],text:coral,scope:{...scope,entity:"coral restoration",time:"2024"},quantities:[{value:"12",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[quote(coral)]},
+    {key:"kelp_area",candidateKey:null,criterionKeys:["c1"],text:kelp,scope:{...scope,entity:"kelp restoration",time:"2024"},quantities:[{value:"9",unit:"hectares",currency:null,billingPeriod:null,qualifier:null}],evidence:[quote(kelp)]},
+  ],limitations:[]};
+  const baseArgs={...x,briefRevision:1,taskId:task.task.id,passageIds:[passage.passageId],selectionId:undefined as string|undefined};
+  globalThis.fetch=vi.fn(async()=>response(output)) as typeof fetch;
+  const extraction=await extractEvidenceAssertions(pool,x.config,x.session,baseArgs);
+  if(extraction.kind!=="extraction")throw new Error("missing complete extraction");
+  const supportProposal={assessments:output.assertions.map(assertion=>({claimKey:assertion.key,status:"supported" as const,scope:assertion.scope,evidence:assertion.evidence,rationale:"Exact entity-scoped comparison control",missingEvidence:[]}))};
+  globalThis.fetch=vi.fn(async()=>response(supportProposal)) as typeof fetch;
+  const support=await executeAssertionSupport(pool,x.config,x.session,{...baseArgs,extractionIntentId:extraction.intentId});
+  if(support.kind!=="support")throw new Error("missing complete support");
+  const coverageProposal={questions:[{questionKey:"q1",status:"supported" as const,assertionKeys:output.assertions.map(assertion=>assertion.key),reason:"Both requested entities have scoped supported assertions."}],omittedRequirements:[]};
+  return{output,coverageProposal,args:{...baseArgs,extractionIntentId:extraction.intentId,supportIntentId:support.intentId},sourceSupport:support};
+}
+async function completeComparisonWriterCase(x:Parameters<Parameters<typeof runCase>[0]>[0]) {
+  const prepared=await completeComparisonCoverageCase(x);
+  const draft={title:"Restoration comparison",sections:[{heading:"Evidence",paragraphs:prepared.output.assertions.map(assertion=>({text:assertion.text,claimKeys:[assertion.key]}))}],unresolvedQuestionKeys:[],limitations:[] as string[]};
+  return{...prepared,draft,args:{...prepared.args,sourceSupportIntentId:prepared.sourceSupport.intentId}};
+}
 describe("W05 durable criterion coverage review",()=>{
   it("executes review once, stores exact claim revisions and revalidates replay",async()=>runCase(async(x)=>{
-    const c=await coverageCase(x);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
+    const c=await completeComparisonCoverageCase(x);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
     const first=await executeCoverageReview(pool,x.config,x.session,c.args);
     expect(first.kind).toBe("coverage");if(first.kind!=="coverage")throw new Error("missing review");
     expect(first.coverage.complete).toBe(true);
     const second=await executeCoverageReview(pool,x.config,x.session,c.args);
     expect(second).toMatchObject({kind:"coverage",reused:true,intentId:first.intentId});expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const row=(await pool.query("SELECT * FROM research_coverage WHERE run_id=$1",[x.runId])).rows[0];
-    expect(row.claim_revision_ids).toHaveLength(1);expect(row.result).toEqual(first.coverage);
+    expect(row.claim_revision_ids).toHaveLength(2);expect(row.result).toEqual(first.coverage);
     await pool.query("UPDATE research_coverage SET result='{}' WHERE run_id=$1",[x.runId]);
     await expect(executeCoverageReview(pool,x.config,x.session,c.args)).rejects.toThrow("stored_coverage_mismatch");expect(globalThis.fetch).toHaveBeenCalledTimes(1);
-  }));
+  },COMPLETE_COMPARISON_QUESTION));
   it("vetoes supported coverage when named assertions failed substantive checks",async()=>runCase(async(x)=>{
     const c=await coverageCase(x,true);globalThis.fetch=vi.fn(async()=>response(c.coverageProposal)) as typeof fetch;
     const result=await executeCoverageReview(pool,x.config,x.session,c.args);
@@ -1090,7 +1125,7 @@ describe("W05 durable criterion coverage review",()=>{
 
 describe("W05 report completion requires exact final coverage",()=>{
  it("completes and reopens a report only after final assertion coverage executes",async()=>runCase(async(x)=>{
-  const c=await writerCase(x);globalThis.fetch=optimisticWriterTransport(c.draft,true);
+  const c=await completeComparisonWriterCase(x);globalThis.fetch=optimisticWriterTransport(c.draft,true);
   const result=await writeResearchReport(pool,x.config,x.session,c.args);
   expect(result).toMatchObject({kind:"publication",accepted:true});
   if(result.kind!=="publication"||!result.reportId)throw new Error("missing report");
@@ -1107,7 +1142,7 @@ describe("W05 report completion requires exact final coverage",()=>{
   await expect(reportCompletionCovered(pool,x.accountId,canonical)).rejects.toThrow("stored_coverage_mismatch");
   await pool.query("DELETE FROM research_coverage WHERE run_id=$1",[x.runId]);
   expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(false);
- }));
+ },COMPLETE_COMPARISON_QUESTION));
  it("does not publish when the required review returns invalid output",async()=>runCase(async(x)=>{
   const c=await writerCase(x);const normal=optimisticWriterTransport(c.draft);
   globalThis.fetch=vi.fn(async(input,init)=>JSON.parse(String(init?.body)).response_format.json_schema.name==="research_review_coverage_v1"?response({questions:[],omittedRequirements:[]}):normal(input,init)) as typeof fetch;
@@ -1374,22 +1409,23 @@ describe("W04/W05 durable discovered source reading",()=>{
 });
 
 it("W05 unresolved criteria trigger a distinct public query and rechecked synthesis",async()=>runCase(async(x)=>{
- const model=structuredWorkerTransport(),queries:string[]=[];
+ const model=structuredWorkerTransport(),queries:string[]=[];let writerScopeComparison:unknown;
  const focusedBrief={...brief,criteria:[{...brief.criteria[0]!,provenance:{start:question.indexOf("kelp"),end:question.length-1,quote:"kelp restoration"}}]};
  globalThis.fetch=vi.fn(async(input,init)=>{
   const body=JSON.parse(String(init?.body));
   if(body.plugins?.length){queries.push(body.messages[1].content);return searchReply(true,`https://example.org/study-${queries.length}`);}
   const c=JSON.parse(body.messages[1].content),op=body.response_format.json_schema.name;
   if(op==="research_brief_v1")return response(focusedBrief);
-  if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:c.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
+  if(op==="research_extract_assertions_v1")return response({candidates:[],assertions:c.passages.map((p:{id:string;text:string},i:number)=>({key:`area${i}`,candidateKey:null,criterionKeys:["c1"],text:p.text,scope:{...scope,entity:/^Coral\b/i.test(p.text)?"coral":"kelp restoration"},quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]})),limitations:[]});
   if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:c.passages.length>1?"supported":"unresolved_at_limit",assertionKeys:c.approvedClaimKeys,reason:"Nonbillable review control"}],omittedRequirements:[]});
-  if(op==="research_write_report_v1")expect(c.scopeComparison).toMatchObject({version:"scope-comparison-context.v1",groups:[{relations:Array(6).fill("unknown"),pairs:[[0,1]]}],entailment:"not_assessed"});
+  if(op==="research_write_report_v1")writerScopeComparison=c.scopeComparison;
   return model(input,init);
  }) as typeof fetch;
- const names=[`Coral-${crypto.randomUUID()}`,`Kelp-${crypto.randomUUID()}`];
+ const names=["Coral restoration","Kelp restoration"];
  vi.spyOn(sourceReader,"readSource").mockImplementation(async(url)=>readControl(url,`${url.endsWith("1")?names[0]:names[1]} restored 12 hectares in 2024.`));
  await releaseForWorker(x);const config={...x.config,structuredDiscoveryEnabled:true,liveRetrievalEnabled:true};
  await processRun(pool,config,x.runId,{pauseAt:"writing"});await processRun(pool,config,x.runId);
+ expect(writerScopeComparison).toMatchObject({version:"scope-comparison-context.v1",groups:[{relations:["different",...Array(5).fill("unknown")],pairs:[[0,1]]}],entailment:"not_assessed"});
  const comparisonRows=await pool.query("SELECT result FROM scope_comparisons WHERE run_id=$1",[x.runId]);expect(comparisonRows.rows).toHaveLength(1);
  const writerManifest=(await pool.query("SELECT input_manifest FROM model_operation_results WHERE run_id=$1 AND operation='write_report'",[x.runId])).rows[0].input_manifest;
  const selection=(await pool.query("SELECT id,proof_digest FROM evidence_selections WHERE run_id=$1 AND evidence_revision=(SELECT evidence_revision FROM runs WHERE id=$1) AND required_ids='[]'::jsonb",[x.runId])).rows[0];
@@ -1919,18 +1955,27 @@ describe("W05 counterevidence execution",()=>{
   await expect(performPublicSearch(pool,{...c.config,structuredChallengeEnabled:true},x.session,{...c.args,proposal:{...proposal,action:{...proposal.action,query:proposal.action.query+" SECRET_CANARY"}}})).rejects.toThrow("invalid_counterevidence_query_transform");expect(fetch).not.toHaveBeenCalled();
  }));
 });
+const COUNTEREVIDENCE_ENTITY="Aurora Studio";
+const COUNTEREVIDENCE_QUESTION=`What offline-editing capability does ${COUNTEREVIDENCE_ENTITY} provide?`;
+const counterevidenceScope={...scope,entity:COUNTEREVIDENCE_ENTITY};
+const counterevidenceSpan={start:0,end:COUNTEREVIDENCE_QUESTION.length,quote:COUNTEREVIDENCE_QUESTION};
+const counterevidenceBrief={objective:COUNTEREVIDENCE_QUESTION,objectiveProvenance:counterevidenceSpan,intendedOutput:"capability answer",
+ criteria:[{key:"c1",description:"offline-editing capability",field:"capability",operator:"explain",value:null,unit:null,importance:"hard",scope:counterevidenceScope,provenance:counterevidenceSpan,group:"g1",groupOperator:"all",unresolvedAlternatives:[]}],
+ questions:[{key:"q1",text:COUNTEREVIDENCE_QUESTION,criterionKeys:["c1"],importance:"critical",evidenceStandard:"documented outcomes"}],
+ assumptions:[],openAmbiguities:[],explicitExclusions:[]};
 it.each([{contradiction:true,linked:true},{contradiction:false,linked:true},{contradiction:true,linked:false},{contradiction:false,linked:false}])("W05 counterevidence production preserves original target when re-extraction omits it; contradiction=$contradiction linked=$linked",async({contradiction,linked})=>runCase(async x=>{
- const entity=`Study-${crypto.randomUUID()}`,original=`${entity} supports offline editing.`,secondary="A separate observation describes online editing.";
+ const original=`${COUNTEREVIDENCE_ENTITY} supports offline editing.`,secondary=`${COUNTEREVIDENCE_ENTITY} documents offline-editing capability in its desktop application.`;
  const sourceId=await insertSource(pool,{accountId:x.accountId,runId:x.runId,locator:"https://example.org/initial",title:"Initial evidence",publisher:"Study",originCluster:"initial"});
  await insertVersionAndPassage(pool,{sourceId,accountId:x.accountId,runId:x.runId,locator:"https://example.org/initial",text:original,accessLevel:"partial-text"});
  const normal=structuredWorkerTransport();let extractionCalls=0;
  globalThis.fetch=vi.fn(async(input,init)=>{
   const body=JSON.parse(String(init?.body));if(body.plugins?.length)return searchReply(true,"https://example.org/challenge");
   const ctx=JSON.parse(body.messages[1].content),op=body.response_format.json_schema.name;
+  if(op==="research_brief_v1")return response(counterevidenceBrief);
   if(op==="research_extract_assertions_v1") {
    extractionCalls++;const p=extractionCalls===1?ctx.passages.find((p:{text:string})=>p.text===original):ctx.passages.find((p:{text:string})=>p.text.includes(secondary));
    const text=extractionCalls===1?original:secondary,start=p.text.indexOf(text);
-   return response({candidates:[],assertions:[{key:extractionCalls===1?"original":"replacement",candidateKey:null,criterionKeys:["c1"],text,scope:{...scope,entity:extractionCalls===1?entity:null},quantities:[],evidence:[{passageId:p.id,start,end:start+text.length,quote:text}]}],limitations:[]});
+   return response({candidates:[],assertions:[{key:extractionCalls===1?"original":"replacement",candidateKey:null,criterionKeys:["c1"],text,scope:counterevidenceScope,quantities:[],evidence:[{passageId:p.id,start,end:start+text.length,quote:text}]}],limitations:[]});
   }
   if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q1",status:"supported",assertionKeys:ctx.approvedClaimKeys,reason:"Optimistic boundary control"}],omittedRequirements:[]});
   if(op==="research_write_report_v1")return response({title:"Findings",sections:[{heading:"Evidence",paragraphs:ctx.assertions.filter((a:{key:string})=>ctx.approvedClaimKeys.includes(a.key)).map((a:{key:string;text:string})=>({text:a.text,claimKeys:[a.key]}))}],unresolvedQuestionKeys:[],limitations:[]});
@@ -1971,7 +2016,7 @@ it.each([{contradiction:true,linked:true},{contradiction:false,linked:true},{con
   expect(await reportCompletionCovered(pool,x.accountId,canonical)).toBe(false);
   expect((await counterevidenceLimitations(pool,{...x,briefRevision:1}))[0]).toContain("required counterevidence check cannot be restored");
  }
-}),60_000);
+},COUNTEREVIDENCE_QUESTION),60_000);
 it("W05 counterevidence limited publication fails closed when required proof is lost, even with a warning",async()=>runCase(async x=>{
  const c=await scopedReportCase(x);
  await pool.query("UPDATE runs SET counterevidence_required_revision=1 WHERE id=$1",[x.runId]);

@@ -119,13 +119,13 @@ function textForUrl(url: string): string {
   return WEATHER_TEXT;
 }
 
-function factForPassage(text: string): { criterionKeys: string[]; text: string } | null {
-  if (/Helixworks was founded in 2007/i.test(text)) return { criterionKeys: ["helix_founding"], text: HELIX_FACT };
-  if (/Nimbus Forge was founded in 2011/i.test(text)) return { criterionKeys: ["nimbus_founding"], text: NIMBUS_FACT };
-  if (/expanded by licensing kitchens/i.test(text)) return { criterionKeys: ["expansion_comparison"], text: EXPANSION_FACT };
-  if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT };
-  if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT };
-  if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING };
+function factForPassage(text: string): { criterionKeys: string[]; text: string; entity: string | null } | null {
+  if (/Helixworks was founded in 2007/i.test(text)) return { criterionKeys: ["helix_founding"], text: HELIX_FACT, entity: "Helixworks" };
+  if (/Nimbus Forge was founded in 2011/i.test(text)) return { criterionKeys: ["nimbus_founding"], text: NIMBUS_FACT, entity: "Nimbus Forge" };
+  if (/expanded by licensing kitchens/i.test(text)) return { criterionKeys: ["expansion_comparison"], text: EXPANSION_FACT, entity: null };
+  if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT, entity: "Northstar Bakery" };
+  if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT, entity: "Vesper Transit" };
+  if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING, entity: "Vesper Transit" };
   return null;
 }
 
@@ -170,7 +170,7 @@ function installFetch(brief: unknown, searchFor: (query: string) => { url: strin
           candidateKey: null,
           criterionKeys: fact.criterionKeys,
           text: fact.text,
-          scope,
+          scope: { ...scope, entity: fact.entity },
           quantities: [],
           evidence: [{ passageId: p.id, start: 0, end: p.text.length, quote: p.text }],
         });
@@ -319,7 +319,7 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
     expect(["completed", "completed_with_limitations"]).toContain(meta.terminal);
   }, 60_000);
 
-  it("BB02-02 two-company founding and expansion keeps second-company work in needs, searches, and reads", async () => {
+  it("BB02-02 two-company founding and expansion satisfies covered founding and keeps unsupported expansion open", async () => {
     const { accountId, meta } = await runHeldout(TWO_COMPANY, twoCompanyBrief(), (query) => {
       if (query === TWO_COMPANY) return [...pages("helix", 3), ...pages("nimbus", 5)];
       if (/expansion/i.test(query)) return pages("expansion", 3);
@@ -331,9 +331,11 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
     const nimbus = meta.needs.find((n) => n.criterion_key === "nimbus_founding");
     const expansion = meta.needs.find((n) => n.criterion_key === "expansion_comparison");
     const helix = meta.needs.find((n) => n.criterion_key === "helix_founding");
-    assertNeedOpen(nimbus, "nimbus_founding", meta);
+    expect(meta.needs.map((need) => need.need_id).sort(), JSON.stringify(meta)).toEqual(["need-expansion_comparison", "need-helix_founding", "need-nimbus_founding"]);
     assertNeedOpen(expansion, "expansion_comparison", meta);
     expect(helix?.state, JSON.stringify(meta)).toBe("satisfied");
+    expect(nimbus?.state, JSON.stringify(meta)).toBe("satisfied");
+    expect(meta.needs.every((need) => need.freshness_required === false), JSON.stringify(meta)).toBe(true);
     const nimbusSpan = meta.searches.some((q) => q !== TWO_COMPANY && /nimbus/i.test(q));
     const expansionSpan = meta.searches.some((q) => q !== TWO_COMPANY && /expansion/i.test(q));
     const exhausted = meta.events.find((e) => e.type === "discovery_exhausted");
@@ -365,8 +367,11 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
       return pages("vesper-founding", 3);
     });
     await withTx(pool, (db) => deleteAccount(db, accountId));
+    const founding = meta.needs.find((n) => n.criterion_key === "founding_year");
     const headcount = meta.needs.find((n) => n.criterion_key === "latest_headcount");
-    assertNeedOpen(headcount, "latest_headcount", meta);
+    expect(meta.needs.map((need) => need.need_id).sort(), JSON.stringify(meta)).toEqual(["need-founding_year", "need-latest_headcount"]);
+    expect(founding).toMatchObject({ state: "satisfied", freshness_required: false });
+    expect(headcount).toMatchObject({ state: "satisfied", freshness_required: true });
     expect(meta.searches.some((q) => q !== MIXED_LATEST && /latest|headcount/i.test(q)), JSON.stringify(meta)).toBe(true);
     expect(meta.searches.length, JSON.stringify(meta)).toBeGreaterThan(1);
     const headcountRead = meta.readUrls.some((u) => /vesper-staff-/.test(u)) || meta.readRows.some((r) => /vesper-staff-/.test(r.locator));
@@ -418,9 +423,11 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
         .then(() => "resolved")
         .catch((e: Error) => e.message);
       const afterCrash = await snapshot(runId, accountId, { firstOutcome, searchQueries: [...searchQueries] });
+      const helix = afterCrash.needs.find((n) => n.criterion_key === "helix_founding");
       const nimbus = afterCrash.needs.find((n) => n.criterion_key === "nimbus_founding");
       const expansion = afterCrash.needs.find((n) => n.criterion_key === "expansion_comparison");
-      assertNeedOpen(nimbus, "nimbus_founding", afterCrash);
+      expect(helix).toMatchObject({ state: "satisfied", freshness_required: false });
+      expect(nimbus).toMatchObject({ state: "satisfied", freshness_required: false });
       assertNeedOpen(expansion, "expansion_comparison", afterCrash);
       const ids = afterCrash.needs.map((n) => n.need_id).sort();
       expect(ids, JSON.stringify(afterCrash)).toEqual(["need-expansion_comparison", "need-helix_founding", "need-nimbus_founding"]);
@@ -431,8 +438,10 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
       expect(afterRestart.needs.map((n) => n.need_id).sort(), JSON.stringify(afterRestart)).toEqual(ids);
       const nimbusAgain = afterRestart.needs.find((n) => n.criterion_key === "nimbus_founding");
       const expansionAgain = afterRestart.needs.find((n) => n.criterion_key === "expansion_comparison");
-      if (!afterRestart.readRows.some((r) => /nimbus-forge-/.test(r.locator))) assertNeedOpen(nimbusAgain, "nimbus_founding", afterRestart);
-      if (!afterRestart.readRows.some((r) => /expansion-study-/.test(r.locator))) assertNeedOpen(expansionAgain, "expansion_comparison", afterRestart);
+      expect(nimbusAgain).toMatchObject({ need_id: nimbus!.need_id, state: "satisfied", freshness_required: false });
+      assertNeedOpen(expansionAgain, "expansion_comparison", afterRestart);
+      expect(expansionAgain!.need_id).toBe(expansion!.need_id);
+      expect(expansionAgain!.freshness_required).toBe(false);
     } finally {
       await withTx(pool, (db) => deleteAccount(db, accountId));
     }

@@ -22,13 +22,14 @@ const oldUrl="https://example.org/solmere.txt",newUrl="https://example.org/vespe
 const texts={[oldUrl]:"Solmere supports Linux.",[newUrl]:"Vesper supports Windows."};
 const parentQuestion="Which tools support Linux?",relaxedQuestion="Which tools support Linux or Windows?";
 const scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
+const platformScope=(entity:"Linux"|"Windows")=>({...scope,entity});
 const response=(output:unknown)=>new Response(JSON.stringify({id:"nonbillable-control",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000001"},choices:[{finish_reason:"stop",message:{content:JSON.stringify(output)}}]}));
-function transport(){const queries:string[]=[];const fetch:typeof globalThis.fetch=async(input,init)=>{
+function transport(options:{misScopeRelaxed?:boolean}={}){const queries:string[]=[];const fetch:typeof globalThis.fetch=async(input,init)=>{
  expect(String(input)).toBe("https://openrouter.ai/api/v1/chat/completions");const body=JSON.parse(String(init?.body));
  if(body.plugins?.length){queries.push(body.messages[1].content);return new Response(JSON.stringify({id:"nonbillable-search",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[oldUrl,newUrl].map(url=>({type:"url_citation",url_citation:{url,title:"Synthetic platform documentation"}}))}}]}));}
  const c=JSON.parse(body.messages[1].content),op=body.response_format.json_schema.name;
  if(op==="research_brief_v1"){const provenance={start:0,end:c.question.length,quote:c.question};return response({objective:c.question,objectiveProvenance:provenance,intendedOutput:"Supported platforms",criteria:[{key:"platform",description:c.question,field:"platform",operator:"contains",value:c.question.includes("Windows")?"Linux or Windows":"Linux",unit:null,importance:"hard",scope,provenance,group:"g",groupOperator:"any",unresolvedAlternatives:[]}],questions:[{key:"q",text:c.question,criterionKeys:["platform"],importance:"critical",evidenceStandard:"Explicit platform statement"}],assumptions:[],openAmbiguities:[],explicitExclusions:[]});}
- if(op==="research_extract_assertions_v1"){const assertions=c.passages.filter((p:{text:string})=>p.text.includes("Linux")||c.question.includes("Windows")&&p.text.includes("Windows")).map((p:{id:string;text:string},i:number)=>({key:`p${i}`,candidateKey:null,criterionKeys:["platform"],text:p.text,scope,quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]}));return response({candidates:[],assertions,limitations:[]});}
+ if(op==="research_extract_assertions_v1"){const assertions=c.passages.filter((p:{text:string})=>p.text.includes("Linux")||c.question.includes("Windows")&&p.text.includes("Windows")).map((p:{id:string;text:string},i:number)=>{const entity=p.text.includes("Windows")?"Windows":"Linux";return{key:`p${i}`,candidateKey:null,criterionKeys:["platform"],text:p.text,scope:options.misScopeRelaxed&&c.question.includes("Windows")?scope:platformScope(entity),quantities:[],evidence:[{passageId:p.id,start:0,end:p.text.length,quote:p.text}]};});return response({candidates:[],assertions,limitations:[]});}
  if(op==="research_assess_support_v1")return response({assessments:c.assertions.map((a:{key:string;scope:unknown;evidence:unknown})=>({claimKey:a.key,status:"supported",scope:a.scope,evidence:a.evidence,rationale:"Fabricated exact-span support control",missingEvidence:[]}))});
  if(op==="research_review_coverage_v1")return response({questions:[{questionKey:"q",status:"supported",assertionKeys:c.approvedClaimKeys,reason:"Fabricated coverage control"}],omittedRequirements:[]});
  if(op==="research_write_report_v1")return response({title:"Platform findings",sections:[{heading:"Evidence",paragraphs:c.assertions.map((a:{key:string;text:string})=>({text:a.text,claimKeys:[a.key]}))}],unresolvedQuestionKeys:[],limitations:[]});
@@ -37,8 +38,8 @@ function transport(){const queries:string[]=[];const fetch:typeof globalThis.fet
 beforeAll(async()=>{pool=createPool(url);await migrate(pool);});
 afterEach(async()=>{globalThis.fetch=originalFetch;vi.restoreAllMocks();for(const account of accounts.splice(0))await deleteAccount(pool,account);});
 afterAll(async()=>{await pool.end();});
-async function setup(){const owner=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s;});accounts.push(owner.accountId);
- const model=transport();globalThis.fetch=model.fetch;
+async function setup(options:{misScopeRelaxed?:boolean}={}){const owner=await withTx(pool,async db=>{const s=await createDevSession(db);await grantConsent(db,s.accountId);return s;});accounts.push(owner.accountId);
+ const model=transport(options);globalThis.fetch=model.fetch;
  const parent=await admitRun(pool,owner.accountId,crypto.randomUUID(),CreateRunRequestSchema.parse({question:parentQuestion,routeMode:"controlled-research"}));
  const sourceId=await insertSource(pool,{accountId:owner.accountId,runId:parent.runId,locator:oldUrl,title:"Solmere platforms",publisher:"Synthetic",originCluster:"example.org"});
  const passage=await insertVersionAndPassage(pool,{accountId:owner.accountId,runId:parent.runId,sourceId,locator:oldUrl,text:texts[oldUrl],accessLevel:"full-text"});
@@ -74,6 +75,23 @@ it("W06 relaxed public constraint discovers a previously absent option and reuse
  expect(measurements.find(r=>r.id===x.child.runId)).toMatchObject({reused_passages:1,durable_reads:1});expect(measurements.find(r=>r.id===full.runId)).toMatchObject({reused_passages:0,durable_reads:2});
  for(const row of measurements)expect(Number(row.spent_micro)).toBeGreaterThan(0);
  await writeFile("/tmp/deep-v6-correction-rediscovery-trace.json",JSON.stringify({evidenceClass:"real_local_postgresql_production_worker_with_fabricated_model_search_reader_transports",referenceFacts:expected,correctedFacts,rerunFacts,correctedRunId:x.child.runId,fullRunId:full.runId,measurements,queries:x.model.queries,readLocators:read.mock.calls.map(c=>c[0]),limitations:["No live semantic validation or independent human adjudication.","Extraction and provider receipts are fabricated transports; spend is synthetic micro-units."]},null,2)+"\n");
+},120_000);
+it("W06 mis-scoped relaxed evidence stays incomplete and retries only exact original wording",async()=>{
+ const x=await setup({misScopeRelaxed:true});
+ const read=vi.spyOn(reader,"readSource").mockImplementation(async locator=>{expect(locator).toBe(newUrl);const text=texts[newUrl],bytes=Buffer.from(text),digest=createHash("sha256").update(bytes).digest("hex");return{receipt:{requestedUrl:locator,finalUrl:locator,redirectChain:[],status:200,mime:"text/plain",retrievedAt:new Date().toISOString(),outcome:"successful_body"},bytes,extraction:{version:"utf8-notes-v1",digest,status:"extracted",warnings:[],blocks:[{kind:"text",locator:"paragraph:0",text,rows:[]}]}};});
+ await processRun(pool,{...config,structuredDiscoveryEnabled:true},x.child.runId);
+ const report=await getLatestReportForRun(pool,x.child.runId,x.accountId);expect(report).toBeTruthy();
+ expect(report!.outcome).toBe("completed_with_limitations");
+ expect(x.model.queries).toEqual([relaxedQuestion,"Linux or Windows"]);
+ expect(x.model.queries.every(query=>relaxedQuestion.includes(query))).toBe(true);
+ expect(read).toHaveBeenCalledTimes(1);
+ const coverages=(await pool.query("SELECT result FROM research_coverage WHERE run_id=$1",[x.child.runId])).rows.map(row=>row.result);
+ expect(coverages.length).toBeGreaterThan(0);expect(coverages.every(coverage=>coverage.complete===false)).toBe(true);
+ expect(coverages.every(coverage=>coverage.unresolvedCriterionKeys.includes("platform"))).toBe(true);
+ const failedChecks=coverages.flatMap(coverage=>coverage.questions.flatMap((question:{failedChecks:string[]})=>question.failedChecks));
+ expect(failedChecks).toEqual(expect.arrayContaining(["criterion_entity_without_assertion:platform:linux","criterion_entity_without_assertion:platform:windows"]));
+ const need=(await pool.query("SELECT need_id,state,criterion_key FROM research_evidence_needs WHERE run_id=$1 AND criterion_key='platform'",[x.child.runId])).rows[0];
+ expect(need).toMatchObject({need_id:"need-platform",criterion_key:"platform"});expect(need.state).not.toBe("satisfied");
 },120_000);
 it("W06 disabled required rediscovery cannot silently publish a relaxed correction from only old evidence",async()=>{
  const x=await setup();await processRun(pool,{...config,structuredDiscoveryEnabled:false},x.child.runId);

@@ -126,13 +126,14 @@ describe("Wave 5 production intelligence persistence", () => {
       )).rows.map((r: { query: string }) => r.query);
       expect(afterCrash, JSON.stringify({ afterCrash, queriesSent })).toHaveLength(2);
       expect(afterCrash[0]).toBe(question);
-      expect(afterCrash[1]).toBe("export");
+      expect(afterCrash[1]).toBe("export vendor documentation");
       const needsAfterCrash = (await pool.query(
         `SELECT need_id, state, criterion_key, next_action FROM research_evidence_needs WHERE run_id=$1 ORDER BY need_id`,
         [x.runId],
       )).rows as { need_id: string; state: string; criterion_key: string | null; next_action: { kind?: string; queryHint?: string } }[];
       expect(needsAfterCrash.map((r) => r.need_id).sort(), JSON.stringify(needsAfterCrash)).toEqual(["need-c0", "need-c1"]);
       expect(needsAfterCrash.every((r) => r.state === "missing" || r.state === "partial")).toBe(true);
+      expect(needsAfterCrash.find((r) => r.criterion_key === "c0")?.next_action?.queryHint).toBe("export");
       const crashHints = needsAfterCrash.map((r) => r.next_action?.queryHint).filter(Boolean) as string[];
       expect(new Set(crashHints).size).toBeGreaterThan(1);
       await pool.query("UPDATE run_leases SET expires_at=now()-interval '1 second' WHERE run_id=$1", [x.runId]);
@@ -143,16 +144,23 @@ describe("Wave 5 production intelligence persistence", () => {
           WHERE s.run_id=$1 AND s.query IS NOT NULL ORDER BY i.created_at, s.intent_id`,
         [x.runId],
       )).rows.map((r: { query: string }) => r.query);
-      expect(afterRestart.filter((q: string) => q === "export")).toHaveLength(1);
+      expect(afterRestart.filter((q: string) => q === "export vendor documentation")).toHaveLength(1);
+      expect(queriesSent.filter((q) => q === "export vendor documentation")).toHaveLength(1);
       expect(afterRestart[0]).toBe(question);
       expect(afterRestart.length, JSON.stringify(afterRestart)).toBeGreaterThanOrEqual(3);
-      expect(afterRestart[2]).not.toBe("export");
+      expect(afterRestart[2]).not.toBe("export vendor documentation");
       expect(afterRestart[2]).not.toBe(question);
+      expect(afterRestart).not.toEqual(expect.arrayContaining([
+        "exportable vendor documentation",
+        "preoffline editing vendor documentation",
+        "offline editingly vendor documentation",
+      ]));
       const needsAfterRestart = (await pool.query(
         `SELECT need_id, state, next_action FROM research_evidence_needs WHERE run_id=$1 ORDER BY need_id`,
         [x.runId],
       )).rows as { need_id: string; state: string; next_action: { kind?: string; queryHint?: string } }[];
       expect(needsAfterRestart.map((r) => r.need_id).sort()).toEqual(["need-c0", "need-c1"]);
+      expect(needsAfterRestart.find((r) => r.need_id === "need-c0")?.next_action?.queryHint).toBe("export");
       for (const prior of needsAfterCrash) {
         const again = needsAfterRestart.find((r) => r.need_id === prior.need_id);
         expect(again?.next_action?.queryHint, JSON.stringify({ prior, again })).toBe(prior.next_action?.queryHint);

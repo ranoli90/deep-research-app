@@ -1,3 +1,9 @@
+## FINAL Gate-A fixture handoff — 2026-09-20
+
+Review isolated branch `codex/v8-gatea-fixture` only; its exact base is `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`. Do not infer a full Gate-A pass: the retained baseline log is **574/584** with ten reviewer-approved stale fixture failures, and this assignment intentionally did not rerun all 49 files. The repair changes only `correction-rediscovery.integration.test.ts`, `model-gateway.integration.test.ts`, `historical-shortcut-heldout.independent.integration.test.ts`, `wave5-intelligence.integration.test.ts`, and canonical status/evidence documents. No production file changed.
+
+The required focused fresh-DB run is **178/178**. It proves exact W06 Linux/Windows binding plus a mis-scoped open-need control, complete two-entity model-gateway positives without weakening negative gates, evidence-conditional independent need identity/freshness across restart, and Wave5 raw-hint versus exact expanded-query persistence. Workspace types and boundaries pass. The same independent reviewer must approve this exact committed head before integration. No push, merge, full Gate-A, live/paid/native or release work is included. Roll back the local fixture/evidence commit to return exactly to `c7c68e8`; no behavior/schema rollback is needed.
+
 ## V8 repaired recovery handoff — 2026-09-20
 
 Use only `/home/oranolio/Desktop/deep-v8-recovery-20260920` on local branch `codex/v8-recovery-20260920`, based on unchanged integration `bb80cfd2d2a3b14e224e516b165871fc60e58105`. Nothing is pushed or merged to main. Preservation head `4ba21a6`, rejected integrated heads `19a0bd38` and `f70a3f6`, every repair rejection and all exact independent blobs remain in ancestry. Imported source chains and resulting local commit mappings are recorded in `verification/v8/recovery-rec01-rec02/RESULTS.json`.

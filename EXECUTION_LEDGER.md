@@ -1,5 +1,16 @@
 # Execution ledger
 
+## 2026-09-20 — FINAL Gate-A fixture alignment
+
+- Lane/base: `/home/oranolio/Desktop/deep-v8-gatea-fixture-20260920`, branch `codex/v8-gatea-fixture`, exact base `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`; recovery candidate, main and remote refs untouched.
+- Preserved expected-red evidence: `/tmp/deep-gate-a-c7c68e8-20260920-2140/full-integration.log`, EXIT 1, **45/49 files**, **574/584 tests**, ten approved fixture-update failures and zero production defects.
+- W06 fixtures use Linux/Windows entity scopes. The new null-scope negative stays limited, keeps `need-platform` open, reads once and retries exact owned wording only.
+- Model-gateway positives use complete exact entity-scoped comparison evidence. The distinct-query fixture asserts entity relation `different` outside the transport so assertion failure cannot masquerade as an unknown provider outcome. Counterevidence uses an exact single-entity capability task while retaining its target/replay/final-coverage matrix.
+- Independent heldouts retain their own fixtures and now assert exact satisfied/open/freshness identities across restart. Wave5 asserts raw `export`, one outbound `export vendor documentation`, a distinct third query and three token-lookalike exclusions.
+- Fresh isolated PG `deep_gatea_fixture_final_20260920_2257`: four focused files **178/178**, EXIT 0, 514.25s. `pnpm typecheck` EXIT 0. `node scripts/check-boundaries.mjs` EXIT 0 (`boundaries=ok`). Documentation checks are recorded in `verification/v8/gatea-fixture/RESULTS.md`. All five uniquely named repair/diagnostic databases were dropped and verified absent.
+- Fixture-only impact: no production, dependency, schema, migration, public contract, prompt, model/provider route or service change; therefore no governance impact checklist or ADR/spec change is required. No full 49-file rerun, live/paid/provider/native/EAS/GHA, push or merge.
+- Rollback: revert the one local fixture/evidence commit to exact `c7c68e8`; runtime behavior and safety fences are unchanged.
+
 ## 2026-09-20 — V8 repaired recovery candidate
 
 - Refreshed origin without moving branches: integration/base remains `bb80cfd2d2a3b14e224e516b165871fc60e58105`. Recovery began clean at rejected `19a0bd38`; preservation head `4ba21a6` retains all independent collision suites and original blobs. RES-02, RES-04 and W08 source worktrees were clean at `187a2f0`, `6a03137` and `e61c655`; main, source lanes, active services/ports and remote refs were untouched.
