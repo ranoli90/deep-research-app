@@ -34,7 +34,16 @@ afterAll(async () => {
   await rolePool?.end();
   await pool?.end();
   // This generated database/role belongs only to this test file.
-  await admin.query(`DROP DATABASE IF EXISTS "${database}" WITH (FORCE)`);
+  // Never force-terminate an in-flight pg-boss client: that emits an unhandled 57P01.
+  const deadline = Date.now() + 5_000;
+  while (true) {
+    const active = await admin.query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM pg_stat_activity WHERE datname = $1", [database]);
+    if (Number(active.rows[0]?.count) === 0) break;
+    if (Date.now() >= deadline) throw new Error("runtime_test_database_connections_remain");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  await admin.query(`DROP DATABASE IF EXISTS "${database}"`);
   await admin.query(`DROP ROLE IF EXISTS "${role}"`);
   await admin.end();
 }, 30_000);
@@ -97,7 +106,7 @@ describe("operator-owned migration and least-privilege runtime", () => {
       await migrate(legacy);
     } finally {
       await legacy.end();
-      await admin.query(`DROP DATABASE "${legacyDatabase}" WITH (FORCE)`);
+      await admin.query(`DROP DATABASE "${legacyDatabase}"`);
     }
   }, 120_000);
 
@@ -107,11 +116,22 @@ describe("operator-owned migration and least-privilege runtime", () => {
     await admin.query(`CREATE ROLE "${role}" LOGIN PASSWORD '${rolePassword}'`);
     await admin.query(`GRANT CONNECT ON DATABASE "${database}" TO "${role}"`);
     await pool.query(`GRANT USAGE ON SCHEMA public, pgboss TO "${role}"`);
-    await pool.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public, pgboss TO "${role}"`);
+    await pool.query(`GRANT SELECT ON TABLE schema_migrations, schema_migration_sources TO "${role}"`);
+    const tables = await pool.query<{ tablename: string }>(`SELECT tablename FROM pg_tables
+      WHERE schemaname = 'public' AND tablename NOT IN ('schema_migrations', 'schema_migration_sources')`);
+    for (const { tablename } of tables.rows) {
+      await pool.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public."${tablename.replaceAll('"', '""')}" TO "${role}"`);
+    }
+    await pool.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA pgboss TO "${role}"`);
     await pool.query(`GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public, pgboss TO "${role}"`);
     rolePool = createPool(roleUrl.toString());
-    const privilege = await rolePool.query("SELECT has_schema_privilege(current_user, 'pgboss', 'CREATE') AS can_create");
-    expect(privilege.rows[0].can_create).toBe(false);
+    const privilege = await rolePool.query(`SELECT
+      has_schema_privilege(current_user, 'pgboss', 'CREATE') AS can_create_queue_schema,
+      has_schema_privilege(current_user, 'public', 'CREATE') AS can_create_app_schema,
+      has_table_privilege(current_user, 'public.schema_migrations', 'UPDATE') AS can_update_ledger,
+      has_table_privilege(current_user, 'public.schema_migration_sources', 'UPDATE') AS can_update_sources`);
+    expect(privilege.rows[0]).toEqual({ can_create_queue_schema: false, can_create_app_schema: false,
+      can_update_ledger: false, can_update_sources: false });
     expect(await assertSchemaCurrent(rolePool)).toMatchObject({ version: "053_schema_migration_integrity" });
     const runtimeQueue = await createQueue(roleUrl.toString(), { schemaSetup: false });
     try {
@@ -133,8 +153,9 @@ describe("operator-owned migration and least-privilege runtime", () => {
       started();
       await release;
     }) as typeof processRun, config);
-    const sender = await createQueue(databaseUrl.toString(), { schemaSetup: false });
+    let sender: Awaited<ReturnType<typeof createQueue>> | undefined;
     try {
+      sender = await createQueue(databaseUrl.toString(), { schemaSetup: false });
       await sender.send(RESEARCH_QUEUE, { runId: "accepted-test" });
       await accepted;
       const draining = runtime.shutdown(10_000);
@@ -144,7 +165,8 @@ describe("operator-owned migration and least-privilege runtime", () => {
       expect(calls).toEqual(["accepted-test"]);
     } finally {
       finish();
-      await sender.stop({ graceful: false, timeout: 1000 });
+      if (sender) await sender.stop({ graceful: true, timeout: 2000 });
+      await runtime.shutdown(10_000);
     }
   }, 30_000);
 });
