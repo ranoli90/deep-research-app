@@ -35,7 +35,7 @@ import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
-import { adoptReturnedChild, type ViewHandle } from "./src/constraint-delta";
+import { adoptReturnedChild, persistOwnedJournalSnapshot, type ViewHandle } from "./src/constraint-delta";
 import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -108,6 +108,7 @@ function AppInner() {
   const [state, setStateRaw] = useState<UiState>(emptyState());
   const [accountId, setAccountId] = useState<string | null>(null);
   const latestUi = useRef(state); latestUi.current = state;
+  const mutationJournalWrite = useRef<Promise<void>>(Promise.resolve());
   const redactingContent = useRef(false);
   const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
     const guard = api.capture();
@@ -119,6 +120,40 @@ function AppInner() {
     setStateRaw((previous) => guard.current() ? (typeof update === "function" ? update(previous) : update) : previous);
     guard.release();
   }, []);
+  type MutationJournalField = "pendingFollowUp" | "pendingAssumptions" | "pendingCorrection";
+  async function persistMutationJournal<K extends MutationJournalField>(
+    t: string,
+    guard: ViewHandle,
+    field: K,
+    saved: UiState[K],
+    parentRunId: string,
+  ) {
+    const acceptedRunId = saved && typeof saved === "object" && "acceptedRunId" in saved
+      ? saved.acceptedRunId
+      : undefined;
+    const operation = persistOwnedJournalSnapshot({
+      field,
+      saved,
+      currentState: () => latestUi.current,
+      persist: (next) => sessionStorage.persistRequired(t, next),
+      current: () => guard.current(),
+      stillOwned: () => api.currentRun(t, parentRunId)
+        || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)),
+      synchronize: (next) => {
+        latestUi.current = next;
+        // Keep React's queued state from later replacing the authoritative
+        // durable phase. Consent revocation intentionally keeps the journal
+        // while invalidating only the operation's view lease.
+        setStateRaw((previous) => (api.currentRun(t, parentRunId)
+          || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)))
+          ? { ...previous, [field]: saved }
+          : previous);
+      },
+      render: (journal) => setViewState((s) => ({ ...s, [field]: journal })),
+    });
+    mutationJournalWrite.current = operation.then(() => undefined, () => undefined);
+    await operation;
+  }
   const [token, setToken] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
@@ -950,9 +985,7 @@ function AppInner() {
         evidencePolicy: selectedEvidencePolicy,
         current: () => guard.current(),
         save: async (saved) => {
-          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingCorrection: saved });
-          if (!guard.current()) throw new SupersededRequest();
-          setState((s) => ({ ...s, pendingCorrection: saved }));
+          await persistMutationJournal(token, guard, "pendingCorrection", saved, parentRunId);
         },
         post: (parentRunId, question, expectedBriefRevision, policy, idempotencyKey) =>
           api.correct(token, parentRunId, expectedBriefRevision, question,
@@ -1053,6 +1086,10 @@ function AppInner() {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
       return;
     }
+    if (!latestUi.current.consentGranted) {
+      setViewState((s) => ({ ...s, error: "Consent to AI processing is required before continuing this research.", tab: "settings" }));
+      return;
+    }
     const runId = state.run.runId;
     const answer = clarifyAnswer.trim();
     const field = state.run.pendingInput?.field;
@@ -1075,9 +1112,7 @@ function AppInner() {
           expectedBriefRevision: revision,
           current: () => guard.current(),
           save: async (saved) => {
-            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
-            if (!guard.current()) throw new SupersededRequest();
-            setState((s) => ({ ...s, pendingAssumptions: saved }));
+            await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
           post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
           adopt: async (body) => {
@@ -1143,9 +1178,7 @@ function AppInner() {
           expectedBriefRevision: revision,
           current: () => guard.current(),
           save: async (saved) => {
-            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
-            if (!guard.current()) throw new SupersededRequest();
-            setState((s) => ({ ...s, pendingAssumptions: saved }));
+            await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
           post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
           adopt: async () => {
@@ -1224,9 +1257,7 @@ function AppInner() {
         expectedBriefRevision: pending.expectedBriefRevision,
         current: () => guard.current(),
         save: async (saved) => {
-          await sessionStorage.persistRequired(token, { ...latestUi.current, pendingAssumptions: saved });
-          if (!guard.current()) throw new SupersededRequest();
-          setState((s) => ({ ...s, pendingAssumptions: saved }));
+          await persistMutationJournal(token, guard, "pendingAssumptions", saved, pending.parentRunId);
         },
         post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
         adopt: async (body) => {
@@ -1286,6 +1317,10 @@ function AppInner() {
   async function onExplainFollowUp(message: string, retrySaved = false) {
     const current = latestUi.current;
     if (!token || !current.run || followUpBusy.current) return;
+    if (!current.consentGranted) {
+      setViewState((s) => ({ ...s, error: "Consent to AI processing is required before sending or retrying a follow-up.", tab: "settings" }));
+      return;
+    }
     const pending = unresolvedFollowUp(current.pendingFollowUp) ? current.pendingFollowUp! : null;
     const text = (retrySaved && pending ? pending.message : message).trim();
     if (!text) return;
@@ -1314,9 +1349,7 @@ function AppInner() {
           kind: mutationKind as MutatingFollowUpKind,
           current: () => guard.current(),
           save: async (saved) => {
-            await sessionStorage.persistRequired(token, { ...latestUi.current, pendingFollowUp: saved });
-            if (!guard.current()) throw new SupersededRequest();
-            setState((s) => ({ ...s, pendingFollowUp: saved }));
+            await persistMutationJournal(token, guard, "pendingFollowUp", saved, parentRunId);
           },
           post: (runId, message, expectedBriefRevision, idempotencyKey) =>
             api.explainFollowUp(token, runId, { message, expectedBriefRevision }, idempotencyKey),
@@ -2046,10 +2079,27 @@ function AppInner() {
             }}
             onRevoke={async () => {
               if (!token) return;
-              try { if (correctionAttempt.current) api.invalidateView(token); await api.consent(token, false); setCorrectionFiles([]); setState((s) => ({ ...s, consentGranted: false })); }
+              api.invalidateView(token);
+              setCorrectionFiles([]);
+              const denied = { ...latestUi.current, consentGranted: false };
+              latestUi.current = denied;
+              setState(denied);
+              try {
+                // An accepted mutation may be completing its required write as
+                // revocation invalidates the view. Let it merge its identity,
+                // then durably record the local deny before the remote effect.
+                await mutationJournalWrite.current;
+                const revoked = { ...latestUi.current, consentGranted: false };
+                await sessionStorage.persistRequired(token, revoked);
+                latestUi.current = revoked;
+                setState(revoked);
+                await api.consent(token, false);
+              }
               catch (error) {
                 if (isSupersededRequest(error)) return;
-                setState((s) => ({ ...s, error: "Could not confirm consent revocation. Retry." }));
+                const failed = { ...latestUi.current, consentGranted: false, error: "Could not confirm consent revocation. Retry." };
+                latestUi.current = failed;
+                setState(failed);
               }
             }}
           />

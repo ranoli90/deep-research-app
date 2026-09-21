@@ -649,6 +649,44 @@ describe("BB-01 real request-scope + production journal + adoption", () => {
     expect(canSubmit({ ...emptyState(), draft: NEXT_GOAL, signedIn: true, consentGranted: false }).ok).toBe(false);
   });
 
+  it("BB01-06a consent revoke alone fences follow-up adoption and retains accepted recovery", async () => {
+    const h = await createHarness();
+    const outcome = await invokeFollowUp(h, {
+      afterAccepted: async () => {
+        h.box.state = { ...h.box.state, consentGranted: false };
+        await h.storage.persistRequired(h.token, h.box.state);
+        h.scope.invalidateView(h.token);
+      },
+    });
+    expect(isSupersededRequest(outcome.error)).toBe(true);
+    expect(h.posts).toHaveLength(1);
+    expect(h.selects).toEqual([]);
+    const disk = await relaunch(h);
+    expect(disk.state.consentGranted).toBe(false);
+    expect(disk.state.pendingFollowUp?.phase).toBe("accepted");
+    expect(disk.state.pendingFollowUp?.acceptedRunId).toBe(CHILD);
+    expect(unresolvedFollowUp(disk.state.pendingFollowUp)).toBe(true);
+  });
+
+  it("BB01-06b consent revoke alone fences assumption adoption and retains accepted recovery", async () => {
+    const h = await createHarness();
+    const outcome = await invokeAssumptions(h, {
+      afterAccepted: async () => {
+        h.box.state = { ...h.box.state, consentGranted: false };
+        await h.storage.persistRequired(h.token, h.box.state);
+        h.scope.invalidateView(h.token);
+      },
+    });
+    expect(isSupersededRequest(outcome.error)).toBe(true);
+    expect(h.posts).toHaveLength(1);
+    expect(h.selects).toEqual([]);
+    const disk = await relaunch(h);
+    expect(disk.state.consentGranted).toBe(false);
+    expect(disk.state.pendingAssumptions?.phase).toBe("accepted");
+    expect(disk.state.pendingAssumptions?.acceptedRunId).toBe(CHILD);
+    expect(unresolvedAssumptions(disk.state.pendingAssumptions)).toBe(true);
+  });
+
   it("BB01-07 persistence failure at each phase keeps the last durable identity and does not invent a rejection", async () => {
     const prepared = await createHarness();
     const failPrepared = await invokeFollowUp(prepared, { failSavePhase: "prepared" });

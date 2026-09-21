@@ -38,6 +38,33 @@ export type AcceptedChildHandoff = {
   currentRun(runId: string): boolean;
 };
 
+/**
+ * Persist a mutation phase before exposing it to the accepted-child flow.
+ * React publication may be deferred, so the authoritative ref is advanced
+ * synchronously after the durable write while the selected run is still owned.
+ */
+export async function persistOwnedJournalSnapshot<T extends object, K extends keyof T>(args: {
+  field: K;
+  saved: T[K];
+  currentState(): T;
+  persist(state: T): Promise<void>;
+  current(): boolean;
+  stillOwned(): boolean;
+  synchronize(state: T): void;
+  render(saved: T[K]): void;
+}): Promise<void> {
+  const durable = { ...args.currentState(), [args.field]: args.saved } as T;
+  await args.persist(durable);
+  const owned = args.stillOwned();
+  if (owned) {
+    // Merge only the durable journal field into the newest state. Consent or
+    // another account-scoped update may have completed while storage awaited.
+    args.synchronize({ ...args.currentState(), [args.field]: args.saved } as T);
+  }
+  if (!owned || !args.current()) throw new SupersededRequest();
+  args.render(args.saved);
+}
+
 /** Child identity from a mutating follow-up or assumption replace; never poll the parent when a child is returned. */
 export async function adoptReturnedChild(args: {
   parentRunId: string;
