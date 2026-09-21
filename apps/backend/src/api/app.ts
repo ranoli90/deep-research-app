@@ -30,6 +30,8 @@ import {
   GuestAuthAttemptBeginRequestSchema,
   GuestAuthAttemptEndRequestSchema,
   GuestAuthAttemptResolveRequestSchema,
+  GuestPendingActionCancelRequestSchema,
+  GuestClaimedActionAbandonRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -92,7 +94,8 @@ import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { accountForIdentity } from "../modules/identity.js";
-import { admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest, claimGuestAction, claimedConversationScope,
+import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
+  cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
   endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
   registerGuestPendingAction, resolveGuestAuthAttempt,
   revokeGuestConsent,
@@ -183,6 +186,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/guest/pending-actions/attempts/begin": GuestAuthAttemptBeginRequestSchema,
     "/v1/guest/pending-actions/attempts/end": GuestAuthAttemptEndRequestSchema,
     "/v1/guest/pending-actions/attempts/resolve": GuestAuthAttemptResolveRequestSchema,
+    "/v1/guest/pending-actions/cancel": GuestPendingActionCancelRequestSchema,
+    "/v1/guest/actions/abandon": GuestClaimedActionAbandonRequestSchema,
     "/v1/guest/claim": GuestClaimRequestSchema,
     "/v1/guest/claims/resolve": GuestClaimResolveRequestSchema,
     "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
@@ -208,6 +213,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/runs", "/v1/run-requests/resolve",
         "/v1/guest/pending-actions", "/v1/guest/pending-actions/attempts/begin",
         "/v1/guest/pending-actions/attempts/end", "/v1/guest/pending-actions/attempts/resolve",
+        "/v1/guest/pending-actions/cancel",
         "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
         "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
         "/v1/settings", "/v1/routes/capabilities", "/v1/account/deletion"]);
@@ -272,6 +278,22 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const context = await guest(req as never);
     if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
     try { return await resolveGuestAuthAttempt(pool, context, GuestAuthAttemptResolveRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/cancel", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await cancelGuestPendingAction(pool, context,
+      GuestPendingActionCancelRequestSchema.parse(req.body).submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/abandon", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestClaimedActionAbandonRequestSchema.parse(req.body);
+    try { return await abandonClaimedGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId); }
     catch (error) { return guestError(reply, error); }
   });
 

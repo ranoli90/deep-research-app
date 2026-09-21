@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS guest_pending_actions (
   payload_digest text NOT NULL CHECK (payload_digest ~ '^[0-9a-f]{64}$'),
   payload jsonb NOT NULL CHECK (jsonb_typeof(payload) = 'object'),
   consent_policy_version text NOT NULL,
-  state text NOT NULL DEFAULT 'pending_auth' CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched','rejected','deleted')),
+  state text NOT NULL DEFAULT 'pending_auth' CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','abandoned','claimed','dispatched','rejected','deleted')),
   auth_attempt_id uuid,
   auth_provider text CHECK (auth_provider IS NULL OR auth_provider IN ('apple','google','email_code')),
   attempt_revision bigint NOT NULL DEFAULT 0 CHECK (attempt_revision >= 0),
@@ -104,7 +104,7 @@ ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_control_version 
 ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_guest_consent_epoch bigint;
 ALTER TABLE guest_pending_actions DROP CONSTRAINT IF EXISTS guest_pending_actions_state_check;
 ALTER TABLE guest_pending_actions ADD CONSTRAINT guest_pending_actions_state_check
-  CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched','rejected','deleted'));
+  CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','abandoned','claimed','dispatched','rejected','deleted'));
 
 CREATE TABLE IF NOT EXISTS conversation_control_bindings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

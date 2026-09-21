@@ -44,6 +44,8 @@ export const GuestAuthAttemptEndRequestSchema = z.object({
   submissionId: Uuid, authAttemptId: Uuid, reason: z.enum(["cancelled", "dismissed"]),
 }).strict();
 export const GuestAuthAttemptResolveRequestSchema = z.object({ submissionId: Uuid, authAttemptId: Uuid }).strict();
+export const GuestPendingActionCancelRequestSchema = z.object({ submissionId: Uuid }).strict();
+export const GuestClaimedActionAbandonRequestSchema = z.object({ submissionId: Uuid, claimRequestId: Uuid }).strict();
 export const GuestClaimResolveRequestSchema = z.object({ claimRequestId: Uuid, submissionId: Uuid }).strict();
 export const GuestActionResumeRequestSchema = z.object({
   submissionId: Uuid, claimRequestId: Uuid, controlVersion: Version, payloadDigest: Digest,

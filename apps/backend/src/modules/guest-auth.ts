@@ -280,7 +280,8 @@ export async function registerGuestPendingAction(pool: pg.Pool, guest: GuestCont
       return { code: "AUTH_REQUIRED_NEXT_TURN" as const, submissionId: input.submissionId,
         expiresAt: prior.expires_at.toISOString(), controlVersion: Number(ctx.control_version) };
     }
-    const active = (await db.query("SELECT 1 FROM guest_pending_actions WHERE guest_context_id=$1 AND state='pending_auth'", [guest.id])).rowCount;
+    const active = (await db.query(`SELECT 1 FROM guest_pending_actions WHERE guest_context_id=$1
+      AND state IN ('pending_auth','authenticating','dismissed','cancelled','claimed')`, [guest.id])).rowCount;
     if (active) fail("intent_stale", 409);
     const expiresAt = new Date(Math.min(Date.now() + PENDING_LIFETIME_MINUTES * 60_000, ctx.expires_at.getTime()));
     await db.query(`INSERT INTO guest_pending_actions(submission_id,guest_context_id,conversation_id,conversation_version,
@@ -289,6 +290,42 @@ export async function registerGuestPendingAction(pool: pg.Pool, guest: GuestCont
         CONSENT_POLICY_VERSION, expiresAt]);
     return { code: "AUTH_REQUIRED_NEXT_TURN" as const, submissionId: input.submissionId,
       expiresAt: expiresAt.toISOString(), controlVersion: Number(ctx.control_version) };
+  });
+}
+
+/** Abandons immutable content intent, not the first run. No work or claim is issued. */
+export async function cancelGuestPendingAction(pool: pg.Pool, guest: GuestContext, submissionId: string) {
+  return withTx(pool, async (db) => {
+    await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
+    const context = (await db.query<{ status: string }>(
+      "SELECT status FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
+    if (!context || context.status !== "active") fail("guest_expired", 403);
+    const pending = (await db.query<{ state: string }>(
+      "SELECT state FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
+      [submissionId, guest.id])).rows[0];
+    if (!pending) fail("intent_stale", 409);
+    if (pending.state === "abandoned") return { type: "action_abandoned" as const, submissionId };
+    if (!["pending_auth", "authenticating", "dismissed", "cancelled"].includes(pending.state)) fail("intent_stale", 409);
+    await db.query("UPDATE guest_pending_actions SET state='abandoned' WHERE submission_id=$1", [submissionId]);
+    return { type: "action_abandoned" as const, submissionId };
+  });
+}
+
+export async function abandonClaimedGuestAction(pool: pg.Pool, memberAccountId: string,
+  claimRequestId: string, submissionId: string) {
+  return withTx(pool, async (db) => {
+    const member = (await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE",
+      [memberAccountId])).rows[0];
+    if (!member) fail("authority_denied", 403);
+    const pending = (await db.query<{ state: string }>(`SELECT state FROM guest_pending_actions
+      WHERE submission_id=$1 AND claim_request_id=$2 AND member_account_id=$3 FOR UPDATE`,
+      [submissionId, claimRequestId, memberAccountId])).rows[0];
+    if (!pending) fail("authority_denied", 403);
+    if (pending.state === "abandoned") return { type: "action_abandoned" as const, submissionId, claimRequestId };
+    if (pending.state !== "claimed") fail("intent_stale", 409);
+    await db.query("UPDATE guest_pending_actions SET state='abandoned' WHERE submission_id=$1 AND state='claimed'",
+      [submissionId]);
+    return { type: "action_abandoned" as const, submissionId, claimRequestId };
   });
 }
 
@@ -460,6 +497,10 @@ export async function claimGuestAction(pool: pg.Pool, guest: GuestContext, membe
 
 export async function resolveGuestClaim(pool: pg.Pool, memberAccountId: string, claimRequestId: string,
   submissionId: string) {
+  const state = (await pool.query<{ state: string }>(`SELECT state FROM guest_pending_actions
+    WHERE submission_id=$1 AND claim_request_id=$2 AND member_account_id=$3`,
+    [submissionId, claimRequestId, memberAccountId])).rows[0]?.state;
+  if (state === "abandoned") return { type: "action_abandoned" as const, submissionId, claimRequestId };
   return claimReceipt(pool, memberAccountId, claimRequestId, submissionId);
 }
 
@@ -489,6 +530,7 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
         "SELECT * FROM guest_pending_actions WHERE submission_id=$1 FOR UPDATE", [input.submissionId])).rows[0];
     if (!pending || pending.member_account_id !== memberAccountId || pending.claim_request_id !== input.claimRequestId ||
         pending.payload_digest !== input.payloadDigest) fail("authority_denied", 403);
+    if (pending.state === "abandoned") fail("intent_stale", 409);
     const binding = (await db.query<{ id: string; control_version: string; member_deletion_epoch: string;
       revoked_at: Date | null; guest_conversation_id: string }>(
         `SELECT id,control_version,member_deletion_epoch,revoked_at,guest_conversation_id
@@ -560,6 +602,7 @@ export async function resolveGuestAction(pool: pg.Pool, memberAccountId: string,
      WHERE p.submission_id=$1 AND p.claim_request_id=$2 AND p.member_account_id=$3`,
     [submissionId, claimRequestId, memberAccountId])).rows[0];
   if (!row) fail("authority_denied", 403);
+  if (row.state === "abandoned") return { type: "action_abandoned" as const, submissionId, claimRequestId };
   if (row.state !== "dispatched") return claimReceipt(pool, memberAccountId, claimRequestId, submissionId);
   return resumeClaimedGuestAction(pool, memberAccountId, { submissionId, claimRequestId,
     controlVersion: Number(row.control_version), payloadDigest: row.payload_digest }, config);

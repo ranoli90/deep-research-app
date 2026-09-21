@@ -313,6 +313,57 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
   });
 
+  it("terminalizes edited or dismissed pending actions before and after claim without dispatch", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    expect((await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What did ACME announce about Widget 4?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(200);
+    const action = { kind: "new_research" as const, text: "Saved second action" };
+    const payloadDigest = createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex");
+    const register = async (submissionId: string) => app.inject({ method: "POST", url: "/v1/guest/pending-actions",
+      headers: guest.headers, payload: { submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, payload: action, payloadDigest,
+        consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    const oldId = crypto.randomUUID();
+    const oldAttemptId = crypto.randomUUID();
+    expect((await register(oldId)).statusCode).toBe(202);
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin", headers: guest.headers,
+      payload: { submissionId: oldId, authAttemptId: oldAttemptId, provider: "email_code" } });
+    const cancelled = await app.inject({ method: "POST", url: "/v1/guest/pending-actions/cancel",
+      headers: guest.headers, payload: { submissionId: oldId } });
+    expect(cancelled.json()).toMatchObject({ type: "action_abandoned", submissionId: oldId });
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions/cancel",
+      headers: guest.headers, payload: { submissionId: oldId } })).statusCode).toBe(200);
+    const newId = crypto.randomUUID();
+    const newAttemptId = crypto.randomUUID();
+    expect((await register(newId)).statusCode).toBe(202);
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin", headers: guest.headers,
+      payload: { submissionId: newId, authAttemptId: newAttemptId, provider: "email_code" } });
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as { token: string };
+    const mixed = { ...guest.headers, authorization: `Bearer ${member.token}` };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim", headers: mixed,
+      payload: { claimRequestId: crypto.randomUUID(), submissionId: oldId,
+        guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, authAttemptId: oldAttemptId } })).statusCode).toBe(409);
+    const claimRequestId = crypto.randomUUID();
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim", headers: mixed,
+      payload: { claimRequestId, submissionId: newId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1,
+        authAttemptId: newAttemptId } })).statusCode).toBe(200);
+    const memberHeaders = { authorization: `Bearer ${member.token}` };
+    const abandoned = await app.inject({ method: "POST", url: "/v1/guest/actions/abandon",
+      headers: memberHeaders, payload: { submissionId: newId, claimRequestId } });
+    expect(abandoned.json()).toMatchObject({ type: "action_abandoned", submissionId: newId, claimRequestId });
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claims/resolve",
+      headers: memberHeaders, payload: { submissionId: newId, claimRequestId } })).json().type)
+      .toBe("action_abandoned");
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: { submissionId: newId, claimRequestId, controlVersion: 2, payloadDigest } })).statusCode).toBe(409);
+    expect((await pool.query("SELECT count(*)::int AS n FROM runs")).rows[0].n).toBe(1);
+  });
+
   it("moves unknown paid outcome into sponsor HOLD and settles exact confirmed receipt once", async () => {
     const guest = await enabledGuest();
     await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
