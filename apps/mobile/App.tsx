@@ -977,6 +977,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const pending = guestPendingRef.current;
     try {
       if (pending?.phase === "authenticating" && pending.authAttempt) await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
+      authRef.current?.confirmSessionTaskDismissed();
       setGuestSheetVisible(false);
     } catch (error) {
       setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",

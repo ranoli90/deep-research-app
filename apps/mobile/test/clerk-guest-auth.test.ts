@@ -88,3 +88,17 @@ it("PROVIDER-10 incomplete social or email MFA moves to native completion withou
   expect(await auth.getToken()).toBeNull();
   await act(async () => { renderer.unmount(); });
 });
+
+it("PROVIDER-10 confirmed dismissal clears a task reported without a Clerk session", async () => {
+  held.session = null; held.signedIn = false; held.signInStatus = "needs_second_factor"; held.providerCreatedSession = false;
+  let auth!: ClerkGuestAuth;
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(React.createElement(Hook, { onChange: value => { auth = value; } })); });
+  await act(async () => { expect(await auth.startProvider("google")).toBe("pending_task"); });
+  expect(auth.sessionTaskPending).toBe(true);
+  await act(async () => { auth.confirmSessionTaskDismissed(); });
+  expect(auth.sessionTaskPending).toBe(false);
+  expect(auth.signedIn).toBe(false);
+  expect(await auth.getToken()).toBeNull();
+  await act(async () => { renderer.unmount(); });
+});

@@ -203,11 +203,14 @@ it("PROVIDER-10 mounted email verification hands its durable attempt to the nati
   await act(async () => { renderer.unmount(); });
 });
 
-it("PROVIDER-10 pending task close holds unknown cancellation visibly, then suppresses late active-session continuation", async () => {
-  const original = await seedAction("keep this draft", true);
+it("PROVIDER-10 pending task close holds unknown cancellation, clears its latch, and reopens at the chooser", async () => {
+  const original = await seedAction("keep this draft");
   const authenticating = beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z"));
   await held.device.savePendingAction(authenticating, original);
   let endCalls = 0;
+  let taskPending = true;
+  const confirmSessionTaskDismissed = vi.fn(() => { taskPending = false; });
+  const pendingAuth = () => ({ loaded: true, signedIn: false, sessionTaskPending: taskPending, subject: null, getToken: async () => null, confirmSessionTaskDismissed });
   const calls: string[] = [];
   vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
     const path = new URL(url).pathname; calls.push(path);
@@ -218,21 +221,33 @@ it("PROVIDER-10 pending task close holds unknown cancellation visibly, then supp
       const body = JSON.parse(String(init.body));
       return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 2, state: body.reason });
     }
-    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    if (path === "/v1/guest/pending-actions") return Response.json({ code: "AUTH_REQUIRED_NEXT_TURN", submissionId: original.submissionId, expiresAt: original.expiresAt, controlVersion: context.controlVersion }, { status: 202 });
+    if (path === "/v1/session") return Response.json({ ...context, actorKind: "guest" });
     return Response.json({});
   }));
   let renderer!: TestRenderer.ReactTestRenderer;
-  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false, sessionTaskPending: true, subject: null, getToken: async () => null } as any} />); });
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={pendingAuth() as any} />); });
   const task = () => renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props;
   await vi.waitFor(() => expect(task().visible).toBe(true));
   await act(async () => { await expect(task().onClose()).rejects.toThrow(/unconfirmed/); });
+  expect(confirmSessionTaskDismissed).not.toHaveBeenCalled();
   expect(task().visible).toBe(true);
   expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.state.error).toMatch(/cancellation is unconfirmed/);
   expect((await held.device.load()).pendingAction).toMatchObject({ phase: "authenticating", autoResume: false, authAttempt: { id: id(8) } });
   await act(async () => { await task().onClose(); });
+  expect(confirmSessionTaskDismissed).toHaveBeenCalledOnce();
+  expect(taskPending).toBe(false);
   expect(task().visible).toBe(false);
   expect((await held.device.load()).pendingAction.phase).toBe("dismissed");
-  await act(async () => { renderer.update(<AppInner auth={{ loaded: true, signedIn: true, sessionTaskPending: false, subject: "clerk-A", getToken: async () => memberToken } as any} />); });
+  await act(async () => { renderer.update(<AppInner auth={pendingAuth() as any} />); });
+  const composer = () => renderer.root.find(node => String(node.type) === "ResearchComposer");
+  await act(async () => { composer().props.onSend(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.visible).toBe(true));
+  expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.state.step).toBe("chooser");
+  expect(task().visible).toBe(false);
+  expect(calls.filter(path => path.endsWith("/attempts/begin"))).toHaveLength(0);
+  await act(async () => { await renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.transport.dismiss(); });
+  await act(async () => { renderer.update(<AppInner auth={{ loaded: true, signedIn: true, sessionTaskPending: false, subject: "clerk-A", getToken: async () => memberToken, confirmSessionTaskDismissed } as any} />); });
   await act(async () => { await Promise.resolve(); });
   expect(calls).not.toContain("/v1/guest/claim");
   expect(calls).not.toContain("/v1/guest/actions/resume");

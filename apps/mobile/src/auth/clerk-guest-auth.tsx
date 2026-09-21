@@ -13,6 +13,8 @@ export type ClerkGuestAuth = {
   startProvider(provider: "apple" | "google"): Promise<"active" | "pending_task">;
   sendEmailCode(email: string, resend: boolean): Promise<void>;
   verifyEmailCode(code: string): Promise<"active" | "pending_task">;
+  /** Called only after the server confirms the journaled task attempt ended. */
+  confirmSessionTaskDismissed(): void;
   signOut(): Promise<void>;
 };
 
@@ -122,6 +124,7 @@ export function useClerkGuestAuth(): ClerkGuestAuth {
         return pendingTask || clerk.session?.status === "pending" ? "pending_task" : "active";
       } catch (error) { throw safeClerkError(error); }
     },
+    confirmSessionTaskDismissed: () => { setTaskReported(false); },
     signOut: async () => { await clerk.signOut(); },
   };
 }
