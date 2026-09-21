@@ -101,6 +101,7 @@ import { RESEARCH_QUEUE } from "../adapters/queue.js";
 import { accountForIdentity } from "../modules/identity.js";
 import { applyClerkWebhookEvent } from "../modules/clerk-revocation.js";
 import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
+  cancelGuestConversationRun,
   cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
   registerMemberClarificationReplacement,
   endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
@@ -545,7 +546,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id = (req.params as { id: string }).id;
     const owner = await scopedReadOwner(id, a, g);
     if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
-    const updated = await cancelOwnedRun(pool, owner, id);
+    let updated;
+    try { updated = g ? await cancelGuestConversationRun(pool, id, { kind: "guest", context: g })
+      : owner !== a.accountId ? await cancelGuestConversationRun(pool, id,
+        { kind: "claimed", memberAccountId: a.accountId }) : await cancelOwnedRun(pool, owner, id); }
+    catch (error) { return guestError(reply, error); }
     if (!updated) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }

@@ -112,7 +112,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
     }
     throw new Error("deletion_lock_set_changed");
   }
-  const boundGuests = (await db.query<{ execution_owner_account_id: string; guest_context_id: string }>(
+  let boundGuests = (await db.query<{ execution_owner_account_id: string; guest_context_id: string }>(
     `SELECT g.execution_owner_account_id,g.id AS guest_context_id FROM conversation_control_bindings b
      JOIN guest_contexts g ON g.id=b.guest_context_id WHERE b.member_account_id=$1 ORDER BY g.execution_owner_account_id`,
     [accountId])).rows;
@@ -133,6 +133,13 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
     WHERE g.execution_owner_account_id=$1`, [accountId])).rows;
   if (currentBoundMembers.some((row) => !affectedAccounts.includes(row.member_account_id)))
     throw Object.assign(new Error("deletion_lock_set_changed"), { code: "deletion_lock_set_changed" });
+  const currentBoundGuests = (await db.query<{ execution_owner_account_id: string; guest_context_id: string }>(
+    `SELECT g.execution_owner_account_id,g.id AS guest_context_id FROM conversation_control_bindings b
+     JOIN guest_contexts g ON g.id=b.guest_context_id WHERE b.member_account_id=$1
+     ORDER BY g.execution_owner_account_id,g.id`, [accountId])).rows;
+  if (currentBoundGuests.some((row) => !affectedAccounts.includes(row.execution_owner_account_id)))
+    throw Object.assign(new Error("deletion_lock_set_changed"), { code: "deletion_lock_set_changed" });
+  boundGuests = currentBoundGuests;
   const account = await db.query("SELECT id FROM accounts WHERE id=$1", [accountId]);
   if (!account.rows[0]) return;
   if (boundGuests.length) {

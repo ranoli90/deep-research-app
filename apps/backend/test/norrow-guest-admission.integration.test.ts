@@ -15,6 +15,8 @@ import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js
 import { publishReport } from "../src/modules/reports.js";
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { getBrief } from "../src/modules/runs.js";
+import { deleteAccount } from "../src/modules/access.js";
+import { claimGuestAction, guestFromProof } from "../src/modules/guest-auth.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -53,6 +55,76 @@ async function enabledGuest() {
 }
 
 describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () => {
+  it("CLAIM-05 member deletion retries a binding claimed after its first lock snapshot", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Research the first eligible filing deadline", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const action = { kind: "follow_up" as const, text: "Research a different deadline",
+      parentRunId: first.json().runId as string };
+    const submissionId = crypto.randomUUID(), authAttemptId = crypto.randomUUID();
+    const payloadDigest = createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex");
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, payload: action,
+        payloadDigest, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(202);
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId, provider: "email_code" } });
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string; accountId: string };
+    const guestContext = await guestFromProof(pool, loadConfig({ DATABASE_URL: url, NODE_ENV: "test",
+      APP_AUTH_MODE: "development", NORROW_GUEST_BOOTSTRAP_ENABLED: "true",
+      NORROW_GUEST_PROOF_PEPPER: "nonsecret-isolated-test-pepper-1234567890",
+      DEV_ALLOW_FIXTURE_ROUTE: "true" }), guest.proof);
+    expect(guestContext).not.toBeNull();
+    const deletionEpoch = Number((await pool.query<{ deletion_epoch: string }>(
+      "SELECT deletion_epoch FROM accounts WHERE id=$1", [member.accountId])).rows[0]!.deletion_epoch);
+    const control = new pg.Client({ connectionString: url });
+    const deletionPool = createPool(url);
+    await control.connect();
+    await deletionPool.query("SELECT 1");
+    let locked = false;
+    let deletion: Promise<unknown> | null = null;
+    try {
+      await control.query("BEGIN");
+      await control.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [member.accountId]);
+      locked = true;
+      const claimRequestId = crypto.randomUUID();
+      const claim = claimGuestAction(pool, guestContext!, member.accountId, deletionEpoch, {
+        claimRequestId, submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId });
+      let claimWaiting = false;
+      for (let i = 0; i < 200; i++) {
+        const activity = await control.query(`SELECT 1 FROM pg_stat_activity WHERE datname=current_database()
+          AND pid<>pg_backend_pid() AND wait_event_type='Lock' AND query LIKE '%accounts%'`);
+        if (activity.rowCount) { claimWaiting = true; break; }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      expect(claimWaiting).toBe(true);
+      deletion = deleteAccount(deletionPool, member.accountId).then(() => null, (error: unknown) => error);
+      // The claim is already first in the row-lock queue. Let the independent
+      // deletion transaction take its pre-lock binding snapshot before release.
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      await control.query("COMMIT");
+      locked = false;
+      expect((await claim).type).toBe("claim_accepted");
+      expect(await deletion).toBeNull();
+      const state = (await pool.query(`SELECT g.status,a.deleted_at,b.revoked_at FROM guest_contexts g
+        JOIN accounts a ON a.id=g.execution_owner_account_id
+        JOIN conversation_control_bindings b ON b.guest_context_id=g.id WHERE g.id=$1`,
+        [guest.guestContextId])).rows[0];
+      expect(state).toMatchObject({ status: "deleted", deleted_at: expect.any(Date),
+        revoked_at: expect.any(Date) });
+    } finally {
+      if (locked) await control.query("ROLLBACK");
+      if (deletion) await deletion;
+      await deletionPool.end();
+      await control.end();
+    }
+  });
   it("GUEST-11 denies every consumed-guest direct member mutation without a new run or provider intent", async () => {
     const guest = await enabledGuest();
     await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
@@ -550,7 +622,7 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       for (let i = 0; i < 200; i++) {
         const activity = await control.query(`SELECT 1 FROM pg_stat_activity
           WHERE datname=current_database() AND pid<>pg_backend_pid() AND wait_event_type='Lock'
-            AND query LIKE '%conversation_control_bindings%'`);
+            AND (query LIKE '%conversation_control_bindings%' OR query LIKE '%guest_contexts%')`);
         if (activity.rowCount) { waiting = true; break; }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }

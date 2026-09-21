@@ -16,6 +16,7 @@ import { deleteAccount, revokeConsent } from "../src/modules/access.js";
 import { getBrief, getRun } from "../src/modules/runs.js";
 import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
 import { prepareClaimedResearchContext } from "../src/modules/run-evidence.js";
+import { cancelGuestConversationRun } from "../src/modules/guest-auth.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 const config = loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
@@ -128,6 +129,43 @@ function correction(expectedBriefRevision = 1) {
 }
 
 describe("CLAIM-12 claimed report actions", () => {
+  it("rechecks claimed cancellation after a competing binding revocation commits", async () => {
+    const x = await claimedReport(false);
+    const original = (await pool.query("SELECT lifecycle FROM runs WHERE id=$1",
+      [x.parentRunId])).rows[0].lifecycle as string;
+    const control = new pg.Client({ connectionString: url });
+    await control.connect();
+    let locked = false;
+    try {
+      await control.query("BEGIN");
+      await control.query("SELECT id FROM conversation_control_bindings WHERE guest_context_id=$1 FOR UPDATE",
+        [x.guest.guestContextId]);
+      locked = true;
+      const cancelling = cancelGuestConversationRun(pool, x.parentRunId,
+        { kind: "claimed", memberAccountId: x.claimant.accountId }).catch((error: unknown) => error);
+      let waiting = false;
+      for (let i = 0; i < 200; i++) {
+        const activity = await control.query(`SELECT 1 FROM pg_stat_activity WHERE datname=current_database()
+          AND pid<>pg_backend_pid() AND wait_event_type='Lock'
+          AND (query LIKE '%conversation_control_bindings%' OR query LIKE '%guest_contexts%')`);
+        if (activity.rowCount) { waiting = true; break; }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      expect(waiting).toBe(true);
+      await control.query(`UPDATE conversation_control_bindings SET revoked_at=now(),
+        revocation_reason='member_revoked' WHERE guest_context_id=$1`, [x.guest.guestContextId]);
+      await control.query("COMMIT");
+      locked = false;
+      expect(await cancelling).toMatchObject({ statusCode: 404, code: "authority_denied" });
+      expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/cancel`,
+        headers: x.claimant.headers, payload: {} })).statusCode).toBe(404);
+      expect((await pool.query("SELECT lifecycle FROM runs WHERE id=$1",
+        [x.parentRunId])).rows[0].lifecycle).toBe(original);
+    } finally {
+      if (locked) await control.query("ROLLBACK");
+      await control.end();
+    }
+  });
   it("guest account deletion redacts exact claimed member descendants and copied challenge excerpts", async () => {
     const x = await claimedReport(true);
     const challenge = await insertClaimedReportChallenge(pool, x.claimant.accountId,

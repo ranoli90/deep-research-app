@@ -9,7 +9,8 @@ import { withTx, type Queryable } from "../platform/db.js";
 import type { AppConfig } from "../platform/config.js";
 import { currentConsent, revokeConsent } from "./access.js";
 import { admitRun } from "./run-admission.js";
-import { getBrief, getRun, insertConversation } from "./runs.js";
+import { cancelRun, emitEvent, finishCancellationIfIdle, getBrief, getRun,
+  insertConversation } from "./runs.js";
 import { constraintFromClarificationAnswer } from "@deep/research-core";
 import { admittedRunOptions, assertRouteAdmission } from "./run-route-admission.js";
 
@@ -107,6 +108,40 @@ export async function claimedConversationScope(db: Queryable, memberAccountId: s
   return row ? { actorKind: "member", actorAccountId: memberAccountId, conversationId: row.conversation_id,
     parentExecutionOwnerId: row.execution_owner_account_id, controlBindingId: row.binding_id,
     controlVersion: Number(row.control_version) } : null;
+}
+
+/** Exact guest or claimed-parent cancellation rechecks authority under the mutation locks. */
+export async function cancelGuestConversationRun(pool: pg.Pool, runId: string,
+  authority: { kind: "guest"; context: GuestContext } | { kind: "claimed"; memberAccountId: string }) {
+  return withTx(pool, async (db) => {
+    const candidate = (await db.query<{ guest_context_id: string; execution_owner_account_id: string }>(`
+      SELECT f.guest_context_id,g.execution_owner_account_id FROM guest_first_request_receipts f
+      JOIN guest_contexts g ON g.id=f.guest_context_id WHERE f.run_id=$1`, [runId])).rows[0];
+    if (!candidate) fail("authority_denied", 404);
+    await lockAccountsOrdered(db, [candidate.execution_owner_account_id,
+      ...(authority.kind === "claimed" ? [authority.memberAccountId] : [])]);
+    await db.query("SELECT id FROM guest_contexts WHERE id=$1 FOR UPDATE", [candidate.guest_context_id]);
+    if (authority.kind === "guest") {
+      if (authority.context.id !== candidate.guest_context_id ||
+          authority.context.accountId !== candidate.execution_owner_account_id ||
+          !await guestCanAccessRun(db, authority.context, runId)) fail("authority_denied", 404);
+    } else {
+      const binding = (await db.query<{ id: string }>(`SELECT id FROM conversation_control_bindings
+        WHERE guest_context_id=$1 AND member_account_id=$2 FOR UPDATE`,
+        [candidate.guest_context_id, authority.memberAccountId])).rows[0];
+      const scope = binding ? await claimedConversationScope(db, authority.memberAccountId, runId) : null;
+      if (!scope || scope.parentExecutionOwnerId !== candidate.execution_owner_account_id ||
+          scope.controlBindingId !== binding!.id) fail("authority_denied", 404);
+    }
+    const run = await getRun(db, runId, { forUpdate: true });
+    if (!run || run.account_id !== candidate.execution_owner_account_id) fail("authority_denied", 404);
+    const updated = await cancelRun(db, runId);
+    if (!updated) fail("authority_denied", 404);
+    await emitEvent(db, { runId, accountId: candidate.execution_owner_account_id,
+      type: "cancel_requested", phase: updated.phase,
+      summary: "Stopping new work. An already-issued provider call may still finish accounting." });
+    return updated.lifecycle === "terminal" ? updated : finishCancellationIfIdle(db, updated);
+  });
 }
 
 export async function listClaimedGuestParents(db: Queryable, memberAccountId: string) {
