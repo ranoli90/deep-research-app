@@ -23,12 +23,12 @@ export type Session = { token: string; accountId: string };
 const GUEST_PROOF_ROUTES = [
   ["GET", /^\/v1\/session$/], ["GET", /^\/v1\/settings$/],
   ["POST", /^\/v1\/consent$/], ["POST", /^\/v1\/runs$/], ["POST", /^\/v1\/run-requests\/resolve$/],
-  ["POST", /^\/v1\/guest\/pending-actions$/], ["POST", /^\/v1\/guest\/claim$/],
+  ["POST", /^\/v1\/guest\/pending-actions$/], ["POST", /^\/v1\/guest\/pending-actions\/cancel$/], ["POST", /^\/v1\/guest\/claim$/],
   ["POST", /^\/v1\/guest\/pending-actions\/attempts\/(begin|end|resolve)$/],
   ["GET", /^\/v1\/runs\/[0-9a-f-]+$/i], ["GET", /^\/v1\/runs\/[0-9a-f-]+\/events\?after=\d+$/i],
   ["GET", /^\/v1\/runs\/[0-9a-f-]+\/cost$/i], ["POST", /^\/v1\/runs\/[0-9a-f-]+\/cancel$/i],
   ["GET", /^\/v1\/reports\/[0-9a-f-]+$/i], ["GET", /^\/v1\/sources\/[0-9a-f-]+$/i],
-  ["DELETE", /^\/v1\/sources\/[0-9a-f-]+$/i], ["POST", /^\/v1\/account\/deletion$/],
+  ["DELETE", /^\/v1\/sources\/[0-9a-f-]+$/i], ["DELETE", /^\/v1\/guest$/],
 ] as const;
 
 function trustedApiOrigin(): URL {
@@ -257,6 +257,7 @@ export const api = {
       conversationVersion: action.conversationVersion, payload: action.payload, payloadDigest: action.payloadDigest,
       consentPolicyVersion: action.consentPolicyVersion,
     }),
+    cancelPendingAction: (proof: string, submissionId: string) => guestReq("POST", "/v1/guest/pending-actions/cancel", proof, { submissionId }),
     beginAuthAttempt: (proof: string, submissionId: string, authAttemptId: string, provider: "apple" | "google" | "email") =>
       guestReq("POST", "/v1/guest/pending-actions/attempts/begin", proof, { submissionId, authAttemptId, provider: provider === "email" ? "email_code" : provider }) as Promise<{ submissionId: string; authAttemptId: string; attemptRevision: number; state: "authenticating" }>,
     endAuthAttempt: (proof: string, submissionId: string, authAttemptId: string, reason: "cancelled" | "dismissed") =>
@@ -274,9 +275,10 @@ export const api = {
     source: (proof: string, sourceId: string) => guestReq("GET", `/v1/sources/${sourceId}`, proof),
     cancel: (proof: string, runId: string) => guestReq("POST", `/v1/runs/${runId}/cancel`, proof, {}),
     deleteSource: (proof: string, sourceId: string) => guestReq("DELETE", `/v1/sources/${sourceId}`, proof),
-    delete: (proof: string) => guestReq("POST", "/v1/account/deletion", proof, {}),
+    delete: (proof: string) => guestReq("DELETE", "/v1/guest", proof),
   },
   resolveGuestClaim: (token: string, claimRequestId: string, submissionId: string) => req("/v1/guest/claims/resolve", { method: "POST", token, body: JSON.stringify({ claimRequestId, submissionId }) }),
+  abandonClaimedGuestAction: (token: string, submissionId: string, claimRequestId: string) => req("/v1/guest/actions/abandon", { method: "POST", token, body: JSON.stringify({ submissionId, claimRequestId }) }),
   resumeGuestAction: (token: string, action: GuestPendingAction) => req("/v1/guest/actions/resume", { method: "POST", token, body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId, controlVersion: action.claim?.controlVersion, payloadDigest: action.payloadDigest }) }),
   resolveGuestAction: (token: string, action: GuestPendingAction) => req("/v1/guest/actions/resolve", { method: "POST", token, body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId }) }),
 };

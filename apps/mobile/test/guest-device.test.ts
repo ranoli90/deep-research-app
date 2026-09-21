@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGuestDeviceStore } from "../src/auth/guest-device";
-import { createGuestPendingAction } from "../src/auth/guest-pending-action";
+import { cancelGuestPendingAction, createGuestPendingAction } from "../src/auth/guest-pending-action";
 import { createProtectedContentStore } from "../src/protected-content";
 import { emptyState } from "../src/state";
 import { memoryStore } from "../src/persist";
@@ -52,6 +52,28 @@ describe("guest device custody", () => {
     await expect(device.savePendingAction({ ...action(), submissionId: id(8) })).rejects.toThrow("different saved message");
     await expect(device.updateContext({ ...context, controlVersion: -1 })).rejects.toThrow("invalid");
     expect((await device.load())?.pendingAction?.submissionId).toBe(id(3));
+  });
+
+  it("CLAIM-14 archives an exactly cancelled action before a new explicit submission and rejects stale writes", async () => {
+    const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
+    await device.saveBootstrap(context, proof);
+    const first = action(), cancelled = cancelGuestPendingAction(first, new Date("2026-09-21T01:00:00.000Z"));
+    const second = createGuestPendingAction({
+      submissionId: id(8), guestContextId: context.guestContextId, conversationId: context.conversationId,
+      conversationVersion: 1, draftRevision: 2, draftDigest: sha256Hex("Edited B"),
+      payload: { kind: "new_research", text: "Edited B" }, consentPolicyVersion: "consent.v1",
+      createdAt: "2026-09-21T01:01:00.000Z", expiresAt: "2026-09-22T00:00:00.000Z",
+    });
+    await device.savePendingAction(first);
+    await expect(device.replaceAbandonedAction(cancelled, second)).rejects.toThrow("changed before replacement");
+    await device.savePendingAction(cancelled, first);
+    await device.replaceAbandonedAction(cancelled, second);
+    expect((await device.load())?.pendingAction?.submissionId).toBe(id(8));
+    expect(JSON.parse((await s.content.getItem("norrow.guest.abandoned-actions.v1"))!)).toEqual([cancelled]);
+    await expect(device.savePendingAction(first, cancelled)).rejects.toThrow("changed before this transition");
+    await s.content.setItem("norrow.guest.abandoned-actions.v1", JSON.stringify([cancelled, cancelled]));
+    await expect(device.load()).rejects.toThrow("Abandoned-action history is invalid");
   });
 
   it("AUTH-14 holds malformed durable journal without minting a replacement", async () => {

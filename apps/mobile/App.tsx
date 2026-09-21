@@ -45,7 +45,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-auth";
 import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
 import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
-import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
+import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
 import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
 import { sha256Hex } from "./src/sha256";
 import {
@@ -111,7 +111,7 @@ function useTheme(preference: AppearancePreference) {
   return color[resolveAppearance(preference, system)];
 }
 
-function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
+export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const authRef = useRef(auth); authRef.current = auth;
   const [appearance, setAppearance] = useState<AppearancePreference>("system");
   const system = useColorScheme();
@@ -372,10 +372,48 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     return { context, proof };
   }
 
-  async function saveGuestPending(next: GuestPendingAction) {
+  async function saveGuestPending(next: GuestPendingAction, expected: GuestPendingAction | null = guestPendingRef.current) {
     const checked = readGuestPendingAction(next);
-    await guestDevice.savePendingAction(checked);
+    await guestDevice.savePendingAction(checked, expected);
     guestPendingRef.current = checked; setGuestPending(checked);
+  }
+
+  /** Only an exact server abandonment makes a different submission ID admissible. */
+  async function abandonSavedGuestAction(action: GuestPendingAction, memberToken: string | null = token): Promise<GuestPendingAction> {
+    const current = guestPendingRef.current;
+    if (!current || current.submissionId !== action.submissionId) throw new Error("The saved message changed before cancellation.");
+    let receipt: any;
+    if (["claimed", "resume_pending", "resume_reconcile"].includes(current.phase) || !guestProof.current) {
+      if (!memberToken || !current.claim) throw new Error("The accepted claim cannot be abandoned until its identity is confirmed.");
+      receipt = await api.abandonClaimedGuestAction(memberToken, current.submissionId, current.claim.requestId);
+      if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || receipt.claimRequestId !== current.claim.requestId) throw new Error("The claim abandonment receipt did not match the saved message.");
+    } else {
+      try { receipt = await api.guest.cancelPendingAction(guestProof.current, current.submissionId); }
+      catch (error) {
+        // A simultaneous claim can win the server race and revoke guest proof.
+        // Only a verified member readback may then authorize member abandon.
+        if (!memberToken || !current.claim) throw error;
+        const resolved = await api.resolveGuestClaim(memberToken, current.claim.requestId, current.submissionId);
+        if (resolved?.type === "action_abandoned" && resolved.submissionId === current.submissionId && resolved.claimRequestId === current.claim.requestId) receipt = resolved;
+        else if (resolved?.type === "claim_accepted") {
+          const latest = guestPendingRef.current;
+          if (!latest || latest.submissionId !== current.submissionId || latest.claim?.requestId !== current.claim.requestId) throw new Error("Claim identity changed before abandonment.");
+          if (["claim_pending", "claim_reconcile"].includes(latest.phase)) {
+            const epochs = api.sessionEpochs();
+            await saveGuestPending(completeGuestClaim(latest, { ...resolved, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date()), latest);
+          }
+          receipt = await api.abandonClaimedGuestAction(memberToken, current.submissionId, current.claim.requestId);
+        } else throw error;
+      }
+      if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || (receipt.claimRequestId && receipt.claimRequestId !== current.claim?.requestId)) throw new Error("The cancellation receipt did not match the saved message.");
+    }
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== current.submissionId || latest.phase === "dispatched") throw new Error("The saved message changed while cancellation was being confirmed.");
+    const cancelled = cancelGuestPendingAction(latest, new Date());
+    if (cancelled.phase !== "cancelled") throw new Error("The expired saved message needs reconciliation before another can be sent.");
+    await saveGuestPending(cancelled, latest);
+    setGuestSheetVisible(false);
+    return cancelled;
   }
 
   async function saveGuestReader(next: UiState) {
@@ -490,16 +528,26 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     try {
       const { context: savedContext, proof } = currentGuest();
       const server = await api.guest.sessionInfo(proof);
-      const context = readGuestContext({ ...savedContext, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
+      let context = readGuestContext({ ...savedContext, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
       await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
       if (!context.consentGranted && latestUi.current.consentGranted) await saveGuestReader({ ...latestUi.current, consentGranted: false, error: "AI processing consent was revoked. Your draft and report remain saved." });
       if (context.acceptedTurnCount !== 1 || !context.consentGranted || latestUi.current.pendingContentInvalidation || latestUi.current.pendingSourceDeletion) throw new Error("This guest conversation is not ready for another message. Check consent and retry.");
       if (latestUi.current.offline) throw new Error("Offline. Your message stays saved on this device.");
       if (payload.text.length > 4000 || !payload.text.trim()) throw new Error("Enter a message of at most 4,000 characters.");
       let pending = guestPendingRef.current ? readGuestPendingAction(guestPendingRef.current) : null;
+      let replaced: GuestPendingAction | null = null;
       const now = new Date();
       if (pending) {
-        if (JSON.stringify(pending.payload) !== JSON.stringify(payload)) throw new Error("A different message is already saved. Finish or cancel it before sending another.");
+        if (JSON.stringify(pending.payload) !== JSON.stringify(payload)) {
+          replaced = await abandonSavedGuestAction(pending, null);
+          const refreshed = await api.guest.sessionInfo(proof);
+          context = readGuestContext({ ...context, controlVersion: refreshed.controlVersion, acceptedTurnCount: refreshed.acceptedTurnCount, consentGranted: refreshed.consentGranted, conversationVersion: refreshed.conversationVersion });
+          await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
+          if (context.acceptedTurnCount !== 1 || !context.consentGranted) throw new Error("The guest conversation changed after cancellation. Your new draft was not sent.");
+          pending = null;
+        }
+      }
+      if (pending) {
         if (pending.phase === "authenticating" && !pending.autoResume && pending.authAttempt) {
           await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
           pending = guestPendingRef.current;
@@ -522,7 +570,10 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           draftDigest: sha256Hex(payload.text), payload, consentPolicyVersion: context.consentPolicyVersion,
           createdAt: now.toISOString(), expiresAt,
         });
-        await saveGuestPending(pending);
+        if (replaced) {
+          await guestDevice.replaceAbandonedAction(replaced, pending);
+          guestPendingRef.current = pending; setGuestPending(pending);
+        } else await saveGuestPending(pending);
       }
       if (pending.phase === "pending_auth") {
         const receipt = await api.guest.registerAction(proof, pending);
@@ -550,33 +601,40 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function finishGuestAuthentication(attemptId: string) {
-    const pending = guestPendingRef.current;
+    let pending = guestPendingRef.current;
     if (!pending || pending.phase !== "authenticating" || pending.authAttempt?.id !== attemptId) throw new Error("An older sign-in attempt cannot continue this message.");
     const memberToken = await verifiedClerkToken();
     const identity = await api.verifyMemberSession(memberToken);
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identity.accountId)) throw new Error("The signed-in account identity is invalid.");
+    pending = guestPendingRef.current;
+    if (!pending || pending.phase !== "authenticating" || !pending.autoResume || pending.authAttempt?.id !== attemptId ||
+      pending.draftRevision !== guestDraftRevision.current || pending.draftDigest !== sha256Hex(pending.payload.kind === "clarification" ? clarifyAnswer.trim() : latestUi.current.draft.trim())) throw new Error("The saved sign-in action changed. Its message was not claimed.");
     const completed = completeGuestAuth(pending, attemptId, identity.accountId, new Date());
-    await saveGuestPending(completed);
+    await saveGuestPending(completed, pending);
     api.rotateGuestScope();
     api.activateSession(memberToken, identity.accountId);
     const firstRunId = latestUi.current.run?.runId;
     if (firstRunId) api.selectRun(firstRunId);
     await activateLocalSession(sessionStorage, { token: memberToken, accountId: identity.accountId });
     setToken(memberToken); setAccountId(identity.accountId);
-    setStateRaw(s => ({ ...s, signedIn: true, error: null }));
+    // Guest consent is never a member consent grant.
+    setStateRaw(s => ({ ...s, signedIn: true, consentGranted: false, error: null }));
     await claimAndResumeGuest(completed, memberToken, identity.accountId);
   }
 
   async function claimAndResumeGuest(action: GuestPendingAction, memberToken: string, memberAccountId: string) {
-    let pending = readGuestPendingAction(action);
+    let pending = guestPendingRef.current;
+    if (!pending || pending.submissionId !== action.submissionId || !pending.autoResume) throw new Error("The saved action was dismissed before claim.");
     const { proof, context } = { proof: guestProof.current, context: guestContextRef.current };
     if (!proof || !context || pending.authenticatedAccountId !== memberAccountId) throw new Error("Guest claim is no longer attached to this account.");
     let claim;
     if (pending.phase === "authenticated") {
-      pending = beginGuestClaim(pending, newId(), new Date()); await saveGuestPending(pending);
+      const previous = pending;
+      pending = beginGuestClaim(pending, newId(), new Date()); await saveGuestPending(pending, previous);
       try { claim = await api.guest.claim(proof, memberToken, pending); }
       catch (error) {
-        await saveGuestPending(holdGuestClaimForReconciliation(pending));
+        const latest = guestPendingRef.current;
+        if (latest?.submissionId === pending.submissionId && latest.phase === "claim_pending") await saveGuestPending(holdGuestClaimForReconciliation(latest), latest);
         throw new Error("Claim outcome is unknown. Resolve the saved claim; it will not be sent again.");
       }
     } else if (pending.phase === "claim_pending" || pending.phase === "claim_reconcile") {
@@ -585,18 +643,22 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       claim = await api.resolveGuestClaim(memberToken, pending.claim!.requestId, pending.submissionId);
     } else throw new Error("The saved claim is not ready to continue.");
     if (claim) {
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.claim?.requestId !== pending.claim?.requestId || latest.phase === "cancelled") throw new Error("The saved claim changed while the server was responding.");
+      pending = latest;
       const epochs = api.sessionEpochs();
       if (pending.phase !== "claimed" && pending.phase !== "resume_pending") {
         pending = completeGuestClaim(pending, { ...claim, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date());
-        await saveGuestPending(pending);
+        await saveGuestPending(pending, latest);
       } else if (claim.type !== "claim_accepted" || claim.submissionId !== pending.submissionId || !pending.claim || claim.requestId !== pending.claim.requestId || claim.accountId !== memberAccountId || claim.conversationId !== pending.conversationId || claim.conversationVersion !== pending.conversationVersion || claim.controlVersion !== pending.claim.controlVersion) {
         throw new Error("The saved claim readback did not match this conversation.");
       }
       if (claim.authorityAllowed !== true || claim.budgetAllowed !== true || claim.consentPolicyVersion !== context.consentPolicyVersion) {
-        await saveGuestPending(dismissGuestPendingAction(pending, new Date()));
+        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
         throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority or consent must be confirmed before this saved message can run.");
       }
     }
+    if (!guestPendingRef.current?.autoResume || guestPendingRef.current.submissionId !== pending.submissionId) throw new Error("The saved message was dismissed. Claim remains held; nothing was continued.");
     const epochs = api.sessionEpochs();
     const current = latestUi.current;
     const currentPendingText = pending.payload.kind === "clarification" ? clarifyAnswer.trim() : current.draft.trim();
@@ -617,18 +679,26 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       draftDigest: sha256Hex(currentPendingText), consentPolicyVersion: context.consentPolicyVersion,
       authorityAllowed: true, budgetAllowed: true,
     });
-    await saveGuestPending(pending);
+    await saveGuestPending(pending, guestPendingRef.current);
     let result;
     try { result = await api.resumeGuestAction(memberToken, pending); }
     catch (error) {
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation state changed while the server was responding. The original request remains held.");
       if (error instanceof ApiError && error.status === 402) {
-        await saveGuestPending(dismissGuestPendingAction(pending, new Date()));
+        await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
         throw new Error("Your account needs a research allowance. The exact saved second message can be continued after funding; nothing was sent again.");
       }
-      await saveGuestPending(holdGuestResumeForReconciliation(pending));
+      await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
       throw new Error("Continuation outcome is unknown. Resolve the saved request; it will not be sent again.");
     }
-    await adoptGuestContinuation(pending, result, memberToken);
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation identity changed while the server was responding. Resolve the original request.");
+    if (!latest.autoResume) {
+      await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
+      throw new Error("The saved message was dismissed. Resolve its exact dispatched result before continuing.");
+    }
+    await adoptGuestContinuation(latest, result, memberToken);
   }
 
   async function adoptGuestContinuation(pending: GuestPendingAction, result: any, memberToken: string) {
@@ -654,7 +724,7 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   function savedSecondMessageBlocksWork(): boolean {
     const pending = guestPendingRef.current;
-    return !!pending && !["dispatched", "cancelled", "rejected", "expired"].includes(pending.phase);
+    return !!pending && (pending.phase === "cancelled" ? !!token && !!guestContextRef.current : !["dispatched", "rejected", "expired"].includes(pending.phase));
   }
 
   async function continueSavedSecondMessage(memberToken: string, memberAccountId: string) {
@@ -1068,7 +1138,7 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     void AsyncStorage.getItem(APPEARANCE_KEY)
       .then((raw) => { if (mounted) setAppearance(readAppearance(raw)); })
       .catch(() => undefined);
-    const hydration = api.capture();
+    let hydration = api.capture();
     void Promise.resolve().then(clearDocumentPickerCache).then(async () => {
       let guest = await guestDevice.load();
       const member = await hydrateOnLaunch(sessionStorage);
@@ -1080,9 +1150,12 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           const fresh = await authRef.current.getToken();
           if (fresh) {
             const identity = await api.verifyMemberSession(fresh);
-            memberToken = fresh; memberAccountId = identity.accountId;
+            if (!hydration.current()) return;
             api.activateSession(fresh, identity.accountId);
+            hydration.release(); hydration = api.capture();
             await activateLocalSession(sessionStorage, { token: fresh, accountId: identity.accountId });
+            if (!hydration.current()) return;
+            memberToken = fresh; memberAccountId = identity.accountId;
           }
         } catch { /* Existing private snapshots remain held until a verified session returns. */ }
       }
@@ -1095,14 +1168,14 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           guest.pendingAction.authenticatedAccountId === memberAccountId && member.state.run?.runId && member.state.conversationId) {
         await guestDevice.clear(); api.clearGuest(); guest = null;
       }
-      let saved = guest ? guest.state : memberToken && member.accountId === memberAccountId ? member.state : { ...emptyState(), draft: member.state.draft };
+      let saved = guest ? guest.state : memberToken && member.accountId === memberAccountId ? { ...member.state, signedIn: true } : { ...emptyState(), draft: member.state.draft, signedIn: !!memberToken };
       if (guest) {
         api.activateGuest(guest.proof, guest.context.guestContextId);
         guestContextRef.current = guest.context; guestProof.current = guest.proof;
         guestPendingRef.current = guest.pendingAction; guestFirstRequest.current = guest.firstRequest;
         guestDraftRevision.current = guest.draftRevision;
         setGuestContext(guest.context); setGuestPending(guest.pendingAction);
-        saved = { ...saved, signedIn: !!memberToken };
+        saved = { ...saved, signedIn: !!memberToken, consentGranted: memberToken ? false : guest.state.consentGranted };
       }
       const restored = api.capture();
       setStorageReady(!saved.pendingContentInvalidation);
@@ -1190,9 +1263,25 @@ function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const current = latestUi.current;
     if (token && savedSecondMessageBlocksWork()) {
       submitting.current = true;
-      try { if (!accountId) throw new Error("Account identity is unavailable."); await continueSavedSecondMessage(token, accountId); }
+      let replaced = false;
+      try {
+        if (!accountId) throw new Error("Account identity is unavailable.");
+        const saved = guestPendingRef.current;
+        if (saved && (saved.phase === "cancelled" || saved.payload.kind !== "clarification" && (current.draft.trim() !== saved.payload.text ||
+          saved.payload.kind === "follow_up" && current.run?.runId !== saved.payload.parentRunId))) {
+          if (saved.phase !== "cancelled") await abandonSavedGuestAction(saved, token);
+          const adopted = { ...current, signedIn: true };
+          await sessionStorage.persistRequired(token, adopted);
+          await guestDevice.clear(); api.clearGuest();
+          guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
+          setGuestContext(null); setGuestPending(null);
+          latestUi.current = adopted; setStateRaw(adopted);
+          replaced = true;
+        } else await continueSavedSecondMessage(token, accountId);
+      }
       catch (error) { setViewState(s => ({ ...s, error: error instanceof Error ? error.message : "The saved second message remains held." })); }
       finally { submitting.current = false; }
+      if (replaced) await onSend();
       return;
     }
     if (!token) {

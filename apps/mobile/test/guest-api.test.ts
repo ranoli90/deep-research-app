@@ -20,6 +20,7 @@ it("GUEST-01/CLAIM-01 sends proof only on frozen guest-control and guest-reader 
   await api.guest.consent(proof, true);
   await api.guest.createRun(proof, "First question", id(8), id(3));
   await api.guest.registerAction(proof, action);
+  await api.guest.cancelPendingAction(proof, action.submissionId);
   await api.guest.beginAuthAttempt(proof, action.submissionId, action.authAttempt!.id, "email");
   await api.guest.getRun(proof, id(4));
   await api.guest.claim(proof, token, action);
@@ -29,8 +30,20 @@ it("GUEST-01/CLAIM-01 sends proof only on frozen guest-control and guest-reader 
     expect(init.headers).toMatchObject({ "x-norrow-guest-proof": proof });
     expect(init.redirect).toBe("error");
   }
-  expect((fetcher.mock.calls[5] as unknown as [string, RequestInit])[1].headers).toMatchObject({ authorization: `Bearer ${token}` });
-  expect((fetcher.mock.calls[5] as unknown as [string, RequestInit])[1].body).toContain(action.authAttempt!.id);
+  expect((fetcher.mock.calls[6] as unknown as [string, RequestInit])[1].headers).toMatchObject({ authorization: `Bearer ${token}` });
+  expect((fetcher.mock.calls[6] as unknown as [string, RequestInit])[1].body).toContain(action.authAttempt!.id);
+});
+
+it("DATA-12 sends guest deletion only to the exact proof route, never member deletion", async () => {
+  const fetcher = vi.fn(async () => Response.json({ accepted: true })); vi.stubGlobal("fetch", fetcher);
+  api.activateGuest(proof, id(2));
+  await api.guest.delete(proof);
+  const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+  expect(new URL(url).pathname).toBe("/v1/guest");
+  expect(init.method).toBe("DELETE");
+  expect(init.headers).toMatchObject({ "x-norrow-guest-proof": proof });
+  expect(init.headers).not.toHaveProperty("authorization");
+  expect(init.body).toBeUndefined();
 });
 
 it("CLAIM-01 drops late guest results after claim, deletion, or another context without remounting content", async () => {
@@ -53,6 +66,7 @@ it("CLAIM-07 member claim resolution and continuation never carry the guest proo
   const fetcher = vi.fn(async () => Response.json({ ok: true })); vi.stubGlobal("fetch", fetcher);
   api.activateSession(token, id(6));
   await api.resolveGuestClaim(token, id(7), id(1));
+  await api.abandonClaimedGuestAction(token, id(1), id(7));
   await api.resumeGuestAction(token, action);
   await api.resolveGuestAction(token, action);
   for (const [url, init] of fetcher.mock.calls as unknown as [string, RequestInit][]) {
