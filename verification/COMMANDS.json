@@ -1154,6 +1154,14 @@
     "implementation": "apps/mobile/package.json"
   },
   {
+    "command": "node apps/mobile/scripts/build-eas-device.mjs",
+    "status": "implemented_application_command",
+    "scope": "W10 guarded Android device-profile EAS APK build only: requires approved EXPO_TOKEN, explicit positive DEEP_EAS_DEVICE_APPROVED_MAX_COST_USD, owner approval ID, one-use external receipt directory and executable CLI path before any CLI/network request; may incur EAS build charges; no install, auto-submit or release. EAS CLI does not enforce a hard monetary ceiling; verify account billing before approval. Not executed in this packet.",
+    "network": true,
+    "paid": true,
+    "implementation": "apps/mobile/scripts/build-eas-device.mjs"
+  },
+  {
     "command": "sudo -n apt-get install --no-install-recommends --yes openjdk-17-jdk-headless",
     "status": "implemented_application_command",
     "scope": "W07/W09 Local Android compilation toolchain setup; missing javac repair only",
