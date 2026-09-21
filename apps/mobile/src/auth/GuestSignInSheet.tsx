@@ -18,9 +18,13 @@ import { motion } from "@deep/design";
 import { CloseIcon } from "../icons";
 import {
   guestSignInBusy,
+  guestEmailCanResend,
+  type GuestSignInAttempt,
+  type GuestSignInOperation,
   type GuestProviderAvailability,
   type GuestSignInProvider,
   type GuestSignInSheetEvent,
+  type GuestSignInSessionTask,
   type GuestSignInSheetState,
 } from "./guest-sign-in-sheet-state";
 
@@ -35,11 +39,25 @@ export type GuestSignInDismissal = {
  * owns Clerk calls, cancellation, durable pending-action updates and the
  * eventual claim; this component only starts explicitly configured work.
  */
+export type GuestSignInAttemptRequest = {
+  operation: Extract<GuestSignInOperation, "provider" | "email_code" | "resend_email_code" | "verify_email_code">;
+  provider: "apple" | "google" | "email";
+  email: string | null;
+};
+
+/**
+ * All operations are async so the sheet can wait for the host to journal an
+ * attempt before opening a provider or sending a code. `prepareAttempt` must
+ * resolve only after that durable write; it is not an auth or claim result.
+ */
 export type GuestSignInTransport = {
-  startProvider(provider: "apple" | "google"): void;
-  cancelProvider?(provider: "apple" | "google"): void;
-  requestEmailCode(email: string): void;
-  verifyEmailCode(code: string): void;
+  prepareAttempt(request: GuestSignInAttemptRequest): Promise<GuestSignInAttempt>;
+  startProvider(attempt: GuestSignInAttempt): Promise<void>;
+  cancelProvider?(attempt: GuestSignInAttempt): Promise<void>;
+  requestEmailCode(attempt: GuestSignInAttempt): Promise<void>;
+  verifyEmailCode(attempt: GuestSignInAttempt, code: string): Promise<void>;
+  /** Resolves only after auto-continuation has been durably suppressed. */
+  dismiss(context: { task: GuestSignInSessionTask | null; reason: "dismissed" }): Promise<void>;
 };
 
 export type GuestSignInSheetProps = {
@@ -49,9 +67,11 @@ export type GuestSignInSheetProps = {
   reducedMotion?: boolean;
   colorScheme?: "light" | "dark";
   /** The app owns journal persistence and authenticating/claiming transport. */
-  onEvent(event: GuestSignInSheetEvent): void;
-  /** Close/back is non-destructive: host preserves the exact draft and reader position. */
+  onEvent(event: GuestSignInSheetEvent): Promise<void>;
+  /** Called only after `transport.dismiss` records the non-destructive dismissal. */
   onDismiss(context: GuestSignInDismissal): void;
+  /** The host owns the URL, in-app browser, and return focus for legal documents. */
+  onOpenLegalDocument(document: "terms" | "privacy"): Promise<void> | void;
   transport: GuestSignInTransport;
 };
 
@@ -77,6 +97,7 @@ function ProviderMark({ provider, dark }: { provider: GuestSignInProvider; dark:
  */
 export function GuestSignInSheet({
   visible, state, providers, reducedMotion = false, colorScheme = "light", onEvent, onDismiss, transport,
+  onOpenLegalDocument,
 }: GuestSignInSheetProps) {
   const dark = colorScheme === "dark";
   const { width } = useWindowDimensions();
@@ -86,6 +107,7 @@ export function GuestSignInSheet({
   const opacity = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
   const [email, setEmail] = useState(state.email);
   const [code, setCode] = useState("");
+  const [closing, setClosing] = useState(false);
   const busy = guestSignInBusy(state);
   const tablet = width >= 600;
   const ink = dark ? "#F6F2EC" : "#1C1916";
@@ -106,36 +128,87 @@ export function GuestSignInSheet({
     ]).start();
   }, [visible, reducedMotion, rise, opacity]);
 
-  const close = () => {
-    if (state.step === "provider_pending" && state.provider && state.provider !== "email") {
-      transport.cancelProvider?.(state.provider);
-      onEvent({ type: "provider_cancelled" });
+  const reportTransportError = async (error: unknown) => {
+    const message = error instanceof Error && error.message ? error.message : "Sign-in could not be started. Please try again.";
+    await onEvent({ type: "recoverable_error", message });
+  };
+  const close = async () => {
+    if (closing) return;
+    setClosing(true);
+    try {
+      // A close never erases the draft. The host first durably disables its
+      // automatic continuation, then this controlled modal may be hidden.
+      await transport.dismiss({ task: state.sessionTask, reason: "dismissed" });
+      await onEvent({ type: "dismissed" });
+      if (state.sessionTask?.kind === "provider") {
+        try { await transport.cancelProvider?.(state.sessionTask.attempt); } catch { /* dismissal is already durable */ }
+      }
+      onDismiss({ preserveDraft: true, preserveReadingPosition: true, restoreComposerFocus: true });
+    } catch (error) {
+      await reportTransportError(error);
+    } finally {
+      setClosing(false);
     }
-    onDismiss({ preserveDraft: true, preserveReadingPosition: true, restoreComposerFocus: true });
   };
-  const choose = (provider: GuestSignInProvider) => {
+  const prepare = async (request: GuestSignInAttemptRequest) => {
+    const attempt = await transport.prepareAttempt(request);
+    if (!attempt?.id || attempt.operation !== request.operation || attempt.provider !== request.provider || attempt.email !== request.email) {
+      throw new Error("The saved sign-in attempt could not be confirmed.");
+    }
+    return attempt;
+  };
+  const choose = async (provider: GuestSignInProvider) => {
     if (!providers[provider]?.available || busy) return;
-    onEvent({ type: "choose_provider", provider });
-    if (provider !== "email") transport.startProvider(provider);
+    if (provider === "email") {
+      await onEvent({ type: "choose_provider", provider });
+      return;
+    }
+    try {
+      const attempt = await prepare({ operation: "provider", provider, email: null });
+      // Do not open a provider until both host durability gates have completed.
+      await onEvent({ type: "begin_provider", provider, attempt });
+      await transport.startProvider(attempt);
+    } catch (error) {
+      await reportTransportError(error);
+    }
   };
-  const submitEmail = () => {
+  const submitEmail = async (operation: "email_code" | "resend_email_code" = "email_code") => {
     const normalized = email.trim();
     if (!normalized || busy) return;
-    onEvent({ type: "edit_email", email: normalized });
-    onEvent({ type: "begin_email_code" });
-    transport.requestEmailCode(normalized);
+    try {
+      await onEvent({ type: "edit_email", email: normalized });
+      const attempt = await prepare({ operation, provider: "email", email: normalized });
+      await onEvent({ type: "begin_email_code", attempt });
+      await transport.requestEmailCode(attempt);
+    } catch (error) {
+      await reportTransportError(error);
+    }
   };
-  const submitCode = () => {
+  const submitCode = async () => {
     if (!code.trim() || busy) return;
-    onEvent({ type: "begin_code_verification" });
-    transport.verifyEmailCode(code.trim());
+    try {
+      const attempt = await prepare({ operation: "verify_email_code", provider: "email", email: state.email });
+      await onEvent({ type: "begin_code_verification", attempt });
+      await transport.verifyEmailCode(attempt, code.trim());
+    } catch (error) {
+      await reportTransportError(error);
+    }
+  };
+  const cancelProvider = async () => {
+    if (state.sessionTask?.kind !== "provider") return;
+    try {
+      await transport.cancelProvider?.(state.sessionTask.attempt);
+      await onEvent({ type: "provider_cancelled" });
+    } catch (error) {
+      await reportTransportError(error);
+    }
   };
   const focusHeading = () => {
     if (focused.current || !visible) return;
     const tag = findNodeHandle(title.current);
     if (tag !== null) { focused.current = true; AccessibilityInfo.setAccessibilityFocus(tag); }
   };
-  const message = state.error ?? (state.step === "claiming" ? "Keeping your conversation together…" : state.step === "verifying_code" ? "Checking your code…" : state.step === "sending_code" ? "Sending your code…" : state.step === "provider_pending" ? "Continue in the provider window, then return here." : null);
+  const message = state.error ?? (state.step === "claiming" ? "Keeping your conversation together…" : state.step === "reconciling" ? "Checking the saved request without sending it again…" : state.step === "verifying_code" ? "Checking your code…" : state.step === "sending_code" ? "Sending your code…" : state.step === "provider_pending" ? "Continue in the provider window, then return here." : null);
   const showChooser = state.step === "chooser" || state.step === "provider_pending" || (state.step === "error" && state.retryStep === "chooser");
   const showEmail = state.step === "email" || state.step === "sending_code";
   const showCode = state.step === "code" || state.step === "verifying_code";
@@ -143,7 +216,7 @@ export function GuestSignInSheet({
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={close} statusBarTranslucent>
       <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.36)" }}>
-        <Pressable accessibilityLabel="Dismiss sign-in sheet" accessibilityRole="button" onPress={close} style={{ flex: 1 }} />
+        <Pressable accessibilityLabel="Dismiss sign-in sheet" accessibilityRole="button" onPress={() => { void close(); }} style={{ flex: 1 }} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={0}>
           <Animated.View
             accessibilityViewIsModal
@@ -156,7 +229,7 @@ export function GuestSignInSheet({
                 <Text ref={title} onLayout={focusHeading} accessibilityRole="header" maxFontSizeMultiplier={1.8} style={{ color: ink, fontSize: 25, lineHeight: 31, fontWeight: "700", letterSpacing: -0.3 }}>{copy.title}</Text>
                 <Text maxFontSizeMultiplier={1.8} style={{ color: muted, fontSize: 16, lineHeight: 23, marginTop: 5 }}>{copy.subtitle}</Text>
               </View>
-              <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close sign-in sheet" hitSlop={12} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+              <Pressable onPress={() => { void close(); }} accessibilityRole="button" accessibilityLabel="Close sign-in sheet" hitSlop={12} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
                 <CloseIcon color={muted} size={17} />
               </Pressable>
             </View>
@@ -170,7 +243,7 @@ export function GuestSignInSheet({
                   return <View key={provider} style={{ marginBottom: 10 }}>
                     <Pressable
                       disabled={unavailable || busy}
-                      onPress={() => choose(provider)}
+                      onPress={() => { void choose(provider); }}
                       accessibilityRole="button"
                       accessibilityLabel={unavailable ? `${providerLabel(provider)} unavailable` : providerLabel(provider)}
                       accessibilityHint={unavailable ? availability?.unavailableReason ?? "Not configured" : undefined}
@@ -184,23 +257,31 @@ export function GuestSignInSheet({
                   </View>;
                 })}
               </> : null}
-              {state.step === "provider_pending" && state.provider && state.provider !== "email" ? <QuietButton label="Cancel sign-in" onPress={() => { transport.cancelProvider?.(state.provider as "apple" | "google"); onEvent({ type: "provider_cancelled" }); }} disabled={false} color={accent} /> : null}
+              {state.step === "provider_pending" && state.provider && state.provider !== "email" ? <QuietButton label="Cancel sign-in" onPress={() => { void cancelProvider(); }} disabled={false} color={accent} /> : null}
               {showEmail ? <>
                 <Text style={{ color: ink, fontSize: 16, lineHeight: 22, fontWeight: "600", marginBottom: 8 }}>Email address</Text>
-                <TextInput value={email} onChangeText={(value) => { setEmail(value); onEvent({ type: "edit_email", email: value }); }} editable={!busy} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress" accessibilityLabel="Email address" placeholder="you@example.com" placeholderTextColor={muted} maxFontSizeMultiplier={1.8} style={{ minHeight: 52, borderRadius: 13, borderColor: line, borderWidth: 1, backgroundColor: field, color: ink, fontSize: 17, paddingHorizontal: 14, marginBottom: 12 }} />
-                <SheetButton label={state.step === "sending_code" ? "Sending code…" : "Email me a code"} onPress={submitEmail} disabled={!email.trim() || busy} fill={ink} text={surface} />
-                <QuietButton label="Use another sign-in option" onPress={() => onEvent({ type: "provider_cancelled" })} disabled={busy} color={accent} />
+                <TextInput value={email} onChangeText={(value) => { setEmail(value); void onEvent({ type: "edit_email", email: value }); }} editable={!busy} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress" accessibilityLabel="Email address" placeholder="you@example.com" placeholderTextColor={muted} maxFontSizeMultiplier={1.8} style={{ minHeight: 52, borderRadius: 13, borderColor: line, borderWidth: 1, backgroundColor: field, color: ink, fontSize: 17, paddingHorizontal: 14, marginBottom: 12 }} />
+                <SheetButton label={state.step === "sending_code" ? "Sending code…" : "Email me a code"} onPress={() => { void submitEmail(); }} disabled={!email.trim() || busy} fill={ink} text={surface} />
+                <QuietButton label="Use another sign-in option" onPress={() => { void onEvent({ type: "provider_cancelled" }); }} disabled={busy} color={accent} />
               </> : null}
               {showCode ? <>
                 <Text style={{ color: ink, fontSize: 16, lineHeight: 22, fontWeight: "600", marginBottom: 5 }}>Enter the code we emailed you</Text>
                 <Text style={{ color: muted, fontSize: 14, lineHeight: 20, marginBottom: 10 }}>Sent to {state.email}</Text>
                 <TextInput value={code} onChangeText={setCode} editable={!busy} autoCapitalize="none" autoCorrect={false} keyboardType="number-pad" textContentType="oneTimeCode" accessibilityLabel="Email verification code" placeholder="123456" placeholderTextColor={muted} maxFontSizeMultiplier={1.8} style={{ minHeight: 52, borderRadius: 13, borderColor: line, borderWidth: 1, backgroundColor: field, color: ink, fontSize: 20, letterSpacing: 3, paddingHorizontal: 14, marginBottom: 12 }} />
-                <SheetButton label={state.step === "verifying_code" ? "Checking code…" : "Continue"} onPress={submitCode} disabled={!code.trim() || busy} fill={ink} text={surface} />
-                <QuietButton label="Use a different email" onPress={() => onEvent({ type: "use_different_email" })} disabled={busy} color={accent} />
-                <QuietButton label="Resend code" onPress={() => { if (!busy && state.email) { onEvent({ type: "begin_email_code" }); transport.requestEmailCode(state.email); } }} disabled={busy} color={accent} />
+                <SheetButton label={state.step === "verifying_code" ? "Checking code…" : "Continue"} onPress={() => { void submitCode(); }} disabled={!code.trim() || busy || state.codeExpired} fill={ink} text={surface} />
+                <QuietButton label="Use a different email" onPress={() => { void onEvent({ type: "use_different_email" }); }} disabled={busy} color={accent} />
+                <QuietButton label={state.resend.status === "rate_limited" ? "Resend limited" : "Resend code"} onPress={() => { void submitEmail("resend_email_code"); }} disabled={busy || !guestEmailCanResend(state, new Date())} color={accent} />
               </> : null}
-              {state.step === "claiming" ? <View accessibilityLabel="Claiming your guest conversation" style={{ paddingVertical: 16 }}><Text style={{ color: ink, fontSize: 16, lineHeight: 23 }}>Your first conversation stays intact. We’ll send your saved next message only after the claim is confirmed.</Text></View> : null}
-              {state.step === "error" && state.retryStep !== "chooser" ? <SheetButton label="Try again" onPress={() => onEvent({ type: "retry" })} disabled={busy} fill={ink} text={surface} /> : null}
+              {state.step === "claiming" || state.step === "reconciling" ? <View accessibilityLabel={state.step === "claiming" ? "Claiming your guest conversation" : "Reconciling your saved request"} style={{ paddingVertical: 16 }}><Text style={{ color: ink, fontSize: 16, lineHeight: 23 }}>Your first conversation stays intact. We’ll send your saved next message only after the claim is confirmed.</Text></View> : null}
+              {state.step === "expired" || state.step === "deleted" ? <View accessibilityRole="alert" style={{ paddingVertical: 16 }}><Text style={{ color: ink, fontSize: 16, lineHeight: 23 }}>{state.step === "deleted" ? "This saved conversation was deleted. Your current draft is still yours to review." : "This saved sign-in action has expired. Your current draft is still available."}</Text></View> : null}
+              {state.step === "error" && state.retryStep !== "chooser" ? <SheetButton label="Try again" onPress={() => { void onEvent({ type: "retry" }); }} disabled={busy} fill={ink} text={surface} /> : null}
+              <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", marginTop: 16 }}>
+                <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}>By continuing, you agree to our </Text>
+                <LegalLink label="Terms" onPress={() => { void onOpenLegalDocument("terms"); }} color={accent} />
+                <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}> and </Text>
+                <LegalLink label="Privacy Notice" onPress={() => { void onOpenLegalDocument("privacy"); }} color={accent} />
+                <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}>.</Text>
+              </View>
             </ScrollView>
           </Animated.View>
         </KeyboardAvoidingView>
@@ -214,4 +295,7 @@ function SheetButton({ label, onPress, disabled, fill, text }: { label: string; 
 }
 function QuietButton({ label, onPress, disabled, color }: { label: string; onPress(): void; disabled: boolean; color: string }) {
   return <Pressable disabled={disabled} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} style={{ minHeight: 44, alignSelf: "flex-start", justifyContent: "center", marginTop: 4, opacity: disabled ? 0.5 : 1 }}><Text maxFontSizeMultiplier={1.8} style={{ color, fontSize: 15, fontWeight: "600" }}>{label}</Text></Pressable>;
+}
+function LegalLink({ label, onPress, color }: { label: string; onPress(): void; color: string }) {
+  return <Pressable onPress={onPress} accessibilityRole="link" accessibilityLabel={label} hitSlop={6}><Text style={{ color, fontSize: 12, lineHeight: 18, fontWeight: "600", textDecorationLine: "underline" }}>{label}</Text></Pressable>;
 }
