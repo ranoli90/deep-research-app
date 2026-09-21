@@ -287,17 +287,20 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const setEvidencePolicy = (evidencePolicy: "reuse_snapshot" | "refresh") => changeCorrection({ evidencePolicy });
   const [correctionSelection, setCorrectionSelection] = useState<CorrectionSelection>({ owner: null, parent: null, files: [] });
   const correctionParent = state.pendingCorrectionDocuments?.parentRunId ?? state.run?.runId ?? null;
-  const correctionFiles = correctionFilesFor(correctionSelection, token, correctionParent);
+  // The selection is bound to the stable member account, never the rotating
+  // bearer: a same-account refresh keeps selected files, an account change
+  // drops them fail-closed.
+  const correctionFiles = correctionFilesFor(correctionSelection, accountId, correctionParent);
   function setCorrectionFiles(update: UiState["attachments"] | ((files: UiState["attachments"]) => UiState["attachments"])) {
-    setCorrectionSelection(previous => ({ owner: token, parent: correctionParent,
-      files: typeof update === "function" ? update(previous.owner === token && previous.parent === correctionParent ? previous.files : []) : update }));
+    setCorrectionSelection(previous => ({ owner: accountId, parent: correctionParent,
+      files: typeof update === "function" ? update(previous.owner === accountId && previous.parent === correctionParent ? previous.files : []) : update }));
   }
-  useEffect(() => { setCorrectionFiles([]); }, [token, state.run?.runId, state.pendingSourceDeletion]);
+  useEffect(() => { setCorrectionFiles([]); }, [accountId, state.run?.runId, state.pendingSourceDeletion]);
   const [correctionPending,setCorrectionPending]=useState(false);
   const correctionAttempt=useRef<symbol|null>(null);
   const correctionMode=state.run?.labeledDemo&&state.run?.correctionMode==="legacy"?"legacy":!state.run?.labeledDemo&&state.run?.correctionMode==="replace_question"?"replace_question":"unavailable";
   const correctionReady=!state.run?.contentInvalidated&&!staleCorrection&&correctionMode!=="unavailable"&&Boolean(state.run?.brief?.revision)&&(correctionMode==="legacy"||(Number.isSafeInteger(state.run?.correctionReserveMicro)&&state.run!.correctionReserveMicro!>=0));
-  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[token,state.run?.runId]);
+  useEffect(()=>{correctionAttempt.current=null;setCorrectionPending(false);},[accountId,state.run?.runId]);
   const clarifying = useRef(false);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
   const [attachName, setAttachName] = useState("note.txt");
@@ -371,8 +374,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     [composerContinues, state.report],
   );
   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
-  // Identity stays in memory. Protected snapshots contain only report/block IDs.
-  const readerOwner = guestContext?.guestContextId ?? token ?? null;
+  // Reader identity is the stable principal (guest context or member
+  // account), never the rotating bearer string: a same-account credential
+  // refresh retains reading position and focus; only a true principal change
+  // starts a new reader generation.
+  const readerOwner = guestContext?.guestContextId ?? accountId ?? null;
   const readerKey = JSON.stringify([readerOwner, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
   if (readerIdentity.current !== readerKey) {
     readerIdentity.current = readerKey;
@@ -583,7 +589,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const updated = readGuestContext({ ...context, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
       await guestDevice.updateContext(updated); guestContextRef.current = updated; setGuestContext(updated);
       guestRunEpoch.current++;
-      const next: UiState = { ...current, draft: "", routeMode: "controlled-research", status: "progress", error: null, tab: "research", events: [], report: null,
+      // Merge the accepted run into the latest still-owned reader. Text typed
+      // while A was awaiting (B) survives; only an unchanged A clears.
+      const latest = latestUi.current;
+      if (guestContextRef.current?.guestContextId !== context.guestContextId) throw new Error("The guest conversation changed while research was starting. Check it again; nothing was sent again.");
+      const next: UiState = { ...latest, draft: latest.draft.trim() === question ? "" : latest.draft, routeMode: "controlled-research", status: "progress", error: null, tab: "research", events: [], report: null,
         run: { runId: created.runId, lifecycle: created.lifecycle, phase: created.phase, outcome: null, reportId: null, labeledDemo: false } };
       await saveGuestReader(next);
       void refreshGuestRun(created.runId); startGuestPolling(created.runId);
@@ -781,8 +791,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
     guestRunEpoch.current++;
     const previous = latestUi.current;
+    // Merge the dispatch into the latest still-owned reader. The dispatched
+    // message clears; anything typed meanwhile (or an unrelated draft beside
+    // a clarification answer) survives.
+    const sentText = pending.payload.kind === "clarification" ? null : pending.payload.text;
     const next: UiState = { ...previous, signedIn: true, conversationId: result.memberConversationId,
-      draft: "", source: null, readingAnchor: null, report: null,
+      draft: sentText !== null && previous.draft.trim() === sentText.trim() ? "" : previous.draft, source: null, readingAnchor: null, report: null,
       previousReport: previous.report ? { reportId: previous.report.reportId, blocks: previous.report.blocks } : previous.previousReport,
       events: [], status: "progress", error: null,
       run: { runId: result.runId, lifecycle: "queued", phase: "queued", outcome: null, reportId: null, labeledDemo: false } };
@@ -1153,7 +1167,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       if (accepted.current()) setAccountId(s.accountId);
       setState((prev) => {
         if (!accepted.current()) return prev;
-        const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null, routeMode: prev.routeMode, reducedMotion: prev.reducedMotion };
+        const next = { ...emptyState(), draft: prev.signedIn ? "" : prev.draft, signedIn: true, error: null, routeMode: prev.routeMode, reducedMotion: prev.reducedMotion,
+          // Unsent local documents were never transmitted; keep them so the
+          // post-login member admission can carry them under a member bearer.
+          attachments: prev.attachments };
 
         return next;
       });
@@ -1250,7 +1267,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         hide: () => {
           redactingContent.current = true; setStorageReady(false);
           setViewState(s => guard.current() && s.run?.runId === runId ? redactInvalidatedContent({ ...s, run: snap }, runId) : s);
-          setCorrectionSelection(previous => currentReader() ? { owner: credential(), parent: runId, files: [] } : previous);
+          setCorrectionSelection(previous => currentReader() ? { owner: memberAccountRef.current, parent: runId, files: [] } : previous);
         },
         save: (redacted, id) => sessionStorage.redactRunContent(credential(), id, redacted),
       });
@@ -1639,8 +1656,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const credential = memberAuthority(accountId);
       const guard = api.captureView();
       let created;
+      let sentText = (current.pendingAdmission?.question ?? current.draft).trim();
       try {
         const pending = current.pendingAdmission ?? await prepareAdmission(current.draft, current.routeMode, current.attachments, newId, nativeDocumentDigest, guard.current);
+        sentText = pending.question.trim();
         created = await submitAdmission(pending, current.attachments, {
           digest: nativeDocumentDigest,
           preflight: async () => {
@@ -1661,7 +1680,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         });
         if (!guard.current()) throw new SupersededRequest();
       } finally { guard.release(); }
-      await adoptAdmission(credential(), created, credential);
+      await adoptAdmission(credential(), created, credential, sentText);
     } catch (e) {
       if (!accountGuard.current() || isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1679,16 +1698,19 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
   }
 
-  async function adoptAdmission(t: string, created: AdmittedRun, credential = memberAuthority()): Promise<void> {
+  async function adoptAdmission(t: string, created: AdmittedRun, credential = memberAuthority(), sentText?: string): Promise<void> {
       const guard = api.captureView();
       try {
       const current = latestUi.current;
+      // Merge the accepted run into the latest still-owned state. Text typed
+      // while the admission was in flight survives; only an unchanged send clears.
+      const sent = (sentText ?? current.pendingAdmission?.question ?? current.draft).trim();
       const next: UiState = {
           ...current,
           pendingAdmission: null,
           status: "progress" as const,
           error: null,
-          draft: "",
+          draft: current.draft.trim() === sent ? "" : current.draft,
           events: [],
           correctionDraft: null,
           source: null,
@@ -1710,7 +1732,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       await sessionStorage.finishAdmission(credential(), next);
       if (!guard.current()) throw new SupersededRequest();
       api.selectRun(created.runId);
-      setSentQuestion(current.pendingAdmission?.question ?? current.draft);
+      setSentQuestion(sent);
       setViewState(next);
       setShowAttach(false);
       AccessibilityInfo.announceForAccessibility(
@@ -1728,7 +1750,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const credential = memberAuthority(accountId);
       const result = await api.resolveRunRequest(credential(), state.pendingAdmission.key);
       if (!guard.current()) throw new SupersededRequest();
-      if (result.status === "accepted") await adoptAdmission(credential(), readAdmittedRun(result.run), credential);
+      if (result.status === "accepted") await adoptAdmission(credential(), readAdmittedRun(result.run), credential, state.pendingAdmission.question);
       else if (result.status === "withdrawn") {
         await sessionStorage.saveAdmission(credential(), null);
         if (!guard.current()) throw new SupersededRequest();
@@ -1847,12 +1869,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function pickCorrectionDocument() {
-    if (!token || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
+    if (!token || !accountId || !storageReady || pickingDocument.current || correctionAttempt.current || submitting.current || verifying.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingVerification || state.pendingAdmission) return;
     if (correctionFiles.length >= 3) return;
     const guard = api.captureView(); pickingDocument.current = true; setDocumentPending(true);
     try {
       const file = await pickDocument(guard.current);
-      if (file && guard.current()) setCorrectionSelection(previous => adoptCorrectionFile(previous, token, correctionParent, file, guard.current));
+      if (file && guard.current()) setCorrectionSelection(previous => adoptCorrectionFile(previous, accountId, correctionParent, file, guard.current));
     } catch (e) {
       if (guard.current() && !isSupersededRequest(e)) setViewState(s => ({ ...s, error: (e as Error).message }));
     } finally { guard.release(); pickingDocument.current = false; setDocumentPending(false); }
@@ -3059,8 +3081,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
             onConsent={grantConsent}
             onSignIn={() => {
-              if (guestPendingRef.current) { setGuestSheetVisible(true); setState(s => ({ ...s, tab: "research" })); }
-              else setState(s => ({ ...s, error: "Send a guest research question first. Sign-in appears when you send your next message." }));
+              if (guestPendingRef.current) { setGuestSheetVisible(true); setState(s => ({ ...s, tab: "research" })); return; }
+              // A returning member with a verified Clerk session signs in
+              // directly: no guest bootstrap, no pending action, no sheet.
+              if (auth?.signedIn) { void ensureSession(); return; }
+              setState(s => ({ ...s, error: "Sign in with a configured provider to restore member research. Guest sign-in appears when you send your next message." }));
             }}
             onRestore={async () => {
               if (!token) {
