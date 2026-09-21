@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import pg from "pg";
@@ -60,6 +60,44 @@ describe("operator-owned migration and least-privilege runtime", () => {
       await expect(assertSchemaCurrent(pool)).resolves.toMatchObject({ legacyBaselines: 0 });
     } finally {
       await second.end();
+    }
+  }, 120_000);
+
+  it("upgrades a legacy 052 ledger with explicit current-file provenance", async () => {
+    const legacyDatabase = `${database}_legacy`;
+    const legacyUrl = new URL(databaseUrl);
+    legacyUrl.pathname = `/${legacyDatabase}`;
+    await admin.query(`CREATE DATABASE "${legacyDatabase}"`);
+    const legacy = createPool(legacyUrl.toString());
+    try {
+      const migrationDir = fileURLToPath(new URL("../migrations/", import.meta.url));
+      const files = readdirSync(migrationDir).filter((name) => /^0(?:[0-4]\d|5[0-2])_.*\.sql$/.test(name)).sort();
+      expect(files.at(-1)).toBe("052_norrow_guest_auth.sql");
+      const client = await legacy.connect();
+      try {
+        for (const filename of files) {
+          await client.query("BEGIN");
+          try {
+            await client.query(readFileSync(`${migrationDir}/${filename}`, "utf8"));
+            await client.query("INSERT INTO schema_migrations (id) VALUES ($1)", [filename.slice(0, -4)]);
+            await client.query("COMMIT");
+          } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+          }
+        }
+      } finally {
+        client.release();
+      }
+      await migrate(legacy);
+      const state = await assertSchemaCurrent(legacy);
+      expect(state.legacyBaselines).toBe(files.length);
+      const current = await legacy.query("SELECT provenance FROM schema_migration_sources WHERE migration_id = '053_schema_migration_integrity'");
+      expect(current.rows[0].provenance).toBe("applied_with_checksum");
+      await migrate(legacy);
+    } finally {
+      await legacy.end();
+      await admin.query(`DROP DATABASE "${legacyDatabase}" WITH (FORCE)`);
     }
   }, 120_000);
 
