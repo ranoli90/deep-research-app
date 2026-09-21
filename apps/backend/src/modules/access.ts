@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { CONSENT_POLICY_VERSION, PROCESSOR_DISCLOSURE } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
+import { settleRun } from "./billing.js";
 
 export class AccountUnavailable extends Error {
   readonly statusCode = 401;
@@ -140,7 +141,8 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   await db.query(`UPDATE accounts SET email=NULL, deleted_at = COALESCE(deleted_at,now()),
     deletion_epoch = deletion_epoch + CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END WHERE id = $1`, [accountId]);
   // Serialize with the worker's account -> run lock order before removing derived content.
-  await db.query("SELECT id FROM runs WHERE account_id=$1 ORDER BY id FOR UPDATE", [accountId]);
+  const ownedRuns = (await db.query<{ id: string; spent_micro: string }>(
+    "SELECT id,spent_micro FROM runs WHERE account_id=$1 ORDER BY id FOR UPDATE", [accountId])).rows;
   await db.query(`INSERT INTO file_deletion_outbox (attachment_id,account_id,storage_ptr)
     SELECT id,account_id,storage_ptr FROM attachments WHERE account_id=$1
       AND storage_ptr <> '' AND storage_ptr NOT LIKE 'db:%' ON CONFLICT DO NOTHING`, [accountId]);
@@ -205,6 +207,9 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
      WHERE account_id = $1 AND lifecycle <> 'terminal'`,
     [accountId],
   );
+  // The worker may never see a queued run again after deletion removes its outbox.
+  // Resolve known zero/confirmed receipts here; unknown issued outcomes remain HOLD.
+  for (const run of ownedRuns) await settleRun(db, accountId, run.id, Number(run.spent_micro));
   await db.query(
     `UPDATE passages SET exact_text = '[deleted]',locator='{}'::jsonb,content_hash='[deleted]' WHERE account_id = $1`,
     [accountId],

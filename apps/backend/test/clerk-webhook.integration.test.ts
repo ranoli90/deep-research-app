@@ -1,10 +1,15 @@
 import { createHmac, randomBytes } from "node:crypto";
 import pg from "pg";
+import type PgBoss from "pg-boss";
+import type { FastifyInstance } from "fastify";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { verifyClerkWebhook } from "../src/adapters/auth/clerk-webhook.js";
 import { applyClerkWebhookEvent } from "../src/modules/clerk-revocation.js";
 import { accountForIdentity, identityDigest } from "../src/modules/identity.js";
 import { createPool, migrate } from "../src/platform/db.js";
+import { createQueue } from "../src/adapters/queue.js";
+import { buildApp } from "../src/api/app.js";
+import { loadConfig } from "../src/platform/config.js";
 
 const adminUrl = process.env.TEST_DATABASE_URL ??
   "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
@@ -16,6 +21,8 @@ const signingKey = randomBytes(32);
 const config = { signingSecret: `whsec_${signingKey.toString("base64")}`,
   expectedInstanceId: "ins_syntheticStage1", issuer: "https://synthetic.clerk.accounts.dev" };
 let pool: pg.Pool;
+let boss: PgBoss;
+let app: FastifyInstance;
 
 function signed(kind: string, data: Record<string, unknown>, eventId = `msg_${randomBytes(8).toString("hex")}`) {
   const body = Buffer.from(JSON.stringify({ object: "event", type: kind,
@@ -40,9 +47,18 @@ beforeAll(async () => {
   // migration 054 and identityDigest must be merged before its evidence counts.
   const schema = await pool.query("SELECT to_regclass('public.clerk_webhook_receipts') AS receipts");
   if (!schema.rows[0]?.receipts) throw new Error("requires_owner_054_integration");
+  boss = await createQueue(databaseUrl.toString());
+  app = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "test", APP_AUTH_MODE: "production",
+    APP_IDENTITY_PROVIDER: "clerk", DATABASE_URL: databaseUrl.toString(),
+    CLERK_ISSUER: config.issuer, CLERK_AUTHORIZED_PARTIES: "https://synthetic.app.test",
+    CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only",
+    CLERK_WEBHOOK_SIGNING_SECRET: config.signingSecret,
+    CLERK_WEBHOOK_INSTANCE_ID: config.expectedInstanceId }) });
 }, 120_000);
 
 afterAll(async () => {
+  await app?.close();
+  await boss?.stop({ graceful: true, timeout: 2000 });
   await pool?.end();
   const active = await admin.query<{ count: string }>(
     "SELECT count(*)::text AS count FROM pg_stat_activity WHERE datname=$1", [database]);
@@ -52,6 +68,22 @@ afterAll(async () => {
 }, 30_000);
 
 describe("verified Clerk webhook durable effects", () => {
+  it("AUTH-09 raw API boundary rejects customer credentials, changed bytes and changed replay digest", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const id = `msg_${randomBytes(8).toString("hex")}`;
+    const message = signed("user.deleted", { id: subject }, id);
+    const request = (body: Buffer, headers: Record<string, string>) => app.inject({ method: "POST",
+      url: "/v1/clerk/webhooks", headers: { ...headers, "content-type": "application/json" }, payload: body });
+    expect((await request(message.body, { ...message.headers, authorization: "Bearer invalid" })).statusCode).toBe(403);
+    expect((await request(message.body, { ...message.headers, "x-norrow-guest-proof": "invalid" })).statusCode).toBe(403);
+    expect((await request(Buffer.concat([message.body, Buffer.from(" ")]), message.headers)).statusCode).toBe(401);
+    expect((await request(message.body, message.headers)).json()).toEqual({ accepted: true, reused: false });
+    expect((await request(message.body, message.headers)).json()).toEqual({ accepted: true, reused: true });
+    const changed = signed("user.deleted", { id: `user_${randomBytes(8).toString("hex")}` }, id);
+    expect((await request(changed.body, changed.headers)).statusCode).toBe(409);
+    expect(await accountForIdentity(pool, { issuer: config.issuer, subject })).toBeNull();
+  });
+
   it("AUTH-09/10 dedupes an event, rejects a changed digest and tombstones one exact session", async () => {
     const eventId = `msg_${randomBytes(8).toString("hex")}`;
     const message = signed("session.revoked", { id: "sess_Synthetic1", user_id: "user_Synthetic1" }, eventId);

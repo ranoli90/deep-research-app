@@ -13,6 +13,7 @@ import { processRun } from "../src/worker/diagnostic-executor.js";
 import { assertRouteAdmission } from "../src/modules/run-route-admission.js";
 import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
 import { publishReport } from "../src/modules/reports.js";
+import { insertSource } from "../src/modules/evidence.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -208,6 +209,10 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
        JOIN guest_pending_actions p ON p.guest_context_id=g.id WHERE g.id=$1`, [guest.guestContextId])).rows[0]!;
     expect(removed).toMatchObject({ status: "deleted", state: "deleted", payload: {} });
     expect(removed.deleted_at).toBeTruthy();
+    expect((await pool.query("SELECT settled_micro,reserved_micro,held_micro FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'"))
+      .rows[0]).toMatchObject({ settled_micro: "0", reserved_micro: "0", held_micro: "0" });
+    expect((await pool.query("SELECT state,settled_micro FROM guest_sponsor_reservations WHERE run_id=$1", [firstRunId]))
+      .rows[0]).toMatchObject({ state: "settled", settled_micro: "0" });
     expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
       payload: resumePayload })).statusCode).toBe(401);
   });
@@ -229,6 +234,24 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     expect((await app.inject({ method: "GET", url: "/v1/session", headers: guest.headers })).statusCode).toBe(401);
     expect((await pool.query("SELECT status,proof_digest FROM guest_contexts WHERE id=$1", [guest.guestContextId])).rows[0])
       .toMatchObject({ status: "deleted", proof_digest: null });
+  });
+
+  it("NARROW-COST guest deletion settles a queued no-intent first reservation at zero", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What is the filing deadline?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    expect((await pool.query("SELECT reserved_micro FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'"))
+      .rows[0].reserved_micro).toBe("100000");
+    expect((await app.inject({ method: "DELETE", url: "/v1/guest", headers: guest.headers })).statusCode).toBe(200);
+    expect((await pool.query("SELECT settled_micro,reserved_micro,held_micro FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'"))
+      .rows[0]).toMatchObject({ settled_micro: "0", reserved_micro: "0", held_micro: "0" });
+    expect((await pool.query("SELECT state,settled_micro FROM guest_sponsor_reservations WHERE run_id=$1", [runId]))
+      .rows[0]).toMatchObject({ state: "settled", settled_micro: "0" });
   });
 
   it("NARROW-GUEST-CONSENT revoke then re-grant never admits or replays work on the tombstoned context", async () => {
@@ -320,6 +343,9 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     const runId = first.json().runId as string;
     const owner = (await pool.query("SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1",
       [guest.guestContextId])).rows[0].execution_owner_account_id as string;
+    const sourceId = await insertSource(pool, { accountId: owner, runId,
+      locator: "https://example.test/claimed-source", title: "Synthetic claimed source",
+      publisher: "Synthetic", originCluster: "synthetic-claimed-source" });
     const action = { kind: "new_research" as const, text: "Another Widget question" };
     const submissionId = crypto.randomUUID();
     const authAttemptId = crypto.randomUUID();
@@ -348,6 +374,10 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     expect(attempted).toMatchObject({ accepted: false, reason: "guest_control_revoked" });
     expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`,
       headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
+    expect((await app.inject({ method: "DELETE", url: `/v1/sources/${sourceId}`,
+      headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
+    expect((await pool.query("SELECT canonical_locator FROM sources WHERE id=$1", [sourceId])).rows[0]
+      .canonical_locator).toBe("https://example.test/claimed-source");
   });
 
   it("terminalizes edited or dismissed pending actions before and after claim without dispatch", async () => {

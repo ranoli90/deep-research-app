@@ -93,8 +93,10 @@ import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, val
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
+import { verifyClerkWebhook } from "../adapters/auth/clerk-webhook.js";
 import { RESEARCH_QUEUE } from "../adapters/queue.js";
 import { accountForIdentity } from "../modules/identity.js";
+import { applyClerkWebhookEvent } from "../modules/clerk-revocation.js";
 import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
   cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
   endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
@@ -168,6 +170,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!identity) return null;
     if (identity.status === "unavailable") throw Object.assign(new Error("Sign-in verification is temporarily unavailable."), { statusCode: 503 });
     if (identity.status !== "verified") return null;
+    if (config.identityProvider === "clerk") {
+      if (!("sessionId" in identity.identity)) return null;
+      const revoked = await pool.query("SELECT 1 FROM clerk_revoked_sessions WHERE session_id=$1", [identity.identity.sessionId]);
+      if (revoked.rowCount) return null;
+    }
     const account = await accountForIdentity(pool, identity.identity);
     return account?.deleted ? null : account;
   }
@@ -1170,7 +1177,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const source = (await pool.query<{ run_id: string }>("SELECT run_id FROM sources WHERE id=$1", [sourceId])).rows[0];
     const owner = source ? await scopedReadOwner(source.run_id, a, g) : null;
     if (!owner) return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
-    const result = await deleteSourceForAccount(pool, owner, sourceId);
+    const authority = g ? { kind: "guest" as const, context: g, runId: source!.run_id }
+      : owner !== a.accountId ? { kind: "claimed" as const, memberAccountId: a.accountId, runId: source!.run_id }
+        : undefined;
+    const result = await deleteSourceForAccount(pool, owner, sourceId, authority);
     try { await drainFileDeletions(pool, config.storageDir, owner); }
     catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
     const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [owner]);
@@ -1340,6 +1350,35 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const context = await guest(req as never);
     if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
     return performDeletion({ accountId: context.accountId }, reply, false);
+  });
+
+  app.register(async (scope) => {
+    // Encapsulation keeps every ordinary JSON endpoint on Fastify's validated parser.
+    scope.addContentTypeParser("application/json", { parseAs: "buffer", bodyLimit: 256 * 1024 },
+      (_req, body, done) => done(null, body));
+    scope.post("/v1/clerk/webhooks", async (req, reply) => {
+      if (!config.clerkAuth || !config.clerkWebhook || req.headers.authorization ||
+          req.headers["x-norrow-guest-proof"])
+        return reply.code(403).send(err("authority_denied", "Webhook not accepted.", crypto.randomUUID()));
+      let event;
+      try {
+        event = await verifyClerkWebhook(req.body as Buffer, req.headers, {
+          signingSecret: config.clerkWebhook.signingSecret,
+          expectedInstanceId: config.clerkWebhook.instanceId,
+          issuer: config.clerkAuth.issuer,
+        });
+      } catch {
+        return reply.code(401).send(err("authority_denied", "Webhook not accepted.", crypto.randomUUID()));
+      }
+      try {
+        const receipt = await applyClerkWebhookEvent(pool, event);
+        return { accepted: true, reused: receipt.reused };
+      } catch (error) {
+        if ((error as Error).message === "clerk_webhook_replay_mismatch")
+          return reply.code(409).send(err("idempotency_conflict", "Webhook receipt mismatch.", crypto.randomUUID()));
+        throw error;
+      }
+    });
   });
 
   app.post("/v1/billing/webhooks", async (req, reply) => {

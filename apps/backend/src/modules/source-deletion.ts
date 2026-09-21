@@ -1,17 +1,45 @@
-import type pg from "pg";
+import pg from "pg";
 import { z } from "zod";
 import { withTx } from "../platform/db.js";
 import { lockActiveAccount } from "./access.js";
 import { admissionKeyHash } from "./admission-recovery.js";
 import { settleRun } from "./billing.js";
+import { claimedConversationScope, guestCanAccessRun, type GuestContext } from "./guest-auth.js";
+
+export type SourceDeletionAuthority =
+  | { kind: "guest"; context: GuestContext; runId: string }
+  | { kind: "claimed"; memberAccountId: string; runId: string };
+type SourceDeletionResult = { deleted: true; sourceId: string; alreadyDeleted: boolean; invalidatedRunIds: string[] };
 
 /** Source removal is an account-serialized privacy mutation, never a new research action. */
-export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourceId:string) {
+export async function deleteSourceForAccount(pool:pg.Pool|pg.PoolClient,accountId:string,sourceId:string,
+ authority?:SourceDeletionAuthority):Promise<SourceDeletionResult> {
  if(!z.string().uuid().safeParse(sourceId).success)throw Object.assign(new Error("source_unavailable"),{statusCode:404});
- return withTx(pool,async db=>{
-  await lockActiveAccount(db,accountId);
-  const source=(await db.query<{canonical_locator:string}>("SELECT canonical_locator FROM sources WHERE id=$1 AND account_id=$2",[sourceId,accountId])).rows[0];
+ if(pool instanceof pg.Pool)return withTx(pool,db=>deleteSourceForAccount(db,accountId,sourceId,authority));
+ const db=pool;
+ // Hold the same account/context/binding locks used by claim and deletion through
+ // the entire destructive mutation. A pre-route reader is never authority here.
+ const accountIds=authority?.kind==="claimed"?[accountId,authority.memberAccountId]:[accountId];
+ for(const id of [...new Set(accountIds)].sort())await lockActiveAccount(db,id);
+ if(authority){
+  if(authority.kind==="guest"){
+   await db.query("SELECT id FROM guest_contexts WHERE id=$1 FOR UPDATE",[authority.context.id]);
+   if(authority.context.accountId!==accountId||!await guestCanAccessRun(db,authority.context,authority.runId))
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  }else{
+   const scope=await claimedConversationScope(db,authority.memberAccountId,authority.runId);
+   if(!scope||scope.parentExecutionOwnerId!==accountId)
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+   await db.query("SELECT id FROM guest_contexts WHERE conversation_id=$1 FOR UPDATE",[scope.conversationId]);
+   await db.query("SELECT id FROM conversation_control_bindings WHERE id=$1 FOR UPDATE",[scope.controlBindingId]);
+   if(!await claimedConversationScope(db,authority.memberAccountId,authority.runId))
+    throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  }
+ }
+  const source=(await db.query<{canonical_locator:string;run_id:string}>("SELECT canonical_locator,run_id FROM sources WHERE id=$1 AND account_id=$2",[sourceId,accountId])).rows[0];
   if(!source)throw Object.assign(new Error("source_unavailable"),{statusCode:404});
+  if(authority&&source.run_id!==authority.runId)
+   throw Object.assign(new Error("source_unavailable"),{statusCode:404});
   const removed=await db.query("SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='source' AND object_id=$2 AND reason='source_deletion'",[accountId,sourceId]);
   if(removed.rowCount)return {deleted:true as const,sourceId,alreadyDeleted:true,invalidatedRunIds:[] as string[]};
   const attachmentId=source.canonical_locator.startsWith("attachment://")?source.canonical_locator.slice("attachment://".length):null;
@@ -84,5 +112,4 @@ export async function deleteSourceForAccount(pool:pg.Pool,accountId:string,sourc
    storage_ptr='',sha256=NULL,raw_bytes=NULL,extraction=NULL,extracted_text=NULL,processing_state='deleted' WHERE account_id=$1 AND id=ANY($2::uuid[])`,[accountId,attachments]);
   for(const run of affected)await settleRun(db,accountId,run.id,Number(run.spent_micro));
   return {deleted:true as const,sourceId,alreadyDeleted:false,invalidatedRunIds:runIds};
- });
 }
