@@ -21,6 +21,8 @@ import {
   OUTPUT_REPORT_CATEGORIES,
   PRIVACY_DATA_FLOWS,
   PROCESSOR_DISCLOSURE,
+  GuestBootstrapRequestSchema,
+  GuestPendingActionRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -80,7 +82,9 @@ import { resolveAdmission, VerificationRecoverySchema } from "../modules/admissi
 import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
+import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { accountForIdentity } from "../modules/identity.js";
+import { admitGuestFirst, bootstrapGuest, guestFromProof, registerGuestPendingAction } from "../modules/guest-auth.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -108,7 +112,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     done(null, String(body));
   });
 
-  app.get("/health", async () => ({ ok: true, mode: config.authMode, fixture: config.fixtureRouteAllowed, live: config.liveRouteEnabled }));
+  app.get("/health", async () => ({ ok: true }));
   app.get("/ready", async () => {
     await pool.query("SELECT 1");
     return { ok: true };
@@ -126,12 +130,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   async function auth(req: { headers: Record<string, unknown> }) {
     const header = String(req.headers.authorization ?? "");
     if (config.authMode === "development") { const account = await accountFromBearer(pool, header); return account?.deleted ? null : account; }
-    if (!config.supabaseAuth || !header.startsWith("Bearer ")) return null;
-    const identity = await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth);
+    if (!header.startsWith("Bearer ")) return null;
+    const identity = config.identityProvider === "clerk" && config.clerkAuth
+      ? await verifyClerkIdentity(header.slice(7).trim(), config.clerkAuth)
+      : config.supabaseAuth ? await verifySupabaseIdentity(header.slice(7).trim(), config.supabaseAuth) : null;
+    if (!identity) return null;
     if (identity.status === "unavailable") throw Object.assign(new Error("Sign-in verification is temporarily unavailable."), { statusCode: 503 });
     if (identity.status !== "verified") return null;
     const account = await accountForIdentity(pool, identity.identity);
     return account?.deleted ? null : account;
+  }
+  async function guest(req: { headers: Record<string, unknown> }) {
+    return guestFromProof(pool, config, req.headers["x-norrow-guest-proof"]);
   }
 
   // A single strict transport boundary covers the formerly cast-only endpoints.
@@ -139,6 +149,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const revision = z.number().int().positive();
   const bodySchemas: Record<string, z.ZodTypeAny> = {
     "/v1/dev/session": z.object({ email: z.string().email().max(254).optional() }).strict(),
+    "/v1/guest/bootstrap": GuestBootstrapRequestSchema,
+    "/v1/guest/pending-actions": GuestPendingActionRequestSchema,
     "/v1/consent": z.object({ grant: z.boolean() }).strict(),
     "/v1/runs/:id/cancel": z.object({}).strict(),
     "/v1/account/deletion": z.object({}).strict(),
@@ -169,14 +181,49 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
   });
 
+  app.post("/v1/guest/bootstrap", async (req, reply) => {
+    try {
+      const result = await bootstrapGuest(pool, config, req.ip);
+      return reply.code(201).send(result);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode ?? 500;
+      if (code && status !== 500) return reply.code(status).send(err(code, "Guest research is not currently available.", crypto.randomUUID()));
+      throw error;
+    }
+  });
+
+  app.post("/v1/guest/pending-actions", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    const parsed = GuestPendingActionRequestSchema.parse(req.body);
+    try {
+      return reply.code(202).send(await registerGuestPendingAction(pool, context, parsed));
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode ?? 500;
+      if (code && status !== 500) return reply.code(status).send(err(code, "The pending action cannot be saved.", crypto.randomUUID()));
+      throw error;
+    }
+  });
+
   app.get("/v1/session", async (req, reply) => {
+    const g = await guest(req as never);
+    if (g) {
+      const consent = await currentConsent(pool, g.accountId);
+      return { actorKind: "guest", guestContextId: g.id, conversationId: g.conversationId,
+        conversationVersion: 1, controlVersion: g.controlVersion, acceptedTurnCount: g.acceptedTurnCount,
+        expiresAt: g.expiresAt.toISOString(), consentGranted: Boolean(consent && !consent.revoked),
+        firstTurnAvailable: g.acceptedTurnCount === 0 };
+    }
     const account = await auth(req as never);
     if (!account || account.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { accountId: account.accountId, authMode: config.authMode };
+    return { accountId: account.accountId, authMode: config.authMode, actorKind: "member" };
   });
 
   app.post("/v1/consent", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const body = (req.body ?? {}) as { grant?: boolean };
     if (typeof body.grant !== "boolean") {
@@ -202,7 +249,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   app.post("/v1/runs", async (req, reply) => {
     const correlationId = crypto.randomUUID();
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", correlationId));
     const parsed = CreateRunRequestSchema.strict().safeParse(req.body ?? {});
     if (!parsed.success) {
@@ -238,7 +286,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const idempotencyKey = suppliedKey.success ? suppliedKey.data : crypto.randomUUID();
     try {
-      const created = await admitRun(pool, a.accountId, idempotencyKey, input, {
+      const created = g ? await admitGuestFirst(pool, config, g, idempotencyKey, input) : await admitRun(pool, a.accountId, idempotencyKey, input, {
         strategy: config.structuredStrategy,
         modelPolicyId: config.structuredModelPolicyId,
         zdrRequired: config.structuredModelPolicyId ? modelPolicy(config.structuredModelPolicyId).provider === "azure" : false,
@@ -256,10 +304,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       };
     } catch (e) {
       const code = (e as { code?: string }).code;
-      if (code === "idempotency_conflict" || code === "stale_revision" || code === "idempotency_withdrawn") {
+      if (code === "idempotency_conflict" || code === "stale_revision" || code === "idempotency_withdrawn" || code === "intent_stale") {
         return reply.code(409).send(err(code, "Request conflicts with the accepted revision or idempotency key.", correlationId));
       }
-      if (code === "permission_denied" || code === "consent_required") {
+      if (code === "permission_denied" || code === "consent_required" || code === "AUTH_REQUIRED_NEXT_TURN" || code === "authority_denied" || code === "guest_expired" || code === "guest_deleted") {
         return reply.code(403).send(err(code, "Run inputs are not authorized for this account and consent.", correlationId));
       }
       if (code === "allowance_exhausted" || code === "attempt_budget_exhausted") {
@@ -274,7 +322,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/runs/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
@@ -313,7 +362,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/runs/:id/events", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
@@ -339,7 +389,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/runs/:id/cancel", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
     const updated = await cancelOwnedRun(pool, a.accountId, id);

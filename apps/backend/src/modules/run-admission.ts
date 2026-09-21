@@ -1,7 +1,7 @@
 import { STRUCTURED_CALL_RESERVE_MICRO, modelPolicy, type ModelPolicyId } from "../ports/model-policy.js";
 import type { ResearchStrategy } from "../ports/research-strategy.js";
 import { createHash } from "node:crypto";
-import type pg from "pg";
+import pg from "pg";
 import { CONSENT_POLICY_VERSION, DEFAULT_RUN_BUDGET_MICRO, type CreateRunRequest } from "@deep/contracts";
 import { compileResearchIntent, inferOutputPreference } from "@deep/research-core";
 import { withTx } from "../platform/db.js";
@@ -15,10 +15,15 @@ import { emitEvent, findRunByIdempotency, getBrief, getRun, insertBrief, insertC
 function reject(code: string): never { throw Object.assign(new Error(code), { code }); }
 
 /** Account -> conversation -> run -> allowance is the admission lock order. No external I/O. */
-export async function admitRun(pool: pg.Pool, accountId: string, key: string, input: CreateRunRequest, options: { strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId; zdrRequired?: boolean } = {}) {
+export async function admitRun(pool: pg.Pool | pg.PoolClient, accountId: string, key: string, input: CreateRunRequest, options: {
+  strategy?: ResearchStrategy; modelPolicyId?: ModelPolicyId; zdrRequired?: boolean;
+  /** Runs in the same admission transaction after run/outbox identity, before the allowance reservation. */
+  beforeReservation?: (db: pg.PoolClient, runId: string) => Promise<void>;
+  afterReservation?: (db: pg.PoolClient, runId: string, reservationId: string) => Promise<void>;
+} = {}) {
   if (!key || !key.trim() || key.length > 200) reject("invalid_input");
   const digest = createHash("sha256").update(JSON.stringify({ ...input, attachmentIds: [...input.attachmentIds].sort() })).digest("hex");
-  return withTx(pool, async (db) => {
+  const admit = async (db: pg.PoolClient) => {
     const account = await db.query("SELECT id, deleted_at FROM accounts WHERE id = $1 FOR UPDATE", [accountId]);
     if (!account.rows[0] || account.rows[0].deleted_at) reject("permission_denied");
     if ((await db.query("SELECT 1 FROM admission_withdrawals WHERE account_id=$1 AND key_hash=$2", [accountId,admissionKeyHash(key)])).rowCount)
@@ -96,11 +101,14 @@ export async function admitRun(pool: pg.Pool, accountId: string, key: string, in
       cacheSessionId: chosen.cacheSessionId,
       reason: chosen.reason,
     });
-    await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
+    if (options.beforeReservation) await options.beforeReservation(db, runId);
+    const reservation = await reserveAllowance(db, accountId, runId, DEFAULT_RUN_BUDGET_MICRO);
+    if (options.afterReservation) await options.afterReservation(db, runId, reservation.reservationId);
     await emitEvent(db, { runId, accountId, type: "accepted", phase: "preparing",
       summary: "Research accepted. Closing the app will not stop the server job." });
     await emitEvent(db, { runId, accountId, type: "intent_compiled", phase: "preparing",
       summary: "Understood the question." });
-    return { runId, brief, reused: false };
-  });
+    return { runId, brief, reused: false, reservationId: reservation.reservationId };
+  };
+  return pool instanceof pg.Pool ? withTx(pool, admit) : admit(pool);
 }
