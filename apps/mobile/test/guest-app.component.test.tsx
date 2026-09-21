@@ -38,6 +38,7 @@ vi.mock("../src/use-keyboard-inset", () => ({ useKeyboardInset: () => ({ keyboar
 vi.mock("../src/product-styles", () => ({ makeStyles: () => new Proxy({}, { get: () => ({}) }) }));
 vi.mock("../src/ResearchComposer", () => ({ ResearchComposer: "ResearchComposer" }));
 vi.mock("../src/auth/GuestSignInSheet", () => ({ GuestSignInSheet: "GuestSignInSheet" }));
+vi.mock("../src/auth/ClerkSessionTaskView", () => ({ ClerkSessionTaskView: "ClerkSessionTaskView" }));
 vi.mock("../src/ProfilePanel", () => ({ ProfilePanel: "ProfilePanel" }));
 vi.mock("../src/SourceSheet", () => ({ SourceSheet: "SourceSheet" }));
 vi.mock("../src/AttachmentPanel", () => ({ AttachmentPanel: "AttachmentPanel" }));
@@ -132,6 +133,147 @@ it("AUTH-07 cold restart reconciles the original successful auth attempt through
   expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.bearer).toBe("Bearer token-two");
   expect(calls.filter(call => call.path === "/v1/guest/pending-actions/attempts/begin")).toHaveLength(0);
   expect(memberSnapshot.previousReport?.reportId).toBe(id(6));
+  expect((await held.device.load())).toBeNull();
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-10 mounted pending Clerk task survives cold restart and continues the exact attempt once only after active auth", async () => {
+  const original = await seedAction("second question", true);
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    if (path === "/v1/guest/claim") return Response.json({ type: "claim_accepted", submissionId: original.submissionId, requestId: body.claimRequestId, accountId: id(7), conversationId: context.conversationId,
+      conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: context.consentPolicyVersion });
+    if (path === "/v1/guest/actions/resume") return Response.json({ type: "continuation_dispatched", submissionId: original.submissionId, claimRequestId: body.claimRequestId, accountId: id(7),
+      conversationId: context.conversationId, conversationVersion: 1, receiptId: id(19), runId: id(20), memberConversationId: id(21), kind: "new_research" });
+    if (path === `/v1/runs/${id(20)}`) return Response.json({ runId: id(20), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(20)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  const pendingAuth = { loaded: true, signedIn: false, sessionTaskPending: true, subject: null, getToken: async () => null };
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={pendingAuth as any} />); });
+  await vi.waitFor(() => expect(renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props.visible).toBe(true));
+  expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.visible).toBe(false);
+  expect(calls.filter(call => call.path.endsWith("/attempts/end"))).toHaveLength(0);
+  expect(calls.filter(call => call.path === "/v1/guest/claim" || call.path === "/v1/guest/actions/resume")).toHaveLength(0);
+  expect((await held.device.load()).pendingAction).toEqual(authenticating);
+  await act(async () => { renderer.update(<AppInner auth={{ loaded: true, signedIn: true, sessionTaskPending: false, subject: "clerk-A", getToken: async () => memberToken } as any} />); });
+  await vi.waitFor(() => expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1));
+  expect(calls.find(call => call.path === "/v1/guest/pending-actions/attempts/resolve")?.body).toEqual({ submissionId: original.submissionId, authAttemptId: id(8) });
+  expect(calls.filter(call => call.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(calls.filter(call => call.path.endsWith("/attempts/begin") || call.path.endsWith("/attempts/end"))).toHaveLength(0);
+  expect(renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props.visible).toBe(false);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-10 mounted email verification hands its durable attempt to the native task view without claiming", async () => {
+  const original = await seedAction("second question", true);
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/begin") return Response.json({ submissionId: original.submissionId, authAttemptId: body.authAttemptId, attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/session") return Response.json({ ...context, actorKind: "guest" });
+    if (path === `/v1/runs/${id(5)}`) return Response.json({ runId: id(5), lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(6), labeledDemo: false });
+    if (path === `/v1/runs/${id(5)}/events`) return Response.json({ events: [] });
+    if (path === `/v1/reports/${id(6)}`) return Response.json({ reportId: id(6), version: 1, blocks: [], limitations: [], labeledDemo: false, changeSummary: null });
+    return Response.json({});
+  }));
+  const emailAuth = { loaded: true, signedIn: false, sessionTaskPending: false, subject: null, getToken: async () => null,
+    verifyEmailCode: async () => "pending_task" };
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={emailAuth as any} />); });
+  const sheet = () => renderer.root.find(node => String(node.type) === "GuestSignInSheet").props;
+  let attempt!: { id: string };
+  await act(async () => { attempt = await sheet().transport.prepareAttempt({ provider: "email", operation: "email_code", email: "reader@example.test" }); });
+  await act(async () => { await sheet().transport.verifyEmailCode(attempt, "123456"); });
+  await act(async () => { renderer.update(<AppInner auth={{ ...emailAuth, sessionTaskPending: true } as any} />); });
+  expect(renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props.visible).toBe(true);
+  expect(sheet().visible).toBe(false);
+  expect((await held.device.load()).pendingAction).toMatchObject({ phase: "authenticating", authAttempt: { id: attempt.id } });
+  expect(calls.filter(call => call.path === "/v1/guest/claim" || call.path === "/v1/guest/actions/resume")).toHaveLength(0);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-10 pending task close holds unknown cancellation visibly, then suppresses late active-session continuation", async () => {
+  const original = await seedAction("keep this draft", true);
+  const authenticating = beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(authenticating, original);
+  let endCalls = 0;
+  const calls: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname; calls.push(path);
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/guest/pending-actions/attempts/end") {
+      if (++endCalls === 1) throw new Error("lost reply");
+      const body = JSON.parse(String(init.body));
+      return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 2, state: body.reason });
+    }
+    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false, sessionTaskPending: true, subject: null, getToken: async () => null } as any} />); });
+  const task = () => renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props;
+  await vi.waitFor(() => expect(task().visible).toBe(true));
+  await act(async () => { await expect(task().onClose()).rejects.toThrow(/unconfirmed/); });
+  expect(task().visible).toBe(true);
+  expect(renderer.root.find(node => String(node.type) === "GuestSignInSheet").props.state.error).toMatch(/cancellation is unconfirmed/);
+  expect((await held.device.load()).pendingAction).toMatchObject({ phase: "authenticating", autoResume: false, authAttempt: { id: id(8) } });
+  await act(async () => { await task().onClose(); });
+  expect(task().visible).toBe(false);
+  expect((await held.device.load()).pendingAction.phase).toBe("dismissed");
+  await act(async () => { renderer.update(<AppInner auth={{ loaded: true, signedIn: true, sessionTaskPending: false, subject: "clerk-A", getToken: async () => memberToken } as any} />); });
+  await act(async () => { await Promise.resolve(); });
+  expect(calls).not.toContain("/v1/guest/claim");
+  expect(calls).not.toContain("/v1/guest/actions/resume");
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("keep this draft");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("PROVIDER-10 task completion retries an uncertain claim by its original receipt, never by reposting it", async () => {
+  const original = await seedAction("saved next message", true);
+  await held.device.savePendingAction(beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z")), original);
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ path, body });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") return Response.json({ submissionId: original.submissionId, authAttemptId: id(8), attemptRevision: 1, state: "authenticating" });
+    if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
+    if (path === "/v1/guest/claim") throw new Error("lost claim reply");
+    if (path === "/v1/guest/claims/resolve") return Response.json({ type: "claim_accepted", submissionId: original.submissionId, requestId: body.claimRequestId, accountId: id(7), conversationId: context.conversationId,
+      conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: context.consentPolicyVersion });
+    if (path === "/v1/guest/actions/resume") return Response.json({ type: "continuation_dispatched", submissionId: original.submissionId, claimRequestId: body.claimRequestId, accountId: id(7),
+      conversationId: context.conversationId, conversationVersion: 1, receiptId: id(19), runId: id(20), memberConversationId: id(21), kind: "new_research" });
+    if (path === `/v1/runs/${id(20)}`) return Response.json({ runId: id(20), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(20)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false, sessionTaskPending: true, subject: null, getToken: async () => null } as any} />); });
+  await vi.waitFor(() => expect(renderer.root.find(node => String(node.type) === "ClerkSessionTaskView").props.visible).toBe(true));
+  await act(async () => { renderer.update(<AppInner auth={{ loaded: true, signedIn: true, sessionTaskPending: false, subject: "clerk-A", getToken: async () => memberToken } as any} />); });
+  const sheet = () => renderer.root.find(node => String(node.type) === "GuestSignInSheet").props;
+  await vi.waitFor(async () => expect((await held.device.load()).pendingAction.phase).toBe("claim_reconcile"));
+  await vi.waitFor(() => expect(sheet().state.step).toBe("reconciling"));
+  expect(sheet().state.error).toMatch(/without sending a new message/);
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("saved next message");
+  await act(async () => { await sheet().transport.retryAuthenticatedAttempt(); });
+  await vi.waitFor(() => expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1));
+  expect(calls.filter(call => call.path === "/v1/guest/claim")).toHaveLength(1);
+  const readbacks = calls.filter(call => call.path === "/v1/guest/claims/resolve");
+  expect(readbacks).toHaveLength(2);
+  expect(new Set(readbacks.map(call => call.body.claimRequestId)).size).toBe(1);
   expect((await held.device.load())).toBeNull();
   await act(async () => { renderer.unmount(); });
 });
@@ -551,6 +693,40 @@ it("AUTH-06 mounted member Send survives credential rotation during preflight wi
   expect(savedWith).toEqual(["token-two"]);
   expect(finishedWith).toEqual(["token-two"]);
   expect(calls.find(call => call.path === "/v1/runs")?.bearer).toBe("Bearer token-two");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 a pre-refresh cleanup callback still reads the owned run with the renewed bearer", async () => {
+  const runId = id(5);
+  held.session.hydrate = async () => ({ token: "token-one", accountId: id(7), state: { ...emptyState(), signedIn: true, consentGranted: true,
+    run: { runId, lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false }, status: "progress" } });
+  let reads = 0;
+  const calls: { path: string; bearer: string | undefined }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, bearer = (init.headers as Record<string, string> | undefined)?.authorization;
+    calls.push({ path, bearer });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false });
+    if (path === "/v1/settings") return Response.json({ code: "expired" }, { status: 401 });
+    if (path === `/v1/runs/${runId}`) { reads++; return Response.json({ runId, lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false }); }
+    if (path === `/v1/runs/${runId}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let clerkToken = "token-one";
+  const auth = { loaded: true, signedIn: true, subject: "clerk-A", getToken: async (options?: { skipCache?: boolean }) => {
+    if (options?.skipCache) clerkToken = "token-two";
+    return clerkToken;
+  } };
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  await vi.waitFor(() => expect(renderer.root.find(node => String(node.type) === "PendingBanners").props.onRetryCleanup).toBeTypeOf("function"));
+  const oldCallback = renderer.root.find(node => String(node.type) === "PendingBanners").props.onRetryCleanup;
+  await act(async () => { await expect(api.settings("token-one")).rejects.toThrow(); });
+  expect(api.currentCredential()).toBe("token-two");
+  const before = reads;
+  await act(async () => { oldCallback(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(reads).toBeGreaterThan(before));
+  expect(calls.filter(call => call.path === `/v1/runs/${runId}`).at(-1)?.bearer).toBe("Bearer token-two");
   await act(async () => { renderer.unmount(); });
 });
 

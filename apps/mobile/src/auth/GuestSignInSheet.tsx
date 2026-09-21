@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { motion } from "@deep/design";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CloseIcon } from "../icons";
 import {
   guestSignInBusy,
@@ -59,6 +60,7 @@ export type GuestSignInTransport = {
   cancelEmailAttempt?(): Promise<void>;
   requestEmailCode(attempt: GuestSignInAttempt): Promise<void>;
   verifyEmailCode(attempt: GuestSignInAttempt, code: string): Promise<void>;
+  retryAuthenticatedAttempt?(): Promise<void>;
   /** Resolves only after auto-continuation has been durably suppressed. */
   dismiss(context: { task: GuestSignInSessionTask | null; reason: "dismissed" }): Promise<void>;
 };
@@ -103,6 +105,7 @@ export function GuestSignInSheet({
 }: GuestSignInSheetProps) {
   const dark = colorScheme === "dark";
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const title = useRef<Text>(null);
   const focused = useRef(false);
   const rise = useRef(new Animated.Value(reducedMotion ? 0 : 28)).current;
@@ -113,6 +116,8 @@ export function GuestSignInSheet({
   const [closing, setClosing] = useState(false);
   const gate = useRef<GuestSignInAttemptGate | null>(null);
   const dismissal = useRef<Promise<void> | null>(null);
+  const recovery = useRef<Promise<void> | null>(null);
+  const [recovering, setRecovering] = useState(false);
   const transportRef = useRef(transport);
   transportRef.current = transport;
   if (!gate.current) {
@@ -130,6 +135,7 @@ export function GuestSignInSheet({
   const field = dark ? "#2B2824" : "#F5F1EB";
   const line = dark ? "#514B43" : "#D6CEC4";
   const accent = dark ? "#D8B878" : "#76511A";
+  const errorInk = dark ? "#FFB4AB" : "#B3261E";
 
   useEffect(() => setEmail(state.email), [state.email]);
   useEffect(() => { setCode(""); }, [visible, state.email, state.step === "sending_code"]);
@@ -246,6 +252,15 @@ export function GuestSignInSheet({
   const openLegal = async (document: "terms" | "privacy") => {
     try { await onOpenLegalDocument(document); } catch (error) { await reportTransportError(error); }
   };
+  const retrySaved = async () => {
+    if (recovery.current || !transportRef.current.retryAuthenticatedAttempt) return;
+    setRecovering(true);
+    const operation = transportRef.current.retryAuthenticatedAttempt().catch(reportTransportError).finally(() => {
+      recovery.current = null; setRecovering(false);
+    });
+    recovery.current = operation;
+    await operation;
+  };
   const message = state.error ?? (state.step === "claiming" ? "Keeping your conversation together…" : state.step === "reconciling" ? "Checking the saved request without sending it again…" : state.step === "verifying_code" ? "Checking your code…" : state.step === "sending_code" ? "Sending your code…" : state.step === "provider_pending" ? "Continue in the provider window, then return here." : null);
   const showChooser = state.step === "chooser" || state.step === "provider_pending" || (state.step === "error" && state.retryStep === "chooser");
   const showEmail = state.step === "email" || state.step === "sending_code";
@@ -259,7 +274,7 @@ export function GuestSignInSheet({
           <Animated.View
             accessibilityViewIsModal
             accessibilityLabel="Sign in to continue your research"
-            style={{ opacity, transform: [{ translateY: rise }], backgroundColor: surface, borderColor: line, borderWidth: 1, borderTopLeftRadius: tablet ? 24 : 28, borderTopRightRadius: tablet ? 24 : 28, maxWidth: tablet ? 560 : undefined, width: "100%", alignSelf: "center", maxHeight: "90%", paddingHorizontal: tablet ? 28 : 20, paddingTop: 12, paddingBottom: 20 }}
+            style={{ opacity, transform: [{ translateY: rise }], backgroundColor: surface, borderColor: line, borderWidth: 1, borderTopLeftRadius: tablet ? 24 : 28, borderTopRightRadius: tablet ? 24 : 28, maxWidth: tablet ? 560 : undefined, width: "100%", alignSelf: "center", maxHeight: "90%", paddingHorizontal: tablet ? 28 : 20, paddingTop: 12, paddingBottom: Math.max(20, insets.bottom + 12) }}
           >
             <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: line, marginBottom: 12 }} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -272,7 +287,7 @@ export function GuestSignInSheet({
               </Pressable>
             </View>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: 20, paddingBottom: 4 }}>
-              {message ? <Text accessibilityLiveRegion="polite" accessibilityRole={state.error ? "alert" : "text"} style={{ color: state.error ? "#B3261E" : accent, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{message}</Text> : null}
+              {message ? <Text accessibilityLiveRegion="polite" accessibilityRole={state.error ? "alert" : "text"} style={{ color: state.error ? errorInk : accent, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{message}</Text> : null}
               {showChooser ? <>
                 {(["apple", "google", "email"] as const).map((provider) => {
                   const availability = providers[provider];
@@ -311,6 +326,7 @@ export function GuestSignInSheet({
                 <QuietButton label={state.resend.status === "rate_limited" ? "Resend limited" : "Resend code"} onPress={() => { void submitEmail("resend_email_code"); }} disabled={busy || !guestEmailCanResend(state, new Date(clock))} color={accent} />
               </> : null}
               {state.step === "claiming" || state.step === "reconciling" ? <View accessibilityLabel={state.step === "claiming" ? "Claiming your guest conversation" : "Reconciling your saved request"} style={{ paddingVertical: 16 }}><Text style={{ color: ink, fontSize: 16, lineHeight: 23 }}>Your first conversation stays intact. We’ll send your saved next message only after the claim is confirmed.</Text></View> : null}
+              {(state.step === "reconciling" || state.step === "error" && state.retryStep === "reconciling") && transport.retryAuthenticatedAttempt ? <SheetButton label={recovering ? "Checking saved sign-in…" : "Check saved sign-in"} onPress={() => { void retrySaved(); }} disabled={recovering} fill={ink} text={surface} /> : null}
               {state.step === "expired" || state.step === "deleted" ? <View accessibilityRole="alert" style={{ paddingVertical: 16 }}><Text style={{ color: ink, fontSize: 16, lineHeight: 23 }}>{state.step === "deleted" ? "This saved conversation was deleted. Your current draft is still yours to review." : "This saved sign-in action has expired. Your current draft is still available."}</Text></View> : null}
               {state.step === "error" && state.retryStep !== "chooser" ? <SheetButton label="Try again" onPress={() => { void onEvent({ type: "retry" }); }} disabled={busy} fill={ink} text={surface} /> : null}
               <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", marginTop: 16 }}>

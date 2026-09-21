@@ -44,6 +44,7 @@ import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-auth";
 import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
+import { ClerkSessionTaskView } from "./src/auth/ClerkSessionTaskView";
 import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
 import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
 import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
@@ -127,6 +128,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const abandonedGuestActions = useRef<GuestPendingAction[]>([]);
   const guestFirstRequest = useRef<GuestFirstRequest | null>(null);
   const guestDraftRevision = useRef(0);
+  const taskContinuationAttempt = useRef<string | null>(null);
+  const [taskContinuationId, setTaskContinuationId] = useState<string | null>(null);
+  const taskViewClosing = useRef(false);
   const [guestSheetVisible, setGuestSheetVisible] = useState(false);
   const [guestSheetState, setGuestSheetState] = useState<GuestSignInSheetState>(initialGuestSignInSheetState);
   const [guestCapabilities, setGuestCapabilities] = useState<{ apple: boolean; google: boolean; emailCode: boolean; termsUrl: string | null; privacyUrl: string | null }>({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
@@ -674,7 +678,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const identity = await api.verifyMemberSession(memberToken);
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identity.accountId)) throw new Error("The signed-in account identity is invalid.");
     pending = guestPendingRef.current;
-    if (!pending || pending.phase !== "authenticating" || !pending.autoResume || pending.authAttempt?.id !== attemptId ||
+    if (!pending || pending.phase !== "authenticating" || !pending.autoResume || taskViewClosing.current || pending.authAttempt?.id !== attemptId ||
       pending.draftRevision !== guestDraftRevision.current || pending.draftDigest !== sha256Hex(pending.payload.kind === "clarification" ? clarifyAnswer.trim() : latestUi.current.draft.trim())) throw new Error("The saved sign-in action changed. Its message was not claimed.");
     const completed = completeGuestAuth(pending, attemptId, identity.accountId, new Date());
     await saveGuestPending(completed, pending);
@@ -966,6 +970,36 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     await saveGuestPending(reason === "cancelled" ? cancelGuestAuthAttempt(current, attemptId, new Date()) : dismissGuestPendingAction(current, new Date()));
   }
 
+  async function closeClerkSessionTask() {
+    taskViewClosing.current = true;
+    taskContinuationAttempt.current = null;
+    setTaskContinuationId(null);
+    const pending = guestPendingRef.current;
+    try {
+      if (pending?.phase === "authenticating" && pending.authAttempt) await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
+      setGuestSheetVisible(false);
+    } catch (error) {
+      setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+        error: "Sign-in cancellation is unconfirmed. The saved message is held; reconnect and retry closing." });
+      throw error;
+    } finally { taskViewClosing.current = false; }
+  }
+
+  useEffect(() => {
+    const pending = guestPendingRef.current;
+    const attemptId = taskContinuationAttempt.current;
+    if (!hydrated || !auth?.loaded || !auth.signedIn || auth.sessionTaskPending || taskViewClosing.current ||
+      !pending || pending.phase !== "authenticating" || !pending.autoResume || pending.authAttempt?.id !== attemptId) return;
+    taskContinuationAttempt.current = null;
+    setTaskContinuationId(null);
+    void finishGuestAuthentication(attemptId).catch(error => {
+      const latest = guestPendingRef.current;
+      if (latest && !["dispatched", "cancelled", "rejected", "expired"].includes(latest.phase))
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+          error: "Sign-in succeeded, but the saved request needs confirmation. Check it without sending a new message." });
+    });
+  }, [hydrated, auth?.loaded, auth?.signedIn, auth?.sessionTaskPending, guestPending?.phase, taskContinuationId]);
+
   const guestSheetTransport: GuestSignInTransport = {
     prepareAttempt: async request => {
       const pending = guestPendingRef.current;
@@ -985,7 +1019,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     startProvider: async attempt => {
       if (!authRef.current || attempt.provider === "email") throw new Error("This sign-in method is unavailable.");
       try {
-        await authRef.current.startProvider(attempt.provider);
+        const result = await authRef.current.startProvider(attempt.provider);
+        if (result === "pending_task") {
+          taskContinuationAttempt.current = attempt.id; setTaskContinuationId(attempt.id);
+          setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+          return;
+        }
         await finishGuestAuthentication(attempt.id);
       } catch (error) {
         if (error instanceof Error && error.message === "Sign-in was cancelled.") {
@@ -1015,7 +1054,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     },
     verifyEmailCode: async (attempt, code) => {
       if (!authRef.current) throw new Error("Email sign-in is unavailable.");
-      try { await authRef.current.verifyEmailCode(code); }
+      let result: "active" | "pending_task";
+      try { result = await authRef.current.verifyEmailCode(code); }
       catch (error) {
         if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "code_expired") {
           await endGuestAuthAttempt(attempt.id, "cancelled");
@@ -1024,7 +1064,25 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         }
         throw error;
       }
+      if (result === "pending_task") {
+        taskContinuationAttempt.current = attempt.id; setTaskContinuationId(attempt.id);
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+        return;
+      }
       await finishGuestAuthentication(attempt.id);
+    },
+    retryAuthenticatedAttempt: async () => {
+      if (!authRef.current?.signedIn || authRef.current.sessionTaskPending) throw new Error("Complete account security before checking the saved request.");
+      const pending = guestPendingRef.current;
+      if (!pending) throw new Error("The saved request is no longer available.");
+      if (pending.phase === "authenticating" && pending.authAttempt) {
+        if (!pending.autoResume) throw new Error("Sign-in cancellation is unconfirmed. The saved attempt cannot continue.");
+        await finishGuestAuthentication(pending.authAttempt.id);
+        return;
+      }
+      const account = pending.authenticatedAccountId;
+      if (!account) throw new Error("The saved request is still waiting for verified account identity.");
+      await continueSavedSecondMessage(memberAuthority(account)(), account);
     },
     cancelProvider: async attempt => { await endGuestAuthAttempt(attempt.id, "cancelled"); },
     cancelEmailAttempt: async () => {
@@ -1159,12 +1217,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   async function refreshRun(t: string, runId: string, openingState?: UiState, requireOwnedSnapshot = false) {
-    if (!api.currentRun(t, runId)) {
+    let credential: () => string;
+    try { credential = memberAuthority(); }
+    catch (error) { if (requireOwnedSnapshot) throw error; return; }
+    const currentBearer = credential();
+    if (!api.currentRun(currentBearer, runId)) {
       if (requireOwnedSnapshot) throw new SupersededRequest();
       return;
     }
-    const credential = memberAuthority();
-    const key = `${t}:${runId}`;
+    const key = `${currentBearer}:${runId}`;
     if (refreshing.current.has(key) && !requireOwnedSnapshot) return;
     const attempt = Symbol(); refreshing.current.set(key, attempt);
     let guard = api.captureView();
@@ -1435,6 +1496,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             setGuestSheetVisible(resolved.state === "cancelled");
           } else if (memberToken && original.autoResume) {
             await finishGuestAuthentication(attemptId);
+          } else if (authRef.current?.sessionTaskPending && original.autoResume) {
+            taskContinuationAttempt.current = attemptId;
+            setTaskContinuationId(attemptId);
+            setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+            setGuestSheetVisible(true);
           } else {
             await endGuestAuthAttempt(attemptId, original.autoResume ? "cancelled" : "dismissed");
             setGuestSheetVisible(original.autoResume);
@@ -3167,7 +3233,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
       </KeyboardAvoidingView>
       <GuestSignInSheet
-        visible={guestSheetVisible}
+        visible={guestSheetVisible && !(guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending)}
         state={guestSheetState}
         providers={guestProviders}
         reducedMotion={state.reducedMotion}
@@ -3176,6 +3242,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         onDismiss={() => { setGuestSheetVisible(false); requestAnimationFrame(() => composerInput.current?.focus()); }}
         onOpenLegalDocument={openGuestLegal}
         transport={guestSheetTransport}
+      />
+      <ClerkSessionTaskView
+        visible={guestSheetVisible && guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending}
+        colorScheme={resolveAppearance(appearance, system) === "dark" ? "dark" : "light"}
+        onClose={closeClerkSessionTask}
       />
     </SafeAreaView>
   );

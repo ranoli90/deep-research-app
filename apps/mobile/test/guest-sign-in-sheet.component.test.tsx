@@ -14,6 +14,7 @@ vi.mock("react-native", () => {
   };
 });
 vi.mock("@expo/vector-icons/Ionicons", () => ({ default: "Ionicons" }));
+vi.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 24, left: 0, right: 0 }) }));
 
 import { GuestSignInSheet, type GuestSignInTransport } from "../src/auth/GuestSignInSheet";
 import { initialGuestSignInSheetState, type GuestSignInSheetState } from "../src/auth/guest-sign-in-sheet-state";
@@ -34,6 +35,22 @@ function sheet(visible: boolean, value: GuestSignInSheetState, override: Partial
     transport={{ ...transport, ...override }} />;
 }
 afterEach(() => { vi.useRealTimers(); });
+
+it("AUTH-06 keeps the sign-in controls above the native bottom safe area", async () => {
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(sheet(true, state("first@example.com"))); });
+  const panel = renderer.root.find(node => String(node.type) === "AnimatedView");
+  expect(panel.props.style.paddingBottom).toBe(36);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 uses readable dark-mode error ink in the sign-in sheet", async () => {
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<GuestSignInSheet visible state={{ ...state("first@example.com"), step: "error", error: "Code expired", retryStep: "email" }} providers={available}
+    colorScheme="dark" onEvent={async () => undefined} onDismiss={() => undefined} onOpenLegalDocument={() => undefined} transport={transport} />); });
+  expect(renderer.root.find(node => String(node.type) === "Text" && node.props.children === "Code expired").props.style.color).toBe("#FFB4AB");
+  await act(async () => { renderer.unmount(); });
+});
 
 it("AUTH-06 never retains an OTP across close/reopen, email change, or a new code challenge", async () => {
   const verify = vi.fn(async () => undefined);

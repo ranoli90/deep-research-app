@@ -1,16 +1,18 @@
-import { useAuth, useClerk, useSignIn, useSignUp, useSSO, isClerkAPIResponseError } from "@clerk/expo";
+import { useAuth, useClerk, useSession, useSignIn, useSignUp, useSSO, isClerkAPIResponseError } from "@clerk/expo";
 import { useSignInWithApple } from "@clerk/expo/apple";
 import { useSignInWithGoogle } from "@clerk/expo/google";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 export type ClerkGuestAuth = {
   loaded: boolean;
   signedIn: boolean;
   subject: string | null;
+  sessionTaskPending: boolean;
   getToken(options?: { skipCache?: boolean }): Promise<string | null>;
-  startProvider(provider: "apple" | "google"): Promise<void>;
+  startProvider(provider: "apple" | "google"): Promise<"active" | "pending_task">;
   sendEmailCode(email: string, resend: boolean): Promise<void>;
-  verifyEmailCode(code: string): Promise<void>;
+  verifyEmailCode(code: string): Promise<"active" | "pending_task">;
   signOut(): Promise<void>;
 };
 
@@ -32,9 +34,16 @@ export function safeClerkError(error: unknown): Error {
   return new Error("Sign-in could not be completed. Your message is still saved.");
 }
 
+function needsNativeCompletion(status: unknown): boolean {
+  return status === "needs_second_factor" || status === "needs_client_trust" || status === "needs_new_password" || status === "needs_protect_check";
+}
+
 /** Native Clerk hooks are mounted only inside a configured ClerkProvider. No development session fallback. */
 export function useClerkGuestAuth(): ClerkGuestAuth {
-  const auth = useAuth();
+  // Pending Clerk sessions can finish an MFA/reset task, but must not receive
+  // a member research bearer or claim a guest conversation yet.
+  const auth = useAuth({ treatPendingAsSignedOut: false });
+  const { session } = useSession();
   const clerk = useClerk();
   const { signIn } = useSignIn();
   const { signUp } = useSignUp();
@@ -42,25 +51,34 @@ export function useClerkGuestAuth(): ClerkGuestAuth {
   const { startGoogleAuthenticationFlow } = useSignInWithGoogle();
   const { startSSOFlow } = useSSO();
 
-  const noPendingTask = ({ session }: { session: { currentTask?: unknown } | null }) => {
-    if (session?.currentTask) throw new Error("Complete the account security step before continuing research.");
-  };
+  const [taskReported, setTaskReported] = useState(false);
+  useEffect(() => { if (session?.status === "active") setTaskReported(false); }, [session?.status]);
+  const sessionTaskPending = taskReported || session?.status === "pending";
+  const active = auth.isLoaded && auth.isSignedIn && session?.status === "active" && !sessionTaskPending;
 
   return {
     loaded: auth.isLoaded,
-    signedIn: auth.isLoaded && auth.isSignedIn,
-    subject: auth.isLoaded && auth.isSignedIn ? auth.userId : null,
-    getToken: async options => auth.isLoaded && auth.isSignedIn ? auth.getToken(options) : null,
+    signedIn: !!active,
+    subject: active ? auth.userId : null,
+    sessionTaskPending,
+    getToken: async options => active ? auth.getToken(options) : null,
     startProvider: async provider => {
       try {
+        let pendingTask = false;
         const result = provider === "google" ? await startGoogleAuthenticationFlow()
           : Platform.OS === "ios" ? await startAppleAuthenticationFlow()
             : await startSSOFlow({ strategy: "oauth_apple" });
         if (!result.createdSessionId || !result.setActive) {
-          if (result.signIn?.status || result.signUp?.status) throw new Error("Complete the account security step before continuing research.");
+          if (needsNativeCompletion(result.signIn?.status) || result.signUp?.status === "missing_requirements") {
+            setTaskReported(true);
+            return "pending_task";
+          }
           throw new Error("Sign-in was cancelled.");
         }
-        await result.setActive({ session: result.createdSessionId });
+        await result.setActive({ session: result.createdSessionId, navigate: ({ session: next }) => {
+          if (next?.currentTask) { pendingTask = true; setTaskReported(true); }
+        } });
+        return pendingTask || clerk.session?.status === "pending" ? "pending_task" : "active";
       } catch (error) {
         if (error instanceof Error && error.message === "Sign-in was cancelled.") throw error;
         throw safeClerkError(error);
@@ -80,6 +98,10 @@ export function useClerkGuestAuth(): ClerkGuestAuth {
     verifyEmailCode: async code => {
       try {
         if (!signIn || !signUp) throw new Error("Sign-in is unavailable.");
+        let pendingTask = false;
+        const reportTask = ({ session: next }: { session: { currentTask?: unknown } | null }) => {
+          if (next?.currentTask) { pendingTask = true; setTaskReported(true); }
+        };
         const result = await signIn.emailCode.verifyCode({ code });
         if (result.error) {
           if (isClerkAPIResponseError(result.error) && result.error.errors[0]?.code === "sign_up_if_missing_transfer") {
@@ -88,14 +110,16 @@ export function useClerkGuestAuth(): ClerkGuestAuth {
             // Core3 mutation methods return {error} and may update the hook on
             // another render. Finalize itself is the authoritative completion
             // gate; an incomplete security task remains blocked by Clerk.
-            const finalized = await signUp.finalize({ navigate: noPendingTask });
+            const finalized = await signUp.finalize({ navigate: reportTask });
             if (finalized.error) throw finalized.error;
-            return;
+            return pendingTask || clerk.session?.status === "pending" ? "pending_task" : "active";
           }
           throw result.error;
         }
-        const finalized = await signIn.finalize({ navigate: noPendingTask });
+        if (needsNativeCompletion(signIn.status)) { setTaskReported(true); return "pending_task"; }
+        const finalized = await signIn.finalize({ navigate: reportTask });
         if (finalized.error) throw finalized.error;
+        return pendingTask || clerk.session?.status === "pending" ? "pending_task" : "active";
       } catch (error) { throw safeClerkError(error); }
     },
     signOut: async () => { await clerk.signOut(); },
