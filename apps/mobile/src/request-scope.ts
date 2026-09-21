@@ -7,7 +7,7 @@ export function createRequestScope() {
   let accountEpoch = 0, viewEpoch = 0, sourceEpoch = 0;
   let token: string | null = null, runId: string | null = null;
   let principal: string | null = null;
-  const samePrincipalTokens = new Set<string>();
+  let credentialGeneration = 0;
   const pending = new Map<AbortController, "account" | "view" | "source">();
   function abort(kind: "account" | "view" | "source") {
     for (const [controller, requestKind] of pending) {
@@ -17,29 +17,29 @@ export function createRequestScope() {
   return {
     setSession(next: string | null, nextPrincipal?: string | null) {
       accountEpoch++; viewEpoch++; sourceEpoch++; token = next; principal = nextPrincipal ?? null;
-      samePrincipalTokens.clear(); if (next) samePrincipalTokens.add(next);
+      credentialGeneration++;
       runId = null; abort("account");
     },
     /** A verified renewal for the same internal member is credential churn, not a new principal or view. */
     rotateCredential(next: string, samePrincipal: string) {
       if (!next || !samePrincipal || principal !== samePrincipal || token === null) throw new SupersededRequest();
-      token = next; samePrincipalTokens.add(next);
+      token = next; credentialGeneration++;
     },
     epochs() {
-      return { principalEpoch: accountEpoch, viewEpoch, credentialGeneration: samePrincipalTokens.size };
+      return { principalEpoch: accountEpoch, viewEpoch, credentialGeneration };
     },
     selectRun(next: string | null) {
       if (next === runId) return;
       runId = next; viewEpoch++; sourceEpoch++; abort("view");
     },
     invalidateView(session: string) {
-      if (!samePrincipalTokens.has(session)) throw new SupersededRequest();
+      if (session !== token) throw new SupersededRequest();
       viewEpoch++; sourceEpoch++; abort("view");
     },
     closeSource() { sourceEpoch++; abort("source"); },
-    currentRun(session: string, id: string) { return samePrincipalTokens.has(session) && runId === id; },
+    currentRun(session: string, id: string) { return session === token && runId === id; },
     capture(kind: "account" | "view" | "source", expectedToken?: string, expectedRun?: string) {
-      if (expectedToken !== undefined && !samePrincipalTokens.has(expectedToken)) throw new SupersededRequest();
+      if (expectedToken !== undefined && expectedToken !== token) throw new SupersededRequest();
       if (expectedRun !== undefined && expectedRun !== runId) throw new SupersededRequest();
       const account = accountEpoch, view = viewEpoch, source = sourceEpoch;
       const controller = new AbortController(); pending.set(controller, kind);

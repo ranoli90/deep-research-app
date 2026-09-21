@@ -19,7 +19,8 @@ function render(signedIn=false,consentGranted=false,routeMode:"fixture"|"control
 beforeEach(()=>alert.mockReset());
 it("W07 profile preserves accessible account, consent, restore and deletion-page callbacks",()=>{
  const x=render();
- for(const [label,key] of [["Sign in development session","onSignIn"],["Restore purchases","onRestore"],["Log out and clear saved drafts and reports","onLogout"],["Open web deletion page","onOpenDeletionPage"],["Open library","onOpenLibrary"]] as const){x.button(label).props.onPress();expect(x.handlers[key]).toHaveBeenCalledTimes(1);}
+ for(const [label,key] of [["Sign in to save research","onSignIn"],["Restore purchases","onRestore"],["Log out and clear saved drafts and reports","onLogout"],["Open web deletion page","onOpenDeletionPage"],["Open library","onOpenLibrary"]] as const){x.button(label).props.onPress();expect(x.handlers[key]).toHaveBeenCalledTimes(1);}
+ expect(x.nodes.some(node => node.props.accessibilityLabel === "Sign in development session")).toBe(false);
  x.switchControl("Grant AI processing consent").props.onValueChange(true);expect(x.handlers.onConsent).toHaveBeenCalledTimes(1);
  expect(x.text).toContain("Synthetic processor");expect(x.text).toContain("Synthetic data disclosure");expect(x.text).toContain("Cancel subscriptions separately");expect(x.text).toContain("Store unavailable");
  expect(x.text).toContain("Appearance");expect(x.text).toContain("Demo mode");expect(x.text).toContain("Sign out");expect(x.text).toContain("Saved reports");

@@ -12,7 +12,7 @@ const context = {
   expiresAt: "2026-09-22T00:00:00.000Z", consentPolicyVersion: "consent.v1",
   controlVersion: 0, acceptedTurnCount: 0, consentGranted: false,
 };
-const proof = "P".repeat(64);
+const proof = "P".repeat(43);
 function stores() {
   const ordinary = memoryStore(), nativeContent = memoryStore(), secure = memoryStore();
   return { ordinary, nativeContent, secure, content: createProtectedContentStore(ordinary, nativeContent) };
@@ -29,6 +29,7 @@ function action() {
 describe("guest device custody", () => {
   it("GUEST-01/02 durably separates proof from protected reader and exact action", async () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
     await device.saveBootstrap(context, proof);
     await device.saveSnapshot(context.guestContextId, { ...emptyState(), draft: "Second message", run: { runId: id(4), lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(5), labeledDemo: false }, status: "completed", routeMode: "controlled-research" });
     await device.savePendingAction(action());
@@ -44,6 +45,7 @@ describe("guest device custody", () => {
 
   it("GUEST-05 refuses to replace a live guest, action or server control with another identity", async () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
     await device.saveBootstrap(context, proof);
     await expect(device.saveBootstrap({ ...context, guestContextId: id(8) }, proof)).rejects.toThrow("already exists");
     await device.savePendingAction(action());
@@ -54,6 +56,7 @@ describe("guest device custody", () => {
 
   it("AUTH-14 holds malformed durable journal without minting a replacement", async () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
     await device.saveBootstrap(context, proof);
     await s.content.setItem("norrow.guest.pending-action.v2", JSON.stringify({ ...action(), payloadDigest: "0".repeat(64) }));
     await expect(device.load()).rejects.toThrow("Saved sign-in action is invalid");
@@ -62,10 +65,31 @@ describe("guest device custody", () => {
 
   it("DATA-12 clears proof, reader and action without affecting another device store", async () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
     await device.saveBootstrap(context, proof); await device.savePendingAction(action());
     await device.clear();
     expect(await device.load()).toBeNull();
     expect(await s.secure.getItem("norrow.guest.proof.v1")).toBeNull();
     expect(await s.content.getItem("norrow.guest.pending-action.v2")).toBeNull();
+  });
+  it("AUTH-14 never restores iOS keychain proof after an ordinary-storage reinstall", async () => {
+    const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
+    await device.saveBootstrap(context, proof);
+    await device.saveSnapshot(context.guestContextId, { ...emptyState(), draft: "private" });
+    await s.content.removeItem("deep.install.v2");
+    expect(await device.load()).toBeNull();
+    expect(await s.secure.getItem("norrow.guest.proof.v1")).toBeNull();
+    expect(await s.content.getItem("norrow.guest.snapshot.v1")).toBeNull();
+  });
+  it("CONSENT-01 persists newer revocation but rejects same-version or older consent disagreement", async () => {
+    const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
+    await s.content.setItem("deep.install.v2", "1");
+    await device.saveBootstrap(context, proof);
+    await device.updateContext({ ...context, controlVersion: 1, consentGranted: true });
+    await expect(device.updateContext({ ...context, controlVersion: 1, consentGranted: false })).rejects.toThrow("changed unexpectedly");
+    await device.updateContext({ ...context, controlVersion: 2, consentGranted: false });
+    expect((await device.load())?.context.consentGranted).toBe(false);
+    await expect(device.updateContext({ ...context, controlVersion: 1, consentGranted: true })).rejects.toThrow("changed unexpectedly");
   });
 });

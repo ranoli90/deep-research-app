@@ -218,7 +218,8 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
     claim, dispatchReceiptId: value.dispatchReceiptId, rejectionCode: value.rejectionCode as GuestPendingAction["rejectionCode"],
   };
   if (intent.payloadDigest !== sha256Hex(canonicalPayload(payload)) || Date.parse(intent.expiresAt) <= Date.parse(intent.createdAt) || Date.parse(intent.expiresAt) - Date.parse(intent.createdAt) > GUEST_PENDING_ACTION_MAX_AGE_MS) invalid();
-  if ((intent.phase === "authenticating") !== (intent.authAttempt !== null) ||
+  if ((intent.phase === "authenticating" && intent.authAttempt === null) ||
+    (intent.authAttempt !== null && !["authenticating", "authenticated", "claim_pending", "claim_reconcile"].includes(intent.phase)) ||
     (["authenticated", "claim_pending", "claim_reconcile", "claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
     (["claim_reconcile", "claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
     (intent.claim !== null && (intent.authenticatedAccountId === null || intent.claim.accountId !== intent.authenticatedAccountId)) ||
@@ -329,19 +330,26 @@ export function guestPendingActionNeedsReconciliation(intent: GuestPendingAction
 
 export function beginGuestAuth(intent: GuestPendingAction, attempt: { id: Uuid; provider: GuestAuthProvider }, now: Date): GuestPendingAction {
   const checked = current(intent, ["pending_auth"], now);
+  if (!checked.autoResume) throw new Error("A dismissed sign-in action cannot start authentication.");
   if (!validId(attempt.id) || !["apple", "google", "email"].includes(attempt.provider)) throw new Error("Invalid sign-in attempt.");
   return persisted({ ...checked, phase: "authenticating", authAttempt: { ...attempt } });
+}
+/** Keep the exact attempt ID until the server confirms its terminal fence. */
+export function holdGuestAuthAttempt(intent: GuestPendingAction, attemptId: Uuid, now: Date): GuestPendingAction {
+  const checked = current(intent, ["authenticating"], now);
+  if (checked.authAttempt?.id !== attemptId) throw new Error("A stale sign-in attempt cannot be held.");
+  return persisted({ ...checked, autoResume: false });
 }
 /** Provider cancellation is not a failed claim and leaves the exact action available to retry. */
 export function cancelGuestAuthAttempt(intent: GuestPendingAction, attemptId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticating"], now);
   if (checked.authAttempt?.id !== attemptId) throw new Error("A stale sign-in attempt cannot change this action.");
-  return persisted({ ...checked, phase: "pending_auth", authAttempt: null });
+  return persisted({ ...checked, phase: "pending_auth", autoResume: true, authAttempt: null });
 }
 export function completeGuestAuth(intent: GuestPendingAction, attemptId: Uuid, accountId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticating"], now);
-  if (checked.authAttempt?.id !== attemptId || !validId(accountId)) throw new Error("A stale sign-in result cannot continue this action.");
-  return persisted({ ...checked, phase: "authenticated", authAttempt: null, authenticatedAccountId: accountId });
+  if (!checked.autoResume || checked.authAttempt?.id !== attemptId || !validId(accountId)) throw new Error("A stale sign-in result cannot continue this action.");
+  return persisted({ ...checked, phase: "authenticated", authenticatedAccountId: accountId });
 }
 /** Close/back always preserves payload. It only disables automatic continuation. */
 export function dismissGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
@@ -376,7 +384,7 @@ export function reopenGuestPendingAction(intent: GuestPendingAction, now: Date):
 }
 export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticated"], now);
-  if (!validId(requestId) || !checked.authenticatedAccountId) throw new Error("The signed-in account cannot claim this action.");
+  if (!validId(requestId) || !checked.authenticatedAccountId || !checked.authAttempt) throw new Error("The signed-in account cannot claim this action.");
   return persisted({
     ...checked, phase: "claim_pending",
     claim: { requestId, accountId: checked.authenticatedAccountId, controlVersion: 0, principalEpoch: 0, viewEpoch: 0 },
@@ -385,6 +393,12 @@ export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now
 /** Retry uses the original claim identity; a new ID would make an ambiguous claim unsafe. */
 export function retryGuestClaim(intent: GuestPendingAction, now: Date): GuestPendingAction {
   return current(intent, ["claim_pending"], now);
+}
+/** Network ambiguity is resolve-only even before the action's deadline. */
+export function holdGuestClaimForReconciliation(intent: GuestPendingAction): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (checked.phase !== "claim_pending") throw new Error("Only an in-flight claim can be held for resolution.");
+  return persisted({ ...checked, phase: "claim_reconcile", autoResume: false });
 }
 export function completeGuestClaim(intent: GuestPendingAction, result: GuestClaimAcceptedOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
@@ -396,7 +410,7 @@ export function completeGuestClaim(intent: GuestPendingAction, result: GuestClai
   }
   if (result.type !== "claim_accepted" || !checked.claim || result.submissionId !== checked.submissionId || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || !validVersion(result.principalEpoch) || !validVersion(result.viewEpoch) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
   return persisted({
-    ...checked, phase: "claimed",
+    ...checked, phase: "claimed", authAttempt: null,
     claim: { ...checked.claim, controlVersion: result.controlVersion, principalEpoch: result.principalEpoch, viewEpoch: result.viewEpoch },
   });
 }
@@ -422,6 +436,12 @@ export function beginGuestActionResume(intent: GuestPendingAction, context: Curr
   const validation = validateGuestActionResume(checked, context);
   if (!validation.ok) throw new Error(`Saved sign-in action cannot resume: ${validation.code}.`);
   return persisted({ ...checked, phase: "resume_pending" });
+}
+/** Unknown continuation outcomes may only be resolved by the original IDs. */
+export function holdGuestResumeForReconciliation(intent: GuestPendingAction): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (checked.phase !== "resume_pending") throw new Error("Only an in-flight continuation can be held for resolution.");
+  return persisted({ ...checked, phase: "resume_reconcile", autoResume: false });
 }
 /**
  * Records the API acknowledgement for the stable client submission ID. The

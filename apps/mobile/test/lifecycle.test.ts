@@ -165,7 +165,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toContain('accessibilityLabel="Library"');
     expect(src).toContain('accessibilityLabel="New research"');
     expect(src).toContain("routeMode: prev.routeMode, reducedMotion: prev.reducedMotion");
-    expect(src).toMatch(/function onNewResearch\(\) \{\s*submitting\.current = false;/);
+    const newResearch = src.slice(src.indexOf("function onNewResearch()"), src.indexOf("async function onContinueClarification()"));
+    expect(newResearch).toContain("if (savedSecondMessageBlocksWork())");
+    expect(newResearch).toContain("submitting.current = false;");
+    expect(newResearch.indexOf("if (savedSecondMessageBlocksWork())")).toBeLessThan(newResearch.indexOf("submitting.current = false;"));
     expect(src).toContain("androidBack(latestUi.current)");
     expect(src).toMatch(/return true;\s*\}\);/);
     expect(src).toContain('accessibilityLabel="Open profile and settings"');

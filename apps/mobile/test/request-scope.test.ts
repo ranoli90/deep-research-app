@@ -77,7 +77,9 @@ it("AUTH-06 verified Clerk token renewal retains the same principal and selected
   expect(scope.epochs().viewEpoch).toBe(before.viewEpoch);
   expect(scope.epochs().credentialGeneration).toBeGreaterThan(before.credentialGeneration);
   expect(pending.current()).toBe(true);
-  expect(scope.currentRun("token-one", "first-reader")).toBe(true);
+  expect(scope.currentRun("token-one", "first-reader")).toBe(false);
+  expect(scope.currentRun("token-two", "first-reader")).toBe(true);
+  expect(() => scope.capture("view", "token-one", "first-reader")).toThrow("superseded");
   expect(() => scope.rotateCredential("foreign-token", "member-two")).toThrow("superseded");
   scope.setSession("member-two-token", "member-two");
   expect(pending.current()).toBe(false);

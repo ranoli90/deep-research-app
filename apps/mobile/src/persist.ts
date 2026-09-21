@@ -24,8 +24,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 export function storedState(state: UiState) {
-  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
-  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
+  const { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
+  return { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -39,7 +39,7 @@ export function parseState(raw: string | null, accountId: string): UiState | nul
     const envelope: unknown = JSON.parse(raw);
     if (!record(envelope) || envelope.accountId !== accountId || !record(envelope.state)) return null;
     const s = envelope.state;
-    if (typeof s.draft !== "string" || typeof s.consentGranted !== "boolean" ||
+    if (typeof s.draft !== "string" || !(s.conversationId === undefined || s.conversationId === null || typeof s.conversationId === "string") || typeof s.consentGranted !== "boolean" ||
       !["fixture", "controlled-research"].includes(String(s.routeMode)) ||
       !["empty", "loading", "progress", "completed", "partial", "failed", "cancelled", "awaiting_input"].includes(String(s.status))) return null;
     if (s.run !== null && (!record(s.run) || ![s.run.runId, s.run.lifecycle, s.run.phase].every((v) => typeof v === "string") ||

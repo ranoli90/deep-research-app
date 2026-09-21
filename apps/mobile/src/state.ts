@@ -59,6 +59,8 @@ export type ReportBlock = {
 export type AttachmentDraft = { id?: string; filename: string; mime: string } & ({ text: string; bytes?: never } | { bytes: Uint8Array; text?: never });
 
 export type UiState = {
+  /** Member conversation returned by an accepted guest continuation; never guessed from a guest ID. */
+  conversationId: string | null;
   pendingContentInvalidation: string | null;
   pendingCorrectionDocuments: import("./correction-documents").PendingCorrectionDocuments | null;
   tab: "research" | "library" | "settings";
@@ -99,6 +101,7 @@ export type UiState = {
 
 export function emptyState(): UiState {
   return {
+    conversationId: null,
     pendingContentInvalidation: null,
     tab: "research",
     draft: "",

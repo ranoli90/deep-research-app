@@ -99,8 +99,8 @@ export function ProfilePanel({
             <Text style={styles.caveat}>{state.signedIn ? "Signed in on this device" : "Sign in to save research"}</Text>
           </View>
         </View>
-        <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in development session" style={styles.settingsRow}>
-          <Text style={styles.link}>{state.signedIn ? "Refresh session" : "Sign in"}</Text>
+        <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in to save research" style={styles.settingsRow}>
+          <Text style={styles.link}>{state.signedIn ? "Account session" : "Sign in"}</Text>
         </Pressable>
         <Pressable onPress={onOpenLibrary} accessibilityRole="button" accessibilityLabel="Open library" style={styles.settingsRow}>
           <Text style={styles.link}>Saved reports</Text>

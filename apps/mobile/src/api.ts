@@ -5,6 +5,13 @@ import type { GuestPendingAction } from "./auth/guest-pending-action";
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
 export const backendUrl = API;
 const requests = createRequestScope();
+let guestEpoch = 0;
+let activeGuest: { proof: string; contextId: string } | null = null;
+const guestPending = new Set<AbortController>();
+function invalidateGuestResponses() {
+  guestEpoch++;
+  for (const controller of guestPending) controller.abort();
+}
 export const isSupersededRequest = (error: unknown): boolean => error instanceof SupersededRequest;
 
 /** Browser deletion path (M09). No secrets in the URL. */
@@ -17,38 +24,49 @@ const GUEST_PROOF_ROUTES = [
   ["GET", /^\/v1\/session$/], ["GET", /^\/v1\/settings$/],
   ["POST", /^\/v1\/consent$/], ["POST", /^\/v1\/runs$/], ["POST", /^\/v1\/run-requests\/resolve$/],
   ["POST", /^\/v1\/guest\/pending-actions$/], ["POST", /^\/v1\/guest\/claim$/],
+  ["POST", /^\/v1\/guest\/pending-actions\/attempts\/(begin|end|resolve)$/],
   ["GET", /^\/v1\/runs\/[0-9a-f-]+$/i], ["GET", /^\/v1\/runs\/[0-9a-f-]+\/events\?after=\d+$/i],
   ["GET", /^\/v1\/runs\/[0-9a-f-]+\/cost$/i], ["POST", /^\/v1\/runs\/[0-9a-f-]+\/cancel$/i],
   ["GET", /^\/v1\/reports\/[0-9a-f-]+$/i], ["GET", /^\/v1\/sources\/[0-9a-f-]+$/i],
-  ["DELETE", /^\/v1\/sources\/[0-9a-f-]+$/i], ["DELETE", /^\/v1\/guest$/],
+  ["DELETE", /^\/v1\/sources\/[0-9a-f-]+$/i], ["POST", /^\/v1\/account\/deletion$/],
 ] as const;
 
-function checkedGuestUrl(method: string, path: string): string {
+function trustedApiOrigin(): URL {
   const origin = new URL(API);
   const local = ["127.0.0.1", "localhost", "::1"].includes(origin.hostname);
   if ((origin.protocol !== "https:" && !(origin.protocol === "http:" && local)) || origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/") throw new Error("Guest API origin is not trusted.");
+  return origin;
+}
+function checkedGuestUrl(method: string, path: string): string {
+  const origin = trustedApiOrigin();
   if (!GUEST_PROOF_ROUTES.some(([verb, pattern]) => verb === method && pattern.test(path))) throw new Error("Guest proof cannot be sent to this route.");
   return new URL(path, origin).toString();
 }
 
 async function guestReq(method: string, path: string, proof: string, body?: object, memberToken?: string, idempotencyKey?: string): Promise<any> {
-  if (typeof proof !== "string" || proof.length < 32 || proof.length > 512 || !/^[A-Za-z0-9._~-]+$/.test(proof)) throw new Error("Guest proof is unavailable.");
+  if (typeof proof !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(proof)) throw new Error("Guest proof is unavailable.");
+  if (activeGuest?.proof !== proof) throw new SupersededRequest();
+  if (Boolean(memberToken) !== (method === "POST" && path === "/v1/guest/claim")) throw new Error("Member and guest credentials may only meet on the exact claim route.");
+  const epoch = guestEpoch;
   const url = checkedGuestUrl(method, path);
   const headers: Record<string, string> = { "x-norrow-guest-proof": proof };
   if (body !== undefined) headers["content-type"] = "application/json";
   if (memberToken) headers.authorization = `Bearer ${memberToken}`;
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
   const controller = new AbortController();
+  guestPending.add(controller);
   const timer = setTimeout(() => controller.abort(), 15_000);
   try {
     const response = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: controller.signal, redirect: "error" });
     const result = await response.json().catch(() => ({}));
+    if (epoch !== guestEpoch || activeGuest?.proof !== proof) throw new SupersededRequest();
     if (!response.ok) throw new ApiError(response.status, typeof result?.code === "string" ? result.code : `Request failed (${response.status})`);
     return result;
   } catch (error) {
+    if (epoch !== guestEpoch || activeGuest?.proof !== proof || error instanceof SupersededRequest) throw new SupersededRequest();
     if (error instanceof ApiError) throw error;
     throw new ApiError(0, "Could not reach the research service. The saved message has not been sent again.");
-  } finally { clearTimeout(timer); }
+  } finally { clearTimeout(timer); guestPending.delete(controller); }
 }
 
 export class ApiError extends Error {
@@ -75,6 +93,9 @@ export function isOfflineError(err: unknown): boolean {
 }
 
 async function req(path: string, init: RequestInit & { token?: string; scope?: "account" | "view" | "source"; runId?: string } = {}) {
+  const origin = trustedApiOrigin();
+  if (!path.startsWith("/") || path.startsWith("//")) throw new Error("Member API route is invalid.");
+  const url = new URL(path, origin).toString();
   const lease = requests.capture(init.scope ?? "account", init.token, init.runId);
   const headers: Record<string, string> = { ...(init.body != null ? { "content-type": "application/json" } : {}), ...(init.headers as Record<string, string>) };
   if (init.token) headers.authorization = `Bearer ${init.token}`;
@@ -84,7 +105,7 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
   init.signal?.addEventListener("abort", abort, { once: true });
   const timer = setTimeout(() => ctrl.abort(), 15_000);
   try {
-    const res = await fetch(`${API}${path}`, { ...init, headers, signal: ctrl.signal });
+    const res = await fetch(url, { ...init, headers, signal: ctrl.signal, redirect: "error" });
     const body = await res.json().catch(() => ({}));
     if (!lease.current() || init.signal?.aborted) throw new SupersededRequest();
     if (!res.ok) {
@@ -104,6 +125,14 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
 }
 
 export const api = {
+  activateGuest: (proof: string, contextId: string) => {
+    if (!proof || !contextId) throw new Error("Guest identity is incomplete.");
+    if (activeGuest?.proof !== proof || activeGuest.contextId !== contextId) {
+      invalidateGuestResponses(); activeGuest = { proof, contextId };
+    }
+  },
+  rotateGuestScope: invalidateGuestResponses,
+  clearGuest: () => { invalidateGuestResponses(); activeGuest = null; },
   activateSession: requests.setSession,
   rotateCredential: requests.rotateCredential,
   sessionEpochs: requests.epochs,
@@ -114,20 +143,35 @@ export const api = {
   capture: (session?: string) => requests.capture("account", session),
   captureView: (session?: string, runId?: string) => requests.capture("view", session, runId),
   health: () => req("/health"),
+  authCapabilities: () => req("/v1/auth/capabilities") as Promise<{ apple: boolean; google: boolean; emailCode: boolean; termsUrl?: string | null; privacyUrl?: string | null }>,
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
   sessionInfo: (token: string) => req("/v1/session", { token }) as Promise<{ accountId: string; authMode: string }>,
+  /** Probe a Clerk bearer before adopting it into the current request scope. */
+  verifyMemberSession: async (token: string): Promise<{ accountId: string; authMode: string; actorKind: "member" }> => {
+    if (!token || /\s/.test(token)) throw new Error("Member credential is unavailable.");
+    const url = new URL(API);
+    if ((url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost", "::1"].includes(url.hostname))) || url.username || url.password || url.pathname !== "/") throw new Error("Member API origin is not trusted.");
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 15_000);
+    try {
+      const response = await fetch(new URL("/v1/session", url).toString(), { headers: { authorization: `Bearer ${token}` }, signal: controller.signal, redirect: "error" });
+      if (!response.ok) throw new ApiError(response.status, "Could not verify this account session.");
+      const result: unknown = await response.json();
+      if (!result || typeof result !== "object" || (result as { actorKind?: unknown }).actorKind !== "member" || typeof (result as { accountId?: unknown }).accountId !== "string") throw new Error("Account session response is invalid.");
+      return result as { accountId: string; authMode: string; actorKind: "member" };
+    } finally { clearTimeout(timer); }
+  },
   consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
   attachBytes: (token: string, filename: string, mime: string, bytes: Uint8Array, key?: string) =>
     req("/v1/attachments/bytes", { method: "POST", token, scope: "view",
       headers: { "content-type": "application/octet-stream", "x-document-mime": mime, "x-file-name": encodeURIComponent(filename), ...(key ? { "idempotency-key": key } : {}) },
       body: new Uint8Array(bytes).buffer }),
-  createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = []) =>
+  createRun: (token: string, question: string, routeMode: string, idempotencyKey: string, attachmentIds: string[] = [], conversationId?: string | null) =>
     req("/v1/runs", {
       method: "POST",
       token,
       scope: "view",
       headers: { "idempotency-key": idempotencyKey },
-      body: JSON.stringify({ question, routeMode, attachmentIds }),
+      body: JSON.stringify({ question, routeMode, attachmentIds, ...(conversationId ? { conversationId } : {}) }),
     }),
   resolveRunRequest: (token: string, idempotencyKey: string, verification?: { parentRunId: string; request: RequestedVerificationRequest }) => req("/v1/run-requests/resolve", { method: "POST", token, scope: "view", body: JSON.stringify({ idempotencyKey, ...(verification ? { verification } : {}) }) }),
   attach: (token: string, filename: string, mime: string, text: string, key?: string) =>
@@ -213,9 +257,16 @@ export const api = {
       conversationVersion: action.conversationVersion, payload: action.payload, payloadDigest: action.payloadDigest,
       consentPolicyVersion: action.consentPolicyVersion,
     }),
+    beginAuthAttempt: (proof: string, submissionId: string, authAttemptId: string, provider: "apple" | "google" | "email") =>
+      guestReq("POST", "/v1/guest/pending-actions/attempts/begin", proof, { submissionId, authAttemptId, provider: provider === "email" ? "email_code" : provider }) as Promise<{ submissionId: string; authAttemptId: string; attemptRevision: number; state: "authenticating" }>,
+    endAuthAttempt: (proof: string, submissionId: string, authAttemptId: string, reason: "cancelled" | "dismissed") =>
+      guestReq("POST", "/v1/guest/pending-actions/attempts/end", proof, { submissionId, authAttemptId, reason }) as Promise<{ submissionId: string; authAttemptId: string; attemptRevision: number; state: "cancelled" | "dismissed" }>,
+    resolveAuthAttempt: (proof: string, submissionId: string, authAttemptId: string) =>
+      guestReq("POST", "/v1/guest/pending-actions/attempts/resolve", proof, { submissionId, authAttemptId }) as Promise<{ submissionId: string; authAttemptId: string; attemptRevision: number; state: "authenticating" | "cancelled" | "dismissed" }>,
     claim: (proof: string, memberToken: string, action: GuestPendingAction) => guestReq("POST", "/v1/guest/claim", proof, {
       claimRequestId: action.claim?.requestId, submissionId: action.submissionId, guestContextId: action.guestContextId,
       conversationId: action.conversationId, conversationVersion: action.conversationVersion,
+      authAttemptId: action.authAttempt?.id,
     }, memberToken),
     getRun: (proof: string, runId: string) => guestReq("GET", `/v1/runs/${runId}`, proof),
     events: (proof: string, runId: string, after = 0) => guestReq("GET", `/v1/runs/${runId}/events?after=${after}`, proof),
@@ -223,7 +274,7 @@ export const api = {
     source: (proof: string, sourceId: string) => guestReq("GET", `/v1/sources/${sourceId}`, proof),
     cancel: (proof: string, runId: string) => guestReq("POST", `/v1/runs/${runId}/cancel`, proof, {}),
     deleteSource: (proof: string, sourceId: string) => guestReq("DELETE", `/v1/sources/${sourceId}`, proof),
-    delete: (proof: string) => guestReq("DELETE", "/v1/guest", proof),
+    delete: (proof: string) => guestReq("POST", "/v1/account/deletion", proof, {}),
   },
   resolveGuestClaim: (token: string, claimRequestId: string, submissionId: string) => req("/v1/guest/claims/resolve", { method: "POST", token, body: JSON.stringify({ claimRequestId, submissionId }) }),
   resumeGuestAction: (token: string, action: GuestPendingAction) => req("/v1/guest/actions/resume", { method: "POST", token, body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId, controlVersion: action.claim?.controlVersion, payloadDigest: action.payloadDigest }) }),

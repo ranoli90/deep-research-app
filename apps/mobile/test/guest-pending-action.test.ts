@@ -3,7 +3,7 @@ import {
   beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction,
   completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, expireGuestPendingAction,
   guestPendingActionNeedsReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
-  reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume,
+  reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume, holdGuestAuthAttempt,
   type GuestClaimAcceptedOutcome, type GuestContinuationDispatchedOutcome, type GuestPendingActionRejectionOutcome,
 } from "../src/auth/guest-pending-action";
 import { sha256Hex } from "../src/sha256";
@@ -89,6 +89,17 @@ describe("guest pending action", () => {
     expect(returned.phase).toBe("pending_auth");
     expect(returned.payload).toEqual(opening.payload);
     expect(() => completeGuestAuth(returned, id(6), id(7), context().now)).toThrow("current state");
+  });
+  it("CLAIM-01 holds an uncertain server attempt with the same ID; stale callback and replacement begin cannot claim", () => {
+    const opening = beginGuestAuth(pending(), { id: id(6), provider: "email" }, context().now);
+    const held = holdGuestAuthAttempt(opening, id(6), context().now);
+    expectRoundTrip(held);
+    expect(held).toMatchObject({ phase: "authenticating", autoResume: false, authAttempt: { id: id(6) }, submissionId: id(1) });
+    expect(() => completeGuestAuth(held, id(6), id(7), context().now)).toThrow("stale sign-in");
+    expect(() => beginGuestAuth(held, { id: id(10), provider: "google" }, context().now)).toThrow("current state");
+    const ended = dismissGuestPendingAction(held, context().now);
+    expect(reopenGuestPendingAction(ended, context().now).submissionId).toBe(id(1));
+    expect(beginGuestAuth(reopenGuestPendingAction(ended, context().now), { id: id(10), provider: "google" }, context().now).authAttempt?.id).toBe(id(10));
   });
 
   it("GUEST-05 dismissal does not erase draft binding and requires an explicit re-open before another auth attempt", () => {

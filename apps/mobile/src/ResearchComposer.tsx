@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { Animated, Pressable, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { composer as composerMetrics } from "@deep/design";
 import { productHaptic } from "./haptics";
@@ -60,6 +60,7 @@ export function ResearchComposer({
   onSend,
   onAttach,
   onCancel,
+  inputRef,
   styles,
 }: {
   draft: string;
@@ -78,6 +79,7 @@ export function ResearchComposer({
   onSend(): void;
   onAttach(): void;
   onCancel?(): void;
+  inputRef?: RefObject<TextInput | null>;
   styles: Styles;
 }) {
   const hasDraft = Boolean(draft.trim());
@@ -110,6 +112,7 @@ export function ResearchComposer({
           {attachOpen ? <CloseIcon color={muted} size={16} /> : <PlusIcon color={muted} size={composerMetrics.attachIcon} />}
         </Pressable>
         <TextInput
+          ref={inputRef}
           editable={editable}
           value={draft}
           onChangeText={onChange}
