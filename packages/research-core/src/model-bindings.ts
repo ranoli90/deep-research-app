@@ -3,6 +3,8 @@ import { confirmedPublicQueryTerms } from "./policy.js";
 type Context = {
   question: string; task: ResearchModelOutput<"brief"> | null;
   confirmedConstraints?: { field: string; value: string; origin?: string }[];
+  /** Server-resolved, cited public parent-passage terms; never model/user supplied. */
+  approvedPublicContextTerms?: readonly string[];
   passages: { id: string; text: string }[]; sources: { handle: string }[];
   assertions: ResearchModelOutput<"extract_assertions">["assertions"]; approvedClaimKeys: string[];
   calculations?:{entries:{key:string;selected:boolean}[]};
@@ -93,6 +95,9 @@ export function validateModelBindings(operation: ResearchModelOperation, raw: un
       // Question-span tokens plus server-owned confirmed geography. Never treat constraint text as a question span.
       const words = new Set(action.publicQueryBasis.quote.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []);
       for (const term of confirmedPublicQueryTerms(context.confirmedConstraints ?? [])) {
+        for (const w of term.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []) words.add(w);
+      }
+      for (const term of context.approvedPublicContextTerms ?? []) {
         for (const w of term.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []) words.add(w);
       }
       if (!(action.query.match(/[\p{L}\p{N}]+/gu)?.length) || (action.query.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) ?? []).some((w) => !words.has(w))) errors.add("unapproved_public_query_terms");
