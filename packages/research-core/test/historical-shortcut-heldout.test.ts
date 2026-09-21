@@ -26,6 +26,9 @@ const CALDERA = "When did Caldera Labs commence operations?";
 const MIXED_LATEST = "When was Vesper Transit founded and what is its latest headcount?";
 const MIXED_ASOF = "When was Helixworks established and what is its employee count as of 2026?";
 const MIXED_VERSION = "When was Nimbus Forge incorporated and what is the latest firmware version?";
+const MIXED_PRESENT_EMPLOYEES = "When was Meridian Rail founded and how many employees work there?";
+const MIXED_EXPLICIT_NOW = "When did Lumen Harbor commence operations, and what is its workforce now?";
+const ONE_CRITERION_MULTI = "In which years were Élan Systems and Ångström Works incorporated?";
 const TWO_COMPANY = "Compare when Helixworks and Nimbus Forge were founded and explain why their expansion strategies differed.";
 const TWO_COMPANY_REVERSED = "Explain why expansion strategies differed after comparing when Nimbus Forge and Helixworks were founded.";
 const TWO_DISTILLERY = "Compare the founding dates of Oakmere Distillery and Caldera Labs and how each later expanded.";
@@ -77,7 +80,10 @@ function gaps(args: {
       const boundSources: FreshnessBoundSource[] = hasSupportedEvidence
         ? [{ publicationDate: dated2015, retrievedAt: now }]
         : [];
-      return { key, policy, coverageUnresolved, hasSupportedEvidence, disputed: false, boundSources };
+      return {
+        key, policy, coverageUnresolved, hasSupportedEvidence, disputed: false, boundSources,
+        historicalCoverageOverrideAllowed: isSimpleHistoricalLookup({ question: args.question, criteria: siblings }),
+      };
     }),
   });
 }
@@ -182,7 +188,7 @@ describe("BB02-02 two-company founding plus expansion retains second-company gap
 });
 
 describe("BB02-03 founded plus latest headcount is not timeless throughout", () => {
-  const mixed = [MIXED_LATEST, MIXED_ASOF, MIXED_VERSION];
+  const mixed = [MIXED_LATEST, MIXED_PRESENT_EMPLOYEES, MIXED_EXPLICIT_NOW, MIXED_VERSION];
 
   it("does not classify a mixed historical-plus-current task as a single timeless historical lookup", () => {
     expect(isHistoricalFactQuestion(NORTHSTAR)).toBe(true);
@@ -190,22 +196,47 @@ describe("BB02-03 founded plus latest headcount is not timeless throughout", () 
       expect(isHistoricalFactQuestion(question), question).toBe(false);
       expect(freshnessPolicyForQuestion(question).class, question).not.toBe("historical");
     }
+    expect(isHistoricalFactQuestion(MIXED_ASOF)).toBe(true);
+    expect(freshnessPolicyForQuestion(MIXED_ASOF).class).toBe("historical");
   });
 
-  it("keeps criterion-specific freshness: founding may be timeless while latest/as-of/version is not", () => {
+  it("keeps criterion-specific freshness: fixed as-of is historical while latest/version remains current", () => {
     const old = [{ publicationDate: dated2012, retrievedAt: now }];
     const northstarFounding = criterionFor(NORTHSTAR, "founding_year");
     const mixedFounding = criterionFor(MIXED_LATEST, "founding_year");
     const mixedHeadcount = criterionFor(MIXED_LATEST, "latest_headcount");
     const asOfCount = criterionFor(MIXED_ASOF, "employee_count_as_of");
+    asOfCount.field = "employee count as of 2026";
+    asOfCount.provenance = {
+      start: MIXED_ASOF.indexOf(asOfCount.field),
+      end: MIXED_ASOF.indexOf(asOfCount.field) + asOfCount.field.length,
+      quote: asOfCount.field,
+    };
     const firmware = criterionFor(MIXED_VERSION, "latest_firmware_version");
     expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(NORTHSTAR, northstarFounding), old, now)).toBe(false);
     expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_LATEST, mixedFounding, [mixedFounding, mixedHeadcount]), old, now)).toBe(false);
     expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_LATEST, mixedHeadcount, [mixedFounding, mixedHeadcount]), old, now)).toBe(true);
-    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount), old, now)).toBe(true);
+    expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount), old, now)).toBe(false);
     expect(criterionBoundFreshnessUnmet(freshnessPolicyForCriterion(MIXED_VERSION, firmware), old, now)).toBe(true);
     expect(freshnessPolicyForCriterion(MIXED_LATEST, mixedHeadcount, [mixedFounding, mixedHeadcount]).class).not.toBe("historical");
-    expect(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount).class).not.toBe("historical");
+    expect(freshnessPolicyForCriterion(MIXED_ASOF, asOfCount).class).toBe("historical");
+  });
+
+  it("classifies present-tense workforce facts locally without making their founding siblings current", () => {
+    for (const [question, currentQuote] of [
+      [MIXED_PRESENT_EMPLOYEES, "how many employees work there"],
+      [MIXED_EXPLICIT_NOW, "workforce now"],
+    ] as const) {
+      const foundedQuote = question.includes("founded") ? "founded" : "commence operations";
+      const founding = criterionFor(question, "founding_year");
+      founding.field = foundedQuote;
+      founding.provenance = { start: question.indexOf(foundedQuote), end: question.indexOf(foundedQuote) + foundedQuote.length, quote: foundedQuote };
+      const workforce = criterionFor(question, "workforce_size");
+      workforce.field = currentQuote;
+      workforce.provenance = { start: question.indexOf(currentQuote), end: question.indexOf(currentQuote) + currentQuote.length, quote: currentQuote };
+      expect(freshnessPolicyForCriterion(question, founding, [founding, workforce]).class, question).toBe("historical");
+      expect(freshnessPolicyForCriterion(question, workforce, [founding, workforce]).class, question).not.toBe("historical");
+    }
   });
 
   it("retains the current criterion after a supported founding assertion, including when freshness is unmet", () => {
@@ -220,6 +251,29 @@ describe("BB02-03 founded plus latest headcount is not timeless throughout", () 
     expect(result.unresolvedCriterionKeys).not.toContain("founding_year");
     expect(result.freshnessUnmet).toBe(true);
     expect(continuation(MIXED_LATEST, result.unresolvedCriterionKeys, result.freshnessUnmet).continue).toBe(true);
+  });
+});
+
+describe("RES-02 compound historical semantics", () => {
+  it("does not grant the simple-history shortcut to one criterion that spans multiple entities", () => {
+    const compound = criterionFor(ONE_CRITERION_MULTI, "incorporation_years");
+    compound.field = ONE_CRITERION_MULTI;
+    compound.provenance = { start: 0, end: ONE_CRITERION_MULTI.length, quote: ONE_CRITERION_MULTI };
+    expect(freshnessPolicyForCriterion(ONE_CRITERION_MULTI, compound).class).toBe("historical");
+    expect(isSimpleHistoricalLookup({ question: ONE_CRITERION_MULTI, criteria: [compound] })).toBe(false);
+    const result = discoveryContinuationGaps({
+      now,
+      criteria: [{
+        key: compound.key,
+        policy: freshnessPolicyForCriterion(ONE_CRITERION_MULTI, compound),
+        coverageUnresolved: true,
+        hasSupportedEvidence: true,
+        disputed: false,
+        boundSources: [{ publicationDate: dated2015, retrievedAt: now }],
+        historicalCoverageOverrideAllowed: isSimpleHistoricalLookup({ question: ONE_CRITERION_MULTI, criteria: [compound] }),
+      }],
+    });
+    expect(result.unresolvedCriterionKeys).toEqual(["incorporation_years"]);
   });
 });
 

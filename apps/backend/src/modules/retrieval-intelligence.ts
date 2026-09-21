@@ -4,12 +4,15 @@ import {
   canonicalPrivateTermSet,
   clusterSourceOrigins,
   evaluateFreshness,
+  FRESHNESS_CLASSES,
+  FRESHNESS_POLICY_VERSIONS,
   freshnessPolicyForQuestion,
   planSourceClass,
   privateTermSetsEqual,
   reconcileDocumentClaim,
   recordSearchCoverage,
   type QueryAuthorization,
+  type FreshnessPolicy,
   type ReconciliationResult,
   type SearchCoverage,
   type SourceClass,
@@ -272,27 +275,56 @@ export async function persistSourceOrigins(db: Queryable, args: { accountId: str
 
 export async function persistFreshnessPolicy(
   db: Queryable,
-  args: { accountId: string; runId: string; question: string; criterionKey?: string },
-) {
-  const policy = freshnessPolicyForQuestion(args.question, args.criterionKey);
+  args: { accountId: string; runId: string; question: string; criterionKey?: string; policy?: FreshnessPolicy },
+): Promise<FreshnessPolicy> {
+  const proposed = args.policy ?? freshnessPolicyForQuestion(args.question, args.criterionKey);
+  const criterionKey = args.criterionKey ?? "default";
   await db.query(
     `INSERT INTO criterion_freshness_policies(id,account_id,run_id,criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
-     ON CONFLICT (run_id, criterion_key) DO UPDATE SET class=EXCLUDED.class, max_age_hours=EXCLUDED.max_age_hours, requires_effective_date=EXCLUDED.requires_effective_date, requires_version=EXCLUDED.requires_version, policy=EXCLUDED.policy
-     WHERE criterion_freshness_policies.account_id=EXCLUDED.account_id`,
+     ON CONFLICT (run_id, criterion_key) DO NOTHING`,
     [
       crypto.randomUUID(),
       args.accountId,
       args.runId,
-      args.criterionKey ?? "default",
-      policy.class,
-      policy.maxAgeHours,
-      policy.requiresEffectiveDate,
-      policy.requiresVersion,
-      JSON.stringify(policy),
+      criterionKey,
+      proposed.class,
+      proposed.maxAgeHours,
+      proposed.requiresEffectiveDate,
+      proposed.requiresVersion,
+      JSON.stringify(proposed),
     ],
   );
-  return policy;
+  const stored = await db.query<{
+    class: string;
+    max_age_hours: number | null;
+    requires_effective_date: boolean;
+    requires_version: boolean;
+    policy: unknown;
+  }>(
+    `SELECT class,max_age_hours,requires_effective_date,requires_version,policy
+       FROM criterion_freshness_policies
+      WHERE account_id=$1 AND run_id=$2 AND criterion_key=$3`,
+    [args.accountId, args.runId, criterionKey],
+  );
+  const row = stored.rows[0];
+  if (!row) throw new Error("freshness_policy_owner_mismatch");
+  const value = row.policy;
+  if (!value || typeof value !== "object") throw new Error("stored_freshness_policy_invalid");
+  const candidate = value as Partial<FreshnessPolicy>;
+  if (
+    !FRESHNESS_POLICY_VERSIONS.includes(candidate.version as (typeof FRESHNESS_POLICY_VERSIONS)[number])
+    || !FRESHNESS_CLASSES.includes(candidate.class as (typeof FRESHNESS_CLASSES)[number])
+    || (candidate.maxAgeHours !== null && (!Number.isInteger(candidate.maxAgeHours) || Number(candidate.maxAgeHours) < 0))
+    || typeof candidate.requiresEffectiveDate !== "boolean"
+    || typeof candidate.requiresVersion !== "boolean"
+    || typeof candidate.rationale !== "string"
+    || row.class !== candidate.class
+    || row.max_age_hours !== candidate.maxAgeHours
+    || row.requires_effective_date !== candidate.requiresEffectiveDate
+    || row.requires_version !== candidate.requiresVersion
+  ) throw new Error("stored_freshness_policy_invalid");
+  return candidate as FreshnessPolicy;
 }
 
 export type ScopedReconciliationResult = Omit<ReconciliationResult,"version"|"sourceScope"> & {

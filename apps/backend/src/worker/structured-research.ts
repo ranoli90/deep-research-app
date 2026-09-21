@@ -7,7 +7,7 @@ import { getCounterevidence } from "../modules/counterevidence.js";
 import { publicSearchDigest,discoveryPolicyForNewSearch,DISCOVERY_ATTEMPT_RESERVE_MICRO } from "../ports/search.js";
 import { executeCalculationPlanning } from "./calculation-planning.js";
 import { executeScopeComparison } from "./scope-comparison.js";
-import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForCriterion,hasSupportedEvidenceForCriterion,isSimpleHistoricalLookup,discoveryContinuationGaps,furtherHistoricalSourceReadsNeeded,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,openingDiscoveryFromBrief,type CandidateLedgerCoverage,type FreshnessCriterionInput,type SourceClass } from "@deep/research-core";
+import { compileResearchIntent,counterevidenceSearch,nextUninspectedSelection,EMPTY_SELECTION_RECOVERY_VERSION,evaluateDiscoveryContinuation,planSourceClass,nextSourceClass,constrainSourcePlan,isWeakSourceClass,independentConfirmationCount,freshnessPolicyForCriterion,hasSupportedEvidenceForCriterion,isSimpleHistoricalLookup,discoveryContinuationGaps,furtherHistoricalSourceReadsNeeded,recordSearchCoverage,buildEvidenceNeeds,highestValueNeed,updateNeedsFromCoverage,applyNeedEvidence,planTypedQuery,policyFromRestrictions,withConfirmedPublicQueryTerms,DEEP_DISCOVERY_CEILING,extractCandidates,buildCandidateLedger,reopenExclusions,mergeCandidateRecords,impactForCorrection,openingDiscoveryFromBrief,type CandidateLedgerCoverage,type FreshnessCriterionInput,type FreshnessPolicy,type FreshnessPolicyVersion,type SourceClass } from "@deep/research-core";
 import { pendingQueryAuthorization,persistFreshnessPolicy,persistSearchCoverage,hasPublicQueryApproval,loadRunStoredSources,recordQueryAuthorization,authorizeDiscoveryQuery,loadPrivateDocumentText,loadApprovedPrivateTerms,queryAuthorizationDigest } from "../modules/retrieval-intelligence.js";
 import { runRemainingBudgetMicro } from "../modules/live-spend.js";
 import { admitResearchIteration,loadDiscoveryAttempts,loadEvidenceNeeds,persistEvidenceNeeds,loadCandidateLedger,persistCandidateLedger,loadReadablePassageIds } from "../modules/research-controller.js";
@@ -51,6 +51,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   const run=(await getRun(pool,args.runId))!;
   const brief=await getBrief(pool,run.brief_id);
   const CONCURRENT_SOURCE_READS=3;
+  let activeFreshnessVersion:FreshnessPolicyVersion|undefined;
+  let activeRunFreshnessPolicy:FreshnessPolicy|undefined;
+  const criterionFreshnessPolicies=new Map<string,FreshnessPolicy>();
   const unreadAdoptedHandles=async()=>{
     const rows=await pool.query<{id:string}>(
       `SELECT s.id FROM sources s
@@ -74,6 +77,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       const stored=await loadRunStoredSources(pool,{accountId:args.accountId,runId:args.runId});
       if(!furtherHistoricalSourceReadsNeeded({
         question:brief.originalQuestion,sources:stored,criteria:read.criteria,
+        policyVersion:activeFreshnessVersion,restoredPolicy:activeRunFreshnessPolicy,
         historicalLookupSatisfied:read.historicalLookupSatisfied===true,readPhase:read.readPhase??"cap",
       })) break;
       const batch=handles.slice(i,i+CONCURRENT_SOURCE_READS);
@@ -174,10 +178,29 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   }
   await session.write(async(db)=>{
     await revalidateSourcePolicy(db,args);
-    await persistFreshnessPolicy(db,{...args,question:brief.originalQuestion});
+    const runPolicy=await persistFreshnessPolicy(db,{...args,question:brief.originalQuestion});
+    activeFreshnessVersion=runPolicy.version;
+    activeRunFreshnessPolicy=runPolicy;
+    for(const criterion of prepared.task.specification.criteria){
+      if(runPolicy.version==="criterion-freshness.v2"){
+        criterionFreshnessPolicies.set(criterion.key,runPolicy);
+        continue;
+      }
+      const proposed=freshnessPolicyForCriterion(
+        brief.originalQuestion,criterion,prepared.task.specification.criteria,runPolicy.version,
+      );
+      const stored=await persistFreshnessPolicy(db,{...args,question:brief.originalQuestion,criterionKey:criterion.key,policy:proposed});
+      if(stored.version!==runPolicy.version)throw new Error("freshness_policy_version_mismatch");
+      criterionFreshnessPolicies.set(criterion.key,stored);
+    }
     await setPhase(db,args.runId,"researching");
     await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"criteria_prepared",phase:"researching",
       summary:"Research questions and criteria are ready.",payload:{taskId:prepared.task.id,briefRevision:args.briefRevision,strategy:run.research_strategy}});
+  });
+  if(!activeFreshnessVersion)throw new Error("freshness_policy_unavailable");
+  const simpleHistoricalLookup=isSimpleHistoricalLookup({
+    question:brief.originalQuestion,criteria:prepared.task.specification.criteria,
+    policyVersion:activeFreshnessVersion,restoredPolicy:activeRunFreshnessPolicy,
   });
   if(opts.pauseAt==="researching")return;
   const selectionEnabled=await session.write(db=>usesEvidenceSelection(db,args));
@@ -334,7 +357,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     }
     if(!extraction.output.assertions.length){
       if(prior)return writeFromPrior("no_relevant_assertions");
-      if(isSimpleHistoricalLookup({question:brief.originalQuestion,criteria:prepared.task.specification.criteria})){
+      if(simpleHistoricalLookup){
         const unread=await unreadAdoptedHandles();
         if(unread.length){
           await readAdoptedSources(prepared.task.id,unread,Object.keys(prepared.task.questionIds),"Read remaining adopted sources after an empty extraction.",{criteria:prepared.task.specification.criteria,historicalLookupSatisfied:false,readPhase:"drain"});
@@ -422,7 +445,8 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const passageToSource=new Map(passageSourceRows.map((row)=>[row.passage_id,row.source_id]));
     const sourcesById=new Map(sources.map((source)=>[source.id,source]));
     const gapRecords=prepared.task.specification.criteria.map((criterion)=>{
-      const policy=freshnessPolicyForCriterion(brief.originalQuestion,criterion,prepared.task.specification.criteria);
+      const policy=criterionFreshnessPolicies.get(criterion.key);
+      if(!policy)throw new Error("criterion_freshness_policy_unavailable");
       const boundIds=new Set<string>();
       for(const assertion of extraction.output.assertions){
         if(!assertion.criterionKeys.includes(criterion.key))continue;
@@ -442,13 +466,14 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
         key:criterion.key,policy,
         coverageUnresolved:review.coverage.unresolvedCriterionKeys.includes(criterion.key),
         hasSupportedEvidence:supported,disputed,boundSources,
+        historicalCoverageOverrideAllowed:simpleHistoricalLookup,
       };
     });
     const gaps=discoveryContinuationGaps({criteria:gapRecords});
     const freshnessUnmet=gaps.freshnessUnmet;
     const unresolvedCriterionKeys=gaps.unresolvedCriterionKeys;
     const unresolvedFreshnessCriteria=Object.entries(gaps.freshnessUnmetByKey).filter(([,unmet])=>unmet).map(([key])=>key);
-    if(isSimpleHistoricalLookup({question:brief.originalQuestion,criteria:prepared.task.specification.criteria})&&unresolvedCriterionKeys.length>0){
+    if(simpleHistoricalLookup&&unresolvedCriterionKeys.length>0){
       const unread=await unreadAdoptedHandles();
       if(unread.length){
         await readAdoptedSources(prepared.task.id,unread,Object.keys(prepared.task.questionIds),"Read remaining adopted sources after insufficient historical evidence.",{criteria:prepared.task.specification.criteria,historicalLookupSatisfied:false,readPhase:"drain"});

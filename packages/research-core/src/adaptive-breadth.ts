@@ -1,5 +1,5 @@
 import { DEEP_DISCOVERY_CEILING, MAX_DISCOVERY_QUERIES } from "./discovery-planning.js";
-import { isSimpleHistoricalLookup, type FreshnessCriterionInput } from "./freshness.js";
+import { isSimpleHistoricalLookup, type FreshnessCriterionInput, type FreshnessPolicy, type FreshnessPolicyVersion } from "./freshness.js";
 import { independentConfirmationCount } from "./independence.js";
 import type { StoredSource } from "./types.js";
 import type { SourceClass } from "./source-strategy.js";
@@ -17,10 +17,17 @@ export function furtherHistoricalSourceReadsNeeded(args: {
   question: string;
   sources: ReadonlyArray<StoredSource>;
   criteria?: ReadonlyArray<FreshnessCriterionInput>;
+  policyVersion?: FreshnessPolicyVersion;
+  restoredPolicy?: FreshnessPolicy;
   historicalLookupSatisfied?: boolean;
   readPhase?: "cap" | "drain";
 }): boolean {
-  if (!isSimpleHistoricalLookup({ question: args.question, criteria: args.criteria })) return true;
+  if (!isSimpleHistoricalLookup({
+    question: args.question,
+    criteria: args.criteria,
+    policyVersion: args.policyVersion,
+    restoredPolicy: args.restoredPolicy,
+  })) return true;
   if (args.historicalLookupSatisfied) return false;
   if ((args.readPhase ?? "cap") === "drain") return true;
   const readable = args.sources.filter((s) => READABLE_ACCESS.has(s.accessLevel));

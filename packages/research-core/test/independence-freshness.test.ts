@@ -206,6 +206,7 @@ describe("historical discovery stop", () => {
         hasSupportedEvidence: true,
         disputed: false,
         boundSources: [official2015],
+        historicalCoverageOverrideAllowed: true,
       }],
       now,
     });
@@ -344,15 +345,18 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     expect(freshnessPolicyForCriterion(q, price).class).toBe("price");
   });
 
-  it("U-CLASS-VETO: latest/headcount/as of now veto; bare employees/now and as of 2011 do not", () => {
+  it("U-CLASS-VETO: explicit and natural present workforce facts are current; fixed-date facts are historical", () => {
     expect(hasRecencyVeto("latest headcount")).toBe(true);
     expect(hasRecencyVeto("employee count")).toBe(true);
     expect(hasRecencyVeto("as of now")).toBe(true);
     expect(hasRecencyVeto("as of today")).toBe(true);
     expect(hasRecencyVeto("5000 employees")).toBe(false);
-    expect(hasRecencyVeto("founded now")).toBe(false);
+    expect(hasRecencyVeto("How many employees work there?")).toBe(true);
+    expect(hasRecencyVeto("What is its workforce size?")).toBe(true);
+    expect(hasRecencyVeto("founded now")).toBe(true);
     expect(hasRecencyVeto("as of 2011")).toBe(false);
     expect(isHistoricalFactQuestion("When was it founded as of 2011?")).toBe(true);
+    expect(freshnessPolicyForQuestion("How many employees did it have in 2014?").class).toBe("historical");
   });
 
   it("U-GAPS-NO-BOOLEAN: discoveryContinuationGaps has no hasSupportedAssertions wipe parameter", () => {
@@ -430,7 +434,7 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     })).toBe(false);
   });
 
-  it("U-HISTORICAL-OTHER-KEYS: supported historical K does not drop coverageUnresolved for J", () => {
+  it("U-HISTORICAL-OTHER-KEYS: compound work preserves every coverage-unresolved semantic obligation", () => {
     const taco = "when was Taco Bell founded";
     const founded = { key: "founded", field: "founded", importance: "hard" as const };
     const extra = { key: "expansion", field: "expansion", importance: "hard" as const };
@@ -441,7 +445,7 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
       ],
       now,
     });
-    expect(gaps.unresolvedCriterionKeys).toEqual(["expansion"]);
+    expect(gaps.unresolvedCriterionKeys).toEqual(["founded", "expansion"]);
   });
 
   it("U-READS-MIXED / CAP / DRAIN / SATISFIED-SIMPLE", () => {
@@ -462,11 +466,25 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     expect(furtherHistoricalSourceReadsNeeded({ question: taco, sources: twoReadable })).toBe(true);
   });
 
-  it("U-VERSION-UNION: new policies are v3 and the type accepts v2", () => {
-    expect(FRESHNESS_POLICY_VERSION).toBe("criterion-freshness.v3");
-    expect(freshnessPolicyForQuestion("when was Taco Bell founded").version).toBe("criterion-freshness.v3");
+  it("U-VERSION-UNION: new policies are v4 and the type accepts immutable v2 identities", () => {
+    expect(FRESHNESS_POLICY_VERSION).toBe("criterion-freshness.v4");
+    expect(freshnessPolicyForQuestion("when was Taco Bell founded").version).toBe("criterion-freshness.v4");
+    const versionedQuestion = "When was Ardent founded and how many employees work there now?";
+    expect(freshnessPolicyForQuestion(versionedQuestion, undefined, "criterion-freshness.v3").class).toBe("historical");
+    expect(freshnessPolicyForQuestion(versionedQuestion).class).not.toBe("historical");
     const v2 = { ...freshnessPolicyForQuestion("when was Taco Bell founded"), version: "criterion-freshness.v2" as const };
     expect(v2.version).toBe("criterion-freshness.v2");
     expect(criterionBoundFreshnessUnmet(v2, [founded2015], now)).toBe(false);
+    const oldGeneric = {
+      version: "criterion-freshness.v2" as const,
+      class: "generic" as const,
+      maxAgeHours: 24 * 365,
+      requiresEffectiveDate: false,
+      requiresVersion: false,
+      rationale: "Default freshness is a one-year window unless the criterion specifies otherwise.",
+    };
+    const oldQuestion = "When did Caldera Labs commence operations?";
+    const oldCriterion = { key: "operations", field: "commence operations", importance: "hard" as const };
+    expect(isSimpleHistoricalLookup({ question: oldQuestion, criteria: [oldCriterion], restoredPolicy: oldGeneric })).toBe(false);
   });
 });

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type pg from "pg";
 import { CreateRunRequestSchema } from "@deep/contracts";
-import { unresolvedCriticalCriterionLimitation } from "@deep/research-core";
+import { unresolvedCriticalCriterionLimitation, unresolvedCriticalQuestionLimitation } from "@deep/research-core";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
@@ -29,6 +29,8 @@ const scope = { entity: null, plan: null, version: null, geography: null, time: 
 const NORTHSTAR = "When was Northstar Bakery incorporated?";
 const TWO_COMPANY = "Compare when Helixworks and Nimbus Forge were founded and explain why their expansion strategies differed.";
 const MIXED_LATEST = "When was Vesper Transit founded and what is its latest headcount?";
+const COMPOUND_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded?";
+const MIXED_PRESENT_WORKFORCE = "When was Vesper Transit founded and how many employees work there now?";
 
 const HELIX_FACT = "Helixworks was founded in 2007.";
 const NIMBUS_FACT = "Nimbus Forge was founded in 2011.";
@@ -36,6 +38,7 @@ const EXPANSION_FACT = "Helixworks expanded by licensing kitchens; Nimbus Forge 
 const VESPER_FOUNDING = "Vesper Transit was founded in 2012-04-01 according to its charter filing.";
 const VESPER_HEADCOUNT = "Vesper Transit latest headcount is 4,820 employees as of 2026-08-01.";
 const NORTHSTAR_FACT = "Northstar Bakery was incorporated in 1998.";
+const ARDENT_FACT = "Ardent Labs was founded in 2004.";
 const WEATHER_TEXT = "Regional forecast: rain continues through Friday. Almanac rainfall notes only.";
 
 function response(output: unknown) {
@@ -87,7 +90,7 @@ function criterion(question: string, key: string, quote: string) {
   };
 }
 
-function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "vesper-founding" | "vesper-headcount", count: number) {
+function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "ardent" | "vesper-founding" | "vesper-headcount", count: number) {
   return Array.from({ length: count }, (_, i) => {
     if (kind === "weather") {
       return { url: `https://weather-${i}.example/forecast`, title: `Forecast ${i}`, content: WEATHER_TEXT };
@@ -104,6 +107,9 @@ function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" 
     if (kind === "northstar") {
       return { url: `https://northstar-${i}.example/charter`, title: `Northstar charter ${i}`, content: `${NORTHSTAR_FACT} Page dated 2015-03-01.` };
     }
+    if (kind === "ardent") {
+      return { url: `https://ardent-labs-${i}.example/history`, title: `Ardent Labs history ${i}`, content: ARDENT_FACT };
+    }
     if (kind === "vesper-headcount") {
       return { url: `https://vesper-staff-${i}.example/headcount`, title: `Vesper headcount ${i}`, content: VESPER_HEADCOUNT };
     }
@@ -117,6 +123,7 @@ function textForUrl(url: string): string {
   if (/helixworks-/.test(url)) return HELIX_FACT;
   if (/expansion-study-/.test(url)) return EXPANSION_FACT;
   if (/northstar-/.test(url)) return NORTHSTAR_FACT;
+  if (/ardent-labs-/.test(url)) return ARDENT_FACT;
   if (/vesper-staff-/.test(url)) return VESPER_HEADCOUNT;
   if (/vesper-charter-/.test(url)) return VESPER_FOUNDING;
   return WEATHER_TEXT;
@@ -127,12 +134,13 @@ function factForPassage(text: string): { criterionKeys: string[]; text: string }
   if (/Nimbus Forge was founded in 2011/i.test(text)) return { criterionKeys: ["nimbus_founding"], text: NIMBUS_FACT };
   if (/expanded by licensing kitchens/i.test(text)) return { criterionKeys: ["expansion_comparison"], text: EXPANSION_FACT };
   if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT };
+  if (/Ardent Labs was founded in 2004/i.test(text)) return { criterionKeys: ["founding_dates"], text: ARDENT_FACT };
   if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT };
   if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING };
   return null;
 }
 
-async function snapshot(runId: string, accountId: string, extra: Record<string, unknown>) {
+async function snapshot<T extends Record<string, unknown>>(runId: string, accountId: string, extra: T) {
   const searches = (await pool.query(
     `SELECT s.query FROM search_operations s JOIN provider_intents i ON i.id=s.intent_id WHERE s.run_id=$1 ORDER BY i.created_at`,
     [runId],
@@ -147,8 +155,13 @@ async function snapshot(runId: string, accountId: string, extra: Record<string, 
   )).rows as { need_id: string; state: string; criterion_key: string | null; freshness_required: boolean; next_action: { kind?: string; queryHint?: string } }[];
   const report = await getLatestReportForRun(pool, runId, accountId);
   const terminal = (await getRun(pool, runId))?.terminal_outcome;
-  const events = (await pool.query("SELECT type FROM run_events WHERE run_id=$1 ORDER BY sequence", [runId])).rows as { type: string }[];
-  return { searches: searches.map((s) => s.query), readRows, needs, report, terminal, events: events.map((e) => e.type), ...extra };
+  const events = (await pool.query("SELECT type,payload FROM run_events WHERE run_id=$1 ORDER BY sequence", [runId])).rows as { type: string; payload: unknown }[];
+  const policies = (await pool.query(
+    `SELECT criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy
+       FROM criterion_freshness_policies WHERE run_id=$1 ORDER BY criterion_key`,
+    [runId],
+  )).rows;
+  return { searches: searches.map((s) => s.query), readRows, needs, report, terminal, events, policies, ...extra };
 }
 
 function workerConfig() {
@@ -163,6 +176,10 @@ async function runHeldout(
   question: string,
   brief: unknown,
   searchFor: (query: string) => { url: string; title: string; content: string }[],
+  options: {
+    forceCoverageUnresolvedCriterionKeys?: readonly string[];
+    beforeProcess?: (ids: { runId: string; accountId: string }) => Promise<void>;
+  } = {},
 ) {
   const accountId = await withTx(pool, async (db) => {
     const s = await createDevSession(db);
@@ -214,6 +231,7 @@ async function runHeldout(
     }
     if (operation === "research_review_coverage_v1") {
       const approved = new Set(ctx.approvedClaimKeys as string[]);
+      const forced = new Set(options.forceCoverageUnresolvedCriterionKeys ?? []);
       const covered = new Set(
         (ctx.assertions as { key: string; criterionKeys: string[] }[])
           .filter((a) => approved.has(a.key))
@@ -221,7 +239,7 @@ async function runHeldout(
       );
       return response({
         questions: (ctx.task?.questions ?? []).map((q: { key: string; criterionKeys: string[] }) => {
-          const ok = q.criterionKeys.every((k) => covered.has(k));
+          const ok = q.criterionKeys.every((k) => covered.has(k) && !forced.has(k));
           return {
             questionKey: q.key,
             status: ok ? "supported" : "unresolved_at_limit",
@@ -243,9 +261,12 @@ async function runHeldout(
               .filter((a) => approved.includes(a.key))
               .flatMap((a) => a.criterionKeys),
           );
-          return !q.criterionKeys.every((k: string) => covered.has(k));
+          return !q.criterionKeys.every((k: string) => covered.has(k) && !options.forceCoverageUnresolvedCriterionKeys?.includes(k));
         })
         .map((q: { key: string }) => q.key);
+      const unresolvedCriteria = (ctx.task?.criteria ?? [])
+        .map((criterion: { key: string }) => criterion.key)
+        .filter((key: string) => options.forceCoverageUnresolvedCriterionKeys?.includes(key));
       const paragraphs = (ctx.assertions as { key: string; text: string }[])
         .filter((a) => approved.includes(a.key))
         .map((a) => ({ text: a.text, claimKeys: [a.key] }));
@@ -253,7 +274,10 @@ async function runHeldout(
         title: "Held-out findings",
         sections: [{ heading: "Answer", paragraphs: paragraphs.length ? paragraphs : [{ text: NORTHSTAR_FACT, claimKeys: approved.slice(0, 1) }] }],
         unresolvedQuestionKeys: unresolved,
-        limitations: unresolved.length ? ["Some requested questions remain unresolved."] : [],
+        limitations: [
+          ...unresolved.map((key: string) => unresolvedCriticalQuestionLimitation(key, "unresolved_at_limit")),
+          ...unresolvedCriteria.map((key: string) => unresolvedCriticalCriterionLimitation(key)),
+        ],
       });
     }
     throw new Error(`unexpected operation:${operation}`);
@@ -264,6 +288,7 @@ async function runHeldout(
     return readControl(url, textForUrl(url));
   });
   try {
+    await options.beforeProcess?.({ runId, accountId });
     await processRun(pool, { ...workerConfig(), structuredChallengeEnabled: false }, runId);
     const meta = await snapshot(runId, accountId, { operations, searchQueries, readUrls });
     return { runId, accountId, meta };
@@ -365,6 +390,110 @@ describe("held-out historical shortcut worker/DB", () => {
       const limitations = (meta.report?.limitations ?? []) as string[];
       expect(limitations, JSON.stringify(meta)).toContain(unresolvedCriticalCriterionLimitation("latest_headcount"));
     }
+  }, 60_000);
+
+  it("RES-02 keeps a one-criterion, two-entity historical obligation open after evidence for only one entity", async () => {
+    const brief = {
+      objective: COMPOUND_ONE_CRITERION,
+      objectiveProvenance: { start: 0, end: COMPOUND_ONE_CRITERION.length, quote: COMPOUND_ONE_CRITERION },
+      intendedOutput: "answer",
+      criteria: [criterion(COMPOUND_ONE_CRITERION, "founding_dates", COMPOUND_ONE_CRITERION)],
+      questions: [{
+        key: "q_founding_dates",
+        text: COMPOUND_ONE_CRITERION,
+        criterionKeys: ["founding_dates"],
+        importance: "critical",
+        evidenceStandard: "documented outcomes for both entities",
+      }],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [],
+    };
+    const { meta } = await runHeldout(
+      COMPOUND_ONE_CRITERION,
+      brief,
+      () => pages("ardent", 3),
+      { forceCoverageUnresolvedCriterionKeys: ["founding_dates"] },
+    );
+    const need = meta.needs.find((item) => item.criterion_key === "founding_dates");
+    const exhausted = meta.events.find((event) => event.type === "discovery_exhausted");
+    expect(need?.state, JSON.stringify(meta)).not.toBe("satisfied");
+    expect(need?.next_action.kind, JSON.stringify(meta)).not.toBe("stop");
+    expect((exhausted?.payload as { unresolvedCriterionKeys?: string[] } | undefined)?.unresolvedCriterionKeys, JSON.stringify(meta))
+      .toContain("founding_dates");
+    expect(meta.terminal, JSON.stringify(meta)).not.toBe("completed");
+  }, 60_000);
+
+  it("RES-03 treats natural present-tense employee count as current while its founding sibling stays historical", async () => {
+    const brief = {
+      objective: MIXED_PRESENT_WORKFORCE,
+      objectiveProvenance: { start: 0, end: MIXED_PRESENT_WORKFORCE.length, quote: MIXED_PRESENT_WORKFORCE },
+      intendedOutput: "answer",
+      criteria: [
+        criterion(MIXED_PRESENT_WORKFORCE, "founding_year", "founded"),
+        criterion(MIXED_PRESENT_WORKFORCE, "latest_headcount", "how many employees work there now"),
+      ],
+      questions: [
+        { key: "q_founded", text: "When was Vesper Transit founded?", criterionKeys: ["founding_year"], importance: "critical", evidenceStandard: "documented outcomes" },
+        { key: "q_workforce", text: "How many employees work there now?", criterionKeys: ["latest_headcount"], importance: "critical", evidenceStandard: "current first-party figure" },
+      ],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [],
+    };
+    const { meta } = await runHeldout(MIXED_PRESENT_WORKFORCE, brief, (query) => {
+      if (query === MIXED_PRESENT_WORKFORCE) return pages("vesper-founding", 3);
+      if (/employees|workforce|headcount/i.test(query)) return pages("vesper-headcount", 3);
+      return pages("vesper-founding", 3);
+    });
+    const founding = meta.needs.find((item) => item.criterion_key === "founding_year");
+    const workforce = meta.needs.find((item) => item.criterion_key === "latest_headcount");
+    const policyByKey = new Map(meta.policies.map((item) => [String(item.criterion_key), item]));
+    expect(founding?.freshness_required, JSON.stringify(meta)).toBe(false);
+    expect(workforce?.freshness_required, JSON.stringify(meta)).toBe(true);
+    expect(policyByKey.get("founding_year")?.class, JSON.stringify(meta)).toBe("historical");
+    expect(policyByKey.get("latest_headcount")?.class, JSON.stringify(meta)).not.toBe("historical");
+    expect(meta.searches.some((query) => query !== MIXED_PRESENT_WORKFORCE && /employees|workforce|headcount/i.test(query)), JSON.stringify(meta)).toBe(true);
+  }, 60_000);
+
+  it("RES-05 resumes an old run without overwriting persisted v2 identity or meaning", async () => {
+    const brief = {
+      objective: MIXED_PRESENT_WORKFORCE,
+      objectiveProvenance: { start: 0, end: MIXED_PRESENT_WORKFORCE.length, quote: MIXED_PRESENT_WORKFORCE },
+      intendedOutput: "answer",
+      criteria: [
+        criterion(MIXED_PRESENT_WORKFORCE, "founding_year", "founded"),
+        criterion(MIXED_PRESENT_WORKFORCE, "latest_headcount", "how many employees work there now"),
+      ],
+      questions: [
+        { key: "q_founded", text: "When was Vesper Transit founded?", criterionKeys: ["founding_year"], importance: "critical", evidenceStandard: "documented outcomes" },
+        { key: "q_workforce", text: "How many employees work there now?", criterionKeys: ["latest_headcount"], importance: "critical", evidenceStandard: "current first-party figure" },
+      ],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [],
+    };
+    const v2 = {
+      version: "criterion-freshness.v2",
+      class: "historical",
+      maxAgeHours: null,
+      requiresEffectiveDate: false,
+      requiresVersion: false,
+      rationale: "Historical events may prefer contemporaneous authoritative evidence over later summaries.",
+    } as const;
+    const { meta } = await runHeldout(
+      MIXED_PRESENT_WORKFORCE,
+      brief,
+      (query) => query === MIXED_PRESENT_WORKFORCE ? pages("vesper-founding", 3) : pages("vesper-headcount", 3),
+      { beforeProcess: async ({ runId, accountId }) => {
+        await pool.query(
+          `INSERT INTO criterion_freshness_policies(id,account_id,run_id,criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy)
+           VALUES($1,$2,$3,'default','historical',NULL,false,false,$4::jsonb)`,
+          [crypto.randomUUID(), accountId, runId, JSON.stringify(v2)],
+        );
+      } },
+    );
+    expect(meta.policies, JSON.stringify(meta)).toHaveLength(1);
+    expect(meta.policies[0]).toMatchObject({
+      criterion_key: "default",
+      class: "historical",
+      policy: v2,
+    });
+    expect(meta.needs.find((item) => item.criterion_key === "latest_headcount")?.freshness_required, JSON.stringify(meta)).toBe(false);
   }, 60_000);
 
   it("BB02-04 two readable weather pages do not complete a comparison or block reading covering sources", async () => {

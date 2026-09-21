@@ -1,7 +1,7 @@
-export const FRESHNESS_POLICY_VERSIONS = ["criterion-freshness.v2", "criterion-freshness.v3"] as const;
+export const FRESHNESS_POLICY_VERSIONS = ["criterion-freshness.v2", "criterion-freshness.v3", "criterion-freshness.v4"] as const;
 export type FreshnessPolicyVersion = (typeof FRESHNESS_POLICY_VERSIONS)[number];
-/** New writes. Readers must accept v2 | v3; do not rewrite stored v2 rows. */
-export const FRESHNESS_POLICY_VERSION: FreshnessPolicyVersion = "criterion-freshness.v3";
+/** New writes. Readers must retain the meaning of every accepted stored version. */
+export const FRESHNESS_POLICY_VERSION: FreshnessPolicyVersion = "criterion-freshness.v4";
 export const FRESHNESS_CLASSES = ["price", "law", "compatibility", "historical", "science", "generic"] as const;
 export type FreshnessClass = (typeof FRESHNESS_CLASSES)[number];
 export type FreshnessPolicy = {
@@ -21,6 +21,9 @@ export type FreshnessCriterionInput = {
   importance?: string | null;
   provenance?: { start: number; end: number; quote: string } | null;
   scope?: Record<string, string | null> | null;
+  operator?: string | null;
+  groupOperator?: string | null;
+  unresolvedAlternatives?: ReadonlyArray<string> | null;
 };
 
 export type FreshnessBoundSource = {
@@ -37,33 +40,49 @@ export type DiscoveryContinuationCriterion = {
   hasSupportedEvidence: boolean;
   disputed?: boolean;
   boundSources: ReadonlyArray<FreshnessBoundSource>;
+  /** Only the worker's structural task check may authorize ignoring a coverage-model freshness nag. */
+  historicalCoverageOverrideAllowed?: boolean;
 };
 
 const HISTORICAL_TOKENS =
   /\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of|born|birth of|signed the treaty|chartered|commenced operations|commence operations)\b/i;
 
 function policy(
+  version: FreshnessPolicyVersion,
   cls: FreshnessClass,
   maxAgeHours: number | null,
   requiresEffectiveDate: boolean,
   requiresVersion: boolean,
   rationale: string,
 ): FreshnessPolicy {
-  return { version: FRESHNESS_POLICY_VERSION, class: cls, maxAgeHours, requiresEffectiveDate, requiresVersion, rationale };
+  return { version, class: cls, maxAgeHours, requiresEffectiveDate, requiresVersion, rationale };
 }
 
-function historicalPolicy(): FreshnessPolicy {
-  return policy("historical", null, false, false, "Historical events may prefer contemporaneous authoritative evidence over later summaries.");
+function historicalPolicy(version: FreshnessPolicyVersion): FreshnessPolicy {
+  return policy(version, "historical", null, false, false, "Historical events may prefer contemporaneous authoritative evidence over later summaries.");
 }
 
-/** Recency conjuncts on classification text. Bare `employees` / `now` and `as of <date>` are not vetoes. */
-export function hasRecencyVeto(text: string): boolean {
-  if (/\b(current|today|latest)\b/i.test(text)) return true;
+const FIXED_TIME_ANCHOR = /\b(?:as of|in|during|on)\s+(?:(?:19|20)\d{2}(?:-\d{2}-\d{2})?|(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+(?:19|20)\d{2})\b/iu;
+const WORKFORCE_TERM = /\b(?:employees?|staff|headcount|workforce|workers?|team size)\b/iu;
+const PRESENT_WORKFORCE_SHAPE = /\b(?:how many|what (?:is|are)|does|do|is|are|has|have|employs?|work(?:s|ing)?)\b/iu;
+
+function hasRecencyVetoForVersion(text: string, version: FreshnessPolicyVersion): boolean {
+  if (/\b(current|today|latest)\b/iu.test(text)) return true;
+  if (version === "criterion-freshness.v4" && /\b(?:now|currently|at present|right now)\b/iu.test(text)) return true;
+  if (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(text)) return false;
   if (/\b(price|pricing|availability)\b/i.test(text)) return true;
   if (/\bheadcount\b/i.test(text)) return true;
   if (/\bemployee count\b/i.test(text)) return true;
   if (/\bas of (now|today)\b/i.test(text)) return true;
+  if (version === "criterion-freshness.v4") {
+    if (!FIXED_TIME_ANCHOR.test(text) && WORKFORCE_TERM.test(text) && PRESENT_WORKFORCE_SHAPE.test(text)) return true;
+  }
   return false;
+}
+
+/** Recency conjuncts for new policy writes. Stored v2/v3 rows retain their prior classification. */
+export function hasRecencyVeto(text: string): boolean {
+  return hasRecencyVetoForVersion(text, FRESHNESS_POLICY_VERSION);
 }
 
 function hasHistoricalTokens(text: string): boolean {
@@ -72,38 +91,47 @@ function hasHistoricalTokens(text: string): boolean {
 }
 
 /** Past-tense public facts. Current/today/price/latest/headcount questions stay on recency classes. */
-export function isHistoricalFactQuestion(question: string, criterionKey?: string): boolean {
+export function isHistoricalFactQuestion(
+  question: string,
+  criterionKey?: string,
+  version: FreshnessPolicyVersion = FRESHNESS_POLICY_VERSION,
+): boolean {
   const q = `${criterionKey ?? ""} ${question}`;
   if (/current|today|price|pricing/i.test(q)) return false;
-  if (hasRecencyVeto(q)) return false;
+  if (hasRecencyVetoForVersion(q, version)) return false;
+  if (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(q)) return true;
   return hasHistoricalTokens(q);
 }
 
-function freshnessPolicyFromText(text: string): FreshnessPolicy {
+function freshnessPolicyFromText(text: string, version: FreshnessPolicyVersion): FreshnessPolicy {
   if (/current (price|pricing|cost)|price (now|today)|availability/i.test(text)) {
-    return policy("price", 72, true, false, "Current price/availability needs a very recent first-party figure.");
+    return policy(version, "price", 72, true, false, "Current price/availability needs a very recent first-party figure.");
   }
   if (/\b(law|statute|regulation|regulator|legal|jurisdiction|effective|act|cfr|usc)\b/i.test(text)) {
-    return policy("law", null, true, false, "Law needs the current effective rule for the named jurisdiction, not merely a recent article.");
+    return policy(version, "law", null, true, false, "Law needs the current effective rule for the named jurisdiction, not merely a recent article.");
   }
   if (
     /compatib|supported (on|with)|current (firmware|version)|latest (firmware|version)|firmware version|which versions? (?:is|are) (?:supported|compatible)/i.test(
       text,
     )
   ) {
-    return policy("compatibility", null, false, true, "Software compatibility needs the currently applicable version/release.");
+    return policy(version, "compatibility", null, false, true, "Software compatibility needs the currently applicable version/release.");
   }
-  if (!hasRecencyVeto(text) && hasHistoricalTokens(text)) {
-    return historicalPolicy();
+  if (!hasRecencyVetoForVersion(text, version) && (hasHistoricalTokens(text) || (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(text)))) {
+    return historicalPolicy(version);
   }
   if (/\b(study|trial|meta-analysis|systematic review|peer[- ]reviewed)\b/i.test(text)) {
-    return policy("science", null, true, false, "Scientific evidence is dated plus method/relevance, not recency alone.");
+    return policy(version, "science", null, true, false, "Scientific evidence is dated plus method/relevance, not recency alone.");
   }
-  return policy("generic", 24 * 365, false, false, "Default freshness is a one-year window unless the criterion specifies otherwise.");
+  return policy(version, "generic", 24 * 365, false, false, "Default freshness is a one-year window unless the criterion specifies otherwise.");
 }
 
-export function freshnessPolicyForQuestion(question: string, criterionKey?: string): FreshnessPolicy {
-  return freshnessPolicyFromText(`${criterionKey ?? ""} ${question}`.trim());
+export function freshnessPolicyForQuestion(
+  question: string,
+  criterionKey?: string,
+  version: FreshnessPolicyVersion = FRESHNESS_POLICY_VERSION,
+): FreshnessPolicy {
+  return freshnessPolicyFromText(`${criterionKey ?? ""} ${question}`.trim(), version);
 }
 
 function classificationText(question: string, criterion: FreshnessCriterionInput): { text: string; quoteEqualsQuestion: boolean } {
@@ -130,33 +158,49 @@ export function freshnessPolicyForCriterion(
   question: string,
   criterion: FreshnessCriterionInput,
   siblings?: ReadonlyArray<FreshnessCriterionInput>,
+  version: FreshnessPolicyVersion = FRESHNESS_POLICY_VERSION,
 ): FreshnessPolicy {
   const local = classificationText(question, criterion);
-  if (local.quoteEqualsQuestion) return freshnessPolicyForQuestion(question);
+  if (local.quoteEqualsQuestion) return freshnessPolicyForQuestion(question, undefined, version);
   const group = siblings?.length ? siblings : [criterion];
-  const mixed = hasRecencyVeto(question) || group.some((c) => hasRecencyVeto(classificationText(question, c).text));
-  const fromLocal = freshnessPolicyFromText(local.text);
+  const mixed = hasRecencyVetoForVersion(question, version) || group.some((c) => hasRecencyVetoForVersion(classificationText(question, c).text, version));
+  const fromLocal = freshnessPolicyFromText(local.text, version);
   if (mixed) return fromLocal;
-  if (!hasRecencyVeto(local.text) && freshnessPolicyForQuestion(question).class === "historical") {
-    return historicalPolicy();
+  if (!hasRecencyVetoForVersion(local.text, version) && freshnessPolicyForQuestion(question, undefined, version).class === "historical") {
+    return historicalPolicy(version);
   }
   return fromLocal;
 }
 
-/** Exactly one hard (or only) historical criterion and no recency conjunct. Two-company and mixed are not simple. */
+function structurallyAtomicQuestion(question: string, criterion: FreshnessCriterionInput): boolean {
+  if (criterion.operator === "compare" || criterion.groupOperator === "any") return false;
+  if ((criterion.unresolvedAlternatives?.length ?? 0) > 0) return false;
+  // A shortcut is a privilege: coordination, comparison, or plural historical subjects require full coverage review.
+  if (/(?:\s[&+]\s|\b(?:and|or|versus|vs\.?)\b|[;]|\bcompare\b|\bdiffer(?:ed|s|ent)?\b)/iu.test(question)) return false;
+  if (/\bwere\b/iu.test(question)) return false;
+  const provenance = criterion.provenance;
+  if (provenance && question.slice(provenance.start, provenance.end) !== provenance.quote) return false;
+  return true;
+}
+
+/** Exactly one structurally atomic historical criterion and no current fact may use the bounded shortcut. */
 export function isSimpleHistoricalLookup(args: {
   question: string;
   criteria?: ReadonlyArray<FreshnessCriterionInput>;
+  policyVersion?: FreshnessPolicyVersion;
+  restoredPolicy?: FreshnessPolicy;
 }): boolean {
   const criteria = args.criteria ?? [];
+  const version = args.restoredPolicy?.version ?? args.policyVersion ?? FRESHNESS_POLICY_VERSION;
   if (!criteria.length) return false;
-  if (hasRecencyVeto(args.question) || criteria.some((c) => hasRecencyVeto(classificationText(args.question, c).text))) {
+  if (hasRecencyVetoForVersion(args.question, version) || criteria.some((c) => hasRecencyVetoForVersion(classificationText(args.question, c).text, version))) {
     return false;
   }
   const hard = criteria.filter((c) => (c.importance ?? "hard") === "hard");
   const considered = hard.length ? hard : criteria;
   if (considered.length !== 1) return false;
-  return freshnessPolicyForCriterion(args.question, considered[0]!, criteria).class === "historical";
+  return structurallyAtomicQuestion(args.question, considered[0]!)
+    && (args.restoredPolicy?.class ?? freshnessPolicyForCriterion(args.question, considered[0]!, criteria, version).class) === "historical";
 }
 
 export function evaluateFreshness(policy: FreshnessPolicy, args: {
@@ -273,7 +317,7 @@ export function hasSupportedEvidenceForCriterion(args: {
 }
 
 /**
- * Per-criterion continuation. Coverage one-year noise does not keep a supported historical key open.
+ * Per-criterion continuation. Only a structurally proven atomic historical lookup may ignore coverage noise.
  * A supported sibling does not clear remaining keys. Do not wipe all keys because any check is supported.
  */
 export function discoveryContinuationGaps(args: {
@@ -294,7 +338,7 @@ export function discoveryContinuationGaps(args: {
       supported &&
       !freshnessUnmet &&
       !(criterion.coverageUnresolved && criterion.policy.class !== "historical") &&
-      !(criterion.coverageUnresolved && criterion.policy.class === "historical" && !supported);
+      !(criterion.coverageUnresolved && criterion.policy.class === "historical" && !criterion.historicalCoverageOverrideAllowed);
     if (!sufficient) unresolvedCriterionKeys.push(criterion.key);
   }
   const freshnessUnmet = args.criteria.some((c) => c.policy.class !== "historical" && freshnessUnmetByKey[c.key]);
