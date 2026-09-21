@@ -372,10 +372,24 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
       "What was Acme's headcount in Q4 2014?",
       "State the employee count during FY 2016.",
       "Give its workforce in the fourth quarter of 2018.",
+      "How many employees did Acme have during the fiscal year ended June 30, 2024?",
+      "Report Acme's workforce in fiscal year 2024.",
+      "State its headcount for fiscal year ending 2024.",
+      "Give the employee count at the end of fiscal year 2024.",
+      "What was its workforce by fiscal year-end 2023?",
     ]) {
       expect(hasRecencyVeto(question), question).toBe(false);
       expect(isHistoricalFactQuestion(question), question).toBe(true);
       expect(freshnessPolicyForQuestion(question).class, question).toBe("historical");
+    }
+    for (const question of [
+      "What is Acme's current headcount for fiscal year 2024?",
+      "Report Acme's live workforce during the fiscal year ending 2024.",
+      "How many employees work there in the current fiscal year?",
+    ]) {
+      expect(hasRecencyVeto(question), question).toBe(true);
+      expect(isHistoricalFactQuestion(question), question).toBe(false);
+      expect(freshnessPolicyForQuestion(question).class, question).not.toBe("historical");
     }
   });
 
@@ -486,15 +500,23 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     expect(furtherHistoricalSourceReadsNeeded({ question: taco, sources: twoReadable })).toBe(true);
   });
 
-  it("U-VERSION-UNION: new policies are v4 and the type accepts immutable v2 identities", () => {
+  it("U-VERSION-UNION: exact v2 classification remains reconstructible while new policies use v4", () => {
     expect(FRESHNESS_POLICY_VERSION).toBe("criterion-freshness.v4");
     expect(freshnessPolicyForQuestion("when was Taco Bell founded").version).toBe("criterion-freshness.v4");
     const versionedQuestion = "When was Ardent founded and how many employees work there now?";
     expect(freshnessPolicyForQuestion(versionedQuestion, undefined, "criterion-freshness.v3").class).toBe("historical");
     expect(freshnessPolicyForQuestion(versionedQuestion).class).not.toBe("historical");
-    const v2 = { ...freshnessPolicyForQuestion("when was Taco Bell founded"), version: "criterion-freshness.v2" as const };
+    const v2 = freshnessPolicyForQuestion("when was Taco Bell founded", undefined, "criterion-freshness.v2");
     expect(v2.version).toBe("criterion-freshness.v2");
+    expect(v2.class).toBe("historical");
     expect(criterionBoundFreshnessUnmet(v2, [founded2015], now)).toBe(false);
+    const v2Price = freshnessPolicyForQuestion(
+      "What is the current price of the Northstar plan?",
+      undefined,
+      "criterion-freshness.v2",
+    );
+    expect(v2Price.class).toBe("price");
+    expect(v2Price.requiresEffectiveDate).toBe(true);
     const oldGeneric = {
       version: "criterion-freshness.v2" as const,
       class: "generic" as const,

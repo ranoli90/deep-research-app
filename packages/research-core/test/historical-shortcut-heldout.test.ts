@@ -261,6 +261,12 @@ describe("RES-02 compound historical semantics", () => {
       "Founding dates: Élan Systems, Ångström Works.",
       "Give the founding years for Élan Systems / Ångström Works.",
       "When was Élan Systems incorporated? When was Ångström Works incorporated?",
+      "when were acme and beta works founded?",
+      "founding dates: acme, beta works.",
+      "Give the founding years for ACME / beta WORKS.",
+      "when was acme incorporated? when was beta works incorporated?",
+      "When were the two organizations founded?",
+      "WHEN WERE THE TWO ORGANIZATIONS FOUNDED?",
     ]) {
       const compound = criterionFor(question, "incorporation_years");
       compound.field = question;
@@ -297,6 +303,12 @@ describe("RES-02 compound historical semantics", () => {
     atomic.field = "Northstar Bakery";
     atomic.provenance = { start: NORTHSTAR.indexOf("Northstar Bakery"), end: NORTHSTAR.indexOf("Northstar Bakery") + "Northstar Bakery".length, quote: "Northstar Bakery" };
     expect(isSimpleHistoricalLookup({ question: NORTHSTAR, criteria: [atomic] })).toBe(true);
+    for (const question of ["when was acme founded?", "when was northstar bakery incorporated?"]) {
+      const lowerAtomic = criterionFor(question, "origin");
+      lowerAtomic.field = question;
+      lowerAtomic.provenance = { start: 0, end: question.length, quote: question };
+      expect(isSimpleHistoricalLookup({ question, criteria: [lowerAtomic] }), question).toBe(true);
+    }
   });
 });
 

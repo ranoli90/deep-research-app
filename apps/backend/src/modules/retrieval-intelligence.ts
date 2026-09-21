@@ -298,6 +298,17 @@ export async function persistFreshnessPolicy(
     throw new Error("freshness_policy_proposal_mismatch");
   }
   const criterionKey = args.criterionKey ?? "default";
+  if (proposed.version === "criterion-freshness.v2") {
+    const admitted = await db.query<{ original_question: string }>(
+      `SELECT b.original_question
+         FROM runs r
+         JOIN research_briefs b ON b.id=r.brief_id AND b.account_id=r.account_id
+        WHERE r.id=$1 AND r.account_id=$2`,
+      [args.runId, args.accountId],
+    );
+    if (!admitted.rows[0]) throw new Error("freshness_policy_owner_mismatch");
+    if (admitted.rows[0].original_question !== args.question) throw new Error("freshness_policy_question_mismatch");
+  }
   await db.query(
     `INSERT INTO criterion_freshness_policies(id,account_id,run_id,criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -320,10 +331,13 @@ export async function persistFreshnessPolicy(
     requires_effective_date: boolean;
     requires_version: boolean;
     policy: unknown;
+    original_question: string;
   }>(
-    `SELECT class,max_age_hours,requires_effective_date,requires_version,policy
-       FROM criterion_freshness_policies
-      WHERE account_id=$1 AND run_id=$2 AND criterion_key=$3`,
+    `SELECT p.class,p.max_age_hours,p.requires_effective_date,p.requires_version,p.policy,b.original_question
+       FROM criterion_freshness_policies p
+       JOIN runs r ON r.id=p.run_id AND r.account_id=p.account_id
+       JOIN research_briefs b ON b.id=r.brief_id AND b.account_id=p.account_id
+      WHERE p.account_id=$1 AND p.run_id=$2 AND p.criterion_key=$3`,
     [args.accountId, args.runId, criterionKey],
   );
   const row = stored.rows[0];
@@ -348,7 +362,12 @@ export async function persistFreshnessPolicy(
   if (args.policy && args.policy.version !== policy.version) {
     throw new Error("stored_freshness_policy_version_mismatch");
   }
-  if (policy.version !== "criterion-freshness.v2") {
+  if (policy.version === "criterion-freshness.v2") {
+    const expected = freshnessPolicyForQuestion(row.original_question, undefined, policy.version);
+    if (criterionKey !== "default" || args.question !== row.original_question || !sameFreshnessPolicy(policy, expected)) {
+      throw new Error("stored_freshness_policy_semantic_mismatch");
+    }
+  } else {
     const expected = args.criterion
       ? freshnessPolicyForCriterion(args.question, args.criterion, args.siblingCriteria, policy.version)
       : freshnessPolicyForQuestion(args.question, args.criterionKey, policy.version);

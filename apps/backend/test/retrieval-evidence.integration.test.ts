@@ -146,7 +146,27 @@ describe("Session B retrieval/evidence worker path", () => {
     expect((await pool.query("SELECT 1 FROM search_coverage WHERE account_id=$1", [x.accountId])).rowCount).toBe(0);
   }));
 
-  it("restores valid v3/v4 freshness identities and fails closed on semantic, row, owner, or version mismatch", async () => runCase(async (x) => {
+  it("restores valid v2/v3/v4 identities and fails closed on legacy meaning, semantic, row, owner, or version mismatch", async () => runCase(async (x) => {
+    const v2 = freshnessPolicyForQuestion(question, undefined, "criterion-freshness.v2");
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question, policy: v2 })).toEqual(v2);
+    expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question })).toEqual(v2);
+    const wrongQuestion = "What is the current price of Zephyr Pro?";
+    await expect(persistFreshnessPolicy(pool, {
+      accountId: x.accountId,
+      runId: x.runId,
+      question: wrongQuestion,
+      policy: freshnessPolicyForQuestion(wrongQuestion, undefined, "criterion-freshness.v2"),
+    })).rejects.toThrow("freshness_policy_question_mismatch");
+    const wrongV2 = freshnessPolicyForQuestion("When was Zephyr Pro founded?", undefined, "criterion-freshness.v2");
+    await pool.query(
+      `UPDATE criterion_freshness_policies
+          SET class=$3,max_age_hours=$4,requires_effective_date=$5,requires_version=$6,policy=$7::jsonb
+        WHERE account_id=$1 AND run_id=$2 AND criterion_key='default'`,
+      [x.accountId, x.runId, wrongV2.class, wrongV2.maxAgeHours, wrongV2.requiresEffectiveDate, wrongV2.requiresVersion, JSON.stringify(wrongV2)],
+    );
+    await expect(persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question }))
+      .rejects.toThrow("stored_freshness_policy_semantic_mismatch");
+
     const priceQuestion = "What is the current price of Zephyr Pro?";
     const v4 = freshnessPolicyForQuestion(priceQuestion, "price", "criterion-freshness.v4");
     expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion, criterionKey: "price", policy: v4 })).toEqual(v4);

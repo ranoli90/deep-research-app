@@ -70,8 +70,11 @@ export function resolveResearchCoverage(args:{question:string;task:Task;assertio
         const linkedQuestions=args.task.questions.filter((candidate)=>candidate.criterionKeys.includes(key));
         const allObligations=requestedCriterionObligations({originalQuestion:args.question,criterion,questions:linkedQuestions});
         const questionObligations=requestedCriterionObligations({originalQuestion:args.question,criterion,questions:[question]});
-        const compound=linkedQuestions.length>1||allObligations.entities.length>1||allObligations.facts.length>1;
+        const compound=allObligations.compound||questionObligations.compound;
         if(compound) {
+          if(allObligations.unresolvedCompound||questionObligations.unresolvedCompound) {
+            failedChecks.push(`criterion_compound_obligations_unresolved:${key}`);
+          }
           for(const entity of questionObligations.entities) {
             if(!relevant.some((assertion)=>assertionCoversRequestedEntity(assertion,entity))) {
               failedChecks.push(`criterion_entity_without_assertion:${key}:${obligationKey(entity)}`);

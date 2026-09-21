@@ -65,19 +65,21 @@ function historicalPolicy(version: FreshnessPolicyVersion): FreshnessPolicy {
 }
 
 const FIXED_TIME_ANCHOR = /\b(?:(?:as of|in|during|on)\s+(?:(?:(?:fiscal|fy)\s*)?(?:q[1-4]\s*)?(?:19|20)\d{2}(?:-\d{2}-\d{2})?|(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+(?:19|20)\d{2})|(?:fiscal|fy)\s*(?:19|20)\d{2}|q[1-4]\s*(?:of\s*)?(?:19|20)\d{2}|(?:at|by)\s+(?:the\s+)?(?:start|beginning|end|close)\s+of\s+(?:(?:fiscal|calendar)\s+)?(?:19|20)\d{2}|(?:first|second|third|fourth)\s+quarter(?:\s+of)?\s+(?:19|20)\d{2})\b/iu;
+const FISCAL_PERIOD_ANCHOR = /\b(?:(?:(?:in|during|for)\s+(?:the\s+)?)?(?:fiscal\s+year|fy)\s+(?:(?:ended|ending)(?:\s+on)?\s+)?(?:(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+)?(?:19|20)\d{2}|(?:at|by)\s+(?:the\s+)?(?:start|beginning|end|close)\s+of\s+(?:the\s+)?(?:fiscal\s+year|fy)\s+(?:19|20)\d{2}|(?:at|by)\s+(?:the\s+)?fiscal\s+year[- ]end\s+(?:19|20)\d{2})\b/iu;
 const WORKFORCE_TERM = /\b(?:employees?|staff|headcount|workforce|workers?|team size)\b/iu;
 const PRESENT_WORKFORCE_SHAPE = /\b(?:how many|number of|what (?:is|are)|state|report|provide|give|list|tell|does|do|is|are|has|have|employs?|work(?:s|ing)?)\b/iu;
+const hasFixedTimeAnchor = (text: string) => FIXED_TIME_ANCHOR.test(text) || FISCAL_PERIOD_ANCHOR.test(text);
 
 function hasRecencyVetoForVersion(text: string, version: FreshnessPolicyVersion): boolean {
   if (/\b(current|today|latest)\b/iu.test(text)) return true;
-  if (version === "criterion-freshness.v4" && /\b(?:now|currently|at present|right now)\b/iu.test(text)) return true;
-  if (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(text)) return false;
+  if (version === "criterion-freshness.v4" && /\b(?:live|now|currently|at present|right now)\b/iu.test(text)) return true;
+  if (version === "criterion-freshness.v4" && hasFixedTimeAnchor(text)) return false;
   if (/\b(price|pricing|availability)\b/i.test(text)) return true;
   if (/\bheadcount\b/i.test(text)) return true;
   if (/\bemployee count\b/i.test(text)) return true;
   if (/\bas of (now|today)\b/i.test(text)) return true;
   if (version === "criterion-freshness.v4") {
-    if (!FIXED_TIME_ANCHOR.test(text) && WORKFORCE_TERM.test(text) && PRESENT_WORKFORCE_SHAPE.test(text)) return true;
+    if (!hasFixedTimeAnchor(text) && WORKFORCE_TERM.test(text) && PRESENT_WORKFORCE_SHAPE.test(text)) return true;
   }
   return false;
 }
@@ -101,7 +103,7 @@ export function isHistoricalFactQuestion(
   const q = `${criterionKey ?? ""} ${question}`;
   if (/current|today|price|pricing/i.test(q)) return false;
   if (hasRecencyVetoForVersion(q, version)) return false;
-  if (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(q)) return true;
+  if (version === "criterion-freshness.v4" && hasFixedTimeAnchor(q)) return true;
   return hasHistoricalTokens(q);
 }
 
@@ -119,7 +121,7 @@ function freshnessPolicyFromText(text: string, version: FreshnessPolicyVersion):
   ) {
     return policy(version, "compatibility", null, false, true, "Software compatibility needs the currently applicable version/release.");
   }
-  if (!hasRecencyVetoForVersion(text, version) && (hasHistoricalTokens(text) || (version === "criterion-freshness.v4" && FIXED_TIME_ANCHOR.test(text)))) {
+  if (!hasRecencyVetoForVersion(text, version) && (hasHistoricalTokens(text) || (version === "criterion-freshness.v4" && hasFixedTimeAnchor(text)))) {
     return historicalPolicy(version);
   }
   if (/\b(study|trial|meta-analysis|systematic review|peer[- ]reviewed)\b/i.test(text)) {

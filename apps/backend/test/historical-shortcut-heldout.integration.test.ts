@@ -29,9 +29,9 @@ const scope = { entity: null, plan: null, version: null, geography: null, time: 
 const NORTHSTAR = "When was Northstar Bakery incorporated?";
 const TWO_COMPANY = "Compare when Helixworks and Nimbus Forge were founded and explain why their expansion strategies differed.";
 const MIXED_LATEST = "When was Vesper Transit founded and what is its latest headcount?";
-const COMPOUND_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded?";
+const COMPOUND_ONE_CRITERION = "when were ardent labs and brindle works founded?";
 const PAIRED_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded, and how did each expand?";
-const MIXED_PRESENT_WORKFORCE = "When was Vesper Transit founded and how many employees work there now?";
+const MIXED_PRESENT_WORKFORCE = "When was Vesper Transit founded, how many employees did it have during the fiscal year ended June 30, 2024, and how many employees work there now?";
 
 const HELIX_FACT = "Helixworks was founded in 2007.";
 const NIMBUS_FACT = "Nimbus Forge was founded in 2011.";
@@ -468,17 +468,19 @@ describe("held-out historical shortcut worker/DB", () => {
     expect(meta.terminal, JSON.stringify(meta)).toBe("completed_with_limitations");
   }, 60_000);
 
-  it("RES-03 treats natural present-tense employee count as current while its founding sibling stays historical", async () => {
+  it("RES-03 keeps fixed fiscal workforce historical while present workforce stays current", async () => {
     const brief = {
       objective: MIXED_PRESENT_WORKFORCE,
       objectiveProvenance: { start: 0, end: MIXED_PRESENT_WORKFORCE.length, quote: MIXED_PRESENT_WORKFORCE },
       intendedOutput: "answer",
       criteria: [
         criterion(MIXED_PRESENT_WORKFORCE, "founding_year", "founded"),
+        criterion(MIXED_PRESENT_WORKFORCE, "fiscal_headcount", "during the fiscal year ended June 30, 2024"),
         criterion(MIXED_PRESENT_WORKFORCE, "latest_headcount", "how many employees work there now"),
       ],
       questions: [
         { key: "q_founded", text: "When was Vesper Transit founded?", criterionKeys: ["founding_year"], importance: "critical", evidenceStandard: "documented outcomes" },
+        { key: "q_fiscal_workforce", text: "How many employees did Vesper Transit have during the fiscal year ended June 30, 2024?", criterionKeys: ["fiscal_headcount"], importance: "critical", evidenceStandard: "fixed-period first-party figure" },
         { key: "q_workforce", text: "How many employees work there now?", criterionKeys: ["latest_headcount"], importance: "critical", evidenceStandard: "current first-party figure" },
       ],
       assumptions: [], openAmbiguities: [], explicitExclusions: [],
@@ -489,11 +491,14 @@ describe("held-out historical shortcut worker/DB", () => {
       return pages("vesper-founding", 3);
     });
     const founding = meta.needs.find((item) => item.criterion_key === "founding_year");
+    const fiscal = meta.needs.find((item) => item.criterion_key === "fiscal_headcount");
     const workforce = meta.needs.find((item) => item.criterion_key === "latest_headcount");
     const policyByKey = new Map(meta.policies.map((item) => [String(item.criterion_key), item]));
     expect(founding?.freshness_required, JSON.stringify(meta)).toBe(false);
+    expect(fiscal?.freshness_required, JSON.stringify(meta)).toBe(false);
     expect(workforce?.freshness_required, JSON.stringify(meta)).toBe(true);
     expect(policyByKey.get("founding_year")?.class, JSON.stringify(meta)).toBe("historical");
+    expect(policyByKey.get("fiscal_headcount")?.class, JSON.stringify(meta)).toBe("historical");
     expect(policyByKey.get("latest_headcount")?.class, JSON.stringify(meta)).not.toBe("historical");
     expect(meta.searches.some((query) => query !== MIXED_PRESENT_WORKFORCE && /employees|workforce|headcount/i.test(query)), JSON.stringify(meta)).toBe(true);
   }, 60_000);

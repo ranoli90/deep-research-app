@@ -52,6 +52,10 @@ describe("W05 criterion-linked answer coverage",()=>{
    "Founding dates: Ardent Labs, Brindle Works.",
    "Give the founding year for Ardent Labs / Brindle Works.",
    "When was Ardent Labs founded? When was Brindle Works founded?",
+   "when were ardent labs and brindle works founded?",
+   "founding dates: ardent labs, brindle works.",
+   "Give the founding year for ARDENT labs / Brindle WORKS.",
+   "when was ardent labs founded? when was brindle works founded?",
   ]) {
    const compoundSpan={start:0,end:compoundQuestion.length,quote:compoundQuestion};
    const compoundTask:ResearchModelOutput<"brief">={objective:compoundQuestion,objectiveProvenance:compoundSpan,intendedOutput:"answer",
@@ -66,6 +70,21 @@ describe("W05 criterion-linked answer coverage",()=>{
    expect(result.unresolvedCriterionKeys,compoundQuestion).toEqual(["founding_dates"]);
    expect(result.questions[0]!.failedChecks,compoundQuestion).toContain("criterion_entity_without_assertion:founding_dates:brindle_works");
    expect(result.questions[0]!.failedChecks,compoundQuestion).toContain("criterion_obligation_without_assertion:founding_dates:brindle_works:founding");
+  }
+ });
+ it("fails closed when plural historical grammar does not identify concrete subjects",()=>{
+  for(const ambiguousQuestion of ["When were the two organizations founded?","WHEN WERE THE TWO ORGANIZATIONS FOUNDED?"]){
+   const ambiguousSpan={start:0,end:ambiguousQuestion.length,quote:ambiguousQuestion};
+   const ambiguousTask:ResearchModelOutput<"brief">={objective:ambiguousQuestion,objectiveProvenance:ambiguousSpan,intendedOutput:"answer",
+    criteria:[{key:"founding_dates",description:ambiguousQuestion,field:"founding dates",operator:"explain",value:null,unit:null,importance:"hard",
+     scope:{entity:null,time:null,plan:null,version:null,geography:null,population:null},provenance:ambiguousSpan,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+    questions:[{key:"q_dates",text:ambiguousQuestion,criterionKeys:["founding_dates"],importance:"critical",evidenceStandard:"both organizations"}],
+    assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+   const claim={...assertion,key:"a_unknown",criterionKeys:["founding_dates"],text:"One organization was founded in 2004.",scope:{...scope,entity:"one organization",time:null}};
+   const optimistic:ResearchModelOutput<"review_coverage">={questions:[{questionKey:"q_dates",status:"supported",assertionKeys:[claim.key],reason:"Covered."}],omittedRequirements:[]};
+   const result=resolveResearchCoverage({question:ambiguousQuestion,task:ambiguousTask,assertions:[claim],checks:[{claimKey:claim.key,decision:"supported"}],proposal:optimistic});
+   expect(result.complete,ambiguousQuestion).toBe(false);
+   expect(result.questions[0]!.failedChecks,ambiguousQuestion).toContain("criterion_compound_obligations_unresolved:founding_dates");
   }
  });
  it("binds deeper shared-key subquestions and distinct facts instead of reusing one assertion",()=>{
