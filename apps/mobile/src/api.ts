@@ -5,6 +5,7 @@ import type { GuestPendingAction } from "./auth/guest-pending-action";
 const API = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787";
 export const backendUrl = API;
 const requests = createRequestScope();
+let memberCredentialProvider: ((expectedToken: string, forceRefresh?: boolean) => Promise<string>) | null = null;
 let guestEpoch = 0;
 let activeGuest: { proof: string; contextId: string } | null = null;
 const guestPending = new Set<AbortController>();
@@ -49,9 +50,10 @@ async function guestReq(method: string, path: string, proof: string, body?: obje
   if (Boolean(memberToken) !== (method === "POST" && path === "/v1/guest/claim")) throw new Error("Member and guest credentials may only meet on the exact claim route.");
   const epoch = guestEpoch;
   const url = checkedGuestUrl(method, path);
+  const credential = memberToken && memberCredentialProvider ? await memberCredentialProvider(memberToken) : memberToken;
   const headers: Record<string, string> = { "x-norrow-guest-proof": proof };
   if (body !== undefined) headers["content-type"] = "application/json";
-  if (memberToken) headers.authorization = `Bearer ${memberToken}`;
+  if (credential) headers.authorization = `Bearer ${credential}`;
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
   const controller = new AbortController();
   guestPending.add(controller);
@@ -60,7 +62,11 @@ async function guestReq(method: string, path: string, proof: string, body?: obje
     const response = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: controller.signal, redirect: "error" });
     const result = await response.json().catch(() => ({}));
     if (epoch !== guestEpoch || activeGuest?.proof !== proof) throw new SupersededRequest();
-    if (!response.ok) throw new ApiError(response.status, typeof result?.code === "string" ? result.code : `Request failed (${response.status})`);
+    if (!response.ok) {
+      if (response.status === 401 && credential && memberCredentialProvider &&
+        (requests.currentCredential() !== credential || await memberCredentialProvider(credential, true) !== credential)) throw new SupersededRequest();
+      throw new ApiError(response.status, typeof result?.code === "string" ? result.code : `Request failed (${response.status})`);
+    }
     return result;
   } catch (error) {
     if (epoch !== guestEpoch || activeGuest?.proof !== proof || error instanceof SupersededRequest) throw new SupersededRequest();
@@ -96,9 +102,10 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
   const origin = trustedApiOrigin();
   if (!path.startsWith("/") || path.startsWith("//")) throw new Error("Member API route is invalid.");
   const url = new URL(path, origin).toString();
-  const lease = requests.capture(init.scope ?? "account", init.token, init.runId);
+  const credential = init.token && memberCredentialProvider ? await memberCredentialProvider(init.token) : init.token;
+  const lease = requests.capture(init.scope ?? "account", credential, init.runId);
   const headers: Record<string, string> = { ...(init.body != null ? { "content-type": "application/json" } : {}), ...(init.headers as Record<string, string>) };
-  if (init.token) headers.authorization = `Bearer ${init.token}`;
+  if (credential) headers.authorization = `Bearer ${credential}`;
   const ctrl = new AbortController();
   const abort = () => ctrl.abort();
   lease.signal.addEventListener("abort", abort, { once: true });
@@ -109,6 +116,11 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
     const body = await res.json().catch(() => ({}));
     if (!lease.current() || init.signal?.aborted) throw new SupersededRequest();
     if (!res.ok) {
+      if (res.status === 401 && credential && memberCredentialProvider) {
+        // Never replay a possibly accepted mutation. Only refresh the verified
+        // same-principal credential; the original request remains unresolved.
+        if (requests.currentCredential() !== credential || await memberCredentialProvider(credential, true) !== credential) throw new SupersededRequest();
+      }
       throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
     }
     return body;
@@ -135,6 +147,8 @@ export const api = {
   clearGuest: () => { invalidateGuestResponses(); activeGuest = null; },
   activateSession: requests.setSession,
   rotateCredential: requests.rotateCredential,
+  setMemberCredentialProvider: (provider: ((expectedToken: string, forceRefresh?: boolean) => Promise<string>) | null) => { memberCredentialProvider = provider; },
+  currentCredential: requests.currentCredential,
   sessionEpochs: requests.epochs,
   selectRun: requests.selectRun,
   closeSource: requests.closeSource,
@@ -279,6 +293,8 @@ export const api = {
   },
   resolveGuestClaim: (token: string, claimRequestId: string, submissionId: string) => req("/v1/guest/claims/resolve", { method: "POST", token, body: JSON.stringify({ claimRequestId, submissionId }) }),
   abandonClaimedGuestAction: (token: string, submissionId: string, claimRequestId: string) => req("/v1/guest/actions/abandon", { method: "POST", token, body: JSON.stringify({ submissionId, claimRequestId }) }),
+  registerMemberGuestAction: (token: string, action: GuestPendingAction, replacedSubmissionId: string) => req("/v1/guest/actions/register-member", { method: "POST", token,
+    body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId, replacedSubmissionId, payload: action.payload, payloadDigest: action.payloadDigest }) }),
   resumeGuestAction: (token: string, action: GuestPendingAction) => req("/v1/guest/actions/resume", { method: "POST", token, body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId, controlVersion: action.claim?.controlVersion, payloadDigest: action.payloadDigest }) }),
   resolveGuestAction: (token: string, action: GuestPendingAction) => req("/v1/guest/actions/resolve", { method: "POST", token, body: JSON.stringify({ submissionId: action.submissionId, claimRequestId: action.claim?.requestId }) }),
 };

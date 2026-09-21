@@ -28,6 +28,7 @@ export type GuestDevice = {
   state: UiState;
   draftRevision: number;
   pendingAction: GuestPendingAction | null;
+  abandonedActions: GuestPendingAction[];
   firstRequest: GuestFirstRequest | null;
 };
 
@@ -116,8 +117,11 @@ export function createGuestDeviceStore(content: KeyValueStore, secure: KeyValueS
     /** A new submission is permitted only after the old one has a confirmed server abandonment. */
     async replaceAbandonedAction(previous: GuestPendingAction, next: GuestPendingAction): Promise<void> {
       const old = readGuestPendingAction(previous), fresh = readGuestPendingAction(next);
-      if (old.phase !== "cancelled" || fresh.phase !== "pending_auth" || old.submissionId === fresh.submissionId ||
+      if (old.phase !== "cancelled" || !["pending_auth", "member_register_pending"].includes(fresh.phase) || old.submissionId === fresh.submissionId ||
         old.guestContextId !== fresh.guestContextId || old.conversationId !== fresh.conversationId) throw new Error("The old message was not safely abandoned.");
+      if (fresh.phase === "member_register_pending" && (old.payload.kind !== "clarification" || fresh.payload.kind !== "clarification" ||
+        old.payload.pendingInputId !== fresh.payload.pendingInputId || old.payload.field !== fresh.payload.field || old.payload.briefRevision !== fresh.payload.briefRevision ||
+        old.claim?.requestId !== fresh.claim?.requestId || old.authenticatedAccountId !== fresh.authenticatedAccountId)) throw new Error("Edited clarification identity changed before replacement.");
       await serial(async () => {
         const rawContext = await secure.getItem(CONTEXT_KEY);
         if (rawContext === null || readGuestContext(JSON.parse(rawContext)).guestContextId !== old.guestContextId) throw new Error("Guest conversation changed before replacing its message.");
@@ -171,6 +175,7 @@ export function createGuestDeviceStore(content: KeyValueStore, secure: KeyValueS
         const rawAction = await content.getItem(ACTION_KEY);
         const pendingAction = rawAction === null ? null : readGuestPendingAction(JSON.parse(rawAction));
         const archiveRaw = await content.getItem(ABANDONED_KEY);
+        const abandonedActions: GuestPendingAction[] = [];
         if (archiveRaw !== null) {
           const archive: unknown = JSON.parse(archiveRaw);
           if (!Array.isArray(archive) || archive.length > 32) throw new Error("Abandoned-action history is invalid. Research is held.");
@@ -179,13 +184,14 @@ export function createGuestDeviceStore(content: KeyValueStore, secure: KeyValueS
             const old = readGuestPendingAction(item);
             if (old.phase !== "cancelled" || old.guestContextId !== context.guestContextId || old.conversationId !== context.conversationId || seen.has(old.submissionId)) throw new Error("Abandoned-action history is invalid. Research is held.");
             seen.add(old.submissionId);
+            abandonedActions.push(old);
           }
         }
         const rawFirst = await content.getItem(FIRST_REQUEST_KEY);
         const firstRequest = rawFirst === null ? null : readFirstRequest(JSON.parse(rawFirst));
         if (firstRequest && firstRequest.guestContextId !== context.guestContextId) throw new Error("Saved first request belongs to another guest.");
         if (pendingAction && (pendingAction.guestContextId !== context.guestContextId || pendingAction.conversationId !== context.conversationId)) throw new Error("Saved guest message belongs to another conversation.");
-        return { context, proof, state: { ...state, signedIn: false }, draftRevision, pendingAction, firstRequest };
+        return { context, proof, state: { ...state, signedIn: false }, draftRevision, pendingAction, abandonedActions, firstRequest };
       });
     },
     async clear(): Promise<void> {

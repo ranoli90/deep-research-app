@@ -7,7 +7,7 @@ export type ClerkGuestAuth = {
   loaded: boolean;
   signedIn: boolean;
   subject: string | null;
-  getToken(): Promise<string | null>;
+  getToken(options?: { skipCache?: boolean }): Promise<string | null>;
   startProvider(provider: "apple" | "google"): Promise<void>;
   sendEmailCode(email: string, resend: boolean): Promise<void>;
   verifyEmailCode(code: string): Promise<void>;
@@ -45,7 +45,7 @@ export function useClerkGuestAuth(): ClerkGuestAuth {
     loaded: auth.isLoaded,
     signedIn: auth.isLoaded && auth.isSignedIn,
     subject: auth.isLoaded && auth.isSignedIn ? auth.userId : null,
-    getToken: async () => auth.isLoaded && auth.isSignedIn ? auth.getToken() : null,
+    getToken: async options => auth.isLoaded && auth.isSignedIn ? auth.getToken(options) : null,
     startProvider: async provider => {
       try {
         const result = provider === "google" ? await startGoogleAuthenticationFlow()

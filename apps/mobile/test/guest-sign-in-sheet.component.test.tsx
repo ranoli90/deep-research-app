@@ -35,7 +35,7 @@ function sheet(visible: boolean, value: GuestSignInSheetState, override: Partial
 }
 afterEach(() => { vi.useRealTimers(); });
 
-it("PROVIDER-04 never retains an OTP across close/reopen, email change, or a new code challenge", async () => {
+it("AUTH-06 never retains an OTP across close/reopen, email change, or a new code challenge", async () => {
   const verify = vi.fn(async () => undefined);
   let renderer!: TestRenderer.ReactTestRenderer;
   await act(async () => { renderer = TestRenderer.create(sheet(true, state("first@example.com"), { verifyEmailCode: verify })); });
@@ -53,7 +53,7 @@ it("PROVIDER-04 never retains an OTP across close/reopen, email change, or a new
   await act(async () => { renderer.unmount(); });
 });
 
-it("PROVIDER-04 disables resend during cooldown and enables it after the clock advances", async () => {
+it("AUTH-06 disables resend during cooldown and enables it after the clock advances", async () => {
   vi.useFakeTimers(); vi.setSystemTime(new Date("2026-09-21T12:00:00.000Z"));
   const cooldown = { ...state("first@example.com"), resend: { status: "cooldown" as const, retryAt: "2026-09-21T12:00:02.000Z" } };
   let renderer!: TestRenderer.ReactTestRenderer;

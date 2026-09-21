@@ -28,6 +28,7 @@ export function createRequestScope() {
     epochs() {
       return { principalEpoch: accountEpoch, viewEpoch, credentialGeneration };
     },
+    currentCredential() { return token; },
     selectRun(next: string | null) {
       if (next === runId) return;
       runId = next; viewEpoch++; sourceEpoch++; abort("view");

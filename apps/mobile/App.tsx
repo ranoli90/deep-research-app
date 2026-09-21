@@ -45,7 +45,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-auth";
 import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
 import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
-import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
+import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
 import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
 import { sha256Hex } from "./src/sha256";
 import {
@@ -124,6 +124,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const guestProof = useRef<string | null>(null);
   const [guestPending, setGuestPending] = useState<GuestPendingAction | null>(null);
   const guestPendingRef = useRef<GuestPendingAction | null>(null);
+  const abandonedGuestActions = useRef<GuestPendingAction[]>([]);
   const guestFirstRequest = useRef<GuestFirstRequest | null>(null);
   const guestDraftRevision = useRef(0);
   const [guestSheetVisible, setGuestSheetVisible] = useState(false);
@@ -180,6 +181,34 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     await operation;
   }
   const [token, setToken] = useState<string | null>(null);
+  // Assign only at verified session transitions. A render queued before a
+  // credential rotation must not roll these refs back to its stale token.
+  const memberTokenRef = useRef<string | null>(token);
+  const memberAccountRef = useRef<string | null>(accountId);
+  const credentialRefresh = useRef<Promise<string> | null>(null);
+  useEffect(() => {
+    api.setMemberCredentialProvider(async (expected, forceRefresh = false) => {
+      const previous = memberTokenRef.current, owner = memberAccountRef.current;
+      if (!previous || !owner || expected !== previous) throw new SupersededRequest();
+      if (credentialRefresh.current) return credentialRefresh.current;
+      const work = (async () => {
+        const fresh = await authRef.current?.getToken(forceRefresh ? { skipCache: true } : undefined);
+        if (!fresh) throw new ApiError(0, "Sign-in cannot be refreshed. Your saved research remains on this device.");
+        if (fresh === previous) return previous;
+        const verified = await api.verifyMemberSession(fresh);
+        if (verified.accountId !== owner || memberTokenRef.current !== previous || memberAccountRef.current !== owner) throw new SupersededRequest();
+        await sessionStorage.rotateCredential(previous, { token: fresh, accountId: owner });
+        if (memberTokenRef.current !== previous || memberAccountRef.current !== owner) throw new SupersededRequest();
+        api.rotateCredential(fresh, owner);
+        memberTokenRef.current = fresh; setToken(fresh);
+        return fresh;
+      })();
+      credentialRefresh.current = work;
+      try { return await work; }
+      finally { if (credentialRefresh.current === work) credentialRefresh.current = null; }
+    });
+    return () => api.setMemberCredentialProvider(null);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
   const submitting = useRef(false);
@@ -383,7 +412,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const current = guestPendingRef.current;
     if (!current || current.submissionId !== action.submissionId) throw new Error("The saved message changed before cancellation.");
     let receipt: any;
-    if (["claimed", "resume_pending", "resume_reconcile"].includes(current.phase) || !guestProof.current) {
+    if (["claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile"].includes(current.phase) || !guestProof.current) {
       if (!memberToken || !current.claim) throw new Error("The accepted claim cannot be abandoned until its identity is confirmed.");
       receipt = await api.abandonClaimedGuestAction(memberToken, current.submissionId, current.claim.requestId);
       if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || receipt.claimRequestId !== current.claim.requestId) throw new Error("The claim abandonment receipt did not match the saved message.");
@@ -572,6 +601,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         });
         if (replaced) {
           await guestDevice.replaceAbandonedAction(replaced, pending);
+          abandonedGuestActions.current = [...abandonedGuestActions.current, replaced];
           guestPendingRef.current = pending; setGuestPending(pending);
         } else await saveGuestPending(pending);
       }
@@ -616,6 +646,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const firstRunId = latestUi.current.run?.runId;
     if (firstRunId) api.selectRun(firstRunId);
     await activateLocalSession(sessionStorage, { token: memberToken, accountId: identity.accountId });
+    memberTokenRef.current = memberToken; memberAccountRef.current = identity.accountId;
     setToken(memberToken); setAccountId(identity.accountId);
     // Guest consent is never a member consent grant.
     setStateRaw(s => ({ ...s, signedIn: true, consentGranted: false, error: null }));
@@ -698,7 +729,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
       throw new Error("The saved message was dismissed. Resolve its exact dispatched result before continuing.");
     }
-    await adoptGuestContinuation(latest, result, memberToken);
+    await adoptGuestContinuation(latest, result, memberTokenRef.current ?? memberToken);
   }
 
   async function adoptGuestContinuation(pending: GuestPendingAction, result: any, memberToken: string) {
@@ -722,6 +753,109 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     setGuestContext(null); setGuestPending(null);
   }
 
+  function replacedClarification(action: GuestPendingAction): GuestPendingAction {
+    const old = abandonedGuestActions.current.at(-1);
+    if (!old || old.phase !== "cancelled" || old.payload.kind !== "clarification" || action.payload.kind !== "clarification" ||
+      old.claim?.requestId !== action.claim?.requestId || old.authenticatedAccountId !== action.authenticatedAccountId ||
+      old.payload.pendingInputId !== action.payload.pendingInputId || old.payload.briefRevision !== action.payload.briefRevision || old.payload.field !== action.payload.field)
+      throw new Error("The abandoned clarification identity is unavailable. The edited answer remains held.");
+    return old;
+  }
+
+  async function confirmSavedMemberClarification(action: GuestPendingAction, tokenForRequest: string): Promise<GuestPendingAction> {
+    const old = replacedClarification(action);
+    const receipt = await api.registerMemberGuestAction(tokenForRequest, action, old.submissionId);
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== action.submissionId || latest.phase !== "member_register_pending" || latest.claim?.requestId !== action.claim?.requestId)
+      throw new Error("Edited answer changed while registration was being confirmed.");
+    const confirmed = confirmMemberClarificationRegistration(latest, receipt, new Date());
+    await saveGuestPending(confirmed, latest);
+    return confirmed;
+  }
+
+  async function continueMemberClarification(tokenForRequest: string, account: string) {
+    let pending = guestPendingRef.current;
+    if (!pending || pending.payload.kind !== "clarification") throw new Error("There is no saved clarification to continue.");
+    const input = latestUi.current.run?.pendingInput;
+    const text = clarifyAnswer.trim();
+    if (!input || input.type !== "clarification" || !input.field || !text || input.id !== pending.payload.pendingInputId ||
+      input.briefRevision !== pending.payload.briefRevision || input.field !== pending.payload.field) throw new Error("The requested clarification changed. Refresh before sending another answer.");
+    if (text === pending.payload.text && !["cancelled", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile"].includes(pending.phase)) {
+      await continueSavedSecondMessage(tokenForRequest, account);
+      return;
+    }
+    // A local B registration may have had an unknown reply. Confirm that
+    // exact B before asking the server to abandon it for a newer C answer.
+    if (pending.phase === "member_register_pending" && text !== pending.payload.text)
+      pending = await confirmSavedMemberClarification(pending, tokenForRequest);
+    if (pending.phase === "resume_pending") {
+      const held = holdGuestResumeForReconciliation(pending);
+      await saveGuestPending(held, pending);
+      pending = held;
+    }
+    if (pending.phase === "cancelled" || text !== pending.payload.text) {
+      if (pending.phase !== "cancelled") {
+        if (!["claimed", "member_claimed"].includes(pending.phase) || !pending.claim) throw new Error("The previous answer must finish claim reconciliation before it can be replaced.");
+        pending = await abandonSavedGuestAction(pending, tokenForRequest);
+      }
+      const payload = { kind: "clarification" as const, text, pendingInputId: input.id, briefRevision: input.briefRevision, field: input.field };
+      const replacement = prepareMemberClarificationReplacement(pending, payload, newId(), guestDraftRevision.current, new Date(), api.sessionEpochs());
+      await guestDevice.replaceAbandonedAction(pending, replacement);
+      abandonedGuestActions.current = [...abandonedGuestActions.current, pending];
+      guestPendingRef.current = replacement; setGuestPending(replacement);
+      pending = replacement;
+    }
+    if (pending.phase === "member_register_pending") {
+      pending = await confirmSavedMemberClarification(pending, tokenForRequest);
+    }
+    if (pending.phase === "member_claimed") {
+      if (!pending.autoResume) { const reopened = reopenGuestPendingAction(pending, new Date()); await saveGuestPending(reopened, pending); pending = reopened; }
+      const claim = pending.claim;
+      if (!claim) throw new Error("The edited clarification lost its accepted claim identity.");
+      const currentToken = memberTokenRef.current ?? tokenForRequest;
+      const receipt = await api.resolveGuestAction(currentToken, pending);
+      if (receipt?.type !== "member_action_registered" || receipt.submissionId !== pending.submissionId || receipt.claimRequestId !== claim.requestId ||
+        receipt.payloadDigest !== pending.payloadDigest || receipt.controlVersion !== claim.controlVersion) throw new Error("The edited answer registration readback did not match.");
+      if (receipt.authorityAllowed !== true || receipt.budgetAllowed !== true || receipt.consentPolicyVersion !== pending.consentPolicyVersion || !latestUi.current.consentGranted) {
+        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
+        throw new Error(receipt.budgetAllowed === false ? "Your account needs a research allowance. The edited answer remains saved." : "Member consent or authority is required. The edited answer remains saved.");
+      }
+      const epochs = api.sessionEpochs();
+      const context = guestContextRef.current;
+      if (!context) throw new Error("The guest conversation binding is unavailable.");
+      const resumeContext = { now: new Date(), accountId: account, sessionActive: true,
+        guestContextId: context.guestContextId, conversationId: context.conversationId, conversationVersion: context.conversationVersion,
+        controlVersion: claim.controlVersion, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch,
+        credentialGeneration: epochs.credentialGeneration, draftRevision: guestDraftRevision.current, draftDigest: sha256Hex(text),
+        consentPolicyVersion: context.consentPolicyVersion, authorityAllowed: true, budgetAllowed: true };
+      const verdict = validateGuestActionResume(pending, resumeContext);
+      if (!verdict.ok) throw new Error(`Edited answer is held because its ${verdict.code} changed.`);
+      const resuming = beginGuestActionResume(pending, resumeContext);
+      await saveGuestPending(resuming, pending); pending = resuming;
+      let result;
+      try { result = await api.resumeGuestAction(memberTokenRef.current ?? currentToken, pending); }
+      catch (error) {
+        const latest = guestPendingRef.current;
+        if (latest?.submissionId === pending.submissionId && latest.phase === "resume_pending") {
+          await saveGuestPending(error instanceof ApiError && error.status === 402 ? dismissGuestPendingAction(latest, new Date()) : holdGuestResumeForReconciliation(latest), latest);
+        }
+        throw new Error(error instanceof ApiError && error.status === 402 ? "Your account needs a research allowance. The edited answer remains saved." : "Edited answer outcome is unknown. Resolve its original ID; it was not resent.");
+      }
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Edited answer state changed during continuation.");
+      if (!latest.autoResume) { await saveGuestPending(holdGuestResumeForReconciliation(latest), latest); throw new Error("Edited answer was dismissed. Resolve its exact result."); }
+      await adoptGuestContinuation(latest, result, memberTokenRef.current ?? currentToken);
+      return;
+    }
+    if (pending.phase === "resume_reconcile") {
+      const result = await api.resolveGuestAction(memberTokenRef.current ?? tokenForRequest, pending);
+      if (result?.type !== "continuation_dispatched") throw new Error("Edited answer is still unconfirmed. It was not resent.");
+      await adoptGuestContinuation(pending, result, memberTokenRef.current ?? tokenForRequest);
+      return;
+    }
+    throw new Error("The edited clarification is held until its exact server state is resolved.");
+  }
+
   function savedSecondMessageBlocksWork(): boolean {
     const pending = guestPendingRef.current;
     return !!pending && (pending.phase === "cancelled" ? !!token && !!guestContextRef.current : !["dispatched", "rejected", "expired"].includes(pending.phase));
@@ -730,6 +864,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   async function continueSavedSecondMessage(memberToken: string, memberAccountId: string) {
     let pending = guestPendingRef.current;
     if (!pending || !savedSecondMessageBlocksWork()) return;
+    if (pending.payload.kind === "clarification" && (pending.phase === "member_register_pending" || pending.phase === "member_claimed")) {
+      await continueMemberClarification(memberTokenRef.current ?? memberToken, memberAccountId);
+      return;
+    }
     if (pending.phase === "resume_reconcile") {
       const resolved = await api.resolveGuestAction(memberToken, pending);
       if (resolved?.type !== "continuation_dispatched") throw new Error("The saved continuation is still unconfirmed. No new message was sent.");
@@ -890,6 +1028,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       await activateLocalSession(sessionStorage, s);
       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
       const accepted = guard;
+      memberTokenRef.current = s.token; memberAccountRef.current = s.accountId;
       setToken((previous) => accepted.current() ? s.token : previous);
       if (accepted.current()) setAccountId(s.accountId);
       setState((prev) => {
@@ -920,7 +1059,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         await saveGuestReader(next);
         return;
       }
-      const t = token ?? (await ensureSession());
+      const t = memberTokenRef.current ?? token ?? (await ensureSession());
       await api.consent(t, true);
       setState((s) => {
         const next = { ...s, consentGranted: true, error: null };
@@ -947,6 +1086,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     redactingContent.current = false; stopPolling(); api.activateSession(null); clearPanels();
     const cleanup = api.capture();
     setStorageReady(false);
+    memberTokenRef.current = null; memberAccountRef.current = null;
     setToken(null); setAccountId(null); setState((s) => expireLocalSession(s));
     try {
       await clearAccountLocal(sessionStorage);
@@ -1092,10 +1232,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   }
 
   function startPolling(t: string, runId: string) {
-    if (!api.currentRun(t, runId)) return;
+    const owner = memberAccountRef.current;
+    if (!owner || !api.currentRun(memberTokenRef.current ?? t, runId)) return;
     stopPolling();
     poll.current = setInterval(() => {
-      void refreshRun(t, runId);
+      if (memberAccountRef.current !== owner) { stopPolling(); return; }
+      void refreshRun(memberTokenRef.current ?? t, runId);
     }, 1000);
   }
 
@@ -1173,6 +1315,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         api.activateGuest(guest.proof, guest.context.guestContextId);
         guestContextRef.current = guest.context; guestProof.current = guest.proof;
         guestPendingRef.current = guest.pendingAction; guestFirstRequest.current = guest.firstRequest;
+        abandonedGuestActions.current = guest.abandonedActions;
+        if (guest.pendingAction?.payload.kind === "clarification") setClarifyAnswer(guest.pendingAction.payload.text);
         guestDraftRevision.current = guest.draftRevision;
         setGuestContext(guest.context); setGuestPending(guest.pendingAction);
         saved = { ...saved, signedIn: !!memberToken, consentGranted: memberToken ? false : guest.state.consentGranted };
@@ -1180,6 +1324,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const restored = api.capture();
       setStorageReady(!saved.pendingContentInvalidation);
       redactingContent.current = !!saved.pendingContentInvalidation;
+      memberTokenRef.current = memberToken; memberAccountRef.current = memberAccountId;
       setToken(memberToken); setAccountId(memberAccountId);
       latestUi.current = saved; setStateRaw(saved);
       if (guest?.pendingAction && !["dispatched", "cancelled", "rejected", "expired"].includes(guest.pendingAction.phase)) {
@@ -1267,7 +1412,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       try {
         if (!accountId) throw new Error("Account identity is unavailable.");
         const saved = guestPendingRef.current;
-        if (saved && (saved.phase === "cancelled" || saved.payload.kind !== "clarification" && (current.draft.trim() !== saved.payload.text ||
+        if (saved?.payload.kind === "clarification") {
+          await continueMemberClarification(memberTokenRef.current ?? token, accountId);
+        } else if (saved && (saved.phase === "cancelled" || (current.draft.trim() !== saved.payload.text ||
           saved.payload.kind === "follow_up" && current.run?.runId !== saved.payload.parentRunId))) {
           if (saved.phase !== "cancelled") await abandonSavedGuestAction(saved, token);
           const adopted = { ...current, signedIn: true };
@@ -1277,7 +1424,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
           setGuestContext(null); setGuestPending(null);
           latestUi.current = adopted; setStateRaw(adopted);
           replaced = true;
-        } else await continueSavedSecondMessage(token, accountId);
+        } else await continueSavedSecondMessage(memberTokenRef.current ?? token, accountId);
       }
       catch (error) { setViewState(s => ({ ...s, error: error instanceof Error ? error.message : "The saved second message remains held." })); }
       finally { submitting.current = false; }
@@ -1302,7 +1449,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       setUploadStatus("Preparing saved request…");
       api.selectRun(null);
       stopPolling();
-      const t = token ?? (await ensureSession());
+      const t = memberTokenRef.current ?? token ?? (await ensureSession());
       const guard = api.captureView();
       let created;
       try {
@@ -2422,7 +2569,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
               clarifyAnswer={clarifyAnswer}
               muted={theme.muted}
               field={state.run?.pendingInput?.field}
-              onClarify={(value) => { if (!token && guestContextRef.current && value !== clarifyAnswer) guestDraftRevision.current++; setClarifyAnswer(value); }}
+              onClarify={(value) => { if (guestContextRef.current && value !== clarifyAnswer) guestDraftRevision.current++; setClarifyAnswer(value); }}
               onContinue={() => { void onContinueClarification(); }}
               onEdit={() => {
                 setClarifyAnswer(briefView.assumptions.join("\n"));
@@ -2732,6 +2879,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                 stopPolling();
                 const result = await api.deleteAccount(token);
                 api.activateSession(null); clearPanels();
+                memberTokenRef.current = null; memberAccountRef.current = null;
                 setToken(null); setAccountId(null); setState({ ...emptyState(), error: result.fileCleanupPending ? "Account access removed. Stored file deletion is queued for retry." : null });
                 await clearAccountLocal(sessionStorage);
               } catch (error) {
@@ -2746,6 +2894,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
                   if (!authRef.current) throw new Error("Clerk session is unavailable.");
                   await authRef.current.signOut();
                   stopPolling(); api.activateSession(null); api.clearGuest(); clearPanels();
+                  memberTokenRef.current = null; memberAccountRef.current = null;
                   setToken(null); setAccountId(null); setState((s) => logoutState(s));
                   await logoutLocal(sessionStorage); setStorageReady(true);
                 } catch { setState((s) => ({ ...s, error: "Sign-out or device cleanup could not be confirmed. Please retry." })); }

@@ -4,6 +4,7 @@ import {
   completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, expireGuestPendingAction,
   guestPendingActionNeedsReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
   reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume, holdGuestAuthAttempt,
+  prepareMemberClarificationReplacement, confirmMemberClarificationRegistration,
   type GuestClaimAcceptedOutcome, type GuestContinuationDispatchedOutcome, type GuestPendingActionRejectionOutcome,
 } from "../src/auth/guest-pending-action";
 import { sha256Hex } from "../src/sha256";
@@ -62,6 +63,27 @@ function expectRoundTrip(action: unknown) {
 }
 
 describe("guest pending action", () => {
+  it("CLAIM-14 accepts only an abandoned claimed clarification with exact pending identity for member replacement", () => {
+    const now = context().now;
+    const first = pending("clarification");
+    const auth = completeGuestAuth(beginGuestAuth(first, { id: id(6), provider: "email" }, now), id(6), id(7), now);
+    const old = cancelGuestPendingAction(completeGuestClaim(beginGuestClaim(auth, id(8), now), claimAccepted(), now), now);
+    const payload = { kind: "clarification" as const, text: "Ontario", pendingInputId: id(5), briefRevision: 9, field: "geography" };
+    const fresh = prepareMemberClarificationReplacement(old, payload, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 });
+    expect(fresh).toMatchObject({ phase: "member_register_pending", submissionId: id(10), payload, claim: { requestId: id(8), principalEpoch: 11, viewEpoch: 17 } });
+    expectRoundTrip(fresh);
+    const receipt = { type: "member_action_registered" as const, submissionId: id(10), claimRequestId: id(8), controlVersion: 12,
+      payloadDigest: fresh.payloadDigest, expiresAt: expires.toISOString() };
+    const registered = confirmMemberClarificationRegistration(fresh, receipt, now);
+    expect(registered.phase).toBe("member_claimed");
+    expectRoundTrip(registered);
+    const resume = { ...context(), principalEpoch: 11, viewEpoch: 17, draftRevision: 8, draftDigest: sha256Hex("Ontario") };
+    expect(validateGuestActionResume(registered, resume)).toEqual({ ok: true });
+    expect(() => prepareMemberClarificationReplacement(first, payload, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 })).toThrow("abandoned");
+    expect(() => prepareMemberClarificationReplacement(old, { ...payload, pendingInputId: id(99) }, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 })).toThrow("abandoned");
+    expect(() => confirmMemberClarificationRegistration(fresh, { ...receipt, payloadDigest: "f".repeat(64) }, now)).toThrow("registration");
+    expect(() => markGuestActionDispatched(old, continuationDispatched({ submissionId: old.submissionId }), now)).toThrow("current state");
+  });
   it("GUEST-02/GUEST-04 captures an exact clarification before auth without admitting it", () => {
     const action = pending("clarification");
     expect(action.phase).toBe("pending_auth");

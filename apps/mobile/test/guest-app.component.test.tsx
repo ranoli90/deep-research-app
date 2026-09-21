@@ -6,7 +6,7 @@ import { createProtectedContentStore } from "../src/protected-content";
 import { memoryStore } from "../src/persist";
 import { emptyState } from "../src/state";
 import { api } from "../src/api";
-import { beginGuestAuth, beginGuestClaim, completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction } from "../src/auth/guest-pending-action";
+import { beginGuestAuth, beginGuestClaim, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, prepareMemberClarificationReplacement } from "../src/auth/guest-pending-action";
 import { sha256Hex } from "../src/sha256";
 
 const held = vi.hoisted(() => ({ device: null as any, session: null as any, id: 10 }));
@@ -76,7 +76,8 @@ beforeEach(async () => {
   await content.setItem("deep.install.v2", "1");
   held.device = createGuestDeviceStore(content, secure);
   held.session = { hydrate: async () => ({ token: null, accountId: null, state: emptyState() }), activate: async () => undefined,
-    persist: async () => undefined, persistRequired: async () => undefined, flush: async () => undefined, clear: async () => undefined };
+    rotateCredential: async () => undefined, persist: async () => undefined, persistRequired: async () => undefined,
+    saveAdmission: async () => undefined, finishAdmission: async () => undefined, flush: async () => undefined, clear: async () => undefined };
   vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
 });
 afterEach(() => { api.activateSession(null); api.clearGuest(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -131,16 +132,17 @@ it("CLAIM-14 mounted App dismissal during in-flight claim does not dispatch or o
   const claimResponse = new Promise<Response>(resolve => { releaseClaim = resolve; });
   const calls: string[] = [];
   let claimRequestId = "";
+  let claimBearer = "", clerkTokenReads = 0;
   vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
     const path = new URL(url).pathname; calls.push(path);
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: true, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
     if (path === "/v1/guest/pending-actions/attempts/begin") return Response.json({ submissionId: original.submissionId, authAttemptId: JSON.parse(String(init.body)).authAttemptId, attemptRevision: 1, state: "authenticating" });
     if (path === "/v1/session") return Response.json({ accountId: id(7), actorKind: "member" });
-    if (path === "/v1/guest/claim") { claimRequestId = JSON.parse(String(init.body)).claimRequestId; return claimResponse; }
+    if (path === "/v1/guest/claim") { claimRequestId = JSON.parse(String(init.body)).claimRequestId; claimBearer = (init.headers as Record<string, string>).authorization; return claimResponse; }
     if (path === "/v1/guest/actions/resume") throw new Error("dismissed action was dispatched");
     return Response.json({});
   }));
-  const auth = { loaded: true, signedIn: false, getToken: async () => memberToken, verifyEmailCode: async () => undefined };
+  const auth = { loaded: true, signedIn: false, getToken: async () => ++clerkTokenReads === 1 ? memberToken : "refreshed-member", verifyEmailCode: async () => undefined };
   let renderer!: TestRenderer.ReactTestRenderer;
   await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
   const sheet = () => renderer.root.find(node => String(node.type) === "GuestSignInSheet");
@@ -150,6 +152,7 @@ it("CLAIM-14 mounted App dismissal during in-flight claim does not dispatch or o
   let completion!: Promise<void>;
   await act(async () => { completion = sheet().props.transport.verifyEmailCode(attempt, "123456"); await Promise.resolve(); });
   expect(calls).toContain("/v1/guest/claim");
+  expect(claimBearer).toBe("Bearer refreshed-member");
   await act(async () => { await sheet().props.transport.dismiss(); });
   releaseClaim(Response.json({ type: "claim_accepted", submissionId: original.submissionId, requestId: claimRequestId, accountId: id(7), conversationId: context.conversationId,
     conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: context.consentPolicyVersion }));
@@ -193,5 +196,254 @@ it("CLAIM-14 mounted App abandons a claimed A before an edited member B and neve
   expect(calls).not.toContain("/v1/guest/actions/resume");
   expect(calls).not.toContain("/v1/runs");
   expect(await held.device.load()).toBeNull();
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 mounted App verifies a refreshed Clerk bearer and uses it for consent and an ordinary Send", async () => {
+  held.session.hydrate = async () => ({ token: "token-one", accountId: id(7), state: { ...emptyState(), draft: "third question", signedIn: true, routeMode: "controlled-research" } });
+  const rotations: string[] = [];
+  held.session.rotateCredential = async (old: string, next: { token: string }) => { rotations.push(`${old}:${next.token}`); };
+  let tokens = 0;
+  const auth = { loaded: true, signedIn: true, getToken: async () => ++tokens === 1 ? "token-one" : "token-two" };
+  const calls: { path: string; bearer: string | undefined }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, bearer = (init.headers as Record<string, string> | undefined)?.authorization;
+    calls.push({ path, bearer });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
+    if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  const header = () => renderer.root.find(node => String(node.type) === "ResearchHeader");
+  await act(async () => { header().props.onSettings(); });
+  await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
+  expect(rotations).toEqual(["token-one:token-two"]);
+  expect(api.currentCredential()).toBe("token-two");
+  expect(calls.find(call => call.path === "/v1/consent")?.bearer).toBe("Bearer token-two");
+  await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchComposer").props.onSend(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs"), JSON.stringify({ calls, text: renderer.root.findAll(node => String(node.type) === "Text").map(node => node.props.children) })).toBe(true));
+  expect(calls.find(call => call.path === "/v1/runs")?.bearer).toBe("Bearer token-two");
+  expect(calls.filter(call => call.path === "/v1/consent" || call.path === "/v1/runs").every(call => call.bearer !== "Bearer token-one")).toBe(true);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("CLAIM-14 mounted App abandons edited clarification A, registers exact B, and resumes only B", async () => {
+  await held.device.saveBootstrap(context, proof);
+  const clarification = { kind: "clarification" as const, text: "A", pendingInputId: id(18), briefRevision: 2, field: "geography" };
+  const saved = createGuestPendingAction({ submissionId: id(3), guestContextId: context.guestContextId, conversationId: context.conversationId,
+    conversationVersion: 1, draftRevision: 0, draftDigest: sha256Hex("A"), payload: clarification,
+    consentPolicyVersion: context.consentPolicyVersion, createdAt: "2026-09-21T00:00:00.000Z", expiresAt: context.expiresAt });
+  await held.device.savePendingAction(saved);
+  const authenticated = completeGuestAuth(beginGuestAuth(saved, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z")), id(8), id(7), new Date("2026-09-21T01:00:00.000Z"));
+  const claiming = beginGuestClaim(authenticated, id(9), new Date("2026-09-21T01:00:00.000Z"));
+  const claimed = dismissGuestPendingAction(completeGuestClaim(claiming, { type: "claim_accepted", submissionId: saved.submissionId, requestId: id(9), accountId: id(7),
+    conversationId: context.conversationId, conversationVersion: 1, controlVersion: 1, principalEpoch: 1, viewEpoch: 1 }, new Date("2026-09-21T01:00:00.000Z")), new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(claimed, saved);
+  await held.device.saveSnapshot(context.guestContextId, { ...emptyState(), consentGranted: true, routeMode: "controlled-research", status: "awaiting_input",
+    run: { runId: id(5), lifecycle: "awaiting_input", phase: "planning", outcome: null, reportId: null, labeledDemo: false,
+      pendingInput: { id: clarification.pendingInputId, type: "clarification", field: "geography", briefRevision: 2 } } });
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null; calls.push({ path, body });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/guest/actions/abandon") return Response.json({ type: "action_abandoned", submissionId: saved.submissionId, claimRequestId: id(9) });
+    if (path === "/v1/guest/actions/register-member" || path === "/v1/guest/actions/resolve") return Response.json({ type: "member_action_registered", submissionId: body.submissionId,
+      claimRequestId: id(9), controlVersion: 1, payloadDigest: path.endsWith("register-member") ? body.payloadDigest : calls.find(call => call.path.endsWith("register-member"))!.body.payloadDigest,
+      expiresAt: context.expiresAt, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: "consent.v1" });
+    if (path === "/v1/guest/actions/resume") return Response.json({ type: "continuation_dispatched", submissionId: body.submissionId, claimRequestId: id(9), accountId: id(7),
+      conversationId: context.conversationId, conversationVersion: 1, receiptId: id(19), runId: id(20), memberConversationId: id(21), kind: "clarification" });
+    if (path === `/v1/runs/${id(20)}`) return Response.json({ runId: id(20), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(20)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
+  await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
+  const brief = () => renderer.root.find(node => String(node.type) === "ResearchBriefCard");
+  expect(brief().props.clarifyAnswer).toBe("A");
+  await act(async () => { brief().props.onClarify("B"); });
+  await act(async () => { brief().props.onContinue(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/guest/actions/resume")).toBe(true));
+  const registered = calls.find(call => call.path === "/v1/guest/actions/register-member")!.body;
+  expect(registered.replacedSubmissionId).toBe(saved.submissionId);
+  expect(registered.submissionId).not.toBe(saved.submissionId);
+  expect(registered.payload).toEqual({ ...clarification, text: "B" });
+  expect(registered.payloadDigest).toBe(sha256Hex(JSON.stringify(["clarification", "B", id(18), 2, "geography"])));
+  expect(calls.filter(call => call.path === "/v1/guest/actions/abandon")).toHaveLength(1);
+  expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1);
+  expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.body.submissionId).toBe(registered.submissionId);
+  expect(calls.some(call => call.path === "/v1/guest/claim" || call.path === "/v1/runs" || call.path === `/v1/runs/${id(5)}/continue`)).toBe(false);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("CLAIM-14 mounted App confirms an uncertain B registration before abandoning B for edited C", async () => {
+  await held.device.saveBootstrap(context, proof);
+  const pendingInput = { id: id(18), type: "clarification" as const, field: "geography" as const, briefRevision: 2 };
+  const original = createGuestPendingAction({ submissionId: id(3), guestContextId: context.guestContextId, conversationId: context.conversationId,
+    conversationVersion: 1, draftRevision: 0, draftDigest: sha256Hex("A"), payload: { kind: "clarification", text: "A", pendingInputId: pendingInput.id, briefRevision: 2, field: "geography" },
+    consentPolicyVersion: context.consentPolicyVersion, createdAt: "2026-09-21T00:00:00.000Z", expiresAt: context.expiresAt });
+  await held.device.savePendingAction(original);
+  const auth = completeGuestAuth(beginGuestAuth(original, { id: id(8), provider: "email" }, new Date("2026-09-21T01:00:00.000Z")), id(8), id(7), new Date("2026-09-21T01:00:00.000Z"));
+  const claim = completeGuestClaim(beginGuestClaim(auth, id(9), new Date("2026-09-21T01:00:00.000Z")), { type: "claim_accepted", submissionId: id(3), requestId: id(9), accountId: id(7),
+    conversationId: context.conversationId, conversationVersion: 1, controlVersion: 1, principalEpoch: 1, viewEpoch: 1 }, new Date("2026-09-21T01:00:00.000Z"));
+  const abandoned = cancelGuestPendingAction(claim, new Date("2026-09-21T01:00:00.000Z"));
+  await held.device.savePendingAction(abandoned, original);
+  const pendingB = prepareMemberClarificationReplacement(abandoned, { kind: "clarification", text: "B", pendingInputId: pendingInput.id, briefRevision: 2, field: "geography" }, id(10), 1,
+    new Date("2026-09-21T01:01:00.000Z"), { principalEpoch: 1, viewEpoch: 1 });
+  await held.device.replaceAbandonedAction(abandoned, pendingB);
+  await held.device.saveSnapshot(context.guestContextId, { ...emptyState(), consentGranted: true, routeMode: "controlled-research", status: "awaiting_input",
+    run: { runId: id(5), lifecycle: "awaiting_input", phase: "planning", outcome: null, reportId: null, labeledDemo: false, pendingInput } }, 1);
+  const calls: { path: string; body: any }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null; calls.push({ path, body });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/guest/actions/register-member") return Response.json({ type: "member_action_registered", submissionId: body.submissionId, claimRequestId: id(9), controlVersion: 1,
+      payloadDigest: body.payloadDigest, expiresAt: context.expiresAt, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: "consent.v1" });
+    if (path === "/v1/guest/actions/abandon") return Response.json({ type: "action_abandoned", submissionId: body.submissionId, claimRequestId: id(9) });
+    if (path === "/v1/guest/actions/resolve") return Response.json({ type: "member_action_registered", submissionId: body.submissionId, claimRequestId: id(9), controlVersion: 1,
+      payloadDigest: calls.filter(call => call.path === "/v1/guest/actions/register-member").at(-1)!.body.payloadDigest,
+      expiresAt: context.expiresAt, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: "consent.v1" });
+    if (path === "/v1/guest/actions/resume") return Response.json({ type: "continuation_dispatched", submissionId: body.submissionId, claimRequestId: id(9), accountId: id(7),
+      conversationId: context.conversationId, conversationVersion: 1, receiptId: id(19), runId: id(20), memberConversationId: id(21), kind: "clarification" });
+    if (path === `/v1/runs/${id(20)}`) return Response.json({ runId: id(20), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(20)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async () => memberToken } as any} />); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
+  await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
+  const brief = () => renderer.root.find(node => String(node.type) === "ResearchBriefCard");
+  expect(brief().props.clarifyAnswer).toBe("B");
+  await act(async () => { brief().props.onClarify("C"); });
+  await act(async () => { brief().props.onContinue(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/guest/actions/resume")).toBe(true));
+  const registrations = calls.filter(call => call.path === "/v1/guest/actions/register-member").map(call => call.body);
+  expect(registrations.map(body => body.payload.text)).toEqual(["B", "C"]);
+  expect(registrations[1].replacedSubmissionId).toBe(pendingB.submissionId);
+  expect(calls.findIndex(call => call.path === "/v1/guest/actions/abandon")).toBeGreaterThan(calls.findIndex(call => call.path === "/v1/guest/actions/register-member"));
+  expect(calls.filter(call => call.path === "/v1/guest/actions/resume")).toHaveLength(1);
+  expect(calls.find(call => call.path === "/v1/guest/actions/resume")?.body.submissionId).toBe(registrations[1].submissionId);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 mounted App forces a bounded Clerk refresh after old-bearer 401 without replaying consent or losing the draft", async () => {
+  held.session.hydrate = async () => ({ token: "token-one", accountId: id(7), state: { ...emptyState(), draft: "third question", signedIn: true, routeMode: "controlled-research" } });
+  const rotations: string[] = [];
+  held.session.rotateCredential = async (old: string, next: { token: string }) => { rotations.push(`${old}:${next.token}`); };
+  let forced = false;
+  const auth = { loaded: true, signedIn: true, getToken: async (options?: { skipCache?: boolean }) => {
+    if (options?.skipCache) forced = true;
+    return forced ? "token-two" : "token-one";
+  } };
+  const calls: { path: string; bearer: string | undefined }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, bearer = (init.headers as Record<string, string> | undefined)?.authorization;
+    calls.push({ path, bearer });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return bearer === "Bearer token-one" ? Response.json({ message: "expired bearer" }, { status: 401 }) : Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
+    if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  const header = () => renderer.root.find(node => String(node.type) === "ResearchHeader");
+  await act(async () => { header().props.onSettings(); });
+  const panel = () => renderer.root.find(node => String(node.type) === "ProfilePanel");
+  await act(async () => { await panel().props.onConsent(); });
+  expect(forced).toBe(true);
+  expect(rotations).toEqual(["token-one:token-two"]);
+  expect(calls.filter(call => call.path === "/v1/consent")).toEqual([{ path: "/v1/consent", bearer: "Bearer token-one" }]);
+  await act(async () => { await panel().props.onConsent(); });
+  expect(calls.filter(call => call.path === "/v1/consent").map(call => call.bearer)).toEqual(["Bearer token-one", "Bearer token-two"]);
+  await act(async () => { panel().props.onDone(); });
+  expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("third question");
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchComposer").props.onSend(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs")).toBe(true));
+  expect(calls.find(call => call.path === "/v1/runs")?.bearer).toBe("Bearer token-two");
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 mounted App treats a repeated 401 after forced refresh as revoked and does not send saved research", async () => {
+  held.session.hydrate = async () => ({ token: "revoked-token", accountId: id(7), state: { ...emptyState(), draft: "keep this", signedIn: true } });
+  const options: unknown[] = [], paths: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname; paths.push(path);
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return Response.json({ message: "revoked" }, { status: 401 });
+    return Response.json({});
+  }));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: true, getToken: async (opts?: unknown) => { options.push(opts); return "revoked-token"; } } as any} />); });
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
+  await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
+  expect(options).toContainEqual({ skipCache: true });
+  expect(paths.filter(path => path === "/v1/consent")).toHaveLength(1);
+  expect(paths).not.toContain("/v1/runs");
+  expect(api.currentCredential()).toBeNull();
+  await act(async () => { renderer.unmount(); });
+});
+
+it("AUTH-06 mounted App discards an old in-flight run read after refresh, polls with the new bearer, then sends a third message", async () => {
+  const oldRun = id(5);
+  held.session.hydrate = async () => ({ token: "token-one", accountId: id(7), state: { ...emptyState(), signedIn: true, consentGranted: true,
+    routeMode: "controlled-research", status: "progress", run: { runId: oldRun, lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false } } });
+  let tokenReads = 0, releaseOld!: (value: Response) => void, poll!: () => void;
+  const oldReply = new Promise<Response>(resolve => { releaseOld = resolve; });
+  vi.stubGlobal("setInterval", (callback: () => void) => { poll = callback; return 1; });
+  vi.stubGlobal("clearInterval", () => undefined);
+  const calls: { path: string; bearer: string | undefined }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit = {}) => {
+    const path = new URL(url).pathname, bearer = (init.headers as Record<string, string> | undefined)?.authorization;
+    calls.push({ path, bearer });
+    if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
+    if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === `/v1/runs/${oldRun}` && bearer === "Bearer token-one") return oldReply;
+    if (path === `/v1/runs/${oldRun}`) return Response.json({ runId: oldRun, lifecycle: "queued", phase: "searching", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${oldRun}/events`) return Response.json({ events: [] });
+    if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
+    if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${id(15)}/events`) return Response.json({ events: [] });
+    return Response.json({});
+  }));
+  const auth = { loaded: true, signedIn: true, getToken: async () => ++tokenReads <= 2 ? "token-one" : "token-two" };
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={auth as any} />); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === `/v1/runs/${oldRun}` && call.bearer === "Bearer token-one")).toBe(true));
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
+  await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
+  expect(api.currentCredential()).toBe("token-two");
+  releaseOld(Response.json({ runId: oldRun, lifecycle: "terminal", phase: "done", outcome: "completed", reportId: id(22), labeledDemo: false }));
+  await act(async () => { await Promise.resolve(); poll(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === `/v1/runs/${oldRun}` && call.bearer === "Bearer token-two")).toBe(true));
+  await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
+  expect(renderer.root.find(node => String(node.type) === "ResearchActivity").props.lifecycle).toBe("queued");
+  await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onNewResearch(); });
+  const composer = () => renderer.root.find(node => String(node.type) === "ResearchComposer");
+  await act(async () => { composer().props.onChange("third question"); });
+  await act(async () => { composer().props.onSend(); await Promise.resolve(); });
+  await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs" && call.bearer === "Bearer token-two")).toBe(true));
+  expect(calls.filter(call => call.path === "/v1/runs")).toHaveLength(1);
   await act(async () => { renderer.unmount(); });
 });

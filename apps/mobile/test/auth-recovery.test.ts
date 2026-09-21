@@ -19,8 +19,9 @@ function appFunction(name: string, bindings: Record<string, unknown>): (...args:
 function recovery(clear: () => Promise<void>) {
   let state: UiState = { ...emptyState(), signedIn: true, draft: "private" }, ready = true, current = true;
   const release = vi.fn();
-  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), setToken: vi.fn(), setAccountId: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
-  return { run: appFunction("onAuthFailure", bindings), state: () => state, ready: () => ready, supersede: () => { current = false; }, release };
+  const memberTokenRef = { current: "old-bearer" as string | null }, memberAccountRef = { current: "old-account" as string | null };
+  const bindings = { redactingContent: { current: true }, stopPolling: vi.fn(), api: { activateSession: vi.fn(), capture: () => ({ current: () => current, release }) }, clearPanels: vi.fn(), memberTokenRef, memberAccountRef, setToken: vi.fn(), setAccountId: vi.fn(), setState: (change: (s: UiState) => UiState) => { state = change(state); }, expireLocalSession, clearAccountLocal: clear, sessionStorage: {}, setStorageReady: (value: boolean) => { ready = value; } };
+  return { run: appFunction("onAuthFailure", bindings), state: () => state, ready: () => ready, memberTokenRef, memberAccountRef, supersede: () => { current = false; }, release };
 }
 it("W03 expired-session cleanup blocks sign-in while pending and restores it only after durable success", async () => {
   let resolve!: () => void;
@@ -29,6 +30,8 @@ it("W03 expired-session cleanup blocks sign-in while pending and restores it onl
   expect(control.ready()).toBe(false);
   expect(control.state().signedIn).toBe(false);
   expect(control.state().draft).toBe("");
+  expect(control.memberTokenRef.current).toBeNull();
+  expect(control.memberAccountRef.current).toBeNull();
   resolve(); await pending;
   expect(control.ready()).toBe(true);
 });

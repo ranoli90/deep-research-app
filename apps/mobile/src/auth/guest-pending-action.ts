@@ -19,6 +19,9 @@ export type GuestPendingActionPhase =
   /** The original claim may be reconciled, but can never be retried or replaced. */
   | "claim_reconcile"
   | "claimed"
+  /** Exact edited member clarification is saved before idempotent registration. */
+  | "member_register_pending"
+  | "member_claimed"
   | "resume_pending"
   /** The original continuation may be reconciled, but can never be resent. */
   | "resume_reconcile"
@@ -135,7 +138,7 @@ export type GuestPendingActionRejectionOutcome =
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const digest = /^[a-f0-9]{64}$/;
 const phases = new Set<GuestPendingActionPhase>([
-  "pending_auth", "authenticating", "authenticated", "claim_pending", "claim_reconcile", "claimed", "resume_pending", "resume_reconcile", "dispatched", "dismissed", "cancelled", "rejected", "expired",
+  "pending_auth", "authenticating", "authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched", "dismissed", "cancelled", "rejected", "expired",
 ]);
 const actionKeys: Record<GuestPendingActionKind, readonly string[]> = {
   new_research: ["kind", "text"],
@@ -220,8 +223,8 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
   if (intent.payloadDigest !== sha256Hex(canonicalPayload(payload)) || Date.parse(intent.expiresAt) <= Date.parse(intent.createdAt) || Date.parse(intent.expiresAt) - Date.parse(intent.createdAt) > GUEST_PENDING_ACTION_MAX_AGE_MS) invalid();
   if ((intent.phase === "authenticating" && intent.authAttempt === null) ||
     (intent.authAttempt !== null && !["authenticating", "authenticated", "claim_pending", "claim_reconcile"].includes(intent.phase)) ||
-    (["authenticated", "claim_pending", "claim_reconcile", "claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
-    (["claim_reconcile", "claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
+    (["authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
+    (["claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
     (intent.claim !== null && (intent.authenticatedAccountId === null || intent.claim.accountId !== intent.authenticatedAccountId)) ||
     (intent.phase === "dispatched") !== (intent.dispatchReceiptId !== null) ||
     (intent.phase === "rejected") !== (intent.rejectionCode !== null) ||
@@ -235,6 +238,7 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
     (intent.phase === "authenticated" && (intent.claim !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
     (intent.phase === "claim_pending" && (intent.claim === null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
     (intent.phase === "claim_reconcile" && (intent.claim === null || intent.autoResume || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (["member_register_pending", "member_claimed"].includes(intent.phase) && (intent.payload.kind !== "clarification" || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
     (intent.phase === "resume_pending" && (intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
     (intent.phase === "resume_reconcile" && (intent.claim === null || intent.autoResume || intent.dispatchReceiptId !== null || intent.rejectionCode !== null))) invalid();
   return intent;
@@ -247,6 +251,33 @@ export function createGuestPendingAction(input: NewGuestPendingAction): GuestPen
     claim: null, dispatchReceiptId: null, rejectionCode: null,
   };
   return readGuestPendingAction(candidate);
+}
+
+/** A claimed clarification may be edited only after the old server action is abandoned. */
+export function prepareMemberClarificationReplacement(old: GuestPendingAction, payload: Extract<GuestPendingActionPayload, { kind: "clarification" }>, submissionId: Uuid, draftRevision: number, now: Date, sessionEpochs: { principalEpoch: number; viewEpoch: number }): GuestPendingAction {
+  const previous = readGuestPendingAction(old);
+  if (previous.phase !== "cancelled" || previous.payload.kind !== "clarification" || !previous.claim || !previous.authenticatedAccountId ||
+    previous.payload.pendingInputId !== payload.pendingInputId || previous.payload.briefRevision !== payload.briefRevision || previous.payload.field !== payload.field ||
+    previous.payload.text === payload.text || !validId(submissionId) || !validVersion(draftRevision) ||
+    !validVersion(sessionEpochs.principalEpoch) || !validVersion(sessionEpochs.viewEpoch)) throw new Error("The edited clarification is not bound to an abandoned answer.");
+  const createdAt = now.toISOString();
+  const expiresAt = new Date(Math.min(Date.parse(previous.expiresAt), now.getTime() + GUEST_PENDING_ACTION_MAX_AGE_MS)).toISOString();
+  if (Date.parse(expiresAt) <= now.getTime()) throw new Error("The saved clarification expired before replacement.");
+  const base = createGuestPendingAction({ submissionId, guestContextId: previous.guestContextId, conversationId: previous.conversationId,
+    conversationVersion: previous.conversationVersion, draftRevision, draftDigest: sha256Hex(payload.text), payload,
+    consentPolicyVersion: previous.consentPolicyVersion, createdAt, expiresAt });
+  return persisted({ ...base, phase: "member_register_pending", authenticatedAccountId: previous.authenticatedAccountId,
+    claim: { ...previous.claim, principalEpoch: sessionEpochs.principalEpoch, viewEpoch: sessionEpochs.viewEpoch } });
+}
+
+export function confirmMemberClarificationRegistration(action: GuestPendingAction, receipt: {
+  type: "member_action_registered"; submissionId: string; claimRequestId: string; controlVersion: number; payloadDigest: string; expiresAt: string;
+}, now: Date): GuestPendingAction {
+  const saved = current(action, ["member_register_pending"], now);
+  if (receipt.type !== "member_action_registered" || receipt.submissionId !== saved.submissionId || receipt.claimRequestId !== saved.claim?.requestId ||
+    receipt.payloadDigest !== saved.payloadDigest || !validVersion(receipt.controlVersion) || !validDate(receipt.expiresAt) || Date.parse(receipt.expiresAt) <= now.getTime()) throw new Error("Edited clarification registration did not match its saved identity.");
+  return persisted({ ...saved, phase: "member_claimed", expiresAt: new Date(Math.min(Date.parse(saved.expiresAt), Date.parse(receipt.expiresAt))).toISOString(),
+    claim: { ...saved.claim!, controlVersion: receipt.controlVersion } });
 }
 
 export function pendingActionExpired(intent: GuestPendingAction, now: Date): boolean {
@@ -377,7 +408,7 @@ export function cancelGuestPendingAction(intent: GuestPendingAction, now: Date):
  * request ID; no second claim or continuation ID is minted here.
  */
 export function reopenGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
-  const checked = current(intent, ["dismissed", "authenticated", "claim_pending", "claimed", "resume_pending"], now);
+  const checked = current(intent, ["dismissed", "authenticated", "claim_pending", "claimed", "member_register_pending", "member_claimed", "resume_pending"], now);
   if (checked.autoResume) throw new Error("This saved sign-in action has not been dismissed.");
   if (checked.phase === "dismissed") return persisted({ ...checked, phase: "pending_auth", autoResume: true });
   return persisted({ ...checked, autoResume: true });
@@ -417,7 +448,7 @@ export function completeGuestClaim(intent: GuestPendingAction, result: GuestClai
 export function validateGuestActionResume(intent: GuestPendingAction, context: CurrentResumeContext): ResumeValidation {
   const checked = readGuestPendingAction(intent);
   if (pendingActionExpired(checked, context.now)) return { ok: false, code: "expired" };
-  if (!(["claimed", "resume_pending"].includes(checked.phase))) return { ok: false, code: "phase" };
+  if (!(["claimed", "member_claimed", "resume_pending"].includes(checked.phase))) return { ok: false, code: "phase" };
   if (!checked.autoResume) return { ok: false, code: "dismissed" };
   if (checked.authenticatedAccountId !== context.accountId) return { ok: false, code: "account" };
   if (!context.sessionActive) return { ok: false, code: "session" };

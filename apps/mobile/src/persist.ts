@@ -112,6 +112,16 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
         }
       });
     },
+    rotateCredential(previousToken: string, session: LocalSession): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== previousToken || owner.accountId !== session.accountId || !session.token || session.token === previousToken) return Promise.reject(new Error("Session changed before credential refresh."));
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== previousToken || current.accountId !== session.accountId) throw new Error("Session changed during credential refresh.");
+        await credentials.setItem(SESSION_KEY, JSON.stringify({ ...session, backend }));
+        if (version !== epoch || current?.token !== previousToken || current.accountId !== session.accountId) throw new Error("Session changed during credential refresh.");
+        current = { ...session };
+      });
+    },
     redactRunContent(token: string, runId: string, state: UiState): Promise<void> {
       const version = epoch, owner = current;
       if (!owner || owner.token !== token) return Promise.reject(new Error("Session changed before clearing deleted content."));
