@@ -6,7 +6,7 @@ import { sha256Hex } from "../sha256";
  * and idempotency. Keeping the envelope strict prevents a late OAuth callback
  * from silently changing or submitting a different local action.
  */
-export const GUEST_PENDING_ACTION_VERSION = "guest-pending-action.v1" as const;
+export const GUEST_PENDING_ACTION_VERSION = "guest-pending-action.v2" as const;
 export const GUEST_PENDING_ACTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 type Uuid = string;
@@ -49,7 +49,7 @@ export type GuestPendingAction = {
   expiresAt: string;
   authAttempt: { id: Uuid; provider: GuestAuthProvider } | null;
   authenticatedAccountId: Uuid | null;
-  claim: { requestId: Uuid; accountId: Uuid; controlVersion: number } | null;
+  claim: { requestId: Uuid; accountId: Uuid; controlVersion: number; principalEpoch: number; viewEpoch: number } | null;
   dispatchReceiptId: Uuid | null;
   rejectionCode: "guest_expired" | "guest_deleted" | "authority_denied" | "intent_stale" | null;
 };
@@ -65,6 +65,12 @@ export type CurrentResumeContext = {
   conversationId: Uuid;
   conversationVersion: number;
   controlVersion: number;
+  /** Changes only when the authenticated principal changes, never on token refresh. */
+  principalEpoch: number;
+  /** Changes when the active conversation/view changes. */
+  viewEpoch: number;
+  /** Token refresh tracking only; it is deliberately not a continuation binding. */
+  credentialGeneration: number;
   draftRevision: number;
   draftDigest: Digest;
   consentPolicyVersion: string;
@@ -72,7 +78,7 @@ export type CurrentResumeContext = {
   budgetAllowed: boolean;
 };
 
-export type ResumeValidation = { ok: true } | { ok: false; code: "expired" | "phase" | "dismissed" | "account" | "session" | "claim" | "view" | "draft" | "consent" | "authority" | "budget" };
+export type ResumeValidation = { ok: true } | { ok: false; code: "expired" | "phase" | "dismissed" | "account" | "session" | "claim" | "principal" | "view" | "draft" | "consent" | "authority" | "budget" };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const digest = /^[a-f0-9]{64}$/;
@@ -129,8 +135,11 @@ function readAuthAttempt(value: unknown): GuestPendingAction["authAttempt"] {
 }
 function readClaim(value: unknown): GuestPendingAction["claim"] {
   if (value === null) return null;
-  if (!record(value) || !exactKeys(value, ["requestId", "accountId", "controlVersion"]) || !validId(value.requestId) || !validId(value.accountId) || !validVersion(value.controlVersion)) invalid();
-  return { requestId: value.requestId, accountId: value.accountId, controlVersion: value.controlVersion };
+  if (!record(value) || !exactKeys(value, ["requestId", "accountId", "controlVersion", "principalEpoch", "viewEpoch"]) || !validId(value.requestId) || !validId(value.accountId) || !validVersion(value.controlVersion) || !validVersion(value.principalEpoch) || !validVersion(value.viewEpoch)) invalid();
+  return {
+    requestId: value.requestId, accountId: value.accountId, controlVersion: value.controlVersion,
+    principalEpoch: value.principalEpoch, viewEpoch: value.viewEpoch,
+  };
 }
 
 /** Strictly decode persisted untrusted storage; corrupt journals never mint a replacement ID. */
@@ -211,16 +220,25 @@ export function reopenGuestPendingAction(intent: GuestPendingAction, now: Date):
 export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticated"], now);
   if (!validId(requestId) || !checked.authenticatedAccountId) throw new Error("The signed-in account cannot claim this action.");
-  return { ...checked, phase: "claim_pending", claim: { requestId, accountId: checked.authenticatedAccountId, controlVersion: 0 } };
+  return {
+    ...checked, phase: "claim_pending",
+    claim: { requestId, accountId: checked.authenticatedAccountId, controlVersion: 0, principalEpoch: 0, viewEpoch: 0 },
+  };
 }
 /** Retry uses the original claim identity; a new ID would make an ambiguous claim unsafe. */
 export function retryGuestClaim(intent: GuestPendingAction, now: Date): GuestPendingAction {
   return current(intent, ["claim_pending"], now);
 }
-export function completeGuestClaim(intent: GuestPendingAction, result: { requestId: Uuid; accountId: Uuid; controlVersion: number; conversationId: Uuid; conversationVersion: number }, now: Date): GuestPendingAction {
+export function completeGuestClaim(intent: GuestPendingAction, result: {
+  requestId: Uuid; accountId: Uuid; controlVersion: number; conversationId: Uuid; conversationVersion: number;
+  principalEpoch: number; viewEpoch: number;
+}, now: Date): GuestPendingAction {
   const checked = current(intent, ["claim_pending"], now);
-  if (!checked.claim || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
-  return { ...checked, phase: "claimed", claim: { ...checked.claim, controlVersion: result.controlVersion } };
+  if (!checked.claim || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || !validVersion(result.principalEpoch) || !validVersion(result.viewEpoch) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
+  return {
+    ...checked, phase: "claimed",
+    claim: { ...checked.claim, controlVersion: result.controlVersion, principalEpoch: result.principalEpoch, viewEpoch: result.viewEpoch },
+  };
 }
 export function validateGuestActionResume(intent: GuestPendingAction, context: CurrentResumeContext): ResumeValidation {
   const checked = readGuestPendingAction(intent);
@@ -230,7 +248,8 @@ export function validateGuestActionResume(intent: GuestPendingAction, context: C
   if (checked.authenticatedAccountId !== context.accountId) return { ok: false, code: "account" };
   if (!context.sessionActive) return { ok: false, code: "session" };
   if (!checked.claim || checked.claim.accountId !== context.accountId || checked.claim.controlVersion !== context.controlVersion) return { ok: false, code: "claim" };
-  if (checked.guestContextId !== context.guestContextId || checked.conversationId !== context.conversationId || checked.conversationVersion !== context.conversationVersion) return { ok: false, code: "view" };
+  if (checked.claim.principalEpoch !== context.principalEpoch) return { ok: false, code: "principal" };
+  if (checked.claim.viewEpoch !== context.viewEpoch || checked.guestContextId !== context.guestContextId || checked.conversationId !== context.conversationId || checked.conversationVersion !== context.conversationVersion) return { ok: false, code: "view" };
   if (checked.draftRevision !== context.draftRevision || checked.draftDigest !== context.draftDigest) return { ok: false, code: "draft" };
   if (checked.consentPolicyVersion !== context.consentPolicyVersion) return { ok: false, code: "consent" };
   if (!context.authorityAllowed) return { ok: false, code: "authority" };

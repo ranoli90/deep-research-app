@@ -23,12 +23,16 @@ function context() {
   return {
     now: new Date("2026-09-20T12:05:00.000Z"), accountId: id(7), sessionActive: true,
     guestContextId: id(2), conversationId: id(3), conversationVersion: 4, controlVersion: 12,
+    principalEpoch: 3, viewEpoch: 8, credentialGeneration: 17,
     draftRevision: 7, draftDigest: sha256Hex(draft), consentPolicyVersion: "consent.v1", authorityAllowed: true, budgetAllowed: true,
   };
 }
 function claimed() {
   const auth = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
-  return completeGuestClaim(beginGuestClaim(auth, id(8), context().now), { requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4 }, context().now);
+  return completeGuestClaim(beginGuestClaim(auth, id(8), context().now), {
+    requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4,
+    principalEpoch: 3, viewEpoch: 8,
+  }, context().now);
 }
 
 describe("guest pending action", () => {
@@ -43,7 +47,7 @@ describe("guest pending action", () => {
   it("AUTH-14 rejects corrupted, unknown-version, extra-field, and payload-digest-mismatched journals fail closed", () => {
     const valid = pending();
     for (const changed of [
-      { ...valid, version: "guest-pending-action.v0" },
+      { ...valid, version: "guest-pending-action.v1" },
       { ...valid, extra: true },
       { ...valid, payloadDigest: "a".repeat(64) },
       { ...valid, phase: "unknown" },
@@ -72,9 +76,18 @@ describe("guest pending action", () => {
     expect(validateGuestActionResume(action, context())).toEqual({ ok: true });
     expect(beginGuestActionResume(action, context()).phase).toBe("resume_pending");
     expect(validateGuestActionResume(action, { ...context(), draftDigest: sha256Hex("edited") })).toEqual({ ok: false, code: "draft" });
+    expect(validateGuestActionResume(action, { ...context(), principalEpoch: 4 })).toEqual({ ok: false, code: "principal" });
+    expect(validateGuestActionResume(action, { ...context(), viewEpoch: 9 })).toEqual({ ok: false, code: "view" });
     expect(validateGuestActionResume(action, { ...context(), conversationVersion: 5 })).toEqual({ ok: false, code: "view" });
     expect(validateGuestActionResume(action, { ...context(), sessionActive: false })).toEqual({ ok: false, code: "session" });
     expect(validateGuestActionResume(action, { ...context(), budgetAllowed: false })).toEqual({ ok: false, code: "budget" });
+  });
+
+  it("AUTH-14 permits a credential refresh but rejects principal or view replacement", () => {
+    const action = claimed();
+    expect(validateGuestActionResume(action, { ...context(), credentialGeneration: 18 })).toEqual({ ok: true });
+    expect(validateGuestActionResume(action, { ...context(), principalEpoch: 4, credentialGeneration: 18 })).toEqual({ ok: false, code: "principal" });
+    expect(validateGuestActionResume(action, { ...context(), viewEpoch: 9, credentialGeneration: 18 })).toEqual({ ok: false, code: "view" });
   });
 
   it("CLAIM-15 suppresses automatic continuation after dismissal even when claim already succeeded", () => {
