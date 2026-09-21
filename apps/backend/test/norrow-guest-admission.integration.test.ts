@@ -14,6 +14,7 @@ import { assertRouteAdmission } from "../src/modules/run-route-admission.js";
 import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
 import { publishReport } from "../src/modules/reports.js";
 import { insertSource } from "../src/modules/evidence.js";
+import { getBrief } from "../src/modules/runs.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -493,6 +494,79 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
       payload: { submissionId: newId, claimRequestId, controlVersion: 2, payloadDigest } })).statusCode).toBe(409);
     expect((await pool.query("SELECT count(*)::int AS n FROM runs")).rows[0].n).toBe(1);
+  });
+
+  it("NARROW-CLAIM edited clarification after claim retains exact pending field and creates one member child", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Compare local filing rules", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const parentRunId = first.json().runId as string;
+    const pendingInputId = crypto.randomUUID();
+    await pool.query(`UPDATE runs SET lifecycle='awaiting_input',pending_input_id=$2,
+      pending_input_type='clarification',pending_input_field='geography' WHERE id=$1`, [parentRunId, pendingInputId]);
+    const a = { kind: "clarification" as const, text: "Indiana", pendingInputId, briefRevision: 1, field: "geography" };
+    const oldId = crypto.randomUUID();
+    const claimRequestId = crypto.randomUUID();
+    const authAttemptId = crypto.randomUUID();
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId: oldId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, payload: a,
+        payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(a)).digest("hex"),
+        consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(202);
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin", headers: guest.headers,
+      payload: { submissionId: oldId, authAttemptId, provider: "email_code" } });
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string; accountId: string };
+    const memberHeaders = { authorization: `Bearer ${member.token}` };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...guest.headers, ...memberHeaders },
+      payload: { claimRequestId, submissionId: oldId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/abandon", headers: memberHeaders,
+      payload: { submissionId: oldId, claimRequestId } })).statusCode).toBe(200);
+    const b = { ...a, text: "Alberta" };
+    const newId = crypto.randomUUID();
+    const registration = { submissionId: newId, claimRequestId, replacedSubmissionId: oldId, payload: b,
+      payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(b)).digest("hex") };
+    const register = () => app.inject({ method: "POST", url: "/v1/guest/actions/register-member",
+      headers: memberHeaders, payload: registration });
+    expect((await register()).json()).toMatchObject({ type: "member_action_registered",
+      submissionId: newId, controlVersion: 2, payloadDigest: registration.payloadDigest });
+    expect((await register()).json()).toMatchObject({ type: "member_action_registered", submissionId: newId });
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resolve", headers: memberHeaders,
+      payload: { submissionId: newId, claimRequestId } })).json().type).toBe("member_action_registered");
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/register-member", headers: memberHeaders,
+      payload: { ...registration, payload: { ...b, pendingInputId: crypto.randomUUID() } } })).statusCode).toBe(400);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/register-member", headers: memberHeaders,
+      payload: { ...registration, payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(a)).digest("hex") } })).statusCode).toBe(400);
+    const wrongIdentity = { ...b, pendingInputId: crypto.randomUUID() };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/register-member", headers: memberHeaders,
+      payload: { ...registration, submissionId: crypto.randomUUID(), payload: wrongIdentity,
+        payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(wrongIdentity)).digest("hex") } })).statusCode).toBe(409);
+    await app.inject({ method: "POST", url: "/v1/consent", headers: memberHeaders, payload: { grant: true } });
+    const resumePayload = { submissionId: newId, claimRequestId, controlVersion: 2,
+      payloadDigest: registration.payloadDigest };
+    const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: memberHeaders, payload: resumePayload });
+    expect(resumed.statusCode).toBe(200);
+    expect(resumed.json()).toMatchObject({ kind: "clarification", type: "continuation_dispatched" });
+    const child = (await pool.query("SELECT account_id,claimed_parent_run_id,guest_pending_action_id FROM runs WHERE id=$1",
+      [resumed.json().runId])).rows[0];
+    expect(child).toMatchObject({ account_id: member.accountId, claimed_parent_run_id: parentRunId,
+      guest_pending_action_id: newId });
+    const childBriefId = (await pool.query("SELECT brief_id FROM runs WHERE id=$1", [resumed.json().runId]))
+      .rows[0].brief_id as string;
+    const childBrief = await getBrief(pool, childBriefId);
+    expect(childBrief.constraints).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: "geography", value: "Alberta", origin: "confirmed" }),
+    ]));
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: memberHeaders, payload: resumePayload })).json().runId).toBe(resumed.json().runId);
+    expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=$1", [member.accountId])).rows[0].n).toBe(1);
   });
 
   it("moves unknown paid outcome into sponsor HOLD and settles exact confirmed receipt once", async () => {

@@ -32,6 +32,7 @@ import {
   GuestAuthAttemptResolveRequestSchema,
   GuestPendingActionCancelRequestSchema,
   GuestClaimedActionAbandonRequestSchema,
+  GuestMemberActionRegisterRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -99,6 +100,7 @@ import { accountForIdentity } from "../modules/identity.js";
 import { applyClerkWebhookEvent } from "../modules/clerk-revocation.js";
 import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
   cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
+  registerMemberClarificationReplacement,
   endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
   registerGuestPendingAction, resolveGuestAuthAttempt,
   revokeGuestConsent,
@@ -201,6 +203,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/guest/pending-actions/attempts/resolve": GuestAuthAttemptResolveRequestSchema,
     "/v1/guest/pending-actions/cancel": GuestPendingActionCancelRequestSchema,
     "/v1/guest/actions/abandon": GuestClaimedActionAbandonRequestSchema,
+    "/v1/guest/actions/register-member": GuestMemberActionRegisterRequestSchema,
     "/v1/guest/claim": GuestClaimRequestSchema,
     "/v1/guest/claims/resolve": GuestClaimResolveRequestSchema,
     "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
@@ -307,6 +310,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
     const input = GuestClaimedActionAbandonRequestSchema.parse(req.body);
     try { return await abandonClaimedGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/register-member", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    try { return await registerMemberClarificationReplacement(pool, member.accountId,
+      GuestMemberActionRegisterRequestSchema.parse(req.body)); }
     catch (error) { return guestError(reply, error); }
   });
 

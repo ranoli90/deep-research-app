@@ -46,6 +46,12 @@ export const GuestAuthAttemptEndRequestSchema = z.object({
 export const GuestAuthAttemptResolveRequestSchema = z.object({ submissionId: Uuid, authAttemptId: Uuid }).strict();
 export const GuestPendingActionCancelRequestSchema = z.object({ submissionId: Uuid }).strict();
 export const GuestClaimedActionAbandonRequestSchema = z.object({ submissionId: Uuid, claimRequestId: Uuid }).strict();
+/** Explicit new Send after a claimed clarification answer was abandoned. */
+export const GuestMemberActionRegisterRequestSchema = z.object({
+  submissionId: Uuid, claimRequestId: Uuid, replacedSubmissionId: Uuid,
+  payload: GuestPendingPayloadSchema, payloadDigest: Digest,
+}).strict();
+export type GuestMemberActionRegisterRequest = z.infer<typeof GuestMemberActionRegisterRequestSchema>;
 export const GuestClaimResolveRequestSchema = z.object({ claimRequestId: Uuid, submissionId: Uuid }).strict();
 export const GuestActionResumeRequestSchema = z.object({
   submissionId: Uuid, claimRequestId: Uuid, controlVersion: Version, payloadDigest: Digest,
