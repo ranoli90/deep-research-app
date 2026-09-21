@@ -1,4 +1,5 @@
 import { loadConfig } from "../src/platform/config.js";
+import { admittedRunOptions } from "../src/modules/run-route-admission.js";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -345,7 +346,11 @@ describe("cheap-first run admission", () => {
     });
     expect(pinned).toMatchObject({ policyId: AZURE_ZDR_EXACT_QUOTE_POLICY.id, admission: "pinned_run_policy" });
     const api = readFileSync(new URL("../src/api/app.ts", import.meta.url), "utf8");
-    expect(api).toMatch(/modelPolicyId:\s*config\.structuredModelPolicyId/);
+    expect(api).toMatch(/admitRun\(pool,\s*a\.accountId,\s*idempotencyKey,\s*input,\s*admittedRunOptions\(config\)\)/);
+    const configured = loadConfig({ DATABASE_URL: "postgres://unused/nonbillable",
+      STRUCTURED_MODEL_POLICY_ID: AZURE_ZDR_STRICT_POLICY.id });
+    expect(admittedRunOptions(configured)).toMatchObject({ modelPolicyId: AZURE_ZDR_STRICT_POLICY.id,
+      zdrRequired: true });
     const inherited = chooseAdmittedRunPolicy({
       runId: "run-child",
       parentPolicyId: AZURE_ZDR_MODEL_POLICY.id,
