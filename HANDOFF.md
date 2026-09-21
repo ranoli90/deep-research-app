@@ -1,3 +1,9 @@
+## W08 expanded-query fixture repair — 2026-09-20
+
+Use only `/home/oranolio/Desktop/deep-v8-extraction-fixture-20260920` on local branch `codex/v8-extraction-fixture`, based on rejected candidate `19a0bd38`. The repair is confined to the fabricated matched search classifier and exact A1/B trace assertions. Offline-only expanded searches return the synthetic offline document; the original mixed export+offline search still returns export. Production retrieval, coverage and publication code is unchanged.
+
+Focused matched-pipeline **3/3**, full extraction **55/55**, and `pnpm verify` pass on fresh isolated PostgreSQL databases. The artifact proves A1 uses original/export-vendor/offline-review and B uses original/offline-vendor; both complete with two parser calls and both facts. This is actual local extraction plus fabricated transport, not live semantic quality, strategy superiority, provider cost, hosted, native or release evidence. Do not merge or push from this lane. Exact prior red, green receipts, artifact hashes and rollback: `verification/v8/extraction-fixture-repair/RESULTS.json`.
+
 ## V8 integrated recovery handoff — 2026-09-20
 
 Use only `/home/oranolio/Desktop/deep-v8-recovery-20260920` on local branch `codex/v8-recovery-20260920`, based on integration `bb80cfd2d2a3b14e224e516b165871fc60e58105`. Recovery head `4ba21a6` remains the ancestral preservation point; the integrated code head before final evidence synthesis is `76c4b6a`. RES-01, RES-04 and the two-review-repair RES-02/03/05 chain are present once. The existing b818/55ea/3116-equivalent bases were not replayed, and the shared query-authorization type change remains one byte-identical copy.

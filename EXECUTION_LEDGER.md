@@ -1,5 +1,13 @@
 # Execution ledger
 
+## 2026-09-20 — W08 matched-pipeline expanded-query fixture repair
+
+- Isolated `/home/oranolio/Desktop/deep-v8-extraction-fixture-20260920`, branch `codex/v8-extraction-fixture`, base `19a0bd38`; no source lane, main, recovery candidate, remote ref, live provider, or native environment was changed.
+- Preserved the prior red exactly: full extraction **54/55**, where A1 source-class-expanded offline discovery was misclassified by an exact-match fabricated transport and honestly ended `completed_with_limitations` with one parser call and unresolved `qc1`/`c1`.
+- Fixture-only repair classifies offline-editing-only expanded queries as `offline.html`; the mixed opening query still selects `export.html`. Trace assertions now require actual A1 and B expanded queries. Completed, two-parser, two-fact, support, coverage and publication assertions were not weakened; production code is unchanged.
+- Focused registered W08 on fresh `deep_v8_fixture_20260920_b6d49c1a`: **3/3**, 115.01s, exit 0. Full registered extraction on fresh `deep_v8_fixture_full_20260920_4d37a8c2`: **55/55** across 8 files, 678.71s, exit 0. `pnpm verify` passes core **392/392**, backend **247/247**, mobile **504/504**, governance **6/6**, types and boundaries. Actual offline parser, fabricated provider transport, no network or paid calls.
+- Evidence: `verification/v8/extraction-fixture-repair/RESULTS.json`; raw local artifacts and hashes are recorded there. Rollback reverts the fixture-only commit, leaving production consent/ownership/budget/deletion/publication/unknown-outcome behavior untouched.
+
 ## 2026-09-20 — V8 recovery integration and repaired semantic union
 
 - Refreshed origin without moving branches: main `d89afe3`, integration/base `bb80cfd`, parser refs `fa24808`/`b818a1c` with identical tree `95a68b6`. Continued only in `/home/oranolio/Desktop/deep-v8-recovery-20260920`; no source branch, other worktree, active service, shared database or remote ref was mutated.

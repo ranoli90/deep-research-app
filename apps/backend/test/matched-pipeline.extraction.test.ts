@@ -125,7 +125,7 @@ it("W08 A1 and B both iterate through the same actual HTML extraction and checke
    expect(result.outcome).toBe("completed");expect(result.actualParserCalls).toBe(2);
    const prose=result.report.blocks.map((b:{text:string})=>b.text).join(" ");expect(prose).toContain(`${entity} supports full export.`);expect(prose).toContain(`${entity} supports offline editing.`);
   }
-  expect(results[0]!.modelCalls.filter(c=>c.startsWith("search:"))).toEqual([`search:${question}`,"search:export","search:offline editing"]);
-  expect(results[1]!.modelCalls.filter(c=>c.startsWith("search:"))).toEqual([`search:${question}`,"search:offline editing"]);
+  expect(results[0]!.modelCalls.filter(c=>c.startsWith("search:"))).toEqual([`search:${question}`,"search:export vendor documentation","search:offline editing independent review"]);
+  expect(results[1]!.modelCalls.filter(c=>c.startsWith("search:"))).toEqual([`search:${question}`,"search:offline editing vendor documentation"]);
  } finally {await baseline.inject({method:"POST",url:"/v1/account/deletion",headers:auth.headers});}
 },120000);

@@ -7,7 +7,8 @@ export function matchedDocumentModel() {
   if(String(input)!=="https://openrouter.ai/api/v1/chat/completions")throw new Error("unregistered_network_request");
   const body=JSON.parse(String(init?.body));if(body.plugins?.length){
    const query=body.messages[1].content as string;calls.push(`search:${query}`);
-   const suffix=query.trim()==="offline editing"?"offline":"export";
+   const normalizedQuery=query.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
+   const suffix=normalizedQuery.includes("offline editing")&&!normalizedQuery.includes("export")?"offline":"export";
    return new Response(JSON.stringify({id:"nonbillable-matched-search",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:`https://example.org/${suffix}.html`,title:"Technical note"}}]}}]}));
   }
   const context=JSON.parse(body.messages[1].content),operation=body.response_format.json_schema.name;calls.push(operation);
