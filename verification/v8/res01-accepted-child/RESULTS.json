@@ -1,0 +1,49 @@
+{
+  "task": "RES-01 / BB-01 accepted-child transition reviewer repair",
+  "baseCommit": "bb80cfd2d2a3b14e224e516b165871fc60e58105",
+  "initialImplementationCommit": "a4f66d2f5897524eb1059395e0b66c522036789c",
+  "repairImplementationCommit": "0b87ae6cb16632c076ba152aee45a4383c41da4d",
+  "recordedAt": "2026-09-20T18:18:39-06:00",
+  "environment": "Linux 6.14.0-37-generic x86_64; Node v20.20.2; pnpm 9.15.9; isolated local worktree",
+  "evidenceClass": "deterministic mobile unit, mock protected persistence, static TypeScript, and architecture boundary checks; not native lifecycle evidence",
+  "paidCalls": 0,
+  "networkCalls": 0,
+  "results": [
+    {
+      "requirementIds": ["RES-01", "BB-01"],
+      "command": "pnpm --filter @deep/mobile test -- independent-bb01-adoption-guard.test.ts",
+      "exitCode": 0,
+      "scope": "1 file; 25/25; independent accepted-child, lifecycle-fence, recovery, and negative controls",
+      "artifact": "apps/mobile/test/independent-bb01-adoption-guard.test.ts"
+    },
+    {
+      "requirementIds": ["RES-01", "BB-01"],
+      "command": "pnpm --filter @deep/mobile test -- constraint-delta.test.ts independent-bb01-adoption-guard.test.ts follow-up-admission.test.ts pending-input.test.ts correction-draft.test.ts lifecycle.test.ts",
+      "exitCode": 0,
+      "scope": "6 files; 72/72; production wiring, deferred publication, failed adopted write, consent-only revoke, sibling journals",
+      "artifact": "apps/mobile/test/constraint-delta.test.ts"
+    },
+    {
+      "requirementIds": ["RES-01", "BB-01"],
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "scope": "51 files; 377/377; full deterministic mobile suite",
+      "artifact": "apps/mobile/test"
+    },
+    {
+      "requirementIds": ["RES-01", "BB-01"],
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "scope": "mobile TypeScript source",
+      "artifact": "apps/mobile/tsconfig.json"
+    },
+    {
+      "requirementIds": ["RES-01", "BB-01"],
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "scope": "boundaries=ok",
+      "artifact": "scripts/check-boundaries.mjs"
+    }
+  ],
+  "residualEvidenceBoundary": "No simulator, physical device, signed native build, provider, database, GHA, EAS, or paid execution was performed."
+}
