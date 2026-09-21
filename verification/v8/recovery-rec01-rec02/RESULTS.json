@@ -1,6 +1,6 @@
 {
   "schema": "recovery-integration-results.v3",
-  "generatedAt": "2026-09-20T20:58:00-06:00",
+  "generatedAt": "2026-09-20T21:34:00-06:00",
   "requirements": [
     "REC-01",
     "REC-02",
@@ -20,7 +20,9 @@
     "base": "bb80cfd2d2a3b14e224e516b165871fc60e58105",
     "recoveryHead": "4ba21a65b7e7f7abe79b5381f4ec20a4ef341c1d",
     "rejectedIntegratedHead": "19a0bd38ded634ecfe3ef3ef3560d2167f4cf2e7",
+    "rejectedRes05IntegratedHead": "f70a3f6a576ddac0d5d505aee4a8706600ca343a",
     "integratedCodeHeadBeforeFinalEvidenceSynthesis": "0a48cf4bc1e80d30a688c694845bdb83bc2c699e",
+    "res05IntegratedCodeHeadBeforeFinalEvidenceSynthesis": "002fc4ff5ab564f43ad11539997810d2b618cf8b",
     "remotePushed": false
   },
   "refInventoryAfterFetch": {
@@ -107,7 +109,8 @@
         "6eb29dd28fce399c78bfa6d54ff6a2e6b089dc9d",
         "7a4d70fb9df8d98157fe78c587a91ccb4d8545d9",
         "2cc678fa689ce1a1d4688d137a278f82399abf83",
-        "187a2f038891393096b7fec78afd3f567dab4bd3"
+        "187a2f038891393096b7fec78afd3f567dab4bd3",
+        "0d48bb0c200965758d7b47df49cfbd19024df4ce"
       ],
       "w08": [
         "cfe382bc35e3c0bf2dd80ee0ef39fa26672a8e3d",
@@ -115,8 +118,14 @@
         "e61c655daecacf8dfafc61112d193d3adf9aa4a1"
       ]
     },
-    "reviewHistory": "Recovery preservation was approved at 4ba21a6. RES-01 was independently approved at evidence head afd2b4d. RES-04 was rejected for foreign confirmation, later for terminal phase-before-parse at 2abcbd1, and again for phase-only state gates at a7b6d52; final functional 62a374c was authorized for this integration with evidence 6a03137. RES-02/03/05 retained rejected heads 3677bd8, 6eb29dd, 7a4d70f and 2cc678f before final approved alias repair 187a2f0. W08 retained rejected 19a0bd38 54/55 and cfe382b substring/provenance evidence before same-reviewer approval of 5e76f51/e61c655.",
-    "manualConflictResolution": "RES-02 conflicts were shared STATUS/HANDOFF/LEDGER and ADR numbering; its final ADR was remapped to ADR077 beside existing ADR075/076. RES-04 functional conflicts were limited to MOBILE_SCREEN_STATES.md and were resolved assertion-by-assertion to retain strict fields, final all-journal state gates and RES-01 child-lease semantics. RES-04/W08 global documents were synthesized into one final record. No production conflict was hidden, no assertion was deleted, and active production/tests match approved source heads."
+    "res05FollowOnMapping": {
+      "source": "0d48bb0c200965758d7b47df49cfbd19024df4ce",
+      "local": "002fc4ff5ab564f43ad11539997810d2b618cf8b",
+      "parent": "187a2f038891393096b7fec78afd3f567dab4bd3",
+      "appliedOnce": true
+    },
+    "reviewHistory": "Recovery preservation was approved at 4ba21a6. RES-01 was independently approved at evidence head afd2b4d. RES-04 was rejected for foreign confirmation, later for terminal phase-before-parse at 2abcbd1, and again for phase-only state gates at a7b6d52; final functional 62a374c was authorized for this integration with evidence 6a03137. RES-02/03/05 retained rejected heads 3677bd8, 6eb29dd, 7a4d70f and 2cc678f before approved alias repair 187a2f0. Integrated candidate f70a3f6 was then rejected because its final-v2-only reader denied legacy meanings admitted by earlier v2 classifier epochs; 0d48bb0 independently approved the exact historical-epoch union. W08 retained rejected 19a0bd38 54/55 and cfe382b substring/provenance evidence before same-reviewer approval of 5e76f51/e61c655.",
+    "manualConflictResolution": "RES-02 conflicts were shared STATUS/HANDOFF/LEDGER and ADR numbering; its final ADR was remapped to ADR077 beside existing ADR075/076. RES-04 functional conflicts were limited to MOBILE_SCREEN_STATES.md and were resolved assertion-by-assertion to retain strict fields, final all-journal state gates and RES-01 child-lease semantics. RES-04/W08 global documents were synthesized into one final record. Importing 0d48bb0 as local 002fc4f conflicted only in STATUS/HANDOFF/LEDGER; each was manually unioned to preserve all prior evidence and record the f70a3f6 rejection/new approval. No production conflict was hidden, no assertion was deleted, and active RES-05 production/tests/specs match the approved source commit."
   },
   "commands": [
     {
@@ -280,14 +289,76 @@
       "exitCode": 0,
       "environment": "final repaired-candidate documentation synthesis",
       "scope": "revision-3 handoff integrity ok; validator tests 12/12; application_tests_run=0 remains correctly scoped"
+    },
+    {
+      "command": "psql postgres://<local-test-admin>/postgres -tAc <unique database preflight/create>",
+      "exitCode": 127,
+      "environment": "RES-05 integration setup; host shell",
+      "scope": "psql was absent from PATH; command stopped before connection or database creation and is not product evidence"
+    },
+    {
+      "command": "pnpm --filter @deep/research-core exec vitest run test/research-coverage.test.ts test/historical-shortcut-heldout.test.ts test/independence-freshness.test.ts --reporter=verbose",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; deterministic local Vitest",
+      "scope": "3 files; 65/65 passed; legacy-v2 epoch union plus compound, alias, currentness, freshness and atomic controls"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec node --input-type=module -e <create exact unique RES-05 persistence and worker databases through local pg client>",
+      "exitCode": 0,
+      "environment": "local PostgreSQL administrative connection; no shared database mutation",
+      "scope": "created deep_res05_integrated_persist_20260920_2128 and deep_res05_integrated_worker_20260920_2128 after proving both names absent"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_res05_integrated_persist_20260920_2128> pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/retrieval-evidence.integration.test.ts -t 'issues an approved public query|restores valid v2/v3/v4|restores every admitted legacy v2' --reporter=verbose",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; fresh unique local PostgreSQL; fabricated transport; paid/live false",
+      "scope": "1 file; 3 passed and 18 skipped; authoritative first write, exact v2/v3/v4 replay, all v2 epochs, deterministic replay, and semantic/rationale/shape/question/owner tamper rejection"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_res05_integrated_worker_20260920_2128> pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.integration.test.ts --reporter=verbose",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; separate fresh unique local PostgreSQL; fabricated transport; paid/live false",
+      "scope": "1 file; 9/9 passed in 168.88s; real worker v2 resume, compound/crossed/full-four coverage, fiscal/current, atomic and read-cap controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- test/journal-state-gates.test.ts test/follow-up-admission.test.ts test/follow-up-journal.test.ts test/sibling-journals.test.ts test/pending-input.test.ts test/correction-draft.test.ts test/constraint-delta.test.ts",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; deterministic local Vitest",
+      "scope": "7 files; 156/156 passed; preserved BB01/RES04 journal and state-gate union"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec vitest run --config vitest.unit.config.ts test/matched-model.unit.test.ts --reporter=verbose",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; deterministic local Vitest",
+      "scope": "1 file; 7/7 passed; preserved W08 token and phrase boundaries"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "environment": "exact integrated RES-05 code head 002fc4f; no provider/live/native/database",
+      "scope": "Workspace types; research-core 33 files/395 tests; backend unit 31 files/254 tests; mobile 55 files/534 tests; boundaries=ok; governance 6/6"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs && python3 scripts/validate_review.py && python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v && python3 scripts/validate_builder_handoff.py && python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "exitCode": 0,
+      "environment": "RES-05 integrated documentation synthesis",
+      "scope": "boundaries=ok; review integrity ok and 16/16 validator tests; handoff integrity ok and 12/12 validator tests"
+    },
+    {
+      "command": "pnpm --filter @deep/backend exec node --input-type=module -e <drop exact RES-05 persistence and worker databases and verify absent>",
+      "exitCode": 0,
+      "environment": "local PostgreSQL administrative connection",
+      "scope": "dropped only deep_res05_integrated_persist_20260920_2128 and deep_res05_integrated_worker_20260920_2128; verified remaining=0"
     }
   ],
   "priorIndependentDatabaseEvidence": {
-    "rerunInIntegrationWorktree": false,
-    "reason": "The integration assignment prohibited shared databases and required deterministic non-DB integration checks. Approved lane evidence used fresh uniquely named local databases and fabricated nonbillable transports.",
+    "rerunInIntegrationWorktree": true,
+    "reason": "The initial repaired candidate relied on approved lane evidence. The RES-05 follow-on assignment explicitly required fresh isolated integration persistence and real-worker checks, which ran against two unique databases and fabricated nonbillable transports before both databases were dropped.",
     "workerSiblings": "8/8 at repaired RES-02 head on deep_res020305_final_lower_v2_20260920_1955",
     "policyFirstWriteReplayTamper": "2/2 at repaired RES-02 head on deep_res020305_persistence_v2_20260920_1950",
     "aliasCrossedAndFullFour": "2/2 at final RES-02 head 187a2f0 on deep_res02_alias_final_20260920_2016",
+    "integratedRes05Persistence": "3/3 at integrated code head 002fc4f on deep_res05_integrated_persist_20260920_2128; database dropped after verification",
+    "integratedRes05WorkerAndCompound": "9/9 at integrated code head 002fc4f on deep_res05_integrated_worker_20260920_2128; database dropped after verification",
     "invalidInterruptedEvidence": "An EXIT130 PostgreSQL run observed while the source owner was modifying the same worktree is mixed-tree evidence and is classified as neither pass nor failure.",
     "artifact": "verification/v8/res02-freshness/RESULTS.md"
   },
@@ -325,12 +396,12 @@
     "rec02": "complete integrated semantic union",
     "res01": "independently approved and integrated",
     "res04": "approved after foreign-confirmation, terminal-binder and state-gate rejection/repair cycles and integrated",
-    "res020305": "approved at 187a2f0 after preserved compound, scope/pair, lowercase/v2 and phantom-alias rejection/repair history and integrated",
+    "res020305": "187a2f0 compound/currentness/alias behavior plus independently approved 0d48bb0 exact legacy-v2 epoch reader are integrated after preserving the f70a3f6 rejection",
     "w08": "same-reviewer approved at 5e76f51/e61c655; focused affected production path green on exact-clean integrated code head",
     "candidate": "local clean integration candidate after final commit; no remaining deterministic red result",
     "phaseA": "implementation requirements in this recovery assignment are satisfied; broader milestone/release acceptance remains governed by existing gates",
     "phaseB": "not inferred from deterministic integration evidence",
     "release": "not authorized"
   },
-  "rollback": "Return the local recovery branch to rejected integrated head 19a0bd38ded634ecfe3ef3ef3560d2167f4cf2e7 (or preservation head 4ba21a65b7e7f7abe79b5381f4ec20a4ef341c1d) or revert the imported/final integration commits in reverse order. Keep v2/v3/v4 freshness readers and admitted rows, strict durable-journal readers and accepted identities, unresolved Evidence Needs, all source evidence, consent/cancel/budget/ownership/deletion/publication gates, financial/unknown holds, source branches, dirty external worktrees and untracked visual evidence intact. No push, main merge, deployment, live provider call, GHA, EAS, TestFlight or release action occurred."
+  "rollback": "Do not operationally return to rejected f70a3f6 without carrying the approved 0d48bb0 legacy-v2 reader. A code rollback may stop assigning v4 to new runs, but must keep v2/v3/v4 readers and admitted rows, strict durable-journal readers and accepted identities, unresolved Evidence Needs, all source evidence, consent/cancel/budget/ownership/deletion/publication gates, financial/unknown holds, source branches, dirty external worktrees and untracked visual evidence intact. Preservation heads 19a0bd38 and 4ba21a6 remain archival recovery points, not authorization to discard later safety readers. No push, main merge, deployment, live provider call, GHA, EAS, TestFlight or release action occurred."
 }
