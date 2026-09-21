@@ -380,6 +380,70 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       .canonical_locator).toBe("https://example.test/claimed-source");
   });
 
+  it("NARROW-DATA source DELETE rechecks claimed authority after a competing revocation commits", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What did ACME announce?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    const owner = (await pool.query("SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1",
+      [guest.guestContextId])).rows[0].execution_owner_account_id as string;
+    const locator = "https://example.test/race-source";
+    const sourceId = await insertSource(pool, { accountId: owner, runId, locator,
+      title: "Synthetic race source", publisher: "Synthetic", originCluster: "synthetic-race" });
+    const action = { kind: "new_research" as const, text: "A distinct second action" };
+    const submissionId = crypto.randomUUID();
+    const authAttemptId = crypto.randomUUID();
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, payload: action,
+        payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex"),
+        consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin", headers: guest.headers,
+      payload: { submissionId, authAttemptId, provider: "email_code" } });
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string; accountId: string };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...guest.headers, authorization: `Bearer ${member.token}` },
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } })).statusCode).toBe(200);
+
+    const control = new pg.Client({ connectionString: url });
+    await control.connect();
+    let locked = false;
+    try {
+      await control.query("BEGIN");
+      await control.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [member.accountId]);
+      locked = true;
+      const deleting = app.inject({ method: "DELETE", url: `/v1/sources/${sourceId}`,
+        headers: { authorization: `Bearer ${member.token}` } }).then((response) => response);
+      let waiting = false;
+      for (let i = 0; i < 40; i++) {
+        const activity = await control.query(`SELECT 1 FROM pg_stat_activity
+          WHERE datname=current_database() AND pid<>pg_backend_pid() AND wait_event_type='Lock'
+            AND query LIKE '%accounts%'`);
+        if (activity.rowCount) { waiting = true; break; }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      expect(waiting).toBe(true);
+      await control.query(`UPDATE conversation_control_bindings SET revoked_at=now(),revocation_reason='member_revoked'
+        WHERE guest_context_id=$1`, [guest.guestContextId]);
+      await control.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
+        SELECT id,control_version,'member_revoked' FROM guest_contexts WHERE id=$1`, [guest.guestContextId]);
+      await control.query("COMMIT");
+      locked = false;
+      expect((await deleting).statusCode).toBe(404);
+      expect((await pool.query("SELECT canonical_locator FROM sources WHERE id=$1", [sourceId])).rows[0]
+        .canonical_locator).toBe(locator);
+    } finally {
+      if (locked) await control.query("ROLLBACK");
+      await control.end();
+    }
+  });
+
   it("terminalizes edited or dismissed pending actions before and after claim without dispatch", async () => {
     const guest = await enabledGuest();
     await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
@@ -449,6 +513,11 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     await settleRun(pool, owner, runId, 0);
     expect((await pool.query("SELECT reserved_micro::int,held_micro::int,settled_micro::int FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'")).rows[0])
       .toMatchObject({ reserved_micro: 0, held_micro: 100000, settled_micro: 0 });
+    expect((await app.inject({ method: "DELETE", url: "/v1/guest", headers: guest.headers })).statusCode).toBe(200);
+    expect((await pool.query("SELECT reserved_micro::int,held_micro::int,settled_micro::int FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'")).rows[0])
+      .toMatchObject({ reserved_micro: 0, held_micro: 100000, settled_micro: 0 });
+    expect((await pool.query("SELECT state FROM guest_sponsor_reservations WHERE run_id=$1", [runId])).rows[0].state)
+      .toBe("held");
     await pool.query("UPDATE provider_intents SET state='confirmed',confirmed_micro=17000 WHERE id=$1", [intentId]);
     await settleRun(pool, owner, runId, 0);
     await settleRun(pool, owner, runId, 0);
