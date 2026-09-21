@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { constants } from "node:fs";
-import { accessSync, closeSync, openSync, readFileSync, realpathSync, statSync, writeSync } from "node:fs";
+import { accessSync, closeSync, fsyncSync, openSync, readFileSync, realpathSync, statSync, writeSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +18,12 @@ function budgetIsValid(value) {
   if (!/^(?:0|[1-9]\d{0,3})(?:\.\d{1,2})?$/.test(value ?? "")) return false;
   const amount = Number(value);
   return Number.isFinite(amount) && amount > 0 && amount <= 9999;
+}
+
+function hasExactKeys(value, keys) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const actual = Object.keys(value);
+  return actual.length === keys.length && keys.every(key => Object.hasOwn(value, key));
 }
 
 if (process.argv.length !== 2) stop("arguments are not accepted; Android device profile is fixed");
@@ -53,9 +59,29 @@ const device = eas.build?.device;
 if (app?.owner !== owner || app?.extra?.eas?.projectId !== projectId || app?.android?.package !== "app.deepresearch.mobile") {
   stop("Expo project owner, ID, or Android package differs from the approved device target");
 }
-if (device?.extends !== "preview" || preview?.distribution !== "internal" ||
-    device?.android?.buildType !== "apk" || device?.android?.credentialsSource !== "remote" ||
-    device?.env?.EXPO_PUBLIC_API_URL !== apiUrl || device?.env?.EXPO_PUBLIC_ALLOW_CLEARTEXT !== "1") {
+const effective = preview && device ? {
+  ...preview,
+  ...device,
+  android: { ...preview.android, ...device.android },
+  env: { ...preview.env, ...device.env },
+} : null;
+if (!hasExactKeys(preview, ["distribution", "android", "ios", "env"]) ||
+    !hasExactKeys(preview?.android, ["buildType", "credentialsSource"]) ||
+    !hasExactKeys(preview?.ios, ["simulator", "credentialsSource"]) ||
+    !hasExactKeys(preview?.env, ["EXPO_PUBLIC_API_URL"]) ||
+    !hasExactKeys(device, ["extends", "android", "env"]) ||
+    !hasExactKeys(device?.android, ["buildType", "credentialsSource"]) ||
+    !hasExactKeys(device?.env, ["EXPO_PUBLIC_API_URL", "EXPO_PUBLIC_ALLOW_CLEARTEXT"]) ||
+    !hasExactKeys(effective, ["distribution", "android", "ios", "env", "extends"]) ||
+    preview.distribution !== "internal" || preview.android.buildType !== "apk" ||
+    preview.android.credentialsSource !== "remote" || preview.ios.simulator !== false ||
+    preview.ios.credentialsSource !== "remote" || preview.env.EXPO_PUBLIC_API_URL !== "https://example.invalid" ||
+    device.extends !== "preview" || device.android.buildType !== "apk" ||
+    device.android.credentialsSource !== "remote" ||
+    device.env.EXPO_PUBLIC_API_URL !== apiUrl || device.env.EXPO_PUBLIC_ALLOW_CLEARTEXT !== "1" ||
+    effective.distribution !== "internal" || effective.android.buildType !== "apk" ||
+    effective.android.credentialsSource !== "remote" || effective.env.EXPO_PUBLIC_API_URL !== apiUrl ||
+    effective.env.EXPO_PUBLIC_ALLOW_CLEARTEXT !== "1") {
   stop("device profile must remain internal Android APK with the approved loopback API and remote signing");
 }
 
@@ -70,22 +96,37 @@ try {
 // Reserve this one-use budget identity before any CLI/network request. An
 // interrupted or unknown EAS outcome keeps the receipt, so it cannot resend.
 const receiptPath = join(receiptDir, `${process.env.DEEP_EAS_DEVICE_APPROVAL_ID}.json`);
+let receiptFd;
 try {
-  const fd = openSync(receiptPath, "wx", 0o600);
+  receiptFd = openSync(receiptPath, "wx", 0o600);
+  const bytes = Buffer.from(JSON.stringify({
+    approvalId: process.env.DEEP_EAS_DEVICE_APPROVAL_ID,
+    approvedMaxCostUsd: process.env.DEEP_EAS_DEVICE_APPROVED_MAX_COST_USD,
+    projectId,
+    platform: "android",
+    profile: "device",
+    createdAt: new Date().toISOString(),
+  }) + "\n");
+  let written = 0;
+  while (written < bytes.length) {
+    const count = writeSync(receiptFd, bytes, written, bytes.length - written, written);
+    if (!Number.isInteger(count) || count <= 0 || count > bytes.length - written) throw new Error("incomplete approval receipt");
+    written += count;
+  }
+  fsyncSync(receiptFd);
+  closeSync(receiptFd);
+  receiptFd = undefined;
+  const directoryFd = openSync(receiptDir, constants.O_RDONLY | constants.O_DIRECTORY);
   try {
-    writeSync(fd, JSON.stringify({
-      approvalId: process.env.DEEP_EAS_DEVICE_APPROVAL_ID,
-      approvedMaxCostUsd: process.env.DEEP_EAS_DEVICE_APPROVED_MAX_COST_USD,
-      projectId,
-      platform: "android",
-      profile: "device",
-      createdAt: new Date().toISOString(),
-    }) + "\n");
+    fsyncSync(directoryFd);
   } finally {
-    closeSync(fd);
+    closeSync(directoryFd);
   }
 } catch {
-  stop("approval identity was already used or its one-use receipt cannot be written; do not retry an unknown build");
+  if (receiptFd !== undefined) {
+    try { closeSync(receiptFd); } catch { /* Leave the receipt identity held. */ }
+  }
+  stop("approval identity was already used or its one-use receipt cannot be durably committed; do not retry an unknown build");
 }
 
 // EAS has no client-side hard billing cap. This local budget authorization is

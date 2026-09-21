@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, expect, it } from "vitest";
@@ -12,7 +12,8 @@ afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: tru
 type AppConfig = { expo: { owner: string; android: { package: string } } };
 type EasConfig = { build: { device: { env: { EXPO_PUBLIC_API_URL: string }; android: { buildType: string } } } };
 
-function probe(overrides: Record<string, string | undefined>, args: string[] = [], mutate?: (app: AppConfig, eas: EasConfig) => void, fakeExit = 0) {
+type ReceiptFault = "write-zero" | "partial-write" | "file-fsync" | "directory-fsync";
+function probe(overrides: Record<string, string | undefined>, args: string[] = [], mutate?: (app: AppConfig, eas: EasConfig) => void, fakeExit = 0, fault?: ReceiptFault) {
   const dir = mkdtempSync(join(tmpdir(), "deep-eas-device-"));
   dirs.push(dir);
   let scriptPath = script;
@@ -45,6 +46,11 @@ function probe(overrides: Record<string, string | undefined>, args: string[] = [
   for (const [key, value] of Object.entries(overrides)) {
     if (value === undefined) delete env[key]; else env[key] = value;
   }
+  if (fault) {
+    const hook = join(dir, "receipt-fault.cjs");
+    writeFileSync(hook, `const fs=require("node:fs");const {syncBuiltinESMExports}=require("node:module");const originalWrite=fs.writeSync;const originalSync=fs.fsyncSync;let syncCount=0;if(${JSON.stringify(fault)}==="write-zero")fs.writeSync=()=>0;if(${JSON.stringify(fault)}==="partial-write")fs.writeSync=(fd,buffer,offset,length,position)=>originalWrite(fd,buffer,offset,Math.min(length,1),position);if(${JSON.stringify(fault)}.endsWith("fsync"))fs.fsyncSync=(fd)=>{syncCount++;if(syncCount===(${JSON.stringify(fault)}==="file-fsync"?1:2))throw Error("injected fsync failure");return originalSync(fd)};syncBuiltinESMExports();\n`);
+    env.NODE_OPTIONS = `--require=${hook}`;
+  }
   const run = spawnSync(process.execPath, [scriptPath, ...args], { env, encoding: "utf8" });
   const invoked = run.status === 0 ? JSON.parse(readFileSync(marker, "utf8")) : null;
   return { run, invoked, marker, receiptDir, env };
@@ -76,11 +82,17 @@ it.each([
   [(app: AppConfig) => { app.expo.android.package = "other.app"; }, "Expo project"],
   [(_app: AppConfig, eas: EasConfig) => { eas.build.device.env.EXPO_PUBLIC_API_URL = "https://example.invalid"; }, "device profile"],
   [(_app: AppConfig, eas: EasConfig) => { eas.build.device.android.buildType = "app-bundle"; }, "device profile"],
+  [(_app: AppConfig, eas: EasConfig) => { Object.assign(eas.build.device, { distribution: "store" }); }, "device profile"],
+  [(_app: AppConfig, eas: EasConfig) => { Object.assign(eas.build.device.android, { gradleCommand: ":app:assembleRelease" }); }, "device profile"],
+  [(_app: AppConfig, eas: EasConfig) => { Object.assign(eas.build.device.android, { credentialsSource: "local" }); }, "device profile"],
+  [(_app: AppConfig, eas: EasConfig) => { Object.assign(eas.build.device.env, { EXPO_PUBLIC_API_URL_ALT: "https://example.invalid" }); }, "device profile"],
+  [(_app: AppConfig, eas: EasConfig) => { Object.assign(eas.build, { preview: { distribution: "internal", android: { buildType: "app-bundle", credentialsSource: "remote" }, env: { EXPO_PUBLIC_API_URL: "https://example.invalid" } } }); }, "device profile"],
 ] as const)("W10 blocks config drift before CLI invocation", (mutate, reason) => {
-  const { run, marker } = probe({}, [], mutate);
+  const { run, marker, receiptDir } = probe({}, [], mutate);
   expect(run.status).toBe(2);
   expect(run.stderr).toContain(reason);
   expect(() => readFileSync(marker)).toThrow();
+  expect(existsSync(join(receiptDir, "owner-build-20260921.json"))).toBe(false);
 });
 
 it("W10 invokes only Android device APK build and strips shell API override", () => {
@@ -104,4 +116,22 @@ it("W10 consumes an approval identity once, including an unknown result", () => 
   expect(second.status).toBe(2);
   expect(second.stderr).toContain("already used");
   expect(readFileSync(first.marker, "utf8")).toContain("--profile");
+});
+
+it("W10 retries short positive receipt writes until the complete JSON is durable", () => {
+  const { run, marker, receiptDir } = probe({}, [], undefined, 0, "partial-write");
+  expect(run.status).toBe(0);
+  expect(existsSync(marker)).toBe(true);
+  expect(JSON.parse(readFileSync(join(receiptDir, "owner-build-20260921.json"), "utf8")).profile).toBe("device");
+});
+
+it.each(["write-zero", "file-fsync", "directory-fsync"] as const)("W10 holds approval on %s failure before CLI and blocks second dispatch", fault => {
+  const first = probe({}, [], undefined, 0, fault);
+  expect(first.run.status).toBe(2);
+  expect(existsSync(first.marker)).toBe(false);
+  expect(existsSync(join(first.receiptDir, "owner-build-20260921.json"))).toBe(true);
+  const second = spawnSync(process.execPath, [script], { env: { ...first.env, NODE_OPTIONS: "" }, encoding: "utf8" });
+  expect(second.status).toBe(2);
+  expect(second.stderr).toContain("already used");
+  expect(existsSync(first.marker)).toBe(false);
 });
