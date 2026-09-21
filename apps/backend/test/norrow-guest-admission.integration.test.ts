@@ -6,10 +6,11 @@ import { createHash } from "node:crypto";
 import { canonicalGuestPendingPayload, CONSENT_POLICY_VERSION } from "@deep/contracts";
 import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
-import { createPool, migrate } from "../src/platform/db.js";
+import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { loadConfig } from "../src/platform/config.js";
 import { recordIntent, settleRun } from "../src/modules/billing.js";
 import { processRun } from "../src/worker/diagnostic-executor.js";
+import { assertRouteAdmission } from "../src/modules/run-route-admission.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -226,6 +227,49 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       .toMatchObject({ status: "deleted", proof_digest: null });
   });
 
+  it("rejects a stale auth attempt after guest consent revoke and re-grant", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    expect((await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What did ACME announce about Widget 4?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(200);
+    const action = { kind: "new_research" as const, text: "A second research action" };
+    const submissionId = crypto.randomUUID();
+    const authAttemptId = crypto.randomUUID();
+    const pending = { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+      conversationVersion: 1, payload: action, payloadDigest: createHash("sha256")
+        .update(canonicalGuestPendingPayload(action)).digest("hex"), consentPolicyVersion: CONSENT_POLICY_VERSION };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: pending })).statusCode).toBe(202);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId, provider: "email_code" } })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: false } })).json()).toMatchObject({ controlVersion: 2 });
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: true } })).statusCode).toBe(200);
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as { token: string };
+    const stale = await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...guest.headers, authorization: `Bearer ${member.token}` },
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } });
+    expect(stale.statusCode).toBe(409);
+    expect((await pool.query("SELECT state FROM guest_pending_actions WHERE submission_id=$1", [submissionId])).rows[0].state)
+      .toBe("rejected");
+    expect((await pool.query("SELECT count(*)::int AS n FROM conversation_control_bindings")).rows[0].n).toBe(0);
+  });
+
+  it("checks live admission on the same transaction connection at pool size one", async () => {
+    const single = new pg.Pool({ connectionString: url, max: 1, connectionTimeoutMillis: 500 });
+    try {
+      const config = loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
+        LIVE_ROUTE_ENABLED: "true", DEV_ALLOW_FIXTURE_ROUTE: "false",
+        OPENROUTER_API_KEY: "synthetic-no-provider-call", LIVE_SPEND_CAP_MICRO: "1000000" });
+      await expect(withTx(single, (db) => assertRouteAdmission(db, config, "controlled-research")))
+        .resolves.toBeUndefined();
+    } finally { await single.end(); }
+  });
+
   it("moves unknown paid outcome into sponsor HOLD and settles exact confirmed receipt once", async () => {
     const guest = await enabledGuest();
     await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
@@ -289,5 +333,30 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     }
     expect((await app.inject({ method: "GET", url: `/v1/reports/${reportId}`,
       headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
+    const action = { kind: "new_research" as const, text: "Compare a different Widget" };
+    const submissionId = crypto.randomUUID();
+    const authAttemptId = crypto.randomUUID();
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, payload: action,
+        payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex"),
+        consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId, provider: "email_code" } })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...guest.headers, authorization: `Bearer ${member.token}` },
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } })).statusCode).toBe(200);
+    const claimedHeaders = { authorization: `Bearer ${member.token}` };
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: claimedHeaders })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}/events`, headers: claimedHeaders })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: claimedHeaders })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${citationIds[0]}`, headers: claimedHeaders })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}/cost`, headers: claimedHeaders })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${reportId}/export`, headers: claimedHeaders })).statusCode).toBe(200);
+    const library = await app.inject({ method: "GET", url: "/v1/library", headers: claimedHeaders });
+    expect(library.statusCode).toBe(200);
+    expect((library.json().items as Array<{ id: string }>).some((item) => item.id === runId)).toBe(true);
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: guest.headers })).statusCode).toBe(401);
   });
 });

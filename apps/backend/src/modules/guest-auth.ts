@@ -78,6 +78,57 @@ export async function guestCanAccessRun(db: Queryable, guest: GuestContext, runI
   return Boolean(allowed.rowCount);
 }
 
+export type ClaimedConversationScope = { actorKind: "member"; actorAccountId: string;
+  conversationId: string; parentExecutionOwnerId: string; controlBindingId: string; controlVersion: number };
+
+/** Exact live member-to-guest-parent binding, never a generic account owner alias. */
+export async function claimedConversationScope(db: Queryable, memberAccountId: string,
+  parentRunId: string): Promise<ClaimedConversationScope | null> {
+  const row = (await db.query<{ conversation_id: string; execution_owner_account_id: string;
+    binding_id: string; control_version: string }>(`SELECT g.conversation_id,g.execution_owner_account_id,
+      b.id AS binding_id,b.control_version
+      FROM guest_first_request_receipts f
+      JOIN guest_contexts g ON g.id=f.guest_context_id
+      JOIN conversation_control_bindings b ON b.guest_context_id=g.id AND b.guest_conversation_id=g.conversation_id
+      JOIN runs r ON r.id=f.run_id
+      JOIN accounts m ON m.id=b.member_account_id
+      JOIN accounts owner ON owner.id=g.execution_owner_account_id
+      WHERE f.run_id=$1 AND b.member_account_id=$2 AND b.revoked_at IS NULL
+        AND g.status='claimed' AND b.control_version=g.control_version
+        AND b.member_deletion_epoch=m.deletion_epoch AND m.deleted_at IS NULL AND owner.deleted_at IS NULL
+        AND r.account_id=g.execution_owner_account_id AND r.conversation_id=g.conversation_id
+        AND NOT EXISTS(SELECT 1 FROM guest_control_tombstones t WHERE t.guest_context_id=g.id
+          AND t.reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked'))
+        AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=owner.id
+          AND t.object_kind='run' AND t.object_id=r.id AND t.reason='source_deletion')`,
+    [parentRunId, memberAccountId])).rows[0];
+  return row ? { actorKind: "member", actorAccountId: memberAccountId, conversationId: row.conversation_id,
+    parentExecutionOwnerId: row.execution_owner_account_id, controlBindingId: row.binding_id,
+    controlVersion: Number(row.control_version) } : null;
+}
+
+export async function listClaimedGuestParents(db: Queryable, memberAccountId: string) {
+  const bindings = await db.query<{ run_id: string }>(`SELECT f.run_id FROM conversation_control_bindings b
+    JOIN guest_contexts g ON g.id=b.guest_context_id
+    JOIN guest_first_request_receipts f ON f.guest_context_id=g.id
+    WHERE b.member_account_id=$1 AND b.revoked_at IS NULL AND g.status='claimed'`, [memberAccountId]);
+  const items: { id: string; title: string; status: string; created_at: Date; report_id: string | null }[] = [];
+  for (const binding of bindings.rows) {
+    const scope = await claimedConversationScope(db, memberAccountId, binding.run_id);
+    if (!scope) continue;
+    const row = (await db.query<{ id: string; title: string; status: string; created_at: Date;
+      report_id: string | null }>(`SELECT r.id,COALESCE(c.title,'Untitled') AS title,
+        COALESCE(r.terminal_outcome,r.lifecycle) AS status,r.created_at,
+        (SELECT rp.id FROM reports rp WHERE rp.run_id=r.id AND rp.account_id=r.account_id
+          AND rp.redacted_at IS NULL ORDER BY rp.version DESC LIMIT 1) AS report_id
+        FROM runs r JOIN conversations c ON c.id=r.conversation_id
+        WHERE r.id=$1 AND r.account_id=$2 AND r.conversation_id=$3`,
+      [binding.run_id, scope.parentExecutionOwnerId, scope.conversationId])).rows[0];
+    if (row) items.push(row);
+  }
+  return items;
+}
+
 export async function revokeGuestConsent(pool: pg.Pool, guest: GuestContext) {
   return withTx(pool, async (db) => {
     await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
@@ -87,6 +138,8 @@ export async function revokeGuestConsent(pool: pg.Pool, guest: GuestContext) {
     const epoch = await revokeConsent(db, guest.accountId);
     const version = Number(context.control_version) + 1;
     await db.query("UPDATE guest_contexts SET control_version=$2 WHERE id=$1", [guest.id, version]);
+    await db.query(`UPDATE guest_pending_actions SET state='rejected'
+      WHERE guest_context_id=$1 AND state IN ('pending_auth','authenticating','dismissed','cancelled')`, [guest.id]);
     await db.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
       VALUES ($1,$2,'consent_revoked')`, [guest.id, version]);
     return { epoch, controlVersion: version };
@@ -249,10 +302,13 @@ export async function beginGuestAuthAttempt(pool: pg.Pool, guest: GuestContext, 
 }) {
   return withTx(pool, async (db) => {
     await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
-    const context = (await db.query<{ status: string; expires_at: Date; accepted_turn_count: number }>(
-      "SELECT status,expires_at,accepted_turn_count FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
+    const context = (await db.query<{ status: string; expires_at: Date; accepted_turn_count: number;
+      control_version: string }>(
+      "SELECT status,expires_at,accepted_turn_count,control_version FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
     if (!context || context.status !== "active" || context.expires_at <= new Date() ||
       context.accepted_turn_count !== 1) fail("guest_expired", 403);
+    if ((await db.query("SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1 AND reason='consent_revoked'",
+      [guest.id])).rowCount) fail("consent_required", 403);
     const pending = (await db.query<{ state: string; auth_attempt_id: string | null; auth_provider: string | null;
       attempt_revision: string; expires_at: Date }>(
         "SELECT state,auth_attempt_id,auth_provider,attempt_revision,expires_at FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
@@ -267,8 +323,9 @@ export async function beginGuestAuthAttempt(pool: pg.Pool, guest: GuestContext, 
     if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
     const next = Number(pending.attempt_revision) + 1;
     await db.query(`UPDATE guest_pending_actions SET state='authenticating',auth_attempt_id=$2,
-      auth_provider=$3,attempt_revision=$4 WHERE submission_id=$1`,
-      [input.submissionId, input.authAttemptId, input.provider, next]);
+      auth_provider=$3,attempt_revision=$4,auth_control_version=$5,auth_guest_consent_epoch=$6
+      WHERE submission_id=$1`,
+      [input.submissionId, input.authAttemptId, input.provider, next, Number(context.control_version), consent.epoch]);
     return { submissionId: input.submissionId, authAttemptId: input.authAttemptId,
       attemptRevision: next, state: "authenticating" as const };
   });
@@ -364,15 +421,21 @@ export async function claimGuestAction(pool: pg.Pool, guest: GuestContext, membe
     if (!context || context.status !== "active" || !context.proof_digest || context.expires_at <= new Date() ||
         context.accepted_turn_count !== 1) fail("guest_expired", 403);
     const pending = (await db.query<{ state: string; expires_at: Date; conversation_id: string;
-      conversation_version: string; consent_policy_version: string; auth_attempt_id: string | null }>(
-        "SELECT state,expires_at,conversation_id,conversation_version,consent_policy_version,auth_attempt_id FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
+      conversation_version: string; consent_policy_version: string; auth_attempt_id: string | null;
+      auth_control_version: string | null; auth_guest_consent_epoch: string | null }>(
+        `SELECT state,expires_at,conversation_id,conversation_version,consent_policy_version,
+          auth_attempt_id,auth_control_version,auth_guest_consent_epoch
+         FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE`,
         [input.submissionId, guest.id])).rows[0];
     if (!pending || pending.state !== "authenticating" || pending.auth_attempt_id !== input.authAttemptId ||
-      pending.expires_at <= new Date() ||
+      pending.expires_at <= new Date() || Number(pending.auth_control_version) !== Number(context.control_version) ||
       pending.conversation_id !== guest.conversationId || Number(pending.conversation_version) !== 1 ||
       pending.consent_policy_version !== CONSENT_POLICY_VERSION) fail("intent_stale", 409);
     const guestConsent = await currentConsent(db, guest.accountId);
-    if (!guestConsent || guestConsent.revoked || guestConsent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
+    if (!guestConsent || guestConsent.revoked || guestConsent.policyVersion !== CONSENT_POLICY_VERSION ||
+      Number(pending.auth_guest_consent_epoch) !== guestConsent.epoch ||
+      (await db.query("SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1 AND reason='consent_revoked'",
+        [guest.id])).rowCount) fail("consent_required", 403);
     // Proof of a guest action does not grant consent to a separate authenticated account.
     // The member must explicitly grant the current policy before resume; prior revocation remains a deny.
     const controlVersion = Number(context.control_version) + 1;
@@ -450,7 +513,7 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
     const guestRun = await getRun(db, first.run_id);
     if (!guestRun || guestRun.account_id !== first.execution_owner_account_id ||
       guestRun.conversation_id !== binding.guest_conversation_id) fail("intent_stale", 409);
-    await assertRouteAdmission(pool, config, guestRun.route_mode as "fixture" | "controlled-research");
+    await assertRouteAdmission(db, config, guestRun.route_mode as "fixture" | "controlled-research");
     const payload = pending.payload;
     if (payload.kind === "follow_up" && payload.parentRunId !== guestRun.id) fail("intent_stale", 409);
     if (payload.kind === "clarification" && (guestRun.lifecycle !== "awaiting_input" ||

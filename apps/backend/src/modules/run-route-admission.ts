@@ -1,6 +1,6 @@
-import type pg from "pg";
 import type { CreateRunRequest } from "@deep/contracts";
 import type { AppConfig } from "../platform/config.js";
+import type { Queryable } from "../platform/db.js";
 import { liveSpendUsedMicro, canIssueLiveCall } from "./live-spend.js";
 import { modelPolicy } from "../ports/model-policy.js";
 
@@ -9,7 +9,7 @@ function denied(code: string, message: string): never {
 }
 
 /** Every run entry point, including claim continuation, must re-evaluate current route controls. */
-export async function assertRouteAdmission(pool: pg.Pool, config: AppConfig,
+export async function assertRouteAdmission(db: Queryable, config: AppConfig,
   routeMode: CreateRunRequest["routeMode"]) {
   if (routeMode === "fixture") {
     if (!config.fixtureRouteAllowed) denied("permission_denied", "Fixture route is disabled.");
@@ -20,7 +20,7 @@ export async function assertRouteAdmission(pool: pg.Pool, config: AppConfig,
     denied("permission_denied", "Structured research is disabled.");
   if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0)
     denied("permission_denied", "Live route requires an authorized key and budget.");
-  const used = await liveSpendUsedMicro(pool);
+  const used = await liveSpendUsedMicro(db, config.liveBudgetScope);
   if (!canIssueLiveCall({ capMicro: config.liveSpendCapMicro, usedMicro: used }).ok)
     denied("allowance_exhausted", "Live spend cap is exhausted.");
 }

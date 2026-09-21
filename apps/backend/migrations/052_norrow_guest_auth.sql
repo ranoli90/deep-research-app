@@ -85,6 +85,8 @@ CREATE TABLE IF NOT EXISTS guest_pending_actions (
   auth_attempt_id uuid,
   auth_provider text CHECK (auth_provider IS NULL OR auth_provider IN ('apple','google','email_code')),
   attempt_revision bigint NOT NULL DEFAULT 0 CHECK (attempt_revision >= 0),
+  auth_control_version bigint,
+  auth_guest_consent_epoch bigint,
   expires_at timestamptz NOT NULL,
   member_account_id uuid REFERENCES accounts(id),
   claim_request_id uuid,
@@ -98,6 +100,8 @@ CREATE INDEX IF NOT EXISTS guest_pending_actions_context ON guest_pending_action
 ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_attempt_id uuid;
 ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_provider text;
 ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS attempt_revision bigint NOT NULL DEFAULT 0;
+ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_control_version bigint;
+ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_guest_consent_epoch bigint;
 ALTER TABLE guest_pending_actions DROP CONSTRAINT IF EXISTS guest_pending_actions_state_check;
 ALTER TABLE guest_pending_actions ADD CONSTRAINT guest_pending_actions_state_check
   CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched','rejected','deleted'));

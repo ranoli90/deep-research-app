@@ -92,8 +92,9 @@ import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { accountForIdentity } from "../modules/identity.js";
-import { admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest, claimGuestAction, endGuestAuthAttempt,
-  guestCanAccessRun, guestFromProof, registerGuestPendingAction, resolveGuestAuthAttempt,
+import { admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest, claimGuestAction, claimedConversationScope,
+  endGuestAuthAttempt, guestCanAccessRun, guestFromProof, listClaimedGuestParents,
+  registerGuestPendingAction, resolveGuestAuthAttempt,
   revokeGuestConsent,
   resolveGuestAction, resolveGuestClaim, resolveGuestFirstRequest, resumeClaimedGuestAction } from "../modules/guest-auth.js";
 
@@ -163,6 +164,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   }
   async function guest(req: { headers: Record<string, unknown> }) {
     return guestFromProof(pool, config, req.headers["x-norrow-guest-proof"]);
+  }
+  async function scopedReadOwner(runId: string, actor: { accountId: string },
+    guestContext: Awaited<ReturnType<typeof guest>>) {
+    if (guestContext) return await guestCanAccessRun(pool, guestContext, runId) ? guestContext.accountId : null;
+    const own = await pool.query("SELECT 1 FROM runs WHERE id=$1 AND account_id=$2", [runId, actor.accountId]);
+    if (own.rowCount) return actor.accountId;
+    return (await claimedConversationScope(pool, actor.accountId, runId))?.parentExecutionOwnerId ?? null;
   }
 
   // A single strict transport boundary covers the formerly cast-only endpoints.
@@ -416,19 +424,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    if (g && !await guestCanAccessRun(pool, g, id))
-      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
-    if (!run || run.account_id !== a.accountId) {
+    if (!run || run.account_id !== owner) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
     const brief = await getBrief(pool, run.brief_id);
-    const report = await getLatestReportForRun(pool, run.id, a.accountId);
+    const report = await getLatestReportForRun(pool, run.id, owner);
     const contentInvalidated = Boolean((await pool.query(
       "SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run' AND object_id=$2 AND reason='source_deletion' LIMIT 1",
-      [a.accountId, run.id],
+      [owner, run.id],
     )).rowCount);
-    const pendingQuery = await pendingQueryAuthorization(pool, { accountId: a.accountId, runId: run.id, briefRevision: run.brief_revision });
+    const pendingQuery = await pendingQueryAuthorization(pool, { accountId: owner, runId: run.id, briefRevision: run.brief_revision });
     const pendingField = pendingClarificationField(run.pending_input_field);
     return {
       runId: run.id,
@@ -458,10 +466,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    if (g && !await guestCanAccessRun(pool, g, id))
-      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
-    if (!run || run.account_id !== a.accountId) {
+    if (!run || run.account_id !== owner) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
     const after = Number((req.query as { after?: string }).after ?? 0);
@@ -487,9 +495,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    if (g && !await guestCanAccessRun(pool, g, id))
-      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
-    const updated = await cancelOwnedRun(pool, a.accountId, id);
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    const updated = await cancelOwnedRun(pool, owner, id);
     if (!updated) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     }
@@ -1071,11 +1079,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const g = await guest(req as never);
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const reportId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
+    const report = await getReportForAccount(pool, reportId, owner);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
-    if (g && !await guestCanAccessRun(pool, g, report.run_id))
-      return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
-    const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: a.accountId, report });
+    const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: owner, report });
     return {
       reportId: report.id,
       runId: report.run_id,
@@ -1095,10 +1105,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const g = await guest(req as never);
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const row = await getPassageForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const passageId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM passages WHERE id=$1", [passageId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
+    const row = await getPassageForAccount(pool, passageId, owner);
     if (!row) return reply.code(404).send(err("permission_denied", "Source not found.", crypto.randomUUID()));
-    if (g && !await guestCanAccessRun(pool, g, row.run_id))
-      return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
     return {
       passageId: row.id,
       sourceId: row.source_id,
@@ -1127,23 +1139,21 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const sourceId = (req.params as { id: string }).id;
-    if (g) {
-      const source = (await pool.query<{ run_id: string }>(
-        "SELECT run_id FROM sources WHERE id=$1 AND account_id=$2", [sourceId, g.accountId])).rows[0];
-      if (!source || !await guestCanAccessRun(pool, g, source.run_id))
-        return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
-    }
-    const result = await deleteSourceForAccount(pool, a.accountId, sourceId);
-    try { await drainFileDeletions(pool, config.storageDir, a.accountId); }
+    const source = (await pool.query<{ run_id: string }>("SELECT run_id FROM sources WHERE id=$1", [sourceId])).rows[0];
+    const owner = source ? await scopedReadOwner(source.run_id, a, g) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
+    const result = await deleteSourceForAccount(pool, owner, sourceId);
+    try { await drainFileDeletions(pool, config.storageDir, owner); }
     catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
-    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [a.accountId]);
+    const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [owner]);
     return { ...result, fileCleanupPending: pending.rowCount !== 0 };
   });
 
   app.get("/v1/library", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { items: await listLibrary(pool, a.accountId) };
+    return { items: [...await listLibrary(pool, a.accountId), ...await listClaimedGuestParents(pool, a.accountId)]
+      .sort((left, right) => right.created_at.getTime() - left.created_at.getTime()).slice(0, 100) };
   });
 
   app.post("/v1/reports/:id/challenges", async (req, reply) => {
@@ -1178,7 +1188,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get("/v1/reports/:id/export", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const md = await exportReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
+    const reportId = (req.params as { id: string }).id;
+    const resource = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+    const owner = resource ? await scopedReadOwner(resource.run_id, a, null) : null;
+    if (!owner) return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
+    const md = await exportReportForAccount(pool, reportId, owner);
     if (md === null) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
     return { format: "markdown", markdown: md };
   });
@@ -1377,9 +1391,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
-    if (g && !await guestCanAccessRun(pool, g, id))
-      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
-    const cost = await measureRunCost(pool, id, a.accountId);
+    const owner = await scopedReadOwner(id, a, g);
+    if (!owner) return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
+    const cost = await measureRunCost(pool, id, owner);
     if (!cost) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     return cost;
   });
