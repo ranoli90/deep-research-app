@@ -104,6 +104,10 @@ export type GuestContinuationDispatchedOutcome = {
   type: "continuation_dispatched";
   submissionId: Uuid;
   claimRequestId: Uuid;
+  /** The claimed member and conversation scope echoed by the server. */
+  accountId: Uuid;
+  conversationId: Uuid;
+  conversationVersion: number;
   receiptId: Uuid;
 };
 export type GuestPendingActionRejectionOutcome =
@@ -117,6 +121,10 @@ export type GuestPendingActionRejectionOutcome =
     type: "continuation_rejected";
     submissionId: Uuid;
     claimRequestId: Uuid;
+    /** Rejections must be scoped to the same claimed member/conversation. */
+    accountId: Uuid;
+    conversationId: Uuid;
+    conversationVersion: number;
     rejectionCode: NonNullable<GuestPendingAction["rejectionCode"]>;
   };
 
@@ -251,6 +259,25 @@ function isTerminal(intent: GuestPendingAction): boolean {
 }
 
 /**
+ * A continuation acknowledgement must bind every stable identity captured by
+ * the journal. Submission and claim request IDs alone are not sufficient: a
+ * delayed response from another member or conversation must not terminalize
+ * this handoff, particularly while resume reconciliation is the only action
+ * still permitted.
+ */
+function continuationOutcomeMatches(
+  intent: GuestPendingAction,
+  outcome: GuestContinuationDispatchedOutcome | Extract<GuestPendingActionRejectionOutcome, { type: "continuation_rejected" }>,
+): boolean {
+  return intent.claim !== null && intent.authenticatedAccountId !== null &&
+    outcome.submissionId === intent.submissionId &&
+    outcome.claimRequestId === intent.claim.requestId &&
+    validId(outcome.accountId) && outcome.accountId === intent.authenticatedAccountId && outcome.accountId === intent.claim.accountId &&
+    validId(outcome.conversationId) && outcome.conversationId === intent.conversationId &&
+    validVersion(outcome.conversationVersion) && outcome.conversationVersion === intent.conversationVersion;
+}
+
+/**
  * Expiry forbids another automatic action. It deliberately does not replace a
  * known terminal outcome: doing so would leave an expired record with a
  * dispatch receipt/rejection that the strict decoder must reject.
@@ -382,7 +409,7 @@ export function beginGuestActionResume(intent: GuestPendingAction, context: Curr
 export function markGuestActionDispatched(intent: GuestPendingAction, outcome: GuestContinuationDispatchedOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
   if (!(checked.phase === "resume_pending" || checked.phase === "resume_reconcile")) throw new Error("This saved sign-in action cannot continue from its current state.");
-  if (outcome.type !== "continuation_dispatched" || !checked.claim || outcome.submissionId !== checked.submissionId || outcome.claimRequestId !== checked.claim.requestId || !validId(outcome.receiptId)) throw new Error("Research continuation could not be confirmed.");
+  if (outcome.type !== "continuation_dispatched" || !continuationOutcomeMatches(checked, outcome) || !validId(outcome.receiptId)) throw new Error("Research continuation could not be confirmed.");
   // This records a response from the original submission. It does not issue a
   // new request, so it remains safe after expiry while reconciliation is on.
   void now;
@@ -398,8 +425,9 @@ export function rejectGuestPendingAction(intent: GuestPendingAction, outcome: Gu
     ? expireGuestPendingAction(checked, now)
     : checked;
   if (reconciling.phase === "expired") return reconciling;
-  const claimMatches = checked.claim !== null && outcome.submissionId === checked.submissionId &&
-    (outcome.type === "claim_rejected" ? outcome.requestId === checked.claim.requestId : outcome.claimRequestId === checked.claim.requestId);
+  const claimMatches = outcome.type === "claim_rejected"
+    ? checked.claim !== null && outcome.submissionId === checked.submissionId && outcome.requestId === checked.claim.requestId
+    : continuationOutcomeMatches(checked, outcome);
   const expectedPhase = outcome.type === "claim_rejected"
     ? reconciling.phase === "claim_pending" || reconciling.phase === "claim_reconcile"
     : reconciling.phase === "resume_pending" || reconciling.phase === "resume_reconcile";

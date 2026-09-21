@@ -36,10 +36,16 @@ function claimAccepted(overrides: Partial<GuestClaimAcceptedOutcome> = {}): Gues
   };
 }
 function continuationDispatched(overrides: Partial<GuestContinuationDispatchedOutcome> = {}): GuestContinuationDispatchedOutcome {
-  return { type: "continuation_dispatched", submissionId: id(1), claimRequestId: id(8), receiptId: id(9), ...overrides };
+  return {
+    type: "continuation_dispatched", submissionId: id(1), claimRequestId: id(8), accountId: id(7),
+    conversationId: id(3), conversationVersion: 4, receiptId: id(9), ...overrides,
+  };
 }
 function continuationRejected(overrides: Partial<Extract<GuestPendingActionRejectionOutcome, { type: "continuation_rejected" }>> = {}): GuestPendingActionRejectionOutcome {
-  return { type: "continuation_rejected", submissionId: id(1), claimRequestId: id(8), rejectionCode: "authority_denied", ...overrides };
+  return {
+    type: "continuation_rejected", submissionId: id(1), claimRequestId: id(8), accountId: id(7),
+    conversationId: id(3), conversationVersion: 4, rejectionCode: "authority_denied", ...overrides,
+  };
 }
 function claimed() {
   const auth = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
@@ -178,8 +184,14 @@ describe("guest pending action", () => {
 
     expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ submissionId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
     expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ claimRequestId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
+    expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ accountId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
+    expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ conversationId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
+    expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ conversationVersion: 5 }), afterExpiry)).toThrow("could not be confirmed");
     expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ submissionId: id(10) }), afterExpiry)).toThrow("did not match");
     expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ claimRequestId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ accountId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ conversationId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ conversationVersion: 5 }), afterExpiry)).toThrow("did not match");
     expect(reconciling).toMatchObject({ phase: "resume_reconcile", submissionId: id(1), claim: { requestId: id(8) } });
     expectRoundTrip(reconciling);
 
