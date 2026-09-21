@@ -9,6 +9,7 @@ export type AppConfig = {
   supabaseAuth?: { url: string; publishableKey: string };
   clerkAuth?: { issuer: string; publishableKey: string; secretKey?: string; jwtKey?: string;
     authorizedParties: string[]; audience?: string };
+  clerkWebhook?: { signingSecret: string; instanceId: string };
   guestBootstrapEnabled: boolean;
   guestProofPepper?: string;
   guestSponsorPolicyId: string;
@@ -66,6 +67,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     supabaseAuth = { url: url.origin, publishableKey: env.SUPABASE_PUBLISHABLE_KEY };
   }
   let clerkAuth: AppConfig["clerkAuth"];
+  let clerkWebhook: AppConfig["clerkWebhook"];
   if (authMode === "production" && identityProvider === "clerk") {
     let issuer: URL;
     try { issuer = new URL(env.CLERK_ISSUER ?? ""); } catch { throw new Error("CLERK_ISSUER must be an HTTPS origin"); }
@@ -81,6 +83,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     clerkAuth = { issuer: issuer.origin, publishableKey: env.CLERK_PUBLISHABLE_KEY,
       secretKey: env.CLERK_SECRET_KEY, jwtKey: env.CLERK_JWT_KEY, authorizedParties: parties,
       audience: env.CLERK_AUDIENCE || undefined };
+    if (!env.CLERK_WEBHOOK_SIGNING_SECRET?.startsWith("whsec_") ||
+        !/^ins_[A-Za-z0-9]+$/.test(env.CLERK_WEBHOOK_INSTANCE_ID ?? ""))
+      throw new Error("Production Clerk auth requires a pinned webhook signing secret and instance ID");
+    clerkWebhook = { signingSecret: env.CLERK_WEBHOOK_SIGNING_SECRET,
+      instanceId: env.CLERK_WEBHOOK_INSTANCE_ID! };
   }
   const guestBootstrapEnabled = env.NORROW_GUEST_BOOTSTRAP_ENABLED === "true";
   if (guestBootstrapEnabled && (!env.NORROW_GUEST_PROOF_PEPPER || env.NORROW_GUEST_PROOF_PEPPER.length < 32))
@@ -108,6 +115,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     identityProvider,
     supabaseAuth,
     clerkAuth,
+    clerkWebhook,
     guestBootstrapEnabled,
     guestProofPepper: env.NORROW_GUEST_PROOF_PEPPER,
     guestSponsorPolicyId: env.NORROW_GUEST_SPONSOR_POLICY_ID ?? "norrow-guest-first.v1",
