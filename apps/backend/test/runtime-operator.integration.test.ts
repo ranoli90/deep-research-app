@@ -1,13 +1,19 @@
 import { createHash, randomBytes } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import pg from "pg";
+import type PgBoss from "pg-boss";
+import { buildApp } from "../src/api/app.js";
 import { assertSchemaCurrent, createPool, migrate } from "../src/platform/db.js";
 import { createQueue, RESEARCH_QUEUE } from "../src/adapters/queue.js";
 import { startWorker } from "../src/worker/runtime.js";
 import { loadConfig } from "../src/platform/config.js";
 import type { processRun } from "../src/worker/executor.js";
+
+const migrationDir = fileURLToPath(new URL("../migrations/", import.meta.url));
+const expectedLatestMigration = readdirSync(migrationDir).filter((name) => /^\d{3}_[a-z0-9_]+\.sql$/.test(name))
+  .sort().at(-1)!.slice(0, -4);
 
 const adminUrl = process.env.TEST_DATABASE_URL ??
   "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
@@ -54,7 +60,7 @@ describe("operator-owned migration and least-privilege runtime", () => {
     try {
       await Promise.all([migrate(pool), migrate(second)]);
       const state = await assertSchemaCurrent(pool);
-      expect(state.version).toBe("053_schema_migration_integrity");
+      expect(state.version).toBe(expectedLatestMigration);
       expect(state.legacyBaselines).toBe(0);
       const duplicate = await pool.query(`SELECT id, count(*)::int AS count FROM schema_migrations
         GROUP BY id HAVING count(*) > 1`);
@@ -62,6 +68,12 @@ describe("operator-owned migration and least-privilege runtime", () => {
       await migrate(second);
       await pool.query("UPDATE schema_migration_sources SET source_sha256 = repeat('0', 64) WHERE migration_id = '001_init'");
       await expect(assertSchemaCurrent(pool)).rejects.toThrow("schema_migration_source_mismatch");
+      const readiness = await buildApp({ pool, boss: { getQueue: async () => ({}) } as unknown as PgBoss,
+        config: loadConfig({ DATABASE_URL: databaseUrl.toString(), DEV_ALLOW_FIXTURE_ROUTE: "true" }) });
+      try {
+        expect((await readiness.inject({ method: "GET", url: "/health" })).statusCode).toBe(200);
+        expect((await readiness.inject({ method: "GET", url: "/ready" })).statusCode).toBe(503);
+      } finally { await readiness.close(); }
       await expect(migrate(pool)).rejects.toThrow("schema_migration_source_mismatch");
       const migrationPath = fileURLToPath(new URL("../migrations/001_init.sql", import.meta.url));
       const sourceSha = createHash("sha256").update(readFileSync(migrationPath)).digest("hex");
@@ -132,10 +144,18 @@ describe("operator-owned migration and least-privilege runtime", () => {
       has_table_privilege(current_user, 'public.schema_migration_sources', 'UPDATE') AS can_update_sources`);
     expect(privilege.rows[0]).toEqual({ can_create_queue_schema: false, can_create_app_schema: false,
       can_update_ledger: false, can_update_sources: false });
-    expect(await assertSchemaCurrent(rolePool)).toMatchObject({ version: "053_schema_migration_integrity" });
+    expect(await assertSchemaCurrent(rolePool)).toMatchObject({ version: expectedLatestMigration });
     const runtimeQueue = await createQueue(roleUrl.toString(), { schemaSetup: false });
     try {
       expect(await runtimeQueue.getQueue(RESEARCH_QUEUE)).toBeTruthy();
+      const readiness = await buildApp({ pool: rolePool, boss: runtimeQueue,
+        config: loadConfig({ DATABASE_URL: roleUrl.toString(), DEV_ALLOW_FIXTURE_ROUTE: "true" }) });
+      try {
+        expect((await readiness.inject({ method: "GET", url: "/ready" })).statusCode).toBe(200);
+        const queueLost = vi.spyOn(runtimeQueue, "getQueue").mockResolvedValue(undefined as never);
+        expect((await readiness.inject({ method: "GET", url: "/ready" })).statusCode).toBe(503);
+        queueLost.mockRestore();
+      } finally { await readiness.close(); }
     } finally {
       await runtimeQueue.stop({ graceful: true, timeout: 2000 });
     }

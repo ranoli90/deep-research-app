@@ -50,7 +50,7 @@ import type PgBoss from "pg-boss";
 import type pg from "pg";
 import { createHash } from "node:crypto";
 import type { AppConfig } from "../platform/config.js";
-import { withTx } from "../platform/db.js";
+import { assertSchemaCurrent, withTx } from "../platform/db.js";
 import { exportReportForAccount } from "../modules/report-export.js";
 import { logError } from "../platform/log.js";
 import {
@@ -93,6 +93,7 @@ import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, val
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
+import { RESEARCH_QUEUE } from "../adapters/queue.js";
 import { accountForIdentity } from "../modules/identity.js";
 import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
   cancelGuestPendingAction, claimGuestAction, claimedConversationScope,
@@ -138,9 +139,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/health", async () => ({ ok: true }));
-  app.get("/ready", async () => {
-    await pool.query("SELECT 1");
-    return { ok: true };
+  app.get("/ready", async (_req, reply) => {
+    try {
+      await assertSchemaCurrent(pool);
+      if (!await boss.getQueue(RESEARCH_QUEUE)) throw new Error("research_queue_missing");
+      return { ok: true };
+    } catch {
+      return reply.code(503).send({ ok: false });
+    }
   });
 
   app.post("/v1/dev/session", async (req, reply) => {
