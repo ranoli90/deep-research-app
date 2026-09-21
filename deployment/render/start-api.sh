@@ -1,11 +1,15 @@
 #!/bin/sh
 set -eu
 
-# Render assigns PORT for an HTTP service; the application intentionally keeps
-# its own explicit API_PORT configuration.  Prefer an explicit API_PORT for
-# non-Render operators, otherwise consume Render's assigned value.
-export API_HOST="${API_HOST:-0.0.0.0}"
-export API_PORT="${API_PORT:-${PORT:-10000}}"
+# Render's assigned PORT must win over a stale API_PORT in a service setting;
+# it is the port routed to this container. Local operators may set API_PORT.
+if [ -n "${PORT:-}" ]; then
+  export API_HOST=0.0.0.0
+  export API_PORT="$PORT"
+else
+  export API_HOST="${API_HOST:-0.0.0.0}"
+  export API_PORT="${API_PORT:-10000}"
+fi
 
 # loadConfig performs strict validation of DATABASE_URL, production auth,
 # fixture disablement, and every spending/route flag before Fastify listens.

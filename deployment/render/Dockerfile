@@ -14,24 +14,41 @@ RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS build
 
-COPY . .
+COPY tsconfig.base.json ./
+COPY apps/backend/ apps/backend/
+COPY packages/contracts/ packages/contracts/
+COPY packages/research-core/ packages/research-core/
+COPY packages/design/ packages/design/
+COPY deployment/render/ deployment/render/
 # The backend deliberately emits no JavaScript: runtime uses the checked-in
 # TypeScript entrypoints through tsx, which remains in this production image.
 RUN pnpm --filter @deep/backend build
 
-FROM node:20-bookworm-slim AS runtime
+FROM python:3.12-slim-bookworm AS runtime
 
 WORKDIR /app
 ENV NODE_ENV=production \
-    STORAGE_DIR=/app/data/storage
+    HOME=/app \
+    STORAGE_DIR=/app/data/storage \
+    EXTRACTION_RUNTIME=/opt/extraction-runtime
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap ca-certificates libgomp1 libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=dependencies /usr/local/bin/node /usr/local/bin/node
+COPY apps/backend/extraction/requirements.lock /tmp/extraction-requirements.lock
+# The production worker uses the existing offline parser through bubblewrap.
+# Keep its wheels hash-pinned; if the host denies user namespaces, extraction
+# fails closed instead of silently running the parser without isolation.
+RUN python3 -m venv /opt/extraction-runtime \
+    && /opt/extraction-runtime/bin/python -m pip install --no-cache-dir --require-hashes --only-binary=:all: -r /tmp/extraction-requirements.lock \
+    && rm /tmp/extraction-requirements.lock
+COPY --from=build --chown=10001:10001 /app /app
 RUN mkdir -p /app/data/storage \
-    && chown -R node:node /app
-COPY --from=build --chown=node:node /app /app
-USER node
+    && chown -R 10001:10001 /app
+USER 10001:10001
 
-# Render passes PORT to web services.  start-api.sh maps it to the existing
-# API_PORT configuration before the real Fastify server starts.
+# The same image also runs a worker with no HTTP listener, so an image-wide
+# HEALTHCHECK would incorrectly fail that process. Configure /ready only on
+# the Render web service after the backend readiness contract is accepted.
 EXPOSE 10000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:' + (process.env.API_PORT || process.env.PORT || '10000') + '/ready').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"
 CMD ["sh", "deployment/render/start-api.sh"]

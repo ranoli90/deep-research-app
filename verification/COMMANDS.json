@@ -1960,5 +1960,21 @@
     "network": false,
     "paid": false,
     "scope": "Nonbillable bounded regression; local PostgreSQL for integration, fabricated provider transports only"
+  },
+  {
+    "command": "node --test deployment/render/verify-assets.mjs",
+    "status": "implemented_application_command",
+    "implementation": "deployment/render/verify-assets.mjs",
+    "network": false,
+    "paid": false,
+    "scope": "Static Render Docker context and image-source allowlist plus API launcher port behavior; does not build, boot, or verify container extraction"
+  },
+  {
+    "command": "pnpm install --frozen-lockfile --offline",
+    "status": "implemented_application_command",
+    "implementation": "pnpm-lock.yaml",
+    "network": false,
+    "paid": false,
+    "scope": "Offline deterministic workspace dependency installation; in a disposable sparse mirror, tests the Docker dependencies-stage manifest closure without building an image"
   }
 ]

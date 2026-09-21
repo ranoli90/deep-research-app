@@ -1,15 +1,48 @@
-.git
-.env
-.env.*
-!.env.example
-# Local signing and provider credentials must never enter Render build context.
+# Only the backend workspace and its declared local packages enter the build
+# context. Dockerfile COPY statements must stay within this allowlist.
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.base.json
+!apps
+!apps/backend
+!apps/backend/**
+!packages
+!packages/contracts
+!packages/contracts/**
+!packages/research-core
+!packages/research-core/**
+!packages/design
+!packages/design/**
+!deployment
+!deployment/render
+!deployment/render/**
+
+# A future credential accidentally placed below an allowed directory remains
+# excluded. No mobile directory is in the allowlist at all.
+**/.env
+**/.env.*
 **/.credentials
+**/.credentials/**
+**/credentials.json
+**/.npmrc
+**/.netrc
 **/*.p8
-node_modules
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
 **/node_modules
-data
-coverage
-.expo
-dist
-build
-*.log
+**/node_modules/**
+**/data
+**/data/**
+**/coverage
+**/coverage/**
+**/dist
+**/dist/**
+**/build
+**/build/**
+**/*.log
