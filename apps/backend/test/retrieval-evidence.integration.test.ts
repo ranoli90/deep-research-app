@@ -55,9 +55,12 @@ function searchReply(url = "https://example.org/study", content = "Restoration f
   }));
 }
 
-async function runCase(test: (x: { runId: string; accountId: string; fence: number; session: FencedSession; config: ReturnType<typeof loadConfig> }) => Promise<void>) {
+async function runCase(
+  test: (x: { runId: string; accountId: string; fence: number; session: FencedSession; config: ReturnType<typeof loadConfig> }) => Promise<void>,
+  admittedQuestion = question,
+) {
   const accountId = await withTx(pool, async (db) => { const s = await createDevSession(db); await grantConsent(db, s.accountId); return s.accountId; });
-  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question, routeMode: "controlled-research" }));
+  const { runId } = await admitRun(pool, accountId, crypto.randomUUID(), CreateRunRequestSchema.parse({ question: admittedQuestion, routeMode: "controlled-research" }));
   const owner = crypto.randomUUID(); const fence = (await claimLease(pool, runId, owner, 30_000))!;
   const session = fencedSession(pool, { runId, accountId, owner, fence, briefRevision: 1, leaseMs: 30_000 });
   const config = loadConfig({ DATABASE_URL: "postgres://localhost/test", LIVE_ROUTE_ENABLED: "true", STRUCTURED_MODEL_ENABLED: "true",
@@ -208,6 +211,73 @@ describe("Session B retrieval/evidence worker path", () => {
       accountId: crypto.randomUUID(), runId: x.runId, question: priceQuestion, criterionKey: "price", policy: v4,
     })).rejects.toThrow("freshness_policy_owner_mismatch");
   }));
+
+  it("restores every admitted legacy v2 classifier epoch without admitting impossible or malformed policies", async () => {
+    const rationale = {
+      compatibility: "Software compatibility needs the currently applicable version/release.",
+      generic: "Default freshness is a one-year window unless the criterion specifies otherwise.",
+      historical: "Historical events may prefer contemporaneous authoritative evidence over later summaries.",
+      price: "Current price/availability needs a very recent first-party figure.",
+    } as const;
+    const v2 = {
+      compatibility: { version: "criterion-freshness.v2" as const, class: "compatibility" as const, maxAgeHours: null, requiresEffectiveDate: false, requiresVersion: true, rationale: rationale.compatibility },
+      generic: { version: "criterion-freshness.v2" as const, class: "generic" as const, maxAgeHours: 24 * 365, requiresEffectiveDate: false, requiresVersion: false, rationale: rationale.generic },
+      historical: { version: "criterion-freshness.v2" as const, class: "historical" as const, maxAgeHours: null, requiresEffectiveDate: false, requiresVersion: false, rationale: rationale.historical },
+      price: { version: "criterion-freshness.v2" as const, class: "price" as const, maxAgeHours: 72, requiresEffectiveDate: true, requiresVersion: false, rationale: rationale.price },
+    };
+    type SeededV2Policy = {
+      version: "criterion-freshness.v2";
+      class: string;
+      maxAgeHours: number | null;
+      requiresEffectiveDate: boolean;
+      requiresVersion: boolean;
+      rationale: string;
+      [key: string]: unknown;
+    };
+    const seed = async (x: { accountId: string; runId: string }, stored: SeededV2Policy) => {
+      await pool.query(
+        `INSERT INTO criterion_freshness_policies(id,account_id,run_id,criterion_key,class,max_age_hours,requires_effective_date,requires_version,policy)
+         VALUES($1,$2,$3,'default',$4,$5,$6,$7,$8::jsonb)`,
+        [crypto.randomUUID(), x.accountId, x.runId, stored.class, stored.maxAgeHours, stored.requiresEffectiveDate, stored.requiresVersion, JSON.stringify(stored)],
+      );
+    };
+    const validReplay = async (admittedQuestion: string, stored: typeof v2[keyof typeof v2]) => runCase(async (x) => {
+      await seed(x, stored);
+      expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: admittedQuestion })).toEqual(stored);
+      expect(await persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: admittedQuestion })).toEqual(stored);
+      expect((await pool.query("SELECT count(*)::int AS n FROM criterion_freshness_policies WHERE run_id=$1", [x.runId])).rows[0].n).toBe(1);
+    }, admittedQuestion);
+
+    await validReplay("What firmware does Acme use?", v2.compatibility);
+    await validReplay("What firmware does Acme use?", v2.generic);
+    await validReplay("When was Acme established?", v2.generic);
+    await validReplay("When was Acme established?", v2.historical);
+    await validReplay("What is the current price of Acme Pro?", v2.price);
+
+    const priceQuestion = "What is the current price of Acme Pro?";
+    await runCase(async (x) => {
+      await seed(x, v2.historical);
+      await expect(persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: priceQuestion }))
+        .rejects.toThrow("stored_freshness_policy_semantic_mismatch");
+    }, priceQuestion);
+    await runCase(async (x) => {
+      await seed(x, { ...v2.generic, rationale: "Unknown legacy rationale." });
+      await expect(persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: "When was Acme established?" }))
+        .rejects.toThrow("stored_freshness_policy_semantic_mismatch");
+    }, "When was Acme established?");
+    await runCase(async (x) => {
+      await seed(x, { ...v2.compatibility, unexpected: true });
+      await expect(persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: "What firmware does Acme use?" }))
+        .rejects.toThrow("stored_freshness_policy_invalid");
+    }, "What firmware does Acme use?");
+    await runCase(async (x) => {
+      await seed(x, v2.compatibility);
+      await expect(persistFreshnessPolicy(pool, { accountId: x.accountId, runId: x.runId, question: "What firmware does OtherCo use?" }))
+        .rejects.toThrow("freshness_policy_question_mismatch");
+      await expect(persistFreshnessPolicy(pool, { accountId: crypto.randomUUID(), runId: x.runId, question: "What firmware does Acme use?" }))
+        .rejects.toThrow("freshness_policy_owner_mismatch");
+    }, "What firmware does Acme use?");
+  });
 
   it("persists search-hit publication dates and uses them for freshness, not a hardcoded null", async () => runCase(async (x) => {
     const c = await searchArgs(x);

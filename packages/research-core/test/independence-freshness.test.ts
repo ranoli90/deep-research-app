@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { clusterSourceOrigins, independentConfirmationCount, independentConfirmationCountFromClusters } from "../src/independence.js";
 import { evaluateDiscoveryContinuation, furtherHistoricalSourceReadsNeeded, HISTORICAL_FACT_READABLE_CONFIRMATIONS } from "../src/adaptive-breadth.js";
 import {
+  admittedLegacyV2PoliciesForQuestion,
   criterionBoundFreshnessUnmet,
   discoveryContinuationGaps,
   evaluateFreshness,
@@ -528,5 +529,28 @@ describe("BB-02 criterion freshness and two-phase reads", () => {
     const oldQuestion = "When did Caldera Labs commence operations?";
     const oldCriterion = { key: "operations", field: "commence operations", importance: "hard" as const };
     expect(isSimpleHistoricalLookup({ question: oldQuestion, criteria: [oldCriterion], restoredPolicy: oldGeneric })).toBe(false);
+  });
+
+  it("RES-05 accepts every historically admitted v2 meaning and no impossible current-price policy", () => {
+    const signatures = (question: string) => admittedLegacyV2PoliciesForQuestion(question)
+      .map((candidate) => `${candidate.class}:${candidate.rationale}`);
+    expect(signatures("What firmware does Acme use?")).toEqual([
+      "compatibility:Software compatibility needs the currently applicable version/release.",
+      "generic:Default freshness is a one-year window unless the criterion specifies otherwise.",
+    ]);
+    expect(signatures("When was Acme established?")).toEqual([
+      "generic:Default freshness is a one-year window unless the criterion specifies otherwise.",
+      "historical:Historical events may prefer contemporaneous authoritative evidence over later summaries.",
+    ]);
+    expect(signatures("When was Ada Lovelace born?")).toEqual([
+      "generic:Default freshness is a one-year window unless the criterion specifies otherwise.",
+      "historical:Historical events may prefer contemporaneous authoritative evidence over later summaries.",
+    ]);
+    const price = admittedLegacyV2PoliciesForQuestion("What is the current price of Acme Pro?");
+    expect(price).toHaveLength(1);
+    expect(price[0]).toMatchObject({ version: "criterion-freshness.v2", class: "price", maxAgeHours: 72, requiresEffectiveDate: true });
+    expect(admittedLegacyV2PoliciesForQuestion("What firmware does Acme use?")).toEqual(
+      admittedLegacyV2PoliciesForQuestion("What firmware does Acme use?"),
+    );
   });
 });

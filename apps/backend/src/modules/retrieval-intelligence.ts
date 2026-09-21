@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   authorizePublicQuery,
+  admittedLegacyV2PoliciesForQuestion,
   canonicalPrivateTermSet,
   clusterSourceOrigins,
   evaluateFreshness,
@@ -363,8 +364,9 @@ export async function persistFreshnessPolicy(
     throw new Error("stored_freshness_policy_version_mismatch");
   }
   if (policy.version === "criterion-freshness.v2") {
-    const expected = freshnessPolicyForQuestion(row.original_question, undefined, policy.version);
-    if (criterionKey !== "default" || args.question !== row.original_question || !sameFreshnessPolicy(policy, expected)) {
+    if (args.question !== row.original_question) throw new Error("freshness_policy_question_mismatch");
+    const admitted = admittedLegacyV2PoliciesForQuestion(row.original_question);
+    if (criterionKey !== "default" || !admitted.some((expected) => sameFreshnessPolicy(policy, expected))) {
       throw new Error("stored_freshness_policy_semantic_mismatch");
     }
   } else {

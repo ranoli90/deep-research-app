@@ -138,6 +138,72 @@ export function freshnessPolicyForQuestion(
   return freshnessPolicyFromText(`${criterionKey ?? ""} ${question}`.trim(), version);
 }
 
+type LegacyV2ClassifierEpoch = {
+  id: "003c55a" | "f627b2b" | "9677232" | "cde2a94";
+  compatibility: RegExp;
+  historical: (text: string) => boolean;
+};
+
+const legacyHistorical = (tokens: RegExp, signedTreaty: boolean) => (text: string) => {
+  if (/current|today|price|pricing/i.test(text)) return false;
+  return tokens.test(text) || (signedTreaty && /\bsigned\b/i.test(text) && /\btreaty\b/i.test(text));
+};
+
+/**
+ * Every classifier that actually admitted criterion-freshness.v2 before new writes moved to v3.
+ * These definitions are frozen reader semantics, not candidates for new policy writes.
+ */
+const LEGACY_V2_CLASSIFIER_EPOCHS: ReadonlyArray<LegacyV2ClassifierEpoch> = [
+  {
+    id: "003c55a",
+    compatibility: /compatib|supported (on|with)|firmware|version/i,
+    historical: legacyHistorical(/\b(history|historical|founding|outbreak|war of|treaty of)\b/i, false),
+  },
+  {
+    id: "f627b2b",
+    compatibility: /compatib|supported (on|with)|current (firmware|version)|which versions? (?:is|are) (?:supported|compatible)/i,
+    historical: legacyHistorical(/\b(history|historical|founding|outbreak|war of|treaty of)\b/i, false),
+  },
+  {
+    id: "9677232",
+    compatibility: /compatib|supported (on|with)|current (firmware|version)|which versions? (?:is|are) (?:supported|compatible)/i,
+    historical: legacyHistorical(/\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of)\b/i, false),
+  },
+  {
+    id: "cde2a94",
+    compatibility: /compatib|supported (on|with)|current (firmware|version)|which versions? (?:is|are) (?:supported|compatible)/i,
+    historical: legacyHistorical(/\b(history|historical|founding|founded|established|incorporated|outbreak|war of|treaty of|born|birth of|signed the treaty)\b/i, true),
+  },
+];
+
+function legacyV2PolicyForQuestion(question: string, epoch: LegacyV2ClassifierEpoch): FreshnessPolicy {
+  if (/current (price|pricing|cost)|price (now|today)|availability/i.test(question)) {
+    return policy("criterion-freshness.v2", "price", 72, true, false, "Current price/availability needs a very recent first-party figure.");
+  }
+  if (/\b(law|statute|regulation|regulator|legal|jurisdiction|effective|act|cfr|usc)\b/i.test(question)) {
+    return policy("criterion-freshness.v2", "law", null, true, false, "Law needs the current effective rule for the named jurisdiction, not merely a recent article.");
+  }
+  if (epoch.compatibility.test(question)) {
+    return policy("criterion-freshness.v2", "compatibility", null, false, true, "Software compatibility needs the currently applicable version/release.");
+  }
+  if (epoch.historical(question)) return historicalPolicy("criterion-freshness.v2");
+  if (/\b(study|trial|meta-analysis|systematic review|peer[- ]reviewed)\b/i.test(question)) {
+    return policy("criterion-freshness.v2", "science", null, true, false, "Scientific evidence is dated plus method/relevance, not recency alone.");
+  }
+  return policy("criterion-freshness.v2", "generic", 24 * 365, false, false, "Default freshness is a one-year window unless the criterion specifies otherwise.");
+}
+
+/** Exact policies historically admissible for the immutable default v2 whole-run identity. */
+export function admittedLegacyV2PoliciesForQuestion(question: string): FreshnessPolicy[] {
+  const distinct = new Map<string, FreshnessPolicy>();
+  for (const epoch of LEGACY_V2_CLASSIFIER_EPOCHS) {
+    const candidate = legacyV2PolicyForQuestion(question, epoch);
+    const key = JSON.stringify(candidate);
+    if (!distinct.has(key)) distinct.set(key, candidate);
+  }
+  return [...distinct.values()];
+}
+
 function classificationText(question: string, criterion: FreshnessCriterionInput): { text: string; quoteEqualsQuestion: boolean } {
   const provenance = criterion.provenance;
   const quote = provenance?.quote ?? "";
