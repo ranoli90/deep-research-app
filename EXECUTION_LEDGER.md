@@ -8,8 +8,10 @@
 - Model-gateway positives use complete exact entity-scoped comparison evidence. The distinct-query fixture asserts entity relation `different` outside the transport so assertion failure cannot masquerade as an unknown provider outcome. Counterevidence uses an exact single-entity capability task while retaining its target/replay/final-coverage matrix.
 - Independent heldouts retain their own fixtures and now assert exact satisfied/open/freshness identities across restart. Wave5 asserts raw `export`, one outbound `export vendor documentation`, a distinct third query and three token-lookalike exclusions.
 - Fresh isolated PG `deep_gatea_fixture_final_20260920_2257`: four focused files **178/178**, EXIT 0, 514.25s. `pnpm typecheck` EXIT 0. `node scripts/check-boundaries.mjs` EXIT 0 (`boundaries=ok`). Documentation checks are recorded in `verification/v8/gatea-fixture/RESULTS.md`. All five uniquely named repair/diagnostic databases were dropped and verified absent.
+- Same-reviewer disposition rejected exact `c1f98dea427ec5ff856dc1de0ea112c95911b80d` / tree `e92e45d89741f4e49b301f8fe9477c87dcea5658` solely for missing BB02-03 assertions around the already-observed current-fact freshness publication boundary; no production defect or other fixture defect was found.
+- Amendment adds only exact BB02-03 terminal/report `completed_with_limitations` and `Required source freshness remains unknown.` checks. Fresh selected DB `deep_gatea_bb0203_20260920_2310`: **1/1**, EXIT 0, 16.80s. Separate fresh full-file DB `deep_gatea_heldout_20260920_2310`: **6/6**, EXIT 0, 99.00s. Both amendment databases were dropped and verified absent.
 - Fixture-only impact: no production, dependency, schema, migration, public contract, prompt, model/provider route or service change; therefore no governance impact checklist or ADR/spec change is required. No full 49-file rerun, live/paid/provider/native/EAS/GHA, push or merge.
-- Rollback: revert the one local fixture/evidence commit to exact `c7c68e8`; runtime behavior and safety fences are unchanged.
+- Rollback: revert the two local fixture/evidence commits to exact `c7c68e8`; runtime behavior and safety fences are unchanged.
 
 ## 2026-09-20 — V8 repaired recovery candidate
 

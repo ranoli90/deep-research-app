@@ -376,6 +376,9 @@ describe("held-out historical shortcut worker/DB (contract v2)", () => {
     expect(meta.searches.length, JSON.stringify(meta)).toBeGreaterThan(1);
     const headcountRead = meta.readUrls.some((u) => /vesper-staff-/.test(u)) || meta.readRows.some((r) => /vesper-staff-/.test(r.locator));
     expect(headcountRead, JSON.stringify(meta)).toBe(true);
+    expect(meta.terminal, JSON.stringify(meta)).toBe("completed_with_limitations");
+    expect(meta.report?.outcome, JSON.stringify(meta)).toBe("completed_with_limitations");
+    expect(meta.report?.limitations, JSON.stringify(meta)).toContain("Required source freshness remains unknown.");
   }, 60_000);
 
   it("BB02-04 two readable weather pages do not complete a comparison or block covering reads", async () => {

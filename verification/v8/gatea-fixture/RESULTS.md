@@ -19,6 +19,7 @@ Result: 45/49 files passed; 574/584 tests passed; ten failures across the four r
 - W06 positive evidence is scoped separately to Linux and Windows. The added null/mis-scoped control proves incomplete coverage, one bounded new read, exact original-question retry wording, and an open stable `need-platform`.
 - Model-gateway complete controls contain exact task, evidence and authoritative scopes for both requested entities. Negative incomplete/missing/tamper/replay/final-coverage/counterevidence/crash invariants remain exercised. The distinct-query scope comparison is asserted after transport completion so a failed assertion cannot be recorded as an unknown provider outcome.
 - The independent BB02 heldouts keep independent data and assert exact satisfied/open/freshness need identities before and after restart.
+- BB02-03 additionally pins the current-fact freshness publication boundary: run and report remain `completed_with_limitations`, with exact limitation `Required source freshness remains unknown.`
 - Wave5 keeps raw durable `queryHint: export`, sends exact `export vendor documentation` once across restart, requires a distinct third query, and excludes `exportable`, `preoffline editing` and `offline editingly` lookalikes.
 
 ## Commands and results
@@ -36,6 +37,10 @@ Result: 45/49 files passed; 574/584 tests passed; ten failures across the four r
 11. `python3 scripts/validate_builder_handoff.py` — EXIT 0; `ok: true`.
 12. `python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v` — EXIT 0; **12/12**.
 13. Project `pg` client cleanup selected the five exact temporary database names, terminated only sessions attached to those names, dropped them, and verified the exact-name query returned `[]` — EXIT 0.
+14. Same-reviewer disposition: REJECT exact `c1f98dea427ec5ff856dc1de0ea112c95911b80d` / tree `e92e45d89741f4e49b301f8fe9477c87dcea5658` solely for omitted BB02-03 publication assertions; no production defect and no other test defect.
+15. `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_gatea_bb0203_20260920_2310 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.independent.integration.test.ts -t 'BB02-03' --reporter=verbose` — EXIT 0, **1/1**, 5 skipped, 16.80s.
+16. `TEST_DATABASE_URL=postgres://deep:***@127.0.0.1:55432/deep_gatea_heldout_20260920_2310 pnpm --filter @deep/backend exec vitest run --config vitest.integration.config.ts test/historical-shortcut-heldout.independent.integration.test.ts --reporter=verbose` — EXIT 0, **6/6**, 99.00s.
+17. Project `pg` client cleanup selected the two exact amendment database names, terminated only sessions attached to those names, dropped them, and verified the exact-name query returned `[]` — EXIT 0.
 
 No full 49-file Gate-A run was performed by design.
 
