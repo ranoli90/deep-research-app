@@ -231,6 +231,41 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       .toMatchObject({ status: "deleted", proof_digest: null });
   });
 
+  it("NARROW-GUEST-CONSENT revoke then re-grant never admits or replays work on the tombstoned context", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const payload = { question: "What did the public filing state?", routeMode: "fixture",
+      conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION };
+    const key = crypto.randomUUID();
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": key }, payload });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: guest.headers })).statusCode).toBe(200);
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: false } });
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: guest.headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": key }, payload })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: "/v1/run-requests/resolve", headers: guest.headers,
+      payload: { idempotencyKey: key } })).statusCode).toBe(403);
+    expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=(SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1)",
+      [guest.guestContextId])).rows[0].n).toBe(1);
+  });
+
+  it("NARROW-GUEST-CONSENT revoke then re-grant cannot admit an unexecutable first turn", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: false } });
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    expect((await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What is the answer?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(403);
+    expect((await pool.query("SELECT count(*)::int AS n FROM runs WHERE account_id=(SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1)",
+      [guest.guestContextId])).rows[0].n).toBe(0);
+  });
+
   it("rejects a stale auth attempt after guest consent revoke and re-grant", async () => {
     const guest = await enabledGuest();
     await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });

@@ -72,6 +72,8 @@ export async function guestCanAccessRun(db: Queryable, guest: GuestContext, runI
       AND r.conversation_id=g.conversation_id AND g.conversation_id=$3
       AND g.status='active' AND g.proof_digest IS NOT NULL AND g.expires_at>now()
       AND a.deleted_at IS NULL
+      AND NOT EXISTS(SELECT 1 FROM guest_control_tombstones ct WHERE ct.guest_context_id=g.id
+        AND ct.reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked'))
       AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=a.id
         AND t.object_kind='run' AND t.object_id=r.id AND t.reason='source_deletion')`,
       [guest.id, runId, guest.conversationId]);
@@ -190,6 +192,9 @@ export async function admitGuestFirst(pool: pg.Pool, config: AppConfig, guest: G
     const context = (await db.query<{ status: string; accepted_turn_count: number; expires_at: Date; sponsor_policy_id: string }>(
       "SELECT status,accepted_turn_count,expires_at,sponsor_policy_id FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
     if (!context || context.status !== "active" || context.expires_at <= new Date()) fail("guest_expired", 403);
+    if ((await db.query(`SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1
+      AND reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked') LIMIT 1`,
+      [guest.id])).rowCount) fail("authority_denied", 403);
     if (context.accepted_turn_count === 1) {
       const receipt = (await db.query<{ request_digest: string; run_id: string }>(
         "SELECT request_digest,run_id FROM guest_first_request_receipts WHERE guest_context_id=$1 AND request_id=$2",
@@ -239,6 +244,8 @@ export async function resolveGuestFirstRequest(pool: pg.Pool, guest: GuestContex
     const context = (await db.query<{ status: string; expires_at: Date }>(
       "SELECT status,expires_at FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
     if (!context || context.status !== "active" || context.expires_at <= new Date()) fail("guest_expired", 403);
+    if ((await db.query("SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1 AND reason='consent_revoked'",
+      [guest.id])).rowCount) fail("authority_denied", 403);
     const receipt = (await db.query<{ run_id: string }>(
       "SELECT run_id FROM guest_first_request_receipts WHERE guest_context_id=$1 AND request_id=$2", [guest.id, key])).rows[0];
     if (!receipt) return { status: "not_found" as const };
@@ -261,6 +268,8 @@ export async function registerGuestPendingAction(pool: pg.Pool, guest: GuestCont
     const ctx = (await db.query<{ status: string; accepted_turn_count: number; expires_at: Date; control_version: string }>(
       "SELECT status,accepted_turn_count,expires_at,control_version FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
     if (!ctx || ctx.status !== "active" || ctx.expires_at <= new Date()) fail("guest_expired", 403);
+    if ((await db.query("SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1 AND reason='consent_revoked'",
+      [guest.id])).rowCount) fail("authority_denied", 403);
     if (ctx.accepted_turn_count !== 1) fail("intent_stale", 409);
     const consent = await currentConsent(db, guest.accountId);
     if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
