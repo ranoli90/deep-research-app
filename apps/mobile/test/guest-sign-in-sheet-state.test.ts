@@ -28,7 +28,8 @@ describe("guest sign-in sheet presentation state", () => {
     const provider = reduce(initialGuestSignInSheetState(), { type: "begin_provider", provider: "google", attempt: attempt("provider", "google") });
     expect(provider).toMatchObject({ step: "provider_pending", sessionTask: { kind: "provider", attempt: { id: "durable-provider" } } });
     expect(guestSignInBusy(provider)).toBe(true);
-    const sending = reduce(reduce(initialGuestSignInSheetState(), { type: "edit_email", email: "person@example.com" }), { type: "begin_email_code", attempt: attempt("email_code") });
+    const email = reduce(initialGuestSignInSheetState(), { type: "choose_provider", provider: "email" });
+    const sending = reduce(reduce(email, { type: "edit_email", email: "person@example.com" }), { type: "begin_email_code", attempt: attempt("email_code") });
     expect(sending).toMatchObject({ step: "sending_code", sessionTask: { kind: "email_code" } });
     expect(() => reduce(initialGuestSignInSheetState(), { type: "begin_provider", provider: "google", attempt: { ...attempt("provider", "google"), id: "" } })).toThrow("durable sign-in attempt");
   });
@@ -44,6 +45,8 @@ describe("guest sign-in sheet presentation state", () => {
     const expired = reduce(limited, { type: "code_expired", message: "That code expired." });
     expect(expired).toMatchObject({ step: "error", retryStep: "email", codeExpired: true, sessionTask: null });
     expect(reduce(expired, { type: "retry" })).toMatchObject({ step: "email", codeExpired: true });
+    const unknownDelay = reduce(code, { type: "resend_rate_limited", retryAt: null, message: "Try later." });
+    expect(guestEmailCanResend(unknownDelay, new Date("2026-09-21T20:10:00.000Z"))).toBe(false);
   });
 
   it("keeps reconciliation distinct from retry and blocks any busy-path duplicate continuation", () => {
@@ -60,13 +63,30 @@ describe("guest sign-in sheet presentation state", () => {
     const provider = reduce(initialGuestSignInSheetState(), { type: "begin_provider", provider: "google", attempt: attempt("provider", "google") });
     expect(reduce(provider, { type: "guest_expired", message: "The guest access window ended." })).toMatchObject({ step: "expired", sessionTask: null, error: "The guest access window ended." });
     expect(reduce(provider, { type: "guest_deleted", message: "The conversation was deleted." })).toMatchObject({ step: "deleted", sessionTask: null, error: "The conversation was deleted." });
+    const expired = reduce(provider, { type: "guest_expired", message: "The guest access window ended." });
+    expect(reduce(expired, { type: "retry" })).toEqual(expired);
+    expect(reduce(expired, { type: "choose_provider", provider: "google" })).toEqual(expired);
   });
 
   it("only clears the presentation task after the host has made dismissal durable", () => {
-    const active = reduce(initialGuestSignInSheetState(), { type: "begin_code_verification", attempt: attempt("verify_email_code") });
+    const email = reduce(initialGuestSignInSheetState(), { type: "choose_provider", provider: "email" });
+    const sending = reduce(email, { type: "begin_email_code", attempt: attempt("email_code") });
+    const code = reduce(sending, { type: "email_code_sent", email: "person@example.com" });
+    const active = reduce(code, { type: "begin_code_verification", attempt: attempt("verify_email_code") });
     const dismissed = reduce(active, { type: "dismissed" });
     expect(dismissed).toMatchObject({ step: "verifying_code", sessionTask: null });
     // It deliberately does not report an auth/claim/continuation success.
     expect(dismissed.step).not.toBe("claiming");
+  });
+
+  it("accepts only matching provider and email attempt operations", () => {
+    const email = reduce(initialGuestSignInSheetState(), { type: "choose_provider", provider: "email" });
+    expect(reduce(email, { type: "begin_email_code", attempt: attempt("email_code") })).toMatchObject({ step: "sending_code" });
+    const chooser = initialGuestSignInSheetState();
+    expect(reduce(chooser, { type: "begin_provider", provider: "google", attempt: attempt("provider", "apple", null) as never })).toEqual(chooser);
+    const code = reduce(reduce(email, { type: "begin_email_code", attempt: attempt("email_code") }), { type: "email_code_sent", email: "person@example.com" });
+    expect(reduce(code, { type: "begin_code_verification", attempt: attempt("verify_email_code") })).toMatchObject({ step: "verifying_code" });
+    expect(reduce(email, { type: "begin_email_code", attempt: attempt("claim") })).toEqual(email);
+    expect(reduce(code, { type: "begin_code_verification", attempt: attempt("provider", "google", null) })).toEqual(code);
   });
 });

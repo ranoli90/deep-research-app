@@ -34,7 +34,7 @@ export type GuestSignInSheetStep =
 
 export type GuestEmailResendState = {
   status: "available" | "cooldown" | "rate_limited";
-  /** ISO timestamp from the provider/host; null means a manual retry is available. */
+  /** ISO timestamp from the provider/host; null means retry timing is unknown and must fail closed. */
   retryAt: string | null;
 };
 
@@ -100,12 +100,19 @@ function task(attempt: GuestSignInAttempt, kind: GuestSignInOperation): GuestSig
   return { attempt, kind };
 }
 
+function isTerminal(state: GuestSignInSheetState): boolean {
+  return state.step === "expired" || state.step === "deleted";
+}
+
 /** Strict presentation transitions; the host alone reports verified outcomes. */
 export function reduceGuestSignInSheet(
   state: GuestSignInSheetState,
   event: GuestSignInSheetEvent,
   providers: Record<GuestSignInProvider, GuestProviderAvailability>,
 ): GuestSignInSheetState {
+  // A terminal guest decision can be displayed or dismissed, but no local UI
+  // event may turn it back into an authentication attempt.
+  if (isTerminal(state)) return state;
   switch (event.type) {
     case "choose_provider": {
       const availability = providers[event.provider];
@@ -117,13 +124,20 @@ export function reduceGuestSignInSheet(
     case "enter_email": return { ...state, step: "email", provider: "email", retryStep: "email", error: null, sessionTask: null };
     case "edit_email": return { ...state, email: event.email, error: null };
     case "begin_email_code":
+      if (!((event.attempt.operation === "email_code" && state.step === "email") ||
+        (event.attempt.operation === "resend_email_code" && state.step === "code")) ||
+        event.attempt.provider !== "email" || event.attempt.email === null) return state;
       return { ...state, step: "sending_code", provider: "email", retryStep: "email", error: null, codeExpired: false, sessionTask: task(event.attempt, event.attempt.operation) };
     case "email_code_sent":
       return { ...state, step: "code", provider: "email", email: event.email, retryStep: "code", error: null, sessionTask: null,
         resend: event.resendRetryAt ? { status: "cooldown", retryAt: event.resendRetryAt } : { status: "available", retryAt: null } };
     case "enter_code": return { ...state, step: "code", provider: "email", retryStep: "code", error: null, sessionTask: null };
-    case "begin_provider": return { ...state, step: "provider_pending", provider: event.provider, retryStep: "chooser", error: null, sessionTask: task(event.attempt, "provider") };
-    case "begin_code_verification": return { ...state, step: "verifying_code", provider: "email", retryStep: "code", error: null, sessionTask: task(event.attempt, "verify_email_code") };
+    case "begin_provider":
+      if (state.step !== "chooser" || event.attempt.operation !== "provider" || event.attempt.provider !== event.provider || event.attempt.email !== null) return state;
+      return { ...state, step: "provider_pending", provider: event.provider, retryStep: "chooser", error: null, sessionTask: task(event.attempt, "provider") };
+    case "begin_code_verification":
+      if (state.step !== "code" || event.attempt.operation !== "verify_email_code" || event.attempt.provider !== "email" || event.attempt.email === null) return state;
+      return { ...state, step: "verifying_code", provider: "email", retryStep: "code", error: null, sessionTask: task(event.attempt, "verify_email_code") };
     case "begin_claim": return { ...state, step: "claiming", retryStep: "claiming", error: null, sessionTask: task(event.attempt, "claim") };
     case "begin_reconcile": return { ...state, step: "reconciling", retryStep: "reconciling", error: null, sessionTask: task(event.attempt, "reconcile") };
     case "resend_rate_limited": return { ...state, step: "error", retryStep: "code", error: event.message, sessionTask: null, resend: { status: "rate_limited", retryAt: event.retryAt } };

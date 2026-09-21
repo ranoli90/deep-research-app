@@ -27,6 +27,7 @@ import {
   type GuestSignInSessionTask,
   type GuestSignInSheetState,
 } from "./guest-sign-in-sheet-state";
+import { GuestSignInAttemptGate } from "./guest-sign-in-attempt-gate";
 
 export type GuestSignInDismissal = {
   preserveDraft: true;
@@ -108,7 +109,18 @@ export function GuestSignInSheet({
   const [email, setEmail] = useState(state.email);
   const [code, setCode] = useState("");
   const [closing, setClosing] = useState(false);
+  const gate = useRef<GuestSignInAttemptGate | null>(null);
+  const dismissal = useRef<Promise<void> | null>(null);
+  const transportRef = useRef(transport);
+  transportRef.current = transport;
+  if (!gate.current) {
+    gate.current = new GuestSignInAttemptGate({
+      prepareAttempt: request => transportRef.current.prepareAttempt(request),
+      dismiss: context => transportRef.current.dismiss(context),
+    });
+  }
   const busy = guestSignInBusy(state);
+  const interactionLocked = busy || closing;
   const tablet = width >= 600;
   const ink = dark ? "#F6F2EC" : "#1C1916";
   const muted = dark ? "#C8C0B5" : "#6E6860";
@@ -118,6 +130,7 @@ export function GuestSignInSheet({
   const accent = dark ? "#D8B878" : "#76511A";
 
   useEffect(() => setEmail(state.email), [state.email]);
+  useEffect(() => { if (visible) gate.current?.resetForVisibleSheet(); }, [visible]);
   useEffect(() => {
     if (!visible) { focused.current = false; return; }
     if (reducedMotion) { rise.setValue(0); opacity.setValue(1); return; }
@@ -133,63 +146,67 @@ export function GuestSignInSheet({
     await onEvent({ type: "recoverable_error", message });
   };
   const close = async () => {
-    if (closing) return;
+    if (dismissal.current) return dismissal.current;
     setClosing(true);
-    try {
-      // A close never erases the draft. The host first durably disables its
-      // automatic continuation, then this controlled modal may be hidden.
-      await transport.dismiss({ task: state.sessionTask, reason: "dismissed" });
-      await onEvent({ type: "dismissed" });
-      if (state.sessionTask?.kind === "provider") {
-        try { await transport.cancelProvider?.(state.sessionTask.attempt); } catch { /* dismissal is already durable */ }
+    const operation = (async () => {
+      try {
+        // A close never erases the draft. The local lease is invalidated before
+        // waiting for a prepare result, then the host durably suppresses any
+        // automatic continuation before the modal can disappear.
+        const task = await gate.current!.dismiss(state.sessionTask);
+        await onEvent({ type: "dismissed" });
+        if (task?.kind === "provider") {
+          try { await transportRef.current.cancelProvider?.(task.attempt); } catch { /* dismissal remains durable */ }
+        }
+        onDismiss({ preserveDraft: true, preserveReadingPosition: true, restoreComposerFocus: true });
+      } catch (error) {
+        await reportTransportError(error);
+      } finally {
+        dismissal.current = null;
+        setClosing(false);
       }
-      onDismiss({ preserveDraft: true, preserveReadingPosition: true, restoreComposerFocus: true });
-    } catch (error) {
-      await reportTransportError(error);
-    } finally {
-      setClosing(false);
-    }
-  };
-  const prepare = async (request: GuestSignInAttemptRequest) => {
-    const attempt = await transport.prepareAttempt(request);
-    if (!attempt?.id || attempt.operation !== request.operation || attempt.provider !== request.provider || attempt.email !== request.email) {
-      throw new Error("The saved sign-in attempt could not be confirmed.");
-    }
-    return attempt;
+    })();
+    dismissal.current = operation;
+    return operation;
   };
   const choose = async (provider: GuestSignInProvider) => {
-    if (!providers[provider]?.available || busy) return;
+    if (!providers[provider]?.available || interactionLocked) return;
     if (provider === "email") {
       await onEvent({ type: "choose_provider", provider });
       return;
     }
     try {
-      const attempt = await prepare({ operation: "provider", provider, email: null });
-      // Do not open a provider until both host durability gates have completed.
-      await onEvent({ type: "begin_provider", provider, attempt });
-      await transport.startProvider(attempt);
+      await gate.current!.run(
+        { operation: "provider", provider, email: null },
+        async attempt => { await onEvent({ type: "begin_provider", provider, attempt }); },
+        attempt => transportRef.current.startProvider(attempt),
+      );
     } catch (error) {
       await reportTransportError(error);
     }
   };
   const submitEmail = async (operation: "email_code" | "resend_email_code" = "email_code") => {
     const normalized = email.trim();
-    if (!normalized || busy) return;
+    if (!normalized || interactionLocked) return;
     try {
       await onEvent({ type: "edit_email", email: normalized });
-      const attempt = await prepare({ operation, provider: "email", email: normalized });
-      await onEvent({ type: "begin_email_code", attempt });
-      await transport.requestEmailCode(attempt);
+      await gate.current!.run(
+        { operation, provider: "email", email: normalized },
+        async attempt => { await onEvent({ type: "begin_email_code", attempt }); },
+        attempt => transportRef.current.requestEmailCode(attempt),
+      );
     } catch (error) {
       await reportTransportError(error);
     }
   };
   const submitCode = async () => {
-    if (!code.trim() || busy) return;
+    if (!code.trim() || interactionLocked) return;
     try {
-      const attempt = await prepare({ operation: "verify_email_code", provider: "email", email: state.email });
-      await onEvent({ type: "begin_code_verification", attempt });
-      await transport.verifyEmailCode(attempt, code.trim());
+      await gate.current!.run(
+        { operation: "verify_email_code", provider: "email", email: state.email },
+        async attempt => { await onEvent({ type: "begin_code_verification", attempt }); },
+        attempt => transportRef.current.verifyEmailCode(attempt, code.trim()),
+      );
     } catch (error) {
       await reportTransportError(error);
     }
@@ -197,8 +214,10 @@ export function GuestSignInSheet({
   const cancelProvider = async () => {
     if (state.sessionTask?.kind !== "provider") return;
     try {
-      await transport.cancelProvider?.(state.sessionTask.attempt);
+      // The host records cancellation before the external provider can be
+      // closed, so a late callback cannot revive automatic continuation.
       await onEvent({ type: "provider_cancelled" });
+      await transportRef.current.cancelProvider?.(state.sessionTask.attempt);
     } catch (error) {
       await reportTransportError(error);
     }
@@ -207,6 +226,9 @@ export function GuestSignInSheet({
     if (focused.current || !visible) return;
     const tag = findNodeHandle(title.current);
     if (tag !== null) { focused.current = true; AccessibilityInfo.setAccessibilityFocus(tag); }
+  };
+  const openLegal = async (document: "terms" | "privacy") => {
+    try { await onOpenLegalDocument(document); } catch (error) { await reportTransportError(error); }
   };
   const message = state.error ?? (state.step === "claiming" ? "Keeping your conversation together…" : state.step === "reconciling" ? "Checking the saved request without sending it again…" : state.step === "verifying_code" ? "Checking your code…" : state.step === "sending_code" ? "Sending your code…" : state.step === "provider_pending" ? "Continue in the provider window, then return here." : null);
   const showChooser = state.step === "chooser" || state.step === "provider_pending" || (state.step === "error" && state.retryStep === "chooser");
@@ -242,12 +264,12 @@ export function GuestSignInSheet({
                   const selected = state.step === "provider_pending" && state.provider === provider;
                   return <View key={provider} style={{ marginBottom: 10 }}>
                     <Pressable
-                      disabled={unavailable || busy}
+                      disabled={unavailable || interactionLocked}
                       onPress={() => { void choose(provider); }}
                       accessibilityRole="button"
                       accessibilityLabel={unavailable ? `${providerLabel(provider)} unavailable` : providerLabel(provider)}
                       accessibilityHint={unavailable ? availability?.unavailableReason ?? "Not configured" : undefined}
-                      accessibilityState={{ disabled: unavailable || busy, busy: selected }}
+                      accessibilityState={{ disabled: unavailable || interactionLocked, busy: selected }}
                       style={{ minHeight: 52, borderRadius: 13, borderColor: line, borderWidth: 1, backgroundColor: unavailable ? field : surface, opacity: unavailable ? 0.62 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, paddingHorizontal: 16 }}
                     >
                       <ProviderMark provider={provider} dark={dark} />
@@ -277,9 +299,9 @@ export function GuestSignInSheet({
               {state.step === "error" && state.retryStep !== "chooser" ? <SheetButton label="Try again" onPress={() => { void onEvent({ type: "retry" }); }} disabled={busy} fill={ink} text={surface} /> : null}
               <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", marginTop: 16 }}>
                 <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}>By continuing, you agree to our </Text>
-                <LegalLink label="Terms" onPress={() => { void onOpenLegalDocument("terms"); }} color={accent} />
+                <LegalLink label="Terms" onPress={() => { void openLegal("terms"); }} color={accent} />
                 <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}> and </Text>
-                <LegalLink label="Privacy Notice" onPress={() => { void onOpenLegalDocument("privacy"); }} color={accent} />
+                <LegalLink label="Privacy Notice" onPress={() => { void openLegal("privacy"); }} color={accent} />
                 <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}>.</Text>
               </View>
             </ScrollView>
