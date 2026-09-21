@@ -1,15 +1,38 @@
 # Norrow guest-first authentication and claim
 
-Requirement IDs: Norrow kit GUEST-01–14, CLAIM-01–16, AUTH-01–11, DATA-01–12, COST-01–08, SCALE-01/07, NATIVE-04/05. ADR075 is the protocol authority; the kit chapters 04, 05, 08, 12 and 13 own the detailed product/security requirements.
+Requirement IDs: Norrow kit GUEST-01–14, CLAIM-01–16, AUTH-01–11, DATA-01–12, COST-01–08, SCALE-01/07, NATIVE-04/05. [ADR075](../../../docs/adr/DECISIONS.md) is the single protocol authority. Kit chapters 04, 05, 08, 12 and 13 define the product/security inputs; this packet maps that decision onto repository work and must not restate a competing protocol.
 
-Goal: permit one consented, sponsored first text/public-URL research submission without registration; require authentication on Send for the second distinct submitted action; after verified Clerk authentication, claim the original conversation and resume the unchanged pending action exactly once. The clarification answer is a second action. Reading, citations, cancellation and deletion remain available to the scoped guest.
+User outcome: one consented, sponsored first text/public-URL submission occurs without registration. On Send of the second distinct action, the app preserves its exact action identity/draft and opens sign-in. After verified Clerk identity and an exact conversation claim, it resumes that unchanged action once. A clarification answer is that second action, not a rewritten research question. Scoped guest reading/citations/cancel/deletion remain available until claim or terminal lifecycle state.
 
-Non-goals: anonymous Clerk users, client-only turn counting, email identity merge, broad account aliases, ownership rewrites, free registered allowance, public guest activation, release/deployment, or a second research path.
+Non-goals: Clerk anonymous users, client-only counting, email identity merge, broad owner aliases, historical ownership rewrite, unlimited/welcome allowance, unsupported guest mutations, public activation/release, or a second research path.
 
-Affected boundaries: contracts public error/request/response schemas; backend verified identity, guest bootstrap/proof, scope resolver, admission, claim, all resource routes, deletion and worker publication; additive persistence for guest contexts/control bindings/receipts/pending actions; mobile secure guest proof and pending-auth journal. The immutable execution owner continues to own runs, evidence, receipts, sponsor reservations, fences and consent; member control is an explicit conversation binding.
+## Repository impact map
 
-Impact checklist: new Clerk service/SDK and provider configuration; additive migration(s) allocated only under the exclusive migration lock; public schemas; auth, consent, sponsor-budget and deletion behavior; native protected storage. No model/provider route, prompt, processor, hidden paid call, allowance increase, or guest public launch is authorized by this packet. Existing internal account IDs and historical financial identities remain unchanged.
+| Boundary | Required implementation outcome | ADR075 section |
+| --- | --- | --- |
+| Contracts | Strict guest bootstrap/proof metadata, admission/resolve, claim/claim-resolution, pending-action and safe error schemas; clients cannot name execution owner/payer | resolver matrix; pending handoff |
+| Backend auth | Provider-neutral verified-identity boundary; Clerk customer-session verifier/JWKS and raw-webhook verifier; issuer/subject mapping preserves internal IDs | provider-neutral identity |
+| Backend authority | One typed scope resolver used by every list/read/event/passage/export/mutation/delete route; member continuation creates a member-owned child while guest parent execution stays immutable | immutable execution; resolver matrix |
+| Admission/accounting | Atomic context/trial/policy/ledger/reservation/outbox transaction, server kill switch and HOLD preservation across replicas | admission, sponsor accounting |
+| Lifecycle/worker | Monotone claim/expiry/deletion state, declared lock order, current consent/deletion/cancel/fence checks at lease/issuance/checkpoint/publication | claim, lifecycle, consent |
+| Persistence | Additive guest context, control binding, receipt, pending-action and tombstone records under migration lock; no `account_id` rewrite | immutable execution; lifecycle |
+| Mobile | Secure proof transport and token-free protected handoff journal; sheet state uses distinct credential/principal/view/control epochs | proof transport; pending handoff |
 
-Tests: production request serializers plus independent PostgreSQL clients cover first-admission/idempotency/sponsor races, response loss, claim winner/loser/replay, claim vs expiry/deletion/cancellation/HOLD, every resource route, and post-claim old-proof denial. Mobile tests cover the durable pending envelope, token refresh versus principal/view/control changes, provider cancellation, exact clarification resume and single dispatch. Hosted/native provider journeys remain separate required evidence.
+The required resolver inventory is the ADR075 matrix. It explicitly includes guest admission/read/safety, claimed reads/library/export, every work-creating child action, upload, billing, worker/outbox and webhook/operator paths. A new account-scoped endpoint is blocked until it has a row, scope type, and route regression.
 
-Rollback: default-deny new guest admission and resume while retaining readers for already admitted control bindings, accounting/claim/deletion tombstones, immutable execution records and unknown holds. Do not rewrite owner IDs, erase claims, reactivate proof, or blindly resend an issued operation.
+## Required implementation evidence
+
+| Test suite / journey | Required acceptance linkage |
+| --- | --- |
+| `norrow-guest-admission.integration` | GUEST-01–14; COST-01/05/07/08; SCALE-01/07 |
+| `norrow-claim-scope.integration` | CLAIM-01–16; DATA-12; all resolver rows; claimed-child clarification continuation |
+| `norrow-lifecycle-race.integration` | DATA-01/02/06–09; COST-02; claim/expiry/delete/cancel/HOLD/restore races |
+| `norrow-sponsor-ledger.integration` | COST-01–08, including policy/ledger lock, kill switch, and unknown outcomes |
+| `clerk-identity-adapter.unit`, `clerk-webhook.integration` | AUTH-01–11; PROVIDER-10/11/14 |
+| `guest-pending-action` mobile tests and physical native journeys | NATIVE-04/05; provider cancellation; token refresh; account/view/control switches; exact-once clarification resume |
+
+All database races use independent PostgreSQL clients and production request serializers. Component tests and synthetic providers do not establish hosted/native/provider success. This packet claims no scenario has passed until receipts are recorded against the candidate SHA.
+
+Impact checklist: new Clerk service/SDK/configuration, additive migrations, public schemas, authentication, consent, sponsor budget, deletion, worker publication, and native secure storage. No new model/provider route, prompt, processor, hidden paid call, allowance increase, or public guest activation is authorized. Existing internal accounts and financial identities remain stable.
+
+Rollback: default-deny new bootstrap/admission/resume, preserving resolver readers, binding/lifecycle tombstones, immutable parent execution, member child records, receipts/reservations and HOLD. Never rewrite owner IDs, erase claim/tombstone data, reactivate a proof, broaden resolver predicates, or blindly resend an issued operation.
