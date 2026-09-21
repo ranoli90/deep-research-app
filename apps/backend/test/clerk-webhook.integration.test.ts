@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from "node:crypto";
+import { createHmac, generateKeyPairSync, randomBytes, sign } from "node:crypto";
 import pg from "pg";
 import type PgBoss from "pg-boss";
 import type { FastifyInstance } from "fastify";
@@ -18,11 +18,22 @@ const databaseUrl = new URL(adminUrl);
 databaseUrl.pathname = `/${database}`;
 const admin = new pg.Client({ connectionString: adminUrl });
 const signingKey = randomBytes(32);
+const jwtKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const jwtPublicKey = jwtKeys.publicKey.export({ type: "spki", format: "pem" }).toString();
 const config = { signingSecret: `whsec_${signingKey.toString("base64")}`,
   expectedInstanceId: "ins_syntheticStage1", issuer: "https://synthetic.clerk.accounts.dev" };
 let pool: pg.Pool;
 let boss: PgBoss;
 let app: FastifyInstance;
+
+function sessionToken(subject: string, sessionId: string) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "synthetic" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ iss: config.issuer, sub: subject, sid: sessionId,
+    iat: now, nbf: now - 1, exp: now + 300, azp: "https://synthetic.app.test" })).toString("base64url");
+  const input = `${header}.${payload}`;
+  return `${input}.${sign("RSA-SHA256", Buffer.from(input), jwtKeys.privateKey).toString("base64url")}`;
+}
 
 function signed(kind: string, data: Record<string, unknown>, eventId = `msg_${randomBytes(8).toString("hex")}`) {
   const body = Buffer.from(JSON.stringify({ object: "event", type: kind,
@@ -51,7 +62,7 @@ beforeAll(async () => {
   app = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "test", APP_AUTH_MODE: "production",
     APP_IDENTITY_PROVIDER: "clerk", DATABASE_URL: databaseUrl.toString(),
     CLERK_ISSUER: config.issuer, CLERK_AUTHORIZED_PARTIES: "https://synthetic.app.test",
-    CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only",
+    CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only", CLERK_JWT_KEY: jwtPublicKey,
     CLERK_WEBHOOK_SIGNING_SECRET: config.signingSecret,
     CLERK_WEBHOOK_INSTANCE_ID: config.expectedInstanceId }) });
 }, 120_000);
@@ -68,6 +79,27 @@ afterAll(async () => {
 }, 30_000);
 
 describe("verified Clerk webhook durable effects", () => {
+  it("AUTH-10 signed customer JWT loses only its revoked session authority at the live HTTP boundary", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sid1 = `sess_${randomBytes(8).toString("hex")}`;
+    const sid2 = `sess_${randomBytes(8).toString("hex")}`;
+    const first = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } });
+    expect(first.statusCode).toBe(200);
+    const accountId = first.json().accountId;
+    const message = signed("session.revoked", { id: sid1, user_id: subject });
+    const webhook = () => app.inject({ method: "POST", url: "/v1/clerk/webhooks",
+      headers: { ...message.headers, "content-type": "application/json" }, payload: message.body });
+    expect((await webhook()).json()).toEqual({ accepted: true, reused: false });
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } })).statusCode).toBe(401);
+    const other = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sid2)}` } });
+    expect(other.statusCode).toBe(200);
+    expect(other.json().accountId).toBe(accountId);
+    expect((await webhook()).json()).toEqual({ accepted: true, reused: true });
+  });
+
   it("AUTH-09 raw API boundary rejects customer credentials, changed bytes and changed replay digest", async () => {
     const subject = `user_${randomBytes(8).toString("hex")}`;
     const id = `msg_${randomBytes(8).toString("hex")}`;

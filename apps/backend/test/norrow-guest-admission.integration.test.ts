@@ -535,7 +535,8 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     const register = () => app.inject({ method: "POST", url: "/v1/guest/actions/register-member",
       headers: memberHeaders, payload: registration });
     expect((await register()).json()).toMatchObject({ type: "member_action_registered",
-      submissionId: newId, controlVersion: 2, payloadDigest: registration.payloadDigest });
+      submissionId: newId, controlVersion: 2, payloadDigest: registration.payloadDigest,
+      authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: null });
     expect((await register()).json()).toMatchObject({ type: "member_action_registered", submissionId: newId });
     expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resolve", headers: memberHeaders,
       payload: { submissionId: newId, claimRequestId } })).json().type).toBe("member_action_registered");
@@ -548,6 +549,10 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       payload: { ...registration, submissionId: crypto.randomUUID(), payload: wrongIdentity,
         payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(wrongIdentity)).digest("hex") } })).statusCode).toBe(409);
     await app.inject({ method: "POST", url: "/v1/consent", headers: memberHeaders, payload: { grant: true } });
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resolve", headers: memberHeaders,
+      payload: { submissionId: newId, claimRequestId } })).json())
+      .toMatchObject({ authorityAllowed: true, budgetAllowed: true,
+        consentPolicyVersion: CONSENT_POLICY_VERSION });
     const resumePayload = { submissionId: newId, claimRequestId, controlVersion: 2,
       payloadDigest: registration.payloadDigest };
     const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",

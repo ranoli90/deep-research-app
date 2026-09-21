@@ -395,9 +395,12 @@ export async function registerMemberClarificationReplacement(pool: pg.Pool, memb
           existing.guest_context_id !== identified.guest_context_id ||
           existing.member_account_id !== memberAccountId || existing.claim_request_id !== input.claimRequestId)
         fail("idempotency_conflict", 409);
+      const memberConsent = await currentConsent(db, memberAccountId);
       return { type: "member_action_registered" as const, submissionId: input.submissionId,
         claimRequestId: input.claimRequestId, controlVersion: Number(context.control_version),
-        payloadDigest: input.payloadDigest, expiresAt: existing.expires_at.toISOString() };
+        payloadDigest: input.payloadDigest, expiresAt: existing.expires_at.toISOString(),
+        authorityAllowed: true, budgetAllowed: await memberBudgetAllowed(db, memberAccountId),
+        consentPolicyVersion: memberConsent && !memberConsent.revoked ? memberConsent.policyVersion : null };
     }
     const active = await db.query(`SELECT 1 FROM guest_pending_actions WHERE guest_context_id=$1
       AND state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched') LIMIT 1`,
@@ -410,9 +413,12 @@ export async function registerMemberClarificationReplacement(pool: pg.Pool, memb
       [input.submissionId, identified.guest_context_id, context.conversation_id,
         Number(old.conversation_version), input.payloadDigest, JSON.stringify(payload),
         CONSENT_POLICY_VERSION, expiresAt, memberAccountId, input.claimRequestId]);
+    const memberConsent = await currentConsent(db, memberAccountId);
     return { type: "member_action_registered" as const, submissionId: input.submissionId,
       claimRequestId: input.claimRequestId, controlVersion: Number(context.control_version),
-      payloadDigest: input.payloadDigest, expiresAt: expiresAt.toISOString() };
+      payloadDigest: input.payloadDigest, expiresAt: expiresAt.toISOString(),
+      authorityAllowed: true, budgetAllowed: await memberBudgetAllowed(db, memberAccountId),
+      consentPolicyVersion: memberConsent && !memberConsent.revoked ? memberConsent.policyVersion : null };
   });
 }
 
@@ -697,7 +703,8 @@ export async function resolveGuestAction(pool: pg.Pool, memberAccountId: string,
     if (row.original_submission_id !== submissionId) return {
       type: "member_action_registered" as const, submissionId, claimRequestId,
       controlVersion: claim.controlVersion, payloadDigest: row.payload_digest,
-      expiresAt: row.expires_at.toISOString(),
+      expiresAt: row.expires_at.toISOString(), authorityAllowed: claim.authorityAllowed,
+      budgetAllowed: claim.budgetAllowed, consentPolicyVersion: claim.consentPolicyVersion,
     };
     return claim;
   }
