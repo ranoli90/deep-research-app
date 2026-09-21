@@ -75,6 +75,19 @@ describe("V2-17 command readiness", () => {
   });
 });
 
+describe("Norrow Render build context", () => {
+  it("excludes local credential directories and private signing keys", () => {
+    const repo = join(import.meta.dirname, "../../..");
+    const rules = readFileSync(join(repo, ".dockerignore"), "utf8")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#"));
+    expect(rules).toContain("**/.credentials");
+    expect(rules).toContain("**/*.p8");
+    expect(rules.filter((line) => line.startsWith("!") && /\.credentials|\.p8/.test(line))).toEqual([]);
+  });
+});
+
 // Follow source dependencies, including re-exports and literal dynamic imports.
 // Type-only edges are erased and cannot load fixture data into the runtime.
 import ts from "typescript";

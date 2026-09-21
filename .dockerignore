@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+# Local signing and provider credentials must never enter Render build context.
+**/.credentials
+**/*.p8
+node_modules
+**/node_modules
+data
+coverage
+.expo
+dist
+build
+*.log
