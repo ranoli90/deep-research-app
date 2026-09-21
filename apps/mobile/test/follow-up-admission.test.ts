@@ -20,6 +20,8 @@ import { applySnapshot, canSubmit, emptyState, startNewResearch } from "../src/s
 
 const parentRunId = "11111111-1111-4111-8111-111111111111";
 const childRunId = "22222222-2222-4222-8222-222222222222";
+const nextRequestId = "33333333-3333-4333-8333-333333333333";
+const CLEANUP = "Saved follow-up request is invalid. Device cleanup is required before new research.";
 const args = {
   parentRunId,
   message: "Go deeper on battery life",
@@ -55,6 +57,21 @@ function journalIo(over: {
       await over.adopt?.(body);
     },
   };
+}
+
+function terminalJournal(phase: "adopted" | "rejected" | "withdrawn"): PendingFollowUp {
+  const prepared = preparePendingFollowUp(args);
+  return phase === "adopted"
+    ? { ...prepared, phase, acceptedRunId: childRunId, acceptedBriefRevision: 4 }
+    : { ...prepared, phase };
+}
+
+function damageTerminal(phase: "adopted" | "rejected" | "withdrawn"): PendingFollowUp {
+  const pending = { ...terminalJournal(phase) } as Record<string, unknown>;
+  if (phase === "adopted") pending.payloadDigest = "f".repeat(64);
+  if (phase === "rejected") delete pending.requestId;
+  if (phase === "withdrawn") pending.idempotencyKey = `${parentRunId}-followup-3-legacy`;
+  return pending as unknown as PendingFollowUp;
 }
 
 describe("R-03/CL-04 mutating follow-up journal failure matrix", () => {
@@ -111,6 +128,51 @@ describe("R-03/CL-04 mutating follow-up journal failure matrix", () => {
     );
     expect(mutatingFollowUpKey(parentRunId, 3, "Go deeper on Aa")).not.toBe(mutatingFollowUpKey(parentRunId, 3, "Go deeper on BB"));
   });
+
+  it.each(["adopted", "rejected", "withdrawn"] as const)(
+    "strictly parses damaged %s before deciding a new request may replace it",
+    (phase) => {
+      const damaged = damageTerminal(phase);
+      expect(() => bindPendingFollowUp(damaged, {
+        ...args,
+        message: "Investigate thermal throttling",
+        requestId: nextRequestId,
+      })).toThrow(CLEANUP);
+    },
+  );
+
+  it.each(["adopted", "rejected", "withdrawn"] as const)(
+    "allows a new request after a valid %s record is strictly validated",
+    (phase) => {
+      const next = bindPendingFollowUp(terminalJournal(phase), {
+        ...args,
+        message: "Investigate thermal throttling",
+        requestId: nextRequestId,
+      });
+      expect(next).toMatchObject({
+        phase: "prepared",
+        message: "Investigate thermal throttling",
+        requestId: nextRequestId,
+      });
+      expect(next.payloadDigest).toBe(followUpPayloadDigest(parentRunId, 3, "Investigate thermal throttling"));
+    },
+  );
+
+  it.each(["adopted", "rejected", "withdrawn"] as const)(
+    "production runner holds damaged %s without save, POST, adoption, or replacement identity",
+    async (phase) => {
+      const io = journalIo();
+      await expect(runMutatingFollowUp({
+        ...args,
+        message: "Investigate thermal throttling",
+        pending: damageTerminal(phase),
+        ...io,
+      })).rejects.toThrow(CLEANUP);
+      expect(io.saved).toEqual([]);
+      expect(io.posts).toEqual([]);
+      expect(io.adopts).toEqual([]);
+    },
+  );
 
   it("keeps sent on 401 and does not mark rejected", async () => {
     const io = journalIo({ post: async () => { throw new ApiError(401, "Sign in required."); } });

@@ -65,11 +65,15 @@ export function bindPendingFollowUp(pending: PendingFollowUp | null | undefined,
   kind?: MutatingFollowUpKind;
   requestId?: string;
 }): PendingFollowUp {
-  if (unresolvedFollowUp(pending)) {
-    if (!sameFollowUpMutation(pending!, args)) {
+  // Parse every extant record before phase decides whether a new request may
+  // replace it. A damaged terminal record is still an ambiguous durable
+  // identity and must remain held rather than minting a fresh request.
+  const restored = pending == null ? null : readPendingFollowUp(pending);
+  if (unresolvedFollowUp(restored)) {
+    if (!sameFollowUpMutation(restored!, args)) {
       throw new Error("Retry the saved follow-up before sending a different request.");
     }
-    return readPendingFollowUp(pending)!;
+    return restored!;
   }
   return preparePendingFollowUp(args);
 }
