@@ -149,7 +149,7 @@ describe("guest pending action", () => {
     const resuming = beginGuestActionResume(claimed(), context());
     const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
     const expired = expireGuestPendingAction(resuming, afterExpiry);
-    expect(expired).toMatchObject({ phase: "resume_pending", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expect(expired).toMatchObject({ phase: "resume_reconcile", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
     expectRoundTrip(expired);
     expect(guestPendingActionNeedsReconciliation(expired, afterExpiry)).toBe(true);
     expect(() => beginGuestActionResume(expired, { ...context(), now: afterExpiry })).toThrow("expired");
@@ -160,6 +160,38 @@ describe("guest pending action", () => {
     expect(reconciled).toMatchObject({ phase: "dispatched", submissionId: id(1), dispatchReceiptId: id(9), autoResume: false });
     expectRoundTrip(reconciled);
     expect(() => markGuestActionDispatched(reconciled, id(10), afterExpiry)).toThrow("current state");
+  });
+
+  it("CLAIM-14 reconciles a delayed claim success after expiry without permitting a retry or continuation", () => {
+    const authenticated = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
+    const claimPending = beginGuestClaim(authenticated, id(8), context().now);
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const reconciling = expireGuestPendingAction(claimPending, afterExpiry);
+    expect(reconciling).toMatchObject({ phase: "claim_reconcile", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(reconciling);
+    expect(guestPendingActionNeedsReconciliation(reconciling, afterExpiry)).toBe(true);
+    expect(() => retryGuestClaim(reconciling, afterExpiry)).toThrow("expired");
+    expect(() => reopenGuestPendingAction(reconciling, afterExpiry)).toThrow("expired");
+    expect(() => beginGuestActionResume(reconciling, { ...context(), now: afterExpiry })).toThrow("expired");
+
+    const claimedLate = completeGuestClaim(reconciling, {
+      requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4,
+      principalEpoch: 3, viewEpoch: 8,
+    }, afterExpiry);
+    expect(claimedLate).toMatchObject({ phase: "claimed", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(claimedLate);
+    expect(validateGuestActionResume(claimedLate, { ...context(), now: afterExpiry })).toEqual({ ok: false, code: "expired" });
+  });
+
+  it("CLAIM-14 records only a delayed rejection for an expired in-flight continuation", () => {
+    const resuming = beginGuestActionResume(claimed(), context());
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const reconciling = expireGuestPendingAction(resuming, afterExpiry);
+    const rejected = rejectGuestPendingAction(reconciling, "authority_denied", afterExpiry);
+    expect(rejected).toMatchObject({ phase: "rejected", autoResume: false, submissionId: id(1), rejectionCode: "authority_denied", claim: { requestId: id(8) } });
+    expectRoundTrip(rejected);
+    expect(() => beginGuestAuth(reconciling, { id: id(10), provider: "email" }, afterExpiry)).toThrow("expired");
+    expect(() => markGuestActionDispatched(rejected, id(9), afterExpiry)).toThrow("current state");
   });
 
   it("AUTH-14 round-trips each transition across provider cancellation, claim retry, dismissal, terminal cancellation, rejection, and duplicate acknowledgement", () => {
