@@ -3,6 +3,7 @@ import { CONSENT_POLICY_VERSION, PROCESSOR_DISCLOSURE } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import pg from "pg";
 import { settleRun } from "./billing.js";
+import { redactClaimedDescendantsForGuestDeletion } from "./guest-deletion-cascade.js";
 
 export class AccountUnavailable extends Error {
   readonly statusCode = 401;
@@ -102,14 +103,36 @@ export async function consentAllowsProcessing(db: Queryable, accountId: string):
 }
 
 export async function deleteAccount(db: Queryable, accountId: string): Promise<void> {
-  if (db instanceof pg.Pool) return withTx(db, (client) => deleteAccount(client, accountId));
+  if (db instanceof pg.Pool) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try { return await withTx(db, (client) => deleteAccount(client, accountId)); }
+      catch (error) {
+        if ((error as { code?: string }).code !== "deletion_lock_set_changed" || attempt === 4) throw error;
+      }
+    }
+    throw new Error("deletion_lock_set_changed");
+  }
   const boundGuests = (await db.query<{ execution_owner_account_id: string; guest_context_id: string }>(
     `SELECT g.execution_owner_account_id,g.id AS guest_context_id FROM conversation_control_bindings b
      JOIN guest_contexts g ON g.id=b.guest_context_id WHERE b.member_account_id=$1 ORDER BY g.execution_owner_account_id`,
     [accountId])).rows;
+  const boundMembers = (await db.query<{ member_account_id: string }>(`
+    SELECT DISTINCT b.member_account_id FROM conversation_control_bindings b
+    JOIN guest_contexts g ON g.id=b.guest_context_id
+    WHERE g.execution_owner_account_id=$1 ORDER BY b.member_account_id`, [accountId])).rows
+    .map((row) => row.member_account_id);
   // Lock all affected accounts in stable UUID order, matching claim/resume.
-  const affectedAccounts = [...new Set([accountId, ...boundGuests.map((g) => g.execution_owner_account_id)])].sort();
+  const affectedAccounts = [...new Set([accountId, ...boundGuests.map((g) => g.execution_owner_account_id),
+    ...boundMembers])].sort();
   for (const id of affectedAccounts) await db.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [id]);
+  // A claim that committed while the first lock snapshot was taken requires a
+  // fresh sorted lock set; never skip that newly bound member's derived content.
+  const currentBoundMembers = (await db.query<{ member_account_id: string }>(`
+    SELECT DISTINCT b.member_account_id FROM conversation_control_bindings b
+    JOIN guest_contexts g ON g.id=b.guest_context_id
+    WHERE g.execution_owner_account_id=$1`, [accountId])).rows;
+  if (currentBoundMembers.some((row) => !affectedAccounts.includes(row.member_account_id)))
+    throw Object.assign(new Error("deletion_lock_set_changed"), { code: "deletion_lock_set_changed" });
   const account = await db.query("SELECT id FROM accounts WHERE id=$1", [accountId]);
   if (!account.rows[0]) return;
   if (boundGuests.length) {
@@ -123,6 +146,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   const ownedGuest = (await db.query<{ id: string; control_version: string }>(
     "SELECT id,control_version FROM guest_contexts WHERE execution_owner_account_id=$1 FOR UPDATE", [accountId])).rows;
   if (ownedGuest.length) {
+    await redactClaimedDescendantsForGuestDeletion(db, accountId, boundMembers);
     await db.query(`UPDATE guest_contexts SET status='deleted',proof_digest=NULL,deleted_at=COALESCE(deleted_at,now()),
       control_version=control_version+CASE WHEN status<>'deleted' THEN 1 ELSE 0 END
       WHERE execution_owner_account_id=$1`, [accountId]);

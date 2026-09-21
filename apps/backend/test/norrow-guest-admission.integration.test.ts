@@ -53,6 +53,43 @@ async function enabledGuest() {
 }
 
 describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () => {
+  it("GUEST-11 denies every consumed-guest direct member mutation without a new run or provider intent", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Research an eligible filing deadline", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    const targets = [
+      { url: `/v1/runs/${runId}/continue`, payload: { pendingInputId: crypto.randomUUID(),
+        expectedBriefRevision: 1, geography: "Alberta" } },
+      { url: `/v1/runs/${runId}/follow-up`, payload: { message: "A second unsaved action" } },
+      { url: `/v1/runs/${runId}/assumptions`, payload: { action: "confirm", expectedBriefRevision: 1 } },
+      { url: `/v1/runs/${runId}/query-authorizations/approve`, payload: {
+        authorizationId: crypto.randomUUID(), queryDigest: "a".repeat(64), terms: ["filing"] } },
+      { url: `/v1/runs/${runId}/corrections`, payload: { correctionText: "A second unsaved correction",
+        expectedBriefRevision: 1 } },
+      { url: `/v1/runs/${runId}/corrections/resolve`, payload: { correctionText: "A second unsaved correction",
+        expectedBriefRevision: 1, patch: { kind: "replace_question", question: "Revised question",
+          evidencePolicy: "refresh" } } },
+      { url: `/v1/reports/${crypto.randomUUID()}/challenges`, payload: { category: "other" } },
+      { url: "/v1/guest/actions/resume", payload: { submissionId: crypto.randomUUID(),
+        claimRequestId: crypto.randomUUID(), controlVersion: 1, payloadDigest: "b".repeat(64) } },
+    ];
+    const before = (await pool.query("SELECT count(*)::integer AS n FROM runs")).rows[0].n as number;
+    const intents = (await pool.query("SELECT count(*)::integer AS n FROM provider_intents")).rows[0].n as number;
+    for (const target of targets) {
+      const denied = await app.inject({ method: "POST", url: target.url,
+        headers: guest.headers, payload: target.payload });
+      expect(denied.statusCode).toBe(403);
+      expect(denied.json().code).toBe("authority_denied");
+    }
+    expect((await pool.query("SELECT count(*)::integer AS n FROM runs")).rows[0].n).toBe(before);
+    expect((await pool.query("SELECT count(*)::integer AS n FROM provider_intents")).rows[0].n).toBe(intents);
+    expect((await pool.query("SELECT count(*)::integer AS n FROM challenges")).rows[0].n).toBe(0);
+  });
   it("NARROW-DATA invalidates a claimed member child and its descendants when a guest parent source is deleted", async () => {
     const guest = await enabledGuest();
     expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
@@ -641,7 +678,10 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
         consentPolicyVersion: CONSENT_POLICY_VERSION });
     const resumePayload = { submissionId: newId, claimRequestId, controlVersion: 2,
       payloadDigest: registration.payloadDigest };
-    const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${parentRunId}/continue`,
+      headers: memberHeaders, payload: { pendingInputId, expectedBriefRevision: 1,
+        geography: "Unrecorded answer" } })).statusCode).toBe(409);
+    const resumed = await app.inject({ method: "POST", url: `/v1/runs/${parentRunId}/continue`,
       headers: memberHeaders, payload: resumePayload });
     expect(resumed.statusCode).toBe(200);
     expect(resumed.json()).toMatchObject({ kind: "clarification", type: "continuation_dispatched" });

@@ -4,7 +4,7 @@ import { CONSENT_POLICY_VERSION, CanonicalReportSchema, ResearchBriefSchema } fr
 import { createHash } from "node:crypto";
 import { currentConsent } from "./access.js";
 import { claimedConversationScope } from "./guest-auth.js";
-import { guestExecutionAllowed } from "./guest-execution-control.js";
+import { claimedCorrectionProofAllowed, guestExecutionAllowed } from "./guest-execution-control.js";
 /** Caller holds the account/admission lock. Copy membership, never source bytes or old approvals. */
 export async function inheritRunEvidence(db:Queryable,args:{runId:string;parentRunId:string;accountId:string}) {
  const owned=await db.query(`SELECT c.id FROM runs c JOIN runs p ON p.id=c.parent_run_id JOIN accounts a ON a.id=c.account_id
@@ -39,8 +39,8 @@ export async function prepareClaimedResearchContext(db: Queryable, args: {
     [args.runId,args.accountId,args.briefRevision])).rows[0];
   if (!child) throw new Error("claimed_context_child_unavailable");
   const claimFields = [child.claimed_parent_run_id,child.claimed_parent_conversation_id,
-    child.claimed_control_binding_id,child.claimed_control_version,child.guest_pending_action_id];
-  if (claimFields.every((field) => field == null)) return null;
+    child.claimed_control_binding_id,child.claimed_control_version];
+  if (claimFields.every((field) => field == null) && !child.guest_pending_action_id) return null;
   if (claimFields.some((field) => field == null) || child.parent_run_id)
     throw new Error("claimed_context_identity_mismatch");
   const parentRunId = child.claimed_parent_run_id!;
@@ -51,6 +51,15 @@ export async function prepareClaimedResearchContext(db: Queryable, args: {
       !await guestExecutionAllowed(db,args.runId,args.accountId) ||
       !await guestExecutionAllowed(db,parentRunId,scope.parentExecutionOwnerId))
     throw new Error("claimed_context_control_unavailable");
+  if (!child.guest_pending_action_id) {
+    if (!await claimedCorrectionProofAllowed(db, { runId: args.runId, memberAccountId: args.accountId,
+      parentRunId, parentConversationId: scope.conversationId,
+      bindingId: scope.controlBindingId, bindingVersion: scope.controlVersion }))
+      throw new Error("claimed_context_correction_proof_unavailable");
+    // A correction is a fresh member-funded rerun of the patched full question.
+    // It needs the control fence, not a copy of the guest answer in model context.
+    return null;
+  }
   const pending = (await db.query<{ kind: string; parent_run_id: string | null }>(
     `SELECT payload->>'kind' AS kind,payload->>'parentRunId' AS parent_run_id
        FROM guest_pending_actions WHERE submission_id=$1 AND member_run_id=$2

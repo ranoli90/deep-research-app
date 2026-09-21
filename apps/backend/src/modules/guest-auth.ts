@@ -597,7 +597,8 @@ export async function resolveGuestClaim(pool: pg.Pool, memberAccountId: string, 
   return claimReceipt(pool, memberAccountId, claimRequestId, submissionId);
 }
 
-type ResumeInput = { submissionId: string; claimRequestId: string; controlVersion: number; payloadDigest: string };
+type ResumeInput = { submissionId: string; claimRequestId: string; controlVersion: number; payloadDigest: string;
+  expectedParentRunId?: string; expectedKind?: "clarification" | "follow_up" };
 
 export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: string, input: ResumeInput, config: AppConfig) {
   return withTx(pool, async (db) => {
@@ -638,6 +639,8 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
        JOIN guest_contexts g ON g.id=r.guest_context_id WHERE r.guest_context_id=$1`,
        [pending.guest_context_id])).rows[0];
     if (!first) fail("intent_stale", 409);
+    if (input.expectedParentRunId && first.run_id !== input.expectedParentRunId) fail("authority_denied", 404);
+    if (input.expectedKind && pending.payload.kind !== input.expectedKind) fail("intent_stale", 409);
     const guestRun = await getRun(db, first.run_id);
     if (!guestRun || guestRun.account_id !== first.execution_owner_account_id ||
       guestRun.conversation_id !== binding.guest_conversation_id) fail("intent_stale", 409);

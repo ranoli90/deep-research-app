@@ -82,6 +82,8 @@ import {
   listLibrary,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
+import { admitClaimedReportCorrection, insertClaimedReportChallenge,
+  resolveClaimedReportCorrection } from "../modules/claimed-report-actions.js";
 import { excerptFromReport, getLatestReportForRun, getReportForAccount, insertChallenge, loadOwnedExplanationEvidence, publishReport, reportOwnsClaim } from "../modules/reports.js";
 import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
@@ -214,10 +216,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/purchases/restore": z.object({}).strict(),
     "/v1/purchases/verify": z.object({receipt: z.string().max(10000).optional()}).strict(),
     "/v1/billing/webhooks": z.object({eventId: z.string().max(300).optional(), product: z.string().max(100).optional()}).strict(),
-    "/v1/runs/:id/continue": ContinueRunRequestSchema,
+    "/v1/runs/:id/continue": z.union([ContinueRunRequestSchema, GuestActionResumeRequestSchema]),
     "/v1/runs/:id/assumptions": AssumptionsRequestSchema,
     "/v1/runs/:id/query-authorizations/approve": z.object({ authorizationId: z.string().uuid(), queryDigest: z.string().regex(/^[a-f0-9]{64}$/), terms: z.array(z.string().min(1).max(1000)).max(200) }).strict(),
-    "/v1/runs/:id/follow-up": z.union([RequestedVerificationRequestSchema,
+    "/v1/runs/:id/follow-up": z.union([GuestActionResumeRequestSchema, RequestedVerificationRequestSchema,
       FollowUpMessageRequestSchema,
       z.object({ claimId: z.string().uuid().optional(), note: boundedText.optional() }).strict()]),
     "/v1/reports/:id/challenges": z.object({ claimId: z.string().uuid().optional(), category: z.enum([...OUTPUT_REPORT_CATEGORIES,"claim"]).optional(), note: boundedText.optional(), includeExcerpt: z.boolean().optional(), excerptText: z.string().max(4000).optional() }).strict(),
@@ -556,7 +558,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      const saved = GuestActionResumeRequestSchema.safeParse(req.body);
+      if (!saved.success) return reply.code(409).send(err("intent_stale",
+        "An exact saved clarification action is required.", crypto.randomUUID()));
+      try {
+        const result = await resumeClaimedGuestAction(pool, a.accountId,
+          { ...saved.data, expectedParentRunId: id, expectedKind: "clarification" }, config);
+        if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
+        return result;
+      } catch (error) { return guestError(reply, error); }
     }
     if (run.lifecycle !== "awaiting_input") {
       return reply.code(409).send(err("stale_revision", "This run is not waiting for input.", crypto.randomUUID()));
@@ -786,6 +798,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id=z.string().uuid().safeParse((req.params as {id:string}).id);
     const input=CorrectionRequestSchema.strict().safeParse(req.body);
     if(!id.success||!input.success||!input.data.patch)return reply.code(400).send(err("invalid_input","Exact saved typed correction required.",crypto.randomUUID()));
+    const parent=await getRun(pool,id.data);
+    if(parent && parent.account_id!==a.accountId){
+      if(!await claimedConversationScope(pool,a.accountId,id.data))
+        return reply.code(404).send(err("authority_denied","Run not found.",crypto.randomUUID()));
+      try { return await resolveClaimedReportCorrection(pool,a.accountId,id.data,input.data); }
+      catch(error){ return guestError(reply,error); }
+    }
     const result=await resolveResearchCorrection(pool,a.accountId,id.data,input.data);
     if(!result)return reply.code(401).send(err("permission_denied","Sign in required.",crypto.randomUUID()));
     return result;
@@ -799,7 +818,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!parsed.success) return reply.code(400).send(err("invalid_input", "Invalid correction.", crypto.randomUUID()));
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!parsed.data.patch || !typedCorrectionsEnabled)
+        return reply.code(409).send(err("invalid_input", "Structured corrections are unavailable on this route.", crypto.randomUUID()));
+      try {
+        const created = await admitClaimedReportCorrection(pool, config, a.accountId, id, parsed.data);
+        if (!created.reused) await tryDispatchRun(pool, boss, created.runId);
+        return created;
+      } catch (error) { return guestError(reply, error); }
     }
     if (run.brief_revision !== parsed.data.expectedBriefRevision) {
       return reply.code(409).send(err("stale_revision", "This correction is based on an older brief.", crypto.randomUUID()));
@@ -880,7 +907,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const id = (req.params as { id: string }).id;
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
-      return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      if (!run || !await claimedConversationScope(pool, a.accountId, id))
+        return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
+      const saved = GuestActionResumeRequestSchema.safeParse(req.body);
+      if (!saved.success) return reply.code(409).send(err("intent_stale",
+        "An exact saved follow-up action is required.", crypto.randomUUID()));
+      try {
+        const result = await resumeClaimedGuestAction(pool, a.accountId,
+          { ...saved.data, expectedParentRunId: id, expectedKind: "follow_up" }, config);
+        if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
+        return result;
+      } catch (error) { return guestError(reply, error); }
     }
     const followBody = (req.body ?? {}) as { claimId?: string; note?: string; message?: string; expectedBriefRevision?: number };
     if (!followBody.claimId && followBody.message) {
@@ -1209,7 +1246,21 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
-    if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+    if (!report) {
+      const reportId = (req.params as { id: string }).id;
+      const parent = (await pool.query<{ run_id: string }>("SELECT run_id FROM reports WHERE id=$1", [reportId])).rows[0];
+      if (!parent || !await claimedConversationScope(pool, a.accountId, parent.run_id))
+        return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+      const key = z.string().regex(/^[A-Za-z0-9_-]{1,200}$/).safeParse(req.headers["idempotency-key"]);
+      if (!key.success) return reply.code(400).send(err("invalid_input",
+        "An explicit challenge identity is required.", crypto.randomUUID()));
+      const body = (req.body ?? {}) as { claimId?: string; category?: string; note?: string; includeExcerpt?: boolean };
+      try { return await insertClaimedReportChallenge(pool, a.accountId, parent.run_id, reportId,
+        { idempotencyKey: key.data, claimId: body.claimId,
+          category: z.enum([...OUTPUT_REPORT_CATEGORIES, "claim"]).parse(body.category ?? "other"), note: body.note,
+          includeExcerpt: body.includeExcerpt }); }
+      catch (error) { return guestError(reply, error); }
+    }
     const body = (req.body ?? {}) as {
       claimId?: string;
       category?: string;

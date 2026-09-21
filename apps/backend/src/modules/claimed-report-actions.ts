@@ -14,6 +14,7 @@ import { researchCorrectionIdentity } from "./research-corrections.js";
 import { admitRun } from "./run-admission.js";
 import { admittedRunOptions, assertRouteAdmission } from "./run-route-admission.js";
 import { findRunByIdempotency, getBrief, getRun } from "./runs.js";
+import { claimedCorrectionProofAllowed } from "./guest-execution-control.js";
 
 function deny(code: string, statusCode: number): never {
   throw Object.assign(new Error(code), { code, statusCode });
@@ -219,5 +220,37 @@ export async function admitClaimedReportCorrection(pool: pg.Pool, config: AppCon
         saved.outbox !== created.runId) deny("correction_recovery_basis_unavailable", 409);
     return { runId: created.runId, parentRunId, briefRevision: created.brief.revision,
       fullRerun: true as const, reused: created.reused };
+  });
+}
+
+/** Resolve an uncertain claimed correction by exact identity; absence withdraws that identity. */
+export async function resolveClaimedReportCorrection(pool: pg.Pool, memberAccountId: string,
+  parentRunId: string, raw: CorrectionRequest) {
+  const parsed = CorrectionRequestSchema.strict().safeParse(raw);
+  if (!parsed.success || !parsed.data.patch ||
+      !["replace_question", "replace_question_span"].includes(parsed.data.patch.kind) ||
+      parsed.data.patch.evidencePolicy !== "refresh" ||
+      !z.string().uuid().safeParse(parentRunId).success) deny("invalid_input", 400);
+  const { key } = researchCorrectionIdentity(parentRunId, parsed.data);
+  return withTx(pool, async (db) => {
+    const basis = await claimedActionBasis(db, memberAccountId, parentRunId);
+    if (basis.parentBriefRevision !== parsed.data.expectedBriefRevision) deny("stale_revision", 409);
+    const hash = admissionKeyHash(key);
+    if ((await db.query("SELECT 1 FROM admission_withdrawals WHERE account_id=$1 AND key_hash=$2",
+      [memberAccountId,hash])).rowCount) return { status: "withdrawn" as const };
+    const run = await findRunByIdempotency(db, memberAccountId, key);
+    if (run) {
+      if (!await claimedCorrectionProofAllowed(db, { runId: run.id,
+        memberAccountId, parentRunId, parentConversationId: basis.guestConversationId,
+        bindingId: basis.bindingId, bindingVersion: basis.bindingVersion }) ||
+        (await db.query(`SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run'
+          AND object_id=$2 AND reason='source_deletion'`, [memberAccountId,run.id])).rowCount)
+        deny("correction_recovery_basis_unavailable", 409);
+      return { status: "accepted" as const, run: { runId: run.id, lifecycle: run.lifecycle,
+        phase: run.phase, labeledDemo: false } };
+    }
+    await db.query("INSERT INTO admission_withdrawals(account_id,key_hash) VALUES($1,$2) ON CONFLICT DO NOTHING",
+      [memberAccountId,hash]);
+    return { status: "withdrawn" as const };
   });
 }

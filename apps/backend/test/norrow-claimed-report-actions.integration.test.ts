@@ -12,8 +12,10 @@ import { insertClaimedReportChallenge, admitClaimedReportCorrection } from "../s
 import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { deleteSourceForAccount } from "../src/modules/source-deletion.js";
 import { recordIntent, settleRun } from "../src/modules/billing.js";
-import { revokeConsent } from "../src/modules/access.js";
+import { deleteAccount, revokeConsent } from "../src/modules/access.js";
 import { getBrief, getRun } from "../src/modules/runs.js";
+import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
+import { prepareClaimedResearchContext } from "../src/modules/run-evidence.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 const config = loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
@@ -114,7 +116,8 @@ async function claimedReport(dispatch: boolean) {
     continuation = resumed.json();
   }
   return { guest, guestOwnerId, parentRunId, sourceId, passageId, claimId, reportId,
-    claimant, submissionId, continuation };
+    claimant, submissionId, claimRequestId, payloadDigest,
+    controlVersion: claim.json().controlVersion as number, continuation };
 }
 
 function correction(expectedBriefRevision = 1) {
@@ -125,6 +128,125 @@ function correction(expectedBriefRevision = 1) {
 }
 
 describe("CLAIM-12 claimed report actions", () => {
+  it("guest account deletion redacts exact claimed member descendants and copied challenge excerpts", async () => {
+    const x = await claimedReport(true);
+    const challenge = await insertClaimedReportChallenge(pool, x.claimant.accountId,
+      x.parentRunId, x.reportId, { idempotencyKey: crypto.randomUUID(), category: "claim",
+        claimId: x.claimId, includeExcerpt: true });
+    const corrected = await admitClaimedReportCorrection(pool, config, x.claimant.accountId,
+      x.parentRunId, correction());
+    const continuationRunId = x.continuation!.runId;
+    const continuationBriefId = (await pool.query("SELECT brief_id FROM runs WHERE id=$1",
+      [continuationRunId])).rows[0].brief_id as string;
+    await pool.query(`UPDATE research_briefs SET payload=jsonb_set(payload,'{desiredOutcome}',
+      to_jsonb('Synthetic claimed report answer.'::text)) WHERE id=$1`, [continuationBriefId]);
+    const copiedReportId = crypto.randomUUID();
+    await pool.query(`INSERT INTO reports(id,run_id,account_id,version,outcome,basis,blocks,claim_ids,
+      limitations,source_access_summary,route_mode)
+      VALUES($1,$2,$3,1,'completed_with_limitations','{}',$4,'{}','[]','[]','controlled-research')`,
+      [copiedReportId,continuationRunId,x.claimant.accountId,
+        JSON.stringify([{ id: "answer", kind: "text", text: "Synthetic claimed report answer.", citationIds: [] }])]);
+    const childSourceId = await insertSource(pool, { accountId: x.claimant.accountId,
+      runId: continuationRunId, locator: "https://example.test/claimed-derived-literal",
+      title: "Synthetic claimed report answer.", publisher: "Synthetic", originCluster: "claimed-derived" });
+    const { passageId: childPassageId } = await insertVersionAndPassage(pool, {
+      accountId: x.claimant.accountId, runId: continuationRunId, sourceId: childSourceId,
+      locator: "https://example.test/claimed-derived-literal",
+      text: "Synthetic claimed report answer.", accessLevel: "full-text" });
+    const independent = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...x.claimant.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Independently research garden plants", routeMode: "fixture",
+        consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(independent.statusCode).toBe(200);
+    const independentId = independent.json().runId as string;
+    await recordIntent(pool, x.parentRunId, { correlationId: crypto.randomUUID(),
+      route: "openrouter:synthetic", digest: "unknown-cost-guest-delete", reserved: 20000,
+      state: "outcome-unknown" });
+    await withTx(pool, db => settleRun(db, x.guestOwnerId, x.parentRunId, 0));
+    expect((await pool.query("SELECT state FROM guest_sponsor_reservations WHERE run_id=$1",
+      [x.parentRunId])).rows[0].state).toBe("held");
+
+    await deleteAccount(pool, x.guestOwnerId);
+    expect((await pool.query("SELECT count(*)::integer AS n FROM challenges WHERE id=$1",
+      [challenge.challengeId])).rows[0].n).toBe(0);
+    expect((await pool.query("SELECT payload FROM research_briefs WHERE id=$1",
+      [continuationBriefId])).rows[0].payload).toEqual({});
+    expect((await pool.query("SELECT blocks,redacted_at FROM reports WHERE id=$1",
+      [copiedReportId])).rows[0]).toMatchObject({ blocks: [], redacted_at: expect.any(Date) });
+    expect((await pool.query("SELECT canonical_locator,title FROM sources WHERE id=$1",
+      [childSourceId])).rows[0]).toMatchObject({ canonical_locator: "[deleted]", title: "[deleted]" });
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${childPassageId}`,
+      headers: x.claimant.headers })).statusCode).toBe(404);
+    expect(await guestExecutionAllowed(pool, continuationRunId, x.claimant.accountId)).toBe(false);
+    expect(await guestExecutionAllowed(pool, corrected.runId, x.claimant.accountId)).toBe(false);
+    expect((await pool.query("SELECT state FROM reservations WHERE run_id=$1",
+      [corrected.runId])).rows[0].state).toBe("settled");
+    expect((await pool.query("SELECT state FROM guest_sponsor_reservations WHERE run_id=$1",
+      [x.parentRunId])).rows[0].state).toBe("held");
+    expect((await pool.query("SELECT original_question FROM research_briefs WHERE id=(SELECT brief_id FROM runs WHERE id=$1)",
+      [independentId])).rows[0].original_question).toBe("Independently research garden plants");
+    expect((await pool.query("SELECT deleted_at FROM accounts WHERE id=$1",
+      [x.claimant.accountId])).rows[0].deleted_at).toBeNull();
+  });
+  it("delegates only the exact recorded second follow-up through the parent route", async () => {
+    const x = await claimedReport(false);
+    const saved = { submissionId: x.submissionId, claimRequestId: x.claimRequestId,
+      controlVersion: x.controlVersion, payloadDigest: x.payloadDigest };
+    const route = `/v1/runs/${x.parentRunId}/follow-up`;
+    expect((await app.inject({ method: "POST", url: route, headers: x.claimant.headers,
+      payload: { message: "An unsaved different follow-up" } })).statusCode).toBe(409);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/continue`,
+      headers: x.claimant.headers, payload: saved })).statusCode).toBe(409);
+    const outsider = await member();
+    expect((await app.inject({ method: "POST", url: route, headers: outsider.headers,
+      payload: saved })).statusCode).toBe(404);
+    expect((await app.inject({ method: "POST", url: route,
+      headers: { "x-norrow-guest-proof": x.guest.proof }, payload: saved })).statusCode).toBe(403);
+    const first = await app.inject({ method: "POST", url: route, headers: x.claimant.headers, payload: saved });
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ type: "continuation_dispatched", kind: "follow_up", reused: false });
+    const replay = await app.inject({ method: "POST", url: route, headers: x.claimant.headers, payload: saved });
+    expect(replay.json()).toMatchObject({ runId: first.json().runId, reused: true });
+    expect((await pool.query("SELECT count(*)::integer AS n FROM runs WHERE claimed_parent_run_id=$1",
+      [x.parentRunId])).rows[0].n).toBe(1);
+  });
+  it("serves claimed challenge and correction through HTTP, denying unrelated authority", async () => {
+    const x = await claimedReport(true);
+    const key = crypto.randomUUID();
+    const challenge = () => app.inject({ method: "POST", url: `/v1/reports/${x.reportId}/challenges`,
+      headers: { ...x.claimant.headers, "idempotency-key": key },
+      payload: { claimId: x.claimId, category: "claim", note: "Please check this claim.", includeExcerpt: true } });
+    const first = await challenge();
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ submitted: true, includedExcerpt: true, reused: false });
+    expect((await challenge()).json()).toMatchObject({ challengeId: first.json().challengeId, reused: true });
+    const outsider = await member();
+    expect((await app.inject({ method: "POST", url: `/v1/reports/${x.reportId}/challenges`,
+      headers: { ...outsider.headers, "idempotency-key": key }, payload: { category: "other" } })).statusCode).toBe(404);
+    const corrected = await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections`,
+      headers: x.claimant.headers, payload: correction() });
+    expect(corrected.statusCode).toBe(200);
+    expect(corrected.json()).toMatchObject({ parentRunId: x.parentRunId, reused: false, fullRerun: true });
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections`,
+      headers: x.claimant.headers, payload: correction() })).json())
+      .toMatchObject({ runId: corrected.json().runId, reused: true });
+    const resolved = await app.inject({ method: "POST",
+      url: `/v1/runs/${x.parentRunId}/corrections/resolve`,
+      headers: x.claimant.headers, payload: correction() });
+    expect(resolved.json()).toMatchObject({ status: "accepted",
+      run: { runId: corrected.json().runId } });
+    const absent = { ...correction(), correctionText: "A different saved correction identity." };
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections/resolve`,
+      headers: x.claimant.headers, payload: absent })).json()).toMatchObject({ status: "withdrawn" });
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections`,
+      headers: x.claimant.headers, payload: absent })).statusCode).toBe(409);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections`,
+      headers: outsider.headers, payload: correction() })).statusCode).toBe(404);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections`,
+      headers: { "x-norrow-guest-proof": x.guest.proof }, payload: correction() })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: `/v1/runs/${x.parentRunId}/corrections/resolve`,
+      headers: { "x-norrow-guest-proof": x.guest.proof }, payload: correction() })).statusCode).toBe(403);
+  });
   it("requires the original pending second action to have actually dispatched", async () => {
     const x = await claimedReport(false);
     await expect(insertClaimedReportChallenge(pool, x.claimant.accountId, x.parentRunId,
@@ -188,6 +310,9 @@ describe("CLAIM-12 claimed report actions", () => {
       [runId])).rows[0].n).toBe(0);
     expect((await pool.query("SELECT count(*)::int AS n FROM run_dispatch_outbox WHERE run_id=$1",
       [runId])).rows[0].n).toBe(1);
+    expect(await guestExecutionAllowed(pool, runId, x.claimant.accountId)).toBe(true);
+    expect(await withTx(pool, db => prepareClaimedResearchContext(db, { runId,
+      accountId: x.claimant.accountId, briefRevision: children[0]!.briefRevision }))).toBeNull();
     expect((await pool.query("SELECT count(*)::int AS n FROM reservations WHERE run_id=$1",
       [runId])).rows[0].n).toBe(1);
     expect((await pool.query("SELECT account_id FROM reports WHERE id=$1", [x.reportId])).rows[0].account_id)
@@ -257,6 +382,7 @@ describe("CLAIM-12 claimed report actions", () => {
       x.parentRunId, input);
     await pool.query(`UPDATE conversation_control_bindings SET revoked_at=now(),
       revocation_reason='member_revoked' WHERE member_account_id=$1`, [x.claimant.accountId]);
+    expect(await guestExecutionAllowed(pool, child.runId, x.claimant.accountId)).toBe(false);
     await expect(admitClaimedReportCorrection(pool, config, x.claimant.accountId,
       x.parentRunId, input)).rejects.toMatchObject({ code: "authority_denied", statusCode: 404 });
     await expect(insertClaimedReportChallenge(pool, x.claimant.accountId, x.parentRunId,
