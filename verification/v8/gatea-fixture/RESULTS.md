@@ -46,4 +46,4 @@ No full 49-file Gate-A run was performed by design.
 
 ## Impact and rollback
 
-Only integration tests and canonical evidence/docs changed. No production source, dependency, schema, migration, public contract, prompt, model/provider route, service or database data contract changed; no new impact checklist, ADR or spec revision is required. No live, paid, network-provider, native, EAS, GHA, push or merge command ran. Rollback is the single fixture/evidence commit to the exact base; production behavior and safety fences are unchanged.
+Only integration tests and canonical evidence/docs changed. No production source, dependency, schema, migration, public contract, prompt, model/provider route, service or database data contract changed; no new impact checklist, ADR or spec revision is required. No live, paid, network-provider, native, EAS, GHA, push or merge command ran. Rollback is the two local fixture/evidence commits to exact base `c7c68e80416d45a1a7c9ee03bf970c04409cc98e`; production behavior and safety fences are unchanged.
