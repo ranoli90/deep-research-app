@@ -65,6 +65,43 @@ export async function persistOwnedJournalSnapshot<T extends object, K extends ke
   args.render(args.saved);
 }
 
+/** Revoke consent without allowing account-A state to publish after its session ends. */
+export async function revokeConsentWithinAccount<T extends { consentGranted: boolean; error: string | null }>(args: {
+  account: ViewHandle;
+  currentState(): T;
+  invalidateView(): void;
+  waitForJournal(): Promise<void>;
+  persist(state: T): Promise<void>;
+  revokeRemote(): Promise<void>;
+  synchronize(state: T): void;
+  render(state: T): void;
+  failureMessage: string;
+}): Promise<void> {
+  const ensureCurrent = () => { if (!args.account.current()) throw new SupersededRequest(); };
+  const publish = (next: T) => {
+    ensureCurrent();
+    args.synchronize(next);
+    args.render(next);
+  };
+  try {
+    ensureCurrent();
+    args.invalidateView();
+    ensureCurrent();
+    publish({ ...args.currentState(), consentGranted: false });
+    await args.waitForJournal();
+    ensureCurrent();
+    const revoked = { ...args.currentState(), consentGranted: false };
+    await args.persist(revoked);
+    ensureCurrent();
+    publish(revoked);
+    await args.revokeRemote();
+    ensureCurrent();
+  } catch (error) {
+    if (!args.account.current() || error instanceof SupersededRequest) throw new SupersededRequest();
+    publish({ ...args.currentState(), consentGranted: false, error: args.failureMessage });
+  }
+}
+
 /** Child identity from a mutating follow-up or assumption replace; never poll the parent when a child is returned. */
 export async function adoptReturnedChild(args: {
   parentRunId: string;

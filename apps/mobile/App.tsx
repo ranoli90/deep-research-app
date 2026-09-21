@@ -35,7 +35,7 @@ import { humanChangeSummary } from "./src/correction-copy";
 import { citationNumbers } from "./src/citation-chips";
 import { draftFromFollowUp, followUpSuggestions, routeFollowUp } from "./src/follow-ups";
 import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } from "./src/follow-up-explain";
-import { adoptReturnedChild, persistOwnedJournalSnapshot, type ViewHandle } from "./src/constraint-delta";
+import { adoptReturnedChild, persistOwnedJournalSnapshot, revokeConsentWithinAccount, type ViewHandle } from "./src/constraint-delta";
 import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -2079,27 +2079,32 @@ function AppInner() {
             }}
             onRevoke={async () => {
               if (!token) return;
-              api.invalidateView(token);
-              setCorrectionFiles([]);
-              const denied = { ...latestUi.current, consentGranted: false };
-              latestUi.current = denied;
-              setState(denied);
+              let accountGuard: ReturnType<typeof api.capture>;
               try {
-                // An accepted mutation may be completing its required write as
-                // revocation invalidates the view. Let it merge its identity,
-                // then durably record the local deny before the remote effect.
-                await mutationJournalWrite.current;
-                const revoked = { ...latestUi.current, consentGranted: false };
-                await sessionStorage.persistRequired(token, revoked);
-                latestUi.current = revoked;
-                setState(revoked);
-                await api.consent(token, false);
-              }
-              catch (error) {
+                accountGuard = api.capture(token);
+              } catch (error) {
                 if (isSupersededRequest(error)) return;
-                const failed = { ...latestUi.current, consentGranted: false, error: "Could not confirm consent revocation. Retry." };
-                latestUi.current = failed;
-                setState(failed);
+                return;
+              }
+              try {
+                setCorrectionFiles([]);
+                await revokeConsentWithinAccount({
+                  account: accountGuard,
+                  currentState: () => latestUi.current,
+                  invalidateView: () => api.invalidateView(token),
+                  // An accepted mutation may be completing its required write
+                  // as revocation fences the view. Retain its durable identity.
+                  waitForJournal: () => mutationJournalWrite.current,
+                  persist: (revoked) => sessionStorage.persistRequired(token, revoked),
+                  revokeRemote: () => api.consent(token, false),
+                  synchronize: (next) => { latestUi.current = next; },
+                  render: (next) => setStateRaw((previous) => accountGuard.current() ? next : previous),
+                  failureMessage: "Could not confirm consent revocation. Retry.",
+                });
+              } catch (error) {
+                if (isSupersededRequest(error)) return;
+              } finally {
+                accountGuard.release();
               }
             }}
           />

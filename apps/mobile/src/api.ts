@@ -69,7 +69,7 @@ export const api = {
   closeSource: requests.closeSource,
   invalidateView: requests.invalidateView,
   currentRun: requests.currentRun,
-  capture: () => requests.capture("account"),
+  capture: (session?: string) => requests.capture("account", session),
   captureView: (session?: string, runId?: string) => requests.capture("view", session, runId),
   health: () => req("/health"),
   session: () => req("/v1/dev/session", { method: "POST", body: "{}" }) as Promise<Session>,
