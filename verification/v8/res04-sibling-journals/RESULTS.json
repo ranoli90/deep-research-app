@@ -7,9 +7,11 @@
   "initialImplementationCommit": "9327b21fc3b7b602f34aa8607ada9b8b7d9add97",
   "reviewRepairCommit": "045076cc181336bb581f060de3b7ca6d14f4b7e9",
   "terminalBinderRepairCommit": "1b7640ac1b90454fe625620d585afb8de5cc9703",
+  "stateGateRepairCommit": "62a374c9dadbe503610eaf974c4e0833e024de90",
   "implementationTree": "43d6727da8b14598e7023f9c3a0bf7c043612e54",
   "terminalBinderRepairTree": "1fcd19b56ab01a418711ee03b922dd243cf9c39f",
-  "scope": "Strict follow-up, assumption and correction durable-record parsing, hydration, replay, terminal replacement, and behavioral tests; local recovery implementation lane only.",
+  "stateGateRepairTree": "8553ed23ae18fb565f8f22dbd3b25c19c171a122",
+  "scope": "Strict follow-up, assumption and correction durable-record parsing, hydration, replay, terminal replacement, state admission/clearing, and behavioral tests; local recovery implementation lane only.",
   "commands": [
     {
       "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
@@ -130,6 +132,66 @@
       "exitCode": 0,
       "result": "12 tests passed",
       "scope": "terminal-binder evidence synthesis after 1b7640a"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- test/journal-state-gates.test.ts",
+      "exitCode": 1,
+      "result": "expected-red state-gate reproduction: 9 damaged terminal cases failed; 10 controls passed",
+      "scope": "test-only reproduction over rejected evidence a7b6d52; phase-only canSubmit/startNewResearch authorized or cleared damaged adopted/rejected/withdrawn rows for all three journal types"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- test/journal-state-gates.test.ts",
+      "exitCode": 0,
+      "result": "1 file passed; 21 tests passed",
+      "scope": "exact state-gate repair 62a374c; state and production App call-site controls"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test -- test/journal-state-gates.test.ts test/follow-up-admission.test.ts test/follow-up-journal.test.ts test/sibling-journals.test.ts test/pending-input.test.ts test/correction-draft.test.ts test/constraint-delta.test.ts",
+      "exitCode": 0,
+      "result": "7 files passed; 151 tests passed",
+      "scope": "exact state-gate repair 62a374c; all three durable journals, binders, runners, and state gates"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "result": "53 files passed; 468 tests passed",
+      "scope": "exact state-gate repair 62a374c"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "result": "tsc --noEmit passed",
+      "scope": "exact state-gate repair 62a374c"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "result": "boundaries=ok",
+      "scope": "exact state-gate repair 62a374c"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "result": "ok=true; errors=[]",
+      "scope": "state-gate evidence synthesis after 62a374c"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exitCode": 0,
+      "result": "16 tests passed",
+      "scope": "state-gate evidence synthesis after 62a374c"
+    },
+    {
+      "command": "python3 scripts/validate_builder_handoff.py",
+      "exitCode": 0,
+      "result": "validation passed",
+      "scope": "state-gate evidence synthesis after 62a374c"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
+      "exitCode": 0,
+      "result": "12 tests passed",
+      "scope": "state-gate evidence synthesis after 62a374c"
     }
   ],
   "claimsNotMade": [
@@ -139,6 +201,6 @@
     "No release approval"
   ],
   "legacyPolicy": "No legacy journal migration is supported because incomplete rows cannot prove immutable request identity. Such rows remain held for explicit device cleanup.",
-  "rollback": "Revert 1b7640a, then 045076c, then 9327b21 while retaining strict readers and held records. No schema, dependency, durable-row rewrite, remote state, or financial state changed.",
-  "review": "Initial independent review rejected foreign accepted confirmation identity and 045076c repaired it. Integrated review later rejected evidence head 2abcbd1 because bindPendingFollowUp inspected terminal phase before strict parse. Functional repair 1b7640a is locally green and awaits independent rereview; this lane does not self-approve."
+  "rollback": "Revert 62a374c, 1b7640a, 045076c, then 9327b21 while retaining strict readers and held records. No schema, dependency, durable-row rewrite, remote state, or financial state changed.",
+  "review": "Initial independent review rejected foreign accepted confirmation identity and 045076c repaired it. Integrated review rejected evidence head 2abcbd1 because bindPendingFollowUp inspected terminal phase before strict parse, then rejected a7b6d52 because state admission and clearing remained phase-only. Functional state-gate repair 62a374c is locally green and awaits another independent rereview; this lane does not self-approve."
 }
