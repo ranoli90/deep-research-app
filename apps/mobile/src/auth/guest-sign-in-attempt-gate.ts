@@ -34,6 +34,10 @@ export class GuestSignInAttemptGate {
     this.dismissed = false;
   }
 
+  isDismissed(): boolean {
+    return this.dismissed;
+  }
+
   async run(
     request: GuestSignInAttemptRequest,
     onPrepared: (attempt: GuestSignInAttempt) => Promise<void>,

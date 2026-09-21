@@ -182,7 +182,7 @@ export function GuestSignInSheet({
         attempt => transportRef.current.startProvider(attempt),
       );
     } catch (error) {
-      await reportTransportError(error);
+      if (!gate.current!.isDismissed()) await reportTransportError(error);
     }
   };
   const submitEmail = async (operation: "email_code" | "resend_email_code" = "email_code") => {
@@ -196,7 +196,7 @@ export function GuestSignInSheet({
         attempt => transportRef.current.requestEmailCode(attempt),
       );
     } catch (error) {
-      await reportTransportError(error);
+      if (!gate.current!.isDismissed()) await reportTransportError(error);
     }
   };
   const submitCode = async () => {
@@ -208,7 +208,7 @@ export function GuestSignInSheet({
         attempt => transportRef.current.verifyEmailCode(attempt, code.trim()),
       );
     } catch (error) {
-      await reportTransportError(error);
+      if (!gate.current!.isDismissed()) await reportTransportError(error);
     }
   };
   const cancelProvider = async () => {
