@@ -12,6 +12,8 @@ export type AppConfig = {
   guestBootstrapEnabled: boolean;
   guestProofPepper?: string;
   guestSponsorPolicyId: string;
+  providerCapabilities: { apple: boolean; google: boolean; emailCode: boolean;
+    termsUrl?: string; privacyUrl?: string };
   databaseUrl: string;
   apiHost: string;
   apiPort: number;
@@ -83,6 +85,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const guestBootstrapEnabled = env.NORROW_GUEST_BOOTSTRAP_ENABLED === "true";
   if (guestBootstrapEnabled && (!env.NORROW_GUEST_PROOF_PEPPER || env.NORROW_GUEST_PROOF_PEPPER.length < 32))
     throw new Error("Guest bootstrap requires a strong proof pepper");
+  const legalUrl = (value: string | undefined) => {
+    if (!value) return undefined;
+    let parsed: URL;
+    try { parsed = new URL(value); } catch { throw new Error("Legal link must be an HTTPS URL"); }
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.hash)
+      throw new Error("Legal link must be an HTTPS URL");
+    return parsed.href;
+  };
+  const clerkReady = authMode === "production" && identityProvider === "clerk" && Boolean(clerkAuth);
+  const providerCapabilities = {
+    apple: clerkReady && env.CLERK_APPLE_PROVIDER_VERIFIED === "true",
+    google: clerkReady && env.CLERK_GOOGLE_PROVIDER_VERIFIED === "true",
+    emailCode: clerkReady && env.CLERK_EMAIL_CODE_PROVIDER_VERIFIED === "true",
+    termsUrl: legalUrl(env.APP_TERMS_URL), privacyUrl: legalUrl(env.APP_PRIVACY_URL),
+  };
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is required");
   return {
@@ -94,6 +111,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     guestBootstrapEnabled,
     guestProofPepper: env.NORROW_GUEST_PROOF_PEPPER,
     guestSponsorPolicyId: env.NORROW_GUEST_SPONSOR_POLICY_ID ?? "norrow-guest-first.v1",
+    providerCapabilities,
     databaseUrl,
     apiHost: env.API_HOST ?? "127.0.0.1",
     apiPort: integerConfig(env, "API_PORT", 8787, 1, 65535),

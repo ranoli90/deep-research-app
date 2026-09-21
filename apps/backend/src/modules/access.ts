@@ -102,8 +102,41 @@ export async function consentAllowsProcessing(db: Queryable, accountId: string):
 
 export async function deleteAccount(db: Queryable, accountId: string): Promise<void> {
   if (db instanceof pg.Pool) return withTx(db, (client) => deleteAccount(client, accountId));
-  const account = await db.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+  const boundGuests = (await db.query<{ execution_owner_account_id: string; guest_context_id: string }>(
+    `SELECT g.execution_owner_account_id,g.id AS guest_context_id FROM conversation_control_bindings b
+     JOIN guest_contexts g ON g.id=b.guest_context_id WHERE b.member_account_id=$1 ORDER BY g.execution_owner_account_id`,
+    [accountId])).rows;
+  // Lock all affected accounts in stable UUID order, matching claim/resume.
+  const affectedAccounts = [...new Set([accountId, ...boundGuests.map((g) => g.execution_owner_account_id)])].sort();
+  for (const id of affectedAccounts) await db.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [id]);
+  const account = await db.query("SELECT id FROM accounts WHERE id=$1", [accountId]);
   if (!account.rows[0]) return;
+  if (boundGuests.length) {
+    await db.query(`UPDATE conversation_control_bindings SET revoked_at=COALESCE(revoked_at,now()),
+      revocation_reason=COALESCE(revocation_reason,'member_deletion') WHERE member_account_id=$1`, [accountId]);
+    await db.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
+      SELECT g.id,g.control_version,'member_deletion' FROM guest_contexts g
+      JOIN conversation_control_bindings b ON b.guest_context_id=g.id WHERE b.member_account_id=$1
+      ON CONFLICT DO NOTHING`, [accountId]);
+  }
+  const ownedGuest = (await db.query<{ id: string; control_version: string }>(
+    "SELECT id,control_version FROM guest_contexts WHERE execution_owner_account_id=$1 FOR UPDATE", [accountId])).rows;
+  if (ownedGuest.length) {
+    await db.query(`UPDATE guest_contexts SET status='deleted',proof_digest=NULL,deleted_at=COALESCE(deleted_at,now()),
+      control_version=control_version+CASE WHEN status<>'deleted' THEN 1 ELSE 0 END
+      WHERE execution_owner_account_id=$1`, [accountId]);
+    await db.query(`UPDATE guest_pending_actions SET state='deleted',payload='{}'::jsonb,
+      payload_digest=repeat('0',64) WHERE guest_context_id IN
+      (SELECT id FROM guest_contexts WHERE execution_owner_account_id=$1)`, [accountId]);
+    await db.query(`UPDATE guest_first_request_receipts SET request_digest=repeat('0',64)
+      WHERE guest_context_id IN (SELECT id FROM guest_contexts WHERE execution_owner_account_id=$1)`, [accountId]);
+    await db.query(`UPDATE conversation_control_bindings SET revoked_at=COALESCE(revoked_at,now()),
+      revocation_reason=COALESCE(revocation_reason,'guest_deleted') WHERE guest_context_id IN
+      (SELECT id FROM guest_contexts WHERE execution_owner_account_id=$1)`, [accountId]);
+    await db.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
+      SELECT id,control_version,'guest_deleted' FROM guest_contexts WHERE execution_owner_account_id=$1
+      ON CONFLICT DO NOTHING`, [accountId]);
+  }
   await db.query(`UPDATE accounts SET email=NULL, deleted_at = COALESCE(deleted_at,now()),
     deletion_epoch = deletion_epoch + CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END WHERE id = $1`, [accountId]);
   // Serialize with the worker's account -> run lock order before removing derived content.
@@ -201,6 +234,7 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
   );
   await db.query(`DELETE FROM sessions WHERE account_id = $1`, [accountId]);
   await db.query("UPDATE accounts SET deletion_cleanup_version=1 WHERE id=$1", [accountId]);
+  for (const bound of boundGuests) await deleteAccount(db, bound.execution_owner_account_id);
 }
 
 /** Resumable upgrade/restore replay. Version advances only in the same transaction as the full purge. */

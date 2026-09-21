@@ -7,16 +7,27 @@ import {
 } from "@deep/contracts";
 import { withTx, type Queryable } from "../platform/db.js";
 import type { AppConfig } from "../platform/config.js";
-import { currentConsent } from "./access.js";
+import { currentConsent, revokeConsent } from "./access.js";
 import { admitRun } from "./run-admission.js";
 import { getBrief, getRun, insertConversation } from "./runs.js";
 import { constraintFromClarificationAnswer } from "@deep/research-core";
+import { admittedRunOptions, assertRouteAdmission } from "./run-route-admission.js";
 
 const GUEST_LIFETIME_HOURS = 24;
 const PENDING_LIFETIME_MINUTES = 30;
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 function fail(code: string, statusCode: number): never {
   throw Object.assign(new Error(code), { code, statusCode });
+}
+async function lockAccountsOrdered(db: pg.PoolClient, ids: string[]) {
+  const rows = new Map<string, { deletion_epoch: string; deleted_at: Date | null }>();
+  for (const id of [...new Set(ids)].sort()) {
+    const row = (await db.query<{ deletion_epoch: string; deleted_at: Date | null }>(
+      "SELECT deletion_epoch,deleted_at FROM accounts WHERE id=$1 FOR UPDATE", [id])).rows[0];
+    if (!row || row.deleted_at) fail("authority_denied", 403);
+    rows.set(id, row);
+  }
+  return rows;
 }
 function pepper(config: AppConfig): string {
   if (!config.guestProofPepper) fail("authority_denied", 403);
@@ -49,6 +60,37 @@ export async function guestFromProof(db: Queryable, config: AppConfig, proof: un
   return { id: r.id, accountId: r.execution_owner_account_id, conversationId: r.conversation_id,
     status: r.status, acceptedTurnCount: Number(r.accepted_turn_count), controlVersion: Number(r.control_version),
     expiresAt: r.expires_at, sponsorPolicyId: r.sponsor_policy_id };
+}
+
+/** Guest proof resolves only the one execution admitted for this exact conversation. */
+export async function guestCanAccessRun(db: Queryable, guest: GuestContext, runId: string): Promise<boolean> {
+  const allowed = await db.query(`SELECT 1 FROM guest_contexts g
+    JOIN guest_first_request_receipts f ON f.guest_context_id=g.id
+    JOIN runs r ON r.id=f.run_id
+    JOIN accounts a ON a.id=g.execution_owner_account_id
+    WHERE g.id=$1 AND f.run_id=$2 AND r.account_id=g.execution_owner_account_id
+      AND r.conversation_id=g.conversation_id AND g.conversation_id=$3
+      AND g.status='active' AND g.proof_digest IS NOT NULL AND g.expires_at>now()
+      AND a.deleted_at IS NULL
+      AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=a.id
+        AND t.object_kind='run' AND t.object_id=r.id AND t.reason='source_deletion')`,
+      [guest.id, runId, guest.conversationId]);
+  return Boolean(allowed.rowCount);
+}
+
+export async function revokeGuestConsent(pool: pg.Pool, guest: GuestContext) {
+  return withTx(pool, async (db) => {
+    await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
+    const context = (await db.query<{ status: string; control_version: string }>(
+      "SELECT status,control_version FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
+    if (!context || context.status !== "active") fail("authority_denied", 403);
+    const epoch = await revokeConsent(db, guest.accountId);
+    const version = Number(context.control_version) + 1;
+    await db.query("UPDATE guest_contexts SET control_version=$2 WHERE id=$1", [guest.id, version]);
+    await db.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
+      VALUES ($1,$2,'consent_revoked')`, [guest.id, version]);
+    return { epoch, controlVersion: version };
+  });
 }
 
 export async function bootstrapGuest(pool: pg.Pool, config: AppConfig, remoteAddress: string) {
@@ -198,7 +240,72 @@ export async function registerGuestPendingAction(pool: pg.Pool, guest: GuestCont
 }
 
 type ClaimInput = { claimRequestId: string; submissionId: string; guestContextId: string;
-  conversationId: string; conversationVersion: number };
+  conversationId: string; conversationVersion: number; authAttemptId: string };
+
+type AttemptInput = { submissionId: string; authAttemptId: string };
+
+export async function beginGuestAuthAttempt(pool: pg.Pool, guest: GuestContext, input: AttemptInput & {
+  provider: "apple" | "google" | "email_code";
+}) {
+  return withTx(pool, async (db) => {
+    await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
+    const context = (await db.query<{ status: string; expires_at: Date; accepted_turn_count: number }>(
+      "SELECT status,expires_at,accepted_turn_count FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
+    if (!context || context.status !== "active" || context.expires_at <= new Date() ||
+      context.accepted_turn_count !== 1) fail("guest_expired", 403);
+    const pending = (await db.query<{ state: string; auth_attempt_id: string | null; auth_provider: string | null;
+      attempt_revision: string; expires_at: Date }>(
+        "SELECT state,auth_attempt_id,auth_provider,attempt_revision,expires_at FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
+        [input.submissionId, guest.id])).rows[0];
+    if (!pending || pending.expires_at <= new Date()) fail("intent_stale", 409);
+    if (pending.state === "authenticating" && pending.auth_attempt_id === input.authAttemptId &&
+      pending.auth_provider === input.provider) return { submissionId: input.submissionId,
+        authAttemptId: input.authAttemptId, attemptRevision: Number(pending.attempt_revision), state: "authenticating" as const };
+    if (!["pending_auth", "dismissed", "cancelled"].includes(pending.state) ||
+      pending.auth_attempt_id === input.authAttemptId) fail("intent_stale", 409);
+    const consent = await currentConsent(db, guest.accountId);
+    if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
+    const next = Number(pending.attempt_revision) + 1;
+    await db.query(`UPDATE guest_pending_actions SET state='authenticating',auth_attempt_id=$2,
+      auth_provider=$3,attempt_revision=$4 WHERE submission_id=$1`,
+      [input.submissionId, input.authAttemptId, input.provider, next]);
+    return { submissionId: input.submissionId, authAttemptId: input.authAttemptId,
+      attemptRevision: next, state: "authenticating" as const };
+  });
+}
+
+export async function endGuestAuthAttempt(pool: pg.Pool, guest: GuestContext, input: AttemptInput & {
+  reason: "cancelled" | "dismissed";
+}) {
+  return withTx(pool, async (db) => {
+    await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId]);
+    const context = (await db.query<{ status: string }>(
+      "SELECT status FROM guest_contexts WHERE id=$1 FOR UPDATE", [guest.id])).rows[0];
+    if (!context || context.status !== "active") fail("guest_expired", 403);
+    const pending = (await db.query<{ state: string; auth_attempt_id: string | null; attempt_revision: string }>(
+      "SELECT state,auth_attempt_id,attempt_revision FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
+      [input.submissionId, guest.id])).rows[0];
+    if (!pending || pending.auth_attempt_id !== input.authAttemptId) fail("intent_stale", 409);
+    if (pending.state === input.reason) return { submissionId: input.submissionId,
+      authAttemptId: input.authAttemptId, attemptRevision: Number(pending.attempt_revision), state: input.reason };
+    if (pending.state !== "authenticating") fail("intent_stale", 409);
+    await db.query("UPDATE guest_pending_actions SET state=$2 WHERE submission_id=$1",
+      [input.submissionId, input.reason]);
+    return { submissionId: input.submissionId, authAttemptId: input.authAttemptId,
+      attemptRevision: Number(pending.attempt_revision), state: input.reason };
+  });
+}
+
+export async function resolveGuestAuthAttempt(pool: pg.Pool, guest: GuestContext, input: AttemptInput) {
+  const pending = (await pool.query<{ state: string; auth_attempt_id: string | null; attempt_revision: string }>(
+    `SELECT p.state,p.auth_attempt_id,p.attempt_revision FROM guest_pending_actions p
+     JOIN guest_contexts g ON g.id=p.guest_context_id
+     WHERE p.submission_id=$1 AND g.id=$2 AND g.status='active' AND g.expires_at>now()`,
+    [input.submissionId, guest.id])).rows[0];
+  if (!pending || pending.auth_attempt_id !== input.authAttemptId) fail("intent_stale", 409);
+  return { submissionId: input.submissionId, authAttemptId: input.authAttemptId,
+    attemptRevision: Number(pending.attempt_revision), state: pending.state };
+}
 
 async function memberBudgetAllowed(db: Queryable, accountId: string) {
   const row = (await db.query<{ available: string }>(`SELECT limit_micro-settled_micro-reserved_micro AS available
@@ -208,18 +315,31 @@ async function memberBudgetAllowed(db: Queryable, accountId: string) {
 
 async function claimReceipt(db: Queryable, memberAccountId: string, claimRequestId: string, submissionId: string) {
   const row = (await db.query<{ guest_context_id: string; member_account_id: string; control_version: string;
-    conversation_id: string; conversation_version: string; deletion_epoch: string; revoked_at: Date | null }>(
+    conversation_id: string; conversation_version: string; deletion_epoch: string; revoked_at: Date | null;
+    guest_status: string; guest_expires_at: Date; guest_deleted_at: Date | null; pending_state: string }>(
       `SELECT c.guest_context_id,c.member_account_id,c.control_version,g.conversation_id,
-        p.conversation_version,a.deletion_epoch,b.revoked_at
+        p.conversation_version,a.deletion_epoch,b.revoked_at,g.status AS guest_status,
+        g.expires_at AS guest_expires_at,ga.deleted_at AS guest_deleted_at,p.state AS pending_state
        FROM guest_claim_requests c JOIN guest_pending_actions p ON p.submission_id=c.submission_id
        JOIN guest_contexts g ON g.id=c.guest_context_id
        JOIN conversation_control_bindings b ON b.id=c.binding_id
        JOIN accounts a ON a.id=c.member_account_id
+       JOIN accounts ga ON ga.id=g.execution_owner_account_id
        WHERE c.request_id=$1 AND c.submission_id=$2 AND c.member_account_id=$3`,
       [claimRequestId, submissionId, memberAccountId])).rows[0];
-  if (!row || row.revoked_at || Number(row.deletion_epoch) !== Number((await db.query(
+  if (!row || row.revoked_at || row.guest_status !== "claimed" || row.guest_expires_at <= new Date() ||
+      row.guest_deleted_at || row.pending_state === "deleted" ||
+      Number(row.deletion_epoch) !== Number((await db.query(
     "SELECT member_deletion_epoch FROM conversation_control_bindings WHERE guest_context_id=$1",
     [row.guest_context_id])).rows[0]?.member_deletion_epoch)) fail("authority_denied", 403);
+  const guestConsent = (await db.query<{ revoked_at: Date | null; policy_version: string }>(
+    `SELECT cr.revoked_at,cr.policy_version FROM consent_records cr JOIN guest_contexts g
+     ON g.execution_owner_account_id=cr.account_id WHERE g.id=$1
+     ORDER BY cr.consent_epoch DESC LIMIT 1`, [row.guest_context_id])).rows[0];
+  if (!guestConsent || guestConsent.revoked_at || guestConsent.policy_version !== CONSENT_POLICY_VERSION ||
+    (await db.query(`SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1
+      AND reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked')`,
+      [row.guest_context_id])).rowCount) fail("authority_denied", 403);
   const consent = await currentConsent(db, memberAccountId);
   return { type: "claim_accepted" as const, submissionId, claimRequestId, requestId: claimRequestId,
     accountId: memberAccountId, guestContextId: row.guest_context_id, conversationId: row.conversation_id,
@@ -234,11 +354,9 @@ export async function claimGuestAction(pool: pg.Pool, guest: GuestContext, membe
   if (guest.id !== input.guestContextId || guest.conversationId !== input.conversationId ||
       input.conversationVersion !== 1 || guest.accountId === memberAccountId) fail("authority_denied", 403);
   return withTx(pool, async (db) => {
-    const member = (await db.query<{ deletion_epoch: string }>(
-      "SELECT deletion_epoch FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [memberAccountId])).rows[0];
+    const locked = await lockAccountsOrdered(db, [memberAccountId, guest.accountId]);
+    const member = locked.get(memberAccountId);
     if (!member || Number(member.deletion_epoch) !== memberDeletionEpoch) fail("authority_denied", 403);
-    const owner = (await db.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [guest.accountId])).rows[0];
-    if (!owner) fail("guest_deleted", 403);
     const context = (await db.query<{ status: string; proof_digest: string | null; accepted_turn_count: number;
       control_version: string; expires_at: Date }>(
         "SELECT status,proof_digest,accepted_turn_count,control_version,expires_at FROM guest_contexts WHERE id=$1 FOR UPDATE",
@@ -246,21 +364,17 @@ export async function claimGuestAction(pool: pg.Pool, guest: GuestContext, membe
     if (!context || context.status !== "active" || !context.proof_digest || context.expires_at <= new Date() ||
         context.accepted_turn_count !== 1) fail("guest_expired", 403);
     const pending = (await db.query<{ state: string; expires_at: Date; conversation_id: string;
-      conversation_version: string; consent_policy_version: string }>(
-        "SELECT state,expires_at,conversation_id,conversation_version,consent_policy_version FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
+      conversation_version: string; consent_policy_version: string; auth_attempt_id: string | null }>(
+        "SELECT state,expires_at,conversation_id,conversation_version,consent_policy_version,auth_attempt_id FROM guest_pending_actions WHERE submission_id=$1 AND guest_context_id=$2 FOR UPDATE",
         [input.submissionId, guest.id])).rows[0];
-    if (!pending || pending.state !== "pending_auth" || pending.expires_at <= new Date() ||
+    if (!pending || pending.state !== "authenticating" || pending.auth_attempt_id !== input.authAttemptId ||
+      pending.expires_at <= new Date() ||
       pending.conversation_id !== guest.conversationId || Number(pending.conversation_version) !== 1 ||
       pending.consent_policy_version !== CONSENT_POLICY_VERSION) fail("intent_stale", 409);
     const guestConsent = await currentConsent(db, guest.accountId);
     if (!guestConsent || guestConsent.revoked || guestConsent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
-    const memberConsent = await currentConsent(db, memberAccountId);
-    if (memberConsent?.revoked || (memberConsent && memberConsent.policyVersion !== CONSENT_POLICY_VERSION)) fail("consent_required", 403);
-    if (!memberConsent) {
-      await db.query(`INSERT INTO consent_records(account_id,policy_version,processors,consent_epoch)
-        SELECT $1,policy_version,processors,1 FROM consent_records
-        WHERE account_id=$2 AND consent_epoch=$3`, [memberAccountId, guest.accountId, guestConsent.epoch]);
-    }
+    // Proof of a guest action does not grant consent to a separate authenticated account.
+    // The member must explicitly grant the current policy before resume; prior revocation remains a deny.
     const controlVersion = Number(context.control_version) + 1;
     const bindingId = crypto.randomUUID();
     await db.query(`INSERT INTO conversation_control_bindings(id,guest_context_id,guest_conversation_id,
@@ -288,11 +402,24 @@ export async function resolveGuestClaim(pool: pg.Pool, memberAccountId: string, 
 
 type ResumeInput = { submissionId: string; claimRequestId: string; controlVersion: number; payloadDigest: string };
 
-export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: string, input: ResumeInput) {
+export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: string, input: ResumeInput, config: AppConfig) {
   return withTx(pool, async (db) => {
-    const member = (await db.query<{ deletion_epoch: string }>(
-      "SELECT deletion_epoch FROM accounts WHERE id=$1 AND deleted_at IS NULL FOR UPDATE", [memberAccountId])).rows[0];
+    const identified = (await db.query<{ guest_context_id: string; execution_owner_account_id: string }>(
+      `SELECT p.guest_context_id,g.execution_owner_account_id FROM guest_pending_actions p
+       JOIN guest_contexts g ON g.id=p.guest_context_id WHERE p.submission_id=$1`, [input.submissionId])).rows[0];
+    if (!identified) fail("authority_denied", 403);
+    const locked = await lockAccountsOrdered(db, [memberAccountId, identified.execution_owner_account_id]);
+    const member = locked.get(memberAccountId);
     if (!member) fail("authority_denied", 403);
+    const context = (await db.query<{ status: string; expires_at: Date }>(
+      "SELECT status,expires_at FROM guest_contexts WHERE id=$1 FOR UPDATE", [identified.guest_context_id])).rows[0];
+    if (!context || context.status !== "claimed" || context.expires_at <= new Date() ||
+      (await db.query(`SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1
+        AND reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked')`,
+        [identified.guest_context_id])).rowCount) fail("authority_denied", 403);
+    const guestConsent = await currentConsent(db, identified.execution_owner_account_id);
+    if (!guestConsent || guestConsent.revoked || guestConsent.policyVersion !== CONSENT_POLICY_VERSION)
+      fail("consent_required", 403);
     const pending = (await db.query<{ state: string; payload: GuestPendingPayload; payload_digest: string;
       guest_context_id: string; member_account_id: string; claim_request_id: string; member_conversation_id: string | null;
       member_run_id: string | null; dispatch_receipt_id: string | null; expires_at: Date }>(
@@ -306,15 +433,15 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
         [pending.guest_context_id, memberAccountId])).rows[0];
     if (!binding || binding.revoked_at || Number(binding.control_version) !== input.controlVersion ||
         Number(binding.member_deletion_epoch) !== Number(member.deletion_epoch)) fail("authority_denied", 403);
+    const consent = await currentConsent(db, memberAccountId);
+    if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
     if (pending.state === "dispatched" && pending.member_run_id && pending.member_conversation_id && pending.dispatch_receipt_id)
       return { type: "continuation_dispatched" as const, submissionId: input.submissionId,
         claimRequestId: input.claimRequestId, accountId: memberAccountId,
         conversationId: binding.guest_conversation_id, conversationVersion: 1,
         receiptId: pending.dispatch_receipt_id, runId: pending.member_run_id,
-        memberConversationId: pending.member_conversation_id, kind: pending.payload.kind };
+        memberConversationId: pending.member_conversation_id, kind: pending.payload.kind, reused: true };
     if (pending.state !== "claimed" || pending.expires_at <= new Date()) fail("intent_stale", 409);
-    const consent = await currentConsent(db, memberAccountId);
-    if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
     const first = (await db.query<{ run_id: string; execution_owner_account_id: string }>(
       `SELECT r.run_id,g.execution_owner_account_id FROM guest_first_request_receipts r
        JOIN guest_contexts g ON g.id=r.guest_context_id WHERE r.guest_context_id=$1`,
@@ -323,6 +450,7 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
     const guestRun = await getRun(db, first.run_id);
     if (!guestRun || guestRun.account_id !== first.execution_owner_account_id ||
       guestRun.conversation_id !== binding.guest_conversation_id) fail("intent_stale", 409);
+    await assertRouteAdmission(pool, config, guestRun.route_mode as "fixture" | "controlled-research");
     const payload = pending.payload;
     if (payload.kind === "follow_up" && payload.parentRunId !== guestRun.id) fail("intent_stale", 409);
     if (payload.kind === "clarification" && (guestRun.lifecycle !== "awaiting_input" ||
@@ -335,6 +463,7 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
       question, routeMode: guestRun.route_mode as "fixture" | "controlled-research", attachmentIds: [],
       conversationId: memberConversationId, consentPolicyVersion: CONSENT_POLICY_VERSION,
     }, {
+      ...admittedRunOptions(config),
       beforeReservation: async (tx, runId) => {
         await tx.query(`UPDATE runs SET claimed_parent_run_id=$2,claimed_parent_conversation_id=$3,
           claimed_control_binding_id=$4,claimed_control_version=$5,guest_pending_action_id=$6 WHERE id=$1`,
@@ -356,12 +485,12 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
     return { type: "continuation_dispatched" as const, submissionId: input.submissionId,
       claimRequestId: input.claimRequestId, accountId: memberAccountId,
       conversationId: binding.guest_conversation_id, conversationVersion: 1,
-      receiptId, runId: created.runId, memberConversationId, kind: payload.kind };
+      receiptId, runId: created.runId, memberConversationId, kind: payload.kind, reused: false };
   });
 }
 
 export async function resolveGuestAction(pool: pg.Pool, memberAccountId: string,
-  claimRequestId: string, submissionId: string) {
+  claimRequestId: string, submissionId: string, config: AppConfig) {
   const row = (await pool.query<{ state: string; control_version: string; payload_digest: string }>(
     `SELECT p.state,c.control_version,p.payload_digest FROM guest_pending_actions p
      JOIN guest_claim_requests c ON c.request_id=p.claim_request_id
@@ -370,5 +499,5 @@ export async function resolveGuestAction(pool: pg.Pool, memberAccountId: string,
   if (!row) fail("authority_denied", 403);
   if (row.state !== "dispatched") return claimReceipt(pool, memberAccountId, claimRequestId, submissionId);
   return resumeClaimedGuestAction(pool, memberAccountId, { submissionId, claimRequestId,
-    controlVersion: Number(row.control_version), payloadDigest: row.payload_digest });
+    controlVersion: Number(row.control_version), payloadDigest: row.payload_digest }, config);
 }

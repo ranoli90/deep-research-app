@@ -27,6 +27,9 @@ import {
   GuestClaimResolveRequestSchema,
   GuestActionResumeRequestSchema,
   GuestActionResolveRequestSchema,
+  GuestAuthAttemptBeginRequestSchema,
+  GuestAuthAttemptEndRequestSchema,
+  GuestAuthAttemptResolveRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -81,6 +84,7 @@ import { tryDispatchRun } from "../modules/run-dispatch.js";
 import { admitRun } from "../modules/run-admission.js";
 import { approveQueryAuthorization, pendingQueryAuthorization } from "../modules/retrieval-intelligence.js";
 import { modelPolicy } from "../ports/model-policy.js";
+import { admittedRunOptions, assertRouteAdmission } from "../modules/run-route-admission.js";
 import { z } from "zod";
 import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
 import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
@@ -88,7 +92,9 @@ import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { accountForIdentity } from "../modules/identity.js";
-import { admitGuestFirst, bootstrapGuest, claimGuestAction, guestFromProof, registerGuestPendingAction,
+import { admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest, claimGuestAction, endGuestAuthAttempt,
+  guestCanAccessRun, guestFromProof, registerGuestPendingAction, resolveGuestAuthAttempt,
+  revokeGuestConsent,
   resolveGuestAction, resolveGuestClaim, resolveGuestFirstRequest, resumeClaimedGuestAction } from "../modules/guest-auth.js";
 
 export type AppDeps = {
@@ -166,6 +172,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/dev/session": z.object({ email: z.string().email().max(254).optional() }).strict(),
     "/v1/guest/bootstrap": GuestBootstrapRequestSchema,
     "/v1/guest/pending-actions": GuestPendingActionRequestSchema,
+    "/v1/guest/pending-actions/attempts/begin": GuestAuthAttemptBeginRequestSchema,
+    "/v1/guest/pending-actions/attempts/end": GuestAuthAttemptEndRequestSchema,
+    "/v1/guest/pending-actions/attempts/resolve": GuestAuthAttemptResolveRequestSchema,
     "/v1/guest/claim": GuestClaimRequestSchema,
     "/v1/guest/claims/resolve": GuestClaimResolveRequestSchema,
     "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
@@ -189,7 +198,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const proof = req.headers["x-norrow-guest-proof"];
     if (proof !== undefined) {
       const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/runs", "/v1/run-requests/resolve",
-        "/v1/guest/pending-actions", "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
+        "/v1/guest/pending-actions", "/v1/guest/pending-actions/attempts/begin",
+        "/v1/guest/pending-actions/attempts/end", "/v1/guest/pending-actions/attempts/resolve",
+        "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
         "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
         "/v1/settings", "/v1/routes/capabilities", "/v1/account/deletion"]);
       if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim"))
@@ -235,6 +246,27 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
   });
 
+  app.post("/v1/guest/pending-actions/attempts/begin", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await beginGuestAuthAttempt(pool, context, GuestAuthAttemptBeginRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/attempts/end", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await endGuestAuthAttempt(pool, context, GuestAuthAttemptEndRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/pending-actions/attempts/resolve", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    try { return await resolveGuestAuthAttempt(pool, context, GuestAuthAttemptResolveRequestSchema.parse(req.body)); }
+    catch (error) { return guestError(reply, error); }
+  });
+
   app.post("/v1/guest/claim", async (req, reply) => {
     const context = await guest(req as never);
     const member = await auth(req as never);
@@ -258,8 +290,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
     try {
       const result = await resumeClaimedGuestAction(pool, member.accountId,
-        GuestActionResumeRequestSchema.parse(req.body));
-      await tryDispatchRun(pool, boss, result.runId);
+        GuestActionResumeRequestSchema.parse(req.body), config);
+      if (!result.reused) await tryDispatchRun(pool, boss, result.runId);
       return result;
     } catch (error) { return guestError(reply, error); }
   });
@@ -268,7 +300,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const member = await auth(req as never);
     if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
     const input = GuestActionResolveRequestSchema.parse(req.body);
-    try { return await resolveGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    try { return await resolveGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId, config); }
     catch (error) { return guestError(reply, error); }
   });
 
@@ -283,8 +315,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const account = await auth(req as never);
     if (!account || account.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { accountId: account.accountId, authMode: config.authMode, actorKind: "member" };
+    return { accountId: account.accountId, authMode: config.authMode, actorKind: "member",
+      deletionEpoch: account.deletionEpoch };
   });
+
+  app.get("/v1/auth/capabilities", async () => ({ apple: Boolean(config.providerCapabilities.apple),
+    google: Boolean(config.providerCapabilities.google), emailCode: Boolean(config.providerCapabilities.emailCode),
+    termsUrl: config.providerCapabilities.termsUrl ?? null,
+    privacyUrl: config.providerCapabilities.privacyUrl ?? null }));
 
   app.post("/v1/consent", async (req, reply) => {
     const g = await guest(req as never);
@@ -295,6 +333,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send(err("invalid_input", "An explicit consent choice is required.", crypto.randomUUID()));
     }
     if (body.grant === false) {
+      if (g) {
+        const revoked = await revokeGuestConsent(pool, g);
+        return { granted: false, consentEpoch: revoked.epoch, controlVersion: revoked.controlVersion,
+          processors: PROCESSOR_DISCLOSURE };
+      }
       const epoch = await revokeConsent(pool, a.accountId);
       return { granted: false, consentEpoch: epoch, processors: PROCESSOR_DISCLOSURE };
     }
@@ -328,37 +371,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const suppliedKey = z.string().min(1).max(200).regex(/^[A-Za-z0-9_-]+$/).safeParse(req.headers["idempotency-key"]);
     if ((input.routeMode === "controlled-research" || req.headers["idempotency-key"] !== undefined) && !suppliedKey.success)
       return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
-    if (input.routeMode === "fixture" && !config.fixtureRouteAllowed) {
-      return reply.code(403).send(err("permission_denied", "Fixture route is disabled.", correlationId));
-    }
-    if (input.routeMode === "controlled-research" && !config.liveRouteEnabled) {
-      return reply.code(403).send(err("permission_denied", "Live route is not enabled. Missing authorized credentials/budget.", correlationId));
-    }
-    if (input.routeMode === "controlled-research" && config.nodeEnv === "production" && !config.structuredModelEnabled) {
-      return reply.code(403).send(err("permission_denied", "Structured research is disabled.", correlationId));
-    }
-    if (input.routeMode === "controlled-research") {
-      if (!config.openRouterApiKey || config.liveSpendCapMicro <= 0) {
-        return reply.code(403).send(err("permission_denied", "Live route requires OPENROUTER_API_KEY and LIVE_SPEND_CAP_MICRO>0.", correlationId));
-      }
-      const { liveSpendUsedMicro, canIssueLiveCall } = await import("../modules/live-spend.js");
-      const used = await liveSpendUsedMicro(pool);
-      const gate = canIssueLiveCall({ capMicro: config.liveSpendCapMicro, usedMicro: used });
-      if (!gate.ok) {
-        return reply.code(403).send(err("allowance_exhausted", "Live spend cap would be exceeded. No new paid call issued.", correlationId));
-      }
-    }
+    try { await assertRouteAdmission(pool, config, input.routeMode); }
+    catch (error) { return guestError(reply, error); }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));
     }
     const idempotencyKey = suppliedKey.success ? suppliedKey.data : crypto.randomUUID();
     try {
-      const created = g ? await admitGuestFirst(pool, config, g, idempotencyKey, input) : await admitRun(pool, a.accountId, idempotencyKey, input, {
-        strategy: config.structuredStrategy,
-        modelPolicyId: config.structuredModelPolicyId,
-        zdrRequired: config.structuredModelPolicyId ? modelPolicy(config.structuredModelPolicyId).provider === "azure" : false,
-      });
+      const created = g ? await admitGuestFirst(pool, config, g, idempotencyKey, input) : await admitRun(pool, a.accountId, idempotencyKey, input,
+        admittedRunOptions(config));
       await tryDispatchRun(pool, boss, created.runId);
       const run = await getRun(pool, created.runId);
       return {
@@ -394,6 +416,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    if (g && !await guestCanAccessRun(pool, g, id))
+      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
@@ -434,6 +458,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    if (g && !await guestCanAccessRun(pool, g, id))
+      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const run = await getRun(pool, id);
     if (!run || run.account_id !== a.accountId) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
@@ -461,6 +487,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    if (g && !await guestCanAccessRun(pool, g, id))
+      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const updated = await cancelOwnedRun(pool, a.accountId, id);
     if (!updated) {
       return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
@@ -1040,10 +1068,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/reports/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const report = await getReportForAccount(pool, (req.params as { id: string }).id, a.accountId);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
+    if (g && !await guestCanAccessRun(pool, g, report.run_id))
+      return reply.code(404).send(err("authority_denied", "Report not found.", crypto.randomUUID()));
     const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: a.accountId, report });
     return {
       reportId: report.id,
@@ -1061,10 +1092,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/sources/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const row = await getPassageForAccount(pool, (req.params as { id: string }).id, a.accountId);
     if (!row) return reply.code(404).send(err("permission_denied", "Source not found.", crypto.randomUUID()));
+    if (g && !await guestCanAccessRun(pool, g, row.run_id))
+      return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
     return {
       passageId: row.id,
       sourceId: row.source_id,
@@ -1089,9 +1123,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.delete("/v1/sources/:id", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    const result = await deleteSourceForAccount(pool, a.accountId, (req.params as { id: string }).id);
+    const sourceId = (req.params as { id: string }).id;
+    if (g) {
+      const source = (await pool.query<{ run_id: string }>(
+        "SELECT run_id FROM sources WHERE id=$1 AND account_id=$2", [sourceId, g.accountId])).rows[0];
+      if (!source || !await guestCanAccessRun(pool, g, source.run_id))
+        return reply.code(404).send(err("authority_denied", "Source not found.", crypto.randomUUID()));
+    }
+    const result = await deleteSourceForAccount(pool, a.accountId, sourceId);
     try { await drainFileDeletions(pool, config.storageDir, a.accountId); }
     catch { logError("file_deletion_deferred", { reason: "database_or_storage_unavailable" }); }
     const pending = await pool.query("SELECT 1 FROM file_deletion_outbox WHERE account_id=$1 AND state <> 'deleted' LIMIT 1", [a.accountId]);
@@ -1248,7 +1290,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/account/deletion", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     return performDeletion(a, reply, false);
   });
 
@@ -1294,7 +1337,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/settings", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const consent = await currentConsent(pool, a.accountId);
     const allow = await pool.query(`SELECT * FROM allowance_accounts WHERE account_id = $1`, [a.accountId]);
@@ -1308,7 +1352,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         deletionVsSubscription: DELETION_VS_SUBSCRIPTION,
       },
       outputReporting: { available: true, categories: [...OUTPUT_REPORT_CATEGORIES] },
-      allowance: allow.rows[0] ?? null,
+      allowance: g ? { availableMicro: Math.max(0, Number(allow.rows[0]?.limit_micro ?? 0) -
+        Number(allow.rows[0]?.settled_micro ?? 0) - Number(allow.rows[0]?.reserved_micro ?? 0)),
+        sponsoredFirstTurnOnly: true } : allow.rows[0] ?? null,
       liveRouteEnabled: config.liveRouteEnabled,
       appendDocumentsAllowed: typedCorrectionsEnabled,
       fixtureRouteAllowed: config.fixtureRouteAllowed,
@@ -1320,15 +1366,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get("/v1/routes/capabilities", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return { capabilities: pinRouteCapabilities(config), paidProbe: false };
   });
 
   app.get("/v1/runs/:id/cost", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const id = (req.params as { id: string }).id;
+    if (g && !await guestCanAccessRun(pool, g, id))
+      return reply.code(404).send(err("authority_denied", "Run not found.", crypto.randomUUID()));
     const cost = await measureRunCost(pool, id, a.accountId);
     if (!cost) return reply.code(404).send(err("permission_denied", "Run not found.", crypto.randomUUID()));
     return cost;

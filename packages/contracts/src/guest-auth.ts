@@ -35,8 +35,15 @@ export const GuestPendingActionRequestSchema = z.object({
 }).strict();
 export const GuestClaimRequestSchema = z.object({
   claimRequestId: Uuid, submissionId: Uuid, guestContextId: Uuid,
-  conversationId: Uuid, conversationVersion: Version,
+  conversationId: Uuid, conversationVersion: Version, authAttemptId: Uuid,
 }).strict();
+export const GuestAuthAttemptBeginRequestSchema = z.object({
+  submissionId: Uuid, authAttemptId: Uuid, provider: z.enum(["apple", "google", "email_code"]),
+}).strict();
+export const GuestAuthAttemptEndRequestSchema = z.object({
+  submissionId: Uuid, authAttemptId: Uuid, reason: z.enum(["cancelled", "dismissed"]),
+}).strict();
+export const GuestAuthAttemptResolveRequestSchema = z.object({ submissionId: Uuid, authAttemptId: Uuid }).strict();
 export const GuestClaimResolveRequestSchema = z.object({ claimRequestId: Uuid, submissionId: Uuid }).strict();
 export const GuestActionResumeRequestSchema = z.object({
   submissionId: Uuid, claimRequestId: Uuid, controlVersion: Version, payloadDigest: Digest,

@@ -8,6 +8,8 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { createPool, migrate } from "../src/platform/db.js";
 import { loadConfig } from "../src/platform/config.js";
+import { recordIntent, settleRun } from "../src/modules/billing.js";
+import { processRun } from "../src/worker/diagnostic-executor.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -113,25 +115,56 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
         conversationVersion: 1, payload: action, payloadDigest, consentPolicyVersion: CONSENT_POLICY_VERSION } });
     expect(register.statusCode).toBe(202);
+    const dismissedAttemptId = crypto.randomUUID();
+    const beginDismissed = await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId: dismissedAttemptId, provider: "email_code" } });
+    expect(beginDismissed.json()).toMatchObject({ state: "authenticating", attemptRevision: 1 });
+    const dismiss = await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/end",
+      headers: guest.headers, payload: { submissionId, authAttemptId: dismissedAttemptId, reason: "dismissed" } });
+    expect(dismiss.json()).toMatchObject({ state: "dismissed", attemptRevision: 1 });
+    const authAttemptId = crypto.randomUUID();
+    const begin = await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId, provider: "email_code" } });
+    expect(begin.json()).toMatchObject({ state: "authenticating", attemptRevision: 2 });
     const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
       { token: string; accountId: string };
     const memberHeaders = { authorization: `Bearer ${member.token}` };
     expect((await app.inject({ method: "POST", url: "/v1/guest/claim", headers: memberHeaders,
       payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
-        conversationId: guest.conversationId, conversationVersion: 1 } })).statusCode).toBe(403);
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...memberHeaders, ...guest.headers },
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1,
+        authAttemptId: dismissedAttemptId } })).statusCode).toBe(409);
     const claimRequestId = crypto.randomUUID();
     const claim = await app.inject({ method: "POST", url: "/v1/guest/claim",
       headers: { ...memberHeaders, ...guest.headers },
       payload: { claimRequestId, submissionId, guestContextId: guest.guestContextId,
-        conversationId: guest.conversationId, conversationVersion: 1 } });
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } });
     expect(claim.statusCode).toBe(200);
     expect(claim.json()).toMatchObject({ type: "claim_accepted", accountId: member.accountId,
-      budgetAllowed: true, authorityAllowed: true, controlVersion: 2 });
+      budgetAllowed: true, authorityAllowed: true, controlVersion: 2, consentPolicyVersion: null });
     const claimResolve = await app.inject({ method: "POST", url: "/v1/guest/claims/resolve", headers: memberHeaders,
       payload: { claimRequestId, submissionId } });
     expect(claimResolve.json()).toMatchObject({ type: "claim_accepted", controlVersion: 2 });
     expect((await app.inject({ method: "GET", url: `/v1/runs/${firstRunId}`, headers: guest.headers })).statusCode).toBe(401);
     const resumePayload = { submissionId, claimRequestId, controlVersion: 2, payloadDigest };
+    const noMemberConsent = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: memberHeaders, payload: resumePayload });
+    expect(noMemberConsent.statusCode).toBe(403);
+    expect(noMemberConsent.json().code).toBe("consent_required");
+    expect((await pool.query("SELECT count(*)::int AS n FROM consent_records WHERE account_id=$1", [member.accountId])).rows[0].n)
+      .toBe(0);
+    const explicitMemberConsent = await app.inject({ method: "POST", url: "/v1/consent",
+      headers: memberHeaders, payload: { grant: true } });
+    expect(explicitMemberConsent.statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: memberHeaders,
+      payload: { grant: false } })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: resumePayload })).json().code).toBe("consent_required");
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: memberHeaders,
+      payload: { grant: true } })).statusCode).toBe(200);
     await pool.query("UPDATE allowance_accounts SET limit_micro=0 WHERE account_id=$1", [member.accountId]);
     const unfunded = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
       payload: resumePayload });
@@ -163,5 +196,98 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
         conversationId: receipt.memberConversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
     expect(third.statusCode).toBe(200);
     expect(third.json().runId).not.toBe(receipt.runId);
+    const deletion = await app.inject({ method: "POST", url: "/v1/account/deletion",
+      headers: memberHeaders, payload: {} });
+    expect(deletion.statusCode).toBe(200);
+    const removed = (await pool.query<{ status: string; deleted_at: Date | null; state: string; payload: unknown }>(
+      `SELECT g.status,a.deleted_at,p.state,p.payload FROM guest_contexts g
+       JOIN accounts a ON a.id=g.execution_owner_account_id
+       JOIN guest_pending_actions p ON p.guest_context_id=g.id WHERE g.id=$1`, [guest.guestContextId])).rows[0]!;
+    expect(removed).toMatchObject({ status: "deleted", state: "deleted", payload: {} });
+    expect(removed.deleted_at).toBeTruthy();
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: resumePayload })).statusCode).toBe(401);
+  });
+
+  it("revokes guest control version and destroys proof on guest deletion before claim", async () => {
+    const guest = await enabledGuest();
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: true } })).statusCode).toBe(200);
+    const revoked = await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: false } });
+    expect(revoked.json()).toMatchObject({ granted: false, controlVersion: 2 });
+    expect((await app.inject({ method: "GET", url: "/v1/session", headers: guest.headers })).json())
+      .toMatchObject({ consentGranted: false, controlVersion: 2 });
+    const deleted = await app.inject({ method: "POST", url: "/v1/account/deletion",
+      headers: guest.headers, payload: {} });
+    expect(deleted.statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: "/v1/session", headers: guest.headers })).statusCode).toBe(401);
+    expect((await pool.query("SELECT status,proof_digest FROM guest_contexts WHERE id=$1", [guest.guestContextId])).rows[0])
+      .toMatchObject({ status: "deleted", proof_digest: null });
+  });
+
+  it("moves unknown paid outcome into sponsor HOLD and settles exact confirmed receipt once", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Research this filing deadline", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    const owner = (await pool.query<{ execution_owner_account_id: string }>(
+      "SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1", [guest.guestContextId])).rows[0]!.execution_owner_account_id;
+    // Synthetic transport outcome only: no provider request is issued.
+    await pool.query("UPDATE runs SET route_mode='controlled-research' WHERE id=$1", [runId]);
+    const intentId = await recordIntent(pool, runId, { correlationId: crypto.randomUUID(),
+      route: "openrouter:synthetic", digest: "a".repeat(64), reserved: 17000, state: "issued" });
+    await settleRun(pool, owner, runId, 0);
+    expect((await pool.query("SELECT reserved_micro::int,held_micro::int,settled_micro::int FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'")).rows[0])
+      .toMatchObject({ reserved_micro: 0, held_micro: 100000, settled_micro: 0 });
+    await pool.query("UPDATE provider_intents SET state='confirmed',confirmed_micro=17000 WHERE id=$1", [intentId]);
+    await settleRun(pool, owner, runId, 0);
+    await settleRun(pool, owner, runId, 0);
+    expect((await pool.query("SELECT reserved_micro::int,held_micro::int,settled_micro::int FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'")).rows[0])
+      .toMatchObject({ reserved_micro: 0, held_micro: 0, settled_micro: 17000 });
+    expect((await pool.query("SELECT state,settled_micro::int FROM guest_sponsor_reservations WHERE run_id=$1", [runId])).rows[0])
+      .toMatchObject({ state: "settled", settled_micro: 17000 });
+  });
+
+  it("lets the exact guest read its first report and cited source, while denying unrelated routes and mixed credentials", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What did ACME announce about Widget 4?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    await processRun(pool, loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
+      DEV_ALLOW_FIXTURE_ROUTE: "true" }), runId);
+    const run = await app.inject({ method: "GET", url: `/v1/runs/${runId}`, headers: guest.headers });
+    expect(run.statusCode).toBe(200);
+    const reportId = run.json().reportId as string;
+    expect(reportId).toBeTruthy();
+    const report = await app.inject({ method: "GET", url: `/v1/reports/${reportId}`, headers: guest.headers });
+    expect(report.statusCode).toBe(200);
+    const citationIds = (report.json().blocks as Array<{ citationIds?: string[] }>).flatMap((b) => b.citationIds ?? []);
+    expect(citationIds.length).toBeGreaterThan(0);
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${citationIds[0]}`, headers: guest.headers })).statusCode)
+      .toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}/cost`, headers: guest.headers })).statusCode)
+      .toBe(200);
+    expect((await app.inject({ method: "GET", url: "/v1/library", headers: guest.headers })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: "/v1/attachments", headers: guest.headers,
+      payload: { filename: "x.txt", mime: "text/plain", text: "private" } })).statusCode).toBe(403);
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string };
+    for (const path of ["/v1/session", "/v1/settings", `/v1/runs/${runId}`]) {
+      const mixed = await app.inject({ method: "GET", url: path,
+        headers: { ...guest.headers, authorization: `Bearer ${member.token}` } });
+      expect(mixed.statusCode).toBe(403);
+      expect(mixed.json().code).toBe("authority_denied");
+    }
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${reportId}`,
+      headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
   });
 });

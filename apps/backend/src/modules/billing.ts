@@ -44,6 +44,10 @@ export async function settleRun(db: Queryable, accountId: string, runId: string,
   if (res.rows.length > 1) throw new Error("duplicate_run_reservation");
   const r = res.rows[0];
   if (!r) return;
+  const sponsor = (await db.query<{ policy_id: string; amount_micro: string; state: "reserved" | "held" | "settled" }>(
+    `SELECT policy_id,amount_micro,state FROM guest_sponsor_reservations
+     WHERE run_id=$1 AND reservation_id=$2 FOR UPDATE`, [runId, r.id])).rows[0];
+  if (sponsor && Number(sponsor.amount_micro) !== Number(r.amount_micro)) throw new Error("sponsor_reservation_mismatch");
   let settle = spentMicro;
   if (run.rows[0].route_mode === "controlled-research") {
     const receipts = await db.query<{ confirmed: string; unknown: number }>(`SELECT
@@ -54,11 +58,31 @@ export async function settleRun(db: Queryable, accountId: string, runId: string,
     // A retry of settlement after reconciliation releases it exactly once.
     const receipt = receipts.rows[0];
     if (!receipt) throw new Error("missing_receipt_aggregate");
-    if (receipt.unknown > 0) return;
+    if (receipt.unknown > 0) {
+      if (sponsor?.state === "reserved") {
+        const held = await db.query(`UPDATE guest_sponsor_ledgers SET reserved_micro=reserved_micro-$2,
+          held_micro=held_micro+$2,updated_at=now() WHERE policy_id=$1 AND reserved_micro >= $2`,
+          [sponsor.policy_id, Number(r.amount_micro)]);
+        if (held.rowCount !== 1) throw new Error("sponsor_hold_invariant");
+        await db.query(`UPDATE guest_sponsor_reservations SET state='held',updated_at=now()
+          WHERE run_id=$1 AND state='reserved'`, [runId]);
+      }
+      return;
+    }
     settle = Number(receipt.confirmed);
   }
   const reserved = Number(r.amount_micro);
   if (![reserved, settle].every((n) => Number.isSafeInteger(n) && n >= 0)) throw new Error("invalid_settlement_cost");
+  if (sponsor) {
+    if (sponsor.state === "settled") throw new Error("sponsor_settlement_invariant");
+    const bucket = sponsor.state === "held" ? "held_micro" : "reserved_micro";
+    const ledger = await db.query(`UPDATE guest_sponsor_ledgers
+      SET ${bucket}=${bucket}-$2,settled_micro=settled_micro+$3,updated_at=now()
+      WHERE policy_id=$1 AND ${bucket} >= $2`, [sponsor.policy_id, reserved, settle]);
+    if (ledger.rowCount !== 1) throw new Error("sponsor_settlement_invariant");
+    await db.query(`UPDATE guest_sponsor_reservations SET state='settled',settled_micro=$2,updated_at=now()
+      WHERE run_id=$1 AND state=$3`, [runId, settle, sponsor.state]);
+  }
   // Actual provider overruns must be visible; never clamp receipts to the estimate.
   const account = await db.query(`UPDATE allowance_accounts
      SET reserved_micro = reserved_micro - $2, settled_micro = settled_micro + $3

@@ -52,7 +52,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS guest_contexts_owner_conversation
   ON guest_contexts(execution_owner_account_id,conversation_id);
 
 CREATE TABLE IF NOT EXISTS guest_first_request_receipts (
-  guest_context_id uuid NOT NULL REFERENCES guest_contexts(id),
+  guest_context_id uuid NOT NULL UNIQUE REFERENCES guest_contexts(id),
   request_id text NOT NULL,
   request_digest text NOT NULL CHECK (request_digest ~ '^[0-9a-f]{64}$'),
   run_id uuid NOT NULL UNIQUE REFERENCES runs(id),
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS guest_first_request_receipts (
 
 CREATE TABLE IF NOT EXISTS guest_sponsor_reservations (
   run_id uuid PRIMARY KEY REFERENCES runs(id),
-  guest_context_id uuid NOT NULL UNIQUE REFERENCES guest_contexts(id),
+  guest_context_id uuid NOT NULL REFERENCES guest_contexts(id),
   policy_id text NOT NULL REFERENCES guest_sponsor_policies(id),
   reservation_id uuid NOT NULL UNIQUE REFERENCES reservations(id),
   amount_micro bigint NOT NULL CHECK (amount_micro > 0),
@@ -81,7 +81,10 @@ CREATE TABLE IF NOT EXISTS guest_pending_actions (
   payload_digest text NOT NULL CHECK (payload_digest ~ '^[0-9a-f]{64}$'),
   payload jsonb NOT NULL CHECK (jsonb_typeof(payload) = 'object'),
   consent_policy_version text NOT NULL,
-  state text NOT NULL DEFAULT 'pending_auth' CHECK (state IN ('pending_auth','claimed','dispatched','rejected','deleted')),
+  state text NOT NULL DEFAULT 'pending_auth' CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched','rejected','deleted')),
+  auth_attempt_id uuid,
+  auth_provider text CHECK (auth_provider IS NULL OR auth_provider IN ('apple','google','email_code')),
+  attempt_revision bigint NOT NULL DEFAULT 0 CHECK (attempt_revision >= 0),
   expires_at timestamptz NOT NULL,
   member_account_id uuid REFERENCES accounts(id),
   claim_request_id uuid,
@@ -92,6 +95,12 @@ CREATE TABLE IF NOT EXISTS guest_pending_actions (
   UNIQUE (guest_context_id,submission_id)
 );
 CREATE INDEX IF NOT EXISTS guest_pending_actions_context ON guest_pending_actions(guest_context_id,state);
+ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_attempt_id uuid;
+ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS auth_provider text;
+ALTER TABLE guest_pending_actions ADD COLUMN IF NOT EXISTS attempt_revision bigint NOT NULL DEFAULT 0;
+ALTER TABLE guest_pending_actions DROP CONSTRAINT IF EXISTS guest_pending_actions_state_check;
+ALTER TABLE guest_pending_actions ADD CONSTRAINT guest_pending_actions_state_check
+  CHECK (state IN ('pending_auth','authenticating','dismissed','cancelled','claimed','dispatched','rejected','deleted'));
 
 CREATE TABLE IF NOT EXISTS conversation_control_bindings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
