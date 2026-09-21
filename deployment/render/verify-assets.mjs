@@ -51,8 +51,10 @@ test('image copies explicit source roots only and provisions the isolated parser
   ]);
   assert.match(dockerfile, /EXTRACTION_RUNTIME=\/opt\/extraction-runtime/);
   assert.match(dockerfile, /FROM python:3\.12-slim-bookworm AS runtime/);
+  assert.match(dockerfile, /COPY --from=dependencies \/usr\/local\/bin\/node \/usr\/local\/bin\/node/);
   assert.match(extractionLock.split(/\r?\n/, 1)[0], /Python 3\.12 \/ Linux x86_64/);
   assert.match(dockerfile, /bubblewrap ca-certificates/);
+  assert.match(dockerfile, /libgomp1 libstdc\+\+6/);
   assert.match(dockerfile, /pip install --no-cache-dir --require-hashes --only-binary=:all: -r \/tmp\/extraction-requirements\.lock/);
   assert.match(dockerfile, /^USER 10001:10001$/m);
   assert.doesNotMatch(dockerfile, /^HEALTHCHECK\b/m);
