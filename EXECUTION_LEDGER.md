@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-21 — Norrow mobile AUTH-07 restart and account-switch repair
+
+- Base clean mobile `d08b8bde92eeabb867bed448e5890c48a25f763c`; isolated worktree only. Exact-commit audit found `authenticating` restart deadlock and bound guest reader/draft display under a different verified member. No production route/schema/migration/dependency/prompt/provider config was changed.
+- Red mounted `pnpm --filter @deep/mobile test test/guest-app.component.test.tsx` EXIT 1: **3 failed, 10 passed**. After repair, focused **15/15** EXIT 0, including original-attempt claim/resume once, server-fenced unsigned restart with same submission, unknown-end hold/no second provider, late unmount readback, and other-member reader non-disclosure. `pnpm --filter @deep/mobile test` EXIT 0 **64 files, 617/617**. `pnpm verify` EXIT 0: core **395/395**, backend unit **255/255**, mobile **617/617**, governance **7/7**, workspace types/boundaries.
+- Local Linux deterministic fabricated transport and protected-store tests only; no native/device, configured Clerk/provider, backend PostgreSQL, hosted, paid, Expo or network service. Independent reviewer must assess the exact repair head. Rollback retains original submission/attempt/claim identities and all server cancellation, proof, account-scope and unknown-outcome fences; no implicit re-dispatch.
+
 ## 2026-09-21 — Local Norrow donor import and Docker context guard
 
 - Task IDs: COORD-01/04, TRUTH-01/02, DATA-10, INFRA-09. Base `4f2a235b3da65eaef0a3c3ddcf1b52b5c788ed4e`, donor `766eb6a8f8a130087e158896ed6b16eca4e72625`, common ancestor `bb80cfd2d2a3b14e224e516b165871fc60e58105`; full donor history merged locally with `--no-ff`. Four document conflicts were resolved manually, donor ADR075 became ADR079, and recovery ADR075–078 plus Gate A/B, extraction and EAS evidence were retained. Donor-only unmerged statements below remain dated historical records.

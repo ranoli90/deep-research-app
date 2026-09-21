@@ -18,6 +18,19 @@ it("W03 credentials never enter the content store; an unscoped legacy token cann
   expect(await cache.getItem("deep.ui.v2")).not.toContain("secure-secret");
 });
 
+it("AUTH-06 same-account Clerk token refresh replaces only secure credential and keeps the reader", async () => {
+  const cache = memoryStore(), credentials = memoryStore(), store = createSessionStorage(cache, credentials);
+  await store.activate({ accountId: "a", token: "token-one" });
+  await store.persistRequired("token-one", privateState("reader-A"));
+  await expect(store.rotateCredential("token-one", { accountId: "b", token: "token-two" })).rejects.toThrow("changed");
+  await store.rotateCredential("token-one", { accountId: "a", token: "token-two" });
+  expect((await createSessionStorage(cache, credentials).hydrate()).token).toBe("token-two");
+  expect((await createSessionStorage(cache, credentials).hydrate()).state.draft).toBe("reader-A");
+  await expect(store.persistRequired("token-one", privateState("stale-reader"))).rejects.toThrow();
+  await store.persistRequired("token-two", privateState("reader-B"));
+  expect((await createSessionStorage(cache, credentials).hydrate()).state.draft).toBe("reader-B");
+});
+
 it("W03 logout waits behind an in-flight write and no queued or late write can restore account content", async () => {
   const cache = memoryStore(), credentials = memoryStore(), entered = deferred(), release = deferred();
   const store = createSessionStorage({ ...cache, setItem: async (key, value) => {

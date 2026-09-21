@@ -3,7 +3,8 @@ import {
   beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction,
   completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, expireGuestPendingAction,
   guestPendingActionNeedsReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
-  reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume,
+  reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume, holdGuestAuthAttempt,
+  prepareMemberClarificationReplacement, confirmMemberClarificationRegistration,
   type GuestClaimAcceptedOutcome, type GuestContinuationDispatchedOutcome, type GuestPendingActionRejectionOutcome,
 } from "../src/auth/guest-pending-action";
 import { sha256Hex } from "../src/sha256";
@@ -62,6 +63,27 @@ function expectRoundTrip(action: unknown) {
 }
 
 describe("guest pending action", () => {
+  it("CLAIM-14 accepts only an abandoned claimed clarification with exact pending identity for member replacement", () => {
+    const now = context().now;
+    const first = pending("clarification");
+    const auth = completeGuestAuth(beginGuestAuth(first, { id: id(6), provider: "email" }, now), id(6), id(7), now);
+    const old = cancelGuestPendingAction(completeGuestClaim(beginGuestClaim(auth, id(8), now), claimAccepted(), now), now);
+    const payload = { kind: "clarification" as const, text: "Ontario", pendingInputId: id(5), briefRevision: 9, field: "geography" };
+    const fresh = prepareMemberClarificationReplacement(old, payload, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 });
+    expect(fresh).toMatchObject({ phase: "member_register_pending", submissionId: id(10), payload, claim: { requestId: id(8), principalEpoch: 11, viewEpoch: 17 } });
+    expectRoundTrip(fresh);
+    const receipt = { type: "member_action_registered" as const, submissionId: id(10), claimRequestId: id(8), controlVersion: 12,
+      payloadDigest: fresh.payloadDigest, expiresAt: expires.toISOString() };
+    const registered = confirmMemberClarificationRegistration(fresh, receipt, now);
+    expect(registered.phase).toBe("member_claimed");
+    expectRoundTrip(registered);
+    const resume = { ...context(), principalEpoch: 11, viewEpoch: 17, draftRevision: 8, draftDigest: sha256Hex("Ontario") };
+    expect(validateGuestActionResume(registered, resume)).toEqual({ ok: true });
+    expect(() => prepareMemberClarificationReplacement(first, payload, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 })).toThrow("abandoned");
+    expect(() => prepareMemberClarificationReplacement(old, { ...payload, pendingInputId: id(99) }, id(10), 8, now, { principalEpoch: 11, viewEpoch: 17 })).toThrow("abandoned");
+    expect(() => confirmMemberClarificationRegistration(fresh, { ...receipt, payloadDigest: "f".repeat(64) }, now)).toThrow("registration");
+    expect(() => markGuestActionDispatched(old, continuationDispatched({ submissionId: old.submissionId }), now)).toThrow("current state");
+  });
   it("GUEST-02/GUEST-04 captures an exact clarification before auth without admitting it", () => {
     const action = pending("clarification");
     expect(action.phase).toBe("pending_auth");
@@ -89,6 +111,17 @@ describe("guest pending action", () => {
     expect(returned.phase).toBe("pending_auth");
     expect(returned.payload).toEqual(opening.payload);
     expect(() => completeGuestAuth(returned, id(6), id(7), context().now)).toThrow("current state");
+  });
+  it("CLAIM-01 holds an uncertain server attempt with the same ID; stale callback and replacement begin cannot claim", () => {
+    const opening = beginGuestAuth(pending(), { id: id(6), provider: "email" }, context().now);
+    const held = holdGuestAuthAttempt(opening, id(6), context().now);
+    expectRoundTrip(held);
+    expect(held).toMatchObject({ phase: "authenticating", autoResume: false, authAttempt: { id: id(6) }, submissionId: id(1) });
+    expect(() => completeGuestAuth(held, id(6), id(7), context().now)).toThrow("stale sign-in");
+    expect(() => beginGuestAuth(held, { id: id(10), provider: "google" }, context().now)).toThrow("current state");
+    const ended = dismissGuestPendingAction(held, context().now);
+    expect(reopenGuestPendingAction(ended, context().now).submissionId).toBe(id(1));
+    expect(beginGuestAuth(reopenGuestPendingAction(ended, context().now), { id: id(10), provider: "google" }, context().now).authAttempt?.id).toBe(id(10));
   });
 
   it("GUEST-05 dismissal does not erase draft binding and requires an explicit re-open before another auth attempt", () => {

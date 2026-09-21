@@ -38,19 +38,31 @@ import { bindFollowUpExplain, recordFollowUpExplain, visibleFollowUpExplains } f
 import { adoptReturnedChild, persistOwnedJournalSnapshot, revokeConsentWithinAccount, type ViewHandle } from "./src/constraint-delta";
 import { runMutatingFollowUp, unresolvedFollowUp, type MutatingFollowUpKind } from "./src/follow-up-admission";
 import { clearDocumentPickerCache, pickDocument } from "./src/native-documents";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { getRandomBytes } from "expo-crypto";
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
+import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-auth";
+import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
+import { ClerkSessionTaskView } from "./src/auth/ClerkSessionTaskView";
+import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
+import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
+import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
+import { sha256Hex } from "./src/sha256";
 import {
   AccessibilityInfo,
   findNodeHandle,
   AppState,
   BackHandler,
   KeyboardAvoidingView,
+  Keyboard,
   Linking,
   Platform,
   Pressable,
   ScrollView,
   Share,
   Text,
+  TextInput,
   useColorScheme,
   View,
 } from "react-native";
@@ -59,10 +71,10 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-
 import { StatusBar } from "expo-status-bar";
 import { color, space } from "@deep/design";
 import { makeStyles } from "./src/product-styles";
-import { sessionStorage } from "./src/native-session";
+import { guestDevice, sessionStorage } from "./src/native-session";
 import { SupersededRequest } from "./src/request-scope";
 import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
-import { api, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
+import { api, ApiError, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
 import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { APPEARANCE_KEY, readAppearance, resolveAppearance } from "./src/appearance";
 import { researchStatusLine, type ResearchStatusKind } from "./src/research-status";
@@ -88,8 +100,7 @@ import {
 
 /** Hermes/Expo Go has no global crypto.randomUUID. */
 function newId(): string {
-  const bytes = new Uint8Array(16);
-  for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  const bytes = getRandomBytes(16);
   bytes[6] = (bytes[6]! & 0x0f) | 0x40;
   bytes[8] = (bytes[8]! & 0x3f) | 0x80;
   const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -101,12 +112,31 @@ function useTheme(preference: AppearancePreference) {
   return color[resolveAppearance(preference, system)];
 }
 
-function AppInner() {
+export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
+  const authRef = useRef(auth); authRef.current = auth;
   const [appearance, setAppearance] = useState<AppearancePreference>("system");
+  const system = useColorScheme();
   const theme = useTheme(appearance);
   const insets = useSafeAreaInsets();
   const [state, setStateRaw] = useState<UiState>(emptyState());
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [guestContext, setGuestContext] = useState<GuestContext | null>(null);
+  const guestContextRef = useRef<GuestContext | null>(null);
+  const guestProof = useRef<string | null>(null);
+  const [guestPending, setGuestPending] = useState<GuestPendingAction | null>(null);
+  const guestPendingRef = useRef<GuestPendingAction | null>(null);
+  const abandonedGuestActions = useRef<GuestPendingAction[]>([]);
+  const guestFirstRequest = useRef<GuestFirstRequest | null>(null);
+  const guestDraftRevision = useRef(0);
+  const taskContinuationAttempt = useRef<string | null>(null);
+  const [taskContinuationId, setTaskContinuationId] = useState<string | null>(null);
+  const taskViewClosing = useRef(false);
+  const [guestSheetVisible, setGuestSheetVisible] = useState(false);
+  const [guestSheetState, setGuestSheetState] = useState<GuestSignInSheetState>(initialGuestSignInSheetState);
+  const [guestCapabilities, setGuestCapabilities] = useState<{ apple: boolean; google: boolean; emailCode: boolean; termsUrl: string | null; privacyUrl: string | null }>({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
+  const composerInput = useRef<TextInput>(null);
+  const guestRefreshing = useRef(false);
+  const guestRunEpoch = useRef(0);
   const latestUi = useRef(state); latestUi.current = state;
   const mutationJournalWrite = useRef<Promise<void>>(Promise.resolve());
   const redactingContent = useRef(false);
@@ -128,24 +158,31 @@ function AppInner() {
     saved: UiState[K],
     parentRunId: string,
   ) {
+    if (!guard.current()) throw new SupersededRequest();
+    const credential = memberAuthority();
     const acceptedRunId = saved && typeof saved === "object" && "acceptedRunId" in saved
       ? saved.acceptedRunId
       : undefined;
+    const stillOwned = () => {
+      try {
+        const bearer = credential();
+        return api.currentRun(bearer, parentRunId)
+          || (typeof acceptedRunId === "string" && api.currentRun(bearer, acceptedRunId));
+      } catch { return false; }
+    };
     const operation = persistOwnedJournalSnapshot({
       field,
       saved,
       currentState: () => latestUi.current,
-      persist: (next) => sessionStorage.persistRequired(t, next),
+      persist: (next) => sessionStorage.persistRequired(credential(), next),
       current: () => guard.current(),
-      stillOwned: () => api.currentRun(t, parentRunId)
-        || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)),
+      stillOwned,
       synchronize: (next) => {
         latestUi.current = next;
         // Keep React's queued state from later replacing the authoritative
         // durable phase. Consent revocation intentionally keeps the journal
         // while invalidating only the operation's view lease.
-        setStateRaw((previous) => (api.currentRun(t, parentRunId)
-          || (typeof acceptedRunId === "string" && api.currentRun(t, acceptedRunId)))
+        setStateRaw((previous) => stillOwned()
           ? { ...previous, [field]: saved }
           : previous);
       },
@@ -155,6 +192,62 @@ function AppInner() {
     await operation;
   }
   const [token, setToken] = useState<string | null>(null);
+  // Assign only at verified session transitions. A render queued before a
+  // credential rotation must not roll these refs back to its stale token.
+  const memberTokenRef = useRef<string | null>(token);
+  const memberAccountRef = useRef<string | null>(accountId);
+  const activeClerkSubjectRef = useRef<string | null>(null);
+  const credentialRefresh = useRef<Promise<string> | null>(null);
+  /** A member operation may outlive a routine Clerk bearer rotation, never a principal change. */
+  function memberAuthority(expectedAccount = memberAccountRef.current): () => string {
+    const principalEpoch = api.sessionEpochs().principalEpoch;
+    if (!expectedAccount || memberAccountRef.current !== expectedAccount || !memberTokenRef.current) throw new SupersededRequest();
+    return () => {
+      const current = memberTokenRef.current;
+      if (!current || memberAccountRef.current !== expectedAccount || api.sessionEpochs().principalEpoch !== principalEpoch || api.currentCredential() !== current) throw new SupersededRequest();
+      return current;
+    };
+  }
+  // A Clerk account switch is a principal boundary even before the next API
+  // request. Hide the old reader synchronously; retain no callback authority.
+  useLayoutEffect(() => {
+    const boundSubject = activeClerkSubjectRef.current;
+    if (!boundSubject || !memberAccountRef.current || !auth?.loaded) return;
+    if (auth.signedIn && auth.subject === boundSubject) return;
+    stopPolling(); api.activateSession(null); api.clearGuest();
+    activeClerkSubjectRef.current = null;
+    memberTokenRef.current = null; memberAccountRef.current = null;
+    guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
+    const hidden = emptyState(); latestUi.current = hidden;
+    setToken(null); setAccountId(null); setGuestContext(null); setGuestPending(null); setGuestSheetVisible(false);
+    setStorageReady(false); setStateRaw({ ...hidden, error: "Account changed. Reopen the app to restore the current account safely." });
+    void clearAccountLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => {
+      setStateRaw(s => ({ ...s, error: "Account changed. Device cleanup failed; retry sign-out before continuing." }));
+    });
+  }, [auth?.loaded, auth?.signedIn, auth?.subject]);
+  useEffect(() => {
+    api.setMemberCredentialProvider(async (expected, forceRefresh = false) => {
+      const previous = memberTokenRef.current, owner = memberAccountRef.current;
+      if (!previous || !owner || expected !== previous) throw new SupersededRequest();
+      if (credentialRefresh.current) return credentialRefresh.current;
+      const work = (async () => {
+        const fresh = await authRef.current?.getToken(forceRefresh ? { skipCache: true } : undefined);
+        if (!fresh) throw new ApiError(0, "Sign-in cannot be refreshed. Your saved research remains on this device.");
+        if (fresh === previous) return previous;
+        const verified = await api.verifyMemberSession(fresh);
+        if (verified.accountId !== owner || memberTokenRef.current !== previous || memberAccountRef.current !== owner) throw new SupersededRequest();
+        await sessionStorage.rotateCredential(previous, { token: fresh, accountId: owner });
+        if (memberTokenRef.current !== previous || memberAccountRef.current !== owner) throw new SupersededRequest();
+        api.rotateCredential(fresh, owner);
+        memberTokenRef.current = fresh; setToken(fresh);
+        return fresh;
+      })();
+      credentialRefresh.current = work;
+      try { return await work; }
+      finally { if (credentialRefresh.current === work) credentialRefresh.current = null; }
+    });
+    return () => api.setMemberCredentialProvider(null);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
   const submitting = useRef(false);
@@ -279,12 +372,13 @@ function AppInner() {
   );
   const readerVisible = state.tab === "research" && !state.source && Boolean(state.report);
   // Identity stays in memory. Protected snapshots contain only report/block IDs.
-  const readerKey = JSON.stringify([token, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
+  const readerOwner = guestContext?.guestContextId ?? token ?? null;
+  const readerKey = JSON.stringify([readerOwner, readerVisible, state.report?.reportId, detailed, blocks.map(b => b.id)]);
   if (readerIdentity.current !== readerKey) {
     readerIdentity.current = readerKey;
     scrollY.current = 0;
-    if (readerVisible && token && state.report) {
-      readerGeneration.current = reading.current.begin({ ownerKey: token, reportId: state.report.reportId }, state.readingAnchor, blocks.map(b => b.id), state.report.blocks.map(b => b.id));
+    if (readerVisible && readerOwner && state.report) {
+      readerGeneration.current = reading.current.begin({ ownerKey: readerOwner, reportId: state.report.reportId }, state.readingAnchor, blocks.map(b => b.id), state.report.blocks.map(b => b.id));
     } else {
       reading.current.clear();
       readerGeneration.current = 0;
@@ -295,7 +389,7 @@ function AppInner() {
     const tag = findNodeHandle(node);
     if (tag !== null) AccessibilityInfo.setAccessibilityFocus(tag);
   }));
-  const focusGeneration = sourceFocus.current.view(token ?? "", state.report?.reportId ?? "", JSON.stringify([readerView, state.tab, state.source?.passageId]));
+  const focusGeneration = sourceFocus.current.view(readerOwner ?? "", state.report?.reportId ?? "", JSON.stringify([readerView, state.tab, state.source?.passageId]));
   function closeSource() {
     sourceFocus.current.close();
     api.closeSource();
@@ -316,6 +410,13 @@ function AppInner() {
 
   useEffect(() => {
     if (!hydrated || redactingContent.current || submitting.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
+    if (guestContextRef.current && !token) {
+      const contextId = guestContextRef.current.guestContextId;
+      void guestDevice.saveSnapshot(contextId, state, guestDraftRevision.current).catch(() => {
+        setStateRaw(s => s.error === "Could not save guest research on this device." ? s : { ...s, error: "Could not save guest research on this device." });
+      });
+      return;
+    }
     const guard = api.capture();
     void persistSession(sessionStorage, { token, state }).catch(() => {
       if (guard.current()) setState((s) => s.error === "Could not save this device’s session." ? s : { ...s, error: "Could not save this device’s session." });
@@ -332,6 +433,698 @@ function AppInner() {
     if (state.report && !state.source) persistAnchor(state.report.reportId);
   }
 
+  function currentGuest(): { context: GuestContext; proof: string } {
+    const context = guestContextRef.current, proof = guestProof.current;
+    if (!context || !proof || token) throw new Error("Guest conversation is not current.");
+    if (Date.parse(context.expiresAt) <= Date.now()) throw new Error("This guest conversation expired. Its saved message has not been sent.");
+    return { context, proof };
+  }
+
+  async function saveGuestPending(next: GuestPendingAction, expected: GuestPendingAction | null = guestPendingRef.current) {
+    const checked = readGuestPendingAction(next);
+    await guestDevice.savePendingAction(checked, expected);
+    guestPendingRef.current = checked; setGuestPending(checked);
+  }
+
+  /** Only an exact server abandonment makes a different submission ID admissible. */
+  async function abandonSavedGuestAction(action: GuestPendingAction, memberToken: string | null = token): Promise<GuestPendingAction> {
+    const current = guestPendingRef.current;
+    if (!current || current.submissionId !== action.submissionId) throw new Error("The saved message changed before cancellation.");
+    let receipt: any;
+    if (["claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile"].includes(current.phase) || !guestProof.current) {
+      if (!memberToken || !current.claim) throw new Error("The accepted claim cannot be abandoned until its identity is confirmed.");
+      const credential = memberAuthority(current.authenticatedAccountId);
+      receipt = await api.abandonClaimedGuestAction(credential!(), current.submissionId, current.claim.requestId);
+      if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || receipt.claimRequestId !== current.claim.requestId) throw new Error("The claim abandonment receipt did not match the saved message.");
+    } else {
+      try { receipt = await api.guest.cancelPendingAction(guestProof.current, current.submissionId); }
+      catch (error) {
+        // A simultaneous claim can win the server race and revoke guest proof.
+        // Only a verified member readback may then authorize member abandon.
+        if (!memberToken || !current.claim) throw error;
+        const credential = memberAuthority(current.authenticatedAccountId);
+        const resolved = await api.resolveGuestClaim(credential!(), current.claim.requestId, current.submissionId);
+        if (resolved?.type === "action_abandoned" && resolved.submissionId === current.submissionId && resolved.claimRequestId === current.claim.requestId) receipt = resolved;
+        else if (resolved?.type === "claim_accepted") {
+          const latest = guestPendingRef.current;
+          if (!latest || latest.submissionId !== current.submissionId || latest.claim?.requestId !== current.claim.requestId) throw new Error("Claim identity changed before abandonment.");
+          if (["claim_pending", "claim_reconcile"].includes(latest.phase)) {
+            const epochs = api.sessionEpochs();
+            await saveGuestPending(completeGuestClaim(latest, { ...resolved, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date()), latest);
+          }
+          receipt = await api.abandonClaimedGuestAction(credential!(), current.submissionId, current.claim.requestId);
+        } else throw error;
+      }
+      if (receipt?.type !== "action_abandoned" || receipt.submissionId !== current.submissionId || (receipt.claimRequestId && receipt.claimRequestId !== current.claim?.requestId)) throw new Error("The cancellation receipt did not match the saved message.");
+    }
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== current.submissionId || latest.phase === "dispatched") throw new Error("The saved message changed while cancellation was being confirmed.");
+    const cancelled = cancelGuestPendingAction(latest, new Date());
+    if (cancelled.phase !== "cancelled") throw new Error("The expired saved message needs reconciliation before another can be sent.");
+    await saveGuestPending(cancelled, latest);
+    setGuestSheetVisible(false);
+    return cancelled;
+  }
+
+  async function saveGuestReader(next: UiState) {
+    const { context } = currentGuest();
+    await guestDevice.saveSnapshot(context.guestContextId, next, guestDraftRevision.current);
+    latestUi.current = next;
+    setStateRaw(next);
+  }
+
+  async function refreshGuestRun(runId: string) {
+    if (guestRefreshing.current) return;
+    const { context, proof } = currentGuest();
+    const epoch = guestRunEpoch.current;
+    if (latestUi.current.run?.runId !== runId) return;
+    guestRefreshing.current = true;
+    try {
+      const snap = await api.guest.getRun(proof, runId);
+      if (guestRunEpoch.current !== epoch || guestContextRef.current?.guestContextId !== context.guestContextId || snap?.runId !== runId) throw new SupersededRequest();
+      if (snap.contentInvalidated === true) {
+        const redacted = redactInvalidatedContent({ ...latestUi.current, run: snap }, runId);
+        await saveGuestReader(redacted);
+        stopPolling();
+        return;
+      }
+      const events = adoptPublicEvents((await api.guest.events(proof, runId, 0)).events);
+      const report = snap.reportId ? await api.guest.report(proof, snap.reportId) : null;
+      if (guestRunEpoch.current !== epoch || guestContextRef.current?.guestContextId !== context.guestContextId || latestUi.current.run?.runId !== runId) throw new SupersededRequest();
+      let next = applySnapshot(latestUi.current, snap);
+      next = { ...next, signedIn: false, events: mergeEvents(latestUi.current.events, events), offline: false };
+      if (report) next = { ...next, report: {
+        reportId: report.reportId, version: report.version, blocks: report.blocks,
+        claims: Array.isArray(report.claims) ? report.claims.filter((row: { id?: unknown; text?: unknown }) => typeof row?.id === "string" && typeof row?.text === "string") : undefined,
+        limitations: report.limitations ?? [], labeledDemo: false, changeSummary: report.changeSummary ?? null,
+      } };
+      await saveGuestReader(next);
+    } catch (error) {
+      if (error instanceof SupersededRequest) return;
+      if (isOfflineError(error)) setStateRaw(s => ({ ...s, offline: true, error: "Offline. Your saved research and message remain on this device." }));
+      else setStateRaw(s => ({ ...s, error: "Could not refresh guest research. Its saved content remains on this device." }));
+    } finally { guestRefreshing.current = false; }
+  }
+
+  function startGuestPolling(runId: string) {
+    stopPolling();
+    poll.current = setInterval(() => { void refreshGuestRun(runId); }, 1000);
+  }
+
+  async function ensureGuestContext(): Promise<{ context: GuestContext; proof: string }> {
+    if (guestContextRef.current && guestProof.current) return currentGuest();
+    const response = await api.guest.bootstrap();
+    const context = readGuestContext({
+      guestContextId: response.guestContextId, conversationId: response.conversationId,
+      conversationVersion: response.conversationVersion, controlVersion: 0, acceptedTurnCount: 0,
+      expiresAt: response.expiresAt, consentPolicyVersion: response.consentPolicyVersion, consentGranted: false,
+    });
+    await guestDevice.saveBootstrap(context, response.proof);
+    api.activateGuest(response.proof, context.guestContextId);
+    guestContextRef.current = context; guestProof.current = response.proof; setGuestContext(context);
+    return { context, proof: response.proof };
+  }
+
+  async function onGuestFirstSend() {
+    if (!hydrated || !storageReady || submitting.current) return;
+    submitting.current = true;
+    try {
+      const { context, proof } = await ensureGuestContext();
+      const current = latestUi.current;
+      if (current.attachments.length || current.pendingAdmission || current.pendingSourceDeletion || current.pendingContentInvalidation) throw new Error("Guest research accepts a question or public URL only. Sign in before adding documents.");
+      if (!context.consentGranted || !current.consentGranted) {
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Allow AI processing before starting this guest research." }));
+        return;
+      }
+      const question = current.draft.trim();
+      if (!question || question.length > 20_000) throw new Error("Enter a question or public URL to research.");
+      if (context.acceptedTurnCount !== 0 || current.run) throw new Error("This guest already started research. Sign in to send the next message.");
+      let saved = guestFirstRequest.current;
+      if (!saved) {
+        saved = { id: newId(), guestContextId: context.guestContextId, question, digest: sha256Hex(question), phase: "prepared", runId: null };
+        await guestDevice.saveFirstRequest(saved); guestFirstRequest.current = saved;
+      }
+      if (saved.question !== question) throw new Error("A different first request is already saved. Restore it before starting another.");
+      let created;
+      if (saved.phase !== "prepared") {
+        const resolved = await api.guest.resolveRun(proof, saved.id);
+        if (resolved.status === "accepted") created = readAdmittedRun(resolved.run);
+        else if (resolved.status !== "not_found") throw new Error("The first request may already be running. Check it again; do not resend.");
+      }
+      if (!created) {
+        saved = { ...saved, phase: "uncertain" };
+        await guestDevice.saveFirstRequest(saved); guestFirstRequest.current = saved;
+        created = readAdmittedRun(await api.guest.createRun(proof, question, saved.id, context.conversationId));
+      }
+      if (!created?.runId) throw new Error("The first run identity was not confirmed. Check the saved request.");
+      saved = { ...saved, phase: "accepted", runId: created.runId };
+      await guestDevice.saveFirstRequest(saved); guestFirstRequest.current = saved;
+      const server = await api.guest.sessionInfo(proof);
+      const updated = readGuestContext({ ...context, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
+      await guestDevice.updateContext(updated); guestContextRef.current = updated; setGuestContext(updated);
+      guestRunEpoch.current++;
+      const next: UiState = { ...current, draft: "", routeMode: "controlled-research", status: "progress", error: null, tab: "research", events: [], report: null,
+        run: { runId: created.runId, lifecycle: created.lifecycle, phase: created.phase, outcome: null, reportId: null, labeledDemo: false } };
+      await saveGuestReader(next);
+      void refreshGuestRun(created.runId); startGuestPolling(created.runId);
+    } catch (error) {
+      setStateRaw(s => ({ ...s, error: error instanceof Error ? error.message : "Could not start guest research. Your question is saved." }));
+    } finally { submitting.current = false; }
+  }
+
+  async function captureGuestSecondAction(payload: GuestPendingActionPayload) {
+    if (submitting.current) return;
+    submitting.current = true;
+    try {
+      const { context: savedContext, proof } = currentGuest();
+      const server = await api.guest.sessionInfo(proof);
+      let context = readGuestContext({ ...savedContext, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
+      await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
+      if (!context.consentGranted && latestUi.current.consentGranted) await saveGuestReader({ ...latestUi.current, consentGranted: false, error: "AI processing consent was revoked. Your draft and report remain saved." });
+      if (context.acceptedTurnCount !== 1 || !context.consentGranted || latestUi.current.pendingContentInvalidation || latestUi.current.pendingSourceDeletion) throw new Error("This guest conversation is not ready for another message. Check consent and retry.");
+      if (latestUi.current.offline) throw new Error("Offline. Your message stays saved on this device.");
+      if (payload.text.length > 4000 || !payload.text.trim()) throw new Error("Enter a message of at most 4,000 characters.");
+      let pending = guestPendingRef.current ? readGuestPendingAction(guestPendingRef.current) : null;
+      let replaced: GuestPendingAction | null = null;
+      const now = new Date();
+      if (pending) {
+        if (JSON.stringify(pending.payload) !== JSON.stringify(payload)) {
+          replaced = await abandonSavedGuestAction(pending, null);
+          const refreshed = await api.guest.sessionInfo(proof);
+          context = readGuestContext({ ...context, controlVersion: refreshed.controlVersion, acceptedTurnCount: refreshed.acceptedTurnCount, consentGranted: refreshed.consentGranted, conversationVersion: refreshed.conversationVersion });
+          await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
+          if (context.acceptedTurnCount !== 1 || !context.consentGranted) throw new Error("The guest conversation changed after cancellation. Your new draft was not sent.");
+          pending = null;
+        }
+      }
+      if (pending) {
+        if (pending.phase === "authenticating" && !pending.autoResume && pending.authAttempt) {
+          await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
+          pending = guestPendingRef.current;
+        }
+        if (!pending) throw new Error("The saved message disappeared before sign-in could resume.");
+        if (pending.phase === "dismissed" || !pending.autoResume && ["authenticated", "claim_pending", "claimed", "resume_pending"].includes(pending.phase)) {
+          pending = reopenGuestPendingAction(pending, now); await saveGuestPending(pending);
+        }
+        if (["claim_reconcile", "resume_reconcile", "cancelled", "rejected", "expired", "dispatched"].includes(pending.phase)) throw new Error("This saved message requires reconciliation or a fresh conversation; it cannot be sent again.");
+      } else {
+        const expiresAt = new Date(Math.min(Date.parse(context.expiresAt), now.getTime() + 24 * 60 * 60 * 1000)).toISOString();
+        if (Date.parse(expiresAt) <= now.getTime()) throw new Error("This guest conversation expired.");
+        const first = latestUi.current.run;
+        if (payload.kind === "follow_up" && first?.runId !== payload.parentRunId) throw new Error("The first research view changed before your follow-up was saved.");
+        if (payload.kind === "clarification" && (first?.pendingInput?.id !== payload.pendingInputId || first.pendingInput.briefRevision !== payload.briefRevision || first.pendingInput.field !== payload.field)) throw new Error("The requested clarification changed. Refresh before continuing.");
+        await guestDevice.saveSnapshot(context.guestContextId, latestUi.current, guestDraftRevision.current);
+        pending = createGuestPendingAction({
+          submissionId: newId(), guestContextId: context.guestContextId, conversationId: context.conversationId,
+          conversationVersion: context.conversationVersion, draftRevision: guestDraftRevision.current,
+          draftDigest: sha256Hex(payload.text), payload, consentPolicyVersion: context.consentPolicyVersion,
+          createdAt: now.toISOString(), expiresAt,
+        });
+        if (replaced) {
+          await guestDevice.replaceAbandonedAction(replaced, pending);
+          abandonedGuestActions.current = [...abandonedGuestActions.current, replaced];
+          guestPendingRef.current = pending; setGuestPending(pending);
+        } else await saveGuestPending(pending);
+      }
+      if (pending.phase === "pending_auth") {
+        const receipt = await api.guest.registerAction(proof, pending);
+        if (receipt?.code !== "AUTH_REQUIRED_NEXT_TURN" || receipt.submissionId !== pending.submissionId || receipt.controlVersion !== context.controlVersion) throw new Error("The saved message was not confirmed by the research service.");
+        if (typeof receipt.expiresAt !== "string" || !Number.isFinite(Date.parse(receipt.expiresAt)) || new Date(receipt.expiresAt).toISOString() !== receipt.expiresAt || Date.parse(receipt.expiresAt) > Date.parse(pending.expiresAt)) throw new Error("The saved message expiry did not match the guest conversation.");
+        pending = readGuestPendingAction({ ...pending, expiresAt: receipt.expiresAt });
+        await saveGuestPending(pending);
+      }
+      Keyboard.dismiss();
+      setGuestSheetState(initialGuestSignInSheetState());
+      setGuestSheetVisible(true);
+      AccessibilityInfo.announceForAccessibility("Sign in to keep this conversation and send your saved message.");
+    } catch (error) {
+      setStateRaw(s => ({ ...s, error: error instanceof Error ? error.message : "The saved message could not be confirmed. It was not sent." }));
+    } finally { submitting.current = false; }
+  }
+
+  async function verifiedClerkToken() {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const token = await authRef.current?.getToken();
+      if (token) return token;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    throw new Error("Sign-in is not yet complete. Your message remains saved.");
+  }
+
+  async function finishGuestAuthentication(attemptId: string) {
+    let pending = guestPendingRef.current;
+    if (!pending || pending.phase !== "authenticating" || pending.authAttempt?.id !== attemptId) throw new Error("An older sign-in attempt cannot continue this message.");
+    const memberToken = await verifiedClerkToken();
+    const identity = await api.verifyMemberSession(memberToken);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identity.accountId)) throw new Error("The signed-in account identity is invalid.");
+    pending = guestPendingRef.current;
+    if (!pending || pending.phase !== "authenticating" || !pending.autoResume || taskViewClosing.current || pending.authAttempt?.id !== attemptId ||
+      pending.draftRevision !== guestDraftRevision.current || pending.draftDigest !== sha256Hex(pending.payload.kind === "clarification" ? clarifyAnswer.trim() : latestUi.current.draft.trim())) throw new Error("The saved sign-in action changed. Its message was not claimed.");
+    const completed = completeGuestAuth(pending, attemptId, identity.accountId, new Date());
+    await saveGuestPending(completed, pending);
+    api.rotateGuestScope();
+    api.activateSession(memberToken, identity.accountId);
+    const firstRunId = latestUi.current.run?.runId;
+    if (firstRunId) api.selectRun(firstRunId);
+    await activateLocalSession(sessionStorage, { token: memberToken, accountId: identity.accountId });
+    memberTokenRef.current = memberToken; memberAccountRef.current = identity.accountId;
+    activeClerkSubjectRef.current = authRef.current?.subject ?? null;
+    setToken(memberToken); setAccountId(identity.accountId);
+    // Guest consent is never a member consent grant.
+    setStateRaw(s => ({ ...s, signedIn: true, consentGranted: false, error: null }));
+    await claimAndResumeGuest(completed, memberToken, identity.accountId);
+  }
+
+  async function claimAndResumeGuest(action: GuestPendingAction, memberToken: string, memberAccountId: string) {
+    const credential = memberAuthority(memberAccountId);
+    let pending = guestPendingRef.current;
+    if (!pending || pending.submissionId !== action.submissionId || !pending.autoResume) throw new Error("The saved action was dismissed before claim.");
+    const { proof, context } = { proof: guestProof.current, context: guestContextRef.current };
+    if (!proof || !context || pending.authenticatedAccountId !== memberAccountId) throw new Error("Guest claim is no longer attached to this account.");
+    let claim;
+    if (pending.phase === "authenticated") {
+      const previous = pending;
+      pending = beginGuestClaim(pending, newId(), new Date()); await saveGuestPending(pending, previous);
+      try { claim = await api.guest.claim(proof, credential(), pending); }
+      catch (error) {
+        const latest = guestPendingRef.current;
+        if (latest?.submissionId === pending.submissionId && latest.phase === "claim_pending") await saveGuestPending(holdGuestClaimForReconciliation(latest), latest);
+        throw new Error("Claim outcome is unknown. Resolve the saved claim; it will not be sent again.");
+      }
+    } else if (pending.phase === "claim_pending" || pending.phase === "claim_reconcile") {
+      claim = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
+    } else if (pending.phase === "claimed" || pending.phase === "resume_pending") {
+      claim = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
+    } else throw new Error("The saved claim is not ready to continue.");
+    if (claim) {
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.claim?.requestId !== pending.claim?.requestId || latest.phase === "cancelled") throw new Error("The saved claim changed while the server was responding.");
+      pending = latest;
+      const epochs = api.sessionEpochs();
+      if (pending.phase !== "claimed" && pending.phase !== "resume_pending") {
+        pending = completeGuestClaim(pending, { ...claim, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date());
+        await saveGuestPending(pending, latest);
+      } else if (claim.type !== "claim_accepted" || claim.submissionId !== pending.submissionId || !pending.claim || claim.requestId !== pending.claim.requestId || claim.accountId !== memberAccountId || claim.conversationId !== pending.conversationId || claim.conversationVersion !== pending.conversationVersion || claim.controlVersion !== pending.claim.controlVersion) {
+        throw new Error("The saved claim readback did not match this conversation.");
+      }
+      if (claim.authorityAllowed !== true || claim.budgetAllowed !== true || claim.consentPolicyVersion !== context.consentPolicyVersion) {
+        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
+        throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority or consent must be confirmed before this saved message can run.");
+      }
+    }
+    if (!guestPendingRef.current?.autoResume || guestPendingRef.current.submissionId !== pending.submissionId) throw new Error("The saved message was dismissed. Claim remains held; nothing was continued.");
+    const epochs = api.sessionEpochs();
+    const current = latestUi.current;
+    const currentPendingText = pending.payload.kind === "clarification" ? clarifyAnswer.trim() : current.draft.trim();
+    const verdict = validateGuestActionResume(pending, {
+      now: new Date(), accountId: memberAccountId, sessionActive: true,
+      guestContextId: context.guestContextId, conversationId: context.conversationId, conversationVersion: context.conversationVersion,
+      controlVersion: pending.claim!.controlVersion, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch,
+      credentialGeneration: epochs.credentialGeneration, draftRevision: guestDraftRevision.current,
+      draftDigest: sha256Hex(currentPendingText), consentPolicyVersion: context.consentPolicyVersion,
+      authorityAllowed: claim?.authorityAllowed === true, budgetAllowed: claim?.budgetAllowed === true,
+    });
+    if (!verdict.ok) throw new Error(`Saved message is held because its ${verdict.code} changed. It was not sent.`);
+    pending = beginGuestActionResume(pending, {
+      now: new Date(), accountId: memberAccountId, sessionActive: true,
+      guestContextId: context.guestContextId, conversationId: context.conversationId, conversationVersion: context.conversationVersion,
+      controlVersion: pending.claim!.controlVersion, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch,
+      credentialGeneration: epochs.credentialGeneration, draftRevision: guestDraftRevision.current,
+      draftDigest: sha256Hex(currentPendingText), consentPolicyVersion: context.consentPolicyVersion,
+      authorityAllowed: true, budgetAllowed: true,
+    });
+    await saveGuestPending(pending, guestPendingRef.current);
+    let result;
+    try { result = await api.resumeGuestAction(credential(), pending); }
+    catch (error) {
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation state changed while the server was responding. The original request remains held.");
+      if (error instanceof ApiError && error.status === 402) {
+        await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
+        throw new Error("Your account needs a research allowance. The exact saved second message can be continued after funding; nothing was sent again.");
+      }
+      await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
+      throw new Error("Continuation outcome is unknown. Resolve the saved request; it will not be sent again.");
+    }
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation identity changed while the server was responding. Resolve the original request.");
+    if (!latest.autoResume) {
+      await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
+      throw new Error("The saved message was dismissed. Resolve its exact dispatched result before continuing.");
+    }
+    await adoptGuestContinuation(latest, result, credential());
+  }
+
+  async function adoptGuestContinuation(pending: GuestPendingAction, result: any, _memberToken: string) {
+    const credential = memberAuthority(pending.authenticatedAccountId);
+    const dispatched = markGuestActionDispatched(pending, result, new Date());
+    if (typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
+    guestRunEpoch.current++;
+    const previous = latestUi.current;
+    const next: UiState = { ...previous, signedIn: true, conversationId: result.memberConversationId,
+      draft: "", source: null, readingAnchor: null, report: null,
+      previousReport: previous.report ? { reportId: previous.report.reportId, blocks: previous.report.blocks } : previous.previousReport,
+      events: [], status: "progress", error: null,
+      run: { runId: result.runId, lifecycle: "queued", phase: "queued", outcome: null, reportId: null, labeledDemo: false } };
+    api.selectRun(result.runId);
+    await sessionStorage.persistRequired(credential(), next);
+    await saveGuestPending(dispatched);
+    latestUi.current = next; setStateRaw(next);
+    setGuestSheetVisible(false);
+    startPolling(credential(), result.runId); void refreshRun(credential(), result.runId, next);
+    await guestDevice.clear(); guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
+    api.clearGuest();
+    setGuestContext(null); setGuestPending(null);
+  }
+
+  function replacedClarification(action: GuestPendingAction): GuestPendingAction {
+    const old = abandonedGuestActions.current.at(-1);
+    if (!old || old.phase !== "cancelled" || old.payload.kind !== "clarification" || action.payload.kind !== "clarification" ||
+      old.claim?.requestId !== action.claim?.requestId || old.authenticatedAccountId !== action.authenticatedAccountId ||
+      old.payload.pendingInputId !== action.payload.pendingInputId || old.payload.briefRevision !== action.payload.briefRevision || old.payload.field !== action.payload.field)
+      throw new Error("The abandoned clarification identity is unavailable. The edited answer remains held.");
+    return old;
+  }
+
+  async function confirmSavedMemberClarification(action: GuestPendingAction, tokenForRequest: string): Promise<GuestPendingAction> {
+    const old = replacedClarification(action);
+    const receipt = await api.registerMemberGuestAction(memberAuthority(action.authenticatedAccountId)(), action, old.submissionId);
+    const latest = guestPendingRef.current;
+    if (!latest || latest.submissionId !== action.submissionId || latest.phase !== "member_register_pending" || latest.claim?.requestId !== action.claim?.requestId)
+      throw new Error("Edited answer changed while registration was being confirmed.");
+    const confirmed = confirmMemberClarificationRegistration(latest, receipt, new Date());
+    await saveGuestPending(confirmed, latest);
+    return confirmed;
+  }
+
+  async function continueMemberClarification(tokenForRequest: string, account: string) {
+    const credential = memberAuthority(account);
+    let pending = guestPendingRef.current;
+    if (!pending || pending.payload.kind !== "clarification") throw new Error("There is no saved clarification to continue.");
+    const input = latestUi.current.run?.pendingInput;
+    const text = clarifyAnswer.trim();
+    if (!input || input.type !== "clarification" || !input.field || !text || input.id !== pending.payload.pendingInputId ||
+      input.briefRevision !== pending.payload.briefRevision || input.field !== pending.payload.field) throw new Error("The requested clarification changed. Refresh before sending another answer.");
+    if (text === pending.payload.text && !["cancelled", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile"].includes(pending.phase)) {
+      await continueSavedSecondMessage(tokenForRequest, account);
+      return;
+    }
+    // A local B registration may have had an unknown reply. Confirm that
+    // exact B before asking the server to abandon it for a newer C answer.
+    if (pending.phase === "member_register_pending" && text !== pending.payload.text)
+      pending = await confirmSavedMemberClarification(pending, credential());
+    if (pending.phase === "resume_pending") {
+      const held = holdGuestResumeForReconciliation(pending);
+      await saveGuestPending(held, pending);
+      pending = held;
+    }
+    if (pending.phase === "cancelled" || text !== pending.payload.text) {
+      if (pending.phase !== "cancelled") {
+        if (!["claimed", "member_claimed"].includes(pending.phase) || !pending.claim) throw new Error("The previous answer must finish claim reconciliation before it can be replaced.");
+        pending = await abandonSavedGuestAction(pending, credential());
+      }
+      const payload = { kind: "clarification" as const, text, pendingInputId: input.id, briefRevision: input.briefRevision, field: input.field };
+      const replacement = prepareMemberClarificationReplacement(pending, payload, newId(), guestDraftRevision.current, new Date(), api.sessionEpochs());
+      await guestDevice.replaceAbandonedAction(pending, replacement);
+      abandonedGuestActions.current = [...abandonedGuestActions.current, pending];
+      guestPendingRef.current = replacement; setGuestPending(replacement);
+      pending = replacement;
+    }
+    if (pending.phase === "member_register_pending") {
+      pending = await confirmSavedMemberClarification(pending, credential());
+    }
+    if (pending.phase === "member_claimed") {
+      if (!pending.autoResume) { const reopened = reopenGuestPendingAction(pending, new Date()); await saveGuestPending(reopened, pending); pending = reopened; }
+      const claim = pending.claim;
+      if (!claim) throw new Error("The edited clarification lost its accepted claim identity.");
+      const currentToken = credential();
+      const receipt = await api.resolveGuestAction(currentToken, pending);
+      if (receipt?.type !== "member_action_registered" || receipt.submissionId !== pending.submissionId || receipt.claimRequestId !== claim.requestId ||
+        receipt.payloadDigest !== pending.payloadDigest || receipt.controlVersion !== claim.controlVersion) throw new Error("The edited answer registration readback did not match.");
+      if (receipt.authorityAllowed !== true || receipt.budgetAllowed !== true || receipt.consentPolicyVersion !== pending.consentPolicyVersion || !latestUi.current.consentGranted) {
+        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
+        throw new Error(receipt.budgetAllowed === false ? "Your account needs a research allowance. The edited answer remains saved." : "Member consent or authority is required. The edited answer remains saved.");
+      }
+      const epochs = api.sessionEpochs();
+      const context = guestContextRef.current;
+      if (!context) throw new Error("The guest conversation binding is unavailable.");
+      const resumeContext = { now: new Date(), accountId: account, sessionActive: true,
+        guestContextId: context.guestContextId, conversationId: context.conversationId, conversationVersion: context.conversationVersion,
+        controlVersion: claim.controlVersion, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch,
+        credentialGeneration: epochs.credentialGeneration, draftRevision: guestDraftRevision.current, draftDigest: sha256Hex(text),
+        consentPolicyVersion: context.consentPolicyVersion, authorityAllowed: true, budgetAllowed: true };
+      const verdict = validateGuestActionResume(pending, resumeContext);
+      if (!verdict.ok) throw new Error(`Edited answer is held because its ${verdict.code} changed.`);
+      const resuming = beginGuestActionResume(pending, resumeContext);
+      await saveGuestPending(resuming, pending); pending = resuming;
+      let result;
+      try { result = await api.resumeGuestAction(credential(), pending); }
+      catch (error) {
+        const latest = guestPendingRef.current;
+        if (latest?.submissionId === pending.submissionId && latest.phase === "resume_pending") {
+          await saveGuestPending(error instanceof ApiError && error.status === 402 ? dismissGuestPendingAction(latest, new Date()) : holdGuestResumeForReconciliation(latest), latest);
+        }
+        throw new Error(error instanceof ApiError && error.status === 402 ? "Your account needs a research allowance. The edited answer remains saved." : "Edited answer outcome is unknown. Resolve its original ID; it was not resent.");
+      }
+      const latest = guestPendingRef.current;
+      if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Edited answer state changed during continuation.");
+      if (!latest.autoResume) { await saveGuestPending(holdGuestResumeForReconciliation(latest), latest); throw new Error("Edited answer was dismissed. Resolve its exact result."); }
+      await adoptGuestContinuation(latest, result, credential());
+      return;
+    }
+    if (pending.phase === "resume_reconcile") {
+      const result = await api.resolveGuestAction(credential(), pending);
+      if (result?.type !== "continuation_dispatched") throw new Error("Edited answer is still unconfirmed. It was not resent.");
+      await adoptGuestContinuation(pending, result, credential());
+      return;
+    }
+    throw new Error("The edited clarification is held until its exact server state is resolved.");
+  }
+
+  function savedSecondMessageBlocksWork(): boolean {
+    const pending = guestPendingRef.current;
+    return !!pending && (pending.phase === "cancelled" ? !!token && !!guestContextRef.current : !["dispatched", "rejected", "expired"].includes(pending.phase));
+  }
+
+  async function continueSavedSecondMessage(memberToken: string, memberAccountId: string) {
+    const credential = memberAuthority(memberAccountId);
+    let pending = guestPendingRef.current;
+    if (!pending || !savedSecondMessageBlocksWork()) return;
+    if (pending.payload.kind === "clarification" && (pending.phase === "member_register_pending" || pending.phase === "member_claimed")) {
+      await continueMemberClarification(credential(), memberAccountId);
+      return;
+    }
+    if (pending.phase === "resume_reconcile") {
+      const resolved = await api.resolveGuestAction(credential(), pending);
+      if (resolved?.type !== "continuation_dispatched") throw new Error("The saved continuation is still unconfirmed. No new message was sent.");
+      await adoptGuestContinuation(pending, resolved, credential());
+      return;
+    }
+    if (pending.phase === "claim_reconcile") {
+      const resolved = await api.resolveGuestClaim(credential(), pending.claim!.requestId, pending.submissionId);
+      const epochs = api.sessionEpochs();
+      pending = completeGuestClaim(pending, { ...resolved, principalEpoch: epochs.principalEpoch, viewEpoch: epochs.viewEpoch }, new Date());
+      await saveGuestPending(pending);
+    }
+    if (["authenticated", "claim_pending", "claimed", "resume_pending"].includes(pending.phase)) {
+      if (!pending.autoResume) { pending = reopenGuestPendingAction(pending, new Date()); await saveGuestPending(pending); }
+      await claimAndResumeGuest(pending, credential(), memberAccountId);
+      return;
+    }
+    throw new Error("The saved second message must finish sign-in or be reconciled before starting other research.");
+  }
+
+  const legalReady = (url: string | null) => {
+    if (!url) return false;
+    try { const parsed = new URL(url); return parsed.protocol === "https:" && !parsed.username && !parsed.password && !parsed.hash; }
+    catch { return false; }
+  };
+  const legalDocumentsReady = legalReady(guestCapabilities.termsUrl) && legalReady(guestCapabilities.privacyUrl);
+  const guestProviders: Record<"apple" | "google" | "email", GuestProviderAvailability> = {
+    apple: { available: !!auth?.loaded && legalDocumentsReady && guestCapabilities.apple, unavailableReason: "Apple sign-in is not configured for this build." },
+    google: { available: !!auth?.loaded && legalDocumentsReady && guestCapabilities.google, unavailableReason: "Google sign-in is not configured for this build." },
+    email: { available: !!auth?.loaded && legalDocumentsReady && guestCapabilities.emailCode, unavailableReason: "Email sign-in is not configured for this build." },
+  };
+
+  /** End is a durable server fence. Unknown replies retain the same local ID and forbid a new attempt. */
+  async function endGuestAuthAttempt(attemptId: string, reason: "cancelled" | "dismissed") {
+    let pending = guestPendingRef.current;
+    if (!pending || pending.phase !== "authenticating" || pending.authAttempt?.id !== attemptId) return;
+    if (pending.autoResume) {
+      pending = holdGuestAuthAttempt(pending, attemptId, new Date());
+      await saveGuestPending(pending);
+    }
+    const proof = guestProof.current;
+    if (!proof) throw new Error("Guest proof is unavailable. The sign-in attempt remains held.");
+    let ended;
+    try { ended = await api.guest.endAuthAttempt(proof, pending.submissionId, attemptId, reason); }
+    catch (error) {
+      if (isOfflineError(error)) throw new Error("Sign-in cancellation is unconfirmed. The saved attempt is held; reconnect before trying again.");
+      const resolved = await api.guest.resolveAuthAttempt(proof, pending.submissionId, attemptId);
+      if (resolved.state !== "dismissed" && resolved.state !== "cancelled") throw new Error("Sign-in cancellation is unconfirmed. The saved attempt is held.");
+      ended = resolved;
+    }
+    if (ended.submissionId !== pending.submissionId || ended.authAttemptId !== attemptId || !Number.isSafeInteger(ended.attemptRevision) || ended.attemptRevision < 1 || !["dismissed", "cancelled"].includes(ended.state)) throw new Error("The sign-in cancellation receipt did not match the saved attempt.");
+    const current = guestPendingRef.current;
+    if (!current || current.phase !== "authenticating" || current.authAttempt?.id !== attemptId || current.autoResume) throw new Error("Sign-in state changed while cancellation was being confirmed.");
+    await saveGuestPending(reason === "cancelled" ? cancelGuestAuthAttempt(current, attemptId, new Date()) : dismissGuestPendingAction(current, new Date()));
+  }
+
+  async function closeClerkSessionTask() {
+    taskViewClosing.current = true;
+    taskContinuationAttempt.current = null;
+    setTaskContinuationId(null);
+    const pending = guestPendingRef.current;
+    try {
+      if (pending?.phase === "authenticating" && pending.authAttempt) await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
+      authRef.current?.confirmSessionTaskDismissed();
+      setGuestSheetVisible(false);
+    } catch (error) {
+      setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+        error: "Sign-in cancellation is unconfirmed. The saved message is held; reconnect and retry closing." });
+      throw error;
+    } finally { taskViewClosing.current = false; }
+  }
+
+  useEffect(() => {
+    const pending = guestPendingRef.current;
+    const attemptId = taskContinuationAttempt.current;
+    if (!hydrated || !auth?.loaded || !auth.signedIn || auth.sessionTaskPending || taskViewClosing.current ||
+      !pending || pending.phase !== "authenticating" || !pending.autoResume || pending.authAttempt?.id !== attemptId) return;
+    taskContinuationAttempt.current = null;
+    setTaskContinuationId(null);
+    void finishGuestAuthentication(attemptId).catch(error => {
+      const latest = guestPendingRef.current;
+      if (latest && !["dispatched", "cancelled", "rejected", "expired"].includes(latest.phase))
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+          error: "Sign-in succeeded, but the saved request needs confirmation. Check it without sending a new message." });
+    });
+  }, [hydrated, auth?.loaded, auth?.signedIn, auth?.sessionTaskPending, guestPending?.phase, taskContinuationId]);
+
+  const guestSheetTransport: GuestSignInTransport = {
+    prepareAttempt: async request => {
+      const pending = guestPendingRef.current;
+      if (!pending || !guestProviders[request.provider].available) throw new Error("This sign-in method is unavailable. Your message remains saved.");
+      if (pending.phase === "authenticating" && pending.autoResume && request.provider === "email" && pending.authAttempt?.provider === "email" && ["resend_email_code", "verify_email_code"].includes(request.operation)) {
+        return { id: pending.authAttempt.id, operation: request.operation, provider: "email", email: request.email };
+      }
+      if (pending.phase !== "pending_auth") throw new Error("An earlier sign-in attempt must be resolved before another can start.");
+      const attempt = { id: newId(), operation: request.operation, provider: request.provider, email: request.email };
+      await saveGuestPending(beginGuestAuth(pending, { id: attempt.id, provider: request.provider }, new Date()));
+      const receipt = await api.guest.beginAuthAttempt(currentGuest().proof, pending.submissionId, attempt.id, request.provider);
+      if (receipt.submissionId !== pending.submissionId || receipt.authAttemptId !== attempt.id || receipt.state !== "authenticating" || !Number.isSafeInteger(receipt.attemptRevision) || receipt.attemptRevision < 1) throw new Error("The sign-in attempt was not confirmed by the research service.");
+      const current = guestPendingRef.current;
+      if (!current || current.phase !== "authenticating" || !current.autoResume || current.authAttempt?.id !== attempt.id) throw new Error("The saved sign-in attempt changed before opening the provider.");
+      return attempt;
+    },
+    startProvider: async attempt => {
+      if (!authRef.current || attempt.provider === "email") throw new Error("This sign-in method is unavailable.");
+      try {
+        const result = await authRef.current.startProvider(attempt.provider);
+        if (result === "pending_task") {
+          taskContinuationAttempt.current = attempt.id; setTaskContinuationId(attempt.id);
+          setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+          return;
+        }
+        await finishGuestAuthentication(attempt.id);
+      } catch (error) {
+        if (error instanceof Error && error.message === "Sign-in was cancelled.") {
+          await endGuestAuthAttempt(attempt.id, "cancelled");
+          setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "provider_cancelled" }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+    },
+    requestEmailCode: async attempt => {
+      if (!authRef.current || !attempt.email) throw new Error("Email sign-in is unavailable.");
+      try { await authRef.current.sendEmailCode(attempt.email, attempt.operation === "resend_email_code"); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "rate_limited") {
+          if (attempt.operation === "email_code") {
+            await endGuestAuthAttempt(attempt.id, "cancelled");
+            setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "recoverable_error", message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          } else setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "resend_rate_limited", retryAt: null, message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+      const pending = guestPendingRef.current;
+      if (!pending || pending.authAttempt?.id !== attempt.id) throw new Error("The email attempt changed. Your message was not sent.");
+      setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "email_code_sent", email: attempt.email!, resendRetryAt: new Date(Date.now() + 30_000).toISOString() }, guestProviders));
+    },
+    verifyEmailCode: async (attempt, code) => {
+      if (!authRef.current) throw new Error("Email sign-in is unavailable.");
+      let result: "active" | "pending_task";
+      try { result = await authRef.current.verifyEmailCode(code); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "code_expired") {
+          await endGuestAuthAttempt(attempt.id, "cancelled");
+          setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "code_expired", message: "That code expired. Request a new one." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+      if (result === "pending_task") {
+        taskContinuationAttempt.current = attempt.id; setTaskContinuationId(attempt.id);
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+        return;
+      }
+      await finishGuestAuthentication(attempt.id);
+    },
+    retryAuthenticatedAttempt: async () => {
+      if (!authRef.current?.signedIn || authRef.current.sessionTaskPending) throw new Error("Complete account security before checking the saved request.");
+      const pending = guestPendingRef.current;
+      if (!pending) throw new Error("The saved request is no longer available.");
+      if (pending.phase === "authenticating" && pending.authAttempt) {
+        if (!pending.autoResume) throw new Error("Sign-in cancellation is unconfirmed. The saved attempt cannot continue.");
+        await finishGuestAuthentication(pending.authAttempt.id);
+        return;
+      }
+      const account = pending.authenticatedAccountId;
+      if (!account) throw new Error("The saved request is still waiting for verified account identity.");
+      await continueSavedSecondMessage(memberAuthority(account)(), account);
+    },
+    cancelProvider: async attempt => { await endGuestAuthAttempt(attempt.id, "cancelled"); },
+    cancelEmailAttempt: async () => {
+      const pending = guestPendingRef.current;
+      if (pending?.phase === "authenticating" && pending.authAttempt?.provider === "email") await endGuestAuthAttempt(pending.authAttempt.id, "cancelled");
+    },
+    dismiss: async () => {
+      const pending = guestPendingRef.current;
+      if (pending?.phase === "authenticating" && pending.authAttempt) await endGuestAuthAttempt(pending.authAttempt.id, "dismissed");
+      else if (pending) await saveGuestPending(dismissGuestPendingAction(pending, new Date()));
+    },
+  };
+
+  async function onGuestSheetEvent(event: GuestSignInSheetEvent) {
+    setGuestSheetState(s => reduceGuestSignInSheet(s, event, guestProviders));
+  }
+
+  async function openGuestLegal(document: "terms" | "privacy") {
+    const url = document === "terms" ? guestCapabilities.termsUrl : guestCapabilities.privacyUrl;
+    if (!legalReady(url)) throw new Error("This legal document is not configured. Sign-in remains unavailable.");
+    await Linking.openURL(url!);
+  }
+
+  async function deleteGuestConversation() {
+    const { proof } = currentGuest();
+    const runId = latestUi.current.run?.runId;
+    const hidden = runId ? redactInvalidatedContent(latestUi.current, runId) : { ...emptyState(), draft: "" };
+    await saveGuestReader(hidden);
+    stopPolling();
+    try {
+      await api.guest.delete(proof);
+      await guestDevice.clear();
+      api.clearGuest();
+      guestProof.current = null; guestContextRef.current = null; guestFirstRequest.current = null; guestPendingRef.current = null;
+      setGuestContext(null); setGuestPending(null); setGuestSheetVisible(false);
+      setStateRaw(emptyState());
+    } catch {
+      setStateRaw(s => ({ ...s, error: "Guest research is hidden. Server deletion is unconfirmed; reconnect and retry deletion." }));
+    }
+  }
+
   async function ensureSession() {
     if (signingIn.current) return signingIn.current;
     const pending = startSession(); signingIn.current = pending;
@@ -345,12 +1138,17 @@ function AppInner() {
     try {
       if (!hydrated) throw new Error("Restoring this device’s session. Try again shortly.");
       if (!storageReady) throw new Error("Device recovery failed. Use Log out and clear saved drafts and reports before signing in again.");
-      const s = await api.session();
-      redactingContent.current = false; api.activateSession(s.token);
+      if (!authRef.current?.loaded || !authRef.current.signedIn) throw new Error("Sign in with a configured provider before using member research.");
+      const memberToken = await verifiedClerkToken();
+      const identity = await api.verifyMemberSession(memberToken);
+      const s = { token: memberToken, accountId: identity.accountId };
+      redactingContent.current = false; api.activateSession(s.token, s.accountId);
       guard = api.capture();
       await activateLocalSession(sessionStorage, s);
       if (!guard.current()) { guard.release(); throw new SupersededRequest(); }
       const accepted = guard;
+      memberTokenRef.current = s.token; memberAccountRef.current = s.accountId;
+      activeClerkSubjectRef.current = authRef.current?.subject ?? null;
       setToken((previous) => accepted.current() ? s.token : previous);
       if (accepted.current()) setAccountId(s.accountId);
       setState((prev) => {
@@ -371,7 +1169,17 @@ function AppInner() {
 
   async function grantConsent() {
     try {
-      const t = token ?? (await ensureSession());
+      if (!token) {
+        const { context, proof } = await ensureGuestContext();
+        const result = await api.guest.consent(proof, true);
+        if (result.granted !== true || result.policyVersion !== context.consentPolicyVersion) throw new Error("Current guest consent could not be confirmed.");
+        const updated = readGuestContext({ ...context, consentGranted: true });
+        await guestDevice.updateContext(updated); guestContextRef.current = updated; setGuestContext(updated);
+        const next = { ...latestUi.current, consentGranted: true, tab: "research" as const, error: null, routeMode: "controlled-research" as const };
+        await saveGuestReader(next);
+        return;
+      }
+      const t = memberTokenRef.current ?? token ?? (await ensureSession());
       await api.consent(t, true);
       setState((s) => {
         const next = { ...s, consentGranted: true, error: null };
@@ -398,6 +1206,8 @@ function AppInner() {
     redactingContent.current = false; stopPolling(); api.activateSession(null); clearPanels();
     const cleanup = api.capture();
     setStorageReady(false);
+    memberTokenRef.current = null; memberAccountRef.current = null;
+    activeClerkSubjectRef.current = null;
     setToken(null); setAccountId(null); setState((s) => expireLocalSession(s));
     try {
       await clearAccountLocal(sessionStorage);
@@ -408,39 +1218,51 @@ function AppInner() {
   }
 
   async function refreshRun(t: string, runId: string, openingState?: UiState, requireOwnedSnapshot = false) {
-    if (!api.currentRun(t, runId)) {
+    let credential: () => string;
+    try { credential = memberAuthority(); }
+    catch (error) { if (requireOwnedSnapshot) throw error; return; }
+    const currentBearer = credential();
+    if (!api.currentRun(currentBearer, runId)) {
       if (requireOwnedSnapshot) throw new SupersededRequest();
       return;
     }
-    const key = `${t}:${runId}`;
+    const key = `${currentBearer}:${runId}`;
     if (refreshing.current.has(key) && !requireOwnedSnapshot) return;
     const attempt = Symbol(); refreshing.current.set(key, attempt);
     let guard = api.captureView();
+    const currentReader = () => {
+      try { return guard.current() && api.currentRun(credential(), runId); }
+      catch { return false; }
+    };
     try {
-      const snap = await api.getRun(t, runId);
-      if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+      const readCredential = credential();
+      const snap = await api.getRun(readCredential, runId);
+      // A same-member renewal keeps the reader, but an older response must
+      // not paint over a newer poll that used the replacement bearer.
+      if (!currentReader() || api.currentCredential() !== readCredential) throw new SupersededRequest();
       if (snap?.runId !== runId) throw new Error("The accepted run identity did not match. Retry the saved request.");
       if (snap.contentInvalidated === true) {
         // Cancel older source/correction callbacks without changing the selected run.
-        api.invalidateView(t); guard.release(); guard = api.captureView();
+        api.invalidateView(credential()); guard.release(); guard = api.captureView();
       }
       const invalidated = await applyRemoteInvalidation(latestUi.current.run?.runId === runId ? latestUi.current : openingState ?? latestUi.current, snap, {
-        current: () => guard.current() && api.currentRun(t, runId),
+        current: currentReader,
         hide: () => {
           redactingContent.current = true; setStorageReady(false);
           setViewState(s => guard.current() && s.run?.runId === runId ? redactInvalidatedContent({ ...s, run: snap }, runId) : s);
-          setCorrectionSelection(previous => guard.current() ? { owner: t, parent: runId, files: [] } : previous);
+          setCorrectionSelection(previous => currentReader() ? { owner: credential(), parent: runId, files: [] } : previous);
         },
-        save: (redacted, id) => sessionStorage.redactRunContent(t, id, redacted),
+        save: (redacted, id) => sessionStorage.redactRunContent(credential(), id, redacted),
       });
-      if (!guard.current()) throw new SupersededRequest();
+      if (!currentReader()) throw new SupersededRequest();
       if (invalidated) {
         setViewState(s => guard.current() && s.run?.runId === runId ? { ...redactInvalidatedContent(s, runId), pendingContentInvalidation: null, offline: false } : s);
         redactingContent.current = false; setStorageReady(true); stopPolling();
         if (requireOwnedSnapshot) throw new Error("The accepted run is unavailable because its content was deleted.");
         return;
       }
-      const ev = await api.events(t, runId, 0);
+      const ev = await api.events(credential(), runId, 0);
+      if (!currentReader()) throw new SupersededRequest();
       const incoming = adoptPublicEvents(ev.events);
       const currentUi = latestUi.current;
       const sameSnapshot = currentUi.run?.runId === snap.runId
@@ -456,13 +1278,13 @@ function AppInner() {
         && (!snap.reportId || currentUi.report?.reportId === snap.reportId);
       if (sameSnapshot && !currentUi.offline && !requireOwnedSnapshot) return;
       const report = snap.reportId && currentUi.report?.reportId !== snap.reportId
-        ? await api.report(t, snap.reportId)
+        ? await api.report(credential(), snap.reportId)
         : snap.reportId && currentUi.report?.reportId === snap.reportId
           ? null
           : null;
       const applyOwnedSnapshot = (s: UiState): UiState => {
         if (s.pendingContentInvalidation) throw new Error("Deleted content cleanup must finish before this run can be opened.");
-        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !api.currentRun(t, runId)) throw new SupersededRequest();
+        if (!s.signedIn || s.pendingSourceDeletion || deletingSource.current || !currentReader()) throw new SupersededRequest();
         const sameRun = s.run?.runId === snap.runId;
         let next = applySnapshot(s, snap);
         next = { ...next, events: sameRun ? mergeEvents(s.events, incoming) : incoming };
@@ -492,8 +1314,8 @@ function AppInner() {
       };
       if (requireOwnedSnapshot) {
         const next = applyOwnedSnapshot(openingState ?? latestUi.current);
-        await sessionStorage.persistRequired(t, next);
-        if (!guard.current() || !api.currentRun(t, runId)) throw new SupersededRequest();
+        await sessionStorage.persistRequired(credential(), next);
+        if (!currentReader()) throw new SupersededRequest();
         latestUi.current = next;
         setViewState(next);
         return next;
@@ -543,10 +1365,12 @@ function AppInner() {
   }
 
   function startPolling(t: string, runId: string) {
-    if (!api.currentRun(t, runId)) return;
+    const owner = memberAccountRef.current;
+    if (!owner || !api.currentRun(memberTokenRef.current ?? t, runId)) return;
     stopPolling();
     poll.current = setInterval(() => {
-      void refreshRun(t, runId);
+      if (memberAccountRef.current !== owner) { stopPolling(); return; }
+      void refreshRun(memberTokenRef.current ?? t, runId);
     }, 1000);
   }
 
@@ -589,32 +1413,113 @@ function AppInner() {
     void AsyncStorage.getItem(APPEARANCE_KEY)
       .then((raw) => { if (mounted) setAppearance(readAppearance(raw)); })
       .catch(() => undefined);
-    const hydration = api.capture();
-    void Promise.resolve().then(clearDocumentPickerCache).then(() => hydrateOnLaunch(sessionStorage)).then(async ({ token: t, accountId, state: saved }) => {
+    let hydration = api.capture();
+    void Promise.resolve().then(clearDocumentPickerCache).then(async () => {
+      let guest = await guestDevice.load();
+      const member = await hydrateOnLaunch(sessionStorage);
       if (!hydration.current()) return;
-      api.activateSession(t);
-      const restored = api.capture();
-      let s = saved;
-      if (t) {
+      for (let i = 0; authRef.current && !authRef.current.loaded && i < 100; i++) await new Promise(resolve => setTimeout(resolve, 100));
+      let memberToken: string | null = null, memberAccountId: string | null = null;
+      if (authRef.current?.loaded && authRef.current.signedIn) {
         try {
-          const identity = await api.sessionInfo(t);
-          if (identity.accountId !== accountId) { restored.release(); await onAuthFailure(); return; }
+          const fresh = await authRef.current.getToken();
+          if (fresh) {
+            const identity = await api.verifyMemberSession(fresh);
+            if (!hydration.current()) return;
+            api.activateSession(fresh, identity.accountId);
+            hydration.release(); hydration = api.capture();
+            await activateLocalSession(sessionStorage, { token: fresh, accountId: identity.accountId });
+            if (!hydration.current()) return;
+            memberToken = fresh; memberAccountId = identity.accountId;
+          }
+        } catch { /* Existing private snapshots remain held until a verified session returns. */ }
+      }
+      if (!hydration.current()) return;
+      if (!memberToken) {
+        api.activateSession(null);
+        hydration.release(); hydration = api.capture();
+      }
+      // The child snapshot is committed before the terminal journal. If a
+      // process dies before guest cleanup, a verified matching member may
+      // finish that cleanup without resurrecting the preclaim guest reader.
+      if (guest?.pendingAction?.phase === "dispatched" && memberToken && member.accountId === memberAccountId &&
+          guest.pendingAction.authenticatedAccountId === memberAccountId && member.state.run?.runId && member.state.conversationId) {
+        await guestDevice.clear(); api.clearGuest(); guest = null;
+      }
+      // A protected guest reader can be bound to member A before the last
+      // cleanup write. Retain that journal on disk, but never render or use it
+      // under a verified member B. A later rightful sign-in can still recover.
+      const heldForOtherMember = !!(guest?.pendingAction?.authenticatedAccountId && memberToken &&
+        guest.pendingAction.authenticatedAccountId !== memberAccountId);
+      if (heldForOtherMember) { api.clearGuest(); guest = null; }
+      let saved = guest ? guest.state : memberToken && member.accountId === memberAccountId ? { ...member.state, signedIn: true }
+        : { ...emptyState(), draft: heldForOtherMember ? "" : member.state.draft, signedIn: !!memberToken };
+      if (heldForOtherMember) saved = { ...saved, error: "Saved research for another account is held on this device. Switch back to that account to continue it." };
+      if (guest) {
+        api.activateGuest(guest.proof, guest.context.guestContextId);
+        guestContextRef.current = guest.context; guestProof.current = guest.proof;
+        guestPendingRef.current = guest.pendingAction; guestFirstRequest.current = guest.firstRequest;
+        abandonedGuestActions.current = guest.abandonedActions;
+        if (guest.pendingAction?.payload.kind === "clarification") setClarifyAnswer(guest.pendingAction.payload.text);
+        guestDraftRevision.current = guest.draftRevision;
+        setGuestContext(guest.context); setGuestPending(guest.pendingAction);
+        saved = { ...saved, signedIn: !!memberToken, consentGranted: memberToken ? false : guest.state.consentGranted };
+      }
+      const restored = api.capture();
+      setStorageReady(!saved.pendingContentInvalidation);
+      redactingContent.current = !!saved.pendingContentInvalidation;
+      memberTokenRef.current = memberToken; memberAccountRef.current = memberAccountId;
+      activeClerkSubjectRef.current = memberToken ? authRef.current?.subject ?? null : null;
+      setToken(memberToken); setAccountId(memberAccountId);
+      latestUi.current = saved; setStateRaw(saved);
+      if (guest?.pendingAction && !["dispatched", "cancelled", "rejected", "expired"].includes(guest.pendingAction.phase)) {
+        setGuestSheetState(initialGuestSignInSheetState());
+        setGuestSheetVisible(guest.pendingAction.phase !== "authenticating");
+      }
+      // The process may have died after Clerk succeeded but before the local
+      // journal moved out of authenticating. Resolve the exact durable attempt
+      // before any claim, resend, or new provider work. If Clerk did not
+      // succeed, terminalize that attempt on the server before reopening the
+      // same submission. An unknown response keeps it held and dismissible.
+      if (guest?.pendingAction?.phase === "authenticating" && guest.pendingAction.authAttempt) {
+        const original = guest.pendingAction;
+        const attemptId = guest.pendingAction.authAttempt.id;
+        try {
+          const resolved = await api.guest.resolveAuthAttempt(guest.proof, original.submissionId, attemptId);
+          if (!mounted || !hydration.current()) return;
+          if (resolved.submissionId !== original.submissionId || resolved.authAttemptId !== attemptId ||
+            !Number.isSafeInteger(resolved.attemptRevision) || resolved.attemptRevision < 1 ||
+            !["authenticating", "cancelled", "dismissed"].includes(resolved.state)) throw new Error("The saved sign-in attempt readback did not match its journal.");
+          const current = guestPendingRef.current;
+          if (!current || current.phase !== "authenticating" || current.submissionId !== original.submissionId || current.authAttempt?.id !== attemptId) return;
+          if (resolved.state === "cancelled" || resolved.state === "dismissed") {
+            await saveGuestPending(resolved.state === "cancelled" ? cancelGuestAuthAttempt(current, attemptId, new Date()) : dismissGuestPendingAction(current, new Date()), current);
+            setGuestSheetVisible(resolved.state === "cancelled");
+          } else if (memberToken && original.autoResume) {
+            await finishGuestAuthentication(attemptId);
+          } else if (authRef.current?.sessionTaskPending && original.autoResume) {
+            taskContinuationAttempt.current = attemptId;
+            setTaskContinuationId(attemptId);
+            setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+            setGuestSheetVisible(true);
+          } else {
+            await endGuestAuthAttempt(attemptId, original.autoResume ? "cancelled" : "dismissed");
+            setGuestSheetVisible(original.autoResume);
+          }
         } catch (error) {
-          if (isSupersededRequest(error)) { restored.release(); return; }
-          if (isExpiredSession(error)) { restored.release(); await onAuthFailure(); return; }
-          s = { ...saved, offline: true, error: "Could not refresh this session. Saved content remains on this device; new research is disabled until reconnected." };
+          if (!mounted || !hydration.current()) return;
+          const current = guestPendingRef.current;
+          if (current?.phase === "authenticating" && current.submissionId === original.submissionId && current.authAttempt?.id === attemptId) {
+            setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
+              error: "The saved sign-in attempt is held. Close this sheet to confirm cancellation before trying again." });
+            setGuestSheetVisible(true);
+          }
+          setStateRaw(s => ({ ...s, error: error instanceof Error ? error.message : "The saved sign-in attempt is held until it can be checked." }));
         }
       }
-      if (!restored.current()) { restored.release(); return; }
-      setStorageReady(!s.pendingContentInvalidation);
-      redactingContent.current = !!s.pendingContentInvalidation;
-      setToken((previous) => restored.current() ? t : previous);
-      if (restored.current()) setAccountId(accountId);
-      setState((previous) => restored.current() ? s : previous);
-      if (t && s.run?.runId && !s.pendingSourceDeletion) {
-        api.selectRun(s.run.runId);
-        void refreshRun(t, s.run.runId, s);
-        startPolling(t, s.run.runId);
+      if (saved.run?.runId && !saved.pendingSourceDeletion) {
+        if (guest && !memberToken) { guestRunEpoch.current++; startGuestPolling(saved.run.runId); void refreshGuestRun(saved.run.runId); }
+        else if (memberToken && !guest?.pendingAction) { api.selectRun(saved.run.runId); void refreshRun(memberToken, saved.run.runId, saved); startPolling(memberToken, saved.run.runId); }
       }
       restored.release();
     }).catch(() => setState((s) => ({ ...s, error: "Device session storage or temporary-file cleanup is unavailable. Try again when device storage is available." })))
@@ -656,6 +1561,19 @@ function AppInner() {
     });
   }, [state.tab, token]);
 
+  useEffect(() => {
+    let current = true;
+    void api.authCapabilities().then(value => {
+      if (!current) return;
+      setGuestCapabilities({
+        apple: value.apple === true, google: value.google === true, emailCode: value.emailCode === true,
+        termsUrl: typeof value.termsUrl === "string" ? value.termsUrl : null,
+        privacyUrl: typeof value.privacyUrl === "string" ? value.privacyUrl : null,
+      });
+    }).catch(() => { /* All providers remain unavailable until capability readback. */ });
+    return () => { current = false; };
+  }, []);
+
   async function onPickDocument() {
     if (!hydrated || pickingDocument.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     if (!token || !state.signedIn) { setState(s => ({ ...s, tab: "settings", error: "Sign in before selecting a document." })); return; }
@@ -674,6 +1592,38 @@ function AppInner() {
     if (!hydrated || submitting.current || pickingDocument.current || deletingSource.current || verifying.current || correctionAttempt.current) return;
     if (!storageReady) return;
     const current = latestUi.current;
+    if (token && savedSecondMessageBlocksWork()) {
+      submitting.current = true;
+      let replaced = false;
+      try {
+        if (!accountId) throw new Error("Account identity is unavailable.");
+        const credential = memberAuthority(accountId);
+        const saved = guestPendingRef.current;
+        if (saved?.payload.kind === "clarification") {
+          await continueMemberClarification(credential(), accountId);
+        } else if (saved && (saved.phase === "cancelled" || (current.draft.trim() !== saved.payload.text ||
+          saved.payload.kind === "follow_up" && current.run?.runId !== saved.payload.parentRunId))) {
+          if (saved.phase !== "cancelled") await abandonSavedGuestAction(saved, credential());
+          const adopted = { ...current, signedIn: true };
+          await sessionStorage.persistRequired(credential(), adopted);
+          await guestDevice.clear(); api.clearGuest();
+          guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
+          setGuestContext(null); setGuestPending(null);
+          latestUi.current = adopted; setStateRaw(adopted);
+          replaced = true;
+        } else await continueSavedSecondMessage(credential(), accountId);
+      }
+      catch (error) { setViewState(s => ({ ...s, error: error instanceof Error ? error.message : "The saved second message remains held." })); }
+      finally { submitting.current = false; }
+      if (replaced) await onSend();
+      return;
+    }
+    if (!token) {
+      if (guestContextRef.current?.acceptedTurnCount === 1) {
+        await captureGuestSecondAction({ kind: "new_research", text: current.draft.trim() });
+      } else await onGuestFirstSend();
+      return;
+    }
     const gate = canSubmit(current.pendingAdmission ? { ...current, offline: false } : current);
     if (!gate.ok) {
       const tab = submitPrerequisite(state);
@@ -686,7 +1636,7 @@ function AppInner() {
       setUploadStatus("Preparing saved request…");
       api.selectRun(null);
       stopPolling();
-      const t = token ?? (await ensureSession());
+      const credential = memberAuthority(accountId);
       const guard = api.captureView();
       let created;
       try {
@@ -694,7 +1644,7 @@ function AppInner() {
         created = await submitAdmission(pending, current.attachments, {
           digest: nativeDocumentDigest,
           preflight: async () => {
-            const settings = await api.settings(t);
+            const settings = await api.settings(credential());
             if (!guard.current()) throw new SupersededRequest();
             setState(s => guard.current() ? { ...s, offline: false } : s);
             return settings;
@@ -702,16 +1652,16 @@ function AppInner() {
           current: guard.current,
           progress: setUploadStatus,
           save: async draft => {
-            await sessionStorage.saveAdmission(t, draft);
+            await sessionStorage.saveAdmission(credential(), draft);
             if (!guard.current()) throw new SupersededRequest();
             setState(s => ({ ...s, pendingAdmission: draft, attachments: s.pendingAdmission ? s.attachments : s.attachments.map((f,i) => ({ ...f, id: draft.uploads[i]?.key })) }));
           },
-          upload: (file, key) => file.bytes ? api.attachBytes(t, file.filename, file.mime, file.bytes, key) : api.attach(t, file.filename, file.mime, file.text, key),
-          admit: (draft, ids) => api.createRun(t, draft.question, draft.routeMode, draft.key, ids),
+          upload: (file, key) => file.bytes ? api.attachBytes(credential(), file.filename, file.mime, file.bytes, key) : api.attach(credential(), file.filename, file.mime, file.text, key),
+          admit: (draft, ids) => api.createRun(credential(), draft.question, draft.routeMode, draft.key, ids, current.conversationId),
         });
         if (!guard.current()) throw new SupersededRequest();
       } finally { guard.release(); }
-      await adoptAdmission(t, created);
+      await adoptAdmission(credential(), created, credential);
     } catch (e) {
       if (!accountGuard.current() || isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -729,7 +1679,7 @@ function AppInner() {
     } finally { accountGuard.release(); submitting.current = false; setUploadStatus(null); }
   }
 
-  async function adoptAdmission(t: string, created: AdmittedRun) {
+  async function adoptAdmission(t: string, created: AdmittedRun, credential = memberAuthority()): Promise<void> {
       const guard = api.captureView();
       try {
       const current = latestUi.current;
@@ -757,7 +1707,7 @@ function AppInner() {
             labeledDemo: created.labeledDemo,
           },
       };
-      await sessionStorage.finishAdmission(t, next);
+      await sessionStorage.finishAdmission(credential(), next);
       if (!guard.current()) throw new SupersededRequest();
       api.selectRun(created.runId);
       setSentQuestion(current.pendingAdmission?.question ?? current.draft);
@@ -766,8 +1716,8 @@ function AppInner() {
       AccessibilityInfo.announceForAccessibility(
         "Research in progress. Cancel is available. Closing the app will not stop the job.",
       );
-      await refreshRun(t, created.runId, next);
-      startPolling(t, created.runId);
+      await refreshRun(credential(), created.runId, next);
+      startPolling(credential(), created.runId);
       } finally { guard.release(); }
   }
 
@@ -775,11 +1725,12 @@ function AppInner() {
     if (!token || !state.pendingAdmission || submitting.current || !storageReady) return;
     const guard = api.captureView(); submitting.current = true; setUploadStatus("Checking saved request…");
     try {
-      const result = await api.resolveRunRequest(token, state.pendingAdmission.key);
+      const credential = memberAuthority(accountId);
+      const result = await api.resolveRunRequest(credential(), state.pendingAdmission.key);
       if (!guard.current()) throw new SupersededRequest();
-      if (result.status === "accepted") await adoptAdmission(token, readAdmittedRun(result.run));
+      if (result.status === "accepted") await adoptAdmission(credential(), readAdmittedRun(result.run), credential);
       else if (result.status === "withdrawn") {
-        await sessionStorage.saveAdmission(token, null);
+        await sessionStorage.saveAdmission(credential(), null);
         if (!guard.current()) throw new SupersededRequest();
         setState(s => ({ ...s, pendingAdmission: null, offline: false, error: "No active request remains for this key. The saved request is withdrawn; you can edit and send again." }));
       } else throw new Error("The saved request could not be resolved. Retry checking it.");
@@ -791,11 +1742,20 @@ function AppInner() {
   }
 
   async function onCancel() {
+    if (!token && guestContextRef.current && state.run) {
+      try { const { proof } = currentGuest(); await api.guest.cancel(proof, state.run.runId); await refreshGuestRun(state.run.runId); }
+      catch { setStateRaw(s => ({ ...s, error: "Could not confirm cancellation. Reopen this guest research to check it." })); }
+      return;
+    }
     if (!token || !state.run) return;
     // Cancellation is a new view authority boundary even though the same run stays selected.
     // This fences an accepted mutation that has not yet completed its child handoff.
-    api.invalidateView(token);
-    try { await api.cancel(token, state.run.runId); await refreshRun(token, state.run.runId); }
+    try {
+      const credential = memberAuthority();
+      api.invalidateView(credential());
+      await api.cancel(credential(), state.run.runId);
+      await refreshRun(credential(), state.run.runId);
+    }
     catch (error) {
       if (isSupersededRequest(error)) return;
       if (isExpiredSession(error)) await onAuthFailure();
@@ -810,6 +1770,7 @@ function AppInner() {
         setState((s) => ({ ...s, offline: false, error: null }));
         const runId = latestUi.current.run?.runId;
         if (token && runId) void refreshRun(token, runId);
+        else if (guestContextRef.current && runId) void refreshGuestRun(runId);
       } catch (error) {
         if (isOfflineError(error)) setState((s) => ({ ...s, offline: true, error: null }));
         else if (!isSupersededRequest(error)) setState((s) => ({ ...s, error: (error as Error).message }));
@@ -817,6 +1778,7 @@ function AppInner() {
       return;
     }
     const runId = latestUi.current.run?.runId;
+    if (!token && guestContextRef.current && runId && (kind === "waiting" || kind === "failed")) { void refreshGuestRun(runId); return; }
     if (token && runId && (kind === "waiting" || kind === "failed")) {
       void refreshRun(token, runId);
       return;
@@ -825,18 +1787,31 @@ function AppInner() {
   }
 
   async function onDeleteSource(target?: SourceDeletionTarget) {
+    if (!token && guestContextRef.current && state.run && target) {
+      try {
+        const { proof } = currentGuest();
+        if (!sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
+        const redacted = redactInvalidatedContent(latestUi.current, state.run.runId);
+        await saveGuestReader(redacted);
+        stopPolling();
+        await api.guest.deleteSource(proof, target.sourceId);
+        setStateRaw(s => ({ ...s, error: "Source deleted. Reopen research after cleanup completes." }));
+      } catch { setStateRaw(s => ({ ...s, error: "Source content remains hidden. Deletion outcome is unconfirmed; check it again." })); }
+      return;
+    }
     if (!token || !storageReady || deletingSource.current || submitting.current || pickingDocument.current || verifying.current || state.pendingVerification || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       if (target && !sameSourceDeletionTarget(target, sourceDeletionTarget(state.source))) throw new Error("The source changed. Review deletion again.");
       const pending = state.pendingSourceDeletion ? state : prepareSourceDeletion(state, target?.sourceId ?? "");
       deletingSource.current = true; setSourceDeleteBusy(true);
       stopPolling(); api.closeSource(); api.selectRun(null);
       const confirmed = await submitSourceDeletion(pending, {
         current: guard.current,
-        save: next => sessionStorage.persistRequired(token, next),
+        save: next => sessionStorage.persistRequired(credential(), next),
         hide: next => { setAttachText(""); setAttachName("note.txt"); setShowAttach(false); setState(s => guard.current() ? next : s); },
-        remove: id => api.deleteSource(token, id),
+        remove: id => api.deleteSource(credential(), id),
       });
       if (guard.current()) setState({ ...confirmed, offline: false });
     } catch (error) {
@@ -850,7 +1825,13 @@ function AppInner() {
     try {
       const t = token;
       if (!t) {
-        setViewState((s) => ({ ...s, error: "Sign in to inspect sources.", tab: "settings" }));
+        if (!guestContextRef.current) { setViewState((s) => ({ ...s, error: "Open a current research run to inspect sources." })); return; }
+        const { proof } = currentGuest();
+        if (state.report) persistAnchor(state.report.reportId, blockId);
+        sourceFocus.current.open(JSON.stringify([blockId, id]));
+        const src = readSourceDetail(await api.guest.source(proof, id));
+        setViewState(s => ({ ...s, source: src, tab: "research" }));
+        AccessibilityInfo.announceForAccessibility(`Source sheet. ${src.title}. ${src.accessLevel}.`);
         return;
       }
       if (state.report) persistAnchor(state.report.reportId, blockId);
@@ -879,14 +1860,15 @@ function AppInner() {
 
   async function adoptDocumentCorrection(runId: string) {
     if (!token) return;
+    const credential = memberAuthority();
     api.selectRun(runId);
     const guard = api.captureView();
     try {
       const next = await adoptCorrectionSnapshot(runId, state, {
-        current: guard.current, get: () => api.getRun(token, runId), finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+        current: guard.current, get: () => api.getRun(credential(), runId), finish: next => sessionStorage.finishCorrectionDocuments(credential(), next),
       });
       setState(next); setCorrectionFiles([]);
-      await refreshRun(token, runId, next); startPolling(token, runId);
+      await refreshRun(credential(), runId, next); startPolling(credential(), runId);
     } finally { guard.release(); }
   }
 
@@ -897,11 +1879,12 @@ function AppInner() {
     const guard = api.captureView(), attempt = Symbol("resolve document correction");
     correctionAttempt.current = attempt; setCorrectionPending(true);
     try {
+      const credential = memberAuthority();
       const result = await resolveCorrectionDocuments(pending, state, {
-        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
-        resolve: (durable, attachmentIds) => api.resolveCorrection(token, durable.parentRunId, durable.baseRevision, durable.upload.question,
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(credential()),
+        resolve: (durable, attachmentIds) => api.resolveCorrection(credential(), durable.parentRunId, durable.baseRevision, durable.upload.question,
           { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
-        finish: next => sessionStorage.finishCorrectionDocuments(token, next),
+        finish: next => sessionStorage.finishCorrectionDocuments(credential(), next),
       });
       if ("runId" in result) await adoptDocumentCorrection(result.runId);
       else { setState(result.state); setCorrectionFiles([]); }
@@ -921,20 +1904,21 @@ function AppInner() {
     api.selectRun(pendingParent);
     const guard = api.captureView();
     try {
+      const credential = memberAuthority();
       const durable = await authoritativeCorrection(state.pendingCorrectionDocuments, pendingParent, {
-        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(token),
+        current: guard.current, read: () => sessionStorage.readCorrectionDocuments(credential()),
       });
       const pending = durable ?? await prepareCorrectionDocuments(pendingParent, state.run.brief!.revision, files, newId, nativeDocumentDigest, guard.current);
       const runId = await submitCorrectionDocuments(pending, files, {
         current: guard.current, digest: nativeDocumentDigest, progress: setUploadStatus,
-        preflight: () => api.settings(token),
+        preflight: () => api.settings(credential()),
         save: async saved => {
-          await sessionStorage.saveCorrectionDocuments(token, saved);
+          await sessionStorage.saveCorrectionDocuments(credential(), saved);
           if (!guard.current()) throw new SupersededRequest();
           setState(s => ({ ...s, pendingCorrectionDocuments: saved }));
         },
-        upload: (file, key) => file.bytes ? api.attachBytes(token, file.filename, file.mime, file.bytes, key) : api.attach(token, file.filename, file.mime, file.text, key),
-        correct: (parent, revision, text, attachmentIds) => api.correct(token, parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
+        upload: (file, key) => file.bytes ? api.attachBytes(credential(), file.filename, file.mime, file.bytes, key) : api.attach(credential(), file.filename, file.mime, file.text, key),
+        correct: (parent, revision, text, attachmentIds) => api.correct(credential(), parent, revision, text, { kind: "append_attachments", attachmentIds, evidencePolicy: "reuse_snapshot" }),
       });
       if (!guard.current()) throw new SupersededRequest();
       await adoptDocumentCorrection(runId);
@@ -946,6 +1930,7 @@ function AppInner() {
   }
 
   async function onCorrect(submitted?: string, retrySaved = false) {
+    if (savedSecondMessageBlocksWork()) { setViewState(s => ({ ...s, error: "The saved second message must be resolved before another correction." })); return; }
     const current = latestUi.current;
     if (!token || !current.run || current.pendingContentInvalidation || redactingContent.current || correctionAttempt.current || verifying.current || current.pendingVerification || current.pendingCorrectionDocuments || current.pendingAdmission || current.pendingSourceDeletion) return;
     if (current.offline) {
@@ -972,9 +1957,10 @@ function AppInner() {
     const parentRunId = pending?.parentRunId ?? current.run.runId;
     const expectedBriefRevision = pending?.expectedBriefRevision ?? current.run.brief!.revision;
     const selectedEvidencePolicy = pending?.evidencePolicy ?? evidencePolicy;
-    if (retrySaved && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
+    const credential = memberAuthority();
+    if (retrySaved && !api.currentRun(credential(), parentRunId)) api.selectRun(parentRunId);
     const attempt=Symbol("correction");
-    let guard: ViewHandle = api.captureView(token, parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), parentRunId);
     correctionAttempt.current=attempt;setCorrectionPending(true);
     try {
       const adopted = await runPendingCorrection({
@@ -988,7 +1974,7 @@ function AppInner() {
           await persistMutationJournal(token, guard, "pendingCorrection", saved, parentRunId);
         },
         post: (parentRunId, question, expectedBriefRevision, policy, idempotencyKey) =>
-          api.correct(token, parentRunId, expectedBriefRevision, question,
+          api.correct(credential(), parentRunId, expectedBriefRevision, question,
             correctionMode==="replace_question"?{kind:"replace_question",question,evidencePolicy:policy}:undefined,
             idempotencyKey),
         adopt: async (body) => {
@@ -997,9 +1983,9 @@ function AppInner() {
             body,
             requireRunId: true,
             selectRun: api.selectRun,
-            captureView: (runId) => api.captureView(token, runId),
+            captureView: (runId) => api.captureView(credential(), runId),
             onView: (next) => { guard.release(); guard = next; },
-            currentRun: (runId) => api.currentRun(token, runId),
+            currentRun: (runId) => api.currentRun(credential(), runId),
             refresh: async (runId) => {
               api.closeSource();
               setShowAttach(false);
@@ -1027,15 +2013,15 @@ function AppInner() {
               };
               latestUi.current = opening;
               setViewState(opening);
-              await refreshRun(token, runId, opening, true);
+              await refreshRun(credential(), runId, opening, true);
             },
-            poll: (runId) => startPolling(token, runId),
+            poll: (runId) => startPolling(credential(), runId),
           });
         },
       });
       if (!guard.current()) throw new SupersededRequest();
       const finished = { ...latestUi.current, pendingCorrection: adopted.phase === "adopted" ? null : adopted, correctionDraft: null };
-      await sessionStorage.persistRequired(token, finished);
+      await sessionStorage.persistRequired(credential(), finished);
       if (!guard.current()) throw new SupersededRequest();
       latestUi.current = finished;
       setViewState(finished);
@@ -1052,6 +2038,7 @@ function AppInner() {
   }
 
   function onNewResearch() {
+    if (savedSecondMessageBlocksWork()) { setViewState(s => ({ ...s, error: "Finish or reconcile the saved second message before starting new research." })); return; }
     submitting.current = false;
     correctionAttempt.current = null;
     verifying.current = false;
@@ -1077,6 +2064,17 @@ function AppInner() {
   }
 
   async function onContinueClarification() {
+    if (token && savedSecondMessageBlocksWork()) { await onSend(); return; }
+    if (!token && guestContextRef.current?.acceptedTurnCount === 1) {
+      const pendingInput = latestUi.current.run?.pendingInput;
+      const text = clarifyAnswer.trim();
+      if (!pendingInput || pendingInput.type !== "clarification" || !pendingInput.field || !text) {
+        setStateRaw(s => ({ ...s, error: "Answer the exact requested detail before continuing guest research." }));
+        return;
+      }
+      await captureGuestSecondAction({ kind: "clarification", text, pendingInputId: pendingInput.id, briefRevision: pendingInput.briefRevision, field: pendingInput.field });
+      return;
+    }
     if (!token || !state.run || clarifying.current) return;
     if (queryAuthorizationPending(latestUi.current.run) || queryAuthorizationPending(state.run)) {
       setViewState((s) => ({ ...s, error: "Approve the exact search terms before public search can continue." }));
@@ -1093,6 +2091,7 @@ function AppInner() {
     const runId = state.run.runId;
     const answer = clarifyAnswer.trim();
     const field = state.run.pendingInput?.field;
+    const credential = memberAuthority();
     if (editingAssumptions) {
       const values = clarifyAnswer.split("\n").map((line) => line.trim()).filter(Boolean);
       if (!values.length) {
@@ -1100,7 +2099,7 @@ function AppInner() {
         return;
       }
       clarifying.current = true;
-      let guard: ViewHandle = api.captureView(token, runId);
+      let guard: ViewHandle = api.captureView(credential(), runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before replacing assumptions.");
@@ -1114,19 +2113,19 @@ function AppInner() {
           save: async (saved) => {
             await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
-          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
           adopt: async (body) => {
             await adoptReturnedChild({
               parentRunId: runId,
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
               refresh: async (acceptedRunId) => {
                 if (acceptedRunId === runId) {
-                  await refreshRun(token, acceptedRunId, undefined, true);
+                  await refreshRun(credential(), acceptedRunId, undefined, true);
                   return;
                 }
                 const opening = {
@@ -1142,14 +2141,14 @@ function AppInner() {
                 };
                 latestUi.current = opening;
                 setViewState(opening);
-                await refreshRun(token, acceptedRunId, opening, true);
+                await refreshRun(credential(), acceptedRunId, opening, true);
               },
-              poll: (runId) => startPolling(token, runId),
+              poll: (runId) => startPolling(credential(), runId),
             });
           },
         });
         const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState({ ...finished, pendingAssumptions: null, error: null });
@@ -1167,7 +2166,7 @@ function AppInner() {
     }
     if (!briefView.blocking) {
       clarifying.current = true;
-      const guard = api.captureView(token, runId);
+      const guard = api.captureView(credential(), runId);
       try {
         const revision = state.run.brief?.revision;
         if (!revision) throw new Error("Refresh this run before confirming assumptions.");
@@ -1180,14 +2179,14 @@ function AppInner() {
           save: async (saved) => {
             await persistMutationJournal(token, guard, "pendingAssumptions", saved, runId);
           },
-          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+          post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
           adopt: async () => {
             AccessibilityInfo.announceForAccessibility("Assumptions confirmed.");
-            await refreshRun(token, runId, undefined, true);
+            await refreshRun(credential(), runId, undefined, true);
           },
         });
         const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState({ ...finished, pendingAssumptions: null, error: null });
@@ -1206,7 +2205,7 @@ function AppInner() {
     }
     clarifying.current = true;
     try {
-      await api.continueRun(token, state.run.runId, continueRunRequest({
+      await api.continueRun(credential(), state.run.runId, continueRunRequest({
         pendingInput: state.run.pendingInput,
         value: answer,
       }));
@@ -1216,8 +2215,8 @@ function AppInner() {
         return next;
       });
       AccessibilityInfo.announceForAccessibility("Clarification saved. Research continues on the server.");
-      await refreshRun(token, state.run.runId);
-      startPolling(token, state.run.runId);
+      await refreshRun(credential(), state.run.runId);
+      startPolling(credential(), state.run.runId);
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1246,8 +2245,9 @@ function AppInner() {
       return;
     }
     clarifying.current = true;
-    if (!api.currentRun(token, pending.parentRunId)) api.selectRun(pending.parentRunId);
-    let guard: ViewHandle = api.captureView(token, pending.parentRunId);
+    const credential = memberAuthority();
+    if (!api.currentRun(credential(), pending.parentRunId)) api.selectRun(pending.parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), pending.parentRunId);
     try {
       const adopted = await runAssumptionsMutation({
         pending,
@@ -1259,7 +2259,7 @@ function AppInner() {
         save: async (saved) => {
           await persistMutationJournal(token, guard, "pendingAssumptions", saved, pending.parentRunId);
         },
-        post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(token, parentRunId, body, idempotencyKey),
+        post: (parentRunId, body, idempotencyKey) => api.confirmAssumptions(credential(), parentRunId, body, idempotencyKey),
         adopt: async (body) => {
           if (pending.action === "replace") {
             await adoptReturnedChild({
@@ -1267,19 +2267,19 @@ function AppInner() {
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
-              refresh: (acceptedRunId) => refreshRun(token, acceptedRunId, undefined, true).then(() => undefined),
-              poll: (acceptedRunId) => startPolling(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
+              refresh: (acceptedRunId) => refreshRun(credential(), acceptedRunId, undefined, true).then(() => undefined),
+              poll: (acceptedRunId) => startPolling(credential(), acceptedRunId),
             });
           } else {
-            await refreshRun(token, pending.parentRunId, undefined, true);
+            await refreshRun(credential(), pending.parentRunId, undefined, true);
           }
         },
       });
       const finished = { ...latestUi.current, pendingAssumptions: adopted.phase === "adopted" ? null : adopted, error: null };
-      await sessionStorage.persistRequired(token, finished);
+      await sessionStorage.persistRequired(credential(), finished);
       if (!guard.current()) throw new SupersededRequest();
       latestUi.current = finished;
       setViewState(finished);
@@ -1299,18 +2299,19 @@ function AppInner() {
 
   async function adoptVerification(pending: PendingVerificationRequest, runId: string) {
     if (!token) return;
+    const credential = memberAuthority();
     if (runId === pending.parentRunId) throw new Error("Verification resolved to its parent instead of a child. Retry the saved request.");
     api.selectRun(runId);
     const guard = api.captureView();
     try {
-      const snap = readVerificationRun(await api.getRun(token, runId), runId);
+      const snap = readVerificationRun(await api.getRun(credential(), runId), runId);
       if (!guard.current()) throw new SupersededRequest();
       let next = applySnapshot({ ...state, pendingVerification: null, previousReport: state.report ? { reportId: state.report.reportId, blocks: state.report.blocks } : state.previousReport, report: null, source: null, events: [], readingAnchor: null, correctionDraft: null }, snap);
       next = { ...next, error: null, offline: false, tab: "research" };
-      await sessionStorage.persistRequired(token, next);
+      await sessionStorage.persistRequired(credential(), next);
       if (!guard.current()) throw new SupersededRequest();
       setState(next);
-      await refreshRun(token, runId, next); startPolling(token, runId);
+      await refreshRun(credential(), runId, next); startPolling(credential(), runId);
     } finally { guard.release(); }
   }
 
@@ -1331,8 +2332,9 @@ function AppInner() {
     const routed = routeFollowUp(text, { reportReady, runActive });
     const mutationKind = retrySaved && pending?.kind ? pending.kind : routed.kind;
     const mutates = mutationKind === "deepen" || mutationKind === "steer" || mutationKind === "add_source" || mutationKind === "change_constraint";
-    if (retrySaved && pending && !api.currentRun(token, parentRunId)) api.selectRun(parentRunId);
-    let guard: ViewHandle = api.captureView(token, parentRunId);
+    const credential = memberAuthority();
+    if (retrySaved && pending && !api.currentRun(credential(), parentRunId)) api.selectRun(parentRunId);
+    let guard: ViewHandle = api.captureView(credential(), parentRunId);
     try {
       const revision = retrySaved && pending ? pending.expectedBriefRevision : current.run.brief?.revision;
       if (mutates) {
@@ -1352,19 +2354,19 @@ function AppInner() {
             await persistMutationJournal(token, guard, "pendingFollowUp", saved, parentRunId);
           },
           post: (runId, message, expectedBriefRevision, idempotencyKey) =>
-            api.explainFollowUp(token, runId, { message, expectedBriefRevision }, idempotencyKey),
+            api.explainFollowUp(credential(), runId, { message, expectedBriefRevision }, idempotencyKey),
           adopt: async (body) => {
             await adoptReturnedChild({
               parentRunId,
               body,
               requireRunId: true,
               selectRun: api.selectRun,
-              captureView: (acceptedRunId) => api.captureView(token, acceptedRunId),
+              captureView: (acceptedRunId) => api.captureView(credential(), acceptedRunId),
               onView: (next) => { guard.release(); guard = next; },
-              currentRun: (acceptedRunId) => api.currentRun(token, acceptedRunId),
+              currentRun: (acceptedRunId) => api.currentRun(credential(), acceptedRunId),
               refresh: async (acceptedRunId) => {
                 if (acceptedRunId === parentRunId) {
-                  await refreshRun(token, acceptedRunId, undefined, true);
+                  await refreshRun(credential(), acceptedRunId, undefined, true);
                   return;
                 }
                 const opening = {
@@ -1380,9 +2382,9 @@ function AppInner() {
                 };
                 latestUi.current = opening;
                 setViewState(opening);
-                await refreshRun(token, acceptedRunId, opening, true);
+                await refreshRun(credential(), acceptedRunId, opening, true);
               },
-              poll: (runId) => startPolling(token, runId),
+              poll: (runId) => startPolling(credential(), runId),
             });
           },
         });
@@ -1392,13 +2394,13 @@ function AppInner() {
           draft: latestUi.current.draft.trim() === text ? "" : latestUi.current.draft,
           error: null,
         };
-        await sessionStorage.persistRequired(token, finished);
+        await sessionStorage.persistRequired(credential(), finished);
         if (!guard.current()) throw new SupersededRequest();
         latestUi.current = finished;
         setViewState(finished);
         return;
       }
-      const body = await api.explainFollowUp(token, parentRunId, {
+      const body = await api.explainFollowUp(credential(), parentRunId, {
         message: text,
         expectedBriefRevision: revision,
       }) as { kind?: string; answer?: string; evidenceComplete?: boolean; runId?: string; briefRevision?: number; citationPassageIds?: unknown };
@@ -1438,9 +2440,20 @@ function AppInner() {
   }
 
   async function onComposerFollowUp(submitted?: string) {
+    if (token && savedSecondMessageBlocksWork()) { await onSend(); return; }
     const current = latestUi.current;
     const text = (submitted ?? current.draft).trim();
     if (!text) return;
+    if (!token && guestContextRef.current?.acceptedTurnCount === 1) {
+      if (queryAuthorizationPending(current.run)) {
+        setViewState(s => ({ ...s, error: "This research needs an exact search decision before continuing." }));
+        return;
+      }
+      const routedGuest = routeFollowUp(text, { reportReady: composerFollowsReport(current), runActive: current.run?.lifecycle === "queued" || current.run?.lifecycle === "running" });
+      if (routedGuest.kind === "new_research") await captureGuestSecondAction({ kind: "new_research", text });
+      else if (current.run?.runId) await captureGuestSecondAction({ kind: "follow_up", text, parentRunId: current.run.runId });
+      return;
+    }
     if (queryAuthorizationPending(current.run)) {
       setViewState((s) => ({ ...s, error: "Approve the exact search terms before public search can continue." }));
       return;
@@ -1477,6 +2490,7 @@ function AppInner() {
   }
 
   async function onFollowUp(selectedClaimId?: string) {
+    if (savedSecondMessageBlocksWork()) { setViewState(s => ({ ...s, error: "The saved second message must be resolved before another verification." })); return; }
     if (!token || !storageReady || verifying.current || submitting.current || deletingSource.current || state.pendingContentInvalidation || state.pendingSourceDeletion || state.pendingAdmission || state.pendingCorrectionDocuments || correctionAttempt.current) return;
     if (latestUi.current.offline) {
       setViewState((s) => ({ ...s, error: "You are offline. The draft and last report stay on this device." }));
@@ -1488,6 +2502,7 @@ function AppInner() {
     }
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       verifying.current = true; setVerificationBusy(true);
       let pending = state.pendingVerification;
       if (!pending) {
@@ -1500,11 +2515,11 @@ function AppInner() {
       const accepted = await submitVerificationRequest(pending, {
         current: guard.current,
         save: async saved => {
-          await sessionStorage.persistRequired(token, { ...state, pendingVerification: saved });
+          await sessionStorage.persistRequired(credential(), { ...state, pendingVerification: saved });
           if (!guard.current()) throw new SupersededRequest();
           setState(s => ({ ...s, pendingVerification: saved }));
         },
-        post: (id, request) => api.followUp(token, id, request),
+        post: (id, request) => api.followUp(credential(), id, request),
       });
       if (guard.current()) await adoptVerification(pending, accepted.runId);
     } catch (error) {
@@ -1519,13 +2534,14 @@ function AppInner() {
     if (!token || !pending || verifying.current) return;
     const guard = api.capture();
     try {
+      const credential = memberAuthority();
       verifying.current = true; setVerificationBusy(true);
-      const result = await api.resolveRunRequest(token, pending.request.idempotencyKey, pending);
+      const result = await api.resolveRunRequest(credential(), pending.request.idempotencyKey, pending);
       if (!guard.current()) throw new SupersededRequest();
       if (result.status === "accepted") await adoptVerification(pending, readAdmittedRun(result.run).runId);
       else if (result.status === "withdrawn") {
         const next = { ...state, pendingVerification: null, error: "The saved verification request is withdrawn. No new verification will start under this key." };
-        await sessionStorage.persistRequired(token, next);
+        await sessionStorage.persistRequired(credential(), next);
         if (guard.current()) setState(next);
       } else throw new Error("Verification status could not be confirmed. Retry the saved request.");
     } catch (error) {
@@ -1730,9 +2746,10 @@ function AppInner() {
                           setViewState((s) => ({ ...s, error: error instanceof Error ? error.message : "Exact search terms are not available. Public search will not continue." }));
                           return;
                         }
-                        void api.approveQuery(token, state.run.runId, body).then(() => refreshRun(token, state.run!.runId)).then(() => {
+                        const credential = memberAuthority();
+                        void api.approveQuery(credential(), state.run.runId, body).then(() => refreshRun(credential(), state.run!.runId)).then(() => {
                           if (token && latestUi.current.run && !queryAuthorizationPending(latestUi.current.run)) {
-                            startPolling(token, latestUi.current.run.runId);
+                            startPolling(credential(), latestUi.current.run.runId);
                           }
                         }).catch((e) => {
                           if (isSupersededRequest(e)) return;
@@ -1756,7 +2773,7 @@ function AppInner() {
               clarifyAnswer={clarifyAnswer}
               muted={theme.muted}
               field={state.run?.pendingInput?.field}
-              onClarify={setClarifyAnswer}
+              onClarify={(value) => { if (guestContextRef.current && value !== clarifyAnswer) guestDraftRevision.current++; setClarifyAnswer(value); }}
               onContinue={() => { void onContinueClarification(); }}
               onEdit={() => {
                 setClarifyAnswer(briefView.assumptions.join("\n"));
@@ -1957,9 +2974,9 @@ function AppInner() {
         ) : null}
 
         {state.source ? (
-          <SourceSheet key={JSON.stringify([token, state.report?.reportId, state.source.passageId])} source={state.source} styles={styles}
+          <SourceSheet key={JSON.stringify([readerOwner, state.report?.reportId, state.source.passageId])} source={state.source} styles={styles}
             reducedMotion={state.reducedMotion} ink={theme.ink}
-            canFocus={() => Boolean(token && state.run && api.currentRun(token, state.run.runId) && latestUi.current.tab === "research" && latestUi.current.source?.passageId === state.source?.passageId && latestUi.current.report?.reportId === state.report?.reportId)}
+            canFocus={() => Boolean(state.run && (token ? api.currentRun(token, state.run.runId) : guestContextRef.current && guestProof.current) && latestUi.current.run?.runId === state.run.runId && latestUi.current.tab === "research" && latestUi.current.source?.passageId === state.source?.passageId && latestUi.current.report?.reportId === state.report?.reportId)}
             onDelete={target => void onDeleteSource(target)} deletionPending={sourceDeleteBusy}
             offline={state.offline} admissionPending={!!state.pendingAdmission || !!state.pendingVerification || !!state.pendingCorrectionDocuments || correctionPending}
             relatedClaim={sourceClaim?.text ?? null}
@@ -2029,7 +3046,7 @@ function AppInner() {
             deletionVsSub={deletionVsSub}
             restoreMessage={restoreMessage}
             state={state}
-            accountLabel={accountId ? `Account ${accountId.slice(0, 8)}` : "Development account"}
+            accountLabel={accountId ? `Account ${accountId.slice(0, 8)}` : guestContext ? "Guest research" : "Not signed in"}
             appearance={appearance}
             onDone={() => setState((s) => ({ ...s, tab: "research" }))}
             onOpenLibrary={() => setState((s) => ({ ...s, tab: "library" }))}
@@ -2041,7 +3058,10 @@ function AppInner() {
             onToggleProcessorDetails={() => setProcessorDetailsOpen((open) => !open)}
             onOpenDeletionPage={() => void Linking.openURL(deletionPageUrl)}
             onConsent={grantConsent}
-            onSignIn={() => { void ensureSession().catch(() => undefined); }}
+            onSignIn={() => {
+              if (guestPendingRef.current) { setGuestSheetVisible(true); setState(s => ({ ...s, tab: "research" })); }
+              else setState(s => ({ ...s, error: "Send a guest research question first. Sign-in appears when you send your next message." }));
+            }}
             onRestore={async () => {
               if (!token) {
                 setRestoreMessage("Sign in first. Restore still requires a store sandbox.");
@@ -2055,13 +3075,16 @@ function AppInner() {
                 setRestoreMessage(e instanceof Error ? e.message : "Restore is unavailable until a store sandbox is connected.");
               }
             }}
-            onMode={(routeMode) => setState((s) => s.pendingAdmission ? { ...s, error: "Check or withdraw the saved request before changing research mode." } : { ...s, routeMode })}
+            onMode={(routeMode) => setState((s) => !token ? { ...s, routeMode: "controlled-research", error: "Guest research uses the real research route only." } : s.pendingAdmission ? { ...s, error: "Check or withdraw the saved request before changing research mode." } : { ...s, routeMode })}
             onDelete={async () => {
+              if (!token && guestContextRef.current) { await deleteGuestConversation(); return; }
               if (!token) return;
               try {
                 stopPolling();
                 const result = await api.deleteAccount(token);
                 api.activateSession(null); clearPanels();
+                memberTokenRef.current = null; memberAccountRef.current = null;
+                activeClerkSubjectRef.current = null;
                 setToken(null); setAccountId(null); setState({ ...emptyState(), error: result.fileCleanupPending ? "Account access removed. Stored file deletion is queued for retry." : null });
                 await clearAccountLocal(sessionStorage);
               } catch (error) {
@@ -2070,18 +3093,26 @@ function AppInner() {
               }
             }}
             onLogout={() => {
-              stopPolling();
-              api.activateSession(null); clearPanels();
-              void logoutLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => setState((s) => ({ ...s, error: "Device cleanup failed. Retry signing out." })));
-              setToken(null);
-              setAccountId(null);
-              setState((s) => logoutState(s));
+              if (!token && guestContextRef.current) { void deleteGuestConversation(); return; }
+              void (async () => {
+                try {
+                  if (!authRef.current) throw new Error("Clerk session is unavailable.");
+                  await authRef.current.signOut();
+                  stopPolling(); api.activateSession(null); api.clearGuest(); clearPanels();
+                  memberTokenRef.current = null; memberAccountRef.current = null;
+                  activeClerkSubjectRef.current = null;
+                  setToken(null); setAccountId(null); setState((s) => logoutState(s));
+                  await logoutLocal(sessionStorage); setStorageReady(true);
+                } catch { setState((s) => ({ ...s, error: "Sign-out or device cleanup could not be confirmed. Please retry." })); }
+              })();
             }}
             onRevoke={async () => {
               if (!token) return;
               let accountGuard: ReturnType<typeof api.capture>;
+              let credential: () => string;
               try {
-                accountGuard = api.capture(token);
+                credential = memberAuthority();
+                accountGuard = api.capture(credential());
               } catch (error) {
                 if (isSupersededRequest(error)) return;
                 return;
@@ -2091,12 +3122,12 @@ function AppInner() {
                 await revokeConsentWithinAccount({
                   account: accountGuard,
                   currentState: () => latestUi.current,
-                  invalidateView: () => api.invalidateView(token),
+                  invalidateView: () => api.invalidateView(credential()),
                   // An accepted mutation may be completing its required write
                   // as revocation fences the view. Retain its durable identity.
                   waitForJournal: () => mutationJournalWrite.current,
-                  persist: (revoked) => sessionStorage.persistRequired(token, revoked),
-                  revokeRemote: () => api.consent(token, false),
+                  persist: (revoked) => sessionStorage.persistRequired(credential(), revoked),
+                  revokeRemote: () => api.consent(credential(), false),
                   synchronize: (next) => { latestUi.current = next; },
                   render: (next) => setStateRaw((previous) => accountGuard.current() ? next : previous),
                   failureMessage: "Could not confirm consent revocation. Retry.",
@@ -2171,7 +3202,8 @@ function AppInner() {
           attachOpen={attachVisible}
           inProgress={activity.inProgress && state.run?.lifecycle !== "awaiting_input"}
           reducedMotion={state.reducedMotion}
-          onChange={(draft) => setState((s) => ({ ...s, draft }))}
+          inputRef={composerInput}
+          onChange={(draft) => { if (!token && guestContextRef.current && draft !== latestUi.current.draft) guestDraftRevision.current++; setState((s) => ({ ...s, draft })); }}
           onSend={() => {
             const files = latestUi.current.attachments;
             if (composerContinues && files.length) {
@@ -2185,7 +3217,7 @@ function AppInner() {
               void onComposerFollowUp(latestUi.current.draft);
             } else void onSend();
           }}
-          onAttach={() => setShowAttach((open) => !open)}
+          onAttach={() => !token ? setState(s => ({ ...s, error: "Paste a public URL in the question. Sign in before adding private sources." })) : setShowAttach((open) => !open)}
           onCancel={() => void onCancel()}
           styles={{
             ...styles,
@@ -2201,14 +3233,35 @@ function AppInner() {
 
 
       </KeyboardAvoidingView>
+      <GuestSignInSheet
+        visible={guestSheetVisible && !(guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending)}
+        state={guestSheetState}
+        providers={guestProviders}
+        reducedMotion={state.reducedMotion}
+        colorScheme={resolveAppearance(appearance, system) === "dark" ? "dark" : "light"}
+        onEvent={onGuestSheetEvent}
+        onDismiss={() => { setGuestSheetVisible(false); requestAnimationFrame(() => composerInput.current?.focus()); }}
+        onOpenLegalDocument={openGuestLegal}
+        transport={guestSheetTransport}
+      />
+      <ClerkSessionTaskView
+        visible={guestSheetVisible && guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending}
+        colorScheme={resolveAppearance(appearance, system) === "dark" ? "dark" : "light"}
+        onClose={closeClerkSessionTask}
+      />
     </SafeAreaView>
   );
 }
 
+function ClerkConnectedApp() {
+  return <AppInner auth={useClerkGuestAuth()} />;
+}
+
 export function App() {
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
     <SafeAreaProvider>
-      <AppInner />
+      {publishableKey ? <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}><ClerkConnectedApp /></ClerkProvider> : <AppInner auth={null} />}
     </SafeAreaProvider>
   );
 }

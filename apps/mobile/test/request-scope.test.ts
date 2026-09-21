@@ -68,6 +68,24 @@ it("W03 signing out during an anonymous sign-in request prevents the late creden
   response.resolve(Response.json({ token: "late-secret", accountId: "a" }));
   expect(isSupersededRequest(await pending)).toBe(true);
 });
+it("AUTH-06 verified Clerk token renewal retains the same principal and selected reader, but account switch invalidates callbacks", () => {
+  const scope = createRequestScope();
+  scope.setSession("token-one", "member-one"); scope.selectRun("first-reader");
+  const before = scope.epochs(), pending = scope.capture("view", "token-one", "first-reader");
+  scope.rotateCredential("token-two", "member-one");
+  expect(scope.epochs().principalEpoch).toBe(before.principalEpoch);
+  expect(scope.epochs().viewEpoch).toBe(before.viewEpoch);
+  expect(scope.epochs().credentialGeneration).toBeGreaterThan(before.credentialGeneration);
+  expect(pending.current()).toBe(true);
+  expect(scope.currentRun("token-one", "first-reader")).toBe(false);
+  expect(scope.currentRun("token-two", "first-reader")).toBe(true);
+  expect(() => scope.capture("view", "token-one", "first-reader")).toThrow("superseded");
+  expect(() => scope.rotateCredential("foreign-token", "member-two")).toThrow("superseded");
+  scope.setSession("member-two-token", "member-two");
+  expect(pending.current()).toBe(false);
+  expect(scope.currentRun("token-one", "first-reader")).toBe(false);
+  pending.release();
+});
 it.each(["reuse_snapshot","refresh"] as const)("W06 mobile sends an explicit replacement patch with %s",async(evidencePolicy)=>{
  const fetcher=vi.fn(async(_input:RequestInfo|URL,_init?:RequestInit)=>Response.json({runId:"child"}));vi.stubGlobal("fetch",fetcher);api.activateSession("a");api.selectRun("parent");
  await api.correct("a","parent",3,"What changed?",{kind:"replace_question",question:"What changed?",evidencePolicy});

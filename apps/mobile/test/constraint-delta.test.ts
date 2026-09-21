@@ -53,13 +53,13 @@ describe("constraint delta and mutating follow-up identity", () => {
     expect(app).toMatch(/onExplainFollowUp[\s\S]*?adoptReturnedChild\([\s\S]*?captureView:[\s\S]*?onView:/);
     expect(app).toMatch(/action: "replace"[\s\S]*?adoptReturnedChild\([\s\S]*?captureView:[\s\S]*?onView:/);
     expect(app).toContain("requireOwnedSnapshot");
-    expect(app).toMatch(/onCancel[\s\S]*?invalidateView\(token\)[\s\S]*?api\.cancel/);
+    expect(app).toMatch(/onCancel[\s\S]*?invalidateView\(credential\(\)\)[\s\S]*?api\.cancel\(credential\(\)/);
     expect(app.match(/persistMutationJournal\(token, guard, "pendingFollowUp"/g)).toHaveLength(1);
     expect(app.match(/persistMutationJournal\(token, guard, "pendingAssumptions"/g)).toHaveLength(3);
     expect(app.match(/persistMutationJournal\(token, guard, "pendingCorrection"/g)).toHaveLength(1);
     expect(app).toMatch(/synchronize: \(next\) => \{[\s\S]*?latestUi\.current = next;[\s\S]*?setStateRaw/);
     expect(app).toMatch(/onExplainFollowUp[\s\S]*?!current\.consentGranted[\s\S]*?followUpBusy\.current = true/);
-    expect(app).toMatch(/onRevoke=[\s\S]*?api\.capture\(token\)[\s\S]*?revokeConsentWithinAccount\(\{[\s\S]*?invalidateView: \(\) => api\.invalidateView\(token\)[\s\S]*?waitForJournal: \(\) => mutationJournalWrite\.current[\s\S]*?persist: \(revoked\) => sessionStorage\.persistRequired\(token, revoked\)[\s\S]*?revokeRemote: \(\) => api\.consent\(token, false\)[\s\S]*?accountGuard\.current\(\)/);
+    expect(app).toMatch(/onRevoke=[\s\S]*?credential = memberAuthority\(\)[\s\S]*?api\.capture\(credential\(\)\)[\s\S]*?revokeConsentWithinAccount\(\{[\s\S]*?invalidateView: \(\) => api\.invalidateView\(credential\(\)\)[\s\S]*?waitForJournal: \(\) => mutationJournalWrite\.current[\s\S]*?persist: \(revoked\) => sessionStorage\.persistRequired\(credential\(\), revoked\)[\s\S]*?revokeRemote: \(\) => api\.consent\(credential\(\), false\)[\s\S]*?accountGuard\.current\(\)/);
     expect(app).not.toMatch(/onRevoke=[\s\S]{0,160}if \(correctionAttempt\.current\) api\.invalidateView/);
   });
 

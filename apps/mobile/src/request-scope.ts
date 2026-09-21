@@ -6,6 +6,8 @@ export class SupersededRequest extends Error {
 export function createRequestScope() {
   let accountEpoch = 0, viewEpoch = 0, sourceEpoch = 0;
   let token: string | null = null, runId: string | null = null;
+  let principal: string | null = null;
+  let credentialGeneration = 0;
   const pending = new Map<AbortController, "account" | "view" | "source">();
   function abort(kind: "account" | "view" | "source") {
     for (const [controller, requestKind] of pending) {
@@ -13,9 +15,20 @@ export function createRequestScope() {
     }
   }
   return {
-    setSession(next: string | null) {
-      accountEpoch++; viewEpoch++; sourceEpoch++; token = next; runId = null; abort("account");
+    setSession(next: string | null, nextPrincipal?: string | null) {
+      accountEpoch++; viewEpoch++; sourceEpoch++; token = next; principal = nextPrincipal ?? null;
+      credentialGeneration++;
+      runId = null; abort("account");
     },
+    /** A verified renewal for the same internal member is credential churn, not a new principal or view. */
+    rotateCredential(next: string, samePrincipal: string) {
+      if (!next || !samePrincipal || principal !== samePrincipal || token === null) throw new SupersededRequest();
+      token = next; credentialGeneration++;
+    },
+    epochs() {
+      return { principalEpoch: accountEpoch, viewEpoch, credentialGeneration };
+    },
+    currentCredential() { return token; },
     selectRun(next: string | null) {
       if (next === runId) return;
       runId = next; viewEpoch++; sourceEpoch++; abort("view");
@@ -25,7 +38,7 @@ export function createRequestScope() {
       viewEpoch++; sourceEpoch++; abort("view");
     },
     closeSource() { sourceEpoch++; abort("source"); },
-    currentRun(session: string, id: string) { return token === session && runId === id; },
+    currentRun(session: string, id: string) { return session === token && runId === id; },
     capture(kind: "account" | "view" | "source", expectedToken?: string, expectedRun?: string) {
       if (expectedToken !== undefined && expectedToken !== token) throw new SupersededRequest();
       if (expectedRun !== undefined && expectedRun !== runId) throw new SupersededRequest();

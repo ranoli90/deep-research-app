@@ -23,9 +23,9 @@ const INVALIDATION_KEY = "deep.content-invalidation.v1";
 const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
-function storedState(state: UiState) {
-  const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
-  return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
+export function storedState(state: UiState) {
+  const { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
+  return { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -33,13 +33,13 @@ function blocks(value: unknown): boolean {
   return Array.isArray(value) && value.length <= 2000 && value.every((b) => record(b) &&
     [b.id, b.kind, b.text].every((s) => typeof s === "string") && strings(b.claimIds) && strings(b.citationIds));
 }
-function parseState(raw: string | null, accountId: string): UiState | null {
+export function parseState(raw: string | null, accountId: string): UiState | null {
   if (!raw || raw.length > 2_000_000) return null;
   try {
     const envelope: unknown = JSON.parse(raw);
     if (!record(envelope) || envelope.accountId !== accountId || !record(envelope.state)) return null;
     const s = envelope.state;
-    if (typeof s.draft !== "string" || typeof s.consentGranted !== "boolean" ||
+    if (typeof s.draft !== "string" || !(s.conversationId === undefined || s.conversationId === null || typeof s.conversationId === "string") || typeof s.consentGranted !== "boolean" ||
       !["fixture", "controlled-research"].includes(String(s.routeMode)) ||
       !["empty", "loading", "progress", "completed", "partial", "failed", "cancelled", "awaiting_input"].includes(String(s.status))) return null;
     if (s.run !== null && (!record(s.run) || ![s.run.runId, s.run.lifecycle, s.run.phase].every((v) => typeof v === "string") ||
@@ -110,6 +110,16 @@ export function createSessionStorage(cache: KeyValueStore, credentials: KeyValue
           if (version === epoch) { epoch++; current = null; }
           throw error;
         }
+      });
+    },
+    rotateCredential(previousToken: string, session: LocalSession): Promise<void> {
+      const version = epoch, owner = current;
+      if (!owner || owner.token !== previousToken || owner.accountId !== session.accountId || !session.token || session.token === previousToken) return Promise.reject(new Error("Session changed before credential refresh."));
+      return enqueue(async () => {
+        if (version !== epoch || current?.token !== previousToken || current.accountId !== session.accountId) throw new Error("Session changed during credential refresh.");
+        await credentials.setItem(SESSION_KEY, JSON.stringify({ ...session, backend }));
+        if (version !== epoch || current?.token !== previousToken || current.accountId !== session.accountId) throw new Error("Session changed during credential refresh.");
+        current = { ...session };
       });
     },
     redactRunContent(token: string, runId: string, state: UiState): Promise<void> {

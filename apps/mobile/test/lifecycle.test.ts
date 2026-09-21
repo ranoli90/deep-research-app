@@ -102,7 +102,9 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/api\.followUp/);
     expect(src).toMatch(/logoutLocal\(sessionStorage/);
     expect(src).toMatch(/stopPolling\(\)/);
-    expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !api\.currentRun\(t, runId\)\) throw new SupersededRequest\(\);/);
+    expect(src).toMatch(/if \(!s\.signedIn \|\| s\.pendingSourceDeletion \|\| deletingSource\.current \|\| !currentReader\(\)\) throw new SupersededRequest\(\);/);
+    expect(src).toMatch(/api\.sessionEpochs\(\)\.principalEpoch !== principalEpoch/);
+    expect(src).toMatch(/api\.currentCredential\(\) !== current/);
     expect(src).toMatch(/Linking\.openURL\(deletionPageUrl\)/);
     expect(src).toMatch(/api\.settings\(token\)/);
     const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
@@ -118,7 +120,7 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/staleCorrection && state\.run/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
-    expect(src).toMatch(/onCorrect[\s\S]*?adoptReturnedChild\([\s\S]*?poll: \(runId\) => startPolling\(token, runId\)/);
+    expect(src).toMatch(/onCorrect[\s\S]*?adoptReturnedChild\([\s\S]*?poll: \(runId\) => startPolling\(credential\(\), runId\)/);
     expect(src).toMatch(/createReadingRestoration/);
     expect(src).toMatch(/measureViewport/);
     expect(src).toMatch(/measureContent/);
@@ -165,7 +167,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toContain('accessibilityLabel="Library"');
     expect(src).toContain('accessibilityLabel="New research"');
     expect(src).toContain("routeMode: prev.routeMode, reducedMotion: prev.reducedMotion");
-    expect(src).toMatch(/function onNewResearch\(\) \{\s*submitting\.current = false;/);
+    const newResearch = src.slice(src.indexOf("function onNewResearch()"), src.indexOf("async function onContinueClarification()"));
+    expect(newResearch).toContain("if (savedSecondMessageBlocksWork())");
+    expect(newResearch).toContain("submitting.current = false;");
+    expect(newResearch.indexOf("if (savedSecondMessageBlocksWork())")).toBeLessThan(newResearch.indexOf("submitting.current = false;"));
     expect(src).toContain("androidBack(latestUi.current)");
     expect(src).toMatch(/return true;\s*\}\);/);
     expect(src).toContain('accessibilityLabel="Open profile and settings"');
