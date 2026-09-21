@@ -3,7 +3,7 @@ import type pg from "pg";
 import type { FastifyInstance } from "fastify";
 import type PgBoss from "pg-boss";
 import { createPool, migrate } from "../src/platform/db.js";
-import { accountForIdentity } from "../src/modules/identity.js";
+import { accountForIdentity, identityDigest } from "../src/modules/identity.js";
 import { createDevSession, deleteAccount } from "../src/modules/access.js";
 import { loadConfig } from "../src/platform/config.js";
 import { buildApp } from "../src/api/app.js";
@@ -33,6 +33,17 @@ it("W03 concurrent verified identity mapping creates one owner and no implicit s
   await deleteAccount(pool, accountId);
   expect(await accountForIdentity(pool, identity)).toBeNull();
   expect((await pool.query("SELECT id FROM accounts WHERE id=$1 AND deleted_at IS NOT NULL", [accountId])).rowCount).toBe(1);
+});
+
+it("NARROW-GUEST-CLAIM deleted Clerk subject cannot be mapped again, even when deletion precedes first login", async () => {
+  const identity = { issuer: "https://clerk.test.example", subject: `user_${crypto.randomUUID().replaceAll("-", "")}` };
+  const digest = identityDigest(identity.issuer, identity.subject);
+  const eventId = crypto.randomUUID();
+  await pool.query(`INSERT INTO clerk_webhook_receipts(event_id,payload_digest,kind)
+    VALUES ($1,repeat('a',64),'user.deleted')`, [eventId]);
+  await pool.query(`INSERT INTO clerk_deleted_subjects(identity_digest,provider_event_id) VALUES ($1,$2)`, [digest, eventId]);
+  expect(await accountForIdentity(pool, identity)).toBeNull();
+  expect((await pool.query("SELECT 1 FROM external_identities WHERE identity_digest=$1", [digest])).rowCount).toBe(0);
 });
 
 it("W03 production rejects local sessions and never falls back when the real verifier is unavailable", async () => {
