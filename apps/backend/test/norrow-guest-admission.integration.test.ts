@@ -221,8 +221,10 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     expect(revoked.json()).toMatchObject({ granted: false, controlVersion: 2 });
     expect((await app.inject({ method: "GET", url: "/v1/session", headers: guest.headers })).json())
       .toMatchObject({ consentGranted: false, controlVersion: 2 });
-    const deleted = await app.inject({ method: "POST", url: "/v1/account/deletion",
+    const wrongBoundary = await app.inject({ method: "POST", url: "/v1/account/deletion",
       headers: guest.headers, payload: {} });
+    expect(wrongBoundary.statusCode).toBe(403);
+    const deleted = await app.inject({ method: "DELETE", url: "/v1/guest", headers: guest.headers });
     expect(deleted.statusCode).toBe(200);
     expect((await app.inject({ method: "GET", url: "/v1/session", headers: guest.headers })).statusCode).toBe(401);
     expect((await pool.query("SELECT status,proof_digest FROM guest_contexts WHERE id=$1", [guest.guestContextId])).rows[0])

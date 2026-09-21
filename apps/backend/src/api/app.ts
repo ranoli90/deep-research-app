@@ -216,7 +216,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         "/v1/guest/pending-actions/cancel",
         "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
         "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
-        "/v1/settings", "/v1/routes/capabilities", "/v1/account/deletion"]);
+        "/v1/settings", "/v1/routes/capabilities", "/v1/guest"]);
       if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim"))
         return reply.code(403).send(err("authority_denied", "This credential combination is not allowed.", crypto.randomUUID()));
     }
@@ -1326,9 +1326,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/account/deletion", async (req, reply) => {
-    const g = await guest(req as never);
-    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
+    const a = await auth(req as never);
     return performDeletion(a, reply, false);
+  });
+
+  app.delete("/v1/guest", async (req, reply) => {
+    const context = await guest(req as never);
+    if (!context) return reply.code(403).send(err("authority_denied", "Guest proof is no longer valid.", crypto.randomUUID()));
+    return performDeletion({ accountId: context.accountId }, reply, false);
   });
 
   app.post("/v1/billing/webhooks", async (req, reply) => {
