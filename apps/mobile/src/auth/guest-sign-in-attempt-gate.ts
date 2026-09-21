@@ -69,19 +69,11 @@ export class GuestSignInAttemptGate {
   async dismiss(currentTask: GuestSignInSessionTask | null): Promise<GuestSignInSessionTask | null> {
     this.dismissed = true;
     const active = this.active;
-    if (active) {
-      active.cancelled = true;
-      if (!active.task) {
-        try {
-          const attempt = await active.prepared;
-          this.assertMatchingAttempt(active.request, attempt);
-          active.task = taskFor(attempt);
-        } catch {
-          // A failed prepare wrote no confirmed attempt; the host still records
-          // dismissal of the pending action below using the existing task.
-        }
-      }
-    }
+    if (active) active.cancelled = true;
+    // Do not await preparation here. The host dismissal is scoped to the
+    // saved pending action, so it can suppress continuation before a flaky
+    // durable-attempt write replies. A late attempt remains reconciliation
+    // data only; `run` observes `cancelled` and cannot launch it.
     const task = active?.task ?? currentTask;
     await this.transport.dismiss({ task, reason: "dismissed" });
     return task;

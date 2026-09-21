@@ -29,7 +29,7 @@ describe("guest sign-in attempt gate", () => {
     expect(calls).toEqual(["prepare", "begin", "provider"]);
   });
 
-  it("suppresses a prepared provider when dismissal starts before prepare resolves", async () => {
+  it("durably dismisses immediately and suppresses a provider when preparation never resolves", async () => {
     const prepared = deferred<GuestSignInAttempt>();
     const calls: string[] = [];
     const gate = new GuestSignInAttemptGate({
@@ -38,10 +38,13 @@ describe("guest sign-in attempt gate", () => {
     });
     const start = gate.run({ operation: "provider", provider: "google", email: null }, async () => { calls.push("begin"); }, async () => { calls.push("provider"); });
     const closing = gate.dismiss(null);
-    prepared.resolve(google);
     await closing;
+    expect(calls).toEqual(["dismiss:none"]);
+    // The preparation promise remains unresolved at this point: dismissal is
+    // not held hostage by an offline durable-attempt write.
+    prepared.resolve(google);
     await expect(start).resolves.toBeNull();
-    expect(calls).toEqual(["dismiss:attempt-google"]);
+    expect(calls).toEqual(["dismiss:none"]);
   });
 
   it("rejects a prepare result that does not match its durable request", async () => {
