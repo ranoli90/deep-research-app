@@ -23,7 +23,7 @@ const INVALIDATION_KEY = "deep.content-invalidation.v1";
 const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
-function storedState(state: UiState) {
+export function storedState(state: UiState) {
   const { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
   return { draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
 }
@@ -33,7 +33,7 @@ function blocks(value: unknown): boolean {
   return Array.isArray(value) && value.length <= 2000 && value.every((b) => record(b) &&
     [b.id, b.kind, b.text].every((s) => typeof s === "string") && strings(b.claimIds) && strings(b.citationIds));
 }
-function parseState(raw: string | null, accountId: string): UiState | null {
+export function parseState(raw: string | null, accountId: string): UiState | null {
   if (!raw || raw.length > 2_000_000) return null;
   try {
     const envelope: unknown = JSON.parse(raw);
