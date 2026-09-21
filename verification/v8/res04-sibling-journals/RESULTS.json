@@ -1,0 +1,88 @@
+{
+  "taskIds": ["RES-04", "BB-03"],
+  "date": "2026-09-20",
+  "worktree": "/home/oranolio/Desktop/deep-v8-res04-20260920",
+  "branch": "codex/v8-res04-sibling-journals",
+  "base": "b818a1c07354b78d30cd8ed88bf1d37a36dfa70f",
+  "initialImplementationCommit": "9327b21fc3b7b602f34aa8607ada9b8b7d9add97",
+  "reviewRepairCommit": "045076cc181336bb581f060de3b7ca6d14f4b7e9",
+  "implementationTree": "43d6727da8b14598e7023f9c3a0bf7c043612e54",
+  "scope": "Strict assumption and correction durable-record parsing, hydration, replay, and behavioral tests; local recovery implementation lane only.",
+  "commands": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "result": "772 packages materialized from local store; 0 downloads",
+      "scope": "deterministic workspace setup"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "result": "expected-red test-only baseline: 34 failed, 403 passed",
+      "scope": "RES-04 regressions before implementation"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "result": "52 files passed; 437 tests passed",
+      "scope": "exact implementation commit 9327b21"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 1,
+      "result": "reviewer-reproduction baseline: foreign accepted confirmation failed 1 test; 437 passed",
+      "scope": "test-only repair regression before 045076c"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile test",
+      "exitCode": 0,
+      "result": "52 files passed; 438 tests passed",
+      "scope": "exact reviewer-repair commit 045076c"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "result": "tsc --noEmit passed",
+      "scope": "exact implementation commit 9327b21"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "result": "boundaries=ok",
+      "scope": "exact implementation commit 9327b21"
+    },
+    {
+      "command": "pnpm --filter @deep/mobile typecheck",
+      "exitCode": 0,
+      "result": "tsc --noEmit passed",
+      "scope": "exact reviewer-repair commit 045076c"
+    },
+    {
+      "command": "node scripts/check-boundaries.mjs",
+      "exitCode": 0,
+      "result": "boundaries=ok",
+      "scope": "exact reviewer-repair commit 045076c"
+    },
+    {
+      "command": "python3 scripts/validate_review.py",
+      "exitCode": 0,
+      "result": "ok=true; errors=[]",
+      "scope": "evidence documentation"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
+      "exitCode": 0,
+      "result": "16 tests passed",
+      "scope": "evidence documentation"
+    }
+  ],
+  "claimsNotMade": [
+    "No native device or build verification",
+    "No database or hosted verification",
+    "No live model/provider call",
+    "No release or integration approval"
+  ],
+  "legacyPolicy": "No legacy journal migration is supported because incomplete rows cannot prove immutable request identity. Such rows remain held for explicit device cleanup.",
+  "rollback": "Revert 045076c then 9327b21. No schema, dependency, durable-row rewrite, remote state, or financial state changed.",
+  "review": "Initial independent review rejected foreign accepted confirmation identity. Commit 045076c awaits the same reviewer's rerun before integration."
+}
