@@ -23,6 +23,10 @@ import {
   PROCESSOR_DISCLOSURE,
   GuestBootstrapRequestSchema,
   GuestPendingActionRequestSchema,
+  GuestClaimRequestSchema,
+  GuestClaimResolveRequestSchema,
+  GuestActionResumeRequestSchema,
+  GuestActionResolveRequestSchema,
 } from "@deep/contracts";
 import {
   applyCorrectionToConstraints,
@@ -84,7 +88,8 @@ import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { accountForIdentity } from "../modules/identity.js";
-import { admitGuestFirst, bootstrapGuest, guestFromProof, registerGuestPendingAction } from "../modules/guest-auth.js";
+import { admitGuestFirst, bootstrapGuest, claimGuestAction, guestFromProof, registerGuestPendingAction,
+  resolveGuestAction, resolveGuestClaim, resolveGuestFirstRequest, resumeClaimedGuestAction } from "../modules/guest-auth.js";
 
 export type AppDeps = {
   pool: pg.Pool;
@@ -107,6 +112,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return reply.code(status).send(err(publicCode, status === 409 ? "The request no longer matches the current research state." : status === 500 ? "The request could not be completed." : "The request was not accepted.",crypto.randomUUID()));
   });
   const typedCorrectionsEnabled=Boolean(config.structuredModelEnabled&&config.liveRouteEnabled&&config.openRouterApiKey&&config.liveSpendCapMicro>0&&(config.liveKeySpendCapMicro??0)>0);
+  function guestError(reply: FastifyReply, error: unknown) {
+    const code = (error as { code?: string }).code;
+    const status = (error as { statusCode?: number }).statusCode;
+    if (code === "allowance_exhausted") return reply.code(402).send(err("allowance_exhausted",
+      "This action is saved, but available member allowance is required before it can continue.", crypto.randomUUID(),
+      "The pending action remains available for an exact retry after funding."));
+    if (code && status && status >= 400 && status < 500)
+      return reply.code(status).send(err(code, "This guest action cannot continue with the current authority or state.", crypto.randomUUID()));
+    throw error;
+  }
 
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_req, body, done) => {
     done(null, String(body));
@@ -151,6 +166,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/dev/session": z.object({ email: z.string().email().max(254).optional() }).strict(),
     "/v1/guest/bootstrap": GuestBootstrapRequestSchema,
     "/v1/guest/pending-actions": GuestPendingActionRequestSchema,
+    "/v1/guest/claim": GuestClaimRequestSchema,
+    "/v1/guest/claims/resolve": GuestClaimResolveRequestSchema,
+    "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
+    "/v1/guest/actions/resolve": GuestActionResolveRequestSchema,
     "/v1/consent": z.object({ grant: z.boolean() }).strict(),
     "/v1/runs/:id/cancel": z.object({}).strict(),
     "/v1/account/deletion": z.object({}).strict(),
@@ -167,6 +186,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   };
   app.addHook("preValidation", async (req, reply) => {
     const route = req.routeOptions.url ?? "";
+    const proof = req.headers["x-norrow-guest-proof"];
+    if (proof !== undefined) {
+      const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/runs", "/v1/run-requests/resolve",
+        "/v1/guest/pending-actions", "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
+        "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
+        "/v1/settings", "/v1/routes/capabilities", "/v1/account/deletion"]);
+      if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim"))
+        return reply.code(403).send(err("authority_denied", "This credential combination is not allowed.", crypto.randomUUID()));
+    }
     if (route.includes(":id") && !z.object({ id: z.string().uuid() }).strict().safeParse(req.params).success)
       return reply.code(400).send(err("invalid_input", "A valid object identity is required.", crypto.randomUUID()));
     if (req.method === "GET" && route.startsWith("/v1/")) {
@@ -207,6 +235,43 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
   });
 
+  app.post("/v1/guest/claim", async (req, reply) => {
+    const context = await guest(req as never);
+    const member = await auth(req as never);
+    if (!context || !member || member.deleted) return reply.code(403).send(err("authority_denied", "Both verified member and guest proof are required.", crypto.randomUUID()));
+    try {
+      return await claimGuestAction(pool, context, member.accountId, member.deletionEpoch,
+        GuestClaimRequestSchema.parse(req.body));
+    } catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/claims/resolve", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestClaimResolveRequestSchema.parse(req.body);
+    try { return await resolveGuestClaim(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/resume", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    try {
+      const result = await resumeClaimedGuestAction(pool, member.accountId,
+        GuestActionResumeRequestSchema.parse(req.body));
+      await tryDispatchRun(pool, boss, result.runId);
+      return result;
+    } catch (error) { return guestError(reply, error); }
+  });
+
+  app.post("/v1/guest/actions/resolve", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("authority_denied", "Sign in required.", crypto.randomUUID()));
+    const input = GuestActionResolveRequestSchema.parse(req.body);
+    try { return await resolveGuestAction(pool, member.accountId, input.claimRequestId, input.submissionId); }
+    catch (error) { return guestError(reply, error); }
+  });
+
   app.get("/v1/session", async (req, reply) => {
     const g = await guest(req as never);
     if (g) {
@@ -238,11 +303,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.post("/v1/run-requests/resolve", async (req, reply) => {
-    const a = await auth(req as never);
+    const g = await guest(req as never);
+    const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     const input = z.object({ idempotencyKey: z.string().uuid(), verification: VerificationRecoverySchema.optional() }).strict().safeParse(req.body);
     if (!input.success) return reply.code(400).send(err("invalid_input", "Saved request key required.", crypto.randomUUID()));
-    const resolved = await resolveAdmission(pool, a.accountId, input.data.idempotencyKey, input.data.verification);
+    if (g && input.data.verification) return reply.code(403).send(err("authority_denied", "Guest proof is limited to the first request.", crypto.randomUUID()));
+    const resolved = g ? await resolveGuestFirstRequest(pool, g, input.data.idempotencyKey)
+      : await resolveAdmission(pool, a.accountId, input.data.idempotencyKey, input.data.verification);
     if (!resolved) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
     return resolved;
   });

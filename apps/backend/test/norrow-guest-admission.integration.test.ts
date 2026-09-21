@@ -92,4 +92,76 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     expect((await pool.query("SELECT reserved_micro::int AS n FROM guest_sponsor_ledgers WHERE policy_id='norrow-guest-first.v1'")).rows[0].n).toBe(100000);
     expect((await pool.query("SELECT count(*)::int AS n FROM guest_sponsor_reservations WHERE run_id=$1", [runId])).rows[0].n).toBe(1);
   });
+
+  it("claims with dual proof, preserves member funding gate, resumes once, and allows a third member send", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const firstId = crypto.randomUUID();
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": firstId },
+      payload: { question: "What is the filing deadline for employment tax?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const firstRunId = first.json().runId as string;
+    const resolveFirst = await app.inject({ method: "POST", url: "/v1/run-requests/resolve", headers: guest.headers,
+      payload: { idempotencyKey: firstId } });
+    expect(resolveFirst.json()).toMatchObject({ status: "accepted", run: { runId: firstRunId } });
+    const action = { kind: "new_research" as const, text: "Compare current filing requirements" };
+    const submissionId = crypto.randomUUID();
+    const payloadDigest = createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex");
+    const register = await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, payload: action, payloadDigest, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(register.statusCode).toBe(202);
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string; accountId: string };
+    const memberHeaders = { authorization: `Bearer ${member.token}` };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim", headers: memberHeaders,
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1 } })).statusCode).toBe(403);
+    const claimRequestId = crypto.randomUUID();
+    const claim = await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...memberHeaders, ...guest.headers },
+      payload: { claimRequestId, submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1 } });
+    expect(claim.statusCode).toBe(200);
+    expect(claim.json()).toMatchObject({ type: "claim_accepted", accountId: member.accountId,
+      budgetAllowed: true, authorityAllowed: true, controlVersion: 2 });
+    const claimResolve = await app.inject({ method: "POST", url: "/v1/guest/claims/resolve", headers: memberHeaders,
+      payload: { claimRequestId, submissionId } });
+    expect(claimResolve.json()).toMatchObject({ type: "claim_accepted", controlVersion: 2 });
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${firstRunId}`, headers: guest.headers })).statusCode).toBe(401);
+    const resumePayload = { submissionId, claimRequestId, controlVersion: 2, payloadDigest };
+    await pool.query("UPDATE allowance_accounts SET limit_micro=0 WHERE account_id=$1", [member.accountId]);
+    const unfunded = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: resumePayload });
+    expect(unfunded.statusCode).toBe(402);
+    expect(unfunded.json().code).toBe("allowance_exhausted");
+    expect((await pool.query("SELECT state FROM guest_pending_actions WHERE submission_id=$1", [submissionId])).rows[0].state)
+      .toBe("claimed");
+    await pool.query("UPDATE allowance_accounts SET limit_micro=300000 WHERE account_id=$1", [member.accountId]);
+    const resume = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: resumePayload });
+    expect(resume.statusCode).toBe(200);
+    const receipt = resume.json() as { runId: string; memberConversationId: string; receiptId: string };
+    expect(receipt).toMatchObject({ type: "continuation_dispatched", kind: "new_research" });
+    const replay = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: memberHeaders,
+      payload: resumePayload });
+    expect(replay.json()).toMatchObject({ runId: receipt.runId, receiptId: receipt.receiptId });
+    const resolved = await app.inject({ method: "POST", url: "/v1/guest/actions/resolve", headers: memberHeaders,
+      payload: { submissionId, claimRequestId } });
+    expect(resolved.json()).toMatchObject({ runId: receipt.runId, receiptId: receipt.receiptId });
+    const memberRun = (await pool.query("SELECT account_id,claimed_parent_run_id,guest_pending_action_id FROM runs WHERE id=$1",
+      [receipt.runId])).rows[0];
+    expect(memberRun).toMatchObject({ account_id: member.accountId, claimed_parent_run_id: firstRunId,
+      guest_pending_action_id: submissionId });
+    expect((await pool.query("SELECT account_id FROM runs WHERE id=$1", [firstRunId])).rows[0].account_id)
+      .not.toBe(member.accountId);
+    const third = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...memberHeaders, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What changes next year?", routeMode: "fixture",
+        conversationId: receipt.memberConversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(third.statusCode).toBe(200);
+    expect(third.json().runId).not.toBe(receipt.runId);
+  });
 });
