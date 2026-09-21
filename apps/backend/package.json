@@ -23,6 +23,7 @@
     "worker": "tsx src/worker/main.ts"
   },
   "dependencies": {
+    "@clerk/backend": "3.18.1",
     "@deep/contracts": "workspace:*",
     "@deep/research-core": "workspace:*",
     "fastify": "^5.6.0",
