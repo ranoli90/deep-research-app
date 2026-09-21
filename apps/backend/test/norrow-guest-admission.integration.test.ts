@@ -11,6 +11,8 @@ import { loadConfig } from "../src/platform/config.js";
 import { recordIntent, settleRun } from "../src/modules/billing.js";
 import { processRun } from "../src/worker/diagnostic-executor.js";
 import { assertRouteAdmission } from "../src/modules/run-route-admission.js";
+import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
+import { publishReport } from "../src/modules/reports.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
 let pool: pg.Pool;
@@ -268,6 +270,47 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
       await expect(withTx(single, (db) => assertRouteAdmission(db, config, "controlled-research")))
         .resolves.toBeUndefined();
     } finally { await single.end(); }
+  });
+
+  it("fences a claimed parent worker and direct publication after binding revocation", async () => {
+    const guest = await enabledGuest();
+    await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers, payload: { grant: true } });
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "What did ACME announce about Widget 4?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const runId = first.json().runId as string;
+    const owner = (await pool.query("SELECT execution_owner_account_id FROM guest_contexts WHERE id=$1",
+      [guest.guestContextId])).rows[0].execution_owner_account_id as string;
+    const action = { kind: "new_research" as const, text: "Another Widget question" };
+    const submissionId = crypto.randomUUID();
+    const authAttemptId = crypto.randomUUID();
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, payload: action,
+        payloadDigest: createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex"),
+        consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin", headers: guest.headers,
+      payload: { submissionId, authAttemptId, provider: "email_code" } });
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as { token: string };
+    expect((await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...guest.headers, authorization: `Bearer ${member.token}` },
+      payload: { claimRequestId: crypto.randomUUID(), submissionId, guestContextId: guest.guestContextId,
+        conversationId: guest.conversationId, conversationVersion: 1, authAttemptId } })).statusCode).toBe(200);
+    await pool.query("UPDATE conversation_control_bindings SET revoked_at=now(),revocation_reason='member_revoked' WHERE guest_context_id=$1",
+      [guest.guestContextId]);
+    await pool.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
+      SELECT id,control_version,'member_revoked' FROM guest_contexts WHERE id=$1`, [guest.guestContextId]);
+    expect(await guestExecutionAllowed(pool, runId, owner)).toBe(false);
+    await processRun(pool, loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
+      DEV_ALLOW_FIXTURE_ROUTE: "true" }), runId);
+    expect((await pool.query("SELECT count(*)::int AS n FROM reports WHERE run_id=$1", [runId])).rows[0].n).toBe(0);
+    const attempted = await publishReport(pool, { accountId: owner, report: { runId } as never,
+      loaded: {} as never, claims: [], passages: [], deleted: false });
+    expect(attempted).toMatchObject({ accepted: false, reason: "guest_control_revoked" });
+    expect((await app.inject({ method: "GET", url: `/v1/runs/${runId}`,
+      headers: { authorization: `Bearer ${member.token}` } })).statusCode).toBe(404);
   });
 
   it("moves unknown paid outcome into sponsor HOLD and settles exact confirmed receipt once", async () => {

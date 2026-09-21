@@ -80,6 +80,8 @@ export async function performPublicSearch(pool:pg.Pool,config:AppConfig,session:
    throw new Error("invalid_saved_search");
   return finish(result.data,true);
  }
+ // Intent reservation is not permission to issue after a claim/delete/consent transition.
+ await session.write(async()=>undefined);
  const result=SearchResultSchema.parse(await liveWebSearch(searchQuery,config,session.signal,45_000,true,policy.id));
  await withTx(pool,async(db)=>{
   const state=result.receipt.state==="failed"?"failed":result.receipt.actualMicro===undefined?"outcome-unknown":"confirmed";

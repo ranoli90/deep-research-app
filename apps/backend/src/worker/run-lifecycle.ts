@@ -5,6 +5,7 @@ import { consentAllowsProcessing } from "../modules/access.js";
 import { settleRun } from "../modules/billing.js";
 import { claimLease, finishOwnedCancellationIfIdle, getRun, markTerminal, emitEvent } from "../modules/runs.js";
 import { fencedSession, LostWorkerLease } from "./fenced-session.js";
+import { guestExecutionAllowed } from "../modules/guest-execution-control.js";
 import type { ProcessOptions } from "./execution-options.js";
 
 async function isDeleted(db: Queryable, accountId: string): Promise<boolean> {
@@ -80,6 +81,14 @@ export async function prepareRunStep(pool:pg.Pool,runId:string,fence:number,sess
           summary: "Consent revoked; remaining processing is discarded.",
           phase: run.phase,
         });
+      }, true);
+      return;
+    }
+
+    if (!await guestExecutionAllowed(pool, runId, run.account_id)) {
+      await session.write(async (c) => {
+        await markTerminal(c, runId, "cancelled");
+        await settleRun(c, run.account_id, runId, run.spent_micro);
       }, true);
       return;
     }

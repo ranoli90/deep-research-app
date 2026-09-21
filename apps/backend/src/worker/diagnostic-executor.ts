@@ -332,6 +332,7 @@ async function processOwnedRun(pool: pg.Pool, config: AppConfig, runId: string, 
           });
           intentId = attempt.intentId;
           if (attempt.issue) {
+            await session.write(async () => undefined);
             const live = await liveWebSearch(query, config, session.signal);
             await withTx(pool, async (db) => {
               await updateIntentState(db, intentId!, live.receipt.state, live.receipt.actualMicro);

@@ -11,6 +11,7 @@ import { reportCompletionCovered } from "./publication-coverage.js";
 import { scopedPublicationClaims } from "./scoped-publication.js";
 import { persistCheckedClaims } from "./claim-support.js";
 import { loadEvidence } from "./evidence.js";
+import { guestExecutionAllowed } from "./guest-execution-control.js";
 
 export async function publishReport(
   db: Queryable,
@@ -28,6 +29,8 @@ export async function publishReport(
   const run = await getRun(db, args.report.runId, { forUpdate: true });
   if (!run) return { accepted: false, reason: "missing_run" };
   if (run.account_id !== args.accountId) return { accepted: false, reason: "wrong_owner" };
+  if (!await guestExecutionAllowed(db, run.id, args.accountId))
+    return { accepted: false, reason: "guest_control_revoked" };
   if (Object.keys(args.loaded).some((key) => args.report.basis[key as keyof RevisionBasis] !== args.loaded[key as keyof RevisionBasis])) {
     return { accepted: false, reason: "stale_report_basis" };
   }
@@ -84,6 +87,12 @@ export async function publishReport(
   }
   if (!deletedNow && (!consent || consent.revoked || consent.epoch !== args.loaded.consentEpoch)) reason = "consent_revoked";
   if (reason === "ok" && run.lifecycle === "terminal") return { accepted: false, reason: "already_published" };
+  if (reason === "ok" && !await guestExecutionAllowed(db, run.id, args.accountId)) {
+    await db.query(`INSERT INTO publication_attempts(run_id,fence,accepted,reason)
+      VALUES($1,$2,false,'guest_control_revoked')`,
+      [run.id, JSON.stringify({ loaded: args.loaded, current })]);
+    return { accepted: false, reason: "guest_control_revoked" };
+  }
   if(reason === "ok" && !(await reportCompletionCovered(db,args.accountId,args.report))) {
     await db.query("INSERT INTO publication_attempts(run_id,fence,accepted,reason) VALUES($1,$2,false,'incomplete_question_coverage')",
       [run.id,JSON.stringify({loaded:args.loaded,current})]);

@@ -7,6 +7,7 @@ import type pg from "pg";
 import { withTx } from "../platform/db.js";
 import { getRun } from "./runs.js";
 import { currentConsent } from "./access.js";
+import { guestExecutionAllowed } from "./guest-execution-control.js";
 import { operationClassFor, reserveOperationBudget } from "../model-governor/index.js";
 
 /** Run remaining after confirmed spend plus issued/unknown holds. Never trust a lagging spent_micro snapshot. */
@@ -87,6 +88,7 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
         run.brief_revision !== args.briefRevision || (args.evidenceRevision !== undefined && (args.historical ? run.evidence_revision < args.evidenceRevision : run.evidence_revision !== args.evidenceRevision)) || Number(lease.rows[0]?.fence) !== args.fence) {
       throw new Error("stale_or_unauthorized_attempt");
     }
+    if (!await guestExecutionAllowed(db, args.runId, identity.account_id)) throw new Error("stale_or_unauthorized_attempt");
     const prior = await db.query<{ id: string; request_digest: string }>(`SELECT i.id, a.request_digest
       FROM run_actions a JOIN provider_intents i ON i.action_id = a.id
       WHERE a.run_id = $1 AND a.logical_key = $2`, [args.runId, args.logicalKey]);
@@ -160,7 +162,8 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     // Budget locks can wait beyond the lease checked above. Account/run rows
     // remain locked, but time still advances: revalidate at the issuance boundary.
     const currentLease = await db.query("SELECT 1 FROM run_leases WHERE run_id = $1 AND fence = $2 AND expires_at > clock_timestamp()", [args.runId, args.fence]);
-    if (currentLease.rowCount !== 1) throw new Error("stale_or_unauthorized_attempt");
+    if (currentLease.rowCount !== 1 || !await guestExecutionAllowed(db, args.runId, identity.account_id))
+      throw new Error("stale_or_unauthorized_attempt");
     const actionId = crypto.randomUUID();
     const intentId = crypto.randomUUID();
     await db.query(`INSERT INTO run_actions (id, run_id, brief_revision, logical_key, kind, request_digest)
@@ -170,7 +173,8 @@ export async function reserveLiveAttempt(pool: pg.Pool, config: AppConfig, args:
     // INSERTs can themselves block. Roll back the entire action/intent if the
     // lease expired during that wait; no caller may dispatch from this attempt.
     const finalLease = await db.query("SELECT 1 FROM run_leases WHERE run_id = $1 AND fence = $2 AND expires_at > clock_timestamp()", [args.runId, args.fence]);
-    if (finalLease.rowCount !== 1) throw new Error("stale_or_unauthorized_attempt");
+    if (finalLease.rowCount !== 1 || !await guestExecutionAllowed(db, args.runId, identity.account_id))
+      throw new Error("stale_or_unauthorized_attempt");
     return { intentId, issue: true };
   });
 }
