@@ -59,12 +59,13 @@ describe("W05 criterion-linked answer coverage",()=>{
      scope:{entity:null,time:null,plan:null,version:null,geography:null,population:null},provenance:compoundSpan,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
     questions:[{key:"q_dates",text:compoundQuestion,criterionKeys:["founding_dates"],importance:"critical",evidenceStandard:"both entities"}],
     assumptions:[],openAmbiguities:[],explicitExclusions:[]};
-   const claim={...assertion,key:"a_ardent",criterionKeys:["founding_dates"],text:"Ardent Labs was founded in 2004.",scope:{...scope,entity:"Ardent Labs",time:null}};
+   const claim={...assertion,key:"a_ardent",criterionKeys:["founding_dates"],text:"Unlike Brindle Works, Ardent Labs was founded in 2004.",scope:{...scope,entity:"Ardent Labs",time:null}};
    const optimistic:ResearchModelOutput<"review_coverage">={questions:[{questionKey:"q_dates",status:"supported",assertionKeys:[claim.key],reason:"The cited assertion answers the criterion."}],omittedRequirements:[]};
    const result=resolveResearchCoverage({question:compoundQuestion,task:compoundTask,assertions:[claim],checks:[{claimKey:claim.key,decision:"supported"}],proposal:optimistic});
    expect(result.complete,compoundQuestion).toBe(false);
    expect(result.unresolvedCriterionKeys,compoundQuestion).toEqual(["founding_dates"]);
    expect(result.questions[0]!.failedChecks,compoundQuestion).toContain("criterion_entity_without_assertion:founding_dates:brindle_works");
+   expect(result.questions[0]!.failedChecks,compoundQuestion).toContain("criterion_obligation_without_assertion:founding_dates:brindle_works:founding");
   }
  });
  it("binds deeper shared-key subquestions and distinct facts instead of reusing one assertion",()=>{
@@ -85,6 +86,32 @@ describe("W05 criterion-linked answer coverage",()=>{
    "criterion_entity_without_assertion:history:brindle_works",
    "criterion_fact_without_assertion:history:expansion",
   ]));
+ });
+ it("requires every requested entity and fact pair, including bare expand wording",()=>{
+  const pairedQuestion="When were Ardent Labs and Brindle Works founded, and how did each expand?";
+  const pairedSpan={start:0,end:pairedQuestion.length,quote:pairedQuestion};
+  const pairedTask:ResearchModelOutput<"brief">={objective:pairedQuestion,objectiveProvenance:pairedSpan,intendedOutput:"answer",
+   criteria:[{key:"company_histories",description:pairedQuestion,field:"founding and expansion",operator:"explain",value:null,unit:null,importance:"hard",
+    scope:{entity:null,time:null,plan:null,version:null,geography:null,population:null},provenance:pairedSpan,group:"g",groupOperator:"all",unresolvedAlternatives:[]}],
+   questions:[{key:"q_histories",text:pairedQuestion,criterionKeys:["company_histories"],importance:"critical",evidenceStandard:"founding and expansion for each entity"}],
+   assumptions:[],openAmbiguities:[],explicitExclusions:[]};
+  const ardentFounding={...assertion,key:"a_ardent_founding",criterionKeys:["company_histories"],text:"Ardent Labs was founded in 2004.",scope:{...scope,entity:"Ardent Labs",time:null}};
+  const brindleExpansion={...assertion,key:"a_brindle_expansion",criterionKeys:["company_histories"],text:"Brindle Works expanded through regional offices.",scope:{...scope,entity:"Brindle Works",time:null}};
+  const crossed=[ardentFounding,brindleExpansion];
+  const optimistic:ResearchModelOutput<"review_coverage">={questions:[{questionKey:"q_histories",status:"supported",assertionKeys:crossed.map((row)=>row.key),reason:"Both entities and both facts appear."}],omittedRequirements:[]};
+  const result=resolveResearchCoverage({question:pairedQuestion,task:pairedTask,assertions:crossed,checks:crossed.map((row)=>({claimKey:row.key,decision:"supported" as const})),proposal:optimistic});
+  expect(result.complete).toBe(false);
+  expect(result.questions[0]!.failedChecks).toEqual(expect.arrayContaining([
+   "criterion_obligation_without_assertion:company_histories:ardent_labs:expansion",
+   "criterion_obligation_without_assertion:company_histories:brindle_works:founding",
+  ]));
+  const complete=[
+   ...crossed,
+   {...assertion,key:"a_ardent_expansion",criterionKeys:["company_histories"],text:"Ardent Labs expanded through licensing.",scope:{...scope,entity:"Ardent Labs",time:null}},
+   {...assertion,key:"a_brindle_founding",criterionKeys:["company_histories"],text:"Brindle Works was founded in 2008.",scope:{...scope,entity:"Brindle Works",time:null}},
+  ];
+  const completeProposal:ResearchModelOutput<"review_coverage">={...optimistic,questions:[{...optimistic.questions[0]!,assertionKeys:complete.map((row)=>row.key)}]};
+  expect(resolveResearchCoverage({question:pairedQuestion,task:pairedTask,assertions:complete,checks:complete.map((row)=>({claimKey:row.key,decision:"supported" as const})),proposal:completeProposal}).complete).toBe(true);
  });
 });
 

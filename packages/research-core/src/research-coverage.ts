@@ -1,6 +1,7 @@
 import type { ResearchModelOutput } from "@deep/contracts";
 import { validateModelBindings } from "./model-bindings.js";
 import {
+  assertionCoversRequestedBinding,
   assertionCoversRequestedEntity,
   assertionCoversRequestedFact,
   requestedCriterionObligations,
@@ -79,6 +80,11 @@ export function resolveResearchCoverage(args:{question:string;task:Task;assertio
           for(const fact of questionObligations.facts) {
             if(!relevant.some((assertion)=>assertionCoversRequestedFact(assertion,fact))) {
               failedChecks.push(`criterion_fact_without_assertion:${key}:${fact}`);
+            }
+          }
+          for(const binding of questionObligations.bindings) {
+            if(!relevant.some((assertion)=>assertionCoversRequestedBinding(assertion,binding))) {
+              failedChecks.push(`criterion_obligation_without_assertion:${key}:${obligationKey(binding.entity)}:${binding.fact}`);
             }
           }
         }

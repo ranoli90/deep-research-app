@@ -30,6 +30,7 @@ const NORTHSTAR = "When was Northstar Bakery incorporated?";
 const TWO_COMPANY = "Compare when Helixworks and Nimbus Forge were founded and explain why their expansion strategies differed.";
 const MIXED_LATEST = "When was Vesper Transit founded and what is its latest headcount?";
 const COMPOUND_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded?";
+const PAIRED_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded, and how did each expand?";
 const MIXED_PRESENT_WORKFORCE = "When was Vesper Transit founded and how many employees work there now?";
 
 const HELIX_FACT = "Helixworks was founded in 2007.";
@@ -38,7 +39,9 @@ const EXPANSION_FACT = "Helixworks expanded by licensing kitchens; Nimbus Forge 
 const VESPER_FOUNDING = "Vesper Transit was founded in 2012-04-01 according to its charter filing.";
 const VESPER_HEADCOUNT = "Vesper Transit latest headcount is 4,820 employees as of 2026-08-01.";
 const NORTHSTAR_FACT = "Northstar Bakery was incorporated in 1998.";
-const ARDENT_FACT = "Ardent Labs was founded in 2004.";
+const ARDENT_FACT = "Unlike Brindle Works, Ardent Labs was founded in 2004.";
+const ARDENT_PAIRED_FOUNDING = "Ardent Labs was founded in 2004.";
+const BRINDLE_PAIRED_EXPANSION = "Brindle Works expanded through regional offices.";
 const WEATHER_TEXT = "Regional forecast: rain continues through Friday. Almanac rainfall notes only.";
 
 function response(output: unknown) {
@@ -90,7 +93,7 @@ function criterion(question: string, key: string, quote: string) {
   };
 }
 
-function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "ardent" | "vesper-founding" | "vesper-headcount", count: number) {
+function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "ardent" | "ardent-paired" | "brindle-paired" | "vesper-founding" | "vesper-headcount", count: number) {
   return Array.from({ length: count }, (_, i) => {
     if (kind === "weather") {
       return { url: `https://weather-${i}.example/forecast`, title: `Forecast ${i}`, content: WEATHER_TEXT };
@@ -110,6 +113,12 @@ function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" 
     if (kind === "ardent") {
       return { url: `https://ardent-labs-${i}.example/history`, title: `Ardent Labs history ${i}`, content: ARDENT_FACT };
     }
+    if (kind === "ardent-paired") {
+      return { url: `https://ardent-paired-${i}.example/history`, title: `Ardent Labs founding ${i}`, content: ARDENT_PAIRED_FOUNDING };
+    }
+    if (kind === "brindle-paired") {
+      return { url: `https://brindle-paired-${i}.example/history`, title: `Brindle Works expansion ${i}`, content: BRINDLE_PAIRED_EXPANSION };
+    }
     if (kind === "vesper-headcount") {
       return { url: `https://vesper-staff-${i}.example/headcount`, title: `Vesper headcount ${i}`, content: VESPER_HEADCOUNT };
     }
@@ -124,19 +133,23 @@ function textForUrl(url: string): string {
   if (/expansion-study-/.test(url)) return EXPANSION_FACT;
   if (/northstar-/.test(url)) return NORTHSTAR_FACT;
   if (/ardent-labs-/.test(url)) return ARDENT_FACT;
+  if (/ardent-paired-/.test(url)) return ARDENT_PAIRED_FOUNDING;
+  if (/brindle-paired-/.test(url)) return BRINDLE_PAIRED_EXPANSION;
   if (/vesper-staff-/.test(url)) return VESPER_HEADCOUNT;
   if (/vesper-charter-/.test(url)) return VESPER_FOUNDING;
   return WEATHER_TEXT;
 }
 
-function factForPassage(text: string): { criterionKeys: string[]; text: string } | null {
-  if (/Helixworks was founded in 2007/i.test(text)) return { criterionKeys: ["helix_founding"], text: HELIX_FACT };
-  if (/Nimbus Forge was founded in 2011/i.test(text)) return { criterionKeys: ["nimbus_founding"], text: NIMBUS_FACT };
-  if (/expanded by licensing kitchens/i.test(text)) return { criterionKeys: ["expansion_comparison"], text: EXPANSION_FACT };
-  if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT };
-  if (/Ardent Labs was founded in 2004/i.test(text)) return { criterionKeys: ["founding_dates"], text: ARDENT_FACT };
-  if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT };
-  if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING };
+function factForPassage(text: string): { criterionKeys: string[]; text: string; entity: string | null } | null {
+  if (/Helixworks was founded in 2007/i.test(text)) return { criterionKeys: ["helix_founding"], text: HELIX_FACT, entity: "Helixworks" };
+  if (/Nimbus Forge was founded in 2011/i.test(text)) return { criterionKeys: ["nimbus_founding"], text: NIMBUS_FACT, entity: "Nimbus Forge" };
+  if (/expanded by licensing kitchens/i.test(text)) return { criterionKeys: ["expansion_comparison"], text: EXPANSION_FACT, entity: null };
+  if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT, entity: "Northstar Bakery" };
+  if (/Unlike Brindle Works, Ardent Labs was founded/i.test(text)) return { criterionKeys: ["founding_dates"], text: ARDENT_FACT, entity: "Ardent Labs" };
+  if (/Ardent Labs was founded in 2004/i.test(text)) return { criterionKeys: ["company_histories"], text: ARDENT_PAIRED_FOUNDING, entity: "Ardent Labs" };
+  if (/Brindle Works expanded through regional offices/i.test(text)) return { criterionKeys: ["company_histories"], text: BRINDLE_PAIRED_EXPANSION, entity: "Brindle Works" };
+  if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT, entity: "Vesper Transit" };
+  if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING, entity: "Vesper Transit" };
   return null;
 }
 
@@ -211,7 +224,7 @@ async function runHeldout(
           candidateKey: null,
           criterionKeys: fact.criterionKeys,
           text: fact.text,
-          scope,
+          scope: { ...scope, entity: fact.entity },
           quantities: [],
           evidence: [{ passageId: p.id, start: 0, end: p.text.length, quote: p.text }],
         });
@@ -416,6 +429,43 @@ describe("held-out historical shortcut worker/DB", () => {
     expect((exhausted?.payload as { unresolvedCriterionKeys?: string[] } | undefined)?.unresolvedCriterionKeys, JSON.stringify(meta))
       .toContain("founding_dates");
     expect(meta.terminal, JSON.stringify(meta)).not.toBe("completed");
+  }, 60_000);
+
+  it("RES-02 keeps crossed entity-fact pairs open through Evidence Needs and publication", async () => {
+    const brief = {
+      objective: PAIRED_ONE_CRITERION,
+      objectiveProvenance: { start: 0, end: PAIRED_ONE_CRITERION.length, quote: PAIRED_ONE_CRITERION },
+      intendedOutput: "answer",
+      criteria: [criterion(PAIRED_ONE_CRITERION, "company_histories", PAIRED_ONE_CRITERION)],
+      questions: [{
+        key: "q_company_histories",
+        text: PAIRED_ONE_CRITERION,
+        criterionKeys: ["company_histories"],
+        importance: "critical",
+        evidenceStandard: "founding and expansion for each entity",
+      }],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [],
+    };
+    const { meta } = await runHeldout(
+      PAIRED_ONE_CRITERION,
+      brief,
+      () => [...pages("ardent-paired", 2), ...pages("brindle-paired", 2)],
+    );
+    const need = meta.needs.find((item) => item.criterion_key === "company_histories");
+    const failedChecks = meta.coverage.flatMap((result) => result.questions ?? []).flatMap((question) => question.failedChecks ?? []);
+    expect(failedChecks, JSON.stringify(meta)).toEqual(expect.arrayContaining([
+      "criterion_obligation_without_assertion:company_histories:ardent_labs:expansion",
+      "criterion_obligation_without_assertion:company_histories:brindle_works:founding",
+    ]));
+    expect(need?.state, JSON.stringify(meta)).not.toBe("satisfied");
+    expect(need?.next_action.kind, JSON.stringify(meta)).not.toBe("stop");
+    expect(meta.coverage.some((result) => result.unresolvedCriterionKeys?.includes("company_histories")), JSON.stringify(meta)).toBe(true);
+    expect(meta.report?.outcome, JSON.stringify(meta)).toBe("completed_with_limitations");
+    expect(meta.report?.limitations, JSON.stringify(meta)).toEqual(expect.arrayContaining([
+      "Unresolved critical question q_company_histories (unresolved_at_limit).",
+      unresolvedCriticalCriterionLimitation("company_histories"),
+    ]));
+    expect(meta.terminal, JSON.stringify(meta)).toBe("completed_with_limitations");
   }, 60_000);
 
   it("RES-03 treats natural present-tense employee count as current while its founding sibling stays historical", async () => {

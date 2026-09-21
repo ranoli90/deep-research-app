@@ -14,7 +14,7 @@ export type CriterionObligationInput = {
 };
 export type QuestionObligationInput = { key: string; text: string; criterionKeys: ReadonlyArray<string> };
 
-export const SEMANTIC_OBLIGATION_VERSION = "requested-obligations.v1";
+export const SEMANTIC_OBLIGATION_VERSION = "requested-obligations.v2";
 
 export type RequestedFactKind =
   | "availability"
@@ -34,6 +34,13 @@ export type RequestedCriterionObligations = {
   questionKeys: string[];
   entities: string[];
   facts: RequestedFactKind[];
+  bindings: RequestedObligationBinding[];
+};
+
+export type RequestedObligationBinding = {
+  questionKey: string | null;
+  entity: string;
+  fact: RequestedFactKind;
 };
 
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase("en-US").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -70,7 +77,7 @@ const FACT_PATTERNS: ReadonlyArray<readonly [RequestedFactKind, RegExp]> = [
   ["treaty_signature", /\b(?:treaty|signed|signature)\b/iu],
   ["outbreak", /\boutbreak\b/iu],
   ["war", /\bwar\b/iu],
-  ["expansion", /\b(?:expand(?:ed|s|ing)|expansion|growth strateg(?:y|ies))\b/iu],
+  ["expansion", /\b(?:expand(?:ed|s|ing)?|expansion|growth strateg(?:y|ies))\b/iu],
   ["workforce", /\b(?:employees?|staff|headcount|workforce|workers?|team size|number of people)\b/iu],
   ["price", /\b(?:price|pricing|cost)\b/iu],
   ["availability", /\b(?:availability|available|in stock)\b/iu],
@@ -115,12 +122,36 @@ export function requestedCriterionObligations(args: {
     ].join(" ")))];
   }
   if (!facts.length) facts = requestedFactKinds(args.originalQuestion);
+  const bindings: RequestedObligationBinding[] = [];
+  const bind = (questionKey: string | null, boundEntities: readonly string[], boundFacts: readonly RequestedFactKind[]) => {
+    for (const entity of boundEntities) {
+      for (const fact of boundFacts) bindings.push({ questionKey, entity, fact });
+    }
+  };
+  if (linked.length) {
+    for (const question of linked) {
+      let questionEntities = unique([
+        ...(scopedEntity ? [scopedEntity] : []),
+        ...requestedNamedEntities(question.text),
+      ]);
+      if (!questionEntities.length && entities.length === 1) questionEntities = entities;
+      const questionFacts = requestedFactKinds(question.text);
+      bind(question.key, questionEntities, questionFacts.length ? questionFacts : facts);
+    }
+  } else {
+    bind(null, entities, facts);
+  }
+  const uniqueBindings = new Map<string, RequestedObligationBinding>();
+  for (const binding of bindings) {
+    uniqueBindings.set(`${binding.questionKey ?? ""}\0${normalize(binding.entity)}\0${binding.fact}`, binding);
+  }
   return {
     version: SEMANTIC_OBLIGATION_VERSION,
     criterionKey: args.criterion.key,
     questionKeys: linked.map((question) => question.key),
     entities,
     facts,
+    bindings: [...uniqueBindings.values()],
   };
 }
 
@@ -132,16 +163,25 @@ export function criterionObligationIsAtomic(args: {
   if (args.criterion.operator === "compare" || args.criterion.groupOperator === "any") return false;
   if ((args.criterion.unresolvedAlternatives?.length ?? 0) > 0) return false;
   const obligations = requestedCriterionObligations(args);
-  return obligations.questionKeys.length <= 1 && obligations.entities.length === 1 && obligations.facts.length === 1;
+  return obligations.questionKeys.length <= 1
+    && obligations.entities.length === 1
+    && obligations.facts.length === 1
+    && obligations.bindings.length === 1;
 }
 
 export function assertionCoversRequestedEntity(assertion: Pick<Assertion, "text" | "scope">, entity: string): boolean {
   const wanted = normalize(entity);
-  if (!wanted) return false;
-  if (normalize(assertion.scope.entity ?? "") === wanted) return true;
-  return ` ${normalize(assertion.text)} `.includes(` ${wanted} `);
+  return !!wanted && normalize(assertion.scope.entity ?? "") === wanted;
 }
 
 export function assertionCoversRequestedFact(assertion: Pick<Assertion, "text">, fact: RequestedFactKind): boolean {
   return requestedFactKinds(assertion.text).includes(fact);
+}
+
+export function assertionCoversRequestedBinding(
+  assertion: Pick<Assertion, "text" | "scope">,
+  binding: Pick<RequestedObligationBinding, "entity" | "fact">,
+): boolean {
+  return assertionCoversRequestedEntity(assertion, binding.entity)
+    && assertionCoversRequestedFact(assertion, binding.fact);
 }
