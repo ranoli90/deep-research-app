@@ -129,9 +129,28 @@ function requestedSubjectAnalysis(text: string): SubjectAnalysis {
   return { entities: unique(found), compoundSignal, unresolvedCompound };
 }
 
+function isStrictTokenSpan(candidate: string, container: string): boolean {
+  const candidateTokens = normalize(candidate).split(/\s+/u).filter(Boolean);
+  const containerTokens = normalize(container).split(/\s+/u).filter(Boolean);
+  if (!candidateTokens.length || candidateTokens.length >= containerTokens.length) return false;
+  return containerTokens.some((_, start) => candidateTokens.every((token, offset) => containerTokens[start + offset] === token));
+}
+
 /** Conservative named-subject extraction backed by question grammar, not capitalization alone. */
 export function requestedNamedEntities(text: string): string[] {
-  const found = new Map(requestedSubjectAnalysis(text).entities.map((value) => [normalize(value), value]));
+  const grammarEntities = requestedSubjectAnalysis(text).entities;
+  const found = new Map(grammarEntities.map((value) => [normalize(value), value]));
+  const grammarEntitySpans = grammarEntities.flatMap((entity) => {
+    const spans: Array<{ entity: string; start: number; end: number }> = [];
+    let from = 0;
+    while (from <= text.length) {
+      const start = text.indexOf(entity, from);
+      if (start < 0) break;
+      spans.push({ entity, start, end: start + entity.length });
+      from = start + Math.max(1, entity.length);
+    }
+    return spans;
+  });
   for (const match of text.matchAll(NAMED_PHRASE)) {
     const words = match[0].trim().split(/\s+/u);
     while (words.length && NON_ENTITY_LEAD.has(normalize(words[0]!))) words.shift();
@@ -141,6 +160,11 @@ export function requestedNamedEntities(text: string): string[] {
     if (GENERIC_SUBJECT.test(value) || SUBJECT_SEPARATOR_SIGNAL.test(value)) continue;
     if (/\b(?:was|were|did|founded|established|incorporated|chartered|born|signed|expanded|expand)\b/iu.test(value)) continue;
     if (/^(?:january|february|march|april|may|june|july|august|september|october|november|december)$/iu.test(value)) continue;
+    const valueOffset = match[0].indexOf(value);
+    const valueStart = (match.index ?? -1) + valueOffset;
+    const containedAlias = valueOffset >= 0 && grammarEntitySpans.some((span) =>
+      valueStart >= span.start && valueStart + value.length <= span.end && isStrictTokenSpan(value, span.entity));
+    if (found.has(key) || containedAlias) continue;
     found.set(key, value);
   }
   return [...found.values()];

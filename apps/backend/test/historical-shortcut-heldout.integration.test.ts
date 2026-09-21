@@ -30,7 +30,7 @@ const NORTHSTAR = "When was Northstar Bakery incorporated?";
 const TWO_COMPANY = "Compare when Helixworks and Nimbus Forge were founded and explain why their expansion strategies differed.";
 const MIXED_LATEST = "When was Vesper Transit founded and what is its latest headcount?";
 const COMPOUND_ONE_CRITERION = "when were ardent labs and brindle works founded?";
-const PAIRED_ONE_CRITERION = "When were Ardent Labs and Brindle Works founded, and how did each expand?";
+const PAIRED_ONE_CRITERION = "When were ARDENT labs and Brindle WORKS founded, and how did each expand?";
 const MIXED_PRESENT_WORKFORCE = "When was Vesper Transit founded, how many employees did it have during the fiscal year ended June 30, 2024, and how many employees work there now?";
 
 const HELIX_FACT = "Helixworks was founded in 2007.";
@@ -41,6 +41,8 @@ const VESPER_HEADCOUNT = "Vesper Transit latest headcount is 4,820 employees as 
 const NORTHSTAR_FACT = "Northstar Bakery was incorporated in 1998.";
 const ARDENT_FACT = "Unlike Brindle Works, Ardent Labs was founded in 2004.";
 const ARDENT_PAIRED_FOUNDING = "Ardent Labs was founded in 2004.";
+const ARDENT_PAIRED_EXPANSION = "Ardent Labs expanded through licensing.";
+const BRINDLE_PAIRED_FOUNDING = "Brindle Works was founded in 2008.";
 const BRINDLE_PAIRED_EXPANSION = "Brindle Works expanded through regional offices.";
 const WEATHER_TEXT = "Regional forecast: rain continues through Friday. Almanac rainfall notes only.";
 
@@ -93,7 +95,7 @@ function criterion(question: string, key: string, quote: string) {
   };
 }
 
-function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "ardent" | "ardent-paired" | "brindle-paired" | "vesper-founding" | "vesper-headcount", count: number) {
+function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" | "ardent" | "ardent-paired" | "ardent-expansion" | "brindle-founding" | "brindle-paired" | "vesper-founding" | "vesper-headcount", count: number) {
   return Array.from({ length: count }, (_, i) => {
     if (kind === "weather") {
       return { url: `https://weather-${i}.example/forecast`, title: `Forecast ${i}`, content: WEATHER_TEXT };
@@ -116,6 +118,12 @@ function pages(kind: "helix" | "nimbus" | "expansion" | "weather" | "northstar" 
     if (kind === "ardent-paired") {
       return { url: `https://ardent-paired-${i}.example/history`, title: `Ardent Labs founding ${i}`, content: ARDENT_PAIRED_FOUNDING };
     }
+    if (kind === "ardent-expansion") {
+      return { url: `https://ardent-expansion-${i}.example/history`, title: `Ardent Labs expansion ${i}`, content: ARDENT_PAIRED_EXPANSION };
+    }
+    if (kind === "brindle-founding") {
+      return { url: `https://brindle-founding-${i}.example/history`, title: `Brindle Works founding ${i}`, content: BRINDLE_PAIRED_FOUNDING };
+    }
     if (kind === "brindle-paired") {
       return { url: `https://brindle-paired-${i}.example/history`, title: `Brindle Works expansion ${i}`, content: BRINDLE_PAIRED_EXPANSION };
     }
@@ -134,6 +142,8 @@ function textForUrl(url: string): string {
   if (/northstar-/.test(url)) return NORTHSTAR_FACT;
   if (/ardent-labs-/.test(url)) return ARDENT_FACT;
   if (/ardent-paired-/.test(url)) return ARDENT_PAIRED_FOUNDING;
+  if (/ardent-expansion-/.test(url)) return ARDENT_PAIRED_EXPANSION;
+  if (/brindle-founding-/.test(url)) return BRINDLE_PAIRED_FOUNDING;
   if (/brindle-paired-/.test(url)) return BRINDLE_PAIRED_EXPANSION;
   if (/vesper-staff-/.test(url)) return VESPER_HEADCOUNT;
   if (/vesper-charter-/.test(url)) return VESPER_FOUNDING;
@@ -147,6 +157,8 @@ function factForPassage(text: string): { criterionKeys: string[]; text: string; 
   if (/Northstar Bakery was incorporated in 1998/i.test(text)) return { criterionKeys: ["origin"], text: NORTHSTAR_FACT, entity: "Northstar Bakery" };
   if (/Unlike Brindle Works, Ardent Labs was founded/i.test(text)) return { criterionKeys: ["founding_dates"], text: ARDENT_FACT, entity: "Ardent Labs" };
   if (/Ardent Labs was founded in 2004/i.test(text)) return { criterionKeys: ["company_histories"], text: ARDENT_PAIRED_FOUNDING, entity: "Ardent Labs" };
+  if (/Ardent Labs expanded through licensing/i.test(text)) return { criterionKeys: ["company_histories"], text: ARDENT_PAIRED_EXPANSION, entity: "Ardent Labs" };
+  if (/Brindle Works was founded in 2008/i.test(text)) return { criterionKeys: ["company_histories"], text: BRINDLE_PAIRED_FOUNDING, entity: "Brindle Works" };
   if (/Brindle Works expanded through regional offices/i.test(text)) return { criterionKeys: ["company_histories"], text: BRINDLE_PAIRED_EXPANSION, entity: "Brindle Works" };
   if (/latest headcount is 4,820/i.test(text)) return { criterionKeys: ["latest_headcount"], text: VESPER_HEADCOUNT, entity: "Vesper Transit" };
   if (/Vesper Transit was founded in 2012/i.test(text)) return { criterionKeys: ["founding_year"], text: VESPER_FOUNDING, entity: "Vesper Transit" };
@@ -466,6 +478,38 @@ describe("held-out historical shortcut worker/DB", () => {
       unresolvedCriticalCriterionLimitation("company_histories"),
     ]));
     expect(meta.terminal, JSON.stringify(meta)).toBe("completed_with_limitations");
+  }, 60_000);
+
+  it("RES-02 completes case-mixed compound coverage when all four entity-fact bindings are supported", async () => {
+    const brief = {
+      objective: PAIRED_ONE_CRITERION,
+      objectiveProvenance: { start: 0, end: PAIRED_ONE_CRITERION.length, quote: PAIRED_ONE_CRITERION },
+      intendedOutput: "answer",
+      criteria: [criterion(PAIRED_ONE_CRITERION, "company_histories", PAIRED_ONE_CRITERION)],
+      questions: [{
+        key: "q_company_histories",
+        text: PAIRED_ONE_CRITERION,
+        criterionKeys: ["company_histories"],
+        importance: "critical",
+        evidenceStandard: "founding and expansion for each entity",
+      }],
+      assumptions: [], openAmbiguities: [], explicitExclusions: [],
+    };
+    const { meta } = await runHeldout(
+      PAIRED_ONE_CRITERION,
+      brief,
+      () => [
+        ...pages("ardent-paired", 1),
+        ...pages("ardent-expansion", 1),
+        ...pages("brindle-founding", 1),
+        ...pages("brindle-paired", 1),
+      ],
+    );
+    const need = meta.needs.find((item) => item.criterion_key === "company_histories");
+    expect(need?.state, JSON.stringify(meta)).toBe("satisfied");
+    expect(meta.coverage.at(-1)?.unresolvedCriterionKeys, JSON.stringify(meta)).toEqual([]);
+    expect(meta.report?.outcome, JSON.stringify(meta)).toBe("completed");
+    expect(meta.terminal, JSON.stringify(meta)).toBe("completed");
   }, 60_000);
 
   it("RES-03 keeps fixed fiscal workforce historical while present workforce stays current", async () => {

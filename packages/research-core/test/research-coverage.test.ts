@@ -4,6 +4,7 @@ import { describe,it,expect } from "vitest";
 import type { ResearchModelOutput } from "@deep/contracts";
 import { limitedCoverageDisclosed,limitedCoverageLimitations,resolveResearchCoverage,unresolvedCriticalCriterionLimitation } from "../src/research-coverage.js";
 import { resolveScopedSupport } from "../src/scoped-support.js";
+import { requestedCriterionObligations,requestedNamedEntities } from "../src/semantic-obligations.js";
 const question="What area did Reef-X restore in 2024?";
 const span={start:0,end:question.length,quote:question};
 const scope={entity:"Reef-X",time:"2024",plan:null,version:null,geography:null,population:null};
@@ -106,8 +107,19 @@ describe("W05 criterion-linked answer coverage",()=>{
    "criterion_fact_without_assertion:history:expansion",
   ]));
  });
+ it("suppresses fallback prefix aliases without collapsing genuine requested entities",()=>{
+  const caseMixed="When were ARDENT labs and Brindle WORKS founded, and how did each expand?";
+  const criterion={key:"company_histories",field:caseMixed,provenance:{quote:caseMixed}};
+  const first=requestedCriterionObligations({originalQuestion:caseMixed,criterion});
+  expect(first.entities).toEqual(["ARDENT labs","Brindle WORKS"]);
+  expect(first.bindings).toHaveLength(4);
+  expect(requestedCriterionObligations({originalQuestion:caseMixed,criterion})).toEqual(first);
+  expect(requestedNamedEntities("When were IBM and Sol founded?")).toEqual(["IBM","Sol"]);
+  expect(requestedNamedEntities("When were Alpha and Alpha Labs founded?")).toEqual(["Alpha","Alpha Labs"]);
+  expect(requestedNamedEntities("When was Alpha Labs founded? Tell me about Alpha.")).toEqual(["Alpha Labs","Alpha"]);
+ });
  it("requires every requested entity and fact pair, including bare expand wording",()=>{
-  const pairedQuestion="When were Ardent Labs and Brindle Works founded, and how did each expand?";
+  const pairedQuestion="When were ARDENT labs and Brindle WORKS founded, and how did each expand?";
   const pairedSpan={start:0,end:pairedQuestion.length,quote:pairedQuestion};
   const pairedTask:ResearchModelOutput<"brief">={objective:pairedQuestion,objectiveProvenance:pairedSpan,intendedOutput:"answer",
    criteria:[{key:"company_histories",description:pairedQuestion,field:"founding and expansion",operator:"explain",value:null,unit:null,importance:"hard",
