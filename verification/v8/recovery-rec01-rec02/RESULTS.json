@@ -1,6 +1,6 @@
 {
   "schema": "recovery-integration-results.v3",
-  "generatedAt": "2026-09-20T23:26:49-06:00",
+  "generatedAt": "2026-09-21T00:33:02-06:00",
   "requirements": [
     "REC-01",
     "REC-02",
@@ -10,7 +10,9 @@
     "RES-04",
     "RES-05",
     "APPLE-01",
-    "W08"
+    "W08",
+    "GATE-A",
+    "GATE-B"
   ],
   "evidenceClass": "local deterministic recovery/integration evidence plus explicitly bounded prior independent PostgreSQL and external Apple readback evidence",
   "repository": "ranoli90/deep-research-app",
@@ -25,6 +27,8 @@
     "res05IntegratedCodeHeadBeforeFinalEvidenceSynthesis": "002fc4ff5ab564f43ad11539997810d2b618cf8b",
     "gateAFixtureBase": "c7c68e80416d45a1a7c9ee03bf970c04409cc98e",
     "gateAFixtureApprovedFastForwardHead": "840e04b79c2781244f70afc39b3de88b064b1209",
+    "finalGateTestedSourceHead": "87e43715f5fc5582116408f80e23a313c6603748",
+    "finalGateTestedSourceTree": "75a65fdd69185a10317c7417d13d4d77ebc2de62",
     "remotePushed": false
   },
   "refInventoryAfterFetch": {
@@ -375,6 +379,36 @@
       "exitCode": 0,
       "environment": "local recovery documentation synthesis on top of approved Gate-A packet; no database/provider/network/native route",
       "scope": "recovery result JSON parses; review document integrity ok and 16/16 validator units; builder handoff integrity ok and 12/12 validator units; no application-test inference"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_gatea_final_a_87e4371_20260921> pnpm test:integration",
+      "exitCode": 0,
+      "environment": "exact clean source 87e43715f5fc5582116408f80e23a313c6603748; first fresh unique local PostgreSQL; fabricated nonbillable provider transports",
+      "scope": "Gate A 49/49 files and 585/585 tests; full-integration.log SHA-256 89eb844bd157e9eb954b9fcf689f1ae37d1f55707a1d9649ec2e0cfded155728; database dropped and verified absent"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_gatea_final_b_87e4371_20260921> pnpm test:integration",
+      "exitCode": 0,
+      "environment": "same exact clean source; sequential second distinct fresh unique local PostgreSQL; fabricated nonbillable provider transports",
+      "scope": "Gate B 49/49 files and 585/585 tests; full-integration.log SHA-256 d4946825353ea00d32cba544ae552dfb0ddc5f3d3145ae1a97d3de43fe2557cd; database dropped and verified absent"
+    },
+    {
+      "command": "pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "environment": "same exact clean source; local actual parser/API/worker and fabricated model transport; zero new paid calls/provider cost",
+      "scope": "8/8 files and 55/55 tests; log SHA-256 ba9afb1d4e1e8a9c2955c39bbb7b68526884159e88d3bb04effa9738a765b677; suite database dropped; test-owned eval-control database retained"
+    },
+    {
+      "command": "sha256sum <preserved c7 Gate-A log, final Gate-A/B logs, extraction log and two extraction artifacts>; read-only PostgreSQL exact-name catalog query; adb devices -l; emulator -list-avds",
+      "exitCode": 0,
+      "environment": "2026-09-21 evidence synthesis; read-only local files, PostgreSQL catalog and Android SDK; no provider/native/hosted execution",
+      "scope": "all six logged SHA-256 values matched; final Gate-A/B databases absent and named eval-control database present; no online Android device; listed AVD target directory absent, installed Android-34 x86_64 system image present"
+    },
+    {
+      "command": "node -e JSON.parse(recovery RESULTS.json); python3 scripts/validate_review.py; python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v; python3 scripts/validate_builder_handoff.py; python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v; git diff --check",
+      "exitCode": 0,
+      "environment": "2026-09-21 documentation-only evidence synthesis, tested application files unchanged from 87e4371",
+      "scope": "recovery JSON parses; review integrity ok and 16/16 validator tests; builder integrity ok and 12/12 validator tests; whitespace diff check clean"
     }
   ],
   "priorIndependentDatabaseEvidence": {
@@ -402,8 +436,8 @@
       "helperSha256": "576e06c8b438bf5344928ea99b72197810cb7d6ab07e104ef4fde75634d9f003",
       "evidenceClass": "actual local parser/API/worker path with fabricated nonbillable provider transport; no semantic quality or superiority claim"
     },
-    "fullIntegratedRerun": false,
-    "reason": "The exact-clean source full artifact already proves 55/55 for the fixture-only diff; this integration ran the focused affected path once on a fresh unique database as authorized."
+    "fullIntegratedRerun": true,
+    "reason": "The earlier 0a48cf4 integration ran only the focused 3/3 affected path; exact clean final source 87e4371 later passed the registered full extraction suite 8/8 files and 55/55 tests with fabricated model transport. See finalLocalGates.fullExtraction for the exact artifact and paid-evidence boundary."
   },
   "gateAFixture": {
     "requirements": ["W05", "W06", "BB02", "Wave5"],
@@ -431,9 +465,58 @@
     ],
     "sourceFocusedEvidence": "four affected integration files 178/178 on a fresh unique local PostgreSQL database before the final three BB02-03 assertions; afterward selected BB02-03 1/1 and complete independent heldout file 6/6 on separate fresh unique databases; all dropped and verified absent",
     "integratedDeterministicEvidence": "pnpm verify EXIT 0 at exact approved packet head: core 395/395, backend unit 254/254, mobile 534/534, governance 6/6, workspace types and boundaries",
-    "fullGateAfterRepairExecuted": false,
-    "gateAPassClaim": false,
+    "fullGateAfterRepairExecuted": true,
+    "gateAPassClaim": "local deterministic Gate A and Gate B passed at exact clean source 87e4371; not a live, hosted, native or release claim",
     "rollback": "Rollback the local fixture/evidence commit series to exact base c7c68e80416d45a1a7c9ee03bf970c04409cc98e; retain all production safety readers and durable evidence."
+  },
+  "finalLocalGates": {
+    "testedSourceHead": "87e43715f5fc5582116408f80e23a313c6603748",
+    "testedSourceTree": "75a65fdd69185a10317c7417d13d4d77ebc2de62",
+    "evidenceCommitBoundary": "Subsequent HEAD records documentation only; it is not the application/test SHA used for these runs.",
+    "gateA": {
+      "database": "deep_gatea_final_a_87e4371_20260921",
+      "executionOrder": 1,
+      "exitCode": 0,
+      "filesPassed": "49/49",
+      "testsPassed": "585/585",
+      "vitestDurationSeconds": 1400.46,
+      "artifact": "/tmp/deep-gate-a-87e4371-zCdCSq/full-integration.log",
+      "artifactSha256": "89eb844bd157e9eb954b9fcf689f1ae37d1f55707a1d9649ec2e0cfded155728",
+      "databaseAfter": "dropped; exact-name read-only catalog query confirmed absent"
+    },
+    "gateB": {
+      "database": "deep_gatea_final_b_87e4371_20260921",
+      "executionOrder": 2,
+      "exitCode": 0,
+      "filesPassed": "49/49",
+      "testsPassed": "585/585",
+      "vitestDurationSeconds": 1426.08,
+      "artifact": "/tmp/deep-gate-b-87e4371-L3aHuW/full-integration.log",
+      "artifactSha256": "d4946825353ea00d32cba544ae552dfb0ddc5f3d3145ae1a97d3de43fe2557cd",
+      "databaseAfter": "dropped; exact-name read-only catalog query confirmed absent"
+    },
+    "fullExtraction": {
+      "exitCode": 0,
+      "filesPassed": "8/8",
+      "testsPassed": "55/55",
+      "vitestDurationSeconds": 411.51,
+      "artifactRoot": "/tmp/deep-full-extraction-87e4371-usO67r",
+      "logSha256": "ba9afb1d4e1e8a9c2955c39bbb7b68526884159e88d3bb04effa9738a765b677",
+      "matchedArtifactSha256": "0bab652d0c3e055e5e59107cba0eaeb9e386231983c879e34f91bc1867b4f532",
+      "evalControlArtifactSha256": "7df31aa3ba446c315f7fdabde0d42fab70a0fbfe2371aff22164d4e33c2007a7",
+      "manifestCommit": "87e43715f5fc5582116408f80e23a313c6603748",
+      "manifestWorkingTree": "clean_checkout",
+      "manifestHelperSha256": "576e06c8b438bf5344928ea99b72197810cb7d6ab07e104ef4fde75634d9f003",
+      "newPaidCalls": 0,
+      "actualProviderCostMicro": 0,
+      "semanticScores": null,
+      "humanAdjudication": null,
+      "suiteDatabaseAfter": "dropped",
+      "retainedTestOwnedEvalControlDatabase": "deep_eval_control_5949e5e56907438b8f71ebd9809874b5"
+    },
+    "evidenceClass": "local PostgreSQL and actual extraction with fabricated model/provider transports; no live-model quality, hosted CI, native, semantic superiority, signed build or release inference",
+    "nativeHostedReadOnlyPreflight": "adb devices -l returned no online device; listed AVD points to missing /tmp/deep-v6-emulator-avd; registered Android launcher is presence-only. Android-34 Google APIs x86_64 system image and avdmanager/emulator binaries are present; COMMANDS.json registers offline/nonpaid AVD recreation and local launch, feasible under separate native authorization but not started here. Linux has no Xcode/iOS runtime; registered iOS launcher exits 2. Hosted verification.yml remains owner-declined with historical billing lock and was not dispatched. Production EAS endpoint is https://example.invalid. No native, hosted, signed, paid or active-service command was started.",
+    "rollback": "Documentation-only evidence commit can be reversed without changing tested source 87e4371. A behavioral rollback must preserve admitted policy readers, durable identities, source evidence, Evidence Needs, consent/cancel/budget/ownership/deletion/publication fences and financial/unknown holds."
   },
   "apple01": {
     "evidenceClass": "Prior owner-authorized external portal/API readback recorded in the dirty main worktree; not rerun and not promoted to native/application acceptance by this integration.",
@@ -454,7 +537,7 @@
     "res04": "approved after foreign-confirmation, terminal-binder and state-gate rejection/repair cycles and integrated",
     "res020305": "187a2f0 compound/currentness/alias behavior plus independently approved 0d48bb0 exact legacy-v2 epoch reader are integrated after preserving the f70a3f6 rejection",
     "w08": "same-reviewer approved at 5e76f51/e61c655; focused affected production path green on exact-clean integrated code head",
-    "candidate": "approved fixture packet fast-forwarded locally and pnpm verify green; initial Gate-A 574/584 red log retained; post-repair full 49-file Gate-A not run and not claimed passed",
+    "candidate": "exact clean 87e4371 source passes local deterministic Gate A and B 585/585 each plus full extraction 55/55; original c7 Gate A 574/584 red log retained; live/model/hosted/native/release gates remain separate",
     "phaseA": "implementation requirements in this recovery assignment are satisfied; broader milestone/release acceptance remains governed by existing gates",
     "phaseB": "not inferred from deterministic integration evidence",
     "release": "not authorized"
