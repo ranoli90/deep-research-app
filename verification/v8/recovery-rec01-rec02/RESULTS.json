@@ -1,6 +1,6 @@
 {
   "schema": "recovery-integration-results.v3",
-  "generatedAt": "2026-09-21T07:06:19-06:00",
+  "generatedAt": "2026-09-21T07:17:09-06:00",
   "requirements": [
     "REC-01",
     "REC-02",
@@ -577,6 +577,40 @@
     },
     "impact": "new build command and tests only; no app runtime/config, dependency/lockfile, migration/schema/public API, prompt/provider route, production endpoint or existing Gate A/B application-source change",
     "postBuildGate": "A future artifact requires separate package/version/ABI/signer comparison and isolated API/reverse validation before any install; no uninstall or data clear is authorized.",
+    "independentReviewAndRepair": {
+      "rejectedHead": "6dc706fa17ac110648b3514c3b4589f3ebe190f5",
+      "disposition": "rejected: device or inherited build-affecting overrides could pass and one-use receipt lacked full-write plus file/directory fsync",
+      "expectedRed": {
+        "command": "pnpm --filter @deep/mobile test -- test/eas-device-build.test.ts",
+        "exitCode": 1,
+        "testsPassed": 15,
+        "testsFailed": 7,
+        "scope": "store distribution, Gradle/signing/inherited overrides and write-zero/file-fsync/directory-fsync adversarial controls"
+      },
+      "functionalRepairHead": "e78c5cc05e747d9cf6255d4028d1912aaf078924",
+      "functionalRepairTree": "a7128ac7a285f564d5de69853de5a6e1a91dfd65",
+      "guard": "exact preview/device/effective profile keys and values; complete receipt write loop, file fsync, close, directory fsync before CLI; any failure holds exclusive approval identity and blocks retry",
+      "focusedGreen": {
+        "command": "pnpm --filter @deep/mobile test -- test/eas-device-build.test.ts",
+        "exitCode": 0,
+        "testsPassed": 22,
+        "scope": "fake CLI only; no receipt/CLI after wrong profile; no CLI or second dispatch after injected receipt failures; partial positive writes complete"
+      },
+      "fullVerify": {
+        "command": "pnpm verify",
+        "exitCode": 0,
+        "corePassed": 395,
+        "backendUnitPassed": 254,
+        "mobilePassed": 556,
+        "governancePassed": 6,
+        "typesAndBoundaries": "passed"
+      },
+      "mobileTypecheckExitCode": 0,
+      "reviewValidatorTestsPassed": 16,
+      "builderValidatorTestsPassed": 12,
+      "realEasBuildOrCredentialUse": false,
+      "reviewStatus": "same independent reviewer rereview pending; not self-approved"
+    },
     "rollback": "Remove the new command but preserve any future consumed approval receipts and remote build/billing identities; never retry an unknown EAS outcome or overwrite phone data."
   },
   "nativeAndroidLocalAttempt20260921": {

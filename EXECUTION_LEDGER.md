@@ -1,5 +1,11 @@
 # Execution ledger
 
+## 2026-09-21 — EAS effective-profile and durable-receipt repair pending rereview
+
+- Independent review rejected exact `6dc706fa17ac110648b3514c3b4589f3ebe190f5`: device/inherited profile accepted build-affecting overrides and an exclusive but unsynced receipt could precede CLI/network. Seven new adversarial tests failed with 15 passing on that head. No remote build was run there.
+- Functional repair `e78c5cc05e747d9cf6255d4028d1912aaf078924`, tree `a7128ac7a285f564d5de69853de5a6e1a91dfd65`: exact keys and values for `preview`, `device`, and merged effective distribution/build/signing/environment; no store/Gradle or extra environment override. Receipt uses exclusive create, full-byte write loop, file fsync, close, directory fsync, then CLI. Zero write or sync failure leaves the receipt held; a second dispatch with the same approval ID fails. No dependency/config/schema/prompt/route/app runtime change.
+- Focused fake-CLI **22/22** EXIT 0, including no receipt/CLI for wrong profile and no CLI/retry for injected write-zero/file-fsync/directory-fsync errors; partial positive writes complete. `pnpm verify` EXIT 0: core **395/395**, backend **254/254**, mobile **556/556**, governance **6/6**, workspace types/boundaries. Mobile typecheck EXIT 0. Review/handoff validators EXIT 0 and validator suites **16/16**, **12/12**; diff/secret-assignment checks EXIT 0. Repair used fake credentials only, no EAS build/network/credit, real token, APK, phone operation, push or main merge. Same reviewer rereview remains pending; no self-approval. Rollback holds any approval receipt and unknown remote build identity.
+
 ## 2026-09-21 — Guarded EAS Android build entrypoint, no remote build
 
 - Base recovery `8b16123d8d6e33af96e76f763fb7d73fa2ac225e`; implementation `74a9839d482fffde87a699295b71dfc44c7365c7` / tree `1f42d2c84575611e79c9ee8985aa7da3b45afb61`. W10/ADR078: `apps/mobile/scripts/build-eas-device.mjs`, owning 13-case fake-CLI test, `verification/COMMANDS.json`, canonical setup/handoff and ADR. No dependency/lockfile, app runtime, `eas.json`, schema/migration/public API/prompt/provider route, production endpoint or main/remote mutation. Registered command declares network=true/paid=true but was **not run** with real credentials; no EAS build, cost, signing artifact, install or release.
