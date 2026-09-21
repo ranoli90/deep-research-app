@@ -142,6 +142,11 @@ function readClaim(value: unknown): GuestPendingAction["claim"] {
   };
 }
 
+/** Every transition is decoded before persistence, so a new edge cannot write an unreadable journal. */
+function persisted(candidate: GuestPendingAction): GuestPendingAction {
+  return readGuestPendingAction(candidate);
+}
+
 /** Strictly decode persisted untrusted storage; corrupt journals never mint a replacement ID. */
 export function readGuestPendingAction(value: unknown): GuestPendingAction {
   if (!record(value) || !exactKeys(value, [
@@ -164,8 +169,18 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
   if ((intent.phase === "authenticating") !== (intent.authAttempt !== null) ||
     (["authenticated", "claim_pending", "claimed", "resume_pending", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
     (["claimed", "resume_pending", "dispatched"].includes(intent.phase) && intent.claim === null) ||
+    (intent.claim !== null && (intent.authenticatedAccountId === null || intent.claim.accountId !== intent.authenticatedAccountId)) ||
     (intent.phase === "dispatched") !== (intent.dispatchReceiptId !== null) ||
-    (intent.phase === "rejected") !== (intent.rejectionCode !== null)) invalid();
+    (intent.phase === "rejected") !== (intent.rejectionCode !== null) ||
+    (["dispatched", "cancelled", "rejected", "expired"].includes(intent.phase) && intent.autoResume) ||
+    (intent.phase === "expired" && (intent.authAttempt !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "dispatched" && (intent.authAttempt !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "cancelled" && (intent.authAttempt !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "rejected" && (intent.authAttempt !== null || intent.dispatchReceiptId !== null)) ||
+    (["pending_auth", "dismissed"].includes(intent.phase) && (intent.authenticatedAccountId !== null || intent.claim !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "authenticating" && (intent.authenticatedAccountId !== null || intent.claim !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "authenticated" && (intent.claim !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
+    (intent.phase === "claim_pending" && (intent.claim === null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null))) invalid();
   return intent;
 }
 
@@ -188,42 +203,89 @@ function current(intent: GuestPendingAction, allowed: GuestPendingActionPhase[],
   return checked;
 }
 
+function isTerminal(intent: GuestPendingAction): boolean {
+  return ["dispatched", "cancelled", "rejected", "expired"].includes(intent.phase);
+}
+
+/**
+ * Expiry forbids another automatic action. It deliberately does not replace a
+ * known terminal outcome: doing so would leave an expired record with a
+ * dispatch receipt/rejection that the strict decoder must reject.
+ */
+export function expireGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (isTerminal(checked) || !pendingActionExpired(checked, now)) return checked;
+  // A continuation in this phase may already have been admitted. Keep the
+  // stable submission ID and phase so its idempotent resolution can be read,
+  // but turn off every automatic send/retry path.
+  if (checked.phase === "resume_pending") return persisted({ ...checked, autoResume: false });
+  return persisted({ ...checked, phase: "expired", autoResume: false, authAttempt: null });
+}
+
+/**
+ * `resume_pending` may have reached the server before a response was lost.
+ * It is reconcile-only after expiry: callers must resolve its existing
+ * submission ID, never issue a replacement continuation.
+ */
+export function guestPendingActionNeedsReconciliation(intent: GuestPendingAction, now: Date): boolean {
+  const checked = readGuestPendingAction(intent);
+  return checked.phase === "resume_pending" && pendingActionExpired(checked, now) && !checked.autoResume;
+}
+
 export function beginGuestAuth(intent: GuestPendingAction, attempt: { id: Uuid; provider: GuestAuthProvider }, now: Date): GuestPendingAction {
   const checked = current(intent, ["pending_auth"], now);
   if (!validId(attempt.id) || !["apple", "google", "email"].includes(attempt.provider)) throw new Error("Invalid sign-in attempt.");
-  return { ...checked, phase: "authenticating", authAttempt: { ...attempt } };
+  return persisted({ ...checked, phase: "authenticating", authAttempt: { ...attempt } });
 }
 /** Provider cancellation is not a failed claim and leaves the exact action available to retry. */
 export function cancelGuestAuthAttempt(intent: GuestPendingAction, attemptId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticating"], now);
   if (checked.authAttempt?.id !== attemptId) throw new Error("A stale sign-in attempt cannot change this action.");
-  return { ...checked, phase: "pending_auth", authAttempt: null };
+  return persisted({ ...checked, phase: "pending_auth", authAttempt: null });
 }
 export function completeGuestAuth(intent: GuestPendingAction, attemptId: Uuid, accountId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticating"], now);
   if (checked.authAttempt?.id !== attemptId || !validId(accountId)) throw new Error("A stale sign-in result cannot continue this action.");
-  return { ...checked, phase: "authenticated", authAttempt: null, authenticatedAccountId: accountId };
+  return persisted({ ...checked, phase: "authenticated", authAttempt: null, authenticatedAccountId: accountId });
 }
 /** Close/back always preserves payload. It only disables automatic continuation. */
 export function dismissGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
-  if (pendingActionExpired(checked, now)) return { ...checked, phase: "expired", autoResume: false, authAttempt: null };
-  if (["dispatched", "cancelled", "rejected", "expired"].includes(checked.phase)) return checked;
-  if (checked.phase === "pending_auth" || checked.phase === "authenticating") return { ...checked, phase: "dismissed", autoResume: false, authAttempt: null };
-  return { ...checked, autoResume: false };
+  if (isTerminal(checked)) return checked;
+  if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
+  if (checked.phase === "pending_auth" || checked.phase === "authenticating") return persisted({ ...checked, phase: "dismissed", autoResume: false, authAttempt: null });
+  return persisted({ ...checked, autoResume: false });
 }
-/** A fresh explicit Send may reopen a dismissed pre-auth intent without changing its identity. */
+
+/**
+ * Cancelling the handoff is terminal locally, but deliberately retains an
+ * accepted account/claim binding for audit and stale-callback fencing. It
+ * never clears a submitted receipt because submitted actions are terminal.
+ */
+export function cancelGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (isTerminal(checked)) return checked;
+  if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
+  return persisted({ ...checked, phase: "cancelled", autoResume: false, authAttempt: null, dispatchReceiptId: null, rejectionCode: null });
+}
+/**
+ * A fresh explicit Send may resume a dismissed handoff without changing its
+ * submission or accepted claim identity. A pending claim keeps its original
+ * request ID; no second claim or continuation ID is minted here.
+ */
 export function reopenGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
-  const checked = current(intent, ["dismissed"], now);
-  return { ...checked, phase: "pending_auth", autoResume: true };
+  const checked = current(intent, ["dismissed", "authenticated", "claim_pending", "claimed", "resume_pending"], now);
+  if (checked.autoResume) throw new Error("This saved sign-in action has not been dismissed.");
+  if (checked.phase === "dismissed") return persisted({ ...checked, phase: "pending_auth", autoResume: true });
+  return persisted({ ...checked, autoResume: true });
 }
 export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticated"], now);
   if (!validId(requestId) || !checked.authenticatedAccountId) throw new Error("The signed-in account cannot claim this action.");
-  return {
+  return persisted({
     ...checked, phase: "claim_pending",
     claim: { requestId, accountId: checked.authenticatedAccountId, controlVersion: 0, principalEpoch: 0, viewEpoch: 0 },
-  };
+  });
 }
 /** Retry uses the original claim identity; a new ID would make an ambiguous claim unsafe. */
 export function retryGuestClaim(intent: GuestPendingAction, now: Date): GuestPendingAction {
@@ -235,10 +297,10 @@ export function completeGuestClaim(intent: GuestPendingAction, result: {
 }, now: Date): GuestPendingAction {
   const checked = current(intent, ["claim_pending"], now);
   if (!checked.claim || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || !validVersion(result.principalEpoch) || !validVersion(result.viewEpoch) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
-  return {
+  return persisted({
     ...checked, phase: "claimed",
     claim: { ...checked.claim, controlVersion: result.controlVersion, principalEpoch: result.principalEpoch, viewEpoch: result.viewEpoch },
-  };
+  });
 }
 export function validateGuestActionResume(intent: GuestPendingAction, context: CurrentResumeContext): ResumeValidation {
   const checked = readGuestPendingAction(intent);
@@ -258,19 +320,25 @@ export function validateGuestActionResume(intent: GuestPendingAction, context: C
 }
 /** Claim is completed before this state can be entered. Dispatch remains server-idempotent on submissionId. */
 export function beginGuestActionResume(intent: GuestPendingAction, context: CurrentResumeContext): GuestPendingAction {
-  const validation = validateGuestActionResume(intent, context);
+  const checked = readGuestPendingAction(intent);
+  const validation = validateGuestActionResume(checked, context);
   if (!validation.ok) throw new Error(`Saved sign-in action cannot resume: ${validation.code}.`);
-  return { ...intent, phase: "resume_pending" };
+  return persisted({ ...checked, phase: "resume_pending" });
 }
 /** Terminal exactly-once client record; a late duplicate acknowledgment cannot overwrite it. */
 export function markGuestActionDispatched(intent: GuestPendingAction, receiptId: Uuid, now: Date): GuestPendingAction {
-  const checked = current(intent, ["resume_pending"], now);
+  const checked = readGuestPendingAction(intent);
+  if (checked.phase !== "resume_pending") throw new Error("This saved sign-in action cannot continue from its current state.");
   if (!validId(receiptId)) throw new Error("Research continuation could not be confirmed.");
-  return { ...checked, phase: "dispatched", dispatchReceiptId: receiptId, autoResume: false };
+  // This records a response from the original submission. It does not issue a
+  // new request, so it remains safe after expiry while reconciliation is on.
+  void now;
+  return persisted({ ...checked, phase: "dispatched", dispatchReceiptId: receiptId, autoResume: false });
 }
 export function rejectGuestPendingAction(intent: GuestPendingAction, code: NonNullable<GuestPendingAction["rejectionCode"]>, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
-  if (pendingActionExpired(checked, now)) return { ...checked, phase: "expired", autoResume: false, authAttempt: null };
+  if (!(["guest_expired", "guest_deleted", "authority_denied", "intent_stale"] as const).includes(code)) throw new Error("Invalid saved sign-in action rejection.");
   if (["dispatched", "cancelled", "rejected"].includes(checked.phase)) throw new Error("This saved sign-in action is already terminal.");
-  return { ...checked, phase: "rejected", autoResume: false, authAttempt: null, rejectionCode: code };
+  if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
+  return persisted({ ...checked, phase: "rejected", autoResume: false, authAttempt: null, rejectionCode: code });
 }
