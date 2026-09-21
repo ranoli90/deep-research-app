@@ -111,12 +111,21 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
         conversationId: continued.json().memberConversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
     expect(sibling.statusCode).toBe(200);
     const descendantId = sibling.json().runId as string;
+    const descendantSourceId = await insertSource(pool, { accountId: member.accountId, runId: descendantId,
+      locator: "https://example.test/member-descendant-evidence", title: "Fresh descendant evidence",
+      publisher: "Synthetic", originCluster: "member-descendant-evidence" });
+    const { passageId: descendantPassageId } = await insertVersionAndPassage(pool, { accountId: member.accountId,
+      runId: descendantId, sourceId: descendantSourceId,
+      locator: "https://example.test/member-descendant-evidence", text: "Synthetic descendant finding",
+      accessLevel: "full-text" });
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${descendantPassageId}`, headers })).statusCode).toBe(200);
 
     const deleted = await app.inject({ method: "DELETE", url: `/v1/sources/${parentSourceId}`, headers });
     expect(deleted.statusCode).toBe(200);
     expect(new Set(deleted.json().invalidatedRunIds)).toEqual(new Set([parentRunId, childId, descendantId]));
     expect((await app.inject({ method: "GET", url: `/v1/reports/${childReportId}`, headers })).statusCode).toBe(404);
     expect((await app.inject({ method: "GET", url: `/v1/sources/${childPassageId}`, headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${descendantPassageId}`, headers })).statusCode).toBe(404);
     expect((await pool.query("SELECT lifecycle,terminal_outcome FROM runs WHERE id=$1", [childId])).rows[0])
       .toMatchObject({ lifecycle: "terminal", terminal_outcome: "cancelled" });
     expect((await pool.query("SELECT account_id FROM tombstones WHERE object_kind='run' AND object_id=$1",
@@ -495,23 +504,22 @@ describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () 
     let locked = false;
     try {
       await control.query("BEGIN");
-      await control.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [member.accountId]);
+      await control.query("SELECT id FROM conversation_control_bindings WHERE guest_context_id=$1 FOR UPDATE",
+        [guest.guestContextId]);
       locked = true;
       const deleting = app.inject({ method: "DELETE", url: `/v1/sources/${sourceId}`,
         headers: { authorization: `Bearer ${member.token}` } }).then((response) => response);
       let waiting = false;
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 200; i++) {
         const activity = await control.query(`SELECT 1 FROM pg_stat_activity
           WHERE datname=current_database() AND pid<>pg_backend_pid() AND wait_event_type='Lock'
-            AND query LIKE '%accounts%'`);
+            AND query LIKE '%conversation_control_bindings%'`);
         if (activity.rowCount) { waiting = true; break; }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
       expect(waiting).toBe(true);
       await control.query(`UPDATE conversation_control_bindings SET revoked_at=now(),revocation_reason='member_revoked'
         WHERE guest_context_id=$1`, [guest.guestContextId]);
-      await control.query(`INSERT INTO guest_control_tombstones(guest_context_id,control_version,reason)
-        SELECT id,control_version,'member_revoked' FROM guest_contexts WHERE id=$1`, [guest.guestContextId]);
       await control.query("COMMIT");
       locked = false;
       expect((await deleting).statusCode).toBe(404);

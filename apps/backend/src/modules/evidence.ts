@@ -162,9 +162,18 @@ export async function getPassageForAccount(db: Queryable, passageId: string, acc
      JOIN runs r ON r.id = p.run_id
      WHERE p.id = $1 AND p.account_id = $2 AND s.account_id=$2 AND v.account_id=$2 AND r.account_id=$2
        AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id=$2 AND t.object_kind='source' AND t.object_id=s.id)
-       AND (r.claimed_parent_run_id IS NULL OR NOT EXISTS(SELECT 1 FROM tombstones t
-         WHERE t.account_id=$2 AND t.object_kind='run' AND t.object_id=r.id
-           AND t.reason='source_deletion'))
+       AND NOT EXISTS(
+         WITH RECURSIVE lineage AS (
+           SELECT r.id,r.parent_run_id,r.claimed_parent_run_id,r.account_id
+           UNION ALL
+           SELECT parent.id,parent.parent_run_id,parent.claimed_parent_run_id,parent.account_id
+           FROM runs parent JOIN lineage child ON parent.id=child.parent_run_id
+           WHERE parent.account_id=$2
+         )
+         SELECT 1 FROM lineage ancestor JOIN tombstones t
+           ON t.account_id=$2 AND t.object_kind='run' AND t.object_id=ancestor.id
+             AND t.reason='source_deletion'
+         WHERE ancestor.claimed_parent_run_id IS NOT NULL)
        AND NOT EXISTS(SELECT 1 FROM source_policy_exclusions x WHERE x.run_id=r.id AND x.account_id=$2 AND x.brief_revision=r.brief_revision AND x.source_version_id=v.id)`,
     [passageId, accountId],
   );
