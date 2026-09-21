@@ -84,6 +84,42 @@ export type CurrentResumeContext = {
 
 export type ResumeValidation = { ok: true } | { ok: false; code: "expired" | "phase" | "dismissed" | "account" | "session" | "claim" | "principal" | "view" | "draft" | "consent" | "authority" | "budget" };
 
+/**
+ * API outcomes are correlated to the immutable local submission before they
+ * can change a durable journal. Reconciliation must never terminalize a newer
+ * handoff from a delayed callback for another request.
+ */
+export type GuestClaimAcceptedOutcome = {
+  type: "claim_accepted";
+  submissionId: Uuid;
+  requestId: Uuid;
+  accountId: Uuid;
+  controlVersion: number;
+  conversationId: Uuid;
+  conversationVersion: number;
+  principalEpoch: number;
+  viewEpoch: number;
+};
+export type GuestContinuationDispatchedOutcome = {
+  type: "continuation_dispatched";
+  submissionId: Uuid;
+  claimRequestId: Uuid;
+  receiptId: Uuid;
+};
+export type GuestPendingActionRejectionOutcome =
+  | {
+    type: "claim_rejected";
+    submissionId: Uuid;
+    requestId: Uuid;
+    rejectionCode: NonNullable<GuestPendingAction["rejectionCode"]>;
+  }
+  | {
+    type: "continuation_rejected";
+    submissionId: Uuid;
+    claimRequestId: Uuid;
+    rejectionCode: NonNullable<GuestPendingAction["rejectionCode"]>;
+  };
+
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const digest = /^[a-f0-9]{64}$/;
 const phases = new Set<GuestPendingActionPhase>([
@@ -301,10 +337,7 @@ export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now
 export function retryGuestClaim(intent: GuestPendingAction, now: Date): GuestPendingAction {
   return current(intent, ["claim_pending"], now);
 }
-export function completeGuestClaim(intent: GuestPendingAction, result: {
-  requestId: Uuid; accountId: Uuid; controlVersion: number; conversationId: Uuid; conversationVersion: number;
-  principalEpoch: number; viewEpoch: number;
-}, now: Date): GuestPendingAction {
+export function completeGuestClaim(intent: GuestPendingAction, result: GuestClaimAcceptedOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
   // claim_reconcile accepts only the delayed outcome for the original claim;
   // it intentionally bypasses the deadline check because it sends nothing.
@@ -312,7 +345,7 @@ export function completeGuestClaim(intent: GuestPendingAction, result: {
     (checked.phase === "claim_pending" && pendingActionExpired(checked, now))) {
     throw new Error("This saved sign-in action cannot continue from its current state.");
   }
-  if (!checked.claim || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || !validVersion(result.principalEpoch) || !validVersion(result.viewEpoch) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
+  if (result.type !== "claim_accepted" || !checked.claim || result.submissionId !== checked.submissionId || result.requestId !== checked.claim.requestId || result.accountId !== checked.authenticatedAccountId || !validVersion(result.controlVersion) || !validVersion(result.principalEpoch) || !validVersion(result.viewEpoch) || result.conversationId !== checked.conversationId || result.conversationVersion !== checked.conversationVersion) throw new Error("The guest conversation claim did not match the saved action.");
   return persisted({
     ...checked, phase: "claimed",
     claim: { ...checked.claim, controlVersion: result.controlVersion, principalEpoch: result.principalEpoch, viewEpoch: result.viewEpoch },
@@ -346,18 +379,18 @@ export function beginGuestActionResume(intent: GuestPendingAction, context: Curr
  * server must enforce idempotency; this client journal does not claim external
  * exactly-once delivery. A late duplicate acknowledgement cannot overwrite it.
  */
-export function markGuestActionDispatched(intent: GuestPendingAction, receiptId: Uuid, now: Date): GuestPendingAction {
+export function markGuestActionDispatched(intent: GuestPendingAction, outcome: GuestContinuationDispatchedOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
   if (!(checked.phase === "resume_pending" || checked.phase === "resume_reconcile")) throw new Error("This saved sign-in action cannot continue from its current state.");
-  if (!validId(receiptId)) throw new Error("Research continuation could not be confirmed.");
+  if (outcome.type !== "continuation_dispatched" || !checked.claim || outcome.submissionId !== checked.submissionId || outcome.claimRequestId !== checked.claim.requestId || !validId(outcome.receiptId)) throw new Error("Research continuation could not be confirmed.");
   // This records a response from the original submission. It does not issue a
   // new request, so it remains safe after expiry while reconciliation is on.
   void now;
-  return persisted({ ...checked, phase: "dispatched", dispatchReceiptId: receiptId, autoResume: false });
+  return persisted({ ...checked, phase: "dispatched", dispatchReceiptId: outcome.receiptId, autoResume: false });
 }
-export function rejectGuestPendingAction(intent: GuestPendingAction, code: NonNullable<GuestPendingAction["rejectionCode"]>, now: Date): GuestPendingAction {
+export function rejectGuestPendingAction(intent: GuestPendingAction, outcome: GuestPendingActionRejectionOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
-  if (!(["guest_expired", "guest_deleted", "authority_denied", "intent_stale"] as const).includes(code)) throw new Error("Invalid saved sign-in action rejection.");
+  if (!(["guest_expired", "guest_deleted", "authority_denied", "intent_stale"] as const).includes(outcome.rejectionCode)) throw new Error("Invalid saved sign-in action rejection.");
   if (["dispatched", "cancelled", "rejected"].includes(checked.phase)) throw new Error("This saved sign-in action is already terminal.");
   // A delayed server rejection may be durably reconciled after expiry, but
   // only when the saved claim/continuation was already in flight.
@@ -365,5 +398,11 @@ export function rejectGuestPendingAction(intent: GuestPendingAction, code: NonNu
     ? expireGuestPendingAction(checked, now)
     : checked;
   if (reconciling.phase === "expired") return reconciling;
-  return persisted({ ...reconciling, phase: "rejected", autoResume: false, authAttempt: null, rejectionCode: code });
+  const claimMatches = checked.claim !== null && outcome.submissionId === checked.submissionId &&
+    (outcome.type === "claim_rejected" ? outcome.requestId === checked.claim.requestId : outcome.claimRequestId === checked.claim.requestId);
+  const expectedPhase = outcome.type === "claim_rejected"
+    ? reconciling.phase === "claim_pending" || reconciling.phase === "claim_reconcile"
+    : reconciling.phase === "resume_pending" || reconciling.phase === "resume_reconcile";
+  if (!claimMatches || !expectedPhase) throw new Error("The saved sign-in action rejection did not match the original request.");
+  return persisted({ ...reconciling, phase: "rejected", autoResume: false, authAttempt: null, rejectionCode: outcome.rejectionCode });
 }

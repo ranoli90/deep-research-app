@@ -4,6 +4,7 @@ import {
   completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, expireGuestPendingAction,
   guestPendingActionNeedsReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
   reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume,
+  type GuestClaimAcceptedOutcome, type GuestContinuationDispatchedOutcome, type GuestPendingActionRejectionOutcome,
 } from "../src/auth/guest-pending-action";
 import { sha256Hex } from "../src/sha256";
 
@@ -28,12 +29,21 @@ function context() {
     draftRevision: 7, draftDigest: sha256Hex(draft), consentPolicyVersion: "consent.v1", authorityAllowed: true, budgetAllowed: true,
   };
 }
+function claimAccepted(overrides: Partial<GuestClaimAcceptedOutcome> = {}): GuestClaimAcceptedOutcome {
+  return {
+    type: "claim_accepted", submissionId: id(1), requestId: id(8), accountId: id(7), controlVersion: 12,
+    conversationId: id(3), conversationVersion: 4, principalEpoch: 3, viewEpoch: 8, ...overrides,
+  };
+}
+function continuationDispatched(overrides: Partial<GuestContinuationDispatchedOutcome> = {}): GuestContinuationDispatchedOutcome {
+  return { type: "continuation_dispatched", submissionId: id(1), claimRequestId: id(8), receiptId: id(9), ...overrides };
+}
+function continuationRejected(overrides: Partial<Extract<GuestPendingActionRejectionOutcome, { type: "continuation_rejected" }>> = {}): GuestPendingActionRejectionOutcome {
+  return { type: "continuation_rejected", submissionId: id(1), claimRequestId: id(8), rejectionCode: "authority_denied", ...overrides };
+}
 function claimed() {
   const auth = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
-  return completeGuestClaim(beginGuestClaim(auth, id(8), context().now), {
-    requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4,
-    principalEpoch: 3, viewEpoch: 8,
-  }, context().now);
+  return completeGuestClaim(beginGuestClaim(auth, id(8), context().now), claimAccepted(), context().now);
 }
 function expectRoundTrip(action: unknown) {
   expect(readGuestPendingAction(JSON.parse(JSON.stringify(action)))).toEqual(action);
@@ -126,15 +136,15 @@ describe("guest pending action", () => {
 
   it("CLAIM-14 records a dispatched continuation exactly once", () => {
     const resuming = beginGuestActionResume(claimed(), context());
-    const dispatched = markGuestActionDispatched(resuming, id(9), context().now);
+    const dispatched = markGuestActionDispatched(resuming, continuationDispatched(), context().now);
     expect(dispatched).toMatchObject({ phase: "dispatched", dispatchReceiptId: id(9), autoResume: false });
-    expect(() => markGuestActionDispatched(dispatched, id(10), context().now)).toThrow("current state");
+    expect(() => markGuestActionDispatched(dispatched, continuationDispatched({ receiptId: id(10) }), context().now)).toThrow("current state");
   });
 
   it("AUTH-14 keeps dispatched and rejected terminal evidence strict-decoder-valid after expiry", () => {
     const resuming = beginGuestActionResume(claimed(), context());
-    const dispatched = markGuestActionDispatched(resuming, id(9), context().now);
-    const rejected = rejectGuestPendingAction(claimed(), "authority_denied", context().now);
+    const dispatched = markGuestActionDispatched(resuming, continuationDispatched(), context().now);
+    const rejected = rejectGuestPendingAction(resuming, continuationRejected(), context().now);
     const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
     for (const terminal of [dispatched, rejected]) {
       const unchanged = expireGuestPendingAction(terminal, afterExpiry);
@@ -156,10 +166,26 @@ describe("guest pending action", () => {
 
     // A delayed server acknowledgement belongs to the original submission and
     // can be durably recorded; no second admission/continuation is attempted.
-    const reconciled = markGuestActionDispatched(expired, id(9), afterExpiry);
+    const reconciled = markGuestActionDispatched(expired, continuationDispatched(), afterExpiry);
     expect(reconciled).toMatchObject({ phase: "dispatched", submissionId: id(1), dispatchReceiptId: id(9), autoResume: false });
     expectRoundTrip(reconciled);
-    expect(() => markGuestActionDispatched(reconciled, id(10), afterExpiry)).toThrow("current state");
+    expect(() => markGuestActionDispatched(reconciled, continuationDispatched({ receiptId: id(10) }), afterExpiry)).toThrow("current state");
+  });
+
+  it("CLAIM-14 rejects stale continuation outcomes without terminalizing the reconcile-only submission", () => {
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const reconciling = expireGuestPendingAction(beginGuestActionResume(claimed(), context()), afterExpiry);
+
+    expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ submissionId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
+    expect(() => markGuestActionDispatched(reconciling, continuationDispatched({ claimRequestId: id(10) }), afterExpiry)).toThrow("could not be confirmed");
+    expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ submissionId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, continuationRejected({ claimRequestId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(reconciling).toMatchObject({ phase: "resume_reconcile", submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(reconciling);
+
+    const accepted = markGuestActionDispatched(reconciling, continuationDispatched(), afterExpiry);
+    expect(accepted).toMatchObject({ phase: "dispatched", dispatchReceiptId: id(9), submissionId: id(1) });
+    expectRoundTrip(accepted);
   });
 
   it("CLAIM-14 reconciles a delayed claim success after expiry without permitting a retry or continuation", () => {
@@ -174,24 +200,34 @@ describe("guest pending action", () => {
     expect(() => reopenGuestPendingAction(reconciling, afterExpiry)).toThrow("expired");
     expect(() => beginGuestActionResume(reconciling, { ...context(), now: afterExpiry })).toThrow("expired");
 
-    const claimedLate = completeGuestClaim(reconciling, {
-      requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4,
-      principalEpoch: 3, viewEpoch: 8,
-    }, afterExpiry);
+    const claimedLate = completeGuestClaim(reconciling, claimAccepted(), afterExpiry);
     expect(claimedLate).toMatchObject({ phase: "claimed", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
     expectRoundTrip(claimedLate);
     expect(validateGuestActionResume(claimedLate, { ...context(), now: afterExpiry })).toEqual({ ok: false, code: "expired" });
+  });
+
+  it("CLAIM-14 ignores stale claim outcomes unless both submission and claim request IDs match", () => {
+    const authenticated = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const reconciling = expireGuestPendingAction(beginGuestClaim(authenticated, id(8), context().now), afterExpiry);
+    expect(() => completeGuestClaim(reconciling, claimAccepted({ submissionId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => completeGuestClaim(reconciling, claimAccepted({ requestId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, {
+      type: "claim_rejected", submissionId: id(1), requestId: id(10), rejectionCode: "authority_denied",
+    }, afterExpiry)).toThrow("did not match");
+    expect(reconciling).toMatchObject({ phase: "claim_reconcile", submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(reconciling);
   });
 
   it("CLAIM-14 records only a delayed rejection for an expired in-flight continuation", () => {
     const resuming = beginGuestActionResume(claimed(), context());
     const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
     const reconciling = expireGuestPendingAction(resuming, afterExpiry);
-    const rejected = rejectGuestPendingAction(reconciling, "authority_denied", afterExpiry);
+    const rejected = rejectGuestPendingAction(reconciling, continuationRejected(), afterExpiry);
     expect(rejected).toMatchObject({ phase: "rejected", autoResume: false, submissionId: id(1), rejectionCode: "authority_denied", claim: { requestId: id(8) } });
     expectRoundTrip(rejected);
     expect(() => beginGuestAuth(reconciling, { id: id(10), provider: "email" }, afterExpiry)).toThrow("expired");
-    expect(() => markGuestActionDispatched(rejected, id(9), afterExpiry)).toThrow("current state");
+    expect(() => markGuestActionDispatched(rejected, continuationDispatched(), afterExpiry)).toThrow("current state");
   });
 
   it("AUTH-14 round-trips each transition across provider cancellation, claim retry, dismissal, terminal cancellation, rejection, and duplicate acknowledgement", () => {
@@ -200,17 +236,14 @@ describe("guest pending action", () => {
     const authenticated = completeGuestAuth(beginGuestAuth(providerCancelled, { id: id(10), provider: "email" }, context().now), id(10), id(7), context().now);
     const claimPending = beginGuestClaim(authenticated, id(8), context().now);
     const retry = retryGuestClaim(claimPending, context().now);
-    const completed = completeGuestClaim(retry, {
-      requestId: id(8), accountId: id(7), controlVersion: 12, conversationId: id(3), conversationVersion: 4,
-      principalEpoch: 3, viewEpoch: 8,
-    }, context().now);
+    const completed = completeGuestClaim(retry, claimAccepted(), context().now);
     const resumed = beginGuestActionResume(completed, context());
-    const dispatched = markGuestActionDispatched(resumed, id(9), context().now);
+    const dispatched = markGuestActionDispatched(resumed, continuationDispatched(), context().now);
     const terminalCancelled = cancelGuestPendingAction(completed, context().now);
-    const terminalRejected = rejectGuestPendingAction(completed, "intent_stale", context().now);
+    const terminalRejected = rejectGuestPendingAction(resumed, continuationRejected({ rejectionCode: "intent_stale" }), context().now);
     const dismissed = dismissGuestPendingAction(completed, context().now);
     for (const action of [pending(), opening, providerCancelled, authenticated, claimPending, retry, completed, resumed, dispatched, terminalCancelled, terminalRejected, dismissed, reopenGuestPendingAction(dismissed, context().now)]) expectRoundTrip(action);
-    expect(() => markGuestActionDispatched(dispatched, id(10), context().now)).toThrow("current state");
+    expect(() => markGuestActionDispatched(dispatched, continuationDispatched({ receiptId: id(10) }), context().now)).toThrow("current state");
   });
 
   it("AUTH-14 turns expired journals into a terminal expired state without minting a new action", () => {
