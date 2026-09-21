@@ -19,7 +19,7 @@ function signed(kind: string, data: Record<string, unknown>, options: {
 }
 
 describe("Clerk raw webhook adapter", () => {
-  it("AUTH-09 verifies exact signed bytes and pins the endpoint instance and issuer", async () => {
+  it("AUTH-11 verifies exact signed bytes and pins the endpoint instance and issuer", async () => {
     const message = signed("user.deleted", { id: "user_Synthetic1", email_addresses: [{ email_address: "not-an-owner-key@example.test" }] });
     const result = await verifyClerkWebhook(message.body, message.headers, config);
     expect(result).toMatchObject({ eventId: message.headers["svix-id"], kind: "user.deleted",
@@ -32,7 +32,7 @@ describe("Clerk raw webhook adapter", () => {
       .rejects.toThrow("clerk_webhook_rejected");
   });
 
-  it("AUTH-09 denies signed cross-instance messages, malformed IDs and unsupported effects", async () => {
+  it("AUTH-11 denies signed cross-instance messages, malformed IDs and unsupported effects", async () => {
     const other = signed("user.deleted", { id: "user_Synthetic1" }, { instanceId: "ins_anotherStage" });
     await expect(verifyClerkWebhook(other.body, other.headers, config)).rejects.toThrow("clerk_webhook_rejected");
     const emailOnly = signed("user.deleted", { id: "someone@example.test" });
@@ -43,7 +43,7 @@ describe("Clerk raw webhook adapter", () => {
     await expect(verifyClerkWebhook(badSession.body, badSession.headers, config)).rejects.toThrow("clerk_webhook_rejected");
   });
 
-  it("AUTH-09 accepts exact session end/revocation and harmless user update semantics", async () => {
+  it("AUTH-11 accepts exact session end/revocation and harmless user update semantics", async () => {
     for (const kind of ["session.ended", "session.revoked"]) {
       const message = signed(kind, { id: "sess_Synthetic1", user_id: "user_Synthetic1" });
       expect(await verifyClerkWebhook(message.body, message.headers, config)).toMatchObject({
@@ -54,7 +54,7 @@ describe("Clerk raw webhook adapter", () => {
       kind: "user.updated", subject: "user_Synthetic1" });
   });
 
-  it("AUTH-09 rejects stale signatures, ambiguous headers, invalid UTF-8 and oversized bodies", async () => {
+  it("AUTH-11 rejects stale signatures, ambiguous headers, invalid UTF-8 and oversized bodies", async () => {
     const stale = signed("user.deleted", { id: "user_Synthetic1" },
       { timestamp: Math.floor(Date.now() / 1000) - 600 });
     await expect(verifyClerkWebhook(stale.body, stale.headers, config)).rejects.toThrow("clerk_webhook_rejected");

@@ -13,6 +13,11 @@ export type ClerkIdentityResult =
   | { status: "verified"; identity: VerifiedCustomerIdentity }
   | { status: "rejected" | "unavailable" };
 
+function remoteUnavailable(error: unknown): boolean {
+  const reason = (error as { reason?: string }).reason;
+  return !reason || ["jwk-remote-failed-to-load", "jwk-failed-to-resolve"].includes(reason);
+}
+
 /** Clerk SDK verifies signature/time/party. Local checks pin environment and customer-session class. */
 export async function verifyClerkIdentity(token: string, config: NonNullable<AppConfig["clerkAuth"]>): Promise<ClerkIdentityResult> {
   if (token.length > 8192 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token))
@@ -28,19 +33,18 @@ export async function verifyClerkIdentity(token: string, config: NonNullable<App
     });
   } catch (error) {
     const reason = (error as { reason?: string }).reason;
-    if (config.jwtKey && config.secretKey && ["jwk-kid-mismatch", "jwk-local-missing"].includes(reason ?? "")) {
+    if (config.jwtKey && config.secretKey &&
+        ["jwk-kid-mismatch", "jwk-local-missing", "token-invalid-signature"].includes(reason ?? "")) {
       try {
         claims = await verifyToken(token, { secretKey: config.secretKey,
           authorizedParties: config.authorizedParties,
           ...(config.audience ? { audience: config.audience } : {}),
           clockSkewInMs: 5000, headerType: "JWT" });
       } catch (refreshError) {
-        return ["jwk-remote-failed-to-load", "jwk-failed-to-resolve"].includes((refreshError as { reason?: string }).reason ?? "")
-          ? { status: "unavailable" } : { status: "rejected" };
+        return remoteUnavailable(refreshError) ? { status: "unavailable" } : { status: "rejected" };
       }
     } else {
-      return ["jwk-remote-failed-to-load", "jwk-failed-to-resolve"].includes(reason ?? "")
-        ? { status: "unavailable" } : { status: "rejected" };
+      return remoteUnavailable(error) ? { status: "unavailable" } : { status: "rejected" };
     }
   }
   const issuer = (claims as { iss?: unknown }).iss;

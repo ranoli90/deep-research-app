@@ -1,8 +1,8 @@
-import { createHmac, generateKeyPairSync, randomBytes, sign } from "node:crypto";
+import { createHmac, generateKeyPairSync, randomBytes, sign, type KeyObject } from "node:crypto";
 import pg from "pg";
 import type PgBoss from "pg-boss";
 import type { FastifyInstance } from "fastify";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { verifyClerkWebhook } from "../src/adapters/auth/clerk-webhook.js";
 import { applyClerkWebhookEvent } from "../src/modules/clerk-revocation.js";
 import { accountForIdentity, identityDigest } from "../src/modules/identity.js";
@@ -26,13 +26,14 @@ let pool: pg.Pool;
 let boss: PgBoss;
 let app: FastifyInstance;
 
-function sessionToken(subject: string, sessionId: string) {
+function sessionToken(subject: string, sessionId: string, expiresInSeconds = 300,
+  signingKey: KeyObject = jwtKeys.privateKey) {
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "synthetic" })).toString("base64url");
   const payload = Buffer.from(JSON.stringify({ iss: config.issuer, sub: subject, sid: sessionId,
-    iat: now, nbf: now - 1, exp: now + 300, azp: "https://synthetic.app.test" })).toString("base64url");
+    iat: now, nbf: now - 1, exp: now + expiresInSeconds, azp: "https://synthetic.app.test" })).toString("base64url");
   const input = `${header}.${payload}`;
-  return `${input}.${sign("RSA-SHA256", Buffer.from(input), jwtKeys.privateKey).toString("base64url")}`;
+  return `${input}.${sign("RSA-SHA256", Buffer.from(input), signingKey).toString("base64url")}`;
 }
 
 function signed(kind: string, data: Record<string, unknown>, eventId = `msg_${randomBytes(8).toString("hex")}`) {
@@ -79,7 +80,56 @@ afterAll(async () => {
 }, 30_000);
 
 describe("verified Clerk webhook durable effects", () => {
-  it("AUTH-10 signed customer JWT loses only its revoked session authority at the live HTTP boundary", async () => {
+  it("AUTH-10 expired customer JWT cannot create an account or recover stale session authority", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const expired = sessionToken(subject, `sess_${randomBytes(8).toString("hex")}`, -60);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${expired}` } })).statusCode).toBe(401);
+    expect((await pool.query("SELECT 1 FROM external_identities WHERE identity_digest=$1",
+      [identityDigest(config.issuer, subject)])).rowCount).toBe(0);
+  });
+
+  it("AUTH-09 unavailable Clerk verification fails closed without mapping a new account", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const token = sessionToken(subject, `sess_${randomBytes(8).toString("hex")}`);
+    const offline = await buildApp({ pool, boss, config: loadConfig({ NODE_ENV: "test",
+      APP_AUTH_MODE: "production", APP_IDENTITY_PROVIDER: "clerk", DATABASE_URL: databaseUrl.toString(),
+      CLERK_ISSUER: config.issuer, CLERK_AUTHORIZED_PARTIES: "https://synthetic.app.test",
+      CLERK_PUBLISHABLE_KEY: "pk_test_only", CLERK_SECRET_KEY: "sk_test_only",
+      CLERK_WEBHOOK_SIGNING_SECRET: config.signingSecret,
+      CLERK_WEBHOOK_INSTANCE_ID: config.expectedInstanceId }) });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("synthetic key-service outage")));
+    try {
+      expect((await offline.inject({ method: "GET", url: "/v1/session",
+        headers: { authorization: `Bearer ${token}` } })).statusCode).toBe(503);
+      expect((await pool.query("SELECT 1 FROM external_identities WHERE identity_digest=$1",
+        [identityDigest(config.issuer, subject)])).rowCount).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+      await offline.close();
+    }
+  });
+
+  it("AUTH-03 rotated signing key verifies through current JWKS without changing the internal account", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sessionId = `sess_${randomBytes(8).toString("hex")}`;
+    const original = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId)}` } });
+    expect(original.statusCode).toBe(200);
+    const rotated = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const jwk = rotated.publicKey.export({ format: "jwk" });
+    const remote = vi.fn().mockResolvedValue(Response.json({ keys: [{ ...jwk, kid: "synthetic", alg: "RS256", use: "sig" }] }));
+    vi.stubGlobal("fetch", remote);
+    try {
+      const refreshed = await app.inject({ method: "GET", url: "/v1/session",
+        headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, rotated.privateKey)}` } });
+      expect(refreshed.statusCode).toBe(200);
+      expect(refreshed.json().accountId).toBe(original.json().accountId);
+      expect(remote).toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("AUTH-11 signed customer JWT loses only its revoked session authority at the live HTTP boundary", async () => {
     const subject = `user_${randomBytes(8).toString("hex")}`;
     const sid1 = `sess_${randomBytes(8).toString("hex")}`;
     const sid2 = `sess_${randomBytes(8).toString("hex")}`;
@@ -87,12 +137,17 @@ describe("verified Clerk webhook durable effects", () => {
       headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } });
     expect(first.statusCode).toBe(200);
     const accountId = first.json().accountId;
+    const refreshed = sessionToken(subject, sid1, 600);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${refreshed}` } })).json().accountId).toBe(accountId);
     const message = signed("session.revoked", { id: sid1, user_id: subject });
     const webhook = () => app.inject({ method: "POST", url: "/v1/clerk/webhooks",
       headers: { ...message.headers, "content-type": "application/json" }, payload: message.body });
     expect((await webhook()).json()).toEqual({ accepted: true, reused: false });
     expect((await app.inject({ method: "GET", url: "/v1/session",
       headers: { authorization: `Bearer ${sessionToken(subject, sid1)}` } })).statusCode).toBe(401);
+    expect((await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${refreshed}` } })).statusCode).toBe(401);
     const other = await app.inject({ method: "GET", url: "/v1/session",
       headers: { authorization: `Bearer ${sessionToken(subject, sid2)}` } });
     expect(other.statusCode).toBe(200);
@@ -100,7 +155,7 @@ describe("verified Clerk webhook durable effects", () => {
     expect((await webhook()).json()).toEqual({ accepted: true, reused: true });
   });
 
-  it("AUTH-09 raw API boundary rejects customer credentials, changed bytes and changed replay digest", async () => {
+  it("AUTH-11 raw API boundary rejects customer credentials, changed bytes and changed replay digest", async () => {
     const subject = `user_${randomBytes(8).toString("hex")}`;
     const id = `msg_${randomBytes(8).toString("hex")}`;
     const message = signed("user.deleted", { id: subject }, id);
@@ -116,7 +171,7 @@ describe("verified Clerk webhook durable effects", () => {
     expect(await accountForIdentity(pool, { issuer: config.issuer, subject })).toBeNull();
   });
 
-  it("AUTH-09/10 dedupes an event, rejects a changed digest and tombstones one exact session", async () => {
+  it("AUTH-11 dedupes an event, rejects a changed digest and tombstones one exact session", async () => {
     const eventId = `msg_${randomBytes(8).toString("hex")}`;
     const message = signed("session.revoked", { id: "sess_Synthetic1", user_id: "user_Synthetic1" }, eventId);
     const verified = await verifyClerkWebhook(message.body, message.headers, config);
@@ -133,7 +188,7 @@ describe("verified Clerk webhook durable effects", () => {
     expect(rows.rows).toEqual([{ session_id: "sess_Synthetic1" }]);
   });
 
-  it("AUTH-10/11 deletes a mapped member and delayed create/update cannot resurrect it", async () => {
+  it("AUTH-11 deletes a mapped member and delayed create/update cannot resurrect it", async () => {
     const subject = `user_${randomBytes(8).toString("hex")}`;
     const mapped = await accountForIdentity(pool, { issuer: config.issuer, subject });
     expect(mapped).not.toBeNull();
@@ -151,7 +206,7 @@ describe("verified Clerk webhook durable effects", () => {
     expect(await accountForIdentity(pool, { issuer: config.issuer, subject })).toBeNull();
   });
 
-  it("AUTH-10 deletion arriving before first login and racing a login remains a monotone deny", async () => {
+  it("AUTH-11 deletion arriving before first login and racing a login remains a monotone deny", async () => {
     const early = `user_${randomBytes(8).toString("hex")}`;
     expect(await deliver("user.deleted", { id: early })).toEqual({ reused: false });
     expect(await accountForIdentity(pool, { issuer: config.issuer, subject: early })).toBeNull();
