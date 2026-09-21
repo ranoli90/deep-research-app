@@ -429,7 +429,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if ((input.routeMode === "controlled-research" || req.headers["idempotency-key"] !== undefined) && !suppliedKey.success)
       return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
     try { await assertRouteAdmission(pool, config, input.routeMode); }
-    catch (error) { return guestError(reply, error); }
+    catch (error) {
+      // Route admission denials are public operational signals (same class as the
+      // advertised correction unavailability); surface code/message verbatim instead
+      // of the guest-authority mask, which mislabels member callers. Fail-closed:
+      // the denial still precedes consent, reservation, and dispatch.
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode;
+      if (code && status && status >= 400 && status < 500)
+        return reply.code(status).send(err(code, (error as Error).message, correlationId));
+      throw error;
+    }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
       return reply.code(403).send(err("consent_required", "Grant AI processing consent before starting research.", correlationId, "Draft is preserved on device."));
