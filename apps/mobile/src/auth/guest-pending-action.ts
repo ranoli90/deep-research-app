@@ -115,6 +115,10 @@ export type GuestPendingActionRejectionOutcome =
     type: "claim_rejected";
     submissionId: Uuid;
     requestId: Uuid;
+    /** Rejections must be scoped to the same authenticated member/conversation. */
+    accountId: Uuid;
+    conversationId: Uuid;
+    conversationVersion: number;
     rejectionCode: NonNullable<GuestPendingAction["rejectionCode"]>;
   }
   | {
@@ -278,6 +282,24 @@ function continuationOutcomeMatches(
 }
 
 /**
+ * Claim rejection is a terminal outcome too, so it needs the same member and
+ * conversation correlation as a claim success. Without this fence, a delayed
+ * rejection for another account or conversation could terminalize the only
+ * reconciliation record for this handoff.
+ */
+function claimRejectionOutcomeMatches(
+  intent: GuestPendingAction,
+  outcome: Extract<GuestPendingActionRejectionOutcome, { type: "claim_rejected" }>,
+): boolean {
+  return intent.claim !== null && intent.authenticatedAccountId !== null &&
+    outcome.submissionId === intent.submissionId &&
+    outcome.requestId === intent.claim.requestId &&
+    validId(outcome.accountId) && outcome.accountId === intent.authenticatedAccountId && outcome.accountId === intent.claim.accountId &&
+    validId(outcome.conversationId) && outcome.conversationId === intent.conversationId &&
+    validVersion(outcome.conversationVersion) && outcome.conversationVersion === intent.conversationVersion;
+}
+
+/**
  * Expiry forbids another automatic action. It deliberately does not replace a
  * known terminal outcome: doing so would leave an expired record with a
  * dispatch receipt/rejection that the strict decoder must reject.
@@ -426,8 +448,8 @@ export function rejectGuestPendingAction(intent: GuestPendingAction, outcome: Gu
     : checked;
   if (reconciling.phase === "expired") return reconciling;
   const claimMatches = outcome.type === "claim_rejected"
-    ? checked.claim !== null && outcome.submissionId === checked.submissionId && outcome.requestId === checked.claim.requestId
-    : continuationOutcomeMatches(checked, outcome);
+    ? claimRejectionOutcomeMatches(reconciling, outcome)
+    : continuationOutcomeMatches(reconciling, outcome);
   const expectedPhase = outcome.type === "claim_rejected"
     ? reconciling.phase === "claim_pending" || reconciling.phase === "claim_reconcile"
     : reconciling.phase === "resume_pending" || reconciling.phase === "resume_reconcile";

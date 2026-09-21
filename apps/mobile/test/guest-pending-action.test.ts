@@ -47,6 +47,12 @@ function continuationRejected(overrides: Partial<Extract<GuestPendingActionRejec
     conversationId: id(3), conversationVersion: 4, rejectionCode: "authority_denied", ...overrides,
   };
 }
+function claimRejected(overrides: Partial<Extract<GuestPendingActionRejectionOutcome, { type: "claim_rejected" }>> = {}): GuestPendingActionRejectionOutcome {
+  return {
+    type: "claim_rejected", submissionId: id(1), requestId: id(8), accountId: id(7),
+    conversationId: id(3), conversationVersion: 4, rejectionCode: "authority_denied", ...overrides,
+  };
+}
 function claimed() {
   const auth = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
   return completeGuestClaim(beginGuestClaim(auth, id(8), context().now), claimAccepted(), context().now);
@@ -218,17 +224,23 @@ describe("guest pending action", () => {
     expect(validateGuestActionResume(claimedLate, { ...context(), now: afterExpiry })).toEqual({ ok: false, code: "expired" });
   });
 
-  it("CLAIM-14 ignores stale claim outcomes unless both submission and claim request IDs match", () => {
+  it("CLAIM-14 ignores stale claim outcomes unless every saved member/conversation binding matches", () => {
     const authenticated = completeGuestAuth(beginGuestAuth(pending(), { id: id(6), provider: "apple" }, context().now), id(6), id(7), context().now);
     const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
     const reconciling = expireGuestPendingAction(beginGuestClaim(authenticated, id(8), context().now), afterExpiry);
     expect(() => completeGuestClaim(reconciling, claimAccepted({ submissionId: id(10) }), afterExpiry)).toThrow("did not match");
     expect(() => completeGuestClaim(reconciling, claimAccepted({ requestId: id(10) }), afterExpiry)).toThrow("did not match");
-    expect(() => rejectGuestPendingAction(reconciling, {
-      type: "claim_rejected", submissionId: id(1), requestId: id(10), rejectionCode: "authority_denied",
-    }, afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, claimRejected({ submissionId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, claimRejected({ requestId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, claimRejected({ accountId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, claimRejected({ conversationId: id(10) }), afterExpiry)).toThrow("did not match");
+    expect(() => rejectGuestPendingAction(reconciling, claimRejected({ conversationVersion: 5 }), afterExpiry)).toThrow("did not match");
     expect(reconciling).toMatchObject({ phase: "claim_reconcile", submissionId: id(1), claim: { requestId: id(8) } });
     expectRoundTrip(reconciling);
+
+    const rejected = rejectGuestPendingAction(reconciling, claimRejected(), afterExpiry);
+    expect(rejected).toMatchObject({ phase: "rejected", autoResume: false, submissionId: id(1), rejectionCode: "authority_denied", claim: { requestId: id(8), accountId: id(7) } });
+    expectRoundTrip(rejected);
   });
 
   it("CLAIM-14 records only a delayed rejection for an expired in-flight continuation", () => {
