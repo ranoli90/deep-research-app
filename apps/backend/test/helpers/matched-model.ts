@@ -1,4 +1,10 @@
 /** Explicit transport control. Reads only production request context, never evaluator references or arm. */
+export function matchedSearchDocument(query:string):"offline"|"export" {
+ const tokens:string[]=query.normalize("NFKC").toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu)??[];
+ const offlineEditing=tokens.some((token,index)=>token==="offline"&&tokens[index+1]==="editing");
+ return offlineEditing&&!tokens.includes("export")?"offline":"export";
+}
+
 export function matchedDocumentModel() {
  const calls:string[]=[];
  const scope={entity:null,plan:null,version:null,geography:null,time:null,population:null};
@@ -7,8 +13,7 @@ export function matchedDocumentModel() {
   if(String(input)!=="https://openrouter.ai/api/v1/chat/completions")throw new Error("unregistered_network_request");
   const body=JSON.parse(String(init?.body));if(body.plugins?.length){
    const query=body.messages[1].content as string;calls.push(`search:${query}`);
-   const normalizedQuery=query.trim().toLocaleLowerCase("en").replace(/\s+/gu," ");
-   const suffix=normalizedQuery.includes("offline editing")&&!normalizedQuery.includes("export")?"offline":"export";
+   const suffix=matchedSearchDocument(query);
    return new Response(JSON.stringify({id:"nonbillable-matched-search",model:"openai/gpt-4o-mini",provider:"OpenAI",usage:{cost:"0.000003"},choices:[{finish_reason:"stop",message:{annotations:[{type:"url_citation",url_citation:{url:`https://example.org/${suffix}.html`,title:"Technical note"}}]}}]}));
   }
   const context=JSON.parse(body.messages[1].content),operation=body.response_format.json_schema.name;calls.push(operation);
