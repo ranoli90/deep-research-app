@@ -1,6 +1,6 @@
 {
-  "schema": "matched-pipeline-fixture-repair.v1",
-  "generatedAt": "2026-09-20T20:04:19-06:00",
+  "schema": "matched-pipeline-fixture-repair.v2",
+  "generatedAt": "2026-09-20T20:33:41-06:00",
   "requirements": [
     "W08",
     "MP-ITERATIVE-HTML"
@@ -12,6 +12,10 @@
     "branch": "codex/v8-extraction-fixture",
     "base": "19a0bd38ded634ecfe3ef3ef3560d2167f4cf2e7",
     "baseTree": "5eb0fe8810c63c27555917201240b94cf3e645ee",
+    "initialRepairCommit": "cfe382bc35e3c0bf2dd80ee0ef39fa26672a8e3d",
+    "initialRepairTree": "ce8fa289106f75326098e29dd24eabd05e70fbcb",
+    "verifiedFunctionalCommit": "5e76f512bb2bc280bd1bf208ca407f84c46a6b03",
+    "verifiedFunctionalTree": "c05db49a100a870c968e1581dc8dbd6c3383e723",
     "remotePushed": false
   },
   "priorRed": {
@@ -39,7 +43,20 @@
   },
   "repair": {
     "scope": "Fabricated matched-pipeline transport and its exact trace assertions only; no production code, policy, coverage, publication, timeout, or semantic expectation changed.",
-    "behavior": "An offline-editing-only query selects offline.html even with an application-owned source-class suffix. The mixed opening query still selects export.html.",
+    "behavior": "NFKC-normalized Unicode letter/number tokens recognize only adjacent exact offline + editing tokens and an exact export token. A genuine offline-editing-only query selects offline.html even with an application-owned source-class suffix; the genuine mixed opening query still selects export.html.",
+    "independentReviewRepair": {
+      "initialDisposition": "cfe382b rejected because substring includes() accepted preoffline editing and offline editingly as the phrase and exportable as export.",
+      "directNegativeControls": [
+        "preoffline editing routes export (not a valid offline phrase)",
+        "offline editingly routes export (not a valid offline phrase)",
+        "offline editing exportable routes offline (exportable is not the export token)"
+      ],
+      "directPositiveControls": [
+        "case and mixed whitespace preserve the offline editing phrase",
+        "genuine export plus offline editing routes export"
+      ],
+      "artifactProvenance": "The version manifest now hashes apps/backend/test/helpers/matched-model.ts, the executable fabricated transport input."
+    },
     "assertionsRetained": [
       "both arms complete",
       "two actual parser calls per arm",
@@ -49,6 +66,7 @@
     ],
     "files": [
       "apps/backend/test/helpers/matched-model.ts",
+      "apps/backend/test/matched-model.unit.test.ts",
       "apps/backend/test/matched-pipeline.extraction.test.ts"
     ]
   },
@@ -92,29 +110,72 @@
     {
       "command": "python3 scripts/validate_review.py && python3 -m unittest discover -s scripts -p 'test_review_validator.py' -v",
       "exitCode": 0,
-      "environment": "isolated repair documentation tree; standard library only",
+      "environment": "post-boundary-repair evidence/documentation tree; standard library only",
       "scope": "review-package metadata valid; application_tests_run=0; validator tests 16/16"
     },
     {
       "command": "python3 scripts/validate_builder_handoff.py && python3 -m unittest discover -s scripts -p 'test_builder_handoff.py' -v",
       "exitCode": 0,
-      "environment": "isolated repair documentation tree; standard library only",
+      "environment": "post-boundary-repair evidence/documentation tree; standard library only",
       "scope": "revision-3 handoff integrity valid; application_tests_run=0; validator tests 12/12"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 2,
+      "environment": "uncommitted boundary-repair working tree before explicit token-array typing; no network/provider activity",
+      "scope": "backend typecheck rejected match() null-coalescing inference: export argument was not assignable to never; no tests ran; repaired without assertion or behavior changes"
+    },
+    {
+      "command": "pnpm verify",
+      "exitCode": 0,
+      "environment": "exact clean functional commit 5e76f512bb2bc280bd1bf208ca407f84c46a6b03; deterministic local checks; no network/provider activity",
+      "scope": "research-core 392/392; backend unit 254/254 including seven direct matcher cases; mobile 504/504; governance 6/6; configured workspace types and boundaries passed"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_v8_fixture_review_focus_20260920_a92c1f06> EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/tmp/deep-v8-extraction-fixture-rereview-focus.Qco2ai pnpm --filter @deep/backend exec vitest run --config vitest.extraction.config.ts test/matched-pipeline.extraction.test.ts",
+      "exitCode": 0,
+      "environment": "exact clean functional commit 5e76f512bb2bc280bd1bf208ca407f84c46a6b03; fresh unique local PostgreSQL; actual offline parser; fabricated provider transport; serial; network false; paid false",
+      "scope": "1 file; 3/3 passed; 118.20s; A1 and B completed with two parser calls and both facts"
+    },
+    {
+      "command": "TEST_DATABASE_URL=<deep_v8_fixture_review_full_20260920_d61e5b43> EXTRACTION_RUNTIME=/tmp/deep-v6-extraction-runtime MATCHED_PIPELINE_ARTIFACT_DIR=/tmp/deep-v8-extraction-fixture-rereview-full.LfB5jF/matched-pipeline EVAL_RUNNER_ARTIFACT_DIR=/tmp/deep-v8-extraction-fixture-rereview-full.LfB5jF/eval-runner pnpm --filter @deep/backend test:extraction",
+      "exitCode": 0,
+      "environment": "exact clean functional commit 5e76f512bb2bc280bd1bf208ca407f84c46a6b03; second fresh unique local PostgreSQL; actual offline parser; fabricated provider transports; serial; network false; paid false",
+      "scope": "8 files; 55/55 passed; 567.26s"
     }
   ],
   "artifacts": {
-    "focused": {
-      "path": "/tmp/deep-v8-extraction-fixture-focused.i6cKET/document-controls.json",
-      "sha256": "28dd1f55ad42b88ca7e00c51eeb408a87facabfed05ca43b118c2a4ae2ad37f7"
+    "historicalInitialRepair": {
+      "status": "Retained as historical cfe382b working-tree evidence; not cited as exact final evidence because the embedded tree was dirty and the executable helper was absent from the version manifest.",
+      "focused": {
+        "path": "/tmp/deep-v8-extraction-fixture-focused.i6cKET/document-controls.json",
+        "sha256": "28dd1f55ad42b88ca7e00c51eeb408a87facabfed05ca43b118c2a4ae2ad37f7"
+      },
+      "fullMatchedPipeline": {
+        "path": "/tmp/deep-v8-extraction-fixture-full.t9CzG5/matched-pipeline/document-controls.json",
+        "sha256": "c486e10f65d0cff5789aab2cdcd1e064049f613bbdbd4d128204da131503e1dc"
+      }
     },
-    "fullMatchedPipeline": {
-      "path": "/tmp/deep-v8-extraction-fixture-full.t9CzG5/matched-pipeline/document-controls.json",
-      "sha256": "c486e10f65d0cff5789aab2cdcd1e064049f613bbdbd4d128204da131503e1dc"
+    "verifiedFunctionalCommit": {
+      "commit": "5e76f512bb2bc280bd1bf208ca407f84c46a6b03",
+      "tree": "c05db49a100a870c968e1581dc8dbd6c3383e723",
+      "workingTree": "clean_checkout",
+      "matchedModelHelperSha256": "576e06c8b438bf5344928ea99b72197810cb7d6ab07e104ef4fde75634d9f003",
+      "focused": {
+        "path": "/tmp/deep-v8-extraction-fixture-rereview-focus.Qco2ai/document-controls.json",
+        "sha256": "5a6f0e22351d0c73bfb597a73726afbbd35090eba824757fab4c2f7d8c3c8f11"
+      },
+      "fullMatchedPipeline": {
+        "path": "/tmp/deep-v8-extraction-fixture-rereview-full.LfB5jF/matched-pipeline/document-controls.json",
+        "sha256": "ddcc22ac8e37c7d394caff5710c7a1cfffddaab69da6596118a4fd6c42b7f03b"
+      },
+      "fullEvaluator": {
+        "path": "/tmp/deep-v8-extraction-fixture-rereview-full.LfB5jF/eval-runner/controls.json",
+        "sha256": "75e3729dd2c39db1f728892baf12ae1182b20d8eabee99ffd185e02c36b5d5b7",
+        "bytes": 23833071
+      }
     },
-    "fullEvaluator": {
-      "path": "/tmp/deep-v8-extraction-fixture-full.t9CzG5/eval-runner/controls.json",
-      "bytes": 23833054
-    }
+    "paidCalls": 0
   },
   "observedTraces": {
     "A1": [
@@ -127,6 +188,9 @@
       "offline editing vendor documentation"
     ]
   },
+  "reviewerContext": {
+    "unrelatedW02Observation": "The independent reviewer separately observed a W02 forced-GC full-suite timeout and a focused W02 result of 12/12. That observation is outside this W08 fixture change and is not classified here as a product or W08 failure."
+  },
   "claimBoundary": "These controls establish deterministic fixture routing and production-path orchestration only. They do not establish live retrieval recall, real-model semantic quality, arm superiority, hosted behavior, or provider cost.",
-  "rollback": "Revert the local fixture repair commit. Production behavior and all consent, ownership, budget, deletion, publication, and unknown-outcome gates are unchanged either way; reverting intentionally restores the known W08 fixture failure."
+  "rollback": "Revert functional repair 5e76f512 after cfe382bc, then revert cfe382bc. Production behavior and all consent, ownership, budget, deletion, publication, and unknown-outcome gates are unchanged either way; reverting intentionally restores the known W08 fixture failure."
 }
