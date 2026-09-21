@@ -18,7 +18,7 @@ function remoteUnavailable(error: unknown): boolean {
   return !reason || ["jwk-remote-failed-to-load", "jwk-failed-to-resolve"].includes(reason);
 }
 
-/** Clerk SDK verifies signature/time/party. Local checks pin environment and customer-session class. */
+/** Clerk SDK verifies signature/time; local checks pin issuer, optional party and customer-session class. */
 export async function verifyClerkIdentity(token: string, config: NonNullable<AppConfig["clerkAuth"]>): Promise<ClerkIdentityResult> {
   if (token.length > 8192 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token))
     return { status: "rejected" };
@@ -26,7 +26,6 @@ export async function verifyClerkIdentity(token: string, config: NonNullable<App
   try {
     claims = await verifyToken(token, {
       ...(config.jwtKey ? { jwtKey: config.jwtKey } : { secretKey: config.secretKey }),
-      authorizedParties: config.authorizedParties,
       ...(config.audience ? { audience: config.audience } : {}),
       clockSkewInMs: 5000,
       headerType: "JWT",
@@ -37,7 +36,6 @@ export async function verifyClerkIdentity(token: string, config: NonNullable<App
         ["jwk-kid-mismatch", "jwk-local-missing", "token-invalid-signature"].includes(reason ?? "")) {
       try {
         claims = await verifyToken(token, { secretKey: config.secretKey,
-          authorizedParties: config.authorizedParties,
           ...(config.audience ? { audience: config.audience } : {}),
           clockSkewInMs: 5000, headerType: "JWT" });
       } catch (refreshError) {
@@ -56,7 +54,8 @@ export async function verifyClerkIdentity(token: string, config: NonNullable<App
   if (issuer !== config.issuer || typeof subject !== "string" || !/^user_[A-Za-z0-9]+$/.test(subject) ||
       typeof sessionId !== "string" || !/^sess_[A-Za-z0-9]+$/.test(sessionId) ||
       !Number.isSafeInteger(issuedAt) || !Number.isSafeInteger(expiresAt) ||
-      typeof party !== "string" || !config.authorizedParties.includes(party)) return { status: "rejected" };
+      (party !== undefined && (typeof party !== "string" || !config.authorizedParties.includes(party))))
+    return { status: "rejected" };
   return { status: "verified", identity: { issuer, subject, sessionId,
     tokenClass: "customer_session", issuedAt: issuedAt as number, expiresAt: expiresAt as number } };
 }

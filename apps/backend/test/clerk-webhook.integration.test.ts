@@ -27,11 +27,11 @@ let boss: PgBoss;
 let app: FastifyInstance;
 
 function sessionToken(subject: string, sessionId: string, expiresInSeconds = 300,
-  signingKey: KeyObject = jwtKeys.privateKey) {
+  signingKey: KeyObject = jwtKeys.privateKey, party: string | null = "https://synthetic.app.test") {
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "synthetic" })).toString("base64url");
   const payload = Buffer.from(JSON.stringify({ iss: config.issuer, sub: subject, sid: sessionId,
-    iat: now, nbf: now - 1, exp: now + expiresInSeconds, azp: "https://synthetic.app.test" })).toString("base64url");
+    iat: now, nbf: now - 1, exp: now + expiresInSeconds, ...(party === null ? {} : { azp: party }) })).toString("base64url");
   const input = `${header}.${payload}`;
   return `${input}.${sign("RSA-SHA256", Buffer.from(input), signingKey).toString("base64url")}`;
 }
@@ -80,6 +80,16 @@ afterAll(async () => {
 }, 30_000);
 
 describe("verified Clerk webhook durable effects", () => {
+  it("AUTH-01 accepts a signed native session with omitted azp, but rejects a present wrong party", async () => {
+    const subject = `user_${randomBytes(8).toString("hex")}`;
+    const sessionId = `sess_${randomBytes(8).toString("hex")}`;
+    const native = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, jwtKeys.privateKey, null)}` } });
+    expect(native.statusCode).toBe(200);
+    const wrong = await app.inject({ method: "GET", url: "/v1/session",
+      headers: { authorization: `Bearer ${sessionToken(subject, sessionId, 300, jwtKeys.privateKey, "https://wrong.app.test")}` } });
+    expect(wrong.statusCode).toBe(401);
+  });
   it("AUTH-10 expired customer JWT cannot create an account or recover stale session authority", async () => {
     const subject = `user_${randomBytes(8).toString("hex")}`;
     const expired = sessionToken(subject, `sess_${randomBytes(8).toString("hex")}`, -60);

@@ -145,13 +145,19 @@ export async function publishReport(
 }
 
 export async function getReportForAccount(db: Queryable, reportId: string, accountId: string) {
-  const res = await db.query(`SELECT * FROM reports WHERE id = $1 AND account_id = $2`, [reportId, accountId]);
+  const res = await db.query(`SELECT report.* FROM reports report WHERE report.id = $1 AND report.account_id = $2
+    AND report.redacted_at IS NULL AND NOT EXISTS(SELECT 1 FROM tombstones t
+      WHERE t.account_id=$2 AND t.object_kind='run' AND t.object_id=report.run_id
+        AND t.reason='source_deletion')`, [reportId, accountId]);
   return res.rows[0] ?? null;
 }
 
 export async function getLatestReportForRun(db: Queryable, runId: string, accountId: string) {
   const res = await db.query(
-    `SELECT * FROM reports WHERE run_id = $1 AND account_id = $2 ORDER BY version DESC LIMIT 1`,
+    `SELECT report.* FROM reports report WHERE report.run_id = $1 AND report.account_id = $2
+       AND report.redacted_at IS NULL AND NOT EXISTS(SELECT 1 FROM tombstones t
+         WHERE t.account_id=$2 AND t.object_kind='run' AND t.object_id=report.run_id
+           AND t.reason='source_deletion') ORDER BY report.version DESC LIMIT 1`,
     [runId, accountId],
   );
   return res.rows[0] ?? null;

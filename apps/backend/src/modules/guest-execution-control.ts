@@ -9,6 +9,8 @@ export async function guestExecutionAllowed(db: Queryable, runId: string, execut
     guest_pending_action_id: string | null }>(`SELECT account_id,claimed_control_binding_id,claimed_control_version,
       claimed_parent_run_id,guest_pending_action_id FROM runs WHERE id=$1`, [runId])).rows[0];
   if (!run || run.account_id !== executionOwnerId) return false;
+  if ((await db.query(`SELECT 1 FROM tombstones WHERE account_id=$1 AND object_kind='run'
+    AND object_id=$2 AND reason='source_deletion'`, [executionOwnerId, runId])).rowCount) return false;
   const parent = (await db.query<{ guest_context_id: string }>(
     "SELECT guest_context_id FROM guest_first_request_receipts WHERE run_id=$1", [runId])).rows[0];
   if (!parent && !run.claimed_control_binding_id && !run.claimed_parent_run_id && !run.guest_pending_action_id)
@@ -30,6 +32,9 @@ export async function guestExecutionAllowed(db: Queryable, runId: string, execut
         "SELECT guest_context_id FROM conversation_control_bindings WHERE id=$1",
         [run.claimed_control_binding_id])).rows[0]?.guest_context_id ?? null])).rows[0];
   if (!context || context.guest_deleted_at || context.status === "deleted" || context.status === "expired") return false;
+  if (run.claimed_parent_run_id && (await db.query(`SELECT 1 FROM tombstones WHERE account_id=$1
+    AND object_kind='run' AND object_id=$2 AND reason='source_deletion'`,
+    [context.execution_owner_account_id, run.claimed_parent_run_id])).rowCount) return false;
   if ((await db.query(`SELECT 1 FROM guest_control_tombstones WHERE guest_context_id=$1
     AND reason IN ('expired','guest_deleted','member_deletion','member_revoked','consent_revoked') LIMIT 1`,
     [context.id])).rowCount) return false;

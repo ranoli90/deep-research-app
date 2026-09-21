@@ -13,7 +13,7 @@ import { processRun } from "../src/worker/diagnostic-executor.js";
 import { assertRouteAdmission } from "../src/modules/run-route-admission.js";
 import { guestExecutionAllowed } from "../src/modules/guest-execution-control.js";
 import { publishReport } from "../src/modules/reports.js";
-import { insertSource } from "../src/modules/evidence.js";
+import { insertSource, insertVersionAndPassage } from "../src/modules/evidence.js";
 import { getBrief } from "../src/modules/runs.js";
 
 const url = process.env.TEST_DATABASE_URL ?? "postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_research_test";
@@ -53,6 +53,84 @@ async function enabledGuest() {
 }
 
 describe("NARROW-GUEST-001 first-turn server authority and bounded sponsor", () => {
+  it("NARROW-DATA invalidates a claimed member child and its descendants when a guest parent source is deleted", async () => {
+    const guest = await enabledGuest();
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: true } })).statusCode).toBe(200);
+    const first = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "Which laptop runs local AI well under two thousand dollars?", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(first.statusCode).toBe(200);
+    const parentRunId = first.json().runId as string;
+    await processRun(pool, loadConfig({ DATABASE_URL: url, NODE_ENV: "test", APP_AUTH_MODE: "development",
+      DEV_ALLOW_FIXTURE_ROUTE: "true" }), parentRunId);
+    const parentSourceId = (await pool.query<{ id: string }>(
+      "SELECT id FROM sources WHERE run_id=$1 ORDER BY id LIMIT 1", [parentRunId])).rows[0]?.id;
+    expect(parentSourceId).toBeTruthy();
+
+    const action = { kind: "follow_up" as const, text: "What about battery life?", parentRunId };
+    const submissionId = crypto.randomUUID(), authAttemptId = crypto.randomUUID(), claimRequestId = crypto.randomUUID();
+    const payloadDigest = createHash("sha256").update(canonicalGuestPendingPayload(action)).digest("hex");
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions", headers: guest.headers,
+      payload: { submissionId, guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, payload: action, payloadDigest,
+        consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(202);
+    expect((await app.inject({ method: "POST", url: "/v1/guest/pending-actions/attempts/begin",
+      headers: guest.headers, payload: { submissionId, authAttemptId, provider: "email_code" } })).statusCode).toBe(200);
+    const member = (await app.inject({ method: "POST", url: "/v1/dev/session", payload: {} })).json() as
+      { token: string; accountId: string };
+    const headers = { authorization: `Bearer ${member.token}` };
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers,
+      payload: { grant: true } })).statusCode).toBe(200);
+    const claim = await app.inject({ method: "POST", url: "/v1/guest/claim",
+      headers: { ...headers, ...guest.headers }, payload: { claimRequestId, submissionId,
+        guestContextId: guest.guestContextId, conversationId: guest.conversationId,
+        conversationVersion: 1, authAttemptId } });
+    expect(claim.statusCode).toBe(200);
+    const continued = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers,
+      payload: { submissionId, claimRequestId, controlVersion: claim.json().controlVersion, payloadDigest } });
+    expect(continued.statusCode).toBe(200);
+    const childId = continued.json().runId as string;
+    const childSourceId = await insertSource(pool, { accountId: member.accountId, runId: childId,
+      locator: "https://example.test/member-fresh-evidence", title: "Fresh member evidence",
+      publisher: "Synthetic", originCluster: "member-fresh-evidence" });
+    const { passageId: childPassageId } = await insertVersionAndPassage(pool, { accountId: member.accountId,
+      runId: childId, sourceId: childSourceId, locator: "https://example.test/member-fresh-evidence",
+      text: "Synthetic battery-life result", accessLevel: "full-text" });
+    const childReportId = crypto.randomUUID();
+    await pool.query(`INSERT INTO reports(id,run_id,account_id,version,outcome,basis,blocks,claim_ids,
+      limitations,source_access_summary,route_mode) VALUES($1,$2,$3,1,'completed_with_limitations','{}',$4,
+      '{}','[]','[]','fixture')`, [childReportId, childId, member.accountId,
+      JSON.stringify([{ id: "answer", kind: "text", text: "Synthetic battery-life result", citationIds: [childPassageId] }])]);
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${childReportId}`, headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${childPassageId}`, headers })).statusCode).toBe(200);
+    const sibling = await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...headers, "idempotency-key": crypto.randomUUID() }, payload: {
+        question: "Recheck the follow-up finding", routeMode: "fixture", parentRunId: childId,
+        conversationId: continued.json().memberConversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } });
+    expect(sibling.statusCode).toBe(200);
+    const descendantId = sibling.json().runId as string;
+
+    const deleted = await app.inject({ method: "DELETE", url: `/v1/sources/${parentSourceId}`, headers });
+    expect(deleted.statusCode).toBe(200);
+    expect(new Set(deleted.json().invalidatedRunIds)).toEqual(new Set([parentRunId, childId, descendantId]));
+    expect((await app.inject({ method: "GET", url: `/v1/reports/${childReportId}`, headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: "GET", url: `/v1/sources/${childPassageId}`, headers })).statusCode).toBe(404);
+    expect((await pool.query("SELECT lifecycle,terminal_outcome FROM runs WHERE id=$1", [childId])).rows[0])
+      .toMatchObject({ lifecycle: "terminal", terminal_outcome: "cancelled" });
+    expect((await pool.query("SELECT account_id FROM tombstones WHERE object_kind='run' AND object_id=$1",
+      [childId])).rows[0].account_id).toBe(member.accountId);
+    expect(await guestExecutionAllowed(pool, childId, member.accountId)).toBe(false);
+    expect((await pool.query("SELECT state FROM reservations WHERE run_id=$1", [childId])).rows[0].state)
+      .toBe("settled");
+    const replay = await app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers,
+      payload: { submissionId, claimRequestId, controlVersion: claim.json().controlVersion, payloadDigest } });
+    expect(replay.statusCode).toBe(409);
+    expect(replay.json().code).toBe("intent_stale");
+    expect((await app.inject({ method: "POST", url: "/v1/guest/actions/resolve", headers,
+      payload: { submissionId, claimRequestId } })).statusCode).toBe(409);
+  });
   it("does not issue a guest proof when the sponsor policy is disabled", async () => {
     const denied = await app.inject({ method: "POST", url: "/v1/guest/bootstrap", payload: {} });
     expect(denied.statusCode).toBe(402);

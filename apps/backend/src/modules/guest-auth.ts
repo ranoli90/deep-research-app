@@ -633,13 +633,6 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
         Number(binding.member_deletion_epoch) !== Number(member.deletion_epoch)) fail("authority_denied", 403);
     const consent = await currentConsent(db, memberAccountId);
     if (!consent || consent.revoked || consent.policyVersion !== CONSENT_POLICY_VERSION) fail("consent_required", 403);
-    if (pending.state === "dispatched" && pending.member_run_id && pending.member_conversation_id && pending.dispatch_receipt_id)
-      return { type: "continuation_dispatched" as const, submissionId: input.submissionId,
-        claimRequestId: input.claimRequestId, accountId: memberAccountId,
-        conversationId: binding.guest_conversation_id, conversationVersion: 1,
-        receiptId: pending.dispatch_receipt_id, runId: pending.member_run_id,
-        memberConversationId: pending.member_conversation_id, kind: pending.payload.kind, reused: true };
-    if (pending.state !== "claimed" || pending.expires_at <= new Date()) fail("intent_stale", 409);
     const first = (await db.query<{ run_id: string; execution_owner_account_id: string }>(
       `SELECT r.run_id,g.execution_owner_account_id FROM guest_first_request_receipts r
        JOIN guest_contexts g ON g.id=r.guest_context_id WHERE r.guest_context_id=$1`,
@@ -648,6 +641,17 @@ export async function resumeClaimedGuestAction(pool: pg.Pool, memberAccountId: s
     const guestRun = await getRun(db, first.run_id);
     if (!guestRun || guestRun.account_id !== first.execution_owner_account_id ||
       guestRun.conversation_id !== binding.guest_conversation_id) fail("intent_stale", 409);
+    if ((await db.query(`SELECT 1 FROM tombstones WHERE reason='source_deletion' AND object_kind='run'
+      AND ((account_id=$1 AND object_id=$2) OR (account_id=$3 AND object_id=$4))`,
+      [guestRun.account_id, guestRun.id, memberAccountId, pending.member_run_id])).rowCount)
+      fail("intent_stale", 409);
+    if (pending.state === "dispatched" && pending.member_run_id && pending.member_conversation_id && pending.dispatch_receipt_id)
+      return { type: "continuation_dispatched" as const, submissionId: input.submissionId,
+        claimRequestId: input.claimRequestId, accountId: memberAccountId,
+        conversationId: binding.guest_conversation_id, conversationVersion: 1,
+        receiptId: pending.dispatch_receipt_id, runId: pending.member_run_id,
+        memberConversationId: pending.member_conversation_id, kind: pending.payload.kind, reused: true };
+    if (pending.state !== "claimed" || pending.expires_at <= new Date()) fail("intent_stale", 409);
     await assertRouteAdmission(db, config, guestRun.route_mode as "fixture" | "controlled-research");
     const payload = pending.payload;
     if (payload.kind === "follow_up" && payload.parentRunId !== guestRun.id) fail("intent_stale", 409);
