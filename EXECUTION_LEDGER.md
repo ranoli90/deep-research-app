@@ -1,5 +1,12 @@
 # Execution ledger
 
+## 2026-09-22 — Integration merge of native profile fix, backend-identical
+
+- Task IDs: COORD/integration-steward. Branch `codex/norrow-phaseab-integration-20260921`; merge commit `d50bb1b7836315e7f2f5872d6589586e0a3193c3` (`--no-ff`, parents `541e68d` + `4881447`). `git ls-remote origin` readback returns `d50bb1b…` for the branch; no rebase/force used.
+- Review `541e68d..4881447`: only `apps/mobile/eas.json`, `apps/mobile/app.json`, `apps/mobile/package.json` and `pnpm-lock.yaml` changed. `git diff 541e68d 4881447 -- apps/backend` empty (exit 0); backend tree `ea49e5f73c282d479f370d359a200cf0077e27a4` identical at `541e68d`, `4881447` and `d50bb1b`. Merge tree equals the native-fix tree.
+- Gates EXIT 0: mobile typecheck, backend typecheck, `node scripts/check-boundaries.mjs` (`boundaries=ok`), mobile test **75 files / 694/694**, `pnpm verify` (research-core **397/397**, backend unit **260/260**, mobile **694/694**, governance **7/7**, types/boundaries). Full PostgreSQL Gate not rerun because backend is byte-identical.
+- Environment: local Linux deterministic only. Pending external owner actions: staging API redeploy, on-device pass over EAS build `3a6c8b41` (reported FINISHED), Clerk Dashboard email/verification configuration. No `main` merge, no GHA, no secret read/write. Rollback reverts the merge to `541e68d`, preserving `4881447` and build `3a6c8b41`.
+
 ## 2026-09-21 — Norrow mobile AUTH-07 restart and account-switch repair
 
 - Base clean mobile `d08b8bde92eeabb867bed448e5890c48a25f763c`; isolated worktree only. Exact-commit audit found `authenticating` restart deadlock and bound guest reader/draft display under a different verified member. No production route/schema/migration/dependency/prompt/provider config was changed.

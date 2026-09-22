@@ -1,3 +1,11 @@
+## Norrow native profile fix integration handoff — 2026-09-22
+
+Integration branch `codex/norrow-phaseab-integration-20260921` is at merged candidate `d50bb1b7836315e7f2f5872d6589586e0a3193c3`, pushed and read back by `git ls-remote origin`. The `--no-ff` merge (parents `541e68d` + `4881447`) folds in `norrow/stage1-native-profile-fix` @ `4881447`: the `staging-device` EAS profile plus removal of the duplicate `@clerk/expo-google-signin` dependency/plugin and its lockfile prune. Only `apps/mobile/{eas.json,app.json,package.json}` and `pnpm-lock.yaml` changed; `production`/`preview` still use `https://example.invalid`.
+
+Backend is byte-identical across `541e68d`, `4881447` and `d50bb1b` (`git diff 541e68d 4881447 -- apps/backend` empty; backend tree `ea49e5f7…`), so the full PostgreSQL Gate A/B rerun was not required. Local deterministic gates are green at `d50bb1b` (all exit 0): mobile typecheck, backend typecheck, boundary check, mobile **75 files / 694 tests**, `pnpm verify` (research-core **397**, backend unit **260**, mobile **694**, governance **7**, types/boundaries).
+
+Remaining work is external owner action only: redeploy the staging API, run an on-device pass over the reported-FINISHED EAS build `3a6c8b41`, and configure email/verification in the Clerk development instance via the Dashboard. No `main` merge, GHA dispatch, or secret handling occurred. Rollback reverts the merge to `541e68d` while preserving branch `4881447` and build identity `3a6c8b41`; never retry an unknown remote build outcome.
+
 ## Norrow Phase A/B local integration import handoff — 2026-09-21
 
 Use isolated branch `codex/norrow-phaseab-integration-20260921` in `/home/oranolio/Desktop/deep-norrow-phaseab-integration-20260921`. It preserves clean recovery parent `4f2a235b3da65eaef0a3c3ddcf1b52b5c788ed4e` and merges full donor parent `766eb6a8f8a130087e158896ed6b16eca4e72625` with `--no-ff`; the common base is `bb80cfd2d2a3b14e224e516b165871fc60e58105`. Do not use the older donor base to overwrite recovery. Current recovery records below precede the dated donor-only handoff. Donor status that says it was unmerged describes its historical lane, not this local import. `main` and all remote refs remain untouched.
