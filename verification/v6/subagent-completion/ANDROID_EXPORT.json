@@ -1,0 +1,19 @@
+{
+  "commit": "8a7b1a997aefc53f8b06497346c0f915e2d455a7",
+  "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-subagent-bundle",
+  "exitCode": 0,
+  "scope": "Android JavaScript/assets only; no native build or device execution",
+  "projectCredentialScan": "no exact credential values present",
+  "files": [
+    {
+      "file": "metadata.json",
+      "bytes": 150,
+      "sha256": "2aab5d88f357d711f960e46cbb1168fb80661379eb537164bdf5cda9c0f22968"
+    },
+    {
+      "file": "_expo/static/js/android/index-b09700a68b1398942510e3e23e15ef98.hbc",
+      "bytes": 2216015,
+      "sha256": "13296ebccf80e9035e2be07028436fe474350219e2546d78f6d3fdc745f2f7e3"
+    }
+  ]
+}

@@ -68,6 +68,18 @@ For every result record task/requirement IDs, actual commit or `not-a-repository
 ## Security and boundaries
 No secrets in clients, logs, test data, documentation or commits. Use only this project’s authorized accounts and credentials. No unsafe source access, private-to-public query leakage, cross-user cache reuse, silent processor changes or uncontrolled spend. Privacy deletion overrides archival version retention. Keep safety/authorization gates fail-closed on rollback.
 
+## Passwordless operator protocol
+Use passwordless credentials already configured in the environment for GitHub,
+cloud services, and providers: credential helpers, `gh`/OIDC sessions, SSH
+agents, workload identity, or approved environment variables. Never prompt the
+user for a password, token, API key, private key, or secret; never ask them to
+paste one into chat; and never write credentials into this repository. Read
+provider keys only from the authorized runtime environment when the command
+requires them, and do not print them or infer that they exist. If the existing
+passwordless credential is absent, expired, or rejected, fail fast, preserve
+local work, and record the exact external authentication blocker rather than
+falling back to an interactive password prompt or an unapproved credential.
+
 ## Handoff
 Update `STATUS.md`, `EXECUTION_LEDGER.md`, relevant ADRs and `HANDOFF.md`. Record executed results and true external blockers, not a queue of remaining implementation. Do not overwrite a working codebase merely to resemble this layout.
 

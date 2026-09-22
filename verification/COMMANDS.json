@@ -1976,5 +1976,37 @@
     "network": false,
     "paid": false,
     "scope": "Offline deterministic workspace dependency installation; in a disposable sparse mirror, tests the Docker dependencies-stage manifest closure without building an image"
+  },
+  {
+    "command": "python3 verification/v6/independent-continuation/summarize.py",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/independent-continuation/summarize.py",
+    "network": false,
+    "paid": false,
+    "scope": "Read durable public trial journal and retain reports/cost/failures; no semantic score or provider call"
+  },
+  {
+    "command": "pnpm --filter @deep/backend exec tsx /home/oranolio/Desktop/Deep/verification/v6/independent-continuation/check-cost.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/independent-continuation/check-cost.mts",
+    "network": true,
+    "paid": false,
+    "scope": "Read-only provider generation receipts and key quota after independent trial; no unknown settlement or retry"
+  },
+  {
+    "command": "EXPO_NO_DOTENV=1 EXPO_NO_TELEMETRY=1 EXPO_OFFLINE=1 pnpm --filter @deep/mobile bundle:android --output-dir /tmp/deep-v6-subagent-bundle",
+    "status": "implemented_application_command",
+    "scope": "Current source-reader/consent Android JavaScript export only; not native build or device verification",
+    "network": false,
+    "paid": false,
+    "implementation": "apps/mobile/package.json#bundle:android"
+  },
+  {
+    "command": "pnpm exec tsx verification/v6/independent-continuation/inspect-journey.mts",
+    "status": "implemented_application_command",
+    "implementation": "verification/v6/independent-continuation/inspect-journey.mts",
+    "network": false,
+    "paid": false,
+    "scope": "Read-only authenticated production API in-process reopening/library/cited-source inspection of completed public MC-D03 reports; existing session only, no provider/queue worker or external fetch; runtime unexecuted until report exists"
   }
 ]

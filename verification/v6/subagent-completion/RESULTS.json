@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-09-18T18:23:30.553867+00:00",
+  "recordedAt": "2026-09-18T18:55:06.075585+00:00",
   "baseCommit": "66df5455de86129db0305f3c96dc3dbf1a13b7e3",
   "scope": "Working-tree subagent controls, not final frozen suite or paid semantic evidence",
   "requirements": [
@@ -29,5 +29,35 @@
     "Final frozen PostgreSQL pending",
     "Actual report/correction not yet live-proven",
     "No native screenreader or hosted verification"
-  ]
+  ],
+  "runtimeCommit": "8a7b1a997aefc53f8b06497346c0f915e2d455a7",
+  "frozenVerify": {
+    "command": "pnpm verify",
+    "exitCode": 0,
+    "artifact": "verify-final.txt",
+    "result": "173core/192backend/216mobile/6governance/types/boundaries passed"
+  },
+  "androidExport": {
+    "exitCode": 0,
+    "artifact": "ANDROID_EXPORT.json",
+    "scope": "JavaScript only"
+  },
+  "frozenPostgres": {
+    "status": "failed",
+    "command": "TEST_DATABASE_URL=postgres://deep:deep_local_dev_only@127.0.0.1:55432/deep_subagent_final_20260918 pnpm test:integration",
+    "artifact": "integration-final.txt",
+    "knownFailures": [
+      "10 timeout failures including correction rediscovery,25-passage,arithmetic,coverage and counterevidence journeys",
+      "contradictory counterevidence replay expected2 provider transport calls but observed3; cause unverified"
+    ],
+    "limitations": [
+      "Shared workstation pressure documented; cannot attribute all failures to it",
+      "Focused query timing and replay-call reproduction pending"
+    ],
+    "exitCode": 1,
+    "passed": 456,
+    "failed": 11,
+    "testFiles": 36,
+    "durationSeconds": 1782.83
+  }
 }

@@ -1,0 +1,34 @@
+[
+  {
+    "path": "AUTHORIZATION.json",
+    "sha256": "a7410993cec320b1678e406fbf0a77af587b7456b1f759405a40aa217c647621"
+  },
+  {
+    "path": "SETUP.json",
+    "sha256": "00b0ea92f2bd2ab6d4c1440862c01478d924f702e406831e4c309aed2b456707"
+  },
+  {
+    "path": "check-cost.mts",
+    "sha256": "d5969de7e15162a89ad3cfec3e5fd5c57b73e6023c1ab00a0e867174ed7287af"
+  },
+  {
+    "path": "inspect-journey.mts",
+    "sha256": "f09bea1fb0a38d4b23368b7789b107d16aca317cdbda9db6d240d7ead4d2381b"
+  },
+  {
+    "path": "prepare.mts",
+    "sha256": "c6ca27d04c1db39a7745798f136fed41c731304a6e1dd50f3ba793549cc360ed"
+  },
+  {
+    "path": "run-paid.py",
+    "sha256": "c90598373a3376eb953e80fc4612ac15a9c3c968c33459bf255f67d46a788dd2"
+  },
+  {
+    "path": "setup.txt",
+    "sha256": "3fc7c83727a2753366560ace56bb10a4117a52a0ccd5c161f3a81a7e2cf63af5"
+  },
+  {
+    "path": "summarize.py",
+    "sha256": "1e9ff37402f15780fe7fc9c05d31e7303a55f355ed5051927756a019edf96581"
+  }
+]
