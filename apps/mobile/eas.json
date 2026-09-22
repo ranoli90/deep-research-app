@@ -20,6 +20,14 @@
         "EXPO_PUBLIC_ALLOW_CLEARTEXT": "1"
       }
     },
+    "staging-device": {
+      "extends": "preview",
+      "channel": "staging",
+      "android": { "buildType": "apk", "credentialsSource": "remote" },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://norrow-staging-api-esrs.onrender.com"
+      }
+    },
     "production": {
       "android": { "buildType": "app-bundle" },
       "ios": {},
