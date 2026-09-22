@@ -737,9 +737,9 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       } else if (claim.type !== "claim_accepted" || claim.submissionId !== pending.submissionId || !pending.claim || claim.requestId !== pending.claim.requestId || claim.accountId !== memberAccountId || claim.conversationId !== pending.conversationId || claim.conversationVersion !== pending.conversationVersion || claim.controlVersion !== pending.claim.controlVersion) {
         throw new Error("The saved claim readback did not match this conversation.");
       }
-      if (claim.authorityAllowed !== true || claim.budgetAllowed !== true || claim.consentPolicyVersion !== context.consentPolicyVersion) {
+      if (claim.authorityAllowed !== true || claim.budgetAllowed !== true) {
         await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
-        throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority or consent must be confirmed before this saved message can run.");
+        throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority must be confirmed before this saved message can run.");
       }
     }
     if (!guestPendingRef.current?.autoResume || guestPendingRef.current.submissionId !== pending.submissionId) throw new Error("The saved message was dismissed. Claim remains held; nothing was continued.");

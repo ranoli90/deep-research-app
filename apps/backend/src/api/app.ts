@@ -430,14 +430,28 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
     try { await assertRouteAdmission(pool, config, input.routeMode); }
     catch (error) {
-      // Route admission denials are public operational signals (same class as the
-      // advertised correction unavailability); surface code/message verbatim instead
-      // of the guest-authority mask, which mislabels member callers. Fail-closed:
-      // the denial still precedes consent, reservation, and dispatch.
+      // Route admission denials are public operational signals. Surface only
+      // allowlisted messages for known codes; otherwise use a generic message.
       const code = (error as { code?: string }).code;
       const status = (error as { statusCode?: number }).statusCode;
-      if (code && status && status >= 400 && status < 500)
-        return reply.code(status).send(err(code, (error as Error).message, correlationId));
+      if (code && status && status >= 400 && status < 500) {
+        const allowedMessages: Record<string, string[]> = {
+          permission_denied: [
+            "Fixture route is disabled.",
+            "Live route is not enabled.",
+            "Structured research is disabled.",
+            "Live route requires an authorized key and budget."
+          ],
+          allowance_exhausted: [
+            "Live spend cap is exhausted."
+          ]
+        };
+        const message = (error as Error).message;
+        const allowlist = allowedMessages[code] ?? [];
+        const publicMessage = allowlist.includes(message) ? message : "The request was not accepted.";
+        const publicStatus = code === "allowance_exhausted" ? 402 : status;
+        return reply.code(publicStatus).send(err(code, publicMessage, correlationId));
+      }
       throw error;
     }
     const consent = await currentConsent(pool, a.accountId);

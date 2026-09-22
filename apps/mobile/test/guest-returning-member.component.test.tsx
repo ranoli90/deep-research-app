@@ -438,3 +438,44 @@ it("R-LIB-09 invalidated Library item redacts before any report fetch", async ()
   expect(allText(renderer)).toMatch(/deleted source/);
   await act(async () => { renderer.unmount(); });
 });
+
+it("R-CLAIM-NULL-CONSENT null consent policy version does not block claim", async () => {
+  const text = "What about battery life?";
+  const window = freshWindow();
+  const original = createGuestPendingAction({ submissionId: id(360), guestContextId: baseContext.guestContextId, conversationId: baseContext.conversationId,
+    conversationVersion: 1, draftRevision: 0, draftDigest: sha256Hex(text), payload: { kind: "new_research", text },
+    consentPolicyVersion: baseContext.consentPolicyVersion, createdAt: window.createdAt, expiresAt: window.expiresAt });
+  const authing = beginGuestAuth(original, { id: id(361), provider: "google" }, window.now);
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
+  await held.device.savePendingAction(authing, null);
+  const snapshots: any[] = [];
+  held.session.persistRequired = async (_value: string, snapshot: unknown) => { snapshots.push(snapshot); };
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(360), authAttemptId: id(361), attemptRevision: 1, state: "authenticating" });
+    }
+    if (path === "/v1/guest/claim") {
+      return ok({ type: "claim_accepted", submissionId: id(360), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: null });
+    }
+    if (path === "/v1/guest/actions/resume") {
+      return ok({ type: "continuation_dispatched", submissionId: id(360), claimRequestId: body.claimRequestId, accountId: M,
+        conversationId: baseContext.conversationId, conversationVersion: 1, receiptId: id(362), runId: id(363), memberConversationId: id(364), kind: "new_research" });
+    }
+    if (path === `/v1/runs/${id(363)}`) return ok(queuedSnap(id(363)));
+    if (path === `/v1/runs/${id(363)}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === "/v1/guest/actions/resume")).toHaveLength(1));
+  expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(calls.filter((c) => c.path === "/v1/guest/pending-actions/attempts/begin")).toHaveLength(0);
+  expect(await held.device.load()).toBeNull();
+  await vi.waitFor(() => expect(composerOf(renderer).props.draft).toBe(""));
+  expect(snapshots.some((s) => s.conversationId === id(364) && s.run?.runId === id(363))).toBe(true);
+  await act(async () => { renderer.unmount(); });
+});
