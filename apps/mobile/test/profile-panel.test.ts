@@ -17,13 +17,17 @@ function render(signedIn=false,consentGranted=false,routeMode:"fixture"|"control
  return {handlers,nodes,button,switchControl,text};
 }
 beforeEach(()=>alert.mockReset());
-it("W07 profile preserves accessible account, consent, restore and deletion-page callbacks",()=>{
+it("W07 profile preserves accessible account, consent and deletion callbacks",()=>{
  const x=render();
- for(const [label,key] of [["Sign in to save research","onSignIn"],["Restore purchases","onRestore"],["Log out and clear saved drafts and reports","onLogout"],["Open web deletion page","onOpenDeletionPage"],["Open library","onOpenLibrary"]] as const){x.button(label).props.onPress();expect(x.handlers[key]).toHaveBeenCalledTimes(1);}
+ for(const [label,key] of [["Sign in to save research","onSignIn"],["Log out and clear saved drafts and reports","onLogout"],["Open authenticated deletion page","onOpenDeletionPage"],["Open library","onOpenLibrary"]] as const){x.button(label).props.onPress();expect(x.handlers[key]).toHaveBeenCalledTimes(1);}
  expect(x.nodes.some(node => node.props.accessibilityLabel === "Sign in development session")).toBe(false);
+ // Rejected development controls are not present in consumer Settings.
+ expect(x.nodes.some(node => node.type==="Switch" && node.props.accessibilityLabel==="Switch between demo and research mode")).toBe(false);
+ expect(x.text).not.toContain("Demo mode");
+ expect(x.text).not.toContain("Restore purchases");
  x.switchControl("Grant AI processing consent").props.onValueChange(true);expect(x.handlers.onConsent).toHaveBeenCalledTimes(1);
- expect(x.text).toContain("Synthetic processor");expect(x.text).toContain("Synthetic data disclosure");expect(x.text).toContain("Cancel subscriptions separately");expect(x.text).toContain("Store unavailable");
- expect(x.text).toContain("Appearance");expect(x.text).toContain("Demo mode");expect(x.text).toContain("Sign out");expect(x.text).toContain("Saved reports");
+ expect(x.text).toContain("Synthetic processor");expect(x.text).toContain("Synthetic data disclosure");expect(x.text).toContain("Cancel subscriptions separately");
+ expect(x.text).toContain("Appearance");expect(x.text).toContain("Sign out");expect(x.text).toContain("Your research");
 });
 it("W03 account deletion remains behind explicit destructive confirmation",()=>{
  const x=render(true,true);x.button("Delete account and derived data").props.onPress();expect(x.handlers.onDelete).not.toHaveBeenCalled();
@@ -31,17 +35,22 @@ it("W03 account deletion remains behind explicit destructive confirmation",()=>{
  expect(choices.find((c:{style:string})=>c.style==="cancel").onPress).toBeUndefined();
  choices.find((c:{style:string})=>c.style==="destructive").onPress();expect(x.handlers.onDelete).toHaveBeenCalledTimes(1);
 });
-it("W07 mode labels are readable while callbacks retain the existing route identities",()=>{
+it("W07 consumer Settings exposes no demo/route switching or dead purchase controls",()=>{
  for(const route of ["fixture","controlled-research"] as const){
   const x=render(true,true,route);
-  expect(x.text).toContain(route==="fixture"?"Demo":"Research");
-  x.switchControl("Switch between demo and research mode").props.onValueChange(route!=="fixture");
-  expect(x.handlers.onMode).toHaveBeenCalledWith(route==="fixture"?"controlled-research":"fixture");
+  expect(x.text).not.toContain("Research mode");
+  expect(x.text).not.toContain("Demo mode");
+  expect(x.nodes.some(n=>n.type==="Switch"&&n.props.accessibilityLabel==="Switch between demo and research mode")).toBe(false);
   expect(x.switchControl("Revoke AI processing consent").props.value).toBe(true);
  }
 });
-it("W07 unavailable capabilities are explicit and account data cleanup remains disclosed",()=>{
- const x=render();expect(x.text).toContain("Push notifications are unavailable");expect(x.text).toContain("Reopen the app");expect(x.text).toContain("does not grant entitlement");expect(x.text).toContain("Signing out clears");expect(x.text).not.toContain("Notifications: optional");
+it("W07 removed development capabilities leave no dead consumer controls",()=>{
+ const x=render();
+ expect(x.text).not.toContain("Push notifications are unavailable");
+ expect(x.text).not.toContain("Reopen the app");
+ expect(x.text).not.toContain("does not grant entitlement");
+ expect(x.text).toContain("Signing out clears");expect(x.text).not.toContain("Notifications: optional");
+ expect(x.nodes.some(node => node.type==="Pressable" && node.props.accessibilityLabel==="Restore purchases")).toBe(false);
 });
 it("W07 processor disclosures stay one tap behind How we process data",()=>{
  const closed=render(false,false,"fixture","system",false);

@@ -113,10 +113,10 @@ describe("P0-N native state mapping", () => {
     expect(src).toMatch(/Report generated output/);
     expect(src).toMatch(/Include report excerpt/);
     expect(src).toMatch(/Submit generated-output report/);
-    expect(profile).toMatch(/Restore purchases/);
+    expect(profile).not.toMatch(/Restore purchases/);
     expect(src).toMatch(/api\.restorePurchases/);
     expect(profile).toMatch(/Privacy data flows/);
-    expect(profile).toMatch(/Open web deletion page/);
+    expect(profile).toMatch(/Open authenticated deletion page/);
     expect(src).toMatch(/staleCorrection && state\.run/);
     expect(src).toMatch(/api\.correct/);
     expect(src).toMatch(/Write a correction first/);
@@ -133,7 +133,8 @@ describe("P0-N native state mapping", () => {
   it("App.tsx labels composer, progress, report, source sheet, library, and settings", () => {
     const profile = readFileSync(join(import.meta.dirname, "../src/ProfilePanel.tsx"), "utf8");
     expect(profile).toContain('accessibilityLabel="Settings"');
-    expect(profile).toContain("Demo mode");
+    expect(profile).not.toContain("Demo mode");
+    expect(profile).toContain("Privacy & data");
     expect(profile).toContain("Appearance");
     expect(profile).toContain("Sign out");
     expect(profile).toContain('accessibilityLabel="Open library"');

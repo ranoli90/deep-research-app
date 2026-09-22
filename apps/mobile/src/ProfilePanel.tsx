@@ -29,7 +29,6 @@ export function ProfilePanel({
   onAppearance,
   onConsent,
   onSignIn,
-  onMode,
   onRestore,
   onDelete,
   onLogout,
@@ -69,7 +68,7 @@ export function ProfilePanel({
   onAppearance: (value: AppearancePreference) => void;
   onConsent: () => void;
   onSignIn: () => void;
-  onMode: (m: UiState["routeMode"]) => void;
+  onMode?: (m: UiState["routeMode"]) => void;
   onRestore: () => void;
   onDelete: () => void;
   onLogout: () => void;
@@ -78,7 +77,6 @@ export function ProfilePanel({
   processorDetailsOpen?: boolean;
   onToggleProcessorDetails?: () => void;
 }) {
-  const demoOn = state.routeMode === "fixture";
   const initials = accountInitials(accountLabel, state.signedIn);
   const processorLine = processors.length
     ? processors.join(". ")
@@ -91,7 +89,7 @@ export function ProfilePanel({
       <View style={styles.section} accessibilityLabel="Account">
         <Text style={styles.kicker}>Account</Text>
         <View style={styles.row}>
-          <View style={styles.avatar} accessibilityLabel={`Avatar ${initials}`}>
+          <View style={styles.avatar} accessibilityLabel={state.signedIn ? "Account" : "Guest"}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -100,10 +98,10 @@ export function ProfilePanel({
           </View>
         </View>
         <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in to save research" style={styles.settingsRow}>
-          <Text style={styles.link}>{state.signedIn ? "Account session" : "Sign in"}</Text>
+          <Text style={styles.link}>{state.signedIn ? "Manage account" : "Sign in"}</Text>
         </Pressable>
         <Pressable onPress={onOpenLibrary} accessibilityRole="button" accessibilityLabel="Open library" style={styles.settingsRow}>
-          <Text style={styles.link}>Saved reports</Text>
+          <Text style={styles.link}>Your research</Text>
         </Pressable>
       </View>
 
@@ -128,27 +126,6 @@ export function ProfilePanel({
             );
           })}
         </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Research preferences</Text>
-        <View style={styles.switchRow}>
-          <View style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
-            <Text style={styles.bodyText}>Demo mode</Text>
-            <Text style={styles.caveat}>Demo reports are labeled and never presented as live completed research.</Text>
-          </View>
-          <Switch
-            value={demoOn}
-            onValueChange={(next) => onMode(next ? "fixture" : "controlled-research")}
-            accessibilityLabel="Switch between demo and research mode"
-          />
-        </View>
-        <Text style={styles.bodyText}>Research mode: {demoOn ? "Demo" : "Research"}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Source preferences</Text>
-        <Text style={styles.caveat}>Public web plus files you add. Private documents are not searched until you approve the exact terms.</Text>
       </View>
 
       <View style={styles.section}>
@@ -180,7 +157,7 @@ export function ProfilePanel({
             <Text style={styles.bodyText} accessibilityLabel="Processor disclosures">
               Processors: {processorLine}
             </Text>
-            <Text style={styles.caveat}>This app cannot see a provider's internal searches.</Text>
+            <Text style={styles.caveat}>Private documents are only searched after you approve the exact terms. This app cannot see a provider's internal searches.</Text>
             {privacyFlows ? (
               <Text style={styles.bodyText} accessibilityLabel="Privacy data flows">
                 {privacyFlows}
@@ -193,8 +170,8 @@ export function ProfilePanel({
             ) : null}
           </>
         ) : null}
-        <Pressable onPress={onOpenDeletionPage} accessibilityRole="button" accessibilityLabel="Open web deletion page" style={styles.settingsRow}>
-          <Text style={styles.link}>Open web deletion page</Text>
+        <Pressable onPress={onOpenDeletionPage} accessibilityRole="button" accessibilityLabel="Open authenticated deletion page" style={styles.settingsRow}>
+          <Text style={styles.link}>Delete in a browser</Text>
         </Pressable>
         <Pressable
           onPress={() =>
@@ -211,32 +188,8 @@ export function ProfilePanel({
           accessibilityLabel="Delete account and derived data"
           style={styles.settingsRow}
         >
-          <Text style={styles.error}>Delete account and derived research</Text>
+          <Text style={styles.error}>Delete account and research</Text>
         </Pressable>
-      </View>
-
-      <View style={styles.section}>
-        <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear saved drafts and reports" style={styles.settingsRow}>
-          <Text style={styles.link}>Sign out</Text>
-        </Pressable>
-        <Text style={styles.caveat}>Drafts and reports are saved on this device while signed in. Signing out clears this account’s saved content.</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.kicker}>Purchases</Text>
-        <Text style={styles.caveat}>Purchases and push notifications are currently unavailable.</Text>
-        <Pressable onPress={onRestore} accessibilityRole="button" accessibilityLabel="Restore purchases" style={styles.settingsRow}>
-          <Text style={styles.link}>Restore purchases</Text>
-        </Pressable>
-        {restoreMessage ? (
-          <Text style={styles.caveat} accessibilityLabel="Restore result">
-            {restoreMessage}
-          </Text>
-        ) : null}
-        <Text style={styles.caveat}>
-          Purchases: unavailable until a store sandbox is connected. Restore explains that prerequisite and does not grant entitlement.
-        </Text>
-        <Text style={styles.caveat}>Push notifications are unavailable. Reopen the app to refresh research progress.</Text>
       </View>
 
       <View style={styles.section} accessibilityLabel="Help">
@@ -247,8 +200,15 @@ export function ProfilePanel({
 
       <View style={styles.section} accessibilityLabel="About">
         <Text style={styles.kicker}>About</Text>
-        <Text style={styles.bodyText}>Deep Research</Text>
-        <Text style={styles.caveat}>Version 0.1.0</Text>
+        <Text style={styles.bodyText}>Norrow</Text>
+        <Text style={styles.caveat}>AI deep research</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Pressable onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out and clear saved drafts and reports" style={styles.settingsRow}>
+          <Text style={styles.link}>Sign out</Text>
+        </Pressable>
+        <Text style={styles.caveat}>Drafts and reports are saved on this device while signed in. Signing out clears this account’s saved content.</Text>
       </View>
     </ScrollView>
   );
