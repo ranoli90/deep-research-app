@@ -81,7 +81,8 @@ import {
   insertConversation,
   insertRun,
   listEvents,
-  listLibrary,
+  decodeLibraryCursor,
+  listLibraryPage,
 } from "../modules/runs.js";
 import { getPassageForAccount } from "../modules/evidence.js";
 import { admitClaimedReportCorrection, insertClaimedReportChallenge,
@@ -283,7 +284,15 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (route.includes(":id") && !z.object({ id: z.string().uuid() }).strict().safeParse(req.params).success)
       return reply.code(400).send(err("invalid_input", "A valid object identity is required.", crypto.randomUUID()));
     if (req.method === "GET" && route.startsWith("/v1/")) {
-      const query = route.endsWith("/events") ? z.object({ after: z.string().regex(/^(0|[1-9][0-9]{0,15})$/).refine((v) => Number.isSafeInteger(Number(v))).optional() }).strict() : z.object({}).strict();
+      const query = route.endsWith("/events")
+        ? z.object({ after: z.string().regex(/^(0|[1-9][0-9]{0,15})$/).refine((v) => Number.isSafeInteger(Number(v))).optional() }).strict()
+        : route === "/v1/library"
+          ? z.object({
+              q: z.string().max(200).optional(),
+              cursor: z.string().max(400).optional(),
+              limit: z.string().regex(/^[1-9][0-9]{0,2}$/).optional(),
+            }).strict()
+          : z.object({}).strict();
       if (!query.safeParse(req.query).success) return reply.code(400).send(err("invalid_input", "Invalid query or event cursor.", crypto.randomUUID()));
     }
     const schema = bodySchemas[route];
@@ -1371,8 +1380,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get("/v1/library", async (req, reply) => {
     const a = await auth(req as never);
     if (!a) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
-    return { items: [...await listLibrary(pool, a.accountId), ...await listClaimedGuestParents(pool, a.accountId)]
-      .sort((left, right) => right.created_at.getTime() - left.created_at.getTime()).slice(0, 100) };
+    const params = req.query as { q?: string; cursor?: string; limit?: string };
+    const cursor = params.cursor ? decodeLibraryCursor(params.cursor) : null;
+    if (params.cursor && !cursor)
+      return reply.code(400).send(err("invalid_input", "The library page cursor is not valid.", crypto.randomUUID()));
+    // Claimed guest parents are resolved by the exact live binding helper; the
+    // page query only ever trusts those verified ids, never a caller-supplied owner.
+    const claimedRunIds = (await listClaimedGuestParents(pool, a.accountId)).map((item) => item.id);
+    return listLibraryPage(pool, {
+      accountId: a.accountId,
+      claimedRunIds,
+      query: params.q,
+      cursor,
+      limit: params.limit ? Number(params.limit) : undefined,
+    });
   });
 
   app.post("/v1/reports/:id/challenges", async (req, reply) => {

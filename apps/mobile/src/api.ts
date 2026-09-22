@@ -264,7 +264,13 @@ export const api = {
   report: (token: string, id: string) => req(`/v1/reports/${id}`, { token, scope: "view" }),
   deleteSource: (token: string, sourceId: string) => req(`/v1/sources/${sourceId}`, { method: "DELETE", token }),
   source: (token: string, id: string) => { requests.closeSource(); return req(`/v1/sources/${id}`, { token, scope: "source" }); },
-  library: (token: string) => req("/v1/library", { token }),
+  library: (token: string, options: { q?: string; cursor?: string } = {}) => {
+    const parts: string[] = [];
+    const q = options.q?.trim();
+    if (q) parts.push(`q=${encodeURIComponent(q)}`);
+    if (options.cursor) parts.push(`cursor=${encodeURIComponent(options.cursor)}`);
+    return req(`/v1/library${parts.length ? `?${parts.join("&")}` : ""}`, { token });
+  },
   exportMd: (token: string, id: string) => req(`/v1/reports/${id}/export`, { token, scope: "view" }),
   challenge: (
     token: string,

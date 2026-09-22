@@ -3340,6 +3340,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         {state.tab === "library" && !state.source && !state.pendingContentInvalidation && !state.pendingSourceDeletion && !sourceDeleteBusy && !state.pendingVerification && !state.pendingCorrectionDocuments && !correctionPending && !verificationBusy ? (
           <LibraryList
             token={token}
+            principal={accountId}
             reloadKey={`${state.run?.runId ?? ""}:${state.report?.reportId ?? ""}:${state.status}`}
             ink={theme.muted}
             styles={styles}

@@ -420,19 +420,97 @@ export async function markTerminal(
   );
 }
 
-export async function listLibrary(db: Queryable, accountId: string): Promise<
-  { id: string; title: string; status: string; created_at: Date; report_id: string | null }[]
-> {
+export type LibraryPageItem = {
+  id: string;
+  title: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  report_id: string | null;
+  preview: string | null;
+  source_count: number;
+};
+
+export type LibraryPage = { items: LibraryPageItem[]; nextCursor: string | null };
+
+const LIBRARY_CURSOR_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Opaque keyset cursor over the stable `(updated_at DESC, id DESC)` library order. */
+export function encodeLibraryCursor(item: { updated_at: Date; id: string }): string {
+  return Buffer.from(JSON.stringify({ u: item.updated_at.toISOString(), i: item.id }), "utf8").toString("base64url");
+}
+
+export function decodeLibraryCursor(cursor: string): { updatedAt: Date; id: string } | null {
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as { u?: unknown; i?: unknown };
+    if (typeof parsed.u !== "string" || typeof parsed.i !== "string" || !LIBRARY_CURSOR_ID.test(parsed.i)) return null;
+    const updatedAt = new Date(parsed.u);
+    return Number.isNaN(updatedAt.getTime()) ? null : { updatedAt, id: parsed.i };
+  } catch { return null; }
+}
+
+/**
+ * Authorized, cursor-paginated library history. Owned runs are scoped by account;
+ * claimed guest parents are scoped by the caller's already-verified `claimedRunIds`
+ * (never a caller-supplied owner). Ordering is stable, so an insert/delete between
+ * pages cannot duplicate a row or cross an account boundary. `source_count` is the
+ * latest owned report's source count when a report exists, else distinct undeleted
+ * discovered documents; it is never inferred from unrelated runs.
+ */
+export async function listLibraryPage(db: Queryable, args: {
+  accountId: string;
+  claimedRunIds?: readonly string[];
+  query?: string;
+  cursor?: { updatedAt: Date; id: string } | null;
+  limit?: number;
+}): Promise<LibraryPage> {
+  const limit = Math.min(Math.max(args.limit ?? 30, 1), 100);
+  const claimedRunIds = args.claimedRunIds ?? [];
+  const q = (args.query ?? "").trim();
+  const cursor = args.cursor ?? null;
   const res = await db.query(
-    `SELECT r.id, COALESCE(c.title, 'Untitled') AS title,
-            COALESCE(r.terminal_outcome, r.lifecycle) AS status, r.created_at,
-            (SELECT rp.id FROM reports rp WHERE rp.run_id = r.id AND rp.account_id = r.account_id AND rp.redacted_at IS NULL
-             ORDER BY rp.version DESC LIMIT 1) AS report_id
-     FROM runs r JOIN conversations c ON c.id = r.conversation_id
-     WHERE r.account_id = $1
-     ORDER BY r.created_at DESC
-     LIMIT 100`,
-    [accountId],
+    `WITH candidate_runs AS (
+       SELECT r.id, r.account_id, r.conversation_id, r.created_at, r.updated_at
+       FROM runs r
+       WHERE r.account_id = $1 OR r.id = ANY($2::uuid[])
+     ),
+     latest_report AS (
+       SELECT DISTINCT ON (rp.run_id) rp.run_id, rp.id AS report_id, rp.blocks, rp.source_access_summary
+       FROM reports rp
+       JOIN candidate_runs cr ON cr.id = rp.run_id AND cr.account_id = rp.account_id
+       WHERE rp.redacted_at IS NULL
+       ORDER BY rp.run_id, rp.version DESC
+     )
+     SELECT cr.id,
+            COALESCE(c.title, 'Untitled') AS title,
+            COALESCE(r.terminal_outcome, r.lifecycle) AS status,
+            cr.created_at,
+            cr.updated_at,
+            lr.report_id,
+            (SELECT left(b->>'text', 280) FROM jsonb_array_elements(lr.blocks) b
+              WHERE b->>'kind' = 'text' AND COALESCE(b->>'text', '') <> '' LIMIT 1) AS preview,
+            CASE WHEN lr.report_id IS NOT NULL
+                 THEN COALESCE(jsonb_array_length(lr.source_access_summary), 0)::int
+                 ELSE (SELECT COUNT(DISTINCT s.id)::int FROM sources s
+                        WHERE s.run_id = cr.id AND s.account_id = cr.account_id
+                          AND NOT EXISTS(SELECT 1 FROM tombstones t WHERE t.account_id = cr.account_id
+                            AND t.object_kind = 'source' AND t.object_id = s.id AND t.reason = 'source_deletion'))
+            END AS source_count
+     FROM candidate_runs cr
+     JOIN runs r ON r.id = cr.id
+     JOIN conversations c ON c.id = cr.conversation_id
+     LEFT JOIN latest_report lr ON lr.run_id = cr.id
+     WHERE ($3 = '' OR strpos(lower(c.title), lower($3)) > 0
+            OR strpos(lower(COALESCE((SELECT b->>'text' FROM jsonb_array_elements(lr.blocks) b
+                 WHERE b->>'kind' = 'text' AND COALESCE(b->>'text', '') <> '' LIMIT 1), '')), lower($3)) > 0)
+       AND ($4::timestamptz IS NULL OR (cr.updated_at, cr.id) < ($4::timestamptz, $5::uuid))
+     ORDER BY cr.updated_at DESC, cr.id DESC
+     LIMIT $6`,
+    [args.accountId, claimedRunIds, q, cursor?.updatedAt ?? null, cursor?.id ?? null, limit + 1],
   );
-  return res.rows as never;
+  const rows = res.rows as LibraryPageItem[];
+  const hasMore = rows.length > limit;
+  const items = hasMore ? rows.slice(0, limit) : rows;
+  const last = items[items.length - 1];
+  return { items, nextCursor: hasMore && last ? encodeLibraryCursor(last) : null };
 }
