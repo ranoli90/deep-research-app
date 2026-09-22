@@ -53,7 +53,7 @@ import { createHash } from "node:crypto";
 import type { AppConfig } from "../platform/config.js";
 import { assertSchemaCurrent, withTx } from "../platform/db.js";
 import { exportReportForAccount } from "../modules/report-export.js";
-import { logError } from "../platform/log.js";
+import { errorCategory, logError } from "../platform/log.js";
 import {
   accountFromBearer,
   createDevSession,
@@ -569,7 +569,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       if (code === "no_admitted_route" || code === "zdr_incompatible_unavailable" || code === "structured_output_required" || code === "candidate_unavailable" || code === "privacy_incompatible_unavailable" || code === "model_policy_mismatch") {
         return reply.code(403).send(err(code, "No privacy-admitted model route is available for this run.", correlationId));
       }
-      logError("create_run_failed", { correlationId, err: String(e) });
+      logError("create_run_failed", { correlationId, error: errorCategory(e) });
       return reply.code(500).send(err("internal_failure", "Could not accept the run.", correlationId));
     }
   });

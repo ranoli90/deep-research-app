@@ -3,7 +3,7 @@ import { assertSchemaCurrent, createPool } from "../platform/db.js";
 import { createQueue, RESEARCH_QUEUE } from "../adapters/queue.js";
 import type { processRun } from "./executor.js";
 import { InjectedCrash } from "./execution-options.js";
-import { logError, logInfo } from "../platform/log.js";
+import { errorCategory, logError, logInfo } from "../platform/log.js";
 import { dispatchPendingRuns } from "../modules/run-dispatch.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { repairPendingDeletions } from "../modules/access.js";
@@ -106,7 +106,7 @@ export async function startWorker(process: typeof processRun, config = loadConfi
             logInfo("injected_crash", { runId, at: err.at });
             throw err;
           }
-          logError("worker_job_failed", { runId, err: String(err) });
+          logError("worker_job_failed", { runId, error: errorCategory(err) });
           throw err;
         } finally {
           activeJobs--;
