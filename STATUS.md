@@ -737,3 +737,27 @@ The same authorized API lane set truthful categories to Productivity (primary) a
 On isolated mobile base `d08b8bde92eeabb867bed448e5890c48a25f763c`, exact-commit review found that a process death after Clerk success but before local `authenticated` persistence stranded the `authenticating` action; a differently verified member could also see a previously bound guest reader/draft on restoration. Mounted tests were red **3/13** for successful-attempt continuation, unsigned cancellation and bound-reader non-disclosure before the repair. The app now resolves the original server auth-attempt ID at cold start, continues only that saved submission after verified identity, or confirms cancellation before opening another provider attempt. Unknown end stays held, and an unmounted late readback cannot claim. A guest journal bound to another verified account remains encrypted on device but is not mounted or read under that account.
 
 Repaired mounted App suite **15/15**, full mobile **617/617** and `pnpm verify` EXIT 0 (core **395/395**, backend unit **255/255**, mobile **617/617**, governance **7/7**, configured types and boundaries). These are deterministic local/component controls, not native, live Clerk/provider or hosted proof; independent rereview of the repair commit remains required. No database, provider, device, Expo, paid or remote action ran. Rollback must retain encrypted pending submissions, auth-attempt and claim identities, guest proof fences, and server cancellation/unknown-outcome holds; do not retry an uncertain provider operation or expose a bound reader across accounts.
+
+
+## Norrow whole-product overhaul — 2026-09-22 (OpenCode/DeepSeek runtime)
+
+Assignment: recover, consolidate, checkpoint and finish the existing product (audit kit `Norrow_Whole_Product_Audit_UI_Overhaul_DeepSeek_Kit`). This is progress, NOT overall DONE.
+
+Recovery: main `d89afe3` reconciled into `codex/norrow-phaseab-integration-20260921` via history-preserving merge `34c88c5` (docs/AGENTS/COMMANDS conflicts resolved individually, both sides retained). Baseline checkpoint `checkpoint/norrow-pre-overhaul-2026-09-22-34c88c5`. Dirty main work + /tmp evidence preserved under `/home/oranolio/Desktop/norrow-overhaul-2026-09-22/stage0/`. Nine fully-applied donor branches retired; three with unmerged commits left intact.
+
+Engineering closed with production-path regressions (integration branch HEAD `d0d16cc`):
+- R06 `fff8ed2` safe logging (sensitivity before truncation, structured error categories).
+- R01 `d193ef1` guest Settings revocation reaches `/v1/consent {grant:false}`.
+- R03 `26e22d2` server-owned new-member trial policy (migration 055, default-deny; caller amount is only an idempotency fingerprint).
+- R04 `2e20140` guest adoption journal v3 binds receipt→child run+conversation; hydration verifies/restores the exact child.
+- R05 `6e5fffb` guest snapshot write cannot overwrite newer navigation/cancellation.
+- R07/R08 `ad22d30` explanation obligations + distinct source counters.
+- R10 `d0d16cc` searchable cursor-paginated Library with principal-keyed cache.
+
+Product experience (R18, partial): `0b27022` composed Home welcome (headline, starting-point disclosure, new composer copy; canned examples removed); `1f25693` consumer Settings (demo/route/purchase/version dev controls removed).
+
+Evidence: `pnpm verify` EXIT 0 at each commit (typecheck, core 403, backend unit 282, mobile 714, boundaries, governance 7). Integration suites run on a fresh DB (`deep_r0708_probe`): followup-explain 8, public-activity 1, new-member-entitlement 24, library-pagination 3 — all pass. Native/device, live Clerk, and hosted runtime evidence NOT executed.
+
+Operator readback (read-only): Expo `@jobeezyapp/deep-research` reachable (CONFIGURED). Render `norrow-staging-api`/`-worker` live on branch `codex/norrow-phaseab-integration-20260921`, `autoDeploy=no`, deploy `541e68d`, `/health` 200, two recurring `starter` services (CONFIGURED, R16 infra only). Clerk PARTIAL/BLOCKED: staging runs `APP_AUTH_MODE=development` + `APP_IDENTITY_PROVIDER=supabase`, required `CLERK_*` production vars absent on both services, and `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` is absent from every `eas.json` profile.
+
+Open / blocked: R02 (zero-allowance trial path needs an explicit owner spend-policy decision; shipped default-deny preserves HOLD), R09, R11, R12, R13, R14, R15 (Clerk config + Dashboard-only settings), R16 (extraction/recovery/backup/load), R17 (full registered gate + native), R18 remaining screens (research/answer/evidence polish) + native/accessibility evidence. No main promotion. Checkpoint: `checkpoint/norrow-overhaul-2026-09-22-d0d16cc`.

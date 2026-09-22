@@ -504,3 +504,27 @@ Continuation readback: categories are Productivity (primary) and Reference (seco
 ## Norrow mobile AUTH-07 cold-restart handoff — 2026-09-21
 
 The isolated mobile repair is based on clean `d08b8bde92eeabb867bed448e5890c48a25f763c` and awaits independent rereview before integration. A restored `authenticating` journal is resolved by its exact server attempt before verified Clerk continuation; without a verified member, server cancellation must be confirmed before reopening the same submission for another provider. Unknown end remains held. A pending action already bound to another verified member is left encrypted but its guest reader/draft/proof are not mounted under that member. Mounted regression **15/15**, full mobile **617/617**, and `pnpm verify` EXIT 0 (core 395, backend unit 255, mobile 617, governance 7, configured types/boundaries). No native, configured-provider, hosted, device, database or paid claim follows. Roll back only with original journal/claim IDs, proof scope and unknown outcomes held; never treat a stale callback as a fresh admission.
+
+
+## Norrow whole-product overhaul — 2026-09-22 (OpenCode/DeepSeek runtime)
+
+Assignment: recover, consolidate, checkpoint and finish the existing product (audit kit `Norrow_Whole_Product_Audit_UI_Overhaul_DeepSeek_Kit`). This is progress, NOT overall DONE.
+
+Recovery: main `d89afe3` reconciled into `codex/norrow-phaseab-integration-20260921` via history-preserving merge `34c88c5` (docs/AGENTS/COMMANDS conflicts resolved individually, both sides retained). Baseline checkpoint `checkpoint/norrow-pre-overhaul-2026-09-22-34c88c5`. Dirty main work + /tmp evidence preserved under `/home/oranolio/Desktop/norrow-overhaul-2026-09-22/stage0/`. Nine fully-applied donor branches retired; three with unmerged commits left intact.
+
+Engineering closed with production-path regressions (integration branch HEAD `d0d16cc`):
+- R06 `fff8ed2` safe logging (sensitivity before truncation, structured error categories).
+- R01 `d193ef1` guest Settings revocation reaches `/v1/consent {grant:false}`.
+- R03 `26e22d2` server-owned new-member trial policy (migration 055, default-deny; caller amount is only an idempotency fingerprint).
+- R04 `2e20140` guest adoption journal v3 binds receipt→child run+conversation; hydration verifies/restores the exact child.
+- R05 `6e5fffb` guest snapshot write cannot overwrite newer navigation/cancellation.
+- R07/R08 `ad22d30` explanation obligations + distinct source counters.
+- R10 `d0d16cc` searchable cursor-paginated Library with principal-keyed cache.
+
+Product experience (R18, partial): `0b27022` composed Home welcome (headline, starting-point disclosure, new composer copy; canned examples removed); `1f25693` consumer Settings (demo/route/purchase/version dev controls removed).
+
+Evidence: `pnpm verify` EXIT 0 at each commit (typecheck, core 403, backend unit 282, mobile 714, boundaries, governance 7). Integration suites run on a fresh DB (`deep_r0708_probe`): followup-explain 8, public-activity 1, new-member-entitlement 24, library-pagination 3 — all pass. Native/device, live Clerk, and hosted runtime evidence NOT executed.
+
+Operator readback (read-only): Expo `@jobeezyapp/deep-research` reachable (CONFIGURED). Render `norrow-staging-api`/`-worker` live on branch `codex/norrow-phaseab-integration-20260921`, `autoDeploy=no`, deploy `541e68d`, `/health` 200, two recurring `starter` services (CONFIGURED, R16 infra only). Clerk PARTIAL/BLOCKED: staging runs `APP_AUTH_MODE=development` + `APP_IDENTITY_PROVIDER=supabase`, required `CLERK_*` production vars absent on both services, and `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` is absent from every `eas.json` profile.
+
+Open / blocked: R02 (zero-allowance trial path needs an explicit owner spend-policy decision; shipped default-deny preserves HOLD), R09, R11, R12, R13, R14, R15 (Clerk config + Dashboard-only settings), R16 (extraction/recovery/backup/load), R17 (full registered gate + native), R18 remaining screens (research/answer/evidence polish) + native/accessibility evidence. No main promotion. Checkpoint: `checkpoint/norrow-overhaul-2026-09-22-d0d16cc`.
