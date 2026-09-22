@@ -621,7 +621,7 @@ it("AUTH-06 mounted App verifies a refreshed Clerk bearer and uses it for consen
     calls.push({ path, bearer });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/consent/member") return Response.json({ granted: true, policyVersion: "consent.v1" });
     if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
     if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
     if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
@@ -635,12 +635,14 @@ it("AUTH-06 mounted App verifies a refreshed Clerk bearer and uses it for consen
   await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
   expect(rotations).toEqual(["token-one:token-two"]);
   expect(api.currentCredential()).toBe("token-two");
-  expect(calls.find(call => call.path === "/v1/consent")?.bearer).toBe("Bearer token-two");
+  expect(calls.find(call => call.path === "/v1/consent/member")?.bearer).toBe("Bearer token-two");
+  // No held claim rides this toggle, so no funding grant posts.
+  expect(calls.some(call => call.path === "/v1/entitlements/new-member-grant")).toBe(false);
   await act(async () => { renderer.root.find(node => String(node.type) === "ProfilePanel").props.onDone(); });
   await act(async () => { renderer.root.find(node => String(node.type) === "ResearchComposer").props.onSend(); await Promise.resolve(); });
   await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs"), JSON.stringify({ calls, text: renderer.root.findAll(node => String(node.type) === "Text").map(node => node.props.children) })).toBe(true));
   expect(calls.find(call => call.path === "/v1/runs")?.bearer).toBe("Bearer token-two");
-  expect(calls.filter(call => call.path === "/v1/consent" || call.path === "/v1/runs").every(call => call.bearer !== "Bearer token-one")).toBe(true);
+  expect(calls.filter(call => call.path === "/v1/consent/member" || call.path === "/v1/runs").every(call => call.bearer !== "Bearer token-one")).toBe(true);
   await act(async () => { renderer.unmount(); });
 });
 
@@ -776,7 +778,7 @@ it("CLAIM-14 mounted App abandons edited clarification A, registers exact B acro
     calls.push({ path, body, bearer: (init.headers as Record<string, string> | undefined)?.authorization });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/consent/member") return Response.json({ granted: true, policyVersion: "consent.v1" });
     if (path === "/v1/guest/actions/abandon") { renew = true; return Response.json({ type: "action_abandoned", submissionId: saved.submissionId, claimRequestId: id(9) }); }
     if (path === "/v1/guest/actions/register-member" || path === "/v1/guest/actions/resolve") return Response.json({ type: "member_action_registered", submissionId: body.submissionId,
       claimRequestId: id(9), controlVersion: 1, payloadDigest: path.endsWith("register-member") ? body.payloadDigest : calls.find(call => call.path.endsWith("register-member"))!.body.payloadDigest,
@@ -833,7 +835,7 @@ it("CLAIM-14 mounted App confirms an uncertain B registration before abandoning 
     const path = new URL(url).pathname, body = init.body ? JSON.parse(String(init.body)) : null; calls.push({ path, body });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/consent/member") return Response.json({ granted: true, policyVersion: "consent.v1" });
     if (path === "/v1/guest/actions/register-member") return Response.json({ type: "member_action_registered", submissionId: body.submissionId, claimRequestId: id(9), controlVersion: 1,
       payloadDigest: body.payloadDigest, expiresAt: context.expiresAt, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: "consent.v1" });
     if (path === "/v1/guest/actions/abandon") return Response.json({ type: "action_abandoned", submissionId: body.submissionId, claimRequestId: id(9) });
@@ -880,7 +882,7 @@ it("AUTH-06 mounted App forces a bounded Clerk refresh after old-bearer 401 with
     calls.push({ path, bearer });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return bearer === "Bearer token-one" ? Response.json({ message: "expired bearer" }, { status: 401 }) : Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/consent/member") return bearer === "Bearer token-one" ? Response.json({ message: "expired bearer" }, { status: 401 }) : Response.json({ granted: true, policyVersion: "consent.v1" });
     if (path === "/v1/settings") return Response.json({ liveRouteEnabled: true });
     if (path === "/v1/runs") return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", labeledDemo: false });
     if (path === `/v1/runs/${id(15)}`) return Response.json({ runId: id(15), lifecycle: "queued", phase: "preparing", outcome: null, reportId: null, labeledDemo: false });
@@ -895,9 +897,9 @@ it("AUTH-06 mounted App forces a bounded Clerk refresh after old-bearer 401 with
   await act(async () => { await panel().props.onConsent(); });
   expect(forced).toBe(true);
   expect(rotations).toEqual(["token-one:token-two"]);
-  expect(calls.filter(call => call.path === "/v1/consent")).toEqual([{ path: "/v1/consent", bearer: "Bearer token-one" }]);
+  expect(calls.filter(call => call.path === "/v1/consent/member")).toEqual([{ path: "/v1/consent/member", bearer: "Bearer token-one" }]);
   await act(async () => { await panel().props.onConsent(); });
-  expect(calls.filter(call => call.path === "/v1/consent").map(call => call.bearer)).toEqual(["Bearer token-one", "Bearer token-two"]);
+  expect(calls.filter(call => call.path === "/v1/consent/member").map(call => call.bearer)).toEqual(["Bearer token-one", "Bearer token-two"]);
   await act(async () => { panel().props.onDone(); });
   expect(renderer.root.find(node => String(node.type) === "ResearchComposer").props.draft).toBe("third question");
   await act(async () => { renderer.root.find(node => String(node.type) === "ResearchComposer").props.onSend(); await Promise.resolve(); });
@@ -913,7 +915,7 @@ it("AUTH-06 mounted App treats a repeated 401 after forced refresh as revoked an
     const path = new URL(url).pathname; paths.push(path);
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return Response.json({ message: "revoked" }, { status: 401 });
+    if (path === "/v1/consent/member") return Response.json({ message: "revoked" }, { status: 401 });
     return Response.json({});
   }));
   let renderer!: TestRenderer.ReactTestRenderer;
@@ -921,7 +923,7 @@ it("AUTH-06 mounted App treats a repeated 401 after forced refresh as revoked an
   await act(async () => { renderer.root.find(node => String(node.type) === "ResearchHeader").props.onSettings(); });
   await act(async () => { await renderer.root.find(node => String(node.type) === "ProfilePanel").props.onConsent(); });
   expect(options).toContainEqual({ skipCache: true });
-  expect(paths.filter(path => path === "/v1/consent")).toHaveLength(1);
+  expect(paths.filter(path => path === "/v1/consent/member")).toHaveLength(1);
   expect(paths).not.toContain("/v1/runs");
   expect(api.currentCredential()).toBeNull();
   await act(async () => { renderer.unmount(); });
@@ -941,7 +943,7 @@ it("AUTH-06 mounted App discards an old in-flight run read after refresh, polls 
     calls.push({ path, bearer });
     if (path === "/v1/session") return Response.json({ actorKind: "member", accountId: id(7) });
     if (path === "/v1/auth/capabilities") return Response.json({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
-    if (path === "/v1/consent") return Response.json({ granted: true, policyVersion: "consent.v1" });
+    if (path === "/v1/consent/member") return Response.json({ granted: true, policyVersion: "consent.v1" });
     if (path === `/v1/runs/${oldRun}` && bearer === "Bearer token-one") return oldReply;
     if (path === `/v1/runs/${oldRun}`) return Response.json({ runId: oldRun, lifecycle: "queued", phase: "searching", outcome: null, reportId: null, labeledDemo: false });
     if (path === `/v1/runs/${oldRun}/events`) return Response.json({ events: [] });

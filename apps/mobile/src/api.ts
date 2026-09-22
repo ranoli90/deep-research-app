@@ -185,7 +185,12 @@ export const api = {
       return result as { accountId: string; authMode: string; actorKind: "member" };
     } finally { clearTimeout(timer); }
   },
-  consent: (token: string, grant: boolean) => req("/v1/consent", { method: "POST", token, body: JSON.stringify({ grant }) }),
+  /** Explicit member consent (F03). Member bearer only via req(); guest proof is never attached here. */
+  consent: (token: string, grant: boolean) => req("/v1/consent/member", { method: "POST", token, body: JSON.stringify({ grant }) }),
+  /** Bounded new-member funding for the post-consent continuation (F02 server
+   * path). Member bearer only; grantRequestId is idempotent per claim. */
+  newMemberGrant: (token: string, grantRequestId: string, amountMicro: number) =>
+    req("/v1/entitlements/new-member-grant", { method: "POST", token, body: JSON.stringify({ grantRequestId, amountMicro }) }),
   attachBytes: (token: string, filename: string, mime: string, bytes: Uint8Array, key?: string) =>
     req("/v1/attachments/bytes", { method: "POST", token, scope: "view",
       headers: { "content-type": "application/octet-stream", "x-document-mime": mime, "x-file-name": encodeURIComponent(filename), ...(key ? { "idempotency-key": key } : {}) },
