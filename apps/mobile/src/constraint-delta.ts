@@ -66,7 +66,7 @@ export async function persistOwnedJournalSnapshot<T extends object, K extends ke
 }
 
 /** Revoke consent without allowing account-A state to publish after its session ends. */
-export async function revokeConsentWithinAccount<T extends { consentGranted: boolean; error: string | null }>(args: {
+export async function revokeConsentWithinAccount<T extends { consentGranted: boolean; consentRevision: number; error: string | null }>(args: {
   account: ViewHandle;
   currentState(): T;
   invalidateView(): void;
@@ -78,6 +78,9 @@ export async function revokeConsentWithinAccount<T extends { consentGranted: boo
   failureMessage: string;
 }): Promise<void> {
   const ensureCurrent = () => { if (!args.account.current()) throw new SupersededRequest(); };
+  // Each confirmed revocation advances the monotonic revision so a render echo
+  // of the pre-revocation frame can never resurrect consent.
+  const revokedState = (state: T): T => ({ ...state, consentGranted: false, consentRevision: (state.consentRevision ?? 0) + 1 });
   const publish = (next: T) => {
     ensureCurrent();
     args.synchronize(next);
@@ -87,10 +90,10 @@ export async function revokeConsentWithinAccount<T extends { consentGranted: boo
     ensureCurrent();
     args.invalidateView();
     ensureCurrent();
-    publish({ ...args.currentState(), consentGranted: false });
+    publish(revokedState(args.currentState()));
     await args.waitForJournal();
     ensureCurrent();
-    const revoked = { ...args.currentState(), consentGranted: false };
+    const revoked = revokedState(args.currentState());
     await args.persist(revoked);
     ensureCurrent();
     publish(revoked);
@@ -98,7 +101,7 @@ export async function revokeConsentWithinAccount<T extends { consentGranted: boo
     ensureCurrent();
   } catch (error) {
     if (!args.account.current() || error instanceof SupersededRequest) throw new SupersededRequest();
-    publish({ ...args.currentState(), consentGranted: false, error: args.failureMessage });
+    publish({ ...revokedState(args.currentState()), error: args.failureMessage });
   }
 }
 

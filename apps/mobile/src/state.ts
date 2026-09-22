@@ -73,6 +73,14 @@ export type UiState = {
   pendingAssumptions: PendingAssumptions | null;
   pendingCorrection: PendingCorrection | null;
   consentGranted: boolean;
+  /**
+   * Monotonic local revision of the confirmed consent decision. Incremented
+   * only when an explicit grant or revocation is confirmed (server-acknowledged
+   * or explicitly revoked). A render echo carries the same revision, so the
+   * whole-update boundary can never let a stale render regress a confirmed
+   * decision: the writer with the higher revision wins.
+   */
+  consentRevision: number;
   signedIn: boolean;
   offline: boolean;
   routeMode: RouteMode;
@@ -114,6 +122,7 @@ export function emptyState(): UiState {
     pendingAssumptions: null,
     pendingCorrection: null,
     consentGranted: false,
+    consentRevision: 0,
     signedIn: false,
     offline: false,
     routeMode: "fixture",
@@ -131,6 +140,28 @@ export function emptyState(): UiState {
     error: null,
     status: "empty",
   };
+}
+
+/**
+ * Record an explicit, confirmed consent decision and advance its monotonic
+ * revision. Only call after the server acknowledged the grant or the
+ * revocation was actually issued.
+ */
+export function withConsent(state: UiState, consentGranted: boolean): UiState {
+  return { ...state, consentGranted, consentRevision: state.consentRevision + 1 };
+}
+
+/**
+ * Whole-update consent boundary: an echo of an older render carries the same
+ * (lower) revision and can never override the newer confirmed decision. Ties
+ * keep the accepted frame, which is safe because neither side changed consent.
+ */
+export function mergeConsent(next: UiState, latest: UiState): Pick<UiState, "consentGranted" | "consentRevision"> {
+  const nextRevision = next.consentRevision ?? 0;
+  const latestRevision = latest.consentRevision ?? 0;
+  return latestRevision > nextRevision
+    ? { consentGranted: latest.consentGranted, consentRevision: latestRevision }
+    : { consentGranted: next.consentGranted, consentRevision: Math.max(nextRevision, latestRevision) };
 }
 
 export function applySnapshot(state: UiState, snap: RunSnapshot): UiState {
