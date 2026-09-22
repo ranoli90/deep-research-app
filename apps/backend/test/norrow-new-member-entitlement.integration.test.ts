@@ -87,6 +87,12 @@ beforeEach(async () => {
   await pool.query(
     "UPDATE guest_sponsor_ledgers SET settled_micro=0,reserved_micro=0,held_micro=0 WHERE policy_id='norrow-guest-first.v1'",
   );
+  await pool.query(`UPDATE new_member_trial_policies SET enabled=true,killed=false,
+    expires_at=now()+interval '1 day',amount_micro=${DEFAULT_RUN_BUDGET_MICRO},exposure_cap_micro=1000000
+    WHERE id='norrow-new-member-trial.v1'`);
+  await pool.query(
+    "UPDATE new_member_trial_ledgers SET settled_micro=0,reserved_micro=0,held_micro=0 WHERE policy_id='norrow-new-member-trial.v1'",
+  );
 });
 
 afterAll(async () => {
@@ -194,6 +200,28 @@ async function readSponsorLedger() {
     reserved: Number(row.reserved_micro),
     held: Number(row.held_micro),
   };
+}
+
+async function readTrialLedger() {
+  const row = (
+    await pool.query<{ settled_micro: string; reserved_micro: string; held_micro: string }>(
+      "SELECT settled_micro,reserved_micro,held_micro FROM new_member_trial_ledgers WHERE policy_id='norrow-new-member-trial.v1'",
+    )
+  ).rows[0]!;
+  return {
+    settled: Number(row.settled_micro),
+    reserved: Number(row.reserved_micro),
+    held: Number(row.held_micro),
+  };
+}
+
+async function trialEntitlementCount(memberAccountId: string) {
+  return (
+    await pool.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM entitlements WHERE account_id=$1 AND source='new-member-trial.v1'",
+      [memberAccountId],
+    )
+  ).rows[0]!.n;
 }
 
 async function memberRunCount(memberAccountId: string) {
@@ -515,22 +543,35 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     expect(resumed.json()).toMatchObject({ type: "continuation_dispatched", reused: false });
   });
 
-  it("E-BUDGET-09 grant below one run denies at the exact boundary", async () => {
+  it("E-BUDGET-09 R03: a caller amount below the policy cannot reduce credit; the server amount funds the trial", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO - 1);
+    const belowPolicy = DEFAULT_RUN_BUDGET_MICRO - 1;
+    const granted = await app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers,
+      payload: { grantRequestId: randomUUID(), amountMicro: belowPolicy },
+    });
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json()).toMatchObject({
+      accountId: ctx.member.accountId,
+      amountMicro: DEFAULT_RUN_BUDGET_MICRO,
+      limitMicro: DEFAULT_RUN_BUDGET_MICRO,
+    });
+    expect(await readAllowance(ctx.member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
     await grantMemberConsent(ctx.member.headers);
-    const denied = await app.inject({
+    const resumed = await app.inject({
       method: "POST",
       url: "/v1/guest/actions/resume",
       headers: ctx.member.headers,
       payload: ctx.resumePayload,
     });
-    expect(denied.statusCode).toBe(402);
-    expect(denied.json().code).toBe("allowance_exhausted");
-    expect(await memberRunCount(ctx.member.accountId)).toBe(0);
+    expect(resumed.statusCode).toBe(200);
+    expect(await memberRunCount(ctx.member.accountId)).toBe(1);
   });
 
-  it("E-BUDGET-10 grant is bounded, never unlimited: two runs fit, the third is denied", async () => {
+  it("E-BUDGET-10 R03: a caller amount above the policy cannot inflate credit; the trial funds exactly one run", async () => {
     const probe = await newZeroedMember();
     for (const badAmount of [0, -1, 1_000_001]) {
       const denied = await app.inject({
@@ -544,7 +585,14 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     }
     expect(await readAllowance(probe.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member, 2 * DEFAULT_RUN_BUDGET_MICRO);
+    const inflated = await app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers,
+      payload: { grantRequestId: randomUUID(), amountMicro: 1_000_000 },
+    });
+    expect(inflated.statusCode).toBe(200);
+    expect(inflated.json()).toMatchObject({ amountMicro: DEFAULT_RUN_BUDGET_MICRO });
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -559,31 +607,27 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
       url: "/v1/runs",
       headers: { ...ctx.member.headers, "idempotency-key": randomUUID() },
       payload: {
-        question: "A second funded research question",
+        question: "A second unfunded research question",
         routeMode: "fixture",
         conversationId: memberConversationId,
         consentPolicyVersion: CONSENT_POLICY_VERSION,
       },
     });
-    expect(second.statusCode).toBe(200);
-    expect(second.json().runId).not.toBe(resumed.json().runId);
-    const third = await app.inject({
+    expect(second.statusCode).toBe(402);
+    expect(second.json().code).toBe("allowance_exhausted");
+    // A second, distinct grant identity is also refused: once-only business entitlement.
+    const secondGrant = await app.inject({
       method: "POST",
-      url: "/v1/runs",
-      headers: { ...ctx.member.headers, "idempotency-key": randomUUID() },
-      payload: {
-        question: "A third unfunded research question",
-        routeMode: "fixture",
-        conversationId: memberConversationId,
-        consentPolicyVersion: CONSENT_POLICY_VERSION,
-      },
+      url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers,
+      payload: { grantRequestId: randomUUID(), amountMicro: 2 * DEFAULT_RUN_BUDGET_MICRO },
     });
-    expect(third.statusCode).toBe(402);
-    expect(third.json().code).toBe("allowance_exhausted");
+    expect(secondGrant.statusCode).toBe(403);
+    expect(secondGrant.json().code).toBe("permission_denied");
     const final = await readAllowance(ctx.member.accountId);
-    expect(final.limit).toBe(2 * DEFAULT_RUN_BUDGET_MICRO);
-    expect(final.settled + final.reserved).toBeLessThanOrEqual(2 * DEFAULT_RUN_BUDGET_MICRO);
-    expect(await memberRunCount(ctx.member.accountId)).toBe(2);
+    expect(final.limit).toBe(DEFAULT_RUN_BUDGET_MICRO);
+    expect(final.settled + final.reserved).toBeLessThanOrEqual(DEFAULT_RUN_BUDGET_MICRO);
+    expect(await memberRunCount(ctx.member.accountId)).toBe(1);
   });
 
   it("E-OWNER-11 grant, consent, claim, and resume never rewrite payer or owner identity", async () => {
@@ -821,16 +865,19 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
       limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
   });
 
-  it("E-CAP-17 aggregate cap holds: full grant then any top-up is denied without mutation", async () => {
+  it("E-CAP-17 R03: bounded once-only trial and aggregate cap hold; any top-up is denied without mutation", async () => {
     const member = await newZeroedMember();
-    expect((await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
-      headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1_000_000 } })).statusCode)
-      .toBe(200);
+    const first = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1_000_000 } });
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ amountMicro: DEFAULT_RUN_BUDGET_MICRO,
+      limitMicro: DEFAULT_RUN_BUDGET_MICRO });
     const over = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
       headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1 } });
     expect(over.statusCode).toBe(403);
     expect(over.json().code).toBe("permission_denied");
-    expect(await readAllowance(member.accountId)).toEqual({ limit: 1_000_000, settled: 0, reserved: 0 });
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
   });
 
   it("E-CONSENT-MEMBER-18 explicit member consent route grants member consent and unblocks resume", async () => {
@@ -882,5 +929,141 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
       headers: ctx.member.headers, payload: ctx.resumePayload });
     expect(resumed.statusCode).toBe(200);
+  });
+
+  it("E-POLICY-AMOUNT-20 R03: a caller-supplied amount never determines credit; the server policy amount is used", async () => {
+    const low = await newZeroedMember();
+    const high = await newZeroedMember();
+    const lowCall = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: low.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1 } });
+    expect(lowCall.statusCode).toBe(200);
+    expect(lowCall.json()).toMatchObject({
+      amountMicro: DEFAULT_RUN_BUDGET_MICRO, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    const highCall = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: high.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1_000_000 } });
+    expect(highCall.statusCode).toBe(200);
+    expect(highCall.json()).toMatchObject({
+      amountMicro: DEFAULT_RUN_BUDGET_MICRO, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    expect(await readAllowance(low.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    expect(await readAllowance(high.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    // The funded sponsor exposure is the policy amount per trial, not the caller value.
+    expect(await readTrialLedger()).toEqual({
+      settled: 0, reserved: 2 * DEFAULT_RUN_BUDGET_MICRO, held: 0 });
+  });
+
+  it("E-ONCE-21 R03: two different request UUIDs for one business entitlement cannot earn two trials", async () => {
+    const ctx = await driveGuestToClaimed();
+    // The mobile business identity is the claimed continuation request id.
+    const first = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers, payload: { grantRequestId: ctx.claimRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ reused: false, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    const second = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers, payload: { grantRequestId: randomUUID(), amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    expect(second.statusCode).toBe(403);
+    expect(second.json().code).toBe("permission_denied");
+    expect(await readAllowance(ctx.member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    expect(await trialEntitlementCount(ctx.member.accountId)).toBe(1);
+    expect((await readTrialLedger()).reserved).toBe(DEFAULT_RUN_BUDGET_MICRO);
+    // The real business identity still replays idempotently with no second trial.
+    const replay = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: ctx.member.headers, payload: { grantRequestId: ctx.claimRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({ reused: true, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    expect(await trialEntitlementCount(ctx.member.accountId)).toBe(1);
+    // A different member cannot borrow another member's claim identity.
+    const foreign = await newZeroedMember();
+    const stolen = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: foreign.headers, payload: { grantRequestId: ctx.claimRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    expect(stolen.statusCode).toBe(403);
+    expect(stolen.json().code).toBe("authority_denied");
+    expect(await readAllowance(foreign.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
+  });
+
+  it("E-EXPOSURE-22 R03: concurrent first claims cannot exceed the approved global subsidy total", async () => {
+    await pool.query(`UPDATE new_member_trial_policies SET exposure_cap_micro=300000
+      WHERE id='norrow-new-member-trial.v1'`);
+    const members = [];
+    for (let i = 0; i < 6; i++) members.push(await newZeroedMember());
+    const results = await Promise.all(members.map((member, index) => app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: member.headers,
+      payload: { grantRequestId: randomUUID(), amountMicro: DEFAULT_RUN_BUDGET_MICRO + index },
+    })));
+    const ok = results.filter((r) => r.statusCode === 200);
+    const denied = results.filter(
+      (r) => r.statusCode === 402 && r.json().code === "allowance_exhausted",
+    );
+    expect(ok).toHaveLength(3);
+    expect(denied).toHaveLength(3);
+    expect(await readTrialLedger()).toEqual({ settled: 0, reserved: 300000, held: 0 });
+    let credited = 0;
+    for (const member of members) credited += (await readAllowance(member.accountId)).limit;
+    expect(credited).toBe(300000);
+  });
+
+  it("E-POLICY-HOLD-23 R03: disabled, killed, expired policy and unknown receipts deny without credit and hold the reservation", async () => {
+    const member = await newZeroedMember();
+    const baseline = await readTrialLedger();
+    const call = (grantRequestId: string) => app.inject({ method: "POST",
+      url: "/v1/entitlements/new-member-grant", headers: member.headers,
+      payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    for (const state of ["enabled=false,killed=false", "enabled=true,killed=true",
+      "enabled=true,killed=false,expires_at=now()-interval '1 hour'"]) {
+      await pool.query(`UPDATE new_member_trial_policies SET ${state}
+        WHERE id='norrow-new-member-trial.v1'`);
+      const denied = await call(randomUUID());
+      expect(denied.statusCode).toBe(403);
+      expect(denied.json().code).toBe("permission_denied");
+    }
+    expect(await readAllowance(member.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
+    expect(await readTrialLedger()).toEqual(baseline);
+    await pool.query(`UPDATE new_member_trial_policies SET enabled=true,killed=false,
+      expires_at=now()+interval '1 day' WHERE id='norrow-new-member-trial.v1'`);
+    expect((await call(randomUUID())).statusCode).toBe(200);
+    const held = await readTrialLedger();
+    expect(held.reserved).toBe(DEFAULT_RUN_BUDGET_MICRO);
+    // Unknown receipt: the identity exists under an unrecognized source. Held, never re-credited.
+    const unknownId = randomUUID();
+    await pool.query(`INSERT INTO entitlements(id,account_id,product,source,amount_micro)
+      VALUES($1,$2,'operator-unknown.v1','operator-unknown.v1',123)`, [unknownId, member.accountId]);
+    const unknown = await call(unknownId);
+    expect(unknown.statusCode).toBe(409);
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    expect(await readTrialLedger()).toEqual(held);
+    // Deleted identity: no new credit, reservation preserved.
+    await pool.query(`UPDATE accounts SET deleted_at=now(), deletion_epoch=deletion_epoch+1 WHERE id=$1`,
+      [member.accountId]);
+    const dead = await call(randomUUID());
+    expect(dead.statusCode).toBe(401);
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    expect(await readTrialLedger()).toEqual(held);
+  });
+
+  it("E-GUEST-UNTOUCHED-24 R03: the member trial never writes guest payer ledgers or reservations", async () => {
+    expect(await readSponsorLedger()).toEqual({ settled: 0, reserved: 0, held: 0 });
+    const member = await newZeroedMember();
+    expect((await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: DEFAULT_RUN_BUDGET_MICRO } }))
+      .statusCode).toBe(200);
+    expect(await readSponsorLedger()).toEqual({ settled: 0, reserved: 0, held: 0 });
+    expect((await pool.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM guest_sponsor_reservations")).rows[0]!.n).toBe(0);
+    // A guest first turn still uses only the guest sponsor ledger.
+    const guest = await enabledGuest();
+    expect((await app.inject({ method: "POST", url: "/v1/consent", headers: guest.headers,
+      payload: { grant: true } })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/runs",
+      headers: { ...guest.headers, "idempotency-key": randomUUID() },
+      payload: { question: "Guest research after a member trial", routeMode: "fixture",
+        conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(200);
+    expect(await readSponsorLedger()).toEqual({
+      settled: 0, reserved: DEFAULT_RUN_BUDGET_MICRO, held: 0 });
   });
 });

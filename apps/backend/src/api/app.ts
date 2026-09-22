@@ -470,14 +470,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   /**
-   * F02 authorized bounded new-member grant (mobile/operator contract).
+   * F02 server-owned bounded new-member trial (mobile/operator contract).
    *
    * POST /v1/entitlements/new-member-grant { grantRequestId: uuid, amountMicro: 1..1000000 }
    * Auth: member Bearer only; guest proof alone is 401/403 and never grants.
+   * The body stays backward compatible, but `amountMicro` is only an idempotency
+   * request fingerprint: the SERVER policy row selects the credited amount,
+   * eligibility, expiry and funded sponsor exposure cap. Arbitrary caller amounts
+   * never determine credit.
    * 200 { grantRequestId, accountId, amountMicro, limitMicro, reused }.
-   * Same id+amount replays with reused:true and no double spend; same id with a
-   * different amount is 409; same id on a different account is 403 with no grant;
-   * resulting limit above 1_000_000 is 403 with no grant. Zero default preserved.
+   * Same id+request replays with reused:true and no double spend; same id with a
+   * different request is 409; same id on a different account is 403 with no grant;
+   * an unexpired, enabled, unfunded first claim is required; a repeat trial or a
+   * reached global exposure cap is 403/402 with no grant. Zero default preserved.
    */
   app.post("/v1/entitlements/new-member-grant", async (req, reply) => {
     const member = await auth(req as never);
@@ -494,7 +499,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       if (code === "invalid_input") return reply.code(400).send(err(code, "An explicit grant identity and bounded amount are required.", crypto.randomUUID()));
       if (code === "authority_denied") return reply.code(403).send(err(code, "This grant is not authorized for this account.", crypto.randomUUID()));
       if (code === "idempotency_conflict") return reply.code(409).send(err("stale_revision", "This grant identity was already used with different terms.", crypto.randomUUID()));
-      if (code === "permission_denied") return reply.code(403).send(err(code, "This grant would exceed the bounded member aggregate.", crypto.randomUUID()));
+      if (code === "permission_denied") return reply.code(403).send(err(code, "This grant is not available for this account.", crypto.randomUUID()));
       if (code === "allowance_exhausted") return reply.code(402).send(err(code, "Not enough remaining allowance.", crypto.randomUUID()));
       if (code && status && status >= 400 && status < 500)
         return reply.code(status).send(err(code, "This grant cannot be accepted.", crypto.randomUUID()));
