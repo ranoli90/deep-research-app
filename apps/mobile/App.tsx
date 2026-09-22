@@ -46,7 +46,7 @@ import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-a
 import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
 import { ClerkSessionTaskView } from "./src/auth/ClerkSessionTaskView";
 import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
-import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
+import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForConsent, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
 import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
 import { sha256Hex } from "./src/sha256";
 import {
@@ -133,6 +133,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const taskViewClosing = useRef(false);
   const [guestSheetVisible, setGuestSheetVisible] = useState(false);
   const [guestSheetState, setGuestSheetState] = useState<GuestSignInSheetState>(initialGuestSignInSheetState);
+  // Direct member login owns the same provider chooser but no guest journal:
+  // signed out with no pending action, the sheet collects a real provider
+  // session and restores the member reader. Claim-and-resume stays distinct.
+  const [directLogin, setDirectLogin] = useState(false);
+  const directLoginRef = useRef(false);
   const [guestCapabilities, setGuestCapabilities] = useState<{ apple: boolean; google: boolean; emailCode: boolean; termsUrl: string | null; privacyUrl: string | null }>({ apple: false, google: false, emailCode: false, termsUrl: null, privacyUrl: null });
   const composerInput = useRef<TextInput>(null);
   const guestRefreshing = useRef(false);
@@ -220,6 +225,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
     const hidden = emptyState(); latestUi.current = hidden;
     setToken(null); setAccountId(null); setGuestContext(null); setGuestPending(null); setGuestSheetVisible(false);
+    directLoginRef.current = false; setDirectLogin(false);
     setStorageReady(false); setStateRaw({ ...hidden, error: "Account changed. Reopen the app to restore the current account safely." });
     void clearAccountLocal(sessionStorage).then(() => setStorageReady(true)).catch(() => {
       setStateRaw(s => ({ ...s, error: "Account changed. Device cleanup failed; retry sign-out before continuing." }));
@@ -494,9 +500,20 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   async function saveGuestReader(next: UiState) {
     const { context } = currentGuest();
+    const draftAtEntry = latestUi.current.draft;
     await guestDevice.saveSnapshot(context.guestContextId, next, guestDraftRevision.current);
-    latestUi.current = next;
-    setStateRaw(next);
+    // Whole-update boundary: text typed during the durable write survives.
+    // An unchanged reader publishes the accepted frame as-is; a newer draft
+    // merges into it. A principal/view switch, cancellation, or revocation
+    // that landed meanwhile fail closed: the stale frame is never published.
+    if (guestContextRef.current?.guestContextId !== context.guestContextId || memberTokenRef.current) return;
+    const latest = latestUi.current;
+    // Consent follows the same boundary: a grant or revocation that landed
+    // during the write wins over the accepted frame; the frame never
+    // resurrects a stale flag in either direction.
+    const merged = { ...next, draft: latest.draft !== draftAtEntry ? latest.draft : next.draft, consentGranted: latest.consentGranted };
+    latestUi.current = merged;
+    setStateRaw(merged);
   }
 
   async function refreshGuestRun(runId: string) {
@@ -741,6 +758,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
         throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority must be confirmed before this saved message can run.");
       }
+      // Guest consent is never member consent. A null or stale member consent
+      // version retains the exact claim and presents explicit member-consent
+      // UX via the real consent route; resume posts nothing until granted.
+      if (claim.consentPolicyVersion == null || claim.consentPolicyVersion !== context.consentPolicyVersion) {
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved message. It remains saved and will continue once." }));
+        throw new Error("Member consent is required before this saved message can run. The exact saved claim is retained.");
+      }
     }
     if (!guestPendingRef.current?.autoResume || guestPendingRef.current.submissionId !== pending.submissionId) throw new Error("The saved message was dismissed. Claim remains held; nothing was continued.");
     const epochs = api.sessionEpochs();
@@ -773,6 +797,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
         throw new Error("Your account needs a research allowance. The exact saved second message can be continued after funding; nothing was sent again.");
       }
+      // A definitive 403 consent_required denial is not an unknown outcome:
+      // the server did not dispatch. Retain the exact claim, present explicit
+      // consent UX, and continue once after the real grant. Unknown outcomes
+      // stay held for reconciliation and are never resent.
+      if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
+        await saveGuestPending(holdGuestResumeForConsent(latest), latest);
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved message. It remains saved and will continue once." }));
+        throw new Error("Member consent is required before this saved message can run. The exact saved claim is retained.");
+      }
       await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
       throw new Error("Continuation outcome is unknown. Resolve the saved request; it will not be sent again.");
     }
@@ -790,20 +823,31 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const dispatched = markGuestActionDispatched(pending, result, new Date());
     if (typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
     guestRunEpoch.current++;
+    // Read the latest still-owned reader only after the durable journal write:
+    // text typed during persistence survives in both the stored snapshot and
+    // the rendered state. The dispatched message clears; anything typed
+    // meanwhile (or an unrelated draft beside a clarification answer) survives.
+    // A principal change that landed meanwhile fail-closes via credential().
+    api.selectRun(result.runId);
+    await saveGuestPending(dispatched);
     const previous = latestUi.current;
-    // Merge the dispatch into the latest still-owned reader. The dispatched
-    // message clears; anything typed meanwhile (or an unrelated draft beside
-    // a clarification answer) survives.
     const sentText = pending.payload.kind === "clarification" ? null : pending.payload.text;
     const next: UiState = { ...previous, signedIn: true, conversationId: result.memberConversationId,
       draft: sentText !== null && previous.draft.trim() === sentText.trim() ? "" : previous.draft, source: null, readingAnchor: null, report: null,
       previousReport: previous.report ? { reportId: previous.report.reportId, blocks: previous.report.blocks } : previous.previousReport,
       events: [], status: "progress", error: null,
       run: { runId: result.runId, lifecycle: "queued", phase: "queued", outcome: null, reportId: null, labeledDemo: false } };
-    api.selectRun(result.runId);
     await sessionStorage.persistRequired(credential(), next);
-    await saveGuestPending(dispatched);
-    latestUi.current = next; setStateRaw(next);
+    // Whole-update boundary, same as the guest reader: compare against the
+    // pre-write draft, not the accepted frame. An unchanged reader publishes
+    // the accepted frame (only an unchanged send clears the draft); an edit
+    // that landed during the final member write merges into it. Consent
+    // follows the same boundary: a grant or revocation that landed during
+    // the write wins over the accepted frame in either direction.
+    const latest = latestUi.current;
+    const merged = { ...next, draft: latest.draft !== previous.draft ? latest.draft : next.draft, consentGranted: latest.consentGranted };
+    latestUi.current = merged; setStateRaw(merged);
+    latestUi.current = merged; setStateRaw(merged);
     setGuestSheetVisible(false);
     startPolling(credential(), result.runId); void refreshRun(credential(), result.runId, next);
     await guestDevice.clear(); guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
@@ -875,9 +919,17 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const receipt = await api.resolveGuestAction(currentToken, pending);
       if (receipt?.type !== "member_action_registered" || receipt.submissionId !== pending.submissionId || receipt.claimRequestId !== claim.requestId ||
         receipt.payloadDigest !== pending.payloadDigest || receipt.controlVersion !== claim.controlVersion) throw new Error("The edited answer registration readback did not match.");
-      if (receipt.authorityAllowed !== true || receipt.budgetAllowed !== true || receipt.consentPolicyVersion !== pending.consentPolicyVersion || !latestUi.current.consentGranted) {
+      if (receipt.authorityAllowed !== true || receipt.budgetAllowed !== true) {
         await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
         throw new Error(receipt.budgetAllowed === false ? "Your account needs a research allowance. The edited answer remains saved." : "Member consent or authority is required. The edited answer remains saved.");
+      }
+      // Member consent missing or outdated retains the exact member_claimed
+      // receipt instead of blanket-clearing it; one continuation runs after
+      // the explicit grant. Clarification field, ID, and revision are
+      // untouched, so the held answer keeps its exact identity.
+      if (receipt.consentPolicyVersion !== pending.consentPolicyVersion || !latestUi.current.consentGranted) {
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved answer. It remains saved and will continue once." }));
+        throw new Error("Member consent is required before this saved answer can run. The exact saved claim is retained.");
       }
       const epochs = api.sessionEpochs();
       const context = guestContextRef.current;
@@ -896,8 +948,17 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       catch (error) {
         const latest = guestPendingRef.current;
         if (latest?.submissionId === pending.submissionId && latest.phase === "resume_pending") {
-          await saveGuestPending(error instanceof ApiError && error.status === 402 ? dismissGuestPendingAction(latest, new Date()) : holdGuestResumeForReconciliation(latest), latest);
+          if (error instanceof ApiError && error.status === 402) {
+            await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
+          } else if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
+            await saveGuestPending(holdGuestResumeForConsent(latest), latest);
+            setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved answer. It remains saved and will continue once." }));
+          } else {
+            await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
+          }
         }
+        if (error instanceof ApiError && error.status === 403 && error.code === "consent_required")
+          throw new Error("Member consent is required before this saved answer can run. The exact saved claim is retained.");
         throw new Error(error instanceof ApiError && error.status === 402 ? "Your account needs a research allowance. The edited answer remains saved." : "Edited answer outcome is unknown. Resolve its original ID; it was not resent.");
       }
       const latest = guestPendingRef.current;
@@ -1146,6 +1207,112 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     finally { if (signingIn.current === pending) signingIn.current = null; }
   }
 
+  /** Close the direct-login chooser after a verified member session is live. */
+  function closeDirectLogin() {
+    directLoginRef.current = false; setDirectLogin(false);
+    setGuestSheetVisible(false);
+  }
+
+  /**
+   * Direct member login transport for the shared provider chooser. Attempts
+   * are ephemeral (no guest journal exists here); a real configured provider
+   * session is verified and restored exactly like the settings entry, then
+   * the member reader (including the server-backed Library) is live.
+   */
+  const directLoginTransport: GuestSignInTransport = {
+    prepareAttempt: async request => {
+      if (!directLoginRef.current || guestPendingRef.current) throw new Error("Direct sign-in is not open.");
+      if (!guestProviders[request.provider].available) throw new Error("This sign-in method is unavailable.");
+      return { id: newId(), operation: request.operation, provider: request.provider, email: request.email };
+    },
+    startProvider: async attempt => {
+      if (!directLoginRef.current || !authRef.current || attempt.provider === "email") throw new Error("This sign-in method is unavailable.");
+      try {
+        const result = await authRef.current.startProvider(attempt.provider);
+        if (result === "pending_task") {
+          setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+          return;
+        }
+        if (!authRef.current.signedIn) {
+          // The native provider finished before Clerk reports the session.
+          // Wait for the verified session instead of failing the chooser; the
+          // login completes exactly once the session is live. Nothing is sent.
+          setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+          return;
+        }
+        await ensureSession();
+        closeDirectLogin();
+      } catch (error) {
+        if (error instanceof Error && error.message === "Sign-in was cancelled.") {
+          setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "provider_cancelled" }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+    },
+    requestEmailCode: async attempt => {
+      if (!directLoginRef.current || !authRef.current || !attempt.email) throw new Error("Email sign-in is unavailable.");
+      try { await authRef.current.sendEmailCode(attempt.email, attempt.operation === "resend_email_code"); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "rate_limited") {
+          if (attempt.operation === "email_code") {
+            setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "recoverable_error", message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          } else setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "resend_rate_limited", retryAt: null, message: "Too many attempts. Wait before requesting another code." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+      setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "email_code_sent", email: attempt.email!, resendRetryAt: new Date(Date.now() + 30_000).toISOString() }, guestProviders));
+    },
+    verifyEmailCode: async (attempt, code) => {
+      if (!directLoginRef.current || !authRef.current) throw new Error("Email sign-in is unavailable.");
+      let result: "active" | "pending_task";
+      try { result = await authRef.current.verifyEmailCode(code); }
+      catch (error) {
+        if (error && typeof error === "object" && "guestAuthFailure" in error && error.guestAuthFailure === "code_expired") {
+          setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "code_expired", message: "That code expired. Request a new one." }, guestProviders));
+          return;
+        }
+        throw error;
+      }
+      if (result === "pending_task") {
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+        return;
+      }
+      if (!authRef.current.signedIn) {
+        // The email session completed before Clerk reports it. Wait for the
+        // verified session; the login completes exactly once it is live.
+        setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling" });
+        return;
+      }
+      await ensureSession();
+      closeDirectLogin();
+    },
+    retryAuthenticatedAttempt: async () => {
+      if (!directLoginRef.current) throw new Error("Direct sign-in is not open.");
+      if (!authRef.current?.signedIn || authRef.current.sessionTaskPending) throw new Error("Complete account security before signing in.");
+      await ensureSession();
+      closeDirectLogin();
+    },
+    // Ephemeral attempts journal nothing, so cancellation only returns the
+    // chooser to its initial state; the draft is untouched.
+    cancelProvider: async () => {},
+    cancelEmailAttempt: async () => {},
+    dismiss: async () => { directLoginRef.current = false; setDirectLogin(false); },
+  };
+
+  // A provider or email completion that flips Clerk state outside the
+  // transport (including a pending native task) finishes the direct login
+  // exactly once the verified session is live.
+  useEffect(() => {
+    if (!directLogin || !hydrated || !auth?.loaded || !auth.signedIn || auth.sessionTaskPending) return;
+    void ensureSession().then(() => { if (directLoginRef.current) closeDirectLogin(); })
+      .catch(error => {
+        if (isSupersededRequest(error)) return;
+        setGuestSheetState(s => reduceGuestSignInSheet(s, { type: "recoverable_error", message: error instanceof Error ? error.message : "Sign-in could not be completed." }, guestProviders));
+      });
+  }, [directLogin, hydrated, auth?.loaded, auth?.signedIn, auth?.sessionTaskPending]);
+
   async function startSession() {
     if (token) return token;
     let guard: ReturnType<typeof api.capture> | undefined;
@@ -1198,11 +1365,32 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       }
       const t = memberTokenRef.current ?? token ?? (await ensureSession());
       await api.consent(t, true);
+      // The server confirmed the grant. Mirror it into the latest reader
+      // immediately (same value the queued render carries) so a continuation
+      // adopted in this same call stack cannot publish a stale pre-grant
+      // flag. A revocation that lands later still wins via the render queue
+      // and the whole-update boundary at adoption.
+      latestUi.current = { ...latestUi.current, consentGranted: true };
       setState((s) => {
         const next = { ...s, consentGranted: true, error: null };
 
         return next;
       });
+      // One continuation of an exact retained claim after explicit member
+      // consent. Only a held claimed/member_claimed action with automatic
+      // continuation still enabled resumes, and only once: the transition to
+      // resume_pending happens before any network, so no second trigger can
+      // re-enter. Reconcile-only journals never auto-resume here.
+      const held = guestPendingRef.current;
+      const owner = memberAccountRef.current;
+      if (held && owner && held.autoResume && held.authenticatedAccountId === owner &&
+        (held.phase === "claimed" || held.phase === "member_claimed")) {
+        try { await continueSavedSecondMessage(t, owner); }
+        catch (e) {
+          if (isSupersededRequest(e)) return;
+          setState((s) => ({ ...s, error: (e as Error).message }));
+        }
+      }
     } catch (e) {
       if (isSupersededRequest(e)) return;
       if (isExpiredSession(e)) await onAuthFailure();
@@ -1524,12 +1712,23 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             setGuestSheetVisible(original.autoResume);
           }
         } catch (error) {
-          if (!mounted || !hydration.current()) return;
+          // The claim flow re-activates the member session, which retires the
+          // hydration lease; the durable journal IDs below (not the lease) are
+          // the fence against stale handling, so post-claim failures still
+          // surface while the component is mounted.
+          if (!mounted) return;
           const current = guestPendingRef.current;
+          const message = error instanceof Error ? error.message : "The saved sign-in attempt is held until it can be checked.";
           if (current?.phase === "authenticating" && current.submissionId === original.submissionId && current.authAttempt?.id === attemptId) {
             setGuestSheetState({ ...initialGuestSignInSheetState(), step: "reconciling",
               error: "The saved sign-in attempt is held. Close this sheet to confirm cancellation before trying again." });
             setGuestSheetVisible(true);
+            setStateRaw(s => ({ ...s, error: message }));
+          } else {
+            // A post-claim failure (funding denial, unknown continuation, or
+            // any other held outcome) must still surface its exact message;
+            // the journal keeps the exact IDs for reconciliation.
+            setStateRaw(s => ({ ...s, error: message }));
           }
           setStateRaw(s => ({ ...s, error: error instanceof Error ? error.message : "The saved sign-in attempt is held until it can be checked." }));
         }
@@ -3085,7 +3284,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
               // A returning member with a verified Clerk session signs in
               // directly: no guest bootstrap, no pending action, no sheet.
               if (auth?.signedIn) { void ensureSession(); return; }
-              setState(s => ({ ...s, error: "Sign in with a configured provider to restore member research. Guest sign-in appears when you send your next message." }));
+              // Signed out with no guest pending action: open the provider
+              // chooser (Apple/Google/email), never an error. Sponsor-disabled
+              // builds still open it; each provider reports its exact
+              // unavailable reason and nothing is sent until one succeeds.
+              directLoginRef.current = true; setDirectLogin(true);
+              setGuestSheetState(initialGuestSignInSheetState());
+              setGuestSheetVisible(true);
             }}
             onRestore={async () => {
               if (!token) {
@@ -3262,12 +3467,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         visible={guestSheetVisible && !(guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending)}
         state={guestSheetState}
         providers={guestProviders}
+        heading={directLogin && !guestPending ? "Sign in to restore research" : undefined}
+        subheading={directLogin && !guestPending ? "Choose a provider to restore your member library." : undefined}
         reducedMotion={state.reducedMotion}
         colorScheme={resolveAppearance(appearance, system) === "dark" ? "dark" : "light"}
         onEvent={onGuestSheetEvent}
-        onDismiss={() => { setGuestSheetVisible(false); requestAnimationFrame(() => composerInput.current?.focus()); }}
+        onDismiss={() => { if (directLoginRef.current) { directLoginRef.current = false; setDirectLogin(false); } setGuestSheetVisible(false); requestAnimationFrame(() => composerInput.current?.focus()); }}
         onOpenLegalDocument={openGuestLegal}
-        transport={guestSheetTransport}
+        transport={directLogin && !guestPending ? directLoginTransport : guestSheetTransport}
       />
       <ClerkSessionTaskView
         visible={guestSheetVisible && guestPending?.phase === "authenticating" && !!auth?.sessionTaskPending}

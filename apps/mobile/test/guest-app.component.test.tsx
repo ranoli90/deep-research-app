@@ -10,6 +10,9 @@ import { beginGuestAuth, beginGuestClaim, cancelGuestPendingAction, completeGues
 import { sha256Hex } from "../src/sha256";
 
 const held = vi.hoisted(() => ({ device: null as any, session: null as any, id: 10 }));
+// F05 clock control: the 2026-09-22 fixture deadline is immutable and is never
+// moved forward here. Time is frozen before the deadline so this whole suite
+// passes under any host date, including after every old fixture deadline.
 vi.mock("react-native", () => ({
   AccessibilityInfo: { announceForAccessibility: () => undefined, isReduceMotionEnabled: async () => false, addEventListener: () => ({ remove() {} }), setAccessibilityFocus: () => undefined },
   AppState: { addEventListener: () => ({ remove() {} }) }, BackHandler: { addEventListener: () => ({ remove() {} }) },
@@ -72,6 +75,8 @@ async function seedAction(text = "A", withReader = false) {
 }
 beforeEach(async () => {
   held.id = 10;
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-21T01:00:00.000Z"));
   const ordinary = memoryStore(), native = memoryStore(), secure = memoryStore();
   const content = createProtectedContentStore(ordinary, native);
   await content.setItem("deep.install.v2", "1");
@@ -81,7 +86,7 @@ beforeEach(async () => {
     saveAdmission: async () => undefined, finishAdmission: async () => undefined, flush: async () => undefined, clear: async () => undefined };
   vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
 });
-afterEach(() => { api.activateSession(null); api.clearGuest(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { api.activateSession(null); api.clearGuest(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 it("CLAIM-14 mounted App cold-start Clerk restoration keeps storage ready after its own session epoch changes", async () => {
   held.session.hydrate = async () => ({ token: null, accountId: null, state: { ...emptyState(), draft: "question" } });
@@ -964,5 +969,27 @@ it("AUTH-06 mounted App discards an old in-flight run read after refresh, polls 
   await act(async () => { composer().props.onSend(); await Promise.resolve(); });
   await vi.waitFor(() => expect(calls.some(call => call.path === "/v1/runs" && call.bearer === "Bearer token-two")).toBe(true));
   expect(calls.filter(call => call.path === "/v1/runs")).toHaveLength(1);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("EXPIRY mounted App refuses a guest send after the fixture deadline with the draft preserved", async () => {
+  await seedAction("question past deadline");
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({})));
+  let renderer!: TestRenderer.ReactTestRenderer;
+  await act(async () => { renderer = TestRenderer.create(<AppInner auth={{ loaded: true, signedIn: false } as any} />); });
+  const composer = () => renderer.root.find(node => String(node.type) === "ResearchComposer");
+  await vi.waitFor(() => expect(composer().props.editable).toBe(true));
+  expect(composer().props.draft).toBe("question past deadline");
+  // Move test time past the immutable 2026-09-22 fixture deadline. Expiry
+  // enforcement must fail closed: the saved draft stays, nothing is sent.
+  await act(async () => { vi.setSystemTime(new Date("2026-09-22T00:00:01.000Z")); });
+  await act(async () => { composer().props.onSend(); });
+  await vi.waitFor(() => {
+    const text = renderer.root.findAll(node => String(node.type) === "Text").map(node => String(node.props.children ?? "")).join(" ");
+    expect(text).toMatch(/expired/);
+  });
+  expect(composer().props.draft).toBe("question past deadline");
+  expect((vi.mocked(fetch) as any).mock.calls.filter((call: any[]) => new URL(String(call[0])).pathname === "/v1/runs")).toHaveLength(0);
+  expect((await held.device.load()).state.draft).toBe("question past deadline");
   await act(async () => { renderer.unmount(); });
 });

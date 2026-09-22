@@ -71,6 +71,9 @@ export type GuestSignInSheetProps = {
   providers: Record<GuestSignInProvider, GuestProviderAvailability>;
   reducedMotion?: boolean;
   colorScheme?: "light" | "dark";
+  /** Direct member login keeps the claim-and-resume mode visually distinct. */
+  heading?: string;
+  subheading?: string;
   /** The app owns journal persistence and authenticating/claiming transport. */
   onEvent(event: GuestSignInSheetEvent): Promise<void>;
   /** Called only after `transport.dismiss` records the non-destructive dismissal. */
@@ -100,7 +103,7 @@ function ProviderMark({ provider, dark }: { provider: GuestSignInProvider; dark:
  * state transition after its pending-action journal and server claim are safe.
  */
 export function GuestSignInSheet({
-  visible, state, providers, reducedMotion = false, colorScheme = "light", onEvent, onDismiss, transport,
+  visible, state, providers, heading, subheading, reducedMotion = false, colorScheme = "light", onEvent, onDismiss, transport,
   onOpenLegalDocument,
 }: GuestSignInSheetProps) {
   const dark = colorScheme === "dark";
@@ -279,8 +282,8 @@ export function GuestSignInSheet({
             <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: line, marginBottom: 12 }} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text ref={title} onLayout={focusHeading} accessibilityRole="header" maxFontSizeMultiplier={1.8} style={{ color: ink, fontSize: 25, lineHeight: 31, fontWeight: "700", letterSpacing: -0.3 }}>{copy.title}</Text>
-                <Text maxFontSizeMultiplier={1.8} style={{ color: muted, fontSize: 16, lineHeight: 23, marginTop: 5 }}>{copy.subtitle}</Text>
+                <Text ref={title} onLayout={focusHeading} accessibilityRole="header" maxFontSizeMultiplier={1.8} style={{ color: ink, fontSize: 25, lineHeight: 31, fontWeight: "700", letterSpacing: -0.3 }}>{heading ?? copy.title}</Text>
+                <Text maxFontSizeMultiplier={1.8} style={{ color: muted, fontSize: 16, lineHeight: 23, marginTop: 5 }}>{subheading ?? copy.subtitle}</Text>
               </View>
               <Pressable onPress={() => { void close(); }} accessibilityRole="button" accessibilityLabel="Close sign-in sheet" hitSlop={12} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
                 <CloseIcon color={muted} size={17} />
