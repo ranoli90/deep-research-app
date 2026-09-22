@@ -308,13 +308,28 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
   };
   // Repeat actual extraction/checking after new evidence, never count search events as coverage.
   let prior:{extraction:Awaited<ReturnType<typeof extractEvidenceAssertions>>&{kind:"extraction"};support:Awaited<ReturnType<typeof executeAssertionSupport>>&{kind:"support"};calculations:Awaited<ReturnType<typeof executeCalculationPlanning>>;target:{runId:string;accountId:string;fence:number;briefRevision:number;taskId:string;extractionIntentId:string;supportIntentId?:string}}|null=null;
+  // Resolution requires a checked evidence basis. When a later pass fails or the exploration
+  // allowance is spent, finish from the most recent supported evidence instead of discarding it.
+  const writeFromPrior=async(reason:string)=>{
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
+      summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason}}));
+    await session.write((db)=>prepareClaimedResearchContext(db,args));
+    const result=await writeResearchReport(pool,config,session,{...prior!.target,sourceSupportIntentId:prior!.support.intentId,...(prior!.calculations.kind==="calculations"&&prior!.calculations.executions.length?{calculationPlanIntentId:prior!.calculations.intentId}:{})});
+    if(result.kind!=="publication")return pendingOrBlocked(result);
+    if(!result.accepted)return unresolved(result.reason);
+    await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
+      summary:"Answer ready."}));
+    return;
+  };
   for(let localPass=0;localPass<4;localPass++) {
     const inputDigest=createHash("sha256").update(JSON.stringify({task:prepared.task.id,evidenceRevision:(await getRun(pool,args.runId))!.evidence_revision,passages:selected.rows.map(p=>p.id).sort(),recovery:[...recoveryRequiredIds].sort(),discoveryIntents:(await loadDiscoveryAttempts(pool,args)).intentIds.sort()})).digest("hex");
     const iteration=await session.write(db=>admitResearchIteration(db,{...args,taskId:prepared.task.id,inputDigest}));
-    if(iteration===null)return unresolved("research_iteration_limit");
+    if(iteration===null){if(prior)return writeFromPrior("research_iteration_limit");return unresolved("research_iteration_limit");}
+    // The last admitted pass is reserved for finishing: do not start another explore/read step it cannot process.
+    const lastPermittedPass=iteration===3;
     // Do not silently replace discovery with fixtures or truncate a document to fit the context.
     if(!selected.rowCount){
-      if(config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled){
+      if(!lastPermittedPass&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled){
         const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);
         const nextClass=nextSourceClass(plan,classesAttempted,{weak:true,duplicative:false,stale:false});
         const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
@@ -348,22 +363,12 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
           }
         }
       }
+      if(prior)return writeFromPrior("readable_evidence_unavailable");
       return unresolved("readable_evidence_unavailable");
     }
     const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
     if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
-    const writeFromPrior=async(reason:string)=>{
-      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"plan_pivot",phase:"researching",
-        summary:"A later evidence pass failed; writing from previously checked evidence.",payload:{reason}}));
-      await session.write((db)=>prepareClaimedResearchContext(db,args));
-      const result=await writeResearchReport(pool,config,session,{...prior!.target,sourceSupportIntentId:prior!.support.intentId,...(prior!.calculations.kind==="calculations"&&prior!.calculations.executions.length?{calculationPlanIntentId:prior!.calculations.intentId}:{})});
-      if(result.kind!=="publication")return pendingOrBlocked(result);
-      if(!result.accepted)return unresolved(result.reason);
-      await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"report_ready",phase:"writing",
-        summary:"Answer ready."}));
-      return;
-    };
     if(extraction.kind!=="extraction"){
       if(prior)return writeFromPrior(extraction.kind==="blocked"?extraction.reason:"extraction_unavailable");
       return pendingOrBlocked(extraction);
@@ -424,7 +429,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(challenge.kind==="challenge") {
       await session.write(db=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"counterevidence_checked",phase:"researching",
         summary:"A bounded counterevidence check recorded its inspected evidence and remaining uncertainty.",payload:{challengeId:challenge.id,outcome:challenge.outcome,version:challenge.version}}));
-      if(challenge.evidenceChanged){selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;}
+      if(challenge.evidenceChanged){
+        if(lastPermittedPass)return prior?writeFromPrior("research_iteration_limit"):unresolved("research_iteration_limit");
+        selected=await selectPassages();recoveryRequiredIds=[];inspectedIds.clear();continue;
+      }
     }
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
@@ -486,7 +494,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     const freshnessUnmet=gaps.freshnessUnmet;
     const unresolvedCriterionKeys=gaps.unresolvedCriterionKeys;
     const unresolvedFreshnessCriteria=Object.entries(gaps.freshnessUnmetByKey).filter(([,unmet])=>unmet).map(([key])=>key);
-    if(simpleHistoricalLookup&&unresolvedCriterionKeys.length>0){
+    if(!lastPermittedPass&&simpleHistoricalLookup&&unresolvedCriterionKeys.length>0){
       const unread=await unreadAdoptedHandles();
       if(unread.length){
         await readAdoptedSources(prepared.task.id,unread,Object.keys(prepared.task.questionIds),"Read remaining adopted sources after insufficient historical evidence.",{criteria:prepared.task.specification.criteria,historicalLookupSatisfied:false,readPhase:"drain"});
@@ -522,7 +530,7 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     });
     await session.write((db)=>persistEvidenceNeeds(db,{...args,needs}));
     await syncCandidateLedger({queriesAttempted:queries,sourceClassesAttempted:classesAttempted});
-    if((unresolvedCriterionKeys.length>0||freshnessUnmet)&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
+    if((unresolvedCriterionKeys.length>0||freshnessUnmet)&&!lastPermittedPass&&config.structuredDiscoveryEnabled&&publicQueryApproved&&config.liveRetrievalEnabled) {
       const next=nextStrategySearch(run.research_strategy,{question:brief.originalQuestion,task:prepared.task.specification,
         unresolvedCriterionKeys,queries,ceiling:DEEP_DISCOVERY_CEILING});
       const plan=constrainSourcePlan(planSourceClass(brief.originalQuestion),policyFromRestrictions(brief.sourceRestrictions).mode);
@@ -612,5 +620,6 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       summary:"Answer ready."}));
     return;
   }
+  if(prior)return writeFromPrior("research_iteration_limit");
   return unresolved("research_iteration_limit");
 }
