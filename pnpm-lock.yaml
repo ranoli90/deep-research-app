@@ -67,9 +67,6 @@ importers:
       '@clerk/expo':
         specifier: 3.1.12
         version: 3.1.12(vu6ih22kpgdtgq5o2iv3ayeiki)
-      '@clerk/expo-google-signin':
-        specifier: 0.1.0
-        version: 0.1.0(expo-constants@18.0.14(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(expo-crypto@15.0.9(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(react-dom@19.3.0(react@19.1.0))(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)
       '@deep/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -680,18 +677,6 @@ packages:
   '@clerk/clerk-js@6.32.1':
     resolution: {integrity: sha512-WxzO4zGh6D/gMa4Eok1DHuKL3Gxq84mm6PQTueLupHzPqlts96c/QaoAHMxrRyUV96O9NZe4ogRJGE8BnFJssA==}
     engines: {node: '>=20.9.0'}
-
-  '@clerk/expo-google-signin@0.1.0':
-    resolution: {integrity: sha512-NUZWkqfftN7rxm4IiMayg2RKpzPP9Zm+Cmv/u3h4tCz9EcwLRAXIQ+OZsrALeqdmTwWqwFsFFGTyg7W8lxqoBg==}
-    peerDependencies:
-      expo: '>=53 <57'
-      expo-constants: '>=12'
-      expo-crypto: '>=12'
-      react: ^18.0.0 || ^19.0.0
-      react-native: '>=0.75'
-    peerDependenciesMeta:
-      expo-constants:
-        optional: true
 
   '@clerk/expo@3.1.12':
     resolution: {integrity: sha512-a/dlLdw/9fKHE0wfWegzWG0NEutLeeLjBpuUzZ7viTbvqls5AYUbJ+/mdQQVkW78eDc8f76JcDoB4USyx5vfPw==}
@@ -5208,20 +5193,6 @@ snapshots:
       - use-sync-external-store
       - utf-8-validate
       - zod
-
-  ? '@clerk/expo-google-signin@0.1.0(expo-constants@18.0.14(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(expo-crypto@15.0.9(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(react-dom@19.3.0(react@19.1.0))(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)'
-  : dependencies:
-      '@clerk/react': 6.16.1(react-dom@19.3.0(react@19.1.0))(react@19.1.0)
-      '@clerk/shared': 4.33.0(react-dom@19.3.0(react@19.1.0))(react@19.1.0)
-      expo: 54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
-      expo-crypto: 15.0.9(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))
-      react: 19.1.0
-      react-native: 0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)
-      tslib: 2.8.1
-    optionalDependencies:
-      expo-constants: 18.0.14(expo@54.0.37(@babel/core@7.29.7)(bufferutil@4.1.0)(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(react-native@0.81.4(@babel/core@7.29.7)(@types/react@19.1.17)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))
-    transitivePeerDependencies:
-      - react-dom
 
   '@clerk/expo@3.1.12(vu6ih22kpgdtgq5o2iv3ayeiki)':
     dependencies:

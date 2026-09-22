@@ -29,7 +29,6 @@
     "plugins": [
       "expo-secure-store",
       "@clerk/expo",
-      "@clerk/expo-google-signin",
       "expo-apple-authentication",
       "./plugins/with-cleartext.js"
     ],
