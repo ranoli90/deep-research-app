@@ -6,7 +6,7 @@ import { sha256Hex } from "../sha256";
 const CONTEXT_KEY = "norrow.guest.context.v1";
 const PROOF_KEY = "norrow.guest.proof.v1";
 const SNAPSHOT_KEY = "norrow.guest.snapshot.v1";
-const ACTION_KEY = "norrow.guest.pending-action.v2";
+const ACTION_KEY = "norrow.guest.pending-action.v3";
 const ABANDONED_KEY = "norrow.guest.abandoned-actions.v1";
 const FIRST_REQUEST_KEY = "norrow.guest.first-request.v1";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

@@ -39,7 +39,7 @@ function claimAccepted(overrides: Partial<GuestClaimAcceptedOutcome> = {}): Gues
 function continuationDispatched(overrides: Partial<GuestContinuationDispatchedOutcome> = {}): GuestContinuationDispatchedOutcome {
   return {
     type: "continuation_dispatched", submissionId: id(1), claimRequestId: id(8), accountId: id(7),
-    conversationId: id(3), conversationVersion: 4, receiptId: id(9), ...overrides,
+    conversationId: id(3), conversationVersion: 4, receiptId: id(9), runId: id(10), memberConversationId: id(11), ...overrides,
   };
 }
 function continuationRejected(overrides: Partial<Extract<GuestPendingActionRejectionOutcome, { type: "continuation_rejected" }>> = {}): GuestPendingActionRejectionOutcome {
@@ -182,8 +182,21 @@ describe("guest pending action", () => {
   it("CLAIM-14 records a dispatched continuation exactly once", () => {
     const resuming = beginGuestActionResume(claimed(), context());
     const dispatched = markGuestActionDispatched(resuming, continuationDispatched(), context().now);
-    expect(dispatched).toMatchObject({ phase: "dispatched", dispatchReceiptId: id(9), autoResume: false });
-    expect(() => markGuestActionDispatched(dispatched, continuationDispatched({ receiptId: id(10) }), context().now)).toThrow("current state");
+    expect(dispatched).toMatchObject({ phase: "dispatched", dispatchReceiptId: id(9), memberRunId: id(10), memberConversationId: id(11), autoResume: false });
+    expectRoundTrip(dispatched);
+    expect(() => markGuestActionDispatched(dispatched, continuationDispatched({ receiptId: id(12) }), context().now)).toThrow("current state");
+  });
+
+  it("R04 binds the accepted child to the dispatch receipt and rejects an incomplete child binding", () => {
+    const resuming = beginGuestActionResume(claimed(), context());
+    expect(() => markGuestActionDispatched(resuming, continuationDispatched({ runId: "not-a-uuid" as any }), context().now)).toThrow("could not be confirmed");
+    expect(() => markGuestActionDispatched(resuming, continuationDispatched({ memberConversationId: null as any }), context().now)).toThrow("could not be confirmed");
+    const dispatched = markGuestActionDispatched(resuming, continuationDispatched(), context().now);
+    // A dispatched journal without its child binding can never be decoded: a
+    // crash that loses the binding is a held reconcile state, not a lost child.
+    expect(() => readGuestPendingAction({ ...dispatched, memberRunId: null })).toThrow("Saved sign-in action is invalid");
+    expect(() => readGuestPendingAction({ ...dispatched, memberConversationId: null })).toThrow("Saved sign-in action is invalid");
+    expect(() => readGuestPendingAction({ ...pending(), memberRunId: id(10) })).toThrow("Saved sign-in action is invalid");
   });
 
   it("AUTH-14 keeps dispatched and rejected terminal evidence strict-decoder-valid after expiry", () => {

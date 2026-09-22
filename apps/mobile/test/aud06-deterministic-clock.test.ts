@@ -74,6 +74,8 @@ function continuationDispatched(): GuestContinuationDispatchedOutcome {
     conversationId: id(3),
     conversationVersion: 1,
     receiptId: id(9),
+    runId: id(10),
+    memberConversationId: id(11),
   };
 }
 

@@ -6,7 +6,7 @@ import { sha256Hex } from "../sha256";
  * and idempotency. Keeping the envelope strict prevents a late OAuth callback
  * from silently changing or submitting a different local action.
  */
-export const GUEST_PENDING_ACTION_VERSION = "guest-pending-action.v2" as const;
+export const GUEST_PENDING_ACTION_VERSION = "guest-pending-action.v3" as const;
 export const GUEST_PENDING_ACTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 type Uuid = string;
@@ -58,11 +58,14 @@ export type GuestPendingAction = {
   authenticatedAccountId: Uuid | null;
   claim: { requestId: Uuid; accountId: Uuid; controlVersion: number; principalEpoch: number; viewEpoch: number } | null;
   dispatchReceiptId: Uuid | null;
+  /** The accepted member child bound to the dispatch receipt; non-null only while phase is "dispatched". */
+  memberRunId: Uuid | null;
+  memberConversationId: Uuid | null;
   rejectionCode: "guest_expired" | "guest_deleted" | "authority_denied" | "intent_stale" | null;
 };
 
 export type NewGuestPendingAction = Omit<GuestPendingAction,
-  "version" | "phase" | "autoResume" | "payloadDigest" | "authAttempt" | "authenticatedAccountId" | "claim" | "dispatchReceiptId" | "rejectionCode">;
+  "version" | "phase" | "autoResume" | "payloadDigest" | "authAttempt" | "authenticatedAccountId" | "claim" | "dispatchReceiptId" | "memberRunId" | "memberConversationId" | "rejectionCode">;
 
 export type CurrentResumeContext = {
   now: Date;
@@ -112,6 +115,9 @@ export type GuestContinuationDispatchedOutcome = {
   conversationId: Uuid;
   conversationVersion: number;
   receiptId: Uuid;
+  /** The exact accepted member child. It is the only run a restart may restore for this receipt. */
+  runId: Uuid;
+  memberConversationId: Uuid;
 };
 export type GuestPendingActionRejectionOutcome =
   | {
@@ -205,11 +211,12 @@ function persisted(candidate: GuestPendingAction): GuestPendingAction {
 /** Strictly decode persisted untrusted storage; corrupt journals never mint a replacement ID. */
 export function readGuestPendingAction(value: unknown): GuestPendingAction {
   if (!record(value) || !exactKeys(value, [
-    "version", "phase", "autoResume", "submissionId", "guestContextId", "conversationId", "conversationVersion", "draftRevision", "draftDigest", "payload", "payloadDigest", "consentPolicyVersion", "createdAt", "expiresAt", "authAttempt", "authenticatedAccountId", "claim", "dispatchReceiptId", "rejectionCode",
+    "version", "phase", "autoResume", "submissionId", "guestContextId", "conversationId", "conversationVersion", "draftRevision", "draftDigest", "payload", "payloadDigest", "consentPolicyVersion", "createdAt", "expiresAt", "authAttempt", "authenticatedAccountId", "claim", "dispatchReceiptId", "memberRunId", "memberConversationId", "rejectionCode",
   ]) || value.version !== GUEST_PENDING_ACTION_VERSION || typeof value.phase !== "string" || !phases.has(value.phase as GuestPendingActionPhase) || typeof value.autoResume !== "boolean" ||
     !validId(value.submissionId) || !validId(value.guestContextId) || !validId(value.conversationId) || !validVersion(value.conversationVersion) || !validVersion(value.draftRevision) || !validDigest(value.draftDigest) ||
     !validDigest(value.payloadDigest) || typeof value.consentPolicyVersion !== "string" || !value.consentPolicyVersion || value.consentPolicyVersion.length > 120 || !validDate(value.createdAt) || !validDate(value.expiresAt) ||
     !(value.authenticatedAccountId === null || validId(value.authenticatedAccountId)) || !(value.dispatchReceiptId === null || validId(value.dispatchReceiptId)) ||
+    !(value.memberRunId === null || validId(value.memberRunId)) || !(value.memberConversationId === null || validId(value.memberConversationId)) ||
     !(value.rejectionCode === null || ["guest_expired", "guest_deleted", "authority_denied", "intent_stale"].includes(String(value.rejectionCode)))) invalid();
   const payload = readPayload(value.payload), authAttempt = readAuthAttempt(value.authAttempt), claim = readClaim(value.claim);
   const intent: GuestPendingAction = {
@@ -218,7 +225,8 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
     conversationVersion: value.conversationVersion, draftRevision: value.draftRevision, draftDigest: value.draftDigest,
     payload, payloadDigest: value.payloadDigest, consentPolicyVersion: value.consentPolicyVersion,
     createdAt: value.createdAt, expiresAt: value.expiresAt, authAttempt, authenticatedAccountId: value.authenticatedAccountId,
-    claim, dispatchReceiptId: value.dispatchReceiptId, rejectionCode: value.rejectionCode as GuestPendingAction["rejectionCode"],
+    claim, dispatchReceiptId: value.dispatchReceiptId, memberRunId: value.memberRunId, memberConversationId: value.memberConversationId,
+    rejectionCode: value.rejectionCode as GuestPendingAction["rejectionCode"],
   };
   if (intent.payloadDigest !== sha256Hex(canonicalPayload(payload)) || Date.parse(intent.expiresAt) <= Date.parse(intent.createdAt) || Date.parse(intent.expiresAt) - Date.parse(intent.createdAt) > GUEST_PENDING_ACTION_MAX_AGE_MS) invalid();
   if ((intent.phase === "authenticating" && intent.authAttempt === null) ||
@@ -227,6 +235,8 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
     (["claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
     (intent.claim !== null && (intent.authenticatedAccountId === null || intent.claim.accountId !== intent.authenticatedAccountId)) ||
     (intent.phase === "dispatched") !== (intent.dispatchReceiptId !== null) ||
+    (intent.phase === "dispatched") !== (intent.memberRunId !== null) ||
+    (intent.phase === "dispatched") !== (intent.memberConversationId !== null) ||
     (intent.phase === "rejected") !== (intent.rejectionCode !== null) ||
     (["dispatched", "cancelled", "rejected", "expired"].includes(intent.phase) && intent.autoResume) ||
     (intent.phase === "expired" && (intent.authAttempt !== null || intent.dispatchReceiptId !== null || intent.rejectionCode !== null)) ||
@@ -248,7 +258,7 @@ export function createGuestPendingAction(input: NewGuestPendingAction): GuestPen
   const candidate = {
     ...input, version: GUEST_PENDING_ACTION_VERSION, phase: "pending_auth" as const, autoResume: true,
     payloadDigest: sha256Hex(canonicalPayload(input.payload)), authAttempt: null, authenticatedAccountId: null,
-    claim: null, dispatchReceiptId: null, rejectionCode: null,
+    claim: null, dispatchReceiptId: null, memberRunId: null, memberConversationId: null, rejectionCode: null,
   };
   return readGuestPendingAction(candidate);
 }
@@ -400,7 +410,7 @@ export function cancelGuestPendingAction(intent: GuestPendingAction, now: Date):
   const checked = readGuestPendingAction(intent);
   if (isTerminal(checked)) return checked;
   if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
-  return persisted({ ...checked, phase: "cancelled", autoResume: false, authAttempt: null, dispatchReceiptId: null, rejectionCode: null });
+  return persisted({ ...checked, phase: "cancelled", autoResume: false, authAttempt: null, dispatchReceiptId: null, memberRunId: null, memberConversationId: null, rejectionCode: null });
 }
 /**
  * A fresh explicit Send may resume a dismissed handoff without changing its
@@ -494,11 +504,14 @@ export function holdGuestResumeForConsent(intent: GuestPendingAction): GuestPend
 export function markGuestActionDispatched(intent: GuestPendingAction, outcome: GuestContinuationDispatchedOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);
   if (!(checked.phase === "resume_pending" || checked.phase === "resume_reconcile")) throw new Error("This saved sign-in action cannot continue from its current state.");
-  if (outcome.type !== "continuation_dispatched" || !continuationOutcomeMatches(checked, outcome) || !validId(outcome.receiptId)) throw new Error("Research continuation could not be confirmed.");
+  if (outcome.type !== "continuation_dispatched" || !continuationOutcomeMatches(checked, outcome) || !validId(outcome.receiptId) ||
+    !validId(outcome.runId) || !validId(outcome.memberConversationId)) throw new Error("Research continuation could not be confirmed.");
   // This records a response from the original submission. It does not issue a
   // new request, so it remains safe after expiry while reconciliation is on.
+  // The child run/conversation identity is committed with the receipt so a
+  // restart can verify the exact accepted child instead of discarding it.
   void now;
-  return persisted({ ...checked, phase: "dispatched", dispatchReceiptId: outcome.receiptId, autoResume: false });
+  return persisted({ ...checked, phase: "dispatched", dispatchReceiptId: outcome.receiptId, memberRunId: outcome.runId, memberConversationId: outcome.memberConversationId, autoResume: false });
 }
 export function rejectGuestPendingAction(intent: GuestPendingAction, outcome: GuestPendingActionRejectionOutcome, now: Date): GuestPendingAction {
   const checked = readGuestPendingAction(intent);

@@ -39,8 +39,8 @@ describe("guest device custody", () => {
     expect(saved?.state.run?.runId).toBe(id(4));
     expect(saved?.state.draft).toBe("Second message");
     expect(saved?.pendingAction?.payload).toEqual(action().payload);
-    expect(JSON.stringify(await s.ordinary.getItem("norrow.guest.pending-action.v2"))).not.toContain(proof);
-    expect(await s.nativeContent.getItem("norrow.guest.pending-action.v2.content.v1.0.0")).not.toContain(proof);
+    expect(JSON.stringify(await s.ordinary.getItem("norrow.guest.pending-action.v3"))).not.toContain(proof);
+    expect(await s.nativeContent.getItem("norrow.guest.pending-action.v3.content.v1.0.0")).not.toContain(proof);
   });
 
   it("GUEST-05 refuses to replace a live guest, action or server control with another identity", async () => {
@@ -80,7 +80,7 @@ describe("guest device custody", () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);
     await s.content.setItem("deep.install.v2", "1");
     await device.saveBootstrap(context, proof);
-    await s.content.setItem("norrow.guest.pending-action.v2", JSON.stringify({ ...action(), payloadDigest: "0".repeat(64) }));
+    await s.content.setItem("norrow.guest.pending-action.v3", JSON.stringify({ ...action(), payloadDigest: "0".repeat(64) }));
     await expect(device.load()).rejects.toThrow("Saved sign-in action is invalid");
     expect(await s.secure.getItem("norrow.guest.proof.v1")).toBe(proof);
   });
@@ -92,7 +92,7 @@ describe("guest device custody", () => {
     await device.clear();
     expect(await device.load()).toBeNull();
     expect(await s.secure.getItem("norrow.guest.proof.v1")).toBeNull();
-    expect(await s.content.getItem("norrow.guest.pending-action.v2")).toBeNull();
+    expect(await s.content.getItem("norrow.guest.pending-action.v3")).toBeNull();
   });
   it("AUTH-14 never restores iOS keychain proof after an ordinary-storage reinstall", async () => {
     const s = stores(), device = createGuestDeviceStore(s.content, s.secure);

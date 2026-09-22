@@ -865,14 +865,18 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
   async function adoptGuestContinuation(pending: GuestPendingAction, result: any, _memberToken: string) {
     const credential = memberAuthority(pending.authenticatedAccountId);
+    if (result?.type !== "continuation_dispatched" || typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
     const dispatched = markGuestActionDispatched(pending, result, new Date());
-    if (typeof result.runId !== "string" || typeof result.memberConversationId !== "string") throw new Error("The continued research identity was not confirmed.");
     guestRunEpoch.current++;
-    // Read the latest still-owned reader only after the durable journal write:
-    // text typed during persistence survives in both the stored snapshot and
-    // the rendered state. The dispatched message clears; anything typed
-    // meanwhile (or an unrelated draft beside a clarification answer) survives.
-    // A principal change that landed meanwhile fail-closes via credential().
+    // The durable terminal journal binds the dispatch receipt to the exact
+    // accepted child run and member conversation. It is committed before the
+    // member reader so a restart can verify and restore that child, rather than
+    // discarding the only handoff record. Read the latest still-owned reader
+    // only after the durable journal write: text typed during persistence
+    // survives in both the stored snapshot and the rendered state. The
+    // dispatched message clears; anything typed meanwhile (or an unrelated
+    // draft beside a clarification answer) survives. A principal change that
+    // landed meanwhile fail-closes via credential().
     api.selectRun(result.runId);
     await saveGuestPending(dispatched);
     const previous = latestUi.current;
@@ -1704,12 +1708,45 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         api.activateSession(null);
         hydration.release(); hydration = api.capture();
       }
-      // The child snapshot is committed before the terminal journal. If a
-      // process dies before guest cleanup, a verified matching member may
-      // finish that cleanup without resurrecting the preclaim guest reader.
+      // R04: the terminal journal binds the dispatch receipt to the exact child
+      // run and member conversation. Adoption is complete only when the verified
+      // member's saved reader IS that child. Anything else means the process died
+      // inside dispatch or adoption: restore the accepted child from the durable
+      // binding (a reader-only restore, never a replacement paid request), or fail
+      // closed without clearing the only handoff record.
       if (guest?.pendingAction?.phase === "dispatched" && memberToken && member.accountId === memberAccountId &&
-          guest.pendingAction.authenticatedAccountId === memberAccountId && member.state.run?.runId && member.state.conversationId) {
-        await guestDevice.clear(); api.clearGuest(); guest = null;
+          guest.pendingAction.authenticatedAccountId === memberAccountId) {
+        const child = guest.pendingAction;
+        const childCommitted = !!child.memberRunId && !!child.memberConversationId &&
+          member.state.run?.runId === child.memberRunId && member.state.conversationId === child.memberConversationId;
+        if (childCommitted) {
+          await guestDevice.clear(); api.clearGuest(); guest = null;
+        } else if (child.memberRunId && child.memberConversationId) {
+          const sentText = child.payload.kind === "clarification" ? null : child.payload.text;
+          const guestPrevious = guest.state.report ? { reportId: guest.state.report.reportId, blocks: guest.state.report.blocks } : guest.state.previousReport;
+          const restored: UiState = { ...member.state, signedIn: true, conversationId: child.memberConversationId,
+            draft: sentText !== null && member.state.draft.trim() === sentText.trim() ? "" : member.state.draft,
+            source: null, readingAnchor: null, report: null, previousReport: guestPrevious, status: "progress", error: null,
+            run: { runId: child.memberRunId, lifecycle: "queued", phase: "queued", outcome: null, reportId: null, labeledDemo: false } };
+          await sessionStorage.persistRequired(memberToken, restored);
+          await guestDevice.clear(); api.clearGuest(); guest = null; api.selectRun(child.memberRunId);
+          member.state = restored;
+        } else {
+          // A dispatched journal without a durable child binding is never
+          // discarded; it stays on disk for reconciliation.
+          setStateRaw(s => ({ ...s, error: "A saved research request needs confirmation. Reconnect to finish restoring it." }));
+        }
+      }
+      // A process killed while the continuation request was in flight leaves
+      // "resume_pending". Nothing may resend it: hold it reconcile-only so a
+      // restart resolves the original server outcome (the accepted child, or a
+      // definitive not-dispatched claim) instead of issuing a replacement.
+      if (guest?.pendingAction?.phase === "resume_pending" && memberToken && member.accountId === memberAccountId &&
+          guest.pendingAction.authenticatedAccountId === memberAccountId) {
+        const heldResume = holdGuestResumeForReconciliation(guest.pendingAction);
+        await saveGuestPending(heldResume, guest.pendingAction);
+        guest.pendingAction = heldResume;
+        setStateRaw(s => ({ ...s, error: "Your saved message may have finished before the app closed. Resolve it to restore the exact result; it will not be sent again." }));
       }
       // A protected guest reader can be bound to member A before the last
       // cleanup write. Retain that journal on disk, but never render or use it
