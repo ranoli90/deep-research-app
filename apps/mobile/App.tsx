@@ -73,7 +73,7 @@ import { color, space } from "@deep/design";
 import { makeStyles } from "./src/product-styles";
 import { guestDevice, sessionStorage } from "./src/native-session";
 import { SupersededRequest } from "./src/request-scope";
-import { OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
+import { DEFAULT_RUN_BUDGET_MICRO, OUTPUT_REPORT_CATEGORIES } from "@deep/contracts";
 import { api, ApiError, deletionPageUrl, isExpiredSession, isOfflineError, isSupersededRequest } from "./src/api";
 import { activateLocalSession, clearAccountLocal, hydrateOnLaunch, logoutLocal, persistSession } from "./src/persist";
 import { APPEARANCE_KEY, readAppearance, resolveAppearance } from "./src/appearance";
@@ -847,7 +847,6 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     const latest = latestUi.current;
     const merged = { ...next, draft: latest.draft !== previous.draft ? latest.draft : next.draft, consentGranted: latest.consentGranted };
     latestUi.current = merged; setStateRaw(merged);
-    latestUi.current = merged; setStateRaw(merged);
     setGuestSheetVisible(false);
     startPolling(credential(), result.runId); void refreshRun(credential(), result.runId, next);
     await guestDevice.clear(); guestContextRef.current = null; guestProof.current = null; guestPendingRef.current = null;
@@ -1364,7 +1363,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         return;
       }
       const t = memberTokenRef.current ?? token ?? (await ensureSession());
-      await api.consent(t, true);
+      // Stricter member-consent route: member bearer only, guest proof never
+      // attached. Fail closed when the server does not confirm the grant.
+      const consentResult = await api.consent(t, true);
+      if (consentResult?.granted !== true) throw new Error("Current member consent could not be confirmed.");
       // The server confirmed the grant. Mirror it into the latest reader
       // immediately (same value the queued render carries) so a continuation
       // adopted in this same call stack cannot publish a stale pre-grant
@@ -1376,16 +1378,25 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
 
         return next;
       });
-      // One continuation of an exact retained claim after explicit member
-      // consent. Only a held claimed/member_claimed action with automatic
-      // continuation still enabled resumes, and only once: the transition to
-      // resume_pending happens before any network, so no second trigger can
-      // re-enter. Reconcile-only journals never auto-resume here.
+      // Funded continuation of an exact retained claim after explicit member
+      // consent. The bounded new-member grant is keyed by the claim identity,
+      // so a retry replays the same grantRequestId (server answers reused)
+      // instead of funding twice; only then does the single resume run. A
+      // denied or unknown grant withholds the continuation: 403
+      // consent_required on resume still holds with explicit UX, 402 still
+      // lands in the funding state, and neither is ever auto-resent.
+      // Clarification field, ID, and revision are untouched, so the held
+      // answer keeps its exact identity. Reconcile-only journals never
+      // auto-resume here.
       const held = guestPendingRef.current;
       const owner = memberAccountRef.current;
       if (held && owner && held.autoResume && held.authenticatedAccountId === owner &&
         (held.phase === "claimed" || held.phase === "member_claimed")) {
-        try { await continueSavedSecondMessage(t, owner); }
+        try {
+          if (!held.claim) throw new Error("The saved claim lost its identity. It was not continued.");
+          await api.newMemberGrant(t, held.claim.requestId, DEFAULT_RUN_BUDGET_MICRO);
+          await continueSavedSecondMessage(t, owner);
+        }
         catch (e) {
           if (isSupersededRequest(e)) return;
           setState((s) => ({ ...s, error: (e as Error).message }));

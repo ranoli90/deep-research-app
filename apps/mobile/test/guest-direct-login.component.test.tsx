@@ -288,7 +288,7 @@ it("D-LOGIN-06 private-upload entry signs in directly and uploads under the memb
   stubFetch(calls, (method, path, body) => {
     if (path === "/v1/auth/capabilities") return ok(legal);
     if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
-    if (path === "/v1/consent") return ok({ granted: true, policyVersion: "consent.v1" });
+    if (method === "POST" && path === "/v1/consent/member") return ok({ granted: true, consentEpoch: 1, policyVersion: "consent.v1", processors: [] });
     if (path === "/v1/settings") return ok({ liveRouteEnabled: true });
     if (method === "POST" && path === "/v1/attachments") return ok({ attachmentId: id(520) });
     if (method === "POST" && path === "/v1/runs") return ok({ runId: id(521), lifecycle: "queued", phase: "preparing", labeledDemo: false });
