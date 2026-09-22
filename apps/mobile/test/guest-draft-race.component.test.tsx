@@ -227,3 +227,56 @@ it("RACE-03 edit during a poll refresh write survives with the run intact", asyn
   await vi.waitFor(() => expect((held.device.load() as Promise<{ state: { draft: string } }>).then((d) => d.state.draft)).resolves.toBe("B2"));
   await act(async () => { renderer.unmount(); });
 });
+
+it("R05-01 Library navigation during a pending snapshot write is not overwritten", async () => {
+  const runId = id(640);
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: "B", consentGranted: true, routeMode: "controlled-research",
+    run: { runId, lifecycle: "queued" as const, phase: "running", outcome: null, reportId: null, labeledDemo: false }, status: "progress" as const });
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path) => {
+    if (path === `/v1/runs/${runId}`) return ok({ runId, lifecycle: "queued", phase: "running", outcome: null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${runId}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountGuest();
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === `/v1/runs/${runId}`)).not.toHaveLength(0));
+  // Gate the next poll-refresh durable write, then navigate to Library while it
+  // is still open. The older research frame must not take the screen back.
+  const delayed = armDelayedWrite({ once: true });
+  await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+  await vi.waitFor(() => expect(delayed.waits()).toBe(1));
+  await act(async () => { headerOf(renderer).props.onLibrary(); });
+  await act(async () => { delayed.release(); });
+  await vi.waitFor(() => expect(renderer.root.findAll((n) => String(n.type) === "LibraryList")).not.toHaveLength(0));
+  // The stale research frame did not take the screen back. (Tab is a local view
+  // field and is intentionally not part of the persisted snapshot envelope.)
+  await act(async () => { renderer.unmount(); });
+});
+
+it("R05-02 confirmed cancellation during a pending snapshot write cannot regress to running", async () => {
+  const runId = id(650);
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: "B", consentGranted: true, routeMode: "controlled-research",
+    run: { runId, lifecycle: "queued" as const, phase: "running", outcome: null, reportId: null, labeledDemo: false }, status: "progress" as const });
+  let cancelled = false;
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path) => {
+    if (method === "POST" && path === `/v1/runs/${runId}/cancel`) { cancelled = true; return ok({ cancelled: true }); }
+    if (path === `/v1/runs/${runId}`) return ok({ runId, lifecycle: cancelled ? "terminal" : "queued", phase: cancelled ? "done" : "running",
+      outcome: cancelled ? "cancelled" : null, reportId: null, labeledDemo: false });
+    if (path === `/v1/runs/${runId}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountGuest();
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === `/v1/runs/${runId}`)).not.toHaveLength(0));
+  const delayed = armDelayedWrite({ once: true });
+  await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+  await vi.waitFor(() => expect(delayed.waits()).toBe(1));
+  // Confirmed cancellation lands while the earlier running-frame write is open.
+  await act(async () => { await composerOf(renderer).props.onCancel(); });
+  await act(async () => { delayed.release(); });
+  await vi.waitFor(() => expect(composerOf(renderer).props.inProgress).toBe(false));
+  await vi.waitFor(async () => expect((await held.device.load()).state.run?.lifecycle).toBe("terminal"));
+  await act(async () => { renderer.unmount(); });
+});

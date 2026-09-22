@@ -510,6 +510,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   async function saveGuestReader(next: UiState) {
     const { context } = currentGuest();
     const draftAtEntry = latestUi.current.draft;
+    const navAtEntry = { tab: latestUi.current.tab, source: latestUi.current.source, routeMode: latestUi.current.routeMode };
+    const runAtEntry = { runId: latestUi.current.run?.runId ?? null, lifecycle: latestUi.current.run?.lifecycle ?? null };
     await guestDevice.saveSnapshot(context.guestContextId, next, guestDraftRevision.current);
     // Whole-update boundary: text typed during the durable write survives.
     // An unchanged reader publishes the accepted frame as-is; a newer draft
@@ -517,6 +519,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     // that landed meanwhile fail closed: the stale frame is never published.
     if (guestContextRef.current?.guestContextId !== context.guestContextId || memberTokenRef.current) return;
     const latest = latestUi.current;
+    // R05: navigation and run lifecycle are owned by the newest local event,
+    // not by a snapshot write that began earlier. A Library navigation or a
+    // local cancellation/terminal transition that lands mid-write must not be
+    // overwritten by the older research/running frame. Run *content* from an
+    // accepted refresh still applies when the run identity/lifecycle is unchanged.
+    const runChanged = (latest.run?.runId ?? null) !== runAtEntry.runId || (latest.run?.lifecycle ?? null) !== runAtEntry.lifecycle;
     // Consent follows a version boundary, not a value comparison: a render
     // echo of the pre-grant frame carries the same (lower) revision and can
     // never regress a confirmed grant. A higher-revision revocation still wins.
@@ -524,9 +532,23 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       ...next,
       draft: latest.draft !== draftAtEntry ? latest.draft : next.draft,
       ...mergeConsent(next, latest),
+      ...(latest.tab !== navAtEntry.tab ? { tab: latest.tab } : {}),
+      ...(latest.source !== navAtEntry.source ? { source: latest.source } : {}),
+      ...(latest.routeMode !== navAtEntry.routeMode ? { routeMode: latest.routeMode } : {}),
+      ...(runChanged ? { run: latest.run, status: latest.status } : {}),
     };
     latestUi.current = merged;
     setStateRaw(merged);
+    // R05: if navigation or run lifecycle changed while the durable write was
+    // open, the stale frame must not be what a restart restores. The ownership
+    // guard above already passed, so this correction cannot resurrect a deleted
+    // or account-switched conversation.
+    if (merged.tab !== next.tab || merged.source !== next.source || merged.routeMode !== next.routeMode ||
+        (merged.run?.runId ?? null) !== (next.run?.runId ?? null) ||
+        (merged.run?.lifecycle ?? null) !== (next.run?.lifecycle ?? null)) {
+      try { await guestDevice.saveSnapshot(context.guestContextId, merged, guestDraftRevision.current); }
+      catch { /* the in-memory ownership boundary already published; a later autosave retries */ }
+    }
   }
 
   async function refreshGuestRun(runId: string) {
